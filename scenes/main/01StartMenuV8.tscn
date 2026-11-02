@@ -1,0 +1,510 @@
+[gd_scene load_steps=45 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/main/01StartMenu.tscn" id="base"]
+
+[ext_resource type="Script" path="res://scripts/ui/start_menu/main_menu_v8.gd" id="script"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/background/coastal_yard.png" id="tex0"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/subjects/home_house_yard.png" id="tex2"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/subjects/adventure_ship.png" id="tex3"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/subjects/research_greenhouse.png" id="tex4"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/subjects/supply_pickup.png" id="tex5"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/overlays/dock_foreground.png" id="tex6"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/overlays/ship_waterline_ripples.png" id="tex7"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/home_blank.png" id="tex8"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/home_hover.png" id="tex8hover"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/home_pressed.png" id="tex8pressed"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/home_disabled.png" id="tex8disabled"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/sail_blank.png" id="tex9"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/sail_hover.png" id="tex9hover"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/sail_pressed.png" id="tex9pressed"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/sail_disabled.png" id="tex9disabled"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/research_blank.png" id="tex10"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/research_hover.png" id="tex10hover"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/research_pressed.png" id="tex10pressed"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/research_disabled.png" id="tex10disabled"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/supply_blank.png" id="tex11"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/supply_hover.png" id="tex11hover"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/supply_pressed.png" id="tex11pressed"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/buttons/states/supply_disabled.png" id="tex11disabled"]
+
+
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/shadows/house_contact.png" id="v8_house_contact"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/shadows/research_contact.png" id="v8_research_contact"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/shadows/truck_contact.png" id="v8_truck_contact"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/shadows/dock_contact.png" id="v8_dock_contact"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/foreground/truck_fence_grass.png" id="v8_truck_fence_grass"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/foreground/shoreline_grass.png" id="v8_shoreline_grass"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/foreground/console_ground_rocks.png" id="v8_console_ground_rocks"]
+[ext_resource type="PackedScene" path="res://assets/adventure/main_menu/v8/art/crow/flyby/CrowFlyby.tscn" id="crow"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/lock_icon.png" id="lock"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/utility_console_body.png" id="v8_utility_console"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/option_blank.png" id="optionstexture"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/option_hover.png" id="optionshover"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/option_pressed.png" id="optionspressed"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/help_blank.png" id="helptexture"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/help_hover.png" id="helphover"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/help_pressed.png" id="helppressed"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/exit_blank.png" id="exittexture"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/exit_hover.png" id="exithover"]
+[ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v8/art/ui/exit_pressed.png" id="exitpressed"]
+
+[node name="StartMenuV8" instance=ExtResource("base")]
+script = ExtResource("script")
+
+[node name="ArtCanvas" type="Control" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="coastal_yard" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("tex0")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="house_contact" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("v8_house_contact")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="research_contact" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("v8_research_contact")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="truck_contact" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("v8_truck_contact")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="dock_contact" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("v8_dock_contact")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="home" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 138.0
+offset_right = 605.0
+offset_bottom = 610.0
+texture = ExtResource("tex2")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(0.94, 0.94, 0.94, 1)
+
+[node name="ship" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 1230.0
+offset_top = 165.0
+offset_right = 1907.0
+offset_bottom = 673.0
+texture = ExtResource("tex3")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="research" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 647.0
+offset_top = 440.0
+offset_right = 1207.0
+offset_bottom = 857.0
+texture = ExtResource("tex4")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(0.94, 0.94, 0.94, 1)
+
+[node name="supply" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 664.0
+offset_right = 574.0
+offset_bottom = 1068.0
+texture = ExtResource("tex5")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(0.94, 0.94, 0.94, 1)
+
+[node name="dock_foreground" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("tex6")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="ship_waterline_ripples" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1920.0
+offset_bottom = 1080.0
+texture = ExtResource("tex7")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="truck_fence_grass" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 891.0
+offset_right = 560.0
+offset_bottom = 1080.0
+texture = ExtResource("v8_truck_fence_grass")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="shoreline_grass" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 1200.0
+offset_top = 1000.0
+offset_right = 1815.0
+offset_bottom = 1080.0
+texture = ExtResource("v8_shoreline_grass")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="console_ground_rocks" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 1385.0
+offset_top = 1027.0
+offset_right = 1785.0
+offset_bottom = 1080.0
+texture = ExtResource("v8_console_ground_rocks")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0.35)
+
+[node name="CrowFlyby" parent="ArtCanvas" instance=ExtResource("crow")]
+
+[node name="home_button" type="TextureButton" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 288.0
+offset_top = 460.0
+offset_right = 518.0
+offset_bottom = 596.0
+texture_normal = ExtResource("tex8")
+ignore_texture_size = true
+stretch_mode = 5
+texture_hover = ExtResource("tex8hover")
+texture_pressed = ExtResource("tex8pressed")
+texture_disabled = ExtResource("tex8disabled")
+disabled = true
+focus_mode = 0
+mouse_filter = 2
+
+[node name="ship_button" type="TextureButton" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 1480.0
+offset_top = 515.0
+offset_right = 1743.0
+offset_bottom = 633.0
+texture_normal = ExtResource("tex9")
+ignore_texture_size = true
+stretch_mode = 5
+texture_hover = ExtResource("tex9hover")
+texture_pressed = ExtResource("tex9pressed")
+texture_disabled = ExtResource("tex9disabled")
+
+[node name="research_button" type="TextureButton" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 815.0
+offset_top = 816.0
+offset_right = 1075.0
+offset_bottom = 937.0
+texture_normal = ExtResource("tex10")
+ignore_texture_size = true
+stretch_mode = 5
+texture_hover = ExtResource("tex10hover")
+texture_pressed = ExtResource("tex10pressed")
+texture_disabled = ExtResource("tex10disabled")
+disabled = true
+focus_mode = 0
+mouse_filter = 2
+
+[node name="supply_button" type="TextureButton" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 273.0
+offset_top = 878.0
+offset_right = 531.0
+offset_bottom = 1004.0
+texture_normal = ExtResource("tex11")
+ignore_texture_size = true
+stretch_mode = 5
+texture_hover = ExtResource("tex11hover")
+texture_pressed = ExtResource("tex11pressed")
+texture_disabled = ExtResource("tex11disabled")
+disabled = true
+focus_mode = 0
+mouse_filter = 2
+
+[node name="home_button_title" type="Label" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 288.0
+offset_top = 460.0
+offset_right = 518.0
+offset_bottom = 596.0
+mouse_filter = 2
+text = "家园"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 42
+theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.04, 1)
+theme_override_constants/outline_size = 8
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
+theme_override_constants/shadow_offset_y = 3
+theme_override_colors/font_color = Color(0.58, 0.58, 0.58, 1)
+
+[node name="ship_button_title" type="Label" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 1480.0
+offset_top = 515.0
+offset_right = 1743.0
+offset_bottom = 633.0
+mouse_filter = 2
+text = "即刻启航"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 42
+theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.04, 1)
+theme_override_constants/outline_size = 8
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
+theme_override_constants/shadow_offset_y = 3
+
+theme_override_colors/font_color = Color(0.95, 0.78, 0.45, 1)
+[node name="research_button_title" type="Label" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 815.0
+offset_top = 816.0
+offset_right = 1075.0
+offset_bottom = 937.0
+mouse_filter = 2
+text = "研究棚"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 42
+theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.04, 1)
+theme_override_constants/outline_size = 8
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
+theme_override_constants/shadow_offset_y = 3
+theme_override_colors/font_color = Color(0.58, 0.58, 0.58, 1)
+
+[node name="supply_button_title" type="Label" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 273.0
+offset_top = 878.0
+offset_right = 531.0
+offset_bottom = 1004.0
+mouse_filter = 2
+text = "补给车"
+horizontal_alignment = 1
+vertical_alignment = 1
+theme_override_font_sizes/font_size = 42
+theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.04, 1)
+theme_override_constants/outline_size = 8
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.65)
+theme_override_constants/shadow_offset_y = 3
+theme_override_colors/font_color = Color(0.58, 0.58, 0.58, 1)
+
+[node name="home_button_lock" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 470.0
+offset_top = 552.0
+offset_right = 508.0
+offset_bottom = 590.0
+texture = ExtResource("lock")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="research_button_lock" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 1027.0
+offset_top = 893.0
+offset_right = 1065.0
+offset_bottom = 931.0
+texture = ExtResource("lock")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="supply_button_lock" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 483.0
+offset_top = 960.0
+offset_right = 521.0
+offset_bottom = 998.0
+texture = ExtResource("lock")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="utility_console" type="TextureRect" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 1350.0
+offset_top = 944.0
+offset_right = 1888.0
+offset_bottom = 1072.0
+texture = ExtResource("v8_utility_console")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+modulate = Color(1, 1, 1, 1.0)
+
+[node name="options_button" type="TextureButton" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 1395.0
+offset_top = 978.0
+offset_right = 1534.0
+offset_bottom = 1046.0
+texture_normal = ExtResource("optionstexture")
+texture_hover = ExtResource("optionshover")
+texture_pressed = ExtResource("optionspressed")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="ArtCanvas/options_button"]
+layout_mode = 0
+offset_right = 139.0
+offset_bottom = 68.0
+text = "选项"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.95, 0.81, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.06, 0.02, 1)
+theme_override_constants/outline_size = 5
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_y = 2
+
+[node name="help_button" type="TextureButton" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 1538.0
+offset_top = 978.0
+offset_right = 1677.0
+offset_bottom = 1046.0
+texture_normal = ExtResource("helptexture")
+texture_hover = ExtResource("helphover")
+texture_pressed = ExtResource("helppressed")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="ArtCanvas/help_button"]
+layout_mode = 0
+offset_right = 139.0
+offset_bottom = 68.0
+text = "帮助"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.95, 0.81, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.06, 0.02, 1)
+theme_override_constants/outline_size = 5
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_y = 2
+
+[node name="exit_button" type="TextureButton" parent="ArtCanvas"]
+layout_mode = 0
+offset_left = 1680.0
+offset_top = 978.0
+offset_right = 1819.0
+offset_bottom = 1046.0
+texture_normal = ExtResource("exittexture")
+texture_hover = ExtResource("exithover")
+texture_pressed = ExtResource("exitpressed")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="ArtCanvas/exit_button"]
+layout_mode = 0
+offset_right = 139.0
+offset_bottom = 68.0
+text = "退出"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.95, 0.81, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.06, 0.02, 1)
+theme_override_constants/outline_size = 5
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_constants/shadow_offset_y = 2
+
+[connection signal="pressed" from="ArtCanvas/ship_button" to="." method="_on_button_1_pressed"]
+
+[connection signal="pressed" from="ArtCanvas/options_button" to="." method="_on_option_button_1_pressed"]
+
+[connection signal="pressed" from="ArtCanvas/help_button" to="." method="_on_option_button_2_pressed"]
+
+[connection signal="pressed" from="ArtCanvas/exit_button" to="." method="_on_option_button_3_pressed"]

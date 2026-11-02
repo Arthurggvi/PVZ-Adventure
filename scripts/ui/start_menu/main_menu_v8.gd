@@ -1,0 +1,52 @@
+## v8 只扩展菜单美术；档案、冒险与城镇音乐沿用已实现的 v6 接入。
+extends "res://scripts/ui/start_menu/main_menu_v6.gd"
+
+## 保持统一画布适配，隐藏旧辅助按钮，新功能台调用原有回调。
+func _ready() -> void:
+	super._ready()
+	$ArtCanvas/Option.hide()
+	Global.user_manager.signal_users_update.connect(_fit_profile_name)
+	_fit_profile_name()
+
+## 仅替换原生名牌外观，保留玩家名 Label、档案按钮及事件连接。
+func _layout_native_profile() -> void:
+	var profile: Control = $ArtCanvas/WoodSign # 原生玩家名牌控制器。
+	var name_label: Label = profile.label # 原控制器负责更新当前玩家名。
+	var button: TextureButton = profile.get_node("ButtonUserUpdate") # 原生档案入口。
+	for child: CanvasItem in profile.get_children(): # 隐藏旧灰条和旧装饰。
+		child.hide()
+	profile.position = Vector2(48, 4)
+	button.position = Vector2.ZERO
+	button.size = Vector2(358, 166)
+	button.ignore_texture_size = true
+	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	button.texture_normal = load("res://assets/adventure/main_menu/v8/art/ui/profile_tree_sign.png")
+	button.texture_hover = button.texture_normal
+	button.texture_pressed = button.texture_normal
+	button.texture_click_mask = null
+	button.tooltip_text = "玩家档案：点击创建或选择"
+	button.show()
+	name_label.reparent(button)
+	name_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	name_label.position = Vector2(62, 72)
+	name_label.size = Vector2(236, 74)
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_label.label_settings = name_label.label_settings.duplicate()
+	name_label.label_settings.font_color = Color("efd5a2")
+	name_label.label_settings.outline_color = Color("322012")
+	name_label.label_settings.outline_size = 4
+
+## 在原生姓名更新后调整字号，较长中文名允许换行。
+func _fit_profile_name() -> void:
+	var name_label: Label = $ArtCanvas/WoodSign.label # 不另存身份与姓名。
+	name_label.label_settings.font_size = 24 if name_label.text.length() > 10 else 32
+
+## 尚未实装的家园也禁止通过旧程序入口进入。
+func _on_item_button_1_pressed() -> void:
+	pass
+
+## 尚未实装的补给车也禁止通过旧程序入口进入。
+func _on_item_button_3_pressed() -> void:
+	pass

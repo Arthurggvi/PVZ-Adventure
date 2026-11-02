@@ -1,0 +1,19 @@
+﻿{
+    "status":  "reviewed_flight_only",
+    "source":  "PVZ DS original atlas, locally extracted poses",
+    "pose_order":  [
+                       16,
+                       24,
+                       17,
+                       18
+                   ],
+    "rejected":  "all non-bird components, cropped perched poses 01-06 and 09-10",
+    "animation":  "custom low-frequency near-foreground flyby, not official original timings",
+    "source_hashes":  {
+                          "pose_18.png":  "5AC21859E023497FF4169B0FA3F65C8885B59189514796CD56C972C0A3FD1259",
+                          "pose_17.png":  "6E965F6531046C933DC3B1F8069EDED554C96C92287409ACE404C7CB452A0B2B",
+                          "pose_16.png":  "6816EBB8BAC5B418BB0AD0190AA932A0AE6B7E6302365935E3D016B90EF14B40",
+                          "pose_24.png":  "2DD4F0055DA4CBED235B318E82C8BA29E611AB6A3367D0DD5765FBD15B2C77FA"
+                      },
+    "notes":  "Vertical 1px separators in 16/18 erased; all eyes aligned at (140,220) on 320x320 canvas."
+}
