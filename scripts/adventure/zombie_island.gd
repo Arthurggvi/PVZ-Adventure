@@ -15,8 +15,8 @@ const UI = preload("res://scripts/adventure/island_ui.gd")
 var canvas: Control
 ## 一次性结果和锁定提示。
 var notice_label: Label
-## 持有初始卡的界面提示。
-var cards_label: Label
+## 仅在实际有结果或点击提示时显示的底部面板。
+var notice_panel: Panel
 
 ## 读取素材布局，建立独立显示层并恢复首次引导。
 func _ready() -> void:
@@ -45,25 +45,23 @@ func _ready() -> void:
 		node.name = "Stage%d" % stage.id
 		canvas.add_child(node)
 		node.configure(stage, AdventureSession.is_unlocked(stage.id), stage.id == 1 and AdventureSession.progress.stage_1_cleared, _select_stage.bind(stage.id))
-	UI.button(canvas, "返回主菜单", Rect2(40, 30, 270, 66), _return_menu)
-	cards_label = UI.label(canvas, "", Rect2(1090, 32, 780, 60), 30)
+	UI.official_button(canvas, "返回主菜单", Rect2(40, 30, 270, 66), _return_menu)
 	# 底部提示独立面板，避免白色文字压在复杂背景上。
-	var footer := Panel.new()
-	footer.position = Vector2(340, 988)
-	footer.size = Vector2(1240, 70)
-	footer.add_theme_stylebox_override("panel", UI.panel_style(Color("1f332ded")))
-	footer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	canvas.add_child(footer)
-	notice_label = UI.label(footer, AdventureSession.notice, Rect2(15, 0, 1210, 70), 28)
+	notice_panel = Panel.new()
+	notice_panel.position = Vector2(340, 988)
+	notice_panel.size = Vector2(1240, 70)
+	notice_panel.add_theme_stylebox_override("panel", UI.panel_style(Color("1f332ded")))
+	notice_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(notice_panel)
+	notice_label = UI.label(notice_panel, "", Rect2(15, 0, 1210, 70), 28)
+	_show_notice(AdventureSession.notice)
 	AdventureSession.notice = ""
-	_update_cards()
 	resized.connect(_fit_canvas)
 	_fit_canvas()
 	if AdventureSession.progress.started and not AdventureSession.progress.intro_completed:
 		var intro := Intro.new() # 首次未完成的引导覆盖层。
 		intro.name = "Intro"
 		canvas.add_child(intro)
-		intro.completed.connect(_update_cards)
 
 ## 整个画布一起缩放并居中，非16:9窗口留边，不拉伸背景。
 func _fit_canvas() -> void:
@@ -74,17 +72,16 @@ func _fit_canvas() -> void:
 ## [param stage_id] 为配置中的关卡编号；锁定和待实现节点只给提示。
 func _select_stage(stage_id: int) -> void:
 	if not AdventureSession.is_unlocked(stage_id):
-		notice_label.text = "通关草坪后开放没落营地。" if stage_id == 2 else "此区域尚未开放，后续章节继续探索。"
+		_show_notice("通关草坪后开放没落营地。" if stage_id == 2 else "此区域尚未开放，后续章节继续探索。")
 	elif stage_id != 1:
-		notice_label.text = "没落营地已开放，战斗将在后续阶段实装。"
+		_show_notice("没落营地已开放，战斗将在后续阶段实装。")
 	else:
 		AdventureSession.enter_lawn()
 
-## 状态提示只显示当前所有权，不重复赠卡。
-func _update_cards() -> void:
-	cards_label.text = "初始卡：向日葵 ×1   豌豆射手 ×1" if not AdventureSession.progress.cards.is_empty() else ""
-	if notice_label.text.is_empty():
-		notice_label.text = "点击草坪，开始冒险。"
+## [param message] 为实际结果或点击提示；空消息隐藏面板，不显示常驻说明。
+func _show_notice(message: String) -> void:
+	notice_label.text = message
+	notice_panel.visible = not message.is_empty()
 
 ## 返回原有菜单，保留已完成或进行中的独立进度。
 func _return_menu() -> void:

@@ -50,3 +50,16 @@ static func button(parent: Node, text: String, rect: Rect2, callback: Callable) 
 	node.pressed.connect(callback)
 	parent.add_child(node)
 	return node
+
+## 在 [param parent] 的 [param rect] 内复用原版按钮底图；文字为 [param text]，点击执行 [param callback]。
+static func official_button(parent: Node, text: String, rect: Rect2, callback: Callable) -> Button:
+	var node := button(parent, text, rect, callback) # 保持共享的导航按钮构造方式。
+	var official_theme := load("res://data/PVZ_theme.tres") as Theme # 原版菜单使用的主题。
+	var background := official_theme.get_stylebox("panel", "PanelButtonBG") # 官方九宫格底图。
+	for state: String in ["normal", "hover", "pressed", "hover_pressed", "disabled"]: # 各状态共享原版底图。
+		node.add_theme_stylebox_override(state, background)
+	node.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	node.add_theme_color_override("font_color", Color.GREEN)
+	node.add_theme_color_override("font_hover_color", Color.YELLOW)
+	node.add_theme_color_override("font_pressed_color", Color.GREEN)
+	return node
