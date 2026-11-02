@@ -66,10 +66,10 @@
     {
       "file": "foreground/truck_fence_grass.png",
       "rect": [
-        0,
-        891,
-        560,
-        189
+        -20,
+        950,
+        520,
+        321
       ],
       "z": "above_truck_below_all_UI",
       "alpha_hit_test": false

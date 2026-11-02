@@ -1,12 +1,16 @@
 ## v8 只扩展菜单美术；档案、冒险与城镇音乐沿用已实现的 v6 接入。
 extends "res://scripts/ui/start_menu/main_menu_v6.gd"
 
+## 补偿字体字形与木牌实际牌面的视觉中心差，单位为1920×1080设计像素。
+const PLAQUE_TEXT_OFFSET_Y := 10.0
+
 ## 保持统一画布适配，隐藏旧辅助按钮，新功能台调用原有回调。
 func _ready() -> void:
 	super._ready()
 	$ArtCanvas/Option.hide()
 	Global.user_manager.signal_users_update.connect(_fit_profile_name)
 	_fit_profile_name()
+	_align_plaque_titles()
 
 ## 仅替换原生名牌外观，保留玩家名 Label、档案按钮及事件连接。
 func _layout_native_profile() -> void:
@@ -37,6 +41,12 @@ func _layout_native_profile() -> void:
 	name_label.label_settings.font_color = Color("efd5a2")
 	name_label.label_settings.outline_color = Color("322012")
 	name_label.label_settings.outline_size = 4
+	name_label.add_to_group("v8_plaque_title")
+
+## 统一微调玩家名、主入口与功能台文字，保持原有水平/垂直居中及长姓名换行。
+func _align_plaque_titles() -> void:
+	for title: Label in get_tree().get_nodes_in_group("v8_plaque_title"): # 仅调整本菜单的木牌文字。
+		title.position.y += PLAQUE_TEXT_OFFSET_Y
 
 ## 在原生姓名更新后调整字号，较长中文名允许换行。
 func _fit_profile_name() -> void:
