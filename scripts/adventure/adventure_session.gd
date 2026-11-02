@@ -17,29 +17,38 @@ var notice := ""
 var battle_failed := false
 ## 从进入地图到返回主菜单的会话范围，涵盖切场景的空帧。
 var adventure_active := false
+## 最近一次入口错误，由原菜单显示。
+var entry_error := ""
 
-## 菜单入口重新绑定当前用户，兼容原有用户切换。
-func refresh_profile() -> bool:
-	# 沿用 UserManager 的用户目录，改名与删除自然迁移；文件仍与原版存档隔离。
+## 档案切换、改名或删除后释放旧引用，下一次入口重新读取当前玩家。
+func _ready() -> void:
+	Global.user_manager.signal_users_update.connect(func(): progress = null)
+
+## 唯一菜单入口：只为有效玩家读取进度，文件不存在时原子初始化。
+## 返回是否成功请求进入地图；失败时 [member entry_error] 可用于显示原因。
+func open_adventure() -> bool:
+	if adventure_active:
+		return true
+	progress = null
+	entry_error = ""
+	# 原生玩家列表是身份依据，拒绝空名、失效身份及缺失的玩家目录。
 	var profile: String = Global.user_manager.curr_user_name
-	var path := "user://adventure_guest/zombie_island_v1.json" # 未登录的独立游客状态。
-	if not profile.is_empty():
-		path = "user://%s/adventure/zombie_island_v1.json" % profile
-	progress = Progress.new(path)
-	return progress.load_progress()
-
-## 开始新游戏；调用方负责在已有进度时给出游戏内确认。
-func start_new_game() -> void:
-	refresh_profile()
-	if progress.start_new():
-		notice = ""
-		return_to_map()
-
-## 继续只回到世界地图；未完成的新手对话从头恢复且不重复发卡。
-func continue_game() -> void:
-	if refresh_profile() and progress.started:
-		notice = ""
-		return_to_map()
+	if profile.is_empty() or not Global.user_manager.all_user_name.has(profile) \
+		or not DirAccess.dir_exists_absolute("user://" + profile):
+		entry_error = "请先从主菜单左上角创建或选择玩家档案。"
+		return false
+	# 每次进入创建独立读取实例，不复用上一玩家的运行状态。
+	var loaded = Progress.new("user://%s/adventure/zombie_island_v1.json" % profile)
+	if not loaded.load_progress() or not loaded.initialize_if_missing():
+		entry_error = loaded.error_message
+		return false
+	if not loaded.started:
+		entry_error = "冒险存档状态无效，原文件已保留。"
+		return false
+	progress = loaded
+	notice = ""
+	return_to_map()
+	return true
 
 ## 返回关卡是否解锁；第二关当前仅展示已开放状态。
 func is_unlocked(stage_id: int) -> bool:

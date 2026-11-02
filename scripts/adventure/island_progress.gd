@@ -58,7 +58,20 @@ func load_progress() -> bool:
 	cards = {} if data.cards.is_empty() else {"sunflower": 1, "peashooter": 1}
 	return true
 
-## 创建新冒险前复制旧文件；备份失败时不改变任何状态。
+## 仅在文件真正不存在时创建默认进度；保存失败恢复未开始状态，可安全重试。
+func initialize_if_missing() -> bool:
+	if FileAccess.file_exists(save_path):
+		return _write_allowed
+	if not _write_allowed or DirAccess.dir_exists_absolute(save_path):
+		error_message = "冒险存档路径不可写，未创建进度。"
+		return false
+	started = true
+	if _save():
+		return true
+	started = false
+	return false
+
+## 仅供测试或未来专用管理操作：创建新冒险前备份旧文件，普通入口不可调用。
 func start_new() -> bool:
 	if FileAccess.file_exists(save_path):
 		last_backup_path = save_path + ".backup-%s-%s" % [int(Time.get_unix_time_from_system()), Time.get_ticks_usec()]
@@ -97,7 +110,7 @@ func record_victory() -> bool:
 ## 标记无效文件且禁止后续自动覆盖。
 func _invalid_save() -> bool:
 	_write_allowed = false
-	error_message = "冒险存档损坏或版本不兼容，原文件已保留。新游戏会先备份该文件。"
+	error_message = "冒险存档损坏或版本不兼容，原文件已保留，请检查存档。"
 	return false
 
 ## 同目录临时写入后替换，降低中途退出损坏进度的风险。

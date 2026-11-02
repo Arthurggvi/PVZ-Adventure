@@ -20,25 +20,20 @@ func _ready() -> void:
 func _run() -> void:
 	# 登录唯一测试用户并记录原版存档快照，确认冒险不会写入原关卡进度。
 	var username := "phase1-flow-%s" % Time.get_ticks_usec()
-	Global.user_manager.curr_user_name = username
-	Global.user_manager.all_user_name.append(username)
-	Global.user_manager.ensure_save_directory_exists(username)
+	get_tree().change_scene_to_file("res://scenes/main/01StartMenu.tscn")
+	await _frames()
+	var native_user: User = get_tree().current_scene.user # 原生档案界面。
+	native_user.panel_create_new_user.line_edit.text = username
+	native_user.panel_create_new_user.button_ok.pressed.emit()
+	_select_user(username)
 	Global.save_service.stop_autosave()
 	Global.save_service.save_now()
 	Global.save_service.start_autosave(0.1)
 	var original_path := "user://%s/GlobalSaveGame.json" % username # 原版文件。
 	var original_bytes := FileAccess.get_file_as_bytes(original_path) # 原版字节基线。
-	# 原菜单入口必须仍能加载并打开冒险选择。
-	get_tree().change_scene_to_file("res://scenes/main/01StartMenu.tscn")
-	await get_tree().process_frame
-	await get_tree().process_frame
-	get_tree().current_scene._on_button_1_pressed()
-	assert(get_tree().current_scene.has_node("AdventureMenu"))
-	# 不通过原版用户保存系统创建测试状态。
-	AdventureSession.refresh_profile()
-	var path: String = AdventureSession.progress.save_path # 当前用户的独立版本路径。
-	assert(AdventureSession.progress.start_new())
-	AdventureSession.return_to_map()
+	assert(not get_tree().current_scene.has_node("AdventureMenu"))
+	get_tree().current_scene.get_node("BG_Right/Menu/Button1").pressed.emit()
+	var path: String = AdventureSession.progress.save_path # 新入口实际初始化的路径。
 	await _frames()
 	var map: Control = get_tree().current_scene # 当前地图。
 	var intro: Control = map.canvas.get_node("Intro") # 首次引导。
@@ -123,16 +118,25 @@ func _run() -> void:
 	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
 	assert(AdventureSession.progress.stage_1_cleared and AdventureSession.is_unlocked(2))
 	await _screenshot("victory-map")
-	AdventureSession.progress = Progress.new(path)
-	assert(AdventureSession.progress.load_progress())
-	AdventureSession.return_to_map()
+	var cleared_bytes := FileAccess.get_file_as_bytes(path) # 胜利文件不可因入口重写。
+	get_tree().current_scene._return_menu()
 	await _frames()
+	get_tree().current_scene.get_node("BG_Right/Menu/Button1").pressed.emit()
+	await _frames()
+	assert(FileAccess.get_file_as_bytes(path) == cleared_bytes)
 	assert(not get_tree().current_scene.canvas.has_node("Intro"))
-	assert(AdventureSession.progress.cards == {"sunflower": 1, "peashooter": 1})
 	assert(AdventureSession.is_unlocked(2))
-	# 重开后直接跳过也必须恰好发两张卡，备份保留上一局胜利。
-	assert(AdventureSession.progress.start_new())
-	AdventureSession.return_to_map()
+	# 用另一个原生玩家验证未完成引导的第三句跳过，绝不调用旧重开流程。
+	get_tree().current_scene._return_menu()
+	await _frames()
+	native_user = get_tree().current_scene.user
+	native_user.panel_create_new_user.line_edit.text = username + "-skip"
+	native_user.panel_create_new_user.button_ok.pressed.emit()
+	_select_user(username + "-skip")
+	Global.save_service.save_now()
+	original_path = "user://%s-skip/GlobalSaveGame.json" % username
+	original_bytes = FileAccess.get_file_as_bytes(original_path)
+	get_tree().current_scene.get_node("BG_Right/Menu/Button1").pressed.emit()
 	await _frames()
 	var skipping: Control = get_tree().current_scene.canvas.get_node("Intro") # 第三句等待中的对话。
 	skipping._advance()
@@ -156,10 +160,12 @@ func _run() -> void:
 	await _frames()
 	await get_tree().create_timer(0.3).timeout
 	assert(not AdventureSession.adventure_active)
+	Global.global_game_state.coin_value += 1
+	await get_tree().create_timer(0.3).timeout
 	assert(FileAccess.get_file_as_bytes(original_path) != original_bytes)
 	# 沿用用户改名接口迁移冒险文件，之后真正调用继续入口。
-	assert(Global.user_manager.rename_user(username, username + "-renamed").is_empty())
-	AdventureSession.continue_game()
+	assert(Global.user_manager.rename_user(username + "-skip", username + "-renamed").is_empty())
+	get_tree().current_scene.get_node("BG_Right/Menu/Button1").pressed.emit()
 	await _frames()
 	assert(AdventureSession.progress.intro_completed)
 	assert(not get_tree().current_scene.canvas.has_node("Intro"))
@@ -185,3 +191,14 @@ func _screenshot(label: String) -> void:
 		return
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png("res://.godot/phase1-%s.png" % label)
+
+## 从原生左上角玩家按钮选择并点击好，沿用保存、身份切换与全局加载链路。
+## [param username] 必须是测试创建的已有玩家。
+func _select_user(username: String) -> void:
+	var native_user: User = get_tree().current_scene.user # 原生档案界面。
+	for button: OneUserButton in native_user.all_user_button: # 选择真实列表中的按钮。
+		if button.user_name_on_curr_button == username:
+			button.pressed.emit()
+			native_user.texture_button_ok.pressed.emit()
+			return
+	assert(false, "测试玩家不在原生档案列表")

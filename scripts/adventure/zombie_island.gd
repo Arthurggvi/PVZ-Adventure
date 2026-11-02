@@ -20,10 +20,12 @@ var cards_label: Label
 
 ## 读取素材布局，建立独立显示层并恢复首次引导。
 func _ready() -> void:
+	# 编辑器直接运行地图也不得绕过原生档案入口。
+	if AdventureSession.progress == null:
+		get_tree().change_scene_to_file.call_deferred("res://scenes/main/01StartMenu.tscn")
+		return
 	AdventureSession.adventure_active = true
 	theme = UI.make_theme()
-	if AdventureSession.progress == null:
-		AdventureSession.refresh_profile()
 	canvas = Control.new()
 	canvas.name = "MapCanvas"
 	canvas.size = DESIGN_SIZE

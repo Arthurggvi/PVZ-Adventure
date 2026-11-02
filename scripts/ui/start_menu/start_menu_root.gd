@@ -26,17 +26,19 @@ var garden_need_water:=true
 func _unrealized():
 	dialog.appear_dialog()
 
-## 原冒险入口打开新游戏/继续选择；原版其他模式入口保持可用。
+## 原冒险按钮直接打开当前玩家冒险；错误时留在菜单，不提供覆盖或重开操作。
 func _on_button_1_pressed() -> void:
-	# 每个菜单实例只创建一个冒险选择窗口。
-	var adventure_menu := get_node_or_null("AdventureMenu") as ConfirmationDialog
-	if adventure_menu == null:
-		adventure_menu = load("res://scripts/adventure/island_menu.gd").new()
-		adventure_menu.name = "AdventureMenu"
-		adventure_menu.theme = preload("res://scripts/adventure/island_ui.gd").make_theme()
-		adventure_menu.theme.default_font_size = 24
-		add_child(adventure_menu)
-	adventure_menu.popup_centered(Vector2i(620, 180))
+	if AdventureSession.open_adventure():
+		return
+	# 复用单个错误窗口，重复点击不会堆积弹窗。
+	var error_dialog := get_node_or_null("AdventureError") as AcceptDialog
+	if error_dialog == null:
+		error_dialog = AcceptDialog.new()
+		error_dialog.name = "AdventureError"
+		error_dialog.title = "无法进入冒险"
+		add_child(error_dialog)
+	error_dialog.dialog_text = AdventureSession.entry_error
+	error_dialog.popup_centered(Vector2i(620, 160))
 
 
 ## 迷你游戏
