@@ -20,6 +20,9 @@ func configure(stage: Dictionary, unlocked: bool, cleared: bool, callback: Calla
 	pivot_offset = size / 2
 	position = Vector2(stage.position_normalized[0] * 1920, stage.position_normalized[1] * 1080) - pivot_offset
 	is_unlocked = unlocked
+	# 锁定节点从控件层阻断鼠标、键盘与快捷键触发，保留独立未解锁文字。
+	disabled = not unlocked or int(stage.id) != 1
+	focus_mode = Control.FOCUS_NONE if disabled else Control.FOCUS_ALL
 	if not is_unlocked:
 		# 材质只作用于按钮自身绘制，不修改 PNG，也不影响子 Label。
 		var grayscale := ShaderMaterial.new()

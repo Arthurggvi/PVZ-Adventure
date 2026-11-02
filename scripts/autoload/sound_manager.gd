@@ -34,6 +34,15 @@ func play_bgm_if_changed(stream: AudioStream) -> void:
 		return
 	play_bgm(stream)
 
+## 菜单与地图共用城镇曲目和现有 BGM 总线；同一曲目保持播放位置。
+func play_town_bgm() -> void:
+	# ResourceLoader 缓存保证两场景取得同一个流；循环参数不影响播放器或音量设置。
+	var town := load("res://assets/adventure/audio/mus_town.wav") as AudioStreamWAV
+	town.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	town.loop_begin = 0
+	town.loop_end = int(town.get_length() * town.mix_rate)
+	play_bgm_if_changed(town)
+
 #region 植物和僵尸有关音效(植物、僵尸、子弹、受击)
 """
  音效分为 僵尸受击 子弹音效 角色(植物僵尸) 戴夫 和其他音效

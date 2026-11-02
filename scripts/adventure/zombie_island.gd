@@ -22,9 +22,10 @@ var notice_panel: Panel
 func _ready() -> void:
 	# 编辑器直接运行地图也不得绕过原生档案入口。
 	if AdventureSession.progress == null:
-		get_tree().change_scene_to_file.call_deferred("res://scenes/main/01StartMenu.tscn")
+		get_tree().change_scene_to_file.call_deferred("res://scenes/main/01StartMenuV6.tscn")
 		return
 	AdventureSession.adventure_active = true
+	SoundManager.play_town_bgm()
 	theme = UI.make_theme()
 	canvas = Control.new()
 	canvas.name = "MapCanvas"
@@ -85,4 +86,4 @@ func _show_notice(message: String) -> void:
 
 ## 返回原有菜单，保留已完成或进行中的独立进度。
 func _return_menu() -> void:
-	get_tree().change_scene_to_file("res://scenes/main/01StartMenu.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV6.tscn")
