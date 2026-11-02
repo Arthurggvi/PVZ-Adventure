@@ -463,6 +463,8 @@ func on_zombie_go_home(zombie:Zombie000Base):
 
 	main_game_progress = E_MainGameProgress.GAME_OVER
 	card_slot_root.visible = false
+	if AdventureSession.owns_battle(game_para):
+		AdventureSession.battle_failed = true
 
 	## 设置相机可以移动
 	camera_2d.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -479,6 +481,11 @@ func on_zombie_go_home(zombie:Zombie000Base):
 	await get_tree().create_timer(3).timeout
 	SoundManager.play_other_SFX("scream")
 	ui_remind_word.zombie_won_word_appear()
+	# 保留原版失败演出，结束后回地图；不会将场景退出当作胜利。
+	if AdventureSession.owns_battle(game_para):
+		await get_tree().create_timer(1.5).timeout
+		if is_inside_tree() and get_tree().current_scene == self:
+			AdventureSession.finish_defeat()
 
 
 #region 奖杯
@@ -561,6 +568,12 @@ func win_main_game():
 	# 奖杯按钮等待期间仍可能进房失败，必须在清除暂停因素前拒绝晚到回调。
 	if TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.GameOver, false):
 		return
+	# 冒险只接受本战斗已判定的末轮奖杯结算，绕开原版关卡存档。
+	if AdventureSession.owns_battle(game_para):
+		if _round_end_claimed and main_game_progress == E_MainGameProgress.GAME_OVER \
+			and curr_game_round == game_para.game_round:
+			AdventureSession.finish_victory()
+		return
 
 	## 游戏暂停因素、游戏速度
 	TreePauseManager.end_tree_pause_clear_all_pause_factors()
@@ -635,6 +648,9 @@ func save_game_main_game():
 
 ## 重置当前主游戏 多轮关卡存档,多轮关卡数据
 func re_main_game():
+	# 冒险第一阶段没有轮间快照，重试和失败都不访问原版存档文件。
+	if AdventureSession.owns_battle(game_para):
+		return
 	## 删除存档(若有存档会删除,没有就跳过)
 	game_para.delete_game_data()
 	## 更新当前关卡数据

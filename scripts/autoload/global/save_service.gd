@@ -40,6 +40,9 @@ func stop_autosave() -> void:
 	_auto_save_timer = null
 
 func _on_auto_save_timer_timeout() -> void:
+	# 冒险会话只保存独立进度；计时器保持运行，回到菜单自动恢复原有行为。
+	if AdventureSession.adventure_active:
+		return
 	print(GlobalUtils.get_curr_time(), " 自动存档")
 	save_now()
 

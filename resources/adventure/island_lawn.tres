@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ResourceLevelData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/level/level_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+look_show_zombie = false
+can_choosed_card = false
+max_choosed_card_num = 2
+start_sun = 150
+max_wave = 10
+zombie_refresh_types = Array[int]([1])

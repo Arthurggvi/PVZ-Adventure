@@ -1,0 +1,117 @@
+{
+  "asset_version": "1.0",
+  "map": {
+    "file": "map/zombie_island_background_1920x1080.png",
+    "native_file": "map/zombie_island_background.png",
+    "native_size": [
+      1672,
+      941
+    ],
+    "game_size": [
+      1920,
+      1080
+    ]
+  },
+  "button": {
+    "frame": "buttons/button_frame_blank.png",
+    "size": [
+      384,
+      384
+    ],
+    "text_baked": false,
+    "numbers_baked": false,
+    "paths_baked": false
+  },
+  "stages": [
+    {
+      "id": 1,
+      "name": "草坪",
+      "button": "buttons/01_lawn_button.png",
+      "icon": "icons/01_lawn_icon.png",
+      "position_native": [
+        325,
+        415
+      ],
+      "position_normalized": [
+        0.19438,
+        0.44102
+      ],
+      "visual_theme": "grass bright lawn and suburban house"
+    },
+    {
+      "id": 2,
+      "name": "没落营地",
+      "button": "buttons/02_camp_button.png",
+      "icon": "icons/02_camp_icon.png",
+      "position_native": [
+        420,
+        585
+      ],
+      "position_normalized": [
+        0.2512,
+        0.62168
+      ],
+      "visual_theme": "wrecked camp and zombie flag"
+    },
+    {
+      "id": 3,
+      "name": "墓地上游",
+      "button": "buttons/03_grave_upstream_button.png",
+      "icon": "icons/03_grave_upstream_icon.png",
+      "position_native": [
+        658,
+        265
+      ],
+      "position_normalized": [
+        0.39354,
+        0.28162
+      ],
+      "visual_theme": "upper cliff graveyard and river"
+    },
+    {
+      "id": 4,
+      "name": "墓地下游",
+      "button": "buttons/04_grave_downstream_button.png",
+      "icon": "icons/04_grave_downstream_icon.png",
+      "position_native": [
+        1015,
+        493
+      ],
+      "position_normalized": [
+        0.60706,
+        0.52391
+      ],
+      "visual_theme": "misty lower graveyard and skull statue"
+    },
+    {
+      "id": 5,
+      "name": "下水道",
+      "button": "buttons/05_sewer_button.png",
+      "icon": "icons/05_sewer_icon.png",
+      "position_native": [
+        1190,
+        715
+      ],
+      "position_normalized": [
+        0.71172,
+        0.75983
+      ],
+      "visual_theme": "glowing green sewage and sewer grate"
+    },
+    {
+      "id": 6,
+      "name": "埃德加神殿",
+      "button": "buttons/06_edgar_temple_button.png",
+      "icon": "icons/06_edgar_temple_icon.png",
+      "position_native": [
+        1415,
+        270
+      ],
+      "position_normalized": [
+        0.84629,
+        0.28693
+      ],
+      "visual_theme": "brain-domed robotic skull temple"
+    }
+  ]
+}

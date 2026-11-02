@@ -13,6 +13,8 @@ class_name MainGameMenuOptionDialog
 
 
 func _ready() -> void:
+	if AdventureSession.owns_battle(Global.main_game.game_para):
+		$Option/Button3/Label.text = "返回地图"
 	## 为按钮添加音效
 	SoundManager.setup_ui_main_game_sound(self)
 	## 连接滑轨信号
@@ -66,6 +68,8 @@ func encyclopedia():
 ## 重新开始
 func resume_game():
 	EventBus.push_event("change_is_mouse_visibel_on_hammer", true)
+	if AdventureSession.owns_battle(Global.main_game.game_para):
+		AdventureSession.battle_failed = false
 
 	Global.main_game.re_main_game()
 
@@ -77,6 +81,10 @@ func resume_game():
 
 ## 返回主菜单
 func return_main_menu():
+	# 冒险内的退出返回世界地图，不触发胜利或原版保存。
+	if AdventureSession.owns_battle(Global.main_game.game_para):
+		AdventureSession.abandon_battle()
+		return
 	EventBus.push_event("change_is_mouse_visibel_on_hammer", true)
 	TreePauseManager.end_tree_pause_clear_all_pause_factors()
 	Global.time_scale = 1.0

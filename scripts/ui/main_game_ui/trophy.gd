@@ -16,7 +16,9 @@ func _ready():
 	tween.tween_property(pick_up_glow, "scale", Vector2(1, 1), 1.0) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.set_loops()  # 无限循环
-	Global.save_service.save_now()
+	# 僵尸岛通关由独立状态服务结算，奖杯生成时不写入原版进度。
+	if not AdventureSession.owns_battle(main_game.game_para):
+		Global.save_service.save_now()
 
 func _on_trophy_button_pressed() -> void:
 	SoundManager.play_other_SFX("winmusic")

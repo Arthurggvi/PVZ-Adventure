@@ -8,6 +8,7 @@ class_name StartMenuRoot
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
+	AdventureSession.adventure_active = false
 	$Cloud/AnimationPlayer.play("Idle")
 	$BG_Right/Leaf/AnimationPlayer.play("Idle")
 	$AnimationPlayer.play("Idle")
@@ -25,10 +26,17 @@ var garden_need_water:=true
 func _unrealized():
 	dialog.appear_dialog()
 
-## 开始游戏
+## 原冒险入口打开新游戏/继续选择；原版其他模式入口保持可用。
 func _on_button_1_pressed() -> void:
-	Global.game_para = null
-	get_tree().change_scene_to_file(Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.ChooseLevelAdventure])
+	# 每个菜单实例只创建一个冒险选择窗口。
+	var adventure_menu := get_node_or_null("AdventureMenu") as ConfirmationDialog
+	if adventure_menu == null:
+		adventure_menu = load("res://scripts/adventure/island_menu.gd").new()
+		adventure_menu.name = "AdventureMenu"
+		adventure_menu.theme = preload("res://scripts/adventure/island_ui.gd").make_theme()
+		adventure_menu.theme.default_font_size = 24
+		add_child(adventure_menu)
+	adventure_menu.popup_centered(Vector2i(620, 180))
 
 
 ## 迷你游戏
