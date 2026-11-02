@@ -1,0 +1,373 @@
+{
+  "ship_float": true,
+  "effects": [
+    {
+      "name": "Cloud0",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/clouds/far/cloud_far_01.png"
+      ],
+      "position": [
+        -160,
+        115
+      ],
+      "size": [
+        208,
+        80
+      ],
+      "mode": "cloud",
+      "speed": 5,
+      "opacity": 0.65,
+      "cloud": true,
+      "mask": "res://assets/adventure/environment_fx/v1/sky_cleanup_v1/masks/main_menu_moving_cloud_safe_mask.png"
+    },
+    {
+      "name": "Cloud1",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/clouds/far/cloud_far_02.png"
+      ],
+      "position": [
+        600,
+        70
+      ],
+      "size": [
+        201,
+        83
+      ],
+      "mode": "cloud",
+      "speed": 6,
+      "opacity": 0.65,
+      "cloud": true,
+      "mask": "res://assets/adventure/environment_fx/v1/sky_cleanup_v1/masks/main_menu_moving_cloud_safe_mask.png"
+    },
+    {
+      "name": "Cloud2",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/clouds/far/cloud_far_03.png"
+      ],
+      "position": [
+        1200,
+        210
+      ],
+      "size": [
+        427,
+        158
+      ],
+      "mode": "cloud",
+      "speed": 4,
+      "opacity": 0.65,
+      "cloud": true,
+      "mask": "res://assets/adventure/environment_fx/v1/sky_cleanup_v1/masks/main_menu_moving_cloud_safe_mask.png"
+    },
+    {
+      "name": "Cloud3",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/clouds/near/cloud_near_02.png"
+      ],
+      "position": [
+        200,
+        80
+      ],
+      "size": [
+        420,
+        184
+      ],
+      "mode": "cloud",
+      "speed": 10,
+      "opacity": 0.65,
+      "cloud": true,
+      "mask": "res://assets/adventure/environment_fx/v1/sky_cleanup_v1/masks/main_menu_moving_cloud_safe_mask.png"
+    },
+    {
+      "name": "Cloud4",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/clouds/near/cloud_near_03.png"
+      ],
+      "position": [
+        1300,
+        40
+      ],
+      "size": [
+        420,
+        142
+      ],
+      "mode": "cloud",
+      "speed": 12,
+      "opacity": 0.65,
+      "cloud": true,
+      "mask": "res://assets/adventure/environment_fx/v1/sky_cleanup_v1/masks/main_menu_moving_cloud_safe_mask.png"
+    },
+    {
+      "name": "SeaGlint0",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/water/surface/sea_highlights_01.png"
+      ],
+      "position": [
+        1230,
+        760
+      ],
+      "size": [
+        650,
+        130
+      ],
+      "mode": "drift",
+      "drift": [
+        12,
+        3
+      ],
+      "period": 11,
+      "phase": 0.0,
+      "opacity": 0.32,
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/main_sea.png"
+    },
+    {
+      "name": "SeaGlint1",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/water/surface/sea_highlights_02.png"
+      ],
+      "position": [
+        1410,
+        830
+      ],
+      "size": [
+        650,
+        130
+      ],
+      "mode": "drift",
+      "drift": [
+        12,
+        3
+      ],
+      "period": 13,
+      "phase": 2.1,
+      "opacity": 0.32,
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/main_sea.png"
+    },
+    {
+      "name": "SeaGlint2",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/water/surface/sea_highlights_03.png"
+      ],
+      "position": [
+        1200,
+        900
+      ],
+      "size": [
+        650,
+        130
+      ],
+      "mode": "drift",
+      "drift": [
+        12,
+        3
+      ],
+      "period": 15,
+      "phase": 4.2,
+      "opacity": 0.32,
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/main_sea.png"
+    },
+    {
+      "name": "ShoreRipple0",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/water/shore/shore_ripple_01.png"
+      ],
+      "position": [
+        1290,
+        715
+      ],
+      "size": [
+        145,
+        68
+      ],
+      "mode": "ripple",
+      "period": 5.0,
+      "phase": 0.0,
+      "opacity": 0.44,
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/main_sea.png"
+    },
+    {
+      "name": "ShoreRipple1",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/water/shore/shore_ripple_02.png"
+      ],
+      "position": [
+        1430,
+        770
+      ],
+      "size": [
+        145,
+        68
+      ],
+      "mode": "ripple",
+      "period": 5.45,
+      "phase": 0.75,
+      "opacity": 0.44,
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/main_sea.png"
+    },
+    {
+      "name": "ShoreRipple2",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/water/shore/shore_ripple_03.png"
+      ],
+      "position": [
+        1670,
+        755
+      ],
+      "size": [
+        145,
+        68
+      ],
+      "mode": "ripple",
+      "period": 5.9,
+      "phase": 1.5,
+      "opacity": 0.44,
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/main_sea.png"
+    },
+    {
+      "name": "ShoreRipple3",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/water/shore/shore_ripple_04.png"
+      ],
+      "position": [
+        1790,
+        800
+      ],
+      "size": [
+        145,
+        68
+      ],
+      "mode": "ripple",
+      "period": 6.35,
+      "phase": 2.25,
+      "opacity": 0.44,
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/main_sea.png"
+    },
+    {
+      "name": "ShoreRipple4",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/water/shore/shore_ripple_05.png"
+      ],
+      "position": [
+        1680,
+        915
+      ],
+      "size": [
+        145,
+        68
+      ],
+      "mode": "ripple",
+      "period": 6.8,
+      "phase": 3.0,
+      "opacity": 0.44,
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/main_sea.png"
+    },
+    {
+      "name": "ShoreRipple5",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/water/shore/shore_ripple_06.png"
+      ],
+      "position": [
+        1280,
+        840
+      ],
+      "size": [
+        145,
+        68
+      ],
+      "mode": "ripple",
+      "period": 7.25,
+      "phase": 3.75,
+      "opacity": 0.44,
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/main_sea.png"
+    },
+    {
+      "name": "Smoke0",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_00.png",
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_01.png",
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_02.png",
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_03.png"
+      ],
+      "position": [
+        1410,
+        200
+      ],
+      "size": [
+        110,
+        127
+      ],
+      "mode": "puff",
+      "period": 6,
+      "phase": 0,
+      "opacity": 0.8,
+      "rise": [
+        -30,
+        -130
+      ],
+      "anchor": "ship",
+      "anchor_offset": [
+        180,
+        35
+      ]
+    },
+    {
+      "name": "Smoke1",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_00.png",
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_01.png",
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_02.png",
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_03.png"
+      ],
+      "position": [
+        1410,
+        200
+      ],
+      "size": [
+        110,
+        127
+      ],
+      "mode": "puff",
+      "period": 6,
+      "phase": 2,
+      "opacity": 0.8,
+      "rise": [
+        -30,
+        -130
+      ],
+      "anchor": "ship",
+      "anchor_offset": [
+        180,
+        35
+      ]
+    },
+    {
+      "name": "Smoke2",
+      "frames": [
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_00.png",
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_01.png",
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_02.png",
+        "res://assets/adventure/environment_fx/v1/main_menu/smoke/ship_smoke_03.png"
+      ],
+      "position": [
+        1410,
+        200
+      ],
+      "size": [
+        110,
+        127
+      ],
+      "mode": "puff",
+      "period": 6,
+      "phase": 4,
+      "opacity": 0.8,
+      "rise": [
+        -30,
+        -130
+      ],
+      "anchor": "ship",
+      "anchor_offset": [
+        180,
+        35
+      ]
+    }
+  ]
+}

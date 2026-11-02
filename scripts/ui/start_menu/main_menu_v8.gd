@@ -4,6 +4,19 @@ extends "res://scripts/ui/start_menu/main_menu_v6.gd"
 ## 补偿字体字形与木牌实际牌面的视觉中心差，单位为1920×1080设计像素。
 const PLAQUE_TEXT_OFFSET_Y := 10.0
 
+## 总环境动效开关，不控制既有乌鸦、按钮和音乐。
+@export var environment_fx_enabled := true:
+	set(value):
+		environment_fx_enabled = value
+		if is_node_ready():
+			_apply_environment()
+## 可逆候选天空引用；关闭时恢复原版背景并停用动态云。
+@export var use_clean_sky := true:
+	set(value):
+		use_clean_sky = value
+		if is_node_ready():
+			_apply_environment()
+
 ## 保持统一画布适配，隐藏旧辅助按钮，新功能台调用原有回调。
 func _ready() -> void:
 	super._ready()
@@ -11,6 +24,12 @@ func _ready() -> void:
 	Global.user_manager.signal_users_update.connect(_fit_profile_name)
 	_fit_profile_name()
 	_align_plaque_titles()
+	_apply_environment()
+
+## 只切换纹理引用，不修改原始PNG；复用现有画布与环境子场景。
+func _apply_environment() -> void:
+	$ArtCanvas/coastal_yard.texture = load("res://assets/adventure/environment_fx/v1/sky_cleanup_v1/backgrounds/main_menu_sky_clean_1920x1080.png" if use_clean_sky else "res://assets/adventure/main_menu/v6/background/coastal_yard.png")
+	$ArtCanvas/EnvironmentFX.set_flags(environment_fx_enabled, use_clean_sky)
 
 ## 仅替换原生名牌外观，保留玩家名 Label、档案按钮及事件连接。
 func _layout_native_profile() -> void:

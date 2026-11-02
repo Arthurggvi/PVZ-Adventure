@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=3]
+[gd_scene load_steps=48 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/main/01StartMenu.tscn" id="base"]
 
@@ -73,6 +73,8 @@
 
 [ext_resource type="Shader" path="res://shaders/adventure/plaque_breathing_glow.gdshader" id="plaque_glow"]
 
+[ext_resource type="PackedScene" path="res://scenes/environment/main_menu_fx.tscn" id="environment_fx"]
+
 [sub_resource type="ShaderMaterial" id="plaque_glow_material"]
 shader = ExtResource("plaque_glow")
 
@@ -95,6 +97,8 @@ texture = ExtResource("tex0")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
+
+[node name="EnvironmentFX" parent="ArtCanvas" instance=ExtResource("environment_fx")]
 
 [node name="house_contact" type="TextureRect" parent="ArtCanvas"]
 layout_mode = 0

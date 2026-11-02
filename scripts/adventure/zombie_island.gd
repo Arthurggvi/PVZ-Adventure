@@ -11,6 +11,24 @@ const StageButton = preload("res://scripts/adventure/island_stage_button.gd")
 const Intro = preload("res://scripts/adventure/island_intro.gd")
 ## UI 构造工具。
 const UI = preload("res://scripts/adventure/island_ui.gd")
+## 复用的环境场景，位于背景与关卡按钮之间。
+const ENVIRONMENT = preload("res://scenes/environment/zombie_island_fx.tscn")
+## 总环境开关，关闭后停止内部动画与气泡。
+@export var environment_fx_enabled := true:
+	set(value):
+		environment_fx_enabled = value
+		if is_node_ready() and is_instance_valid(environment):
+			_apply_environment()
+## 去云候选可随时回退到原背景；回退同时停云，保留其他效果。
+@export var use_clean_sky := true:
+	set(value):
+		use_clean_sky = value
+		if is_node_ready() and is_instance_valid(environment):
+			_apply_environment()
+## 与设计画布共享坐标的环境节点。
+var environment: Node2D
+## 背景节点引用，方便Inspector开关实时回退。
+var background: TextureRect
 ## 背景、按钮和引导共同挂载的设计画布。
 var canvas: Control
 ## 一次性结果和锁定提示。
@@ -32,13 +50,16 @@ func _ready() -> void:
 	canvas.size = DESIGN_SIZE
 	add_child(canvas)
 	# 背景纹理与节点都在同一设计空间，由外层等比缩放。
-	var background := TextureRect.new()
+	background = TextureRect.new()
 	background.texture = load(ASSET_ROOT + "map/zombie_island_background_1920x1080.png")
 	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	background.size = DESIGN_SIZE
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(background)
+	environment = ENVIRONMENT.instantiate()
+	canvas.add_child(environment)
+	_apply_environment()
 	# 只读取布局配置，不改动原 PNG，也不画节点路线。
 	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ASSET_ROOT + "layout.json"))
 	for stage: Dictionary in layout.stages: # 六个关卡共用同一实现。
@@ -69,6 +90,11 @@ func _fit_canvas() -> void:
 	var factor := minf(size.x / DESIGN_SIZE.x, size.y / DESIGN_SIZE.y) # 统一缩放比例。
 	canvas.scale = Vector2.ONE * factor
 	canvas.position = (size - DESIGN_SIZE * factor) / 2
+
+## 在同一1920×1080空间中替换候选引用，不改变地图、按钮或存档状态。
+func _apply_environment() -> void:
+	background.texture = load("res://assets/adventure/environment_fx/v1/sky_cleanup_v1/backgrounds/zombie_island_sky_clean_1920x1080.png" if use_clean_sky else ASSET_ROOT + "map/zombie_island_background_1920x1080.png")
+	environment.set_flags(environment_fx_enabled, use_clean_sky)
 
 ## [param stage_id] 为配置中的关卡编号；锁定和待实现节点只给提示。
 func _select_stage(stage_id: int) -> void:
