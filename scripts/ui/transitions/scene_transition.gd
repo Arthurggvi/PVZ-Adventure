@@ -8,7 +8,7 @@ signal transition_failed
 ## 覆盖画面所需的真实秒数。
 @export_range(0.05, 1.0, 0.01) var cover_seconds := 0.16
 ## 新场景揭开所需的真实秒数。
-@export_range(0.05, 1.0, 0.01) var reveal_seconds := 0.18
+@export_range(0.05, 1.0, 0.01) var reveal_seconds := 0.36
 ## 场景首次入树自动从不透明遮幕揭开，避免暴露未准备的首帧。
 @export var reveal_on_ready := true
 ## 过渡期间拒绝重复请求与底层输入；不使用全局暂停。
@@ -17,15 +17,31 @@ var busy := false
 var _tween: Tween
 ## 本次请求的原场景，用实际离场结果验证旧入口的成功返回，防止永久黑屏。
 var _source_scene: Node
+## 首次揭幕前保留的已渲染帧数，吸收父场景加载与首帧预热耗时。
+var _prepare_frames := 0
 ## 适应整个视口的纯色遮幕，也是鼠标输入屏障。
 @onready var curtain: ColorRect = $Curtain
 
 ## 自动揭开新场景；无跨场景全局对象，也不会创建音频播放器。
 func _ready() -> void:
 	if reveal_on_ready:
-		_reveal()
+		busy = true
+		curtain.show()
+		curtain.modulate.a = 1.0
+		if DisplayServer.get_name() == "headless":
+			_reveal.call_deferred() # 无显示后端没有呈现屏障，仍正常释放导航输入锁。
+		else:
+			_prepare_frames = 2
+			RenderingServer.frame_post_draw.connect(_on_prepared_frame)
 	else:
 		curtain.hide()
+
+## 第一帧完成场景/渲染预热，第二帧吸收其耗时；此后才创建揭幕 Tween。
+func _on_prepared_frame() -> void:
+	_prepare_frames -= 1
+	if _prepare_frames == 0:
+		RenderingServer.frame_post_draw.disconnect(_on_prepared_frame)
+		_reveal.call_deferred()
 
 ## 覆盖后执行 [param action]；返回是否接受请求。[br]
 ## 动作必须返回场景切换的 Error 或既有安全入口的 bool，失败自动揭开原场景。
@@ -85,5 +101,7 @@ func _input(_event: InputEvent) -> void:
 
 ## 切换或外部销毁时清理 Tween，组件不会驻留到下一场景。
 func _exit_tree() -> void:
+	if RenderingServer.frame_post_draw.is_connected(_on_prepared_frame):
+		RenderingServer.frame_post_draw.disconnect(_on_prepared_frame)
 	if _tween != null and _tween.is_valid():
 		_tween.kill()

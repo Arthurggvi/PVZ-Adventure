@@ -6,7 +6,7 @@
 
 - 纸图展开：0.26 秒，透明度 0→1、倍率 0.96→1、轻微向上归位，Cubic Ease Out。
 - 纸图收起：0.18 秒，轻微下移/缩小并淡出，Cubic Ease In；背景遮罩同步淡出。
-- 进入僵尸岛、地图返回 V8：0.16 秒覆盖，目标场景 0.18 秒揭幕；F5 初次菜单也柔和揭开。
+- 进入僵尸岛、地图返回 V8：0.16 秒覆盖，目标场景完成渲染准备后用 0.36 秒揭幕；F5 初次菜单使用同一流程。
 
 `scripts/ui/transitions/modal_motion.gd` 与 `scenes/ui/transitions/ModalMotion.tscn` 为可复用弹层组件。target 指向专用表现 Control，backdrop 可选；open_seconds、close_seconds、hidden_scale、hidden_offset 在 Inspector 调整。play_open / play_close 及 opened / closed 信号描述生命周期；快速取消会先终止旧 Tween，关闭中重复请求不会叠加。Picker 的 MotionRoot 承担动画，子级 DesignCanvas 仍由原 _fit_canvas 管理适配，互不争用位置或倍率。
 
@@ -38,3 +38,13 @@ Godot 4.7.2，所有测试使用工程 .godot 下隔离 APPDATA，未操作真�
 日志：`.godot/motion-import.log`、`motion-failure-red.log`、`motion-picker-delivery.log`、`motion-v8-delivery.log`。初次 headless RED 探针曾同时报告原环境 ShaderCompiler 条件错误，最终实际图形进程未复现；没有修改环境 shader。既有 UID 回退警告和测试主动聚焦禁用控件的预期警告仍在。
 
 未改 project.godot、AdventureSession、IslandProgress、原生 UserManager / SaveService、SoundManager、layout.json、PNG 或环境 FX。无本次功能阻断；动效节奏和视觉观感由用户实机验收，未制作截图、录屏或 GIF。
+
+## 黑屏后突然显现修复
+
+用户实机反馈揭幕生硬后，已复现根因：SceneTransition 子节点在 _ready 创建 Tween，父场景后续同步加载及首帧准备耗时会计入它的首个更新；当耗时超过揭幕时长，真正绘制前动画已经跑完。
+
+仅修改 scene_transition.gd 的入场表现：先保持全遮幕和输入锁，等待两个 frame_post_draw，吸收场景加载与第一帧渲染预热，再延迟创建揭幕 Tween；时长从 0.18 调整为 0.36 秒。退出树时断开准备阶段信号；headless 没有显示屏障，走延迟揭幕恢复路径。导航、失败恢复、纸图开关、存档、地图和音频代码未修改。
+
+新增 test_scene_transition_frames.gd / .tscn 及 UID，仅记录实际绘制帧的 alpha，不采集图像。模拟父场景同步准备 360ms：修复前样本 [0,0]，无任何中间帧，断言 RED；修复后呈现连续 26 个样本，由 1 平滑递减至 0，中间帧断言 PASS。另重跑真实地区选择流程，覆盖正常进入/返回、快速取消、坏档及无实际切换的错误恢复；通过。隔离编辑器导入退出 0，最终日志无 ERROR / SCRIPT ERROR / Assertion / FAIL；独立只读复核无阻断。
+
+本轮日志：.godot/reveal-frames-red.log、reveal-frames-fixed.log、reveal-picker.log、reveal-import.log。仍没有截图、录屏、GIF或逐帧审美验收。
