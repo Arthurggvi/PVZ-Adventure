@@ -10,9 +10,9 @@ var title_label: Label
 ## 来自当前玩家真实进度的开放状态；锁定节点禁用交互。
 var is_unlocked := false
 
-## [param stage] 来自 layout.json；[param unlocked] 控制名称揭示与状态文案，锁定节点禁用交互。
-## [param cleared] 为通关状态；[param callback] 负责地图层的导航判断。
-func configure(stage: Dictionary, unlocked: bool, cleared: bool, callback: Callable) -> void:
+## [param stage] 来自 layout.json；[param unlocked] 控制名称揭示，锁定节点禁用交互。
+## [param _cleared] 保留既有调用签名，不再显示通关状态文字；[param callback] 负责地图层的导航判断。
+func configure(stage: Dictionary, unlocked: bool, _cleared: bool, callback: Callable) -> void:
 	texture_normal = load("res://assets/adventure/zombie_island/" + stage.button)
 	ignore_texture_size = true
 	stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
@@ -20,7 +20,7 @@ func configure(stage: Dictionary, unlocked: bool, cleared: bool, callback: Calla
 	pivot_offset = size / 2
 	position = Vector2(stage.position_normalized[0] * 1920, stage.position_normalized[1] * 1080) - pivot_offset
 	is_unlocked = unlocked
-	# 锁定节点从控件层阻断鼠标、键盘与快捷键触发，保留独立未解锁文字。
+	# 锁定节点从控件层阻断鼠标、键盘与快捷键触发，保留灰显和问号标题。
 	disabled = not unlocked or int(stage.id) != 1
 	focus_mode = Control.FOCUS_NONE if disabled else Control.FOCUS_ALL
 	if not is_unlocked:
@@ -33,11 +33,6 @@ func configure(stage: Dictionary, unlocked: bool, cleared: bool, callback: Calla
 	var configured: Array = offsets.get(str(int(stage.id)), [0, 0]) # 未配置时沿用下方标签。
 	var shift := Vector2(configured[0], configured[1]) # 只作用于文字层。
 	title_label = UI.label(self, stage.name if unlocked else "？", Rect2(Vector2(-70, 202) + shift, Vector2(340, 48)), 36)
-	# 状态为独立 Label，图片中不包含数字、文字或锁头。
-	var status := "已通关" if cleared else ("可挑战" if stage.id == 1 else "已开放 · 待建设")
-	if not unlocked:
-		status = "未解锁"
-	UI.label(self, status, Rect2(Vector2(-50, 250) + shift, Vector2(300, 38)), 27)
 	mouse_entered.connect(_update_title_highlight)
 	mouse_exited.connect(_update_title_highlight)
 	pressed.connect(callback)
