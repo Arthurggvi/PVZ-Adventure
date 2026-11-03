@@ -3,6 +3,8 @@ extends "res://scripts/ui/start_menu/main_menu_v6.gd"
 
 ## 补偿字体字形与木牌实际牌面的视觉中心差，单位为1920×1080设计像素。
 const PLAQUE_TEXT_OFFSET_Y := 10.0
+## 存档名牌沿用原按钮交互，只追加可复用的悬停反馈组件。
+const PLAQUE_HOVER = preload("res://scripts/ui/start_menu/plaque_hover_feedback.gd")
 
 ## 总环境动效开关，不控制既有乌鸦、按钮和音乐。
 @export var environment_fx_enabled := true:
@@ -48,7 +50,8 @@ func _layout_native_profile() -> void:
 	button.texture_hover = button.texture_normal
 	button.texture_pressed = button.texture_normal
 	button.texture_click_mask = null
-	button.tooltip_text = "玩家档案：点击创建或选择"
+	button.tooltip_text = ""
+	button.add_child(PLAQUE_HOVER.new())
 	button.show()
 	name_label.reparent(button)
 	name_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
@@ -72,6 +75,16 @@ func _align_plaque_titles() -> void:
 func _fit_profile_name() -> void:
 	var name_label: Label = $ArtCanvas/WoodSign.label # 不另存身份与姓名。
 	name_label.label_settings.font_size = 24 if name_label.text.length() > 10 else 32
+	_refresh_plaque_titles()
+
+## 只改变显示文字，不改变控件禁用状态或解锁规则；保存原题名供解锁后恢复。
+func _refresh_plaque_titles() -> void:
+	for id: String in ["home", "ship", "research", "supply"]: # 仅处理四个场景入口，档案名和工具按钮保持原文。
+		var button: BaseButton = art_canvas.get_node(id + "_button") # 已实现功能的可用状态仍由原场景决定。
+		var title: Label = art_canvas.get_node(id + "_button_title") # 牌面独立文字。
+		if not title.has_meta("unlocked_title"):
+			title.set_meta("unlocked_title", title.text)
+		title.text = "？" if button.disabled else str(title.get_meta("unlocked_title"))
 
 ## 尚未实装的家园也禁止通过旧程序入口进入。
 func _on_item_button_1_pressed() -> void:

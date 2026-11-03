@@ -46,7 +46,7 @@ func _layout_native_profile() -> void:
 	button.texture_hover = button.texture_normal
 	button.texture_pressed = button.texture_normal
 	button.texture_click_mask = null
-	button.tooltip_text = "玩家档案：点击创建或选择"
+	button.tooltip_text = ""
 	button.show()
 	name_label.reparent(button)
 	name_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
