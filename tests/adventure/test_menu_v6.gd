@@ -41,7 +41,7 @@ func _run() -> void:
 	menu.art_canvas.get_node("ship_button").pressed.emit()
 	await _frames()
 	var town := player.stream # 进入正式地图后由地图启动城镇曲目。
-	assert(player == SoundManager.bgm_play and town.resource_path.ends_with("mus_town.wav") and player.playing)
+	assert(player == SoundManager.bgm_play and town.resource_path.ends_with("mus_town.wav") and player.stream_paused)
 	assert(get_tree().current_scene.canvas.has_node("Intro"))
 	get_tree().current_scene.canvas.get_node("Intro")._finish()
 	await _frames()

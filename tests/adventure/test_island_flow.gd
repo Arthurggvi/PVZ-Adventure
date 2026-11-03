@@ -38,16 +38,16 @@ func _run() -> void:
 	var map: Control = get_tree().current_scene # 当前地图。
 	var intro: Control = map.canvas.get_node("Intro") # 首次引导。
 	await _wait_intro_ready(intro)
-	assert(intro.conversation.dialogue_resource.dialog_detail_list.size() == 7)
+	assert(intro.conversation.dialogue_resource.dialog_detail_list.size() == 11)
 	await _screenshot("intro-1")
-	for index: int in range(6): # 逐句走到最终台词，第四句检查赠卡。
-		intro.conversation.request_advance()
+	for index: int in range(10): # 十一句走到最终台词，赠卡句检查两张卡。
+		await _advance_intro(intro)
 		await get_tree().create_timer(0.9).timeout
 		assert(intro.conversation.actor.speech_text_label.text == intro.conversation.dialogue_resource.dialog_detail_list[index + 1].text)
-		if index == 2:
+		if index + 1 == intro.GIFT_LINE:
 			assert(AdventureSession.progress.cards == {"sunflower": 1, "peashooter": 1})
 			await _screenshot("intro-4")
-	intro.conversation.request_advance()
+	await _advance_intro(intro)
 	await intro.completed
 	await _frames()
 	assert(AdventureSession.progress.intro_completed)
@@ -140,8 +140,9 @@ func _run() -> void:
 	original_bytes = FileAccess.get_file_as_bytes(original_path)
 	get_tree().current_scene.get_node("ArtCanvas/ship_button").pressed.emit()
 	await _frames()
-	var skipping: Control = get_tree().current_scene.canvas.get_node("Intro") # 第三句等待中的对话。
+	var skipping: Control = get_tree().current_scene.canvas.get_node("Intro") # 沉思句等待中的对话。
 	await _wait_intro_ready(skipping)
+	skipping.conversation.request_advance()
 	skipping.conversation.request_advance()
 	skipping.conversation.request_advance()
 	assert(not skipping.conversation.hold_timer.is_stopped())
@@ -210,3 +211,9 @@ func _select_user(username: String) -> void:
 func _wait_intro_ready(intro: Control) -> void:
 	while intro.conversation.line_index < 0:
 		await get_tree().process_frame
+
+## 等待 [param intro] 的原生应激动画或最短显示时间，再走原生面板推进。
+func _advance_intro(intro: Control) -> void:
+	while intro.conversation.reaction_pending or not intro.conversation.hold_timer.is_stopped():
+		await get_tree().process_frame
+	intro.conversation.request_advance()

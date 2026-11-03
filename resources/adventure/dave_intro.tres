@@ -1,53 +1,54 @@
-[gd_resource type="Resource" script_class="CrazyDaveDialogResource" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="CrazyDaveDialogResource" load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/crazy_dave_dialog_resource.gd" id="dialog"]
 
 [ext_resource type="Script" path="res://scripts/resources/crazy_dave_dialog_detail_resource.gd" id="line"]
 
 [sub_resource type="Resource" id="Line0"]
-
 script = ExtResource("line")
-
-text = "你就是我的新邻居？看你有点眼熟！"
+text = "嘿......"
 
 [sub_resource type="Resource" id="Line1"]
-
 script = ExtResource("line")
-
-text = "你有成为我的好搭档的潜质！"
+text = "你就是我的新邻居......你看起来好眼熟"
 
 [sub_resource type="Resource" id="Line2"]
-
 script = ExtResource("line")
-
-text = "就像曾经的他一样......"
+text = "我相信你会成为我的好搭档"
 
 [sub_resource type="Resource" id="Line3"]
-
 script = ExtResource("line")
-
-text = "这两个东西送你，别客气！向日葵和豌豆射手！"
+text = "就像他一样......"
 
 [sub_resource type="Resource" id="Line4"]
-
 script = ExtResource("line")
-
-text = "我知道埃德加最近自己建了一座神殿，去帮我铲平他吧！"
+text = "这个世界有点不太一样......但我说不上来"
 
 [sub_resource type="Resource" id="Line5"]
-
 script = ExtResource("line")
-
-text = "开始你的冒险，去找到埃德加！"
+text = "不过你会自己明白的！"
+is_crazy = true
 
 [sub_resource type="Resource" id="Line6"]
-
 script = ExtResource("line")
+text = "拿着这个"
 
-text = "不要忘了给我带一个玉米卷"
+[sub_resource type="Resource" id="Line7"]
+script = ExtResource("line")
+text = "我们要去对付一个老对手"
+
+[sub_resource type="Resource" id="Line8"]
+script = ExtResource("line")
+text = "埃德加博士。据我所知他在僵尸岛建了一座神庙"
+
+[sub_resource type="Resource" id="Line9"]
+script = ExtResource("line")
+text = "现在去铲平他的老巢！别忘了给我带一个玉米卷"
+
+[sub_resource type="Resource" id="Line10"]
+script = ExtResource("line")
+text = "好了，我要去研究一下我的皮卡钥匙在哪儿了"
 
 [resource]
-
 script = ExtResource("dialog")
-
-dialog_detail_list = Array[ExtResource("line")]([SubResource("Line0"), SubResource("Line1"), SubResource("Line2"), SubResource("Line3"), SubResource("Line4"), SubResource("Line5"), SubResource("Line6")])
+dialog_detail_list = Array[ExtResource("line")]([SubResource("Line0"), SubResource("Line1"), SubResource("Line2"), SubResource("Line3"), SubResource("Line4"), SubResource("Line5"), SubResource("Line6"), SubResource("Line7"), SubResource("Line8"), SubResource("Line9"), SubResource("Line10")])

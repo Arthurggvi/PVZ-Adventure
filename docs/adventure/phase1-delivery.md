@@ -17,7 +17,7 @@
 - 未登录游客：`user://adventure_guest/zombie_island_v1.json`。
 - 常规 Windows 实际目录在 `%APPDATA%/Godot/app_userdata/GodotPVZ-Dream/` 下。
 - 文件格式版本为 1，保存 started、intro_completed、stage_1_cleared 和初始卡数量。
-- 第四句发卡时即保存；重复进入、跳过、重新读取都只持有向日葵和豌豆射手各一份。未完成引导而退出，下次从第一句恢复；完成后不重复。
+- 赠卡句发卡时即保存（现为第七句“拿着这个”）；重复进入、跳过、重新读取都只持有向日葵和豌豆射手各一份。未完成引导而退出，下次从第一句恢复；完成后不重复。
 - 新游戏在已有进度时显示游戏内确认，并先复制旧文件为 `.backup-<时间>-<唯一后缀>`。备份失败时不重开。
 - 改名随原 UserManager 的用户目录一起迁移；独立文件不覆盖 `GlobalSaveGame.json` 或旧关卡快照。
 - 损坏或不兼容文件会明确提示并禁止自动覆盖；胜利保存失败提供重试。
@@ -38,12 +38,12 @@
 - `scripts/adventure/adventure_session.gd`：当前用户状态、卡槽适配、场景切换、battle_finished 结果信号。
 - `scripts/adventure/zombie_island.gd`：世界地图、布局读取、统一等比画布、关卡提示。
 - `scripts/adventure/island_stage_button.gd`：独立 PNG、Label、状态、描边、悬停与回弹。
-- `scripts/adventure/island_intro.gd`：原版资源驱动引导接线、跳过、第四句赠卡；表现复用独立戴夫对话封装。
+- `scripts/adventure/island_intro.gd`：原版资源驱动引导接线、跳过、第七句赠卡；表现复用独立戴夫对话封装。
 - `scripts/adventure/island_menu.gd`：新游戏/继续、重开确认和错误显示。
 - `scripts/adventure/island_ui.gd`：共享控件样式、项目中文字体和系统缺字回退。
 - `scenes/adventure/zombie_island.tscn`：地图场景。
 - `resources/adventure/island_lawn.tres`：现有战斗资源的第一关配置。
-- `resources/adventure/dave_intro.tres`：七句最终台词原文，现已迁入原版CrazyDaveDialogResource。
+- `resources/adventure/dave_intro.tres`：十一句最终台词原文，使用原版CrazyDaveDialogResource。
 - `resources/adventure/island_label_offsets.json`：避免文字遮挡的偏移，不改变关卡中心。
 
 验收与说明：
@@ -55,7 +55,7 @@
 
 已有地图素材完整且未修改；未使用 preview，未下载素材，未改 `_reference`。素材仍遵循项目已有 assets 忽略规则，本次没有执行 git add、commit、reset 或 clean。
 
-## 已执行的验证及结果
+## 已执行的验证及结果（第一阶段原七句版本的历史记录）
 
 使用本机 `C:/Users/Arthu/Desktop/Godot_v4.7.2-stable_win64_console.exe`，版本输出为 `4.7.2.stable.official.ed1daf0bf`。
 
@@ -88,7 +88,7 @@
 ## 人工复查
 
 1. 在 Godot 按 F5，从原菜单点击「开始冒险吧」→「开始新游戏」。已有冒险会提示备份后重开。
-2. 逐句点击继续，核对七句原文；第3句有短暂停顿，第4句显示两张赠卡。另开一局验证直接跳过也获得各一张。
+2. 逐句点击原生气泡，核对十一句原文；第4句短暂停顿，第6句为完整原版应激，第7句展示两张赠卡，第8句收起并播放星屑及prize。另开一局验证直接跳过也获得各一张。
 3. 点击锁定节点确认只有提示；草坪进入原版战斗，使用数字1/2或点击卡片种植向日葵和豌豆射手。
 4. 手动完成十波并点击奖杯，确认地图开放没落营地；另开新局故意失败，确认不开放。战斗菜单主动返回也不得解锁。
 5. 返回菜单→继续游戏，或完全退出后重启→继续，确认对话不重播、卡片数量不增加。
