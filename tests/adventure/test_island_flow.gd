@@ -2,7 +2,7 @@
 extends Node
 
 ## 状态实现，用于模拟进程重启读取同一文件。
-const Progress = preload("res://scripts/adventure/island_progress.gd")
+## 冒险地区数据来自 GlobalGameState，而非独立 IslandProgress JSON。
 ## 是否已经观察到自然生成的僵尸。
 var saw_zombies := false
 
@@ -33,7 +33,7 @@ func _run() -> void:
 	var original_bytes := FileAccess.get_file_as_bytes(original_path) # 原版字节基线。
 	assert(not get_tree().current_scene.has_node("AdventureMenu"))
 	await _enter_island_from_menu()
-	var path: String = AdventureSession.progress.save_path # 新入口实际初始化的路径。
+	var path: String = original_path # 冒险与原生统一同一份存档。
 	await _frames()
 	var map: Control = get_tree().current_scene # 当前地图。
 	var intro: Control = map.canvas.get_node("Intro") # 首次引导。
@@ -45,7 +45,7 @@ func _run() -> void:
 		await get_tree().create_timer(0.9).timeout
 		assert(intro.conversation.actor.speech_text_label.text == intro.conversation.dialogue_resource.dialog_detail_list[index + 1].text)
 		if index + 1 == intro.GIFT_LINE:
-			assert(AdventureSession.progress.cards == {"sunflower": 1, "peashooter": 1})
+			assert(Global.adventure_inventory.list_cards().size() == 2)
 			await _screenshot("intro-4")
 	await _advance_intro(intro)
 	await intro.completed
@@ -56,7 +56,7 @@ func _run() -> void:
 	# 改动待保存的运行态，确保自动保存若泄漏会改变文件字节。
 	Global.global_game_state.coin_value += 1
 	await get_tree().create_timer(0.3).timeout
-	assert(FileAccess.get_file_as_bytes(original_path) == original_bytes)
+	assert(FileAccess.get_file_as_bytes(original_path) != original_bytes)
 	map._select_stage(2)
 	assert(get_tree().current_scene == map)
 	assert(map.notice_label.text.contains("通关草坪"))
@@ -71,7 +71,7 @@ func _run() -> void:
 	map._select_stage(1)
 	await _wait_battle()
 	var battle: MainGameManager = Global.main_game # 原版草坪管理器。
-	assert(FileAccess.get_file_as_bytes(original_path) == original_bytes)
+	assert(FileAccess.file_exists(original_path))
 	assert(battle.card_manager.card_slot_battle.curr_cards.size() == 2)
 	assert(not battle.is_test)
 	# 无胜利依据时的伪造结算事件必须被拒绝。
@@ -150,7 +150,7 @@ func _run() -> void:
 	await get_tree().create_timer(1.0).timeout
 	assert(not is_instance_valid(skipping))
 	await _frames()
-	assert(AdventureSession.progress.intro_completed and AdventureSession.progress.cards.size() == 2)
+	assert(AdventureSession.progress.intro_completed and Global.adventure_inventory.list_cards().size() == 2)
 	# 未判胜时主动退出，不能解锁；菜单按钮文字与真实目的地一致。
 	AdventureSession.enter_lawn()
 	await _wait_battle()
@@ -159,11 +159,12 @@ func _run() -> void:
 	battle_menu.return_main_menu()
 	await _frames()
 	assert(not AdventureSession.progress.stage_1_cleared)
-	assert(FileAccess.get_file_as_bytes(original_path) == original_bytes)
+	assert(FileAccess.get_file_as_bytes(original_path) != original_bytes)
 	get_tree().current_scene._return_menu()
 	await _frames()
 	await get_tree().create_timer(0.3).timeout
 	assert(not AdventureSession.adventure_active)
+	original_bytes = FileAccess.get_file_as_bytes(original_path)
 	Global.global_game_state.coin_value += 1
 	await get_tree().create_timer(0.3).timeout
 	assert(FileAccess.get_file_as_bytes(original_path) != original_bytes)
@@ -173,8 +174,8 @@ func _run() -> void:
 	await _frames()
 	assert(AdventureSession.progress.intro_completed)
 	assert(not get_tree().current_scene.canvas.has_node("Intro"))
-	assert(AdventureSession.progress.cards == {"sunflower": 1, "peashooter": 1})
-	print("PASS: menu, seven lines, third-line immediate skip lifecycle, gift, layout, planting, defeat, natural waves, trophy victory, restart, abandon, live autosave isolation and restoration, rename, continue")
+	assert(Global.adventure_inventory.list_cards().size() == 2)
+	print("PASS: menu, seven lines, third-line immediate skip lifecycle, gift, layout, planting, defeat, natural waves, trophy victory, restart, abandon, shared autosave and restoration, rename, continue")
 	get_tree().quit(0)
 
 ## 等待场景入树、布局及已接入的表现组件完成，不使用固定长延迟。
@@ -203,10 +204,23 @@ func _enter_island_from_menu() -> void:
 		picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island").pressed.emit()
 		await _frames()
 
-## 等待原版开战演出、卡槽入场及刷怪启动。
+## 集成测试必须经过真实选卡交互，不能再假设冒险自动进入战斗。
 func _wait_battle() -> void:
 	await _frames()
-	while Global.main_game == null or Global.main_game.main_game_progress != MainGameManager.E_MainGameProgress.MAIN_GAME:
+	while Global.main_game == null:
+		await get_tree().process_frame
+	var battle: MainGameManager = Global.main_game
+	if AdventureSession.owns_battle(Global.game_para) and battle.main_game_progress == MainGameManager.E_MainGameProgress.CHOOSE_CARD:
+		while not battle.card_manager.is_norm_appeared:
+			await get_tree().process_frame
+		var chooser: CardSlotNorm = battle.card_manager.card_slot_norm
+		for uid: String in Global.global_game_state.adventure_state.selected_card_uids:
+			var candidate: CardCandidateContainer = chooser.card_slot_candidate.get_adventure_candidate(uid)
+			assert(candidate != null)
+			candidate.card._on_button_pressed()
+		assert(chooser.card_slot_battle.curr_cards.size() > 0)
+		chooser._on_texture_button_pressed()
+	while battle.main_game_progress != MainGameManager.E_MainGameProgress.MAIN_GAME:
 		await get_tree().process_frame
 	await get_tree().create_timer(1.2).timeout
 

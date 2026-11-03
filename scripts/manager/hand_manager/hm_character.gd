@@ -195,7 +195,10 @@ func click_cell(plant_cell: PlantCell) -> void:
 func _create_character_at_cell(plant_cell: PlantCell) -> bool:
 	match curr_card.card_reference.card_type:
 		ResourceCardReference.CardType.Plant:
-			return plant_cell.create_plant(curr_card.card_reference.content_id, curr_card.card_reference.is_imitater) != null
+			return plant_cell.create_plant(
+				curr_card.card_reference.content_id, curr_card.card_reference.is_imitater,
+				true, false, false, curr_card.battle_card_data
+			) != null
 		ResourceCardReference.CardType.Zombie:
 			# 普通僵尸仍按行初始化，保留关卡模式与特殊僵尸回调。
 			var zombie_init_para: Dictionary = {

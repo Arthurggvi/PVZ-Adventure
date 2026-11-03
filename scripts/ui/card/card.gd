@@ -19,6 +19,8 @@ enum CardContext {
 
 ## 当前实例的点击用途；创建入口应在入树前设置。
 var card_context: CardContext = CardContext.Catalog
+## 仅战斗期间的出战卡绑定，空字典代表原版模式；每张卡持有独立快照。
+var battle_card_data: Dictionary = {}
 ## 是否处于冷却中。
 var _is_cooling: bool = false
 ## 当前费用是否已被卡槽判定为足够。
@@ -49,6 +51,17 @@ func _ready() -> void:
 	if card_reference == null or not card_reference.is_valid():
 		is_can_click = false
 		return
+	if not battle_card_data.is_empty():
+		var uid: String = str(battle_card_data.get("uid", ""))
+		var marker := Label.new()
+		marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		marker.text = "★%s · %s" % [str(battle_card_data.get("stars", 1)), uid.substr(maxi(0, uid.length() - 3))]
+		marker.add_theme_font_size_override("font_size", 9)
+		marker.add_theme_color_override("font_color", Color(1, 0.95, 0.68))
+		marker.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+		marker.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+		marker.offset_top = -13
+		add_child(marker)
 	if card_reference.card_type == ResourceCardReference.CardType.ZombieBoss:
 		# 源模板隐藏了费用，复制实例入树时必须按用途显式恢复可见性。
 		cost.visible = card_context == CardContext.Selection or card_context == CardContext.Battle

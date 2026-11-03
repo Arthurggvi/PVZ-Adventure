@@ -45,18 +45,18 @@ func _ready() -> void:
 ## [param index] 为原版资源中的句索引；赠卡句展示，下一句收起并播放原生拾取效果。
 func _on_line_started(index: int) -> void:
 	if index == GIFT_LINE:
-		if AdventureSession.progress.grant_starter_cards():
+		if AdventureSession.grant_starter_cards():
 			gift_label.text = ""
 			card_reward.reveal()
 		else:
-			gift_label.text = AdventureSession.progress.error_message
+			gift_label.text = AdventureSession.error_message
 	elif index == GIFT_LINE + 1:
 		card_reward.collect()
 
 ## 原版最后一句和跳过共享持久化校验；返回false时保持气泡，点击可重试。
 func _complete_progress() -> bool:
-	if not AdventureSession.progress.complete_intro():
-		gift_label.text = AdventureSession.progress.error_message
+	if not AdventureSession.complete_intro():
+		gift_label.text = AdventureSession.error_message
 		return false
 	return true
 

@@ -159,7 +159,7 @@ func imitater_create_plant(plant_type:CharacterRegistry.PlantType, is_plant_star
 ##[is_plant_start_effect:bool] 是否有种植特效
 ##[is_imitater_material:bool] 是否为模仿者材质
 ##[is_zombie_mode:bool] 是否为我是僵尸模式
-func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is_plant_start_effect:=true, is_imitater_material:=false, is_zombie_mode:=false) -> Plant000Base:
+func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is_plant_start_effect:=true, is_imitater_material:=false, is_zombie_mode:=false, battle_card_data: Dictionary = {}) -> Plant000Base:
 	var plant_condition:ResourcePlantCondition
 	var plant :Plant000Base
 	plant_condition = Global.character_registry.get_plant_info(plant_type, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
@@ -191,7 +191,8 @@ func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is
 		Plant000Base.E_PInitAttr.CharacterInitType:Character000Base.E_CharacterInitType.IsNorm,
 		Plant000Base.E_PInitAttr.PlantCell:self,
 		Plant000Base.E_PInitAttr.IsImitaterMaterial:is_imitater_material,
-		Plant000Base.E_PInitAttr.IsZombieMode:is_zombie_mode
+		Plant000Base.E_PInitAttr.IsZombieMode:is_zombie_mode,
+		Plant000Base.E_PInitAttr.BattleCardData:battle_card_data.duplicate(true)
 	}
 	plant.init_plant(plant_init_para)
 	if is_imitater:

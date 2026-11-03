@@ -29,6 +29,8 @@ var garden_data: Dictionary = DEFAULT_GARDEN_DATA.duplicate(true)
 var curr_all_level_state_data: Dictionary = DEFAULT_CURR_ALL_LEVEL_STATE_DATA.duplicate(true)
 ## 上次出战卡片的身份引用，按卡槽顺序保存；不含价格、冷却等运行状态。
 var selected_cards: Array[ResourceCardReference] = []
+## 玩家冒险库存、卡 UID、地区进度的唯一运行态；与原版选卡模板隔离。
+var adventure_state: AdventureState = AdventureState.new()
 
 ## 当前可用僵王角色，普通选卡按此列表筛选；默认包含博士，不受关卡自动出场配置影响。
 var curr_zombie_boss: Array[CharacterRegistry.ZombieBossType] = [

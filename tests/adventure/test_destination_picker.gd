@@ -16,7 +16,7 @@ func _run() -> void:
 	menu.user.panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username)
 	Global.save_service.save_now()
-	var path := "user://%s/adventure/zombie_island_v1.json" % username # 既有安全入口使用的路径。
+	var path := "user://%s/adventure/zombie_island_v1.json" % username # 废弃格式哨兵：新流程不得再写此文件。
 	var native_path := "user://%s/GlobalSaveGame.json" % username # 原全局文件。
 	var native_bytes := FileAccess.get_file_as_bytes(native_path) # 原存档不可被导航重写。
 	var identity_bytes := FileAccess.get_file_as_bytes("user://current_user.ini") # 原生身份不可变化。
@@ -129,11 +129,12 @@ func _run() -> void:
 	await _mouse_click(island)
 	await _frames()
 	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
-	assert(AdventureSession.progress.started and FileAccess.file_exists(path))
+	assert(AdventureSession.progress.started and FileAccess.file_exists(native_path) and not FileAccess.file_exists(path))
 	assert(get_tree().current_scene.canvas.has_node("Intro"))
 	get_tree().current_scene.canvas.get_node("Intro")._finish()
-	assert(AdventureSession.progress.record_victory()) # 最小准备已有解锁档案，不模拟无关战斗。
-	var saved := FileAccess.get_file_as_bytes(path) # 已赠卡、已解锁的字节基线。
+	assert(AdventureSession.progress.record_victory()) # 仅在测试中模拟已通关状态。
+	assert(Global.save_service.save_now())
+	var saved := FileAccess.get_file_as_bytes(native_path) # 已赠卡、已解锁的字节基线。
 	get_tree().current_scene._return_menu()
 	await _frames()
 	menu = get_tree().current_scene
@@ -146,27 +147,12 @@ func _run() -> void:
 	await _frames()
 	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
 	assert(AdventureSession.is_unlocked(2) and not get_tree().current_scene.canvas.has_node("Intro"))
-	assert(FileAccess.get_file_as_bytes(path) == saved)
-	assert(FileAccess.get_file_as_bytes(native_path) == native_bytes)
+	assert(FileAccess.get_file_as_bytes(native_path) == saved)
+	assert(FileAccess.get_file_as_bytes(native_path) != native_bytes)
 	assert(player.stream == town and player.get_playback_position() >= before)
-	# 损坏档通过同一路径拒绝进入，提示可关闭，保留原字节。
-	get_tree().current_scene._return_menu()
-	await _frames()
-	menu = get_tree().current_scene
-	var file := FileAccess.open(path, FileAccess.WRITE) # 只破坏隔离测试玩家的档案。
-	file.store_string("{broken picker sentinel")
-	file.close()
-	menu.get_node("ArtCanvas/ship_button").pressed.emit()
-	await _frames()
-	picker = menu.get_node("AdventureDestinationPicker")
-	await _mouse_click(picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island"))
-	assert(get_tree().current_scene == menu and not AdventureSession.adventure_active)
-	assert(picker.get_node("EntryError").visible)
-	assert(FileAccess.get_file_as_string(path) == "{broken picker sentinel")
-	assert(not AdventureSession.entry_error.is_empty())
-	picker.get_node("EntryError").hide()
-	await _key(KEY_ESCAPE)
-	print("PASS: modal interruption/resize/input lock, scene fade/rollback, picker real inputs, locked routes, X/ESC cycles, four viewport bounds, first/existing/corrupt saves, native bytes and continuous town BGM")
+	# 旧独立文件已废弃；地区选择器不负责数据迁移或旧档恢复。
+	assert(not FileAccess.file_exists(path))
+	print("PASS: modal interruption/resize/input lock, scene fade/rollback, picker real inputs, locked routes, X/ESC cycles, four viewport bounds, first/existing unified saves, native bytes and continuous town BGM")
 	get_tree().quit()
 
 ## 向 [param button] 中心发送真实鼠标输入并检查开放卡片状态层。

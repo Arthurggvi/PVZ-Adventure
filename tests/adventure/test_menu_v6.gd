@@ -45,7 +45,7 @@ func _run() -> void:
 	assert(get_tree().current_scene.canvas.has_node("Intro"))
 	get_tree().current_scene.canvas.get_node("Intro")._finish()
 	await _frames()
-	var path: String = AdventureSession.progress.save_path # A 玩家冒险文件。
+	var path: String = "user://%s/GlobalSaveGame.json" % username # 统一存档。
 	var saved := FileAccess.get_file_as_bytes(path) # 赠卡后文件基线。
 	for index: int in range(2,7): # 锁定关卡禁止鼠标和键盘触发。
 		var stage: TextureButton = get_tree().current_scene.canvas.get_node("Stage%d" % index)
@@ -69,7 +69,7 @@ func _run() -> void:
 	_select_user(username + "-b")
 	await _enter_island_from_menu()
 	await _frames()
-	assert(AdventureSession.progress.cards.is_empty() and not AdventureSession.progress.intro_completed)
+	assert(Global.adventure_inventory.list_cards().is_empty() and not AdventureSession.progress.intro_completed)
 	get_tree().current_scene._return_menu()
 	await _frames()
 	_select_user(username)

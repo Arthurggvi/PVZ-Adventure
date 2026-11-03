@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1")
-look_show_zombie = false
-can_choosed_card = false
+look_show_zombie = true
+can_choosed_card = true
 max_choosed_card_num = 2
 start_sun = 150
 max_wave = 10

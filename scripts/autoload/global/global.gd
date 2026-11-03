@@ -17,6 +17,8 @@ extends Node
 @onready var config_service: ConfigService = %ConfigService
 ## 全局游戏状态（金币、花园数据、关卡数据、当前植物、当前僵尸）
 @onready var global_game_state: GlobalGameState = %GlobalGameState
+## 数据服务随当前玩家状态重建，不额外设 Autoload 或第二个存档入口。
+@onready var adventure_inventory: AdventureInventoryService = AdventureInventoryService.new(global_game_state.adventure_state)
 ## 全局只读数据（图鉴数据、刷怪白名单、罐子白名单等）
 @onready var global_read_data: GlobalReadData = %GlobalReadData
 
@@ -37,6 +39,7 @@ func reload_session_for_current_user() -> void:
 	if user_manager.curr_user_name.is_empty():
 		return
 	save_service.load_global_game_data()
+	adventure_inventory = AdventureInventoryService.new(global_game_state.adventure_state)
 	config_service.load_and_apply_config()
 
 var main_game:MainGameManager

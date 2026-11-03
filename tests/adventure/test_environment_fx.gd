@@ -55,10 +55,10 @@ func _run() -> void:
 	await get_tree().create_timer(0.35).timeout
 	assert(menu.get_node("Dialog_Help").visible)
 	# 地图读取测试内存状态，不创建/迁移任何玩家文件。
-	AdventureSession.progress = Progress.new("user://fx-unused/zombie_island_v1.json")
-	AdventureSession.progress.started = true
-	AdventureSession.progress.intro_completed = true
-	AdventureSession.progress.cards = {"sunflower": 1, "peashooter": 1}
+	AdventureSession.progress = Progress.new(AdventureState.new())
+	AdventureSession.progress.start()
+	assert(AdventureSession.progress.complete_intro())
+	# No test inventory required for environmental scene render.
 	get_tree().change_scene_to_file("res://scenes/adventure/zombie_island.tscn")
 	await _frames()
 	var island: Control = get_tree().current_scene # 正式地图与真实关卡按钮。

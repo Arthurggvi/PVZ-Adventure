@@ -21,6 +21,8 @@ var curr_be_attack_status:E_BeAttackStatusPlant = E_BeAttackStatusPlant.IsNorm
 var row_col:Vector2i = Vector2i(-1, -1)
 ## 植物所在格子
 var plant_cell:PlantCell
+## 只属于本次战斗的卡牌来源快照；普通原版种植保持空字典。
+var battle_card_data: Dictionary = {}
 ## 植物死亡后是否直接删除
 var is_death_free:= true
 ## 是否为模仿者材质
@@ -75,6 +77,7 @@ enum E_PInitAttr{
 	IsImitaterMaterial,	## 是否为模仿者材质
 	GardenDate,			## 花园数据
 	IsZombieMode,			## 我是僵尸模式
+	BattleCardData,		## 选中卡的战斗快照（可选）
 }
 ## 植物初始化相关, 创建植物时 加入场景树之前赋值
 func init_plant(plant_init_para:Dictionary):
@@ -82,6 +85,7 @@ func init_plant(plant_init_para:Dictionary):
 	self.character_init_type = plant_init_para[E_PInitAttr.CharacterInitType]
 	self.is_imitater_material = plant_init_para.get(E_PInitAttr.IsImitaterMaterial, false)
 	self.is_zombie_mode = plant_init_para.get(E_PInitAttr.IsZombieMode, false)
+	battle_card_data = plant_init_para.get(E_PInitAttr.BattleCardData, {}).duplicate(true)
 	match character_init_type:
 		E_CharacterInitType.IsNorm:
 			self.plant_cell = plant_init_para[E_PInitAttr.PlantCell]

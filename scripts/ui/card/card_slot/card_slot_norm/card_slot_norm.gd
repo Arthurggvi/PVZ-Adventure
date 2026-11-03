@@ -13,7 +13,7 @@ class_name CardSlotNorm
 func init_card_slot_norm(game_para: ResourceLevelData) -> void:
 	card_slot_battle.init_card_slot_battle(game_para.max_choosed_card_num, game_para.start_sun)
 	# 候选容器按引用的完整选择键定位，模仿修饰决定点击处理方法。
-	for container: CardCandidateContainer in card_slot_candidate.candidate_containers.values():
+	for container: CardCandidateContainer in card_slot_candidate.get_all_candidates():
 		if container.card.card_reference.is_imitater:
 			container.card.signal_card_click.connect(_on_imitater_card_click)
 		else:
@@ -23,6 +23,12 @@ func init_card_slot_norm(game_para: ResourceLevelData) -> void:
 
 ## 读取上次的统一选卡引用，只恢复仍可出战且存在于本次候选页的内容。
 func _on_re_card_button_pressed() -> void:
+	if AdventureSession.owns_battle(Global.game_para):
+		for uid: String in Global.global_game_state.adventure_state.selected_card_uids:
+			var container: CardCandidateContainer = card_slot_candidate.get_adventure_candidate(uid)
+			if container != null and not container.card.is_choosed_pre_card:
+				container.card._on_button_pressed()
+		return
 	Global.save_service.load_selected_cards()
 	# 上次选卡的引用只读，候选卡拥有自己的引用副本。
 	for reference: ResourceCardReference in Global.global_game_state.selected_cards:
@@ -44,6 +50,12 @@ func _on_cancal_card_button_pressed() -> void:
 
 ## 开始游戏并保存独立的选卡引用，由 SaveService 统一序列化。
 func _on_texture_button_pressed() -> void:
+	if AdventureSession.owns_battle(Global.game_para):
+		if not AdventureSession.confirm_selected_cards(card_slot_battle.curr_cards):
+			SoundManager.play_other_SFX("buzzer")
+			return
+		EventBus.push_event("card_slot_norm_start_game")
+		return
 	EventBus.push_event("card_slot_norm_start_game")
 	Global.global_game_state.selected_cards.clear()
 	# 保存引用副本，避免运行中的卡片修改影响持久化身份。
@@ -69,6 +81,13 @@ func init_pre_choosed_card(references: Array[ResourceCardReference]) -> void:
 		var card: Card = AllCards.create_card(reference, Card.CardContext.Selection)
 		if card == null:
 			continue
+		if AdventureSession.owns_battle(Global.game_para):
+			var build: Dictionary = AdventureSession.get_prechosen_battle_data(card_slot_battle.curr_cards.size(), reference)
+			if build.is_empty():
+				push_error("冒险预选卡 UID 与卡槽模板不匹配，取消本卡绑定。")
+				card.free()
+				continue
+			card.battle_card_data = build
 		card_slot_battle.curr_cards.append(card)
 		pre_choosed_card(card, card_slot_battle.cards_placeholder[card_slot_battle.curr_cards.size() - 1])
 		if reference.is_imitater:

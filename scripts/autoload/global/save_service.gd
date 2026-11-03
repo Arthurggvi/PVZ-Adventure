@@ -40,26 +40,29 @@ func stop_autosave() -> void:
 	_auto_save_timer = null
 
 func _on_auto_save_timer_timeout() -> void:
-	# 冒险会话只保存独立进度；计时器保持运行，回到菜单自动恢复原有行为。
-	if AdventureSession.adventure_active:
-		return
+	# 单一全局存档已包含冒险状态，不再暂停冒险会话期间的保存。
 	print(GlobalUtils.get_curr_time(), " 自动存档")
 	save_now()
 
 ## 保存当前用户的完整全局状态，选卡按卡槽顺序编码为三字段身份字典。[br]
 ## 用户未登录或运行态未就绪时跳过，写入失败时不报告保存成功。
-func save_now() -> void:
+func save_now() -> bool:
 	# 当前用户的全局存档路径；空路径表示尚未登录。
 	var path := _get_save_game_path()
 	if path.is_empty():
 		# 未选用户时常见，不算错误（用 verbose 避免自动存档定时刷屏）
 		print("全局存档跳过：未登录用户或用户名为空")
-		return
+		return false
 
 	if global_game_state == null:
 		push_error("❌ 全局存档失败：GlobalGameState 未就绪")
-		return
+		return false
 
+	# 冒险域必须可序列化，不能用空字典覆盖未完成或非法的内存状态。
+	var adventure_data: Dictionary = global_game_state.adventure_state.to_dict()
+	if adventure_data.is_empty():
+		push_error("冒险状态校验失败，取消本次全局保存。")
+		return false
 	# 本次写入的完整状态，Resource 选卡引用转换为 JSON 可保存的身份值。
 	var data: Dictionary = {
 		"version": SaveGameVersion,
@@ -70,11 +73,13 @@ func save_now() -> void:
 		"selected_cards": _serialize_selected_cards(),
 		"curr_plant": global_game_state.curr_plant,
 		"curr_zombie": global_game_state.curr_zombie,
+		"adventure": adventure_data,
 	}
 
 	if not _save_json(data, path):
-		return
+		return false
 	print(GlobalUtils.get_curr_time(), " 存档全局数据成功, 存档路径:", path)
+	return true
 
 ## 读取当前用户的全局状态；选卡只恢复新格式身份，缺失或无效条目按空列表处理。[br]
 ## 用户未登录或运行态未就绪时跳过，其他状态沿用各自默认值。
@@ -87,11 +92,19 @@ func load_global_game_data() -> void:
 	if global_game_state == null:
 		return
 
-	# 从 JSON 读取的状态字典，文件缺失或解析失败时为空。
+	# 从 JSON 读取的状态字典，旧实验档没有 adventure 字段时初始化空冒险状态。
 	var data := _load_json(path) as Dictionary
+	var restored_adventure: AdventureState = AdventureState.new()
+	if data.has("adventure"):
+		restored_adventure = AdventureState.from_dict(data["adventure"])
+		if restored_adventure == null:
+			global_game_state.adventure_state = AdventureState.new()
+			push_error("冒险数据格式不支持，未加载其余玩家数据。")
+			return
 
 	# 本次恢复的运行态对象，避免重复访问服务成员。
 	var state := global_game_state
+	state.adventure_state = restored_adventure
 	state.coin_value = data.get("coin_value", state.DEFAULT_COIN_VALUE)
 	state.curr_num_new_garden_plant = data.get("curr_num_new_garden_plant", state.DEFAULT_CURR_NUM_NEW_GARDEN_PLANT)
 	state.garden_data = data.get("garden_data", state.DEFAULT_GARDEN_DATA).duplicate(true)
