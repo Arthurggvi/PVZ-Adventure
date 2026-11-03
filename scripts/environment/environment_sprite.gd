@@ -19,13 +19,16 @@ var puff_offset := Vector2.ZERO
 var puff_visible := true
 ## 可选的随动船体，不创建第二套船节点。
 var anchor: Control
+## 背景真实显示区域的局部原点，遮罩不能以单个精灵UV采样。
+var mask_origin: Vector2
 
-## [param data] 为效果配置；[param ship] 为现有船体，可为空。
-func configure(data: Dictionary, ship: Control) -> void:
+## [param data] 为效果配置；[param ship] 为现有船体，可为空；[param background_region] 为真实背景显示区。
+func configure(data: Dictionary, ship: Control, background_region: Rect2) -> void:
 	settings = data
 	base_position = Vector2(data.position[0], data.position[1])
 	draw_size = Vector2(data.size[0], data.size[1])
 	anchor = ship if data.get("anchor", "") == "ship" else null
+	mask_origin = background_region.position
 	centered = false
 	sprite_frames = SpriteFrames.new()
 	sprite_frames.clear("default")
@@ -37,6 +40,7 @@ func configure(data: Dictionary, ship: Control) -> void:
 		region.shader = MASK_SHADER
 		region.set_shader_parameter("region_mask", load(data.mask))
 		region.set_shader_parameter("alpha_channel", data.get("mask_alpha", false))
+		region.set_shader_parameter("canvas_size", background_region.size)
 		material = region
 	set_running(true)
 
@@ -71,6 +75,11 @@ func _process(delta: float) -> void:
 		var drift: Array = settings.get("drift", [0, 0]) # 仅数像素范围的摆动。
 		position += Vector2(drift[0] * wave, drift[1] * cos(time * TAU / period))
 		modulate.a *= 0.75 + 0.25 * wave
+	elif mode == "water_drift":
+		var travel: float = settings.travel # 在有限海面范围漂移，周期间隙淡出而非跳闪。
+		var progress := fposmod(time * float(settings.speed) / travel, 1.0) # 按原背景像素/秒换算后的运动进度。
+		position += Vector2((progress - 0.5) * travel, 2.0 * sin(progress * TAU))
+		modulate.a *= sin(progress * PI)
 	elif mode == "ripple":
 		var phase := fposmod(time / period, 1.0) # 局部涟漪扩散后消退。
 		current_size *= 0.85 + 0.2 * phase
@@ -95,5 +104,5 @@ func _process(delta: float) -> void:
 	var texture_size := sprite_frames.get_frame_texture("default", frame).get_size() # 原帧尺寸。
 	scale = current_size / texture_size
 	if material != null:
-		material.set_shader_parameter("origin", position)
+		material.set_shader_parameter("origin", position - mask_origin)
 		material.set_shader_parameter("render_size", current_size)

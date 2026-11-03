@@ -1,5 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 [ext_resource type="Script" path="res://scripts/environment/environment_layer.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v2/art/foliage/masks/zombie_island_leaf_wind_mask.png" id="leaf_mask"]
 [node name="EnvironmentFX" type="Node2D"]
 script = ExtResource("1")
 configuration = "res://data/environment/zombie_island.json"
+provisional_leaf_wind_enabled = true
+leaf_region_mask = ExtResource("leaf_mask")
+leaf_amplitude_pixels = 1.5
