@@ -36,10 +36,11 @@ func _run() -> void:
 	assert(AdventureSession.progress.started and not AdventureSession.progress.intro_completed)
 	# 第四句赠卡后退出，重新进入仍由 intro_completed 决定显示引导。
 	var intro: Control = get_tree().current_scene.canvas.get_node("Intro") # 未完成引导。
-	intro._advance()
-	intro._advance()
+	await _wait_intro_ready(intro)
+	intro.conversation.request_advance()
+	intro.conversation.request_advance()
 	await get_tree().create_timer(0.9).timeout
-	intro._advance()
+	intro.conversation.request_advance()
 	assert(AdventureSession.progress.cards.size() == 2)
 	var interrupted := FileAccess.get_file_as_bytes(path_a) # 已赠卡未完成的文件。
 	await _menu()

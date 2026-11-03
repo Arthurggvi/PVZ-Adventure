@@ -38,12 +38,12 @@
 - `scripts/adventure/adventure_session.gd`：当前用户状态、卡槽适配、场景切换、battle_finished 结果信号。
 - `scripts/adventure/zombie_island.gd`：世界地图、布局读取、统一等比画布、关卡提示。
 - `scripts/adventure/island_stage_button.gd`：独立 PNG、Label、状态、描边、悬停与回弹。
-- `scripts/adventure/island_intro.gd`：七句原文、原戴夫动画与音效、继续/跳过、第四句赠卡。
+- `scripts/adventure/island_intro.gd`：原版资源驱动引导接线、跳过、第四句赠卡；表现复用独立戴夫对话封装。
 - `scripts/adventure/island_menu.gd`：新游戏/继续、重开确认和错误显示。
 - `scripts/adventure/island_ui.gd`：共享控件样式、项目中文字体和系统缺字回退。
 - `scenes/adventure/zombie_island.tscn`：地图场景。
 - `resources/adventure/island_lawn.tres`：现有战斗资源的第一关配置。
-- `resources/adventure/dave_intro.json`：七句最终台词原文。
+- `resources/adventure/dave_intro.tres`：七句最终台词原文，现已迁入原版CrazyDaveDialogResource。
 - `resources/adventure/island_label_offsets.json`：避免文字遮挡的偏移，不改变关卡中心。
 
 验收与说明：

@@ -37,16 +37,18 @@ func _run() -> void:
 	await _frames()
 	var map: Control = get_tree().current_scene # 当前地图。
 	var intro: Control = map.canvas.get_node("Intro") # 首次引导。
-	assert(intro.lines.size() == 7)
+	await _wait_intro_ready(intro)
+	assert(intro.conversation.dialogue_resource.dialog_detail_list.size() == 7)
 	await _screenshot("intro-1")
 	for index: int in range(6): # 逐句走到最终台词，第四句检查赠卡。
-		intro._advance()
+		intro.conversation.request_advance()
 		await get_tree().create_timer(0.9).timeout
-		assert(intro.dialogue.text == intro.lines[index + 1])
+		assert(intro.conversation.actor.speech_text_label.text == intro.conversation.dialogue_resource.dialog_detail_list[index + 1].text)
 		if index == 2:
 			assert(AdventureSession.progress.cards == {"sunflower": 1, "peashooter": 1})
 			await _screenshot("intro-4")
-	intro._advance()
+	intro.conversation.request_advance()
+	await intro.completed
 	await _frames()
 	assert(AdventureSession.progress.intro_completed)
 	assert(not map.canvas.has_node("Intro"))
@@ -139,9 +141,10 @@ func _run() -> void:
 	get_tree().current_scene.get_node("ArtCanvas/ship_button").pressed.emit()
 	await _frames()
 	var skipping: Control = get_tree().current_scene.canvas.get_node("Intro") # 第三句等待中的对话。
-	skipping._advance()
-	skipping._advance()
-	assert(skipping.waiting)
+	await _wait_intro_ready(skipping)
+	skipping.conversation.request_advance()
+	skipping.conversation.request_advance()
+	assert(not skipping.conversation.hold_timer.is_stopped())
 	skipping._finish()
 	await get_tree().create_timer(1.0).timeout
 	assert(not is_instance_valid(skipping))
@@ -202,3 +205,8 @@ func _select_user(username: String) -> void:
 			native_user.texture_button_ok.pressed.emit()
 			return
 	assert(false, "测试玩家不在原生档案列表")
+
+## 等待 [param intro] 的原版进场动画结束，不手动启动对话或播放动画。
+func _wait_intro_ready(intro: Control) -> void:
+	while intro.conversation.line_index < 0:
+		await get_tree().process_frame

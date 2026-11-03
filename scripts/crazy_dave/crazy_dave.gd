@@ -56,6 +56,8 @@ var start_long_time_dave := false
 signal talk_end_signal
 ## 戴夫离场信号，离场动画最后发射该信号
 signal signal_dave_leave_end
+## 原版顺序对话显示新句子后通知封装层；[param index] 为资源列表的零基索引。
+signal dialog_line_started(index: int)
 ## 当前外部触发对话的id
 var curr_external_trigger_talk_id
 
@@ -72,6 +74,7 @@ func start_dialog():
 		for i in range(dialog_resource.dialog_detail_list.size()):
 			var dialog_detail:CrazyDaveDialogDetailResource = dialog_resource.dialog_detail_list[i]
 			once_dialog(dialog_detail)
+			dialog_line_started.emit(i)
 			## 等待鼠标点击一次
 			await dave_dialog_mouse_press_panel.signal_dave_dialog_press
 			mouse_skip_talk_id = curr_talk_id
