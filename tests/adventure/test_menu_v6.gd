@@ -38,7 +38,7 @@ func _run() -> void:
 	assert(not menu.art_canvas.get_node("ship_button").disabled)
 	var player := SoundManager.bgm_play # 始终是已有的唯一播放器。
 	assert(not player.playing) # 保留的V6布局不再拥有正式菜单的音乐启动权。
-	menu.art_canvas.get_node("ship_button").pressed.emit()
+	_enter_island_from_menu()
 	await _frames()
 	var town := player.stream # 进入正式地图后由地图启动城镇曲目。
 	assert(player == SoundManager.bgm_play and town.resource_path.ends_with("mus_town.wav") and player.stream_paused)
@@ -67,13 +67,13 @@ func _run() -> void:
 	menu.user.panel_create_new_user.line_edit.text = username + "-b"
 	menu.user.panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username + "-b")
-	menu.art_canvas.get_node("ship_button").pressed.emit()
+	_enter_island_from_menu()
 	await _frames()
 	assert(AdventureSession.progress.cards.is_empty() and not AdventureSession.progress.intro_completed)
 	get_tree().current_scene._return_menu()
 	await _frames()
 	_select_user(username)
-	get_tree().current_scene.art_canvas.get_node("ship_button").pressed.emit()
+	_enter_island_from_menu()
 	await _frames()
 	assert(FileAccess.get_file_as_bytes(path) == saved)
 	assert(not get_tree().current_scene.canvas.has_node("Intro"))

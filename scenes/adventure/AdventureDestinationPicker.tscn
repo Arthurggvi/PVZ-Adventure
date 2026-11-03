@@ -1,0 +1,59 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/adventure_destination_picker.gd" id="1"]
+
+[node name="AdventureDestinationPicker" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+z_index = 100
+script = ExtResource("1")
+
+[node name="Shade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.06, 0.06, 0.78)
+
+[node name="DesignCanvas" type="Control" parent="."]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="Paper" type="TextureRect" parent="DesignCanvas"]
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cards" type="Control" parent="DesignCanvas"]
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="Close" type="TextureButton" parent="DesignCanvas"]
+layout_mode = 0
+offset_left = 1652.0
+offset_top = 133.0
+offset_right = 1784.0
+offset_bottom = 265.0
+tooltip_text = "关闭（Esc）"
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="EntryError" type="AcceptDialog" parent="."]
+title = "无法进入冒险"
+initial_position = 2
+size = Vector2i(620, 160)
+ok_button_text = "好"
+
+[connection signal="pressed" from="DesignCanvas/Close" to="." method="_close"]

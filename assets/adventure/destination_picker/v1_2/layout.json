@@ -1,0 +1,143 @@
+{
+  "schema_version": 3,
+  "logical_canvas": [
+    1920,
+    1080
+  ],
+  "paper": {
+    "asset": "art/paper/map_paper_blank.png",
+    "rect": [
+      150,
+      99,
+      1620,
+      880
+    ]
+  },
+  "title_node_policy": "remove_existing_title_node_and_text;do_not_reserve_title_space",
+  "card": {
+    "rect_size": [
+      304,
+      184
+    ],
+    "paper_area_fraction": 0.039237,
+    "preview_offset": [
+      17,
+      12
+    ],
+    "preview_size": [
+      270,
+      140
+    ],
+    "label_rect_local": [
+      58,
+      143,
+      188,
+      32
+    ],
+    "label_font_size": 26,
+    "label_horizontal_alignment": "center",
+    "label_vertical_alignment": "center",
+    "label_baked": false,
+    "frame_draw_order": "preview_then_disabled_overlay_then_frame_then_hover_then_runtime_label",
+    "frame_edge_required": true
+  },
+  "slots": {
+    "layout": "explicit_anchor_positions",
+    "units": "logical_canvas_px",
+    "positions": [
+      {
+        "slot": 0,
+        "rect": [
+          1090,
+          682,
+          304,
+          184
+        ],
+        "anchor_id": "west_of_drawn_ship",
+        "note": "Island card left of original parchment ship engraving, without covering ship"
+      },
+      {
+        "slot": 1,
+        "rect": [
+          808,
+          447,
+          304,
+          184
+        ],
+        "anchor_id": "paper_geometric_center",
+        "note": "Town card center at exactly (960,539), paper center"
+      }
+    ],
+    "future_slots": "append another configured rect, do not reinstate fixed grid",
+    "render_unused_slots": false,
+    "bounds_rule": "each entire interactive rect must stay inside usable parchment and must not overlap another card"
+  },
+  "destinations": [
+    {
+      "id": "zombie_island",
+      "name": "僵尸岛",
+      "slot": 0,
+      "enabled": true,
+      "preview": "art/previews/zombie_island_preview.png",
+      "frame": "art/frames/map_preview_frame_compact.png",
+      "states_prefix": "art/states/island_",
+      "selection_action": "reuse_existing_zombie_island_entry"
+    },
+    {
+      "id": "town",
+      "name": "城镇",
+      "slot": 1,
+      "enabled": false,
+      "preview": "art/previews/town_future_concept.png",
+      "frame": "art/frames/map_preview_frame_compact.png",
+      "disabled_overlay": "art/states/town_disabled.png",
+      "selection_action": null
+    }
+  ],
+  "close": {
+    "rect": [
+      1652,
+      133,
+      132,
+      132
+    ],
+    "assets": {
+      "normal": "art/close/close_normal.png",
+      "hover": "art/close/close_hover.png",
+      "pressed": "art/close/close_pressed.png"
+    },
+    "action": "return_to_v8_main_menu",
+    "escape_same_action": true
+  },
+  "label_rules": {
+    "font_render": "Godot_runtime_only",
+    "font_size_card": 26,
+    "horizontal_alignment": "center",
+    "vertical_alignment": "center",
+    "label_rect_local": [
+      58,
+      143,
+      188,
+      32
+    ],
+    "clip_text": true,
+    "scale_mode": "keep_aspect",
+    "minimum_test_resolution": [
+      1066,
+      600
+    ]
+  },
+  "input": {
+    "town_disabled_pointer": true,
+    "town_disabled_keyboard": true,
+    "zombie_island_focusable": true
+  },
+  "notes": [
+    "No map title. Do not render 选择冒险登陆点 or an empty header bar.",
+    "Town center exactly matches paper center (960,539) in logical canvas.",
+    "Zombie Island card west of engraved ship (near right-bottom part of parchment).",
+    "Entire 304x184 clickable card includes complete reinforced frame and integrated label, 3.923% of paper.",
+    "Never bake destination preview, lock, frame, labels, or button states into parchment.",
+    "Town remains disabled. Reuse player save, music and existing entry route."
+  ]
+}

@@ -20,7 +20,7 @@ func _run() -> void:
 	Global.user_manager.set_current_user("")
 	_click_entry()
 	assert(AdventureSession.progress == null and not AdventureSession.adventure_active)
-	assert(get_tree().current_scene.has_node("AdventureError"))
+	assert(get_tree().current_scene.has_node("AdventureDestinationPicker/EntryError"))
 	assert(FileAccess.get_file_as_string(guest) == "legacy guest sentinel")
 	var user_a := "entry-a-%s" % Time.get_ticks_usec() # 原生玩家 A。
 	var user_b := user_a + "-b" # 原生玩家 B。
@@ -31,6 +31,7 @@ func _run() -> void:
 	var entry_button: BaseButton = get_tree().current_scene.get_node("ArtCanvas/ship_button")
 	entry_button.pressed.emit()
 	entry_button.pressed.emit()
+	get_tree().current_scene.get_node("AdventureDestinationPicker/DesignCanvas/Cards/zombie_island").pressed.emit()
 	await _frames()
 	var path_a: String = AdventureSession.progress.save_path # A 的固定版本路径。
 	assert(AdventureSession.progress.started and not AdventureSession.progress.intro_completed)
@@ -117,7 +118,7 @@ func _run() -> void:
 
 ## 点击真实冒险按钮，不调用旧新游戏或继续接口。
 func _click_entry() -> void:
-	get_tree().current_scene.get_node("ArtCanvas/ship_button").pressed.emit()
+	_enter_island_from_menu()
 
 ## 经地图返回主菜单。
 func _menu() -> void:
