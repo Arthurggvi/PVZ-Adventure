@@ -26,16 +26,24 @@ var zombie_choose_random_pool:RandomPicker
 var min_power:=100
 ## 当前波次生成的僵尸
 var wave_all_zombies:Array[Zombie000Base]
+## 仅冒险阶段启用，正常原版关卡仍保持原有按波衰减/旗帜规则。
+var adventure_wave_profile: WaveProfile
+var _adventure_rng := RandomNumberGenerator.new()
 
 ## 使用 [param game_para] 初始化波次生成配置、选行系统和随机池，保留本实例已有的运行时权重。
 func init_zombie_wave_create_manager(game_para:ResourceLevelData):
 	zombie_multy = game_para.zombie_multy
 	range_num_bungi = game_para.range_num_bungi
 	zombie_choose_row_system.init_zombie_choose_row_system(zombie_manager.all_zombie_rows)
+	adventure_wave_profile = AdventureSession.get_active_wave_profile(game_para)
+	_adventure_rng.randomize()
 	update_zombie_refresh_types()
 
 ## 更新可以刷新的僵尸列表
 func update_zombie_refresh_types():
+	if adventure_wave_profile != null:
+		zombie_choose_random_pool = null
+		return
 	## 初始化僵尸生成随机池数据
 	var zombie_choose_random_pool_data:Array[Array] = []
 	min_power = 100
@@ -51,7 +59,14 @@ func update_zombie_refresh_types():
 ## 创建当前波僵尸
 func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 	## 获取当前波僵尸生成列表
-	var wave_spawn :Array[CharacterRegistry.ZombieType] = create_curr_wave_zombie_list(wave, is_big_wave)
+	var wave_spawn: Array[Dictionary] = []
+	if adventure_wave_profile != null:
+		wave_spawn = AdventureWavePlanner.build_plan(adventure_wave_profile, wave + 1,
+			calculate_wave_power_limit(wave, is_big_wave), max_zombies_per_wave,
+			AdventureStageCatalog.tier_threat_costs(), _adventure_rng)
+	else:
+		for zombie_type: CharacterRegistry.ZombieType in create_curr_wave_zombie_list(wave, is_big_wave):
+			wave_spawn.append({"zombie_type": zombie_type, "tier_id": &""})
 	## 特殊基础权重,若有雪橇车僵尸,更新该权重
 	var special_base_weight:Array[float] = []
 	wave_all_zombies.clear()
@@ -59,7 +74,8 @@ func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 	var curr_wave_zombie_date:Array[Dictionary]
 
 	for i in range(wave_spawn.size()):
-		var zombie_type : CharacterRegistry.ZombieType = wave_spawn[i]
+		var spawn: Dictionary = wave_spawn[i]
+		var zombie_type: CharacterRegistry.ZombieType = spawn["zombie_type"]
 		var lane :int = -1
 		## 雪橇车僵尸
 		if zombie_type == CharacterRegistry.ZombieType.Z014Bobsled:
@@ -86,13 +102,17 @@ func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 			{
 				"zombie_type":zombie_type,
 				"lane":lane,
+				"tier_id":spawn["tier_id"],
 			}
 		)
 	for curr_wave_one_zombie_date in curr_wave_zombie_date:
+		var tier_callback: Callable = Callable()
+		if adventure_wave_profile != null:
+			tier_callback = AdventureWavePlanner.bind_tier.bind(curr_wave_one_zombie_date["tier_id"])
 		var zombie = wave_create_zombie(
 			curr_wave_one_zombie_date["zombie_type"],
 			curr_wave_one_zombie_date["lane"],
-			wave
+			wave, tier_callback
 		)
 		if is_instance_valid(zombie):
 			wave_all_zombies.append(zombie)

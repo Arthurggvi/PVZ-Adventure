@@ -56,6 +56,16 @@ func _run() -> void:
 	chooser._on_texture_button_pressed()
 	await _wait_battle()
 	assert(Global.global_game_state.adventure_state.selected_card_uids == selected)
+	var wave_creator: ZombieWaveCreateManager = battle.zombie_manager.zombie_wave_manager.zombie_wave_create_manager
+	assert(wave_creator.adventure_wave_profile != null)
+	assert(wave_creator.adventure_wave_profile.wave_count == 10)
+	# 开战状态先于自然第一波，必须等实际生成后才检查实体。
+	var first_wave_deadline: int = Time.get_ticks_msec() + 30000
+	while wave_creator.wave_all_zombies.is_empty() and Time.get_ticks_msec() < first_wave_deadline:
+		await get_tree().process_frame
+	assert(not wave_creator.wave_all_zombies.is_empty())
+	for zombie: Zombie000Base in wave_creator.wave_all_zombies:
+		assert(zombie.adventure_tier_id == &"base")
 	var cards: Array[Card] = battle.card_manager.card_slot_battle.curr_cards
 	assert(cards.size() == 2)
 	assert(cards[0].battle_card_data["uid"] == first)

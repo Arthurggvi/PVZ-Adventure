@@ -1,5 +1,5 @@
 ## 僵尸岛关卡静态目录、阶段进入约束与原版波次模板适配。
-## P2 仅允许单一基础等阶与原版自然波次；分波段/事件/Boss 留待 P3 执行器接管。
+## P2 波段与物种权重由 AdventureWavePlanner 执行；等阶强度规则未冻结前只开放基础等阶。
 extends RefCounted
 class_name AdventureStageCatalog
 
@@ -11,6 +11,9 @@ const LAWN_NIGHTMARE_KEY := "lawn_nightmare_key"
 
 static func tier_ids() -> Array[StringName]:
 	return [BASE_TIER]
+
+static func tier_threat_costs() -> Dictionary:
+	return {BASE_TIER: 1.0}
 
 static func key_ids() -> Array[StringName]:
 	var keys: Array[StringName] = []
@@ -78,12 +81,19 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState, inv
 		return "该阶段类型尚未支持。"
 	if not phase.boss_encounters.is_empty() or not phase.events.is_empty():
 		return "此阶段的 Boss 或事件调度尚未接入。"
-	if phase.wave_profile.bands.size() != 1:
-		return "多波段刷怪调度将在下一阶段接入。"
-	var band: WaveBandDefinition = phase.wave_profile.bands[0]
-	for tier_id: StringName in band.tier_weights:
-		if tier_id != BASE_TIER and band.tier_weights[tier_id] > 0:
-			return "高级僵尸等阶尚未接入。"
+	var check_rng := RandomNumberGenerator.new()
+	check_rng.seed = 1
+	for band: WaveBandDefinition in phase.wave_profile.bands:
+		for tier_id: StringName in band.tier_weights:
+			if tier_id != BASE_TIER and band.tier_weights[tier_id] > 0:
+				return "高级僵尸等阶尚未接入。"
+		var wave_index: int = band.first_wave - 1
+		var base_power: int = wave_index / 3 + 1
+		var is_flag_wave: bool = wave_index % 10 == 9
+		var budget: int = (int(base_power * 2.5) if is_flag_wave else base_power) * stage.battle_template.zombie_multy
+		if AdventureWavePlanner.build_plan(phase.wave_profile, band.first_wave,
+				budget, 1, tier_threat_costs(), check_rng).is_empty():
+			return "波段[%s]首波的战力预算不足以生成配置中的僵尸。" % band.band_id
 	if inventory.list_cards().is_empty():
 		return "当前玩家没有可出战植物卡。"
 	return ""
@@ -98,9 +108,10 @@ static func build_level(stage_number: int, kind: int) -> ResourceLevelData:
 		return null
 	level.max_wave = phase.wave_profile.wave_count
 	level.zombie_refresh_types.clear()
-	for zombie_type: int in phase.wave_profile.bands[0].zombie_weights:
-		if phase.wave_profile.bands[0].zombie_weights[zombie_type] > 0:
-			level.zombie_refresh_types.append(zombie_type as CharacterRegistry.ZombieType)
+	for band: WaveBandDefinition in phase.wave_profile.bands:
+		for zombie_type: int in band.zombie_weights:
+			if band.zombie_weights[zombie_type] > 0 and not level.zombie_refresh_types.has(zombie_type):
+				level.zombie_refresh_types.append(zombie_type as CharacterRegistry.ZombieType)
 	if level.zombie_refresh_types.is_empty():
 		return null
 	return level

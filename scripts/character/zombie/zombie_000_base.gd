@@ -40,6 +40,8 @@ enum IronType{
 @export var init_be_attack_status :E_BeAttackStatusZombie = E_BeAttackStatusZombie.IsNorm
 ## 僵尸出生波次
 var curr_wave:=-1
+## 本局冒险自然波次分配的独立等阶标识；原版/技能僵尸为空。
+var adventure_tier_id: StringName = &""
 ## 是否参与自然出怪的提前刷新数量统计；博士召唤及其衍生僵尸为 false，全场计数不受影响。
 var participates_natural_refresh: bool = true
 ## 僵尸当前状态

@@ -134,7 +134,8 @@ func start_next_wave() -> void:
 			curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, true)
 			set_progress_bar(int(curr_wave%max_wave_one_round/10.0))
 			# 额外生成大波特殊僵尸,珊瑚僵尸,蹦极僵尸
-			zombie_wave_create_manager.spawn_special_zombie_in_big_wave(true)
+			if zombie_wave_create_manager.adventure_wave_profile == null:
+				zombie_wave_create_manager.spawn_special_zombie_in_big_wave(true)
 
 		else:
 			curr_wave_type = E_WaveType.Flag
@@ -144,10 +145,11 @@ func start_next_wave() -> void:
 			curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, true)
 			set_progress_bar(int(curr_wave%max_wave_one_round/10.0))
 			# 额外生成大波特殊僵尸,珊瑚僵尸,蹦极僵尸
-			zombie_wave_create_manager.spawn_special_zombie_in_big_wave(false)
+			if zombie_wave_create_manager.adventure_wave_profile == null:
+				zombie_wave_create_manager.spawn_special_zombie_in_big_wave(false)
 
 		# 如果有墓碑
-		if is_have_tombston:
+		if is_have_tombston and zombie_wave_create_manager.adventure_wave_profile == null:
 			call_tombstone_create_zombie()
 
 	# 普通波

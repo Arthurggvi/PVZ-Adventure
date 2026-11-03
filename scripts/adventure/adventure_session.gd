@@ -7,6 +7,8 @@ var progress: RefCounted
 var active_level: ResourceLevelData
 var active_stage_number: int = 0
 var active_phase_kind: int = 0
+## 当前战斗独有的波次资源快照，场景内不重复读磁盘配置。
+var active_wave_profile: WaveProfile
 ## 本局已冻结的玩家卡数据；不写玩家存档、不反向修改背包。
 var battle_loadout: Array[Dictionary] = []
 var notice := ""
@@ -21,6 +23,7 @@ func _on_profile_changed() -> void:
 	active_level = null
 	active_stage_number = 0
 	active_phase_kind = 0
+	active_wave_profile = null
 	battle_loadout.clear()
 	adventure_active = false
 func open_adventure() -> bool:
@@ -95,9 +98,15 @@ func enter_stage(stage_number: int, phase_kind: int) -> bool:
 	if level == null:
 		error_message = "无法生成该阶段的原版战斗模板。"
 		return false
+	var stage: StageDefinition = AdventureStageCatalog.load_stage(stage_number)
+	var phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, phase_kind)
+	if phase == null or phase.wave_profile == null:
+		error_message = "冒险波次数据未就绪。"
+		return false
 	battle_loadout.clear()
 	active_stage_number = stage_number
 	active_phase_kind = phase_kind
+	active_wave_profile = phase.wave_profile.duplicate(true)
 	active_level = level
 	battle_failed = false
 	Global.game_para = active_level
@@ -106,6 +115,7 @@ func enter_stage(stage_number: int, phase_kind: int) -> bool:
 		active_level = null
 		active_stage_number = 0
 		active_phase_kind = 0
+		active_wave_profile = null
 		Global.game_para = null
 		error_message = "草坪场景加载失败。"
 		return false
@@ -141,6 +151,9 @@ func get_prechosen_battle_data(slot_index: int, reference: ResourceCardReference
 	return AdventureBattleAdapter.binding_at(battle_loadout, slot_index, reference)
 func owns_battle(level: ResourceLevelData) -> bool:
 	return active_level != null and active_level == level
+
+func get_active_wave_profile(level: ResourceLevelData) -> WaveProfile:
+	return active_wave_profile if owns_battle(level) else null
 
 func finish_victory() -> void:
 	if active_level == null or battle_failed or progress == null:
@@ -189,6 +202,7 @@ func return_to_map() -> void:
 	active_level = null
 	active_stage_number = 0
 	active_phase_kind = 0
+	active_wave_profile = null
 	battle_loadout.clear()
 	Global.game_para = null
 	TreePauseManager.end_tree_pause_clear_all_pause_factors()
