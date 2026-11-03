@@ -6,7 +6,7 @@ const DESIGN_SIZE := Vector2(1920, 1080)
 ## 唯一的分层设计画布。
 @onready var art_canvas: Control = $ArtCanvas
 
-## 替换旧视觉并接入原控件，不调用旧菜单的动画与原版音乐启动逻辑。
+## 替换旧视觉并接入原控件；菜单音乐由正式V8入口负责，不调用旧版启动逻辑。
 func _ready() -> void:
 	AdventureSession.adventure_active = false
 	Global.time_scale = 1.0
@@ -27,7 +27,6 @@ func _ready() -> void:
 	options.scale = Vector2(1.5, 1.5)
 	options.show()
 	SoundManager.setup_ui_start_menu_sound(self)
-	SoundManager.play_town_bgm()
 	resized.connect(_fit_canvas)
 	_fit_canvas()
 

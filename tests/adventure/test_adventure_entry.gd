@@ -1,10 +1,10 @@
 ## 单一入口与原生档案生命周期验收；必须隔离 APPDATA。
 extends "res://tests/adventure/test_island_flow.gd"
 
-## 经真实原菜单按钮进入，覆盖匿名拒绝、串档、损坏与首次保存失败。
+## 经正式V8菜单按钮进入，覆盖匿名拒绝、串档、损坏与首次保存失败。
 func _run() -> void:
 	assert(OS.get_user_data_dir().contains("entry-test-user"), "必须使用隔离 APPDATA")
-	get_tree().change_scene_to_file("res://scenes/main/01StartMenu.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
 	await _frames()
 	if OS.get_cmdline_user_args().has("--resume-probe"):
 		_click_entry()
@@ -28,7 +28,7 @@ func _run() -> void:
 	_create_user(user_b)
 	_select_user(user_a)
 	# 同一帧重复点击同一个真实按钮；场景切换后 current_scene 暂时为空。
-	var entry_button: BaseButton = get_tree().current_scene.get_node("BG_Right/Menu/Button1")
+	var entry_button: BaseButton = get_tree().current_scene.get_node("ArtCanvas/ship_button")
 	entry_button.pressed.emit()
 	entry_button.pressed.emit()
 	await _frames()
@@ -111,14 +111,14 @@ func _run() -> void:
 		await _frames()
 		assert(not AdventureSession.adventure_active)
 		assert(not get_tree().current_scene is StartMenuRoot)
-		get_tree().change_scene_to_file("res://scenes/main/01StartMenu.tscn")
+		get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
 		await _frames()
 	print("PASS: single menu entry, native A/B/A, rename/delete, interrupted intro, unchanged existing bytes, corrupt/version refusal, IO retry, guest preservation")
 	get_tree().quit()
 
 ## 点击真实冒险按钮，不调用旧新游戏或继续接口。
 func _click_entry() -> void:
-	get_tree().current_scene.get_node("BG_Right/Menu/Button1").pressed.emit()
+	get_tree().current_scene.get_node("ArtCanvas/ship_button").pressed.emit()
 
 ## 经地图返回主菜单。
 func _menu() -> void:

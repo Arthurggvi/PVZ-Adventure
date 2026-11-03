@@ -20,6 +20,7 @@ const PLAQUE_TEXT_OFFSET_Y := 10.0
 ## 保持统一画布适配，隐藏旧辅助按钮，新功能台调用原有回调。
 func _ready() -> void:
 	super._ready()
+	SoundManager.play_town_bgm()
 	$ArtCanvas/Option.hide()
 	Global.user_manager.signal_users_update.connect(_fit_profile_name)
 	_fit_profile_name()

@@ -37,14 +37,11 @@ func _run() -> void:
 		assert(get_tree().current_scene == menu)
 	assert(not menu.art_canvas.get_node("ship_button").disabled)
 	var player := SoundManager.bgm_play # 始终是已有的唯一播放器。
-	var town := player.stream # 缓存中的城镇曲目。
-	assert(town.resource_path.ends_with("mus_town.wav") and player.playing)
-	await get_tree().create_timer(0.5).timeout
-	var before := player.get_playback_position() # 切场景前的真实播放位置。
+	assert(not player.playing) # 保留的V6布局不再拥有正式菜单的音乐启动权。
 	menu.art_canvas.get_node("ship_button").pressed.emit()
 	await _frames()
-	assert(player == SoundManager.bgm_play and player.stream == town)
-	assert(player.get_playback_position() >= before)
+	var town := player.stream # 进入正式地图后由地图启动城镇曲目。
+	assert(player == SoundManager.bgm_play and town.resource_path.ends_with("mus_town.wav") and player.playing)
 	assert(get_tree().current_scene.canvas.has_node("Intro"))
 	get_tree().current_scene.canvas.get_node("Intro")._finish()
 	await _frames()
@@ -53,7 +50,7 @@ func _run() -> void:
 	for index: int in range(2,7): # 锁定关卡禁止鼠标和键盘触发。
 		var stage: TextureButton = get_tree().current_scene.canvas.get_node("Stage%d" % index)
 		assert(stage.disabled and stage.focus_mode == Control.FOCUS_NONE and stage.material != null)
-	before = player.get_playback_position()
+	var before := player.get_playback_position() # 地图返回正式V8菜单应保持进度。
 	get_tree().current_scene._return_menu()
 	await _frames()
 	assert(player.stream == town and player.get_playback_position() >= before)

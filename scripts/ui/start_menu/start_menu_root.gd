@@ -1,13 +1,18 @@
 extends Control
 class_name StartMenuRoot
 
+## 仍作为继承基底保留；仅直接运行这个根场景时改走正式菜单。
+const LEGACY_MENU_SCENE := "res://scenes/main/01StartMenu.tscn"
 @onready var dialog: Dialog = $Dialog
 @export var bgm:AudioStream
 @onready var user: User = $User
 
 
-# Called when the node enters the scene tree for the first time.
+## 旧场景独立启动先延迟路由；继承场景的路径不同，不触发此分支。
 func _ready() -> void:
+	if scene_file_path == LEGACY_MENU_SCENE and get_parent() == get_tree().root:
+		_redirect_legacy_root.call_deferred()
+		return
 	AdventureSession.adventure_active = false
 	$Cloud/AnimationPlayer.play("Idle")
 	$BG_Right/Leaf/AnimationPlayer.play("Idle")
@@ -18,6 +23,11 @@ func _ready() -> void:
 
 	Global.time_scale = 1.0
 	Engine.time_scale = Global.time_scale
+
+## 等待SceneTree登记当前场景后再次校验身份；不重定向嵌套实例或V8继承实例。
+func _redirect_legacy_root() -> void:
+	if get_tree().current_scene == self and scene_file_path == LEGACY_MENU_SCENE:
+		get_tree().change_scene_to_file(Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu])
 
 ## 花园需要浇水
 var garden_need_water:=true

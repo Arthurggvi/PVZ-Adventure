@@ -20,7 +20,7 @@ func _ready() -> void:
 func _run() -> void:
 	# 登录唯一测试用户并记录原版存档快照，确认冒险不会写入原关卡进度。
 	var username := "phase1-flow-%s" % Time.get_ticks_usec()
-	get_tree().change_scene_to_file("res://scenes/main/01StartMenu.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
 	await _frames()
 	var native_user: User = get_tree().current_scene.user # 原生档案界面。
 	native_user.panel_create_new_user.line_edit.text = username
@@ -32,7 +32,7 @@ func _run() -> void:
 	var original_path := "user://%s/GlobalSaveGame.json" % username # 原版文件。
 	var original_bytes := FileAccess.get_file_as_bytes(original_path) # 原版字节基线。
 	assert(not get_tree().current_scene.has_node("AdventureMenu"))
-	get_tree().current_scene.get_node("BG_Right/Menu/Button1").pressed.emit()
+	get_tree().current_scene.get_node("ArtCanvas/ship_button").pressed.emit()
 	var path: String = AdventureSession.progress.save_path # 新入口实际初始化的路径。
 	await _frames()
 	var map: Control = get_tree().current_scene # 当前地图。
@@ -121,7 +121,7 @@ func _run() -> void:
 	var cleared_bytes := FileAccess.get_file_as_bytes(path) # 胜利文件不可因入口重写。
 	get_tree().current_scene._return_menu()
 	await _frames()
-	get_tree().current_scene.get_node("BG_Right/Menu/Button1").pressed.emit()
+	get_tree().current_scene.get_node("ArtCanvas/ship_button").pressed.emit()
 	await _frames()
 	assert(FileAccess.get_file_as_bytes(path) == cleared_bytes)
 	assert(not get_tree().current_scene.canvas.has_node("Intro"))
@@ -136,7 +136,7 @@ func _run() -> void:
 	Global.save_service.save_now()
 	original_path = "user://%s-skip/GlobalSaveGame.json" % username
 	original_bytes = FileAccess.get_file_as_bytes(original_path)
-	get_tree().current_scene.get_node("BG_Right/Menu/Button1").pressed.emit()
+	get_tree().current_scene.get_node("ArtCanvas/ship_button").pressed.emit()
 	await _frames()
 	var skipping: Control = get_tree().current_scene.canvas.get_node("Intro") # 第三句等待中的对话。
 	skipping._advance()
@@ -165,7 +165,7 @@ func _run() -> void:
 	assert(FileAccess.get_file_as_bytes(original_path) != original_bytes)
 	# 沿用用户改名接口迁移冒险文件，之后真正调用继续入口。
 	assert(Global.user_manager.rename_user(username + "-skip", username + "-renamed").is_empty())
-	get_tree().current_scene.get_node("BG_Right/Menu/Button1").pressed.emit()
+	get_tree().current_scene.get_node("ArtCanvas/ship_button").pressed.emit()
 	await _frames()
 	assert(AdventureSession.progress.intro_completed)
 	assert(not get_tree().current_scene.canvas.has_node("Intro"))
