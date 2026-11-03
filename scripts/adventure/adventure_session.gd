@@ -1,12 +1,12 @@
 ## 冒险会话边界：地区状态存放 AdventureState，资产使用同一库存服务、同一玩家存档。
 extends Node
-
 const MAP_SCENE := "res://scenes/adventure/zombie_island.tscn"
 const Progress = preload("res://scripts/adventure/island_progress.gd")
 signal battle_finished(stage_id: int, result: String)
-
 var progress: RefCounted
 var active_level: ResourceLevelData
+var active_stage_number: int = 0
+var active_phase_kind: int = 0
 ## 本局已冻结的玩家卡数据；不写玩家存档、不反向修改背包。
 var battle_loadout: Array[Dictionary] = []
 var notice := ""
@@ -14,16 +14,15 @@ var battle_failed := false
 var adventure_active := false
 var entry_error := ""
 var error_message := ""
-
 func _ready() -> void:
 	Global.user_manager.signal_users_update.connect(_on_profile_changed)
-
 func _on_profile_changed() -> void:
 	progress = null
 	active_level = null
+	active_stage_number = 0
+	active_phase_kind = 0
 	battle_loadout.clear()
 	adventure_active = false
-
 func open_adventure() -> bool:
 	if adventure_active:
 		return true
@@ -45,10 +44,8 @@ func open_adventure() -> bool:
 	notice = ""
 	return_to_map()
 	return true
-
 func is_unlocked(stage_id: int) -> bool:
 	return stage_id == 1 or (stage_id == 2 and progress != null and progress.stage_1_cleared)
-
 ## 新手赠卡只检查持久领取标记；重复播放对话、跳过均不重复发放。
 func grant_starter_cards() -> bool:
 	if progress == null or not progress.started:
@@ -75,7 +72,6 @@ func grant_starter_cards() -> bool:
 		return false
 	error_message = ""
 	return true
-
 func complete_intro() -> bool:
 	if not grant_starter_cards() or not progress.complete_intro():
 		return false
@@ -84,32 +80,36 @@ func complete_intro() -> bool:
 		return false
 	error_message = ""
 	return true
-
 ## 冒险战斗强制僵尸预览与可交互 UID 选卡；玩家确认时才冻结战斗快照。
 func enter_lawn() -> void:
+	enter_stage(1, StagePhaseDefinition.Kind.NORMAL)
+## 统一配置入口；场景、卡槽、波次种类均由已验证的 StageDefinition 生成。
+func enter_stage(stage_number: int, phase_kind: int) -> bool:
 	if progress == null or not progress.intro_completed:
-		return
-	if Global.adventure_inventory.list_cards().is_empty():
-		push_error("冒险卡包为空，无法进入备战。")
-		return
-	var level: ResourceLevelData = load("res://resources/adventure/island_lawn.tres").duplicate(true)
-	if level.card_mode != ConstLevelData.E_CardMode.Norm:
-		push_error("冒险备战需要普通选卡槽。")
-		return
-	# 强制备战是冒险入口契约，不能由单个关卡资源误配置绕过。
-	level.look_show_zombie = true
-	level.can_choosed_card = true
-	level.prechosen_cards.clear()
+		return false
+	error_message = AdventureStageCatalog.entry_error(
+		stage_number, phase_kind, Global.global_game_state.adventure_state, Global.adventure_inventory)
+	if not error_message.is_empty():
+		return false
+	var level: ResourceLevelData = AdventureStageCatalog.build_level(stage_number, phase_kind)
+	if level == null:
+		error_message = "无法生成该阶段的原版战斗模板。"
+		return false
 	battle_loadout.clear()
+	active_stage_number = stage_number
+	active_phase_kind = phase_kind
 	active_level = level
 	battle_failed = false
 	Global.game_para = active_level
-	var error := get_tree().change_scene_to_file(Global.main_scene_registry.MainScenesMap[active_level.game_sences])
-	if error != OK:
+	var err := get_tree().change_scene_to_file(Global.main_scene_registry.MainScenesMap[level.game_sences])
+	if err != OK:
 		active_level = null
+		active_stage_number = 0
+		active_phase_kind = 0
 		Global.game_para = null
-		notice = "草坪场景加载失败。"
-
+		error_message = "草坪场景加载失败。"
+		return false
+	return true
 ## 接收备战画面按 UID 选择的卡，仅确认时冻结快照和更新当前玩家的历史卡组。
 func confirm_selected_cards(cards: Array[Card]) -> bool:
 	if not owns_battle(Global.game_para) or cards.is_empty() or cards.size() > active_level.max_choosed_card_num:
@@ -134,27 +134,32 @@ func confirm_selected_cards(cards: Array[Card]) -> bool:
 	for index: int in range(cards.size()):
 		cards[index].battle_card_data = snapshot[index].duplicate(true)
 	return true
-
 ## 仅供原版预选卡槽获取对应序号的冻结身份；普通模式不走此入口。
 func get_prechosen_battle_data(slot_index: int, reference: ResourceCardReference) -> Dictionary:
 	if active_level == null:
 		return {}
 	return AdventureBattleAdapter.binding_at(battle_loadout, slot_index, reference)
-
 func owns_battle(level: ResourceLevelData) -> bool:
 	return active_level != null and active_level == level
 
 func finish_victory() -> void:
 	if active_level == null or battle_failed or progress == null:
 		return
-	if not progress.record_victory() or not Global.save_service.save_now():
+	if active_stage_number != 1 or active_phase_kind != StagePhaseDefinition.Kind.NORMAL:
+		return # 其他阶段必须由后续运行时提供可靠的通关判定。
+	if not progress.record_victory():
+		error_message = "草坪胜利进度无法更新。"
+		_show_save_retry()
+		return
+	AdventureStageCatalog.mark_cleared(
+		Global.global_game_state.adventure_state, AdventureStageCatalog.LAWN_ID, active_phase_kind)
+	if not Global.save_service.save_now():
 		error_message = "无法保存草坪通关状态。"
 		_show_save_retry()
 		return
-	notice = "草坪已通关，没落营地已开放！"
+	notice = "草坪普通阶段已通关，没落营地已开放！"
 	battle_finished.emit(1, "victory")
 	return_to_map()
-
 func _show_save_retry() -> void:
 	var retry := AcceptDialog.new()
 	retry.dialog_text = error_message
@@ -168,23 +173,22 @@ func _show_save_retry() -> void:
 		retry.queue_free()
 		_show_save_retry.call_deferred())
 	retry.popup_centered(Vector2i(520, 150))
-
 func finish_defeat() -> void:
 	if active_level == null:
 		return
 	notice = "草坪挑战失败，再试一次吧。"
 	battle_finished.emit(1, "defeat")
 	return_to_map()
-
 func abandon_battle() -> void:
 	if active_level != null:
 		notice = "已离开草坪，本次未结算通关。"
 		battle_finished.emit(1, "abandoned")
 	return_to_map()
-
 func return_to_map() -> void:
 	adventure_active = true
 	active_level = null
+	active_stage_number = 0
+	active_phase_kind = 0
 	battle_loadout.clear()
 	Global.game_para = null
 	TreePauseManager.end_tree_pause_clear_all_pause_factors()

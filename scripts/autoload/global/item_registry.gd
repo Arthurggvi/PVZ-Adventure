@@ -9,6 +9,7 @@ const ITEMS: Dictionary = {
 	"plant_starch": {"name": "植物淀粉", "category": "material"},
 	"recipe_wall_nut": {"name": "坚果墙一次性制作书", "category": "recipe"},
 	"recipe_potato_mine": {"name": "土豆雷一次性制作书", "category": "recipe"},
+	"lawn_nightmare_key": {"name": "草坪噩梦挑战钥匙", "category": "key"},
 	"seedling_pot": {"name": "育苗花盆", "category": "consumable"},
 	"growth_agent": {"name": "生长剂", "category": "consumable"},
 	"fertilizer_lv1": {"name": "一级肥料", "category": "consumable"},

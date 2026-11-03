@@ -35,6 +35,8 @@ var canvas: Control
 var notice_label: Label
 ## 仅在实际有结果或点击提示时显示的底部面板。
 var notice_panel: Panel
+## 每次选择关卡时建立阶段窗口，属于地图 UI，不持久化。
+var phase_dialog: ConfirmationDialog
 
 ## 读取素材布局，建立独立显示层并恢复首次引导。
 func _ready() -> void:
@@ -103,7 +105,37 @@ func _select_stage(stage_id: int) -> void:
 	elif stage_id != 1:
 		_show_notice("没落营地已开放，战斗将在后续阶段实装。")
 	else:
-		AdventureSession.enter_lawn()
+		_open_phase_dialog(stage_id)
+
+## 两阶段选择窗只负责交互，真实解锁条件由关卡目录统一验证。
+func _open_phase_dialog(stage_id: int) -> void:
+	if phase_dialog != null and is_instance_valid(phase_dialog):
+		phase_dialog.queue_free()
+	var state: AdventureState = Global.global_game_state.adventure_state
+	var inventory: AdventureInventoryService = Global.adventure_inventory
+	var normal_error := AdventureStageCatalog.entry_error(stage_id, StagePhaseDefinition.Kind.NORMAL, state, inventory)
+	var nightmare_error := AdventureStageCatalog.entry_error(stage_id, StagePhaseDefinition.Kind.NIGHTMARE, state, inventory)
+	phase_dialog = ConfirmationDialog.new()
+	phase_dialog.title = "草坪 · 挑战阶段"
+	phase_dialog.dialog_text = "普通阶段：%s\n噩梦阶段：%s" % [
+		"可进入" if normal_error.is_empty() else normal_error,
+		"可进入" if nightmare_error.is_empty() else nightmare_error]
+	phase_dialog.get_ok_button().text = "普通阶段"
+	phase_dialog.get_ok_button().disabled = not normal_error.is_empty()
+	var nightmare_button: Button = phase_dialog.add_button("噩梦阶段", true, "nightmare")
+	nightmare_button.disabled = not nightmare_error.is_empty()
+	add_child(phase_dialog)
+	phase_dialog.confirmed.connect(func(): _enter_selected_phase(stage_id, StagePhaseDefinition.Kind.NORMAL))
+	phase_dialog.custom_action.connect(_on_phase_custom_action.bind(stage_id))
+	phase_dialog.popup_centered(Vector2i(640, 230))
+
+func _on_phase_custom_action(action: StringName, stage_id: int) -> void:
+	if action == &"nightmare":
+		_enter_selected_phase(stage_id, StagePhaseDefinition.Kind.NIGHTMARE)
+
+func _enter_selected_phase(stage_id: int, kind: int) -> void:
+	if not AdventureSession.enter_stage(stage_id, kind):
+		_show_notice(AdventureSession.error_message)
 
 ## [param message] 为实际结果或点击提示；空消息隐藏面板，不显示常驻说明。
 func _show_notice(message: String) -> void:

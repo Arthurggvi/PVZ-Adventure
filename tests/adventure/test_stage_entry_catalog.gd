@@ -1,0 +1,39 @@
+## 只验证阶段资源、钥匙门槛、普通战斗模板与单一玩家状态，不触碰真实档案。
+extends Node
+
+func _ready() -> void:
+	call_deferred("_run")
+
+func _run() -> void:
+	var stage: StageDefinition = AdventureStageCatalog.load_stage(1)
+	assert(stage != null and stage.stage_id == AdventureStageCatalog.LAWN_ID)
+	assert(stage.validate(AdventureStageCatalog.tier_ids(), AdventureStageCatalog.key_ids()).is_empty())
+	var normal: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, StagePhaseDefinition.Kind.NORMAL)
+	var nightmare: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, StagePhaseDefinition.Kind.NIGHTMARE)
+	assert(normal != null and nightmare != null)
+	assert(nightmare.key_id == &"lawn_nightmare_key")
+	assert(nightmare.key_use == StagePhaseDefinition.KeyUse.KEEP)
+	var state := AdventureState.new()
+	var inventory := AdventureInventoryService.new(state)
+	assert(AdventureStageCatalog.entry_error(1, StagePhaseDefinition.Kind.NORMAL, state, inventory).contains("植物卡"))
+	assert(not AdventureStageCatalog.entry_error(1, StagePhaseDefinition.Kind.NIGHTMARE, state, inventory).is_empty())
+	assert(not inventory.add_card(CharacterRegistry.PlantType.P001PeaShooterSingle).is_empty())
+	assert(AdventureStageCatalog.entry_error(1, StagePhaseDefinition.Kind.NORMAL, state, inventory).is_empty())
+	assert(AdventureStageCatalog.entry_error(1, StagePhaseDefinition.Kind.NIGHTMARE, state, inventory).contains("普通"))
+	AdventureStageCatalog.mark_cleared(state, stage.stage_id, StagePhaseDefinition.Kind.NORMAL)
+	assert(AdventureStageCatalog.is_cleared(state, stage.stage_id, StagePhaseDefinition.Kind.NORMAL))
+	assert(AdventureStageCatalog.entry_error(1, StagePhaseDefinition.Kind.NIGHTMARE, state, inventory).contains("钥匙"))
+	assert(inventory.add_item("lawn_nightmare_key", 1))
+	assert(AdventureStageCatalog.entry_error(1, StagePhaseDefinition.Kind.NIGHTMARE, state, inventory).contains("尚未"))
+	assert(AdventureStageCatalog.entry_error(2, StagePhaseDefinition.Kind.NORMAL, state, inventory).contains("尚未"))
+	var level: ResourceLevelData = AdventureStageCatalog.build_level(1, StagePhaseDefinition.Kind.NORMAL)
+	assert(level != null)
+	assert(level.look_show_zombie and level.can_choosed_card)
+	assert(level.max_wave == normal.wave_profile.wave_count)
+	assert(level.max_choosed_card_num == normal.max_selected_cards)
+	assert(level.zombie_refresh_types.size() == 1)
+	level.max_wave = 99
+	assert(stage.battle_template.max_wave == 10)
+	assert(state.to_dict().size() > 0)
+	print("PASS: stage catalog, normal/nightmare gates, key, config runtime clone")
+	get_tree().quit(0)

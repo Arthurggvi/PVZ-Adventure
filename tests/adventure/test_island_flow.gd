@@ -69,6 +69,10 @@ func _run() -> void:
 	map._fit_canvas()
 	await _screenshot("map")
 	map._select_stage(1)
+	assert(map.phase_dialog != null)
+	assert(not map.phase_dialog.get_ok_button().disabled)
+	assert(map.phase_dialog.dialog_text.contains("噩梦阶段"))
+	map.phase_dialog.confirmed.emit()
 	await _wait_battle()
 	var battle: MainGameManager = Global.main_game # 原版草坪管理器。
 	assert(FileAccess.file_exists(original_path))

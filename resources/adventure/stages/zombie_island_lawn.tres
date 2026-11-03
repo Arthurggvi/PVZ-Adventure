@@ -1,0 +1,105 @@
+[gd_resource type="Resource" script_class="StageDefinition" format=3]
+
+[ext_resource type="Resource" path="res://resources/adventure/island_lawn.tres" id="1_rehtx"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_phase_definition.gd" id="2_rx0cf"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/boss_encounter_definition.gd" id="3_g3gx0"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="4_g1pq0"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="5_dgljq"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="6_6xuwk"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="7_qif7b"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="8_4ulqo"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_definition.gd" id="9_s56om"]
+
+[sub_resource type="Resource" id="Resource_xfh5m"]
+script = ExtResource("4_g1pq0")
+entry_id = &"zombie_island.lawn.normal.draft"
+rule = 3
+asset_kind = 1
+asset_id = &"unsaturated_fat"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_jbaxt"]
+script = ExtResource("5_dgljq")
+table_id = &"zombie_island.lawn.normal.draft_pending_p4"
+entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_xfh5m")])
+
+[sub_resource type="Resource" id="Resource_tifcb"]
+script = ExtResource("7_qif7b")
+band_id = &"zombie_island.lawn.normal.waves"
+first_wave = 1
+last_wave = 10
+zombie_weights = Dictionary[int, int]({
+1: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+
+[sub_resource type="Resource" id="Resource_p4d35"]
+script = ExtResource("8_4ulqo")
+profile_id = &"zombie_island.lawn.normal.profile"
+wave_count = 10
+bands = Array[ExtResource("7_qif7b")]([SubResource("Resource_tifcb")])
+
+[sub_resource type="Resource" id="Resource_iiiv0"]
+script = ExtResource("2_rx0cf")
+phase_id = &"zombie_island.lawn.normal"
+kind = 1
+unlock_rule = 1
+key_use = 1
+card_mode = 1
+max_selected_cards = 2
+wave_profile = SubResource("Resource_p4d35")
+drop_table = SubResource("Resource_jbaxt")
+
+[sub_resource type="Resource" id="Resource_y6ptv"]
+script = ExtResource("4_g1pq0")
+entry_id = &"zombie_island.lawn.nightmare.draft"
+rule = 3
+asset_kind = 1
+asset_id = &"unsaturated_fat"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_wd1bx"]
+script = ExtResource("5_dgljq")
+table_id = &"zombie_island.lawn.nightmare.draft_pending_p4"
+entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_y6ptv")])
+
+[sub_resource type="Resource" id="Resource_pd7hg"]
+script = ExtResource("7_qif7b")
+band_id = &"zombie_island.lawn.nightmare.waves"
+first_wave = 1
+last_wave = 10
+zombie_weights = Dictionary[int, int]({
+1: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+
+[sub_resource type="Resource" id="Resource_tnjdw"]
+script = ExtResource("8_4ulqo")
+profile_id = &"zombie_island.lawn.nightmare.profile"
+wave_count = 10
+bands = Array[ExtResource("7_qif7b")]([SubResource("Resource_pd7hg")])
+
+[sub_resource type="Resource" id="Resource_vyptr"]
+script = ExtResource("2_rx0cf")
+phase_id = &"zombie_island.lawn.nightmare"
+kind = 2
+unlock_rule = 4
+key_id = &"lawn_nightmare_key"
+key_count = 1
+key_use = 2
+card_mode = 1
+max_selected_cards = 2
+wave_profile = SubResource("Resource_tnjdw")
+drop_table = SubResource("Resource_wd1bx")
+
+[resource]
+script = ExtResource("9_s56om")
+stage_id = &"zombie_island.lawn"
+battle_template = ExtResource("1_rehtx")
+phases = Array[ExtResource("2_rx0cf")]([SubResource("Resource_iiiv0"), SubResource("Resource_vyptr")])
