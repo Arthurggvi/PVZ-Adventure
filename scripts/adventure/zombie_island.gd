@@ -110,6 +110,6 @@ func _show_notice(message: String) -> void:
 	notice_label.text = message
 	notice_panel.visible = not message.is_empty()
 
-## 返回原有菜单，保留已完成或进行中的独立进度。
+## 经复用遮幕返回原有菜单；只增加表现时序，保留进度、音乐和原返回目的地。
 func _return_menu() -> void:
-	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
+	$SceneTransition.change_scene("res://scenes/main/01StartMenuV8.tscn")

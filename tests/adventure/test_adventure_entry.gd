@@ -7,7 +7,7 @@ func _run() -> void:
 	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
 	await _frames()
 	if OS.get_cmdline_user_args().has("--resume-probe"):
-		_click_entry()
+		await _click_entry()
 		await _frames()
 		assert(AdventureSession.progress.stage_1_cleared)
 		assert(not get_tree().current_scene.canvas.has_node("Intro"))
@@ -18,7 +18,7 @@ func _run() -> void:
 	var guest := "user://adventure_guest/zombie_island_v1.json" # 测试游客文件。
 	_write(guest, "legacy guest sentinel")
 	Global.user_manager.set_current_user("")
-	_click_entry()
+	await _click_entry()
 	assert(AdventureSession.progress == null and not AdventureSession.adventure_active)
 	assert(get_tree().current_scene.has_node("AdventureDestinationPicker/EntryError"))
 	assert(FileAccess.get_file_as_string(guest) == "legacy guest sentinel")
@@ -31,7 +31,8 @@ func _run() -> void:
 	var entry_button: BaseButton = get_tree().current_scene.get_node("ArtCanvas/ship_button")
 	entry_button.pressed.emit()
 	entry_button.pressed.emit()
-	get_tree().current_scene.get_node("AdventureDestinationPicker/DesignCanvas/Cards/zombie_island").pressed.emit()
+	await _frames()
+	get_tree().current_scene.get_node("AdventureDestinationPicker/MotionRoot/DesignCanvas/Cards/zombie_island").pressed.emit()
 	await _frames()
 	var path_a: String = AdventureSession.progress.save_path # A 的固定版本路径。
 	assert(AdventureSession.progress.started and not AdventureSession.progress.intro_completed)
@@ -43,7 +44,7 @@ func _run() -> void:
 	assert(AdventureSession.progress.cards.size() == 2)
 	var interrupted := FileAccess.get_file_as_bytes(path_a) # 已赠卡未完成的文件。
 	await _menu()
-	_click_entry()
+	await _click_entry()
 	await _frames()
 	assert(FileAccess.get_file_as_bytes(path_a) == interrupted)
 	assert(get_tree().current_scene.canvas.has_node("Intro"))
@@ -55,12 +56,12 @@ func _run() -> void:
 	await _menu()
 	_select_user(user_b)
 	assert(AdventureSession.progress == null)
-	_click_entry()
+	await _click_entry()
 	await _frames()
 	assert(not AdventureSession.progress.stage_1_cleared and AdventureSession.progress.cards.is_empty())
 	await _menu()
 	_select_user(user_a)
-	_click_entry()
+	await _click_entry()
 	await _frames()
 	assert(FileAccess.get_file_as_bytes(path_a) == completed)
 	assert(AdventureSession.is_unlocked(2) and not get_tree().current_scene.canvas.has_node("Intro"))
@@ -69,7 +70,7 @@ func _run() -> void:
 	var path_b := "user://%s/adventure/zombie_island_v1.json" % user_b # 只破坏测试 B。
 	for invalid: String in ["{broken", '{"version":999}']: # 损坏与不兼容版本都阻止进入。
 		_write(path_b, invalid)
-		_click_entry()
+		await _click_entry()
 		assert(not AdventureSession.adventure_active and AdventureSession.progress == null)
 		assert(not AdventureSession.entry_error.is_empty())
 		assert(FileAccess.get_file_as_string(path_b) == invalid)
@@ -79,12 +80,12 @@ func _run() -> void:
 	_select_user(failing)
 	var failing_path := "user://%s/adventure/zombie_island_v1.json" % failing # 新档路径。
 	assert(DirAccess.make_dir_recursive_absolute(failing_path + ".tmp") == OK)
-	_click_entry()
+	await _click_entry()
 	assert(AdventureSession.progress == null and not AdventureSession.adventure_active)
 	assert(not FileAccess.file_exists(failing_path))
 	assert(not AdventureSession.entry_error.is_empty())
 	assert(DirAccess.remove_absolute(failing_path + ".tmp") == OK)
-	_click_entry()
+	await _click_entry()
 	await _frames()
 	assert(AdventureSession.progress.started and FileAccess.file_exists(failing_path))
 	await _menu()
@@ -100,7 +101,7 @@ func _run() -> void:
 			break
 	native._on_delete_confirmed()
 	assert(not DirAccess.dir_exists_absolute("user://" + user_b))
-	_click_entry()
+	await _click_entry()
 	await _frames()
 	assert(AdventureSession.progress.stage_1_cleared)
 	assert(FileAccess.get_file_as_string(guest) == "legacy guest sentinel")
@@ -118,7 +119,7 @@ func _run() -> void:
 
 ## 点击真实冒险按钮，不调用旧新游戏或继续接口。
 func _click_entry() -> void:
-	_enter_island_from_menu()
+	await _enter_island_from_menu()
 
 ## 经地图返回主菜单。
 func _menu() -> void:

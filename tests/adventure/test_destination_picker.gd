@@ -8,6 +8,7 @@ func _run() -> void:
 	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
 	await _frames()
 	Global.save_service.stop_autosave()
+	assert(get_tree().current_scene.has_node("SceneTransition"), "场景切换遮幕尚未接入")
 	# 原生创建和选择玩家后记录身份与完整全局存档基线。
 	var menu: Control = get_tree().current_scene # 关闭后必须保留的同一菜单。
 	var username := "picker-%s" % Time.get_ticks_usec() # 唯一隔离玩家。
@@ -23,16 +24,49 @@ func _run() -> void:
 	var town := player.stream # 相同曲目应连续播放。
 	await get_tree().create_timer(0.2).timeout
 	var before := player.get_playback_position() # 首次打开前的播放位置。
+	# 旧入口可能返回成功却没有真正离场，遮幕必须自行恢复，不能永久黑屏。
+	var transition: Node = menu.get_node("SceneTransition") # 真实可复用组件，不替换场景路由或存档服务。
+	assert(transition.run(func() -> bool: return true))
+	assert(not transition.run(func() -> bool: return true))
+	await get_tree().create_timer(transition.cover_seconds + transition.reveal_seconds + 0.15).timeout
+	assert(not transition.busy and not transition.curtain.visible, "成功返回却未切场景时必须揭幕恢复")
+	# 快速取消可打断入场；动画期间的程序选择同样不能抢跑或创建进度。
+	menu.get_node("ArtCanvas/ship_button").pressed.emit()
+	var opening: Control = menu.get_node("AdventureDestinationPicker") # 尚未展开的纸图。
+	assert(opening.is_animating() and not opening.is_presented())
+	opening._select_destination("zombie_island")
+	opening.destination_selected.emit("zombie_island")
+	assert(not FileAccess.file_exists(path) and not AdventureSession.adventure_active)
+	await get_tree().create_timer(0.06).timeout
+	assert(opening.get_node("MotionRoot").modulate.a > 0.0 and opening.get_node("MotionRoot").modulate.a < 1.0)
+	get_tree().root.size = Vector2i(1280, 720)
+	var cancel := InputEventKey.new() # 在真正入场中发送 ESC，随后重复关闭仍只退场一次。
+	cancel.keycode = KEY_ESCAPE
+	cancel.pressed = true
+	Input.parse_input_event(cancel)
+	opening._close()
+	cancel = cancel.duplicate()
+	cancel.pressed = false
+	Input.parse_input_event(cancel)
+	await _frames()
+	assert(not menu.has_node("AdventureDestinationPicker"))
+	assert(not FileAccess.file_exists(path))
+	get_tree().root.size = Vector2i(1066, 600)
 	for cycle: int in range(2): # X、ESC各验证一次，并检查单实例和重复信号。
 		await _mouse_click(menu.get_node("ArtCanvas/ship_button"))
 		menu.get_node("ArtCanvas/ship_button").pressed.emit()
 		await _frames()
 		var picker: Control = menu.get_node("AdventureDestinationPicker") # 本次打开的独立场景。
+		assert(picker.has_node("ModalMotion"), "纸图开关动效尚未接入")
+		assert(picker.is_presented() and not picker.is_animating())
+		assert(picker.get_node("MotionRoot").scale == Vector2.ONE)
+		assert(picker.get_node("MotionRoot").position == Vector2.ZERO)
+		assert(is_equal_approx(picker.get_node("MotionRoot").modulate.a, 1.0))
 		assert(get_tree().current_scene == menu and not AdventureSession.adventure_active)
 		assert(not FileAccess.file_exists(path) and AdventureSession.progress == null)
 		assert(picker.get_signal_connection_list("destination_selected").size() == 1)
-		var island: TextureButton = picker.get_node("DesignCanvas/Cards/zombie_island") # 唯一开放卡片。
-		var locked: TextureButton = picker.get_node("DesignCanvas/Cards/town") # 始终锁定的未来地区。
+		var island: TextureButton = picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island") # 唯一开放卡片。
+		var locked: TextureButton = picker.get_node("MotionRoot/DesignCanvas/Cards/town") # 始终锁定的未来地区。
 		assert(island.has_focus() and not island.disabled)
 		assert(locked.disabled and locked.focus_mode == Control.FOCUS_NONE)
 		assert(locked.get_node("DisabledOverlay").visible)
@@ -44,15 +78,24 @@ func _run() -> void:
 		assert(island.get_node("NameBounds").get_rect() == Rect2(58, 143, 188, 32))
 		assert(island.get_node("NameBounds/NameLabel").get_global_rect().get_center().is_equal_approx(island.get_node("NameBounds").get_global_rect().get_center()))
 		await _key(KEY_TAB)
-		assert(picker.get_node("DesignCanvas/Close").has_focus())
+		assert(picker.get_node("MotionRoot/DesignCanvas/Close").has_focus())
 		await _key(KEY_TAB)
 		assert(island.has_focus())
+		if cycle == 0:
+			# 模拟旧入口已置会话锁但没有离场；必须解除界面和会话锁，错误能关闭后重试。
+			picker.set_navigation_pending(true)
+			AdventureSession.adventure_active = true
+			assert(transition.run(func() -> bool: return true))
+			await _frames()
+			assert(not AdventureSession.adventure_active and not picker.get_node("InputShield").visible)
+			assert(picker.get_node("EntryError").visible)
+			picker.get_node("EntryError").hide()
 		for dimensions: Vector2i in [Vector2i(1920,1080), Vector2i(1280,720), Vector2i(1066,600), Vector2i(1024,768)]: # 验证真实窗口的安全区。
 			get_tree().root.size = dimensions
 			await _frames()
-			var canvas: Control = picker.get_node("DesignCanvas") # 所有层共用一个等比变换。
+			var canvas: Control = picker.get_node("MotionRoot/DesignCanvas") # 所有层共用一个等比变换。
 			assert(is_equal_approx(canvas.scale.x, canvas.scale.y))
-			for item: Control in [picker.get_node("DesignCanvas/Paper"), island, locked, picker.get_node("DesignCanvas/Close")]: # 完整矩形包括边框。
+			for item: Control in [picker.get_node("MotionRoot/DesignCanvas/Paper"), island, locked, picker.get_node("MotionRoot/DesignCanvas/Close")]: # 完整矩形包括边框。
 				assert(picker.get_global_rect().encloses(item.get_global_rect()))
 		get_tree().root.size = Vector2i(1066, 600)
 		await _frames()
@@ -68,7 +111,7 @@ func _run() -> void:
 		assert(get_tree().current_scene == menu and not AdventureSession.adventure_active)
 		assert(not FileAccess.file_exists(path))
 		if cycle == 0:
-			await _mouse_click(picker.get_node("DesignCanvas/Close"))
+			await _mouse_click(picker.get_node("MotionRoot/DesignCanvas/Close"))
 		else:
 			await _key(KEY_ESCAPE)
 		await _frames()
@@ -82,7 +125,7 @@ func _run() -> void:
 	menu.get_node("ArtCanvas/ship_button").pressed.emit()
 	await _frames()
 	var picker: Control = menu.get_node("AdventureDestinationPicker") # 首次实际进入的选择器。
-	var island: TextureButton = picker.get_node("DesignCanvas/Cards/zombie_island") # 开放地区卡片。
+	var island: TextureButton = picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island") # 开放地区卡片。
 	await _mouse_click(island)
 	await _frames()
 	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
@@ -97,7 +140,7 @@ func _run() -> void:
 	menu.get_node("ArtCanvas/ship_button").pressed.emit()
 	await _frames()
 	picker = menu.get_node("AdventureDestinationPicker")
-	island = picker.get_node("DesignCanvas/Cards/zombie_island")
+	island = picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island")
 	island.grab_focus()
 	await _key(KEY_ENTER)
 	await _frames()
@@ -116,14 +159,14 @@ func _run() -> void:
 	menu.get_node("ArtCanvas/ship_button").pressed.emit()
 	await _frames()
 	picker = menu.get_node("AdventureDestinationPicker")
-	await _mouse_click(picker.get_node("DesignCanvas/Cards/zombie_island"))
+	await _mouse_click(picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island"))
 	assert(get_tree().current_scene == menu and not AdventureSession.adventure_active)
 	assert(picker.get_node("EntryError").visible)
 	assert(FileAccess.get_file_as_string(path) == "{broken picker sentinel")
 	assert(not AdventureSession.entry_error.is_empty())
 	picker.get_node("EntryError").hide()
 	await _key(KEY_ESCAPE)
-	print("PASS: picker real inputs, locked routes, X/ESC cycles, four viewport bounds, first/existing/corrupt saves, native bytes and continuous town BGM")
+	print("PASS: modal interruption/resize/input lock, scene fade/rollback, picker real inputs, locked routes, X/ESC cycles, four viewport bounds, first/existing/corrupt saves, native bytes and continuous town BGM")
 	get_tree().quit()
 
 ## 向 [param button] 中心发送真实鼠标输入并检查开放卡片状态层。

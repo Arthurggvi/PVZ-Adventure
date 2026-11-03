@@ -1,8 +1,9 @@
-[gd_scene load_steps=53 format=3]
+[gd_scene load_steps=54 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/main/01StartMenu.tscn" id="base"]
 
 [ext_resource type="Script" path="res://scripts/ui/start_menu/main_menu_v8.gd" id="script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/transitions/SceneTransition.tscn" id="transition"]
 
 [ext_resource type="Texture2D" path="res://assets/adventure/main_menu/v6/background/coastal_yard.png" id="tex0"]
 
@@ -537,6 +538,10 @@ theme_override_colors/font_outline_color = Color(0.1, 0.06, 0.02, 1)
 theme_override_constants/outline_size = 5
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
 theme_override_constants/shadow_offset_y = 2
+
+[node name="SceneTransition" parent="." instance=ExtResource("transition")]
+
+[connection signal="transition_failed" from="SceneTransition" to="." method="_on_scene_transition_failed"]
 
 [connection signal="pressed" from="ArtCanvas/ship_button" to="." method="_on_button_1_pressed"]
 

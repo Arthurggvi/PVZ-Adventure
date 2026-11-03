@@ -32,7 +32,7 @@ func _run() -> void:
 	var original_path := "user://%s/GlobalSaveGame.json" % username # 原版文件。
 	var original_bytes := FileAccess.get_file_as_bytes(original_path) # 原版字节基线。
 	assert(not get_tree().current_scene.has_node("AdventureMenu"))
-	_enter_island_from_menu()
+	await _enter_island_from_menu()
 	var path: String = AdventureSession.progress.save_path # 新入口实际初始化的路径。
 	await _frames()
 	var map: Control = get_tree().current_scene # 当前地图。
@@ -123,7 +123,7 @@ func _run() -> void:
 	var cleared_bytes := FileAccess.get_file_as_bytes(path) # 胜利文件不可因入口重写。
 	get_tree().current_scene._return_menu()
 	await _frames()
-	_enter_island_from_menu()
+	await _enter_island_from_menu()
 	await _frames()
 	assert(FileAccess.get_file_as_bytes(path) == cleared_bytes)
 	assert(not get_tree().current_scene.canvas.has_node("Intro"))
@@ -138,7 +138,7 @@ func _run() -> void:
 	Global.save_service.save_now()
 	original_path = "user://%s-skip/GlobalSaveGame.json" % username
 	original_bytes = FileAccess.get_file_as_bytes(original_path)
-	_enter_island_from_menu()
+	await _enter_island_from_menu()
 	await _frames()
 	var skipping: Control = get_tree().current_scene.canvas.get_node("Intro") # 沉思句等待中的对话。
 	await _wait_intro_ready(skipping)
@@ -169,7 +169,7 @@ func _run() -> void:
 	assert(FileAccess.get_file_as_bytes(original_path) != original_bytes)
 	# 沿用用户改名接口迁移冒险文件，之后真正调用继续入口。
 	assert(Global.user_manager.rename_user(username + "-skip", username + "-renamed").is_empty())
-	_enter_island_from_menu()
+	await _enter_island_from_menu()
 	await _frames()
 	assert(AdventureSession.progress.intro_completed)
 	assert(not get_tree().current_scene.canvas.has_node("Intro"))
@@ -177,18 +177,31 @@ func _run() -> void:
 	print("PASS: menu, seven lines, third-line immediate skip lifecycle, gift, layout, planting, defeat, natural waves, trophy victory, restart, abandon, live autosave isolation and restoration, rename, continue")
 	get_tree().quit(0)
 
-## 等待场景入树与布局完成。
+## 等待场景入树、布局及已接入的表现组件完成，不使用固定长延迟。
 func _frames() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
+	while true:
+		var scene := get_tree().current_scene # 切换的空帧中等待目标场景登记。
+		if scene == null:
+			await get_tree().process_frame
+			continue
+		var transition: Node = scene.get_node_or_null("SceneTransition") # 可选的场景表现组件。
+		var picker: Node = scene.get_node_or_null("AdventureDestinationPicker") # 可选的地区弹层。
+		if (transition != null and transition.busy) or (picker != null and picker.is_animating()):
+			await get_tree().process_frame
+			continue
+		break
 
 ## 点击真实菜单入口；V8 新增地区步骤，保留旧 V6 的直达测试语义。
 func _enter_island_from_menu() -> void:
 	var menu: Control = get_tree().current_scene # 信号可能立即清空 current_scene，先保留调用节点。
 	menu.get_node("ArtCanvas/ship_button").pressed.emit()
-	var picker: Control = menu.get_node_or_null("AdventureDestinationPicker") # 仅 V8 实装独立地区选择器。
+	await _frames()
+	var picker: Control = get_tree().current_scene.get_node_or_null("AdventureDestinationPicker") # 仅 V8 实装独立地区选择器。
 	if picker != null:
-		picker.get_node("DesignCanvas/Cards/zombie_island").pressed.emit()
+		picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island").pressed.emit()
+		await _frames()
 
 ## 等待原版开战演出、卡槽入场及刷怪启动。
 func _wait_battle() -> void:

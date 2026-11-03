@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/adventure_destination_picker.gd" id="1"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/transitions/ModalMotion.tscn" id="motion"]
 
 [node name="AdventureDestinationPicker" type="Control"]
 process_mode = 3
@@ -22,25 +24,34 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.04, 0.06, 0.06, 0.78)
 
-[node name="DesignCanvas" type="Control" parent="."]
+[node name="MotionRoot" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DesignCanvas" type="Control" parent="MotionRoot"]
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="Paper" type="TextureRect" parent="DesignCanvas"]
+[node name="Paper" type="TextureRect" parent="MotionRoot/DesignCanvas"]
 layout_mode = 0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Cards" type="Control" parent="DesignCanvas"]
+[node name="Cards" type="Control" parent="MotionRoot/DesignCanvas"]
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="Close" type="TextureButton" parent="DesignCanvas"]
+[node name="Close" type="TextureButton" parent="MotionRoot/DesignCanvas"]
 layout_mode = 0
 offset_left = 1652.0
 offset_top = 133.0
@@ -50,10 +61,22 @@ tooltip_text = "关闭（Esc）"
 ignore_texture_size = true
 stretch_mode = 5
 
+[node name="ModalMotion" parent="." node_paths=PackedStringArray("target", "backdrop") instance=ExtResource("motion")]
+target = NodePath("../MotionRoot")
+backdrop = NodePath("../Shade")
+
+[node name="InputShield" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [node name="EntryError" type="AcceptDialog" parent="."]
 title = "无法进入冒险"
 initial_position = 2
 size = Vector2i(620, 160)
 ok_button_text = "好"
 
-[connection signal="pressed" from="DesignCanvas/Close" to="." method="_close"]
+[connection signal="pressed" from="MotionRoot/DesignCanvas/Close" to="." method="_close"]

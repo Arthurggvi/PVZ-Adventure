@@ -124,9 +124,26 @@ func _close_destination_picker() -> void:
 
 ## [param destination_id] 是选择意图；只有真实已实现的僵尸岛能进入原安全入口。
 func _enter_destination(destination_id: String) -> void:
-	if not is_instance_valid(_destination_picker) or not _destination_picker.can_select(destination_id):
+	if not is_instance_valid(_destination_picker) or not _destination_picker.is_presented() \
+		or not _destination_picker.can_select(destination_id):
 		return
 	match destination_id:
 		"zombie_island":
-			if not AdventureSession.open_adventure():
-				_destination_picker.show_entry_error(AdventureSession.entry_error)
+			if not $SceneTransition.run(_open_zombie_island):
+				_destination_picker.set_navigation_pending(false)
+
+## 遮幕完成后才调用原安全入口；失败返回 false 让组件揭幕并恢复原界面。
+func _open_zombie_island() -> bool:
+	if not is_instance_valid(_destination_picker):
+		return false
+	if AdventureSession.open_adventure():
+		return true
+	_destination_picker.show_entry_error(AdventureSession.entry_error)
+	return false
+
+## 原入口报成功却未离场时，撤回本次会话锁并允许重试；不改进度对象或任何文件。
+func _on_scene_transition_failed() -> void:
+	if not is_instance_valid(_destination_picker):
+		return
+	AdventureSession.adventure_active = false
+	_destination_picker.recover_navigation_error("僵尸岛场景加载失败，请检查工程资源后重试。")

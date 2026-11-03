@@ -70,7 +70,7 @@ func _run() -> void:
 	assert(town.resource_path.ends_with("mus_town.wav") and player.playing)
 	await get_tree().create_timer(0.5).timeout
 	var before := player.get_playback_position() # 切场景前的真实播放位置。
-	_enter_island_from_menu()
+	await _enter_island_from_menu()
 	await _frames()
 	assert(player == SoundManager.bgm_play and player.stream == town)
 	assert(player.get_playback_position() >= before)
@@ -99,13 +99,13 @@ func _run() -> void:
 	menu.user.panel_create_new_user.line_edit.text = username + "-b"
 	menu.user.panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username + "-b")
-	_enter_island_from_menu()
+	await _enter_island_from_menu()
 	await _frames()
 	assert(AdventureSession.progress.cards.is_empty() and not AdventureSession.progress.intro_completed)
 	get_tree().current_scene._return_menu()
 	await _frames()
 	_select_user(username)
-	_enter_island_from_menu()
+	await _enter_island_from_menu()
 	await _frames()
 	assert(FileAccess.get_file_as_bytes(path) == saved)
 	assert(not get_tree().current_scene.canvas.has_node("Intro"))
