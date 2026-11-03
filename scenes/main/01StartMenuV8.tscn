@@ -1,4 +1,4 @@
-[gd_scene load_steps=48 format=3]
+[gd_scene load_steps=53 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/main/01StartMenu.tscn" id="base"]
 
@@ -74,6 +74,19 @@
 [ext_resource type="Shader" path="res://shaders/adventure/plaque_breathing_glow.gdshader" id="plaque_glow"]
 
 [ext_resource type="PackedScene" path="res://scenes/environment/main_menu_fx.tscn" id="environment_fx"]
+
+[ext_resource type="Shader" path="res://shaders/adventure/environment_mask.gdshader" id="terrain_mask"]
+[ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v1/generated_masks/dock_foreground.png" id="dock_mask"]
+[ext_resource type="Shader" path="res://shaders/adventure/ship_water_contact.gdshader" id="water_contact"]
+
+[sub_resource type="ShaderMaterial" id="dock_terrain_material"]
+shader = ExtResource("terrain_mask")
+shader_parameter/region_mask = ExtResource("dock_mask")
+shader_parameter/alpha_channel = true
+shader_parameter/render_size = Vector2(1920, 1080)
+
+[sub_resource type="ShaderMaterial" id="ship_contact_material"]
+shader = ExtResource("water_contact")
 
 [sub_resource type="ShaderMaterial" id="plaque_glow_material"]
 shader = ExtResource("plaque_glow")
@@ -161,6 +174,7 @@ mouse_filter = 2
 modulate = Color(0.94, 0.94, 0.94, 1)
 
 [node name="ship" type="TextureRect" parent="ArtCanvas"]
+material = SubResource("ship_contact_material")
 layout_mode = 0
 offset_left = 1230.0
 offset_top = 165.0
@@ -196,6 +210,7 @@ mouse_filter = 2
 modulate = Color(0.94, 0.94, 0.94, 1)
 
 [node name="dock_foreground" type="TextureRect" parent="ArtCanvas"]
+material = SubResource("dock_terrain_material")
 layout_mode = 0
 offset_left = 0.0
 offset_top = 0.0
@@ -207,6 +222,7 @@ stretch_mode = 5
 mouse_filter = 2
 
 [node name="ship_waterline_ripples" type="TextureRect" parent="ArtCanvas"]
+visible = false
 layout_mode = 0
 offset_left = 0.0
 offset_top = 0.0

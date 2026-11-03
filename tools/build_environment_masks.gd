@@ -29,8 +29,63 @@ func _initialize() -> void:
 			if distance.length_squared() < 1.0:
 				temple.set_pixel(x, y, Color.WHITE)
 	temple.save_png(OUTPUT + "temple.png")
-	print("PASS: four environment masks generated from original backgrounds and local terrain geometry")
+	_make_menu_sky()
+	_make_dock()
+	_make_waterfalls()
+	print("PASS: masks generated; lighthouse silhouette, dock sea removal and source-map waterfalls registered")
 	quit()
+
+## 修正安装遮罩的灯塔矩形占位；保留原始遮罩，只输出新的运行时遮罩。
+func _make_menu_sky() -> void:
+	var mask := Image.load_from_file("res://assets/adventure/environment_fx/v1/sky_cleanup_v1/masks/main_menu_moving_cloud_safe_mask.png") # 原有树冠和地平线轮廓。
+	var source := Image.load_from_file("res://assets/adventure/environment_fx/v1/sky_cleanup_v1/backgrounds/main_menu_sky_clean_1920x1080.png") # 与背景相同的设计坐标。
+	# 真实背景的塔顶、檐口及塔身外缘，避免矩形预留区截断云层。
+	var lighthouse := PackedVector2Array([
+		Vector2(1091,175), Vector2(1097,183), Vector2(1109,190), Vector2(1106,195),
+		Vector2(1108,204), Vector2(1113,204), Vector2(1113,217), Vector2(1104,221),
+		Vector2(1105,235), Vector2(1109,260), Vector2(1116,275), Vector2(1067,275),
+		Vector2(1073,250), Vector2(1077,220), Vector2(1070,216), Vector2(1070,205),
+		Vector2(1074,205), Vector2(1074,195), Vector2(1069,194), Vector2(1076,187),
+		Vector2(1085,182)])
+	mask.convert(Image.FORMAT_RGBA8)
+	for y: int in range(135, 275): # 只替换矩形占位范围。
+		for x: int in range(1010, 1145): # 不改变既有树冠遮罩。
+			var color := source.get_pixel(x, y) # 底部灌木须继续挡云。
+			var sky := 1.0 if y < 236 else smoothstep(0.03, 0.10, color.b - maxf(color.r, color.g)) # 天空与远岸植被的色差。
+			if Geometry2D.is_point_in_polygon(Vector2(x, y), lighthouse):
+				sky = 0.0
+			mask.set_pixel(x, y, Color(sky, sky, sky, 1))
+	mask.save_png(OUTPUT + "main_sky.png")
+
+## 去掉码头前景误带的矩形海水，原PNG和木板/立柱保持原位。
+func _make_dock() -> void:
+	var source := Image.load_from_file("res://assets/adventure/main_menu/v6/overlays/dock_foreground.png") # 原遮挡层含不透明海水。
+	var mask := Image.create(SIZE.x, SIZE.y, false, Image.FORMAT_RGBA8) # 与码头共用整图坐标的Alpha遮罩。
+	mask.fill(Color.TRANSPARENT)
+	for y: int in range(440, 860): # 码头局部纵向范围。
+		for x: int in range(1140, SIZE.x): # 不处理其他菜单主体。
+			var color := source.get_pixel(x, y) # 区分蓝绿水体与暖色木材。
+			var water := smoothstep(0.055, 0.14, minf(color.g, color.b) - color.r) # 连续过渡，避免色阈值硬边。
+			mask.set_pixel(x, y, Color(1, 1, 1, color.a * (1.0 - water)))
+	mask.save_png(OUTPUT + "dock_foreground.png")
+
+## 瀑布轮廓直接定义在真实1920×1080地图上，弃用截图的纵向偏移。
+func _make_waterfalls() -> void:
+	var regions := { # 两段独立沿真实水体裁剪，水花使用独立锚点。
+		"upper_flow.png": PackedVector2Array([
+			Vector2(908,434), Vector2(920,432), Vector2(936,434), Vector2(955,437),
+			Vector2(976,436), Vector2(964,456), Vector2(962,480), Vector2(951,512),
+			Vector2(917,519), Vector2(894,516), Vector2(899,480), Vector2(903,452)]),
+		"lower_flow.png": PackedVector2Array([
+			Vector2(904,730), Vector2(921,733), Vector2(941,731), Vector2(963,728),
+			Vector2(988,725), Vector2(999,739), Vector2(1003,773), Vector2(1011,812),
+			Vector2(994,829), Vector2(959,830), Vector2(931,820), Vector2(920,780),
+			Vector2(912,751)])}
+	for filename: String in regions: # 只生成叠加区域，不挪动岩石。
+		var mask := Image.create(SIZE.x, SIZE.y, false, Image.FORMAT_RGBA8) # 与背景共用局部坐标。
+		mask.fill(Color.TRANSPARENT)
+		_paint_polygon(mask, regions[filename])
+		mask.save_png(OUTPUT + filename)
 
 ## [param source] 为原始背景；[param filename] 为新增蒙版；[param island] 区分保守海岸区域。
 func _make_sea(source: String, filename: String, island: bool) -> void:

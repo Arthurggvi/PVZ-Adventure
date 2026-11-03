@@ -23,6 +23,10 @@ func _run() -> void:
 	assert(layer.get_index() < menu.art_canvas.get_node("ship").get_index())
 	assert(menu.art_canvas.get_node("CrowFlyby") != null)
 	_check_effects(layer)
+	var sky_mask: Image = layer.get_node("Cloud0").material.get_shader_parameter("region_mask").get_image() # 塔外天空可通云，塔身不可通云。
+	assert(sky_mask.get_pixel(1030, 160).r > 0.95 and sky_mask.get_pixel(1093, 225).r < 0.05)
+	var dock_mask: Image = menu.art_canvas.get_node("dock_foreground").material.get_shader_parameter("region_mask").get_image() # 移除水块但保留木板。
+	assert(dock_mask.get_pixel(1300, 470).a < 0.05 and dock_mask.get_pixel(1460, 640).a > 0.95)
 	var ship: Control = menu.art_canvas.get_node("ship") # 只让现有船体美术浮动。
 	var button: TextureButton = menu.art_canvas.get_node("ship_button") # 点击区域保持固定。
 	var button_position := button.position # 动画前的按钮位置。
@@ -62,6 +66,10 @@ func _run() -> void:
 	assert(layer.effects.size() == 22)
 	assert(layer.get_index() < island.canvas.get_node("Stage1").get_index())
 	_check_effects(layer)
+	var upper_mask: Image = layer.get_node("upper_shimmer_00").material.get_shader_parameter("region_mask").get_image() # 按真实地图验证水流内外样点。
+	assert(upper_mask.get_pixel(920, 400).a < 0.05 and upper_mask.get_pixel(920, 470).a > 0.95)
+	var lower_mask: Image = layer.get_node("lower_shimmer_00").material.get_shader_parameter("region_mask").get_image() # 下段独立定位，不能沿用上段偏移。
+	assert(lower_mask.get_pixel(950, 700).a < 0.05 and lower_mask.get_pixel(960, 770).a > 0.95)
 	assert(not island.canvas.get_node("Stage1").disabled)
 	for index: int in range(2, 7): # 锁定节点仍禁止鼠标与键盘触发。
 		var stage: TextureButton = island.canvas.get_node("Stage%d" % index) # 当前关卡按钮。

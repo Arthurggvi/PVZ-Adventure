@@ -52,6 +52,8 @@ func _apply_running() -> void:
 		elapsed = 0.0
 		ship.position = ship_origin
 		ship.rotation = ship_rotation
+	if is_instance_valid(ship) and ship.material != null:
+		ship.material.set_shader_parameter("animate", running)
 
 ## [param delta] 为秒；只动船体美术及烟囱随动点，交互牌、码头和海岸不动。
 func _process(delta: float) -> void:

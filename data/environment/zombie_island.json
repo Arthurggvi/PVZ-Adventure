@@ -175,17 +175,17 @@
         "res://assets/adventure/environment_fx/v1/zombie_island/waterfalls/upper/shimmer_05.png"
       ],
       "position": [
-        887.9549718574109,
-        379.8
+        891,
+        432
       ],
       "size": [
-        99.06191369606003,
-        120.60000000000001
+        86,
+        90
       ],
       "fps": 7,
       "phase": 0.0,
       "opacity": 0.64,
-      "mask": "res://assets/adventure/environment_fx/v1/zombie_island/masks/upper_flow_region.png",
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/upper_flow.png",
       "mask_alpha": true
     },
     {
@@ -197,12 +197,12 @@
         "res://assets/adventure/environment_fx/v1/zombie_island/waterfalls/spray/upper_spray_03.png"
       ],
       "position": [
-        875.3470919324577,
-        464.40000000000003
+        872,
+        500
       ],
       "size": [
-        144.09005628517824,
-        54.0
+        130,
+        45
       ],
       "fps": 5,
       "phase": 0.0,
@@ -219,17 +219,17 @@
         "res://assets/adventure/environment_fx/v1/zombie_island/waterfalls/lower/shimmer_05.png"
       ],
       "position": [
-        895.1594746716697,
-        702.0
+        903,
+        724
       ],
       "size": [
-        108.06754221388367,
-        126.0
+        108,
+        110
       ],
       "fps": 7,
       "phase": 0.38,
       "opacity": 0.64,
-      "mask": "res://assets/adventure/environment_fx/v1/zombie_island/masks/lower_flow_region.png",
+      "mask": "res://assets/adventure/environment_fx/v1/generated_masks/lower_flow.png",
       "mask_alpha": true
     },
     {
@@ -241,12 +241,12 @@
         "res://assets/adventure/environment_fx/v1/zombie_island/waterfalls/spray/lower_spray_03.png"
       ],
       "position": [
-        886.1538461538461,
-        792.0
+        885,
+        806
       ],
       "size": [
-        144.09005628517824,
-        54.0
+        164,
+        58
       ],
       "fps": 5,
       "phase": 0.42,
