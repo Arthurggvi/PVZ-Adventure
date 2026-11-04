@@ -4,7 +4,7 @@ extends CanvasLayer
 const View = preload("res://scripts/adventure/ui/toolbar_view.gd")
 const Features = preload("res://scripts/adventure/ui/toolbar_features.gd")
 const Inventory = preload("res://scripts/adventure/ui/inventory_window.gd")
-const Research = preload("res://scripts/adventure/ui/research_window.gd")
+const Research = preload("res://scripts/adventure/ui/research_lab_stage.gd")
 const MapNavigation = preload("res://scripts/adventure/ui/map_navigation.gd")
 const HOST_GROUP := &"adventure_toolbar_surface"
 var _view: AdventureToolbarView
@@ -13,7 +13,7 @@ var _host_allowed := false
 var _interactive := false
 var _host_scene: Node
 var _inventory: AdventureInventoryWindow
-var _research: AdventureResearchWindow
+var _research: AdventureResearchLabStage
 var _navigation: Node
 
 func _ready() -> void:

@@ -11,13 +11,14 @@ const View = preload("res://scripts/adventure/ui/research_panel_view.gd")
 
 var mode := "craft"
 var choice := 0
+var with_background := false
 var ui: Dictionary = {}
 var _closing := false
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	ui = Builder.build(self)
+	ui = Builder.build(self, with_background)
 	resized.connect(_fit)
 	_fit()
 	_render()

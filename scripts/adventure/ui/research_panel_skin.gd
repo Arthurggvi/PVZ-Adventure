@@ -11,9 +11,9 @@ const CONTENT_REGIONS := [
 	Rect2(1270, 350, 530, 523)
 ]
 
-static func build(owner: Control) -> Dictionary:
+static func build(owner: Control, with_background: bool = false) -> Dictionary:
 	var shade := ColorRect.new()
-	shade.color = Color(0.06, 0.06, 0.04, 0.42)
+	shade.color = Color(0.06, 0.06, 0.04, 0.10 if with_background else 0.42)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	shade.mouse_filter = Control.MOUSE_FILTER_STOP
 	owner.add_child(shade)
