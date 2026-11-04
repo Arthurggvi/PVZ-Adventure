@@ -3,6 +3,7 @@ extends Node
 class_name UserManager
 
 signal signal_users_update
+signal signal_user_renamed(old_name: String, new_name: String)
 
 var curr_user_name: String = ""
 var all_user_name: Array[String] = []
@@ -83,20 +84,27 @@ func add_user(new_user_name: String) -> String:
 	signal_users_update.emit()
 	return ""
 
+## 先隔离待删目录，再持久化用户索引；索引失败时恢复目录。
 func delete_user(user_name: String) -> String:
 	if not is_valid_user_name(user_name) or not all_user_name.has(user_name):
 		return "用户不存在或用户名不合法"
 	if user_name == curr_user_name:
 		return "不能删除当前登录用户"
-	# 保留已确认的索引直到实际文件操作成功。
-	var path: String = _user_directory(user_name)
-	if DirAccess.dir_exists_absolute(path) and not delete_folder(path):
-		return "删除用户存档目录失败"
-	all_user_name.erase(user_name)
+	var source: String = _user_directory(user_name)
+	var quarantine: String = "user://__deleted_%d" % Time.get_ticks_usec()
+	var moved: bool = DirAccess.dir_exists_absolute(source)
+	if moved and DirAccess.rename_absolute(source, quarantine) != OK:
+		return "无法保护性迁移待删除存档目录"
+	var position: int = all_user_name.find(user_name)
+	all_user_name.remove_at(position)
 	if not save_user_names():
-		all_user_name.append(user_name)
-		return "无法保存用户索引"
+		all_user_name.insert(position, user_name)
+		if moved:
+			DirAccess.rename_absolute(quarantine, source)
+		return "用户索引保存失败，已撤销删除"
 	signal_users_update.emit()
+	if moved and not delete_folder(quarantine):
+		push_warning("用户索引已移除，待清理存档目录：" + quarantine)
 	return ""
 
 func rename_user(old_name: String, new_name: String) -> String:
@@ -111,11 +119,13 @@ func rename_user(old_name: String, new_name: String) -> String:
 	var new_path: String = _user_directory(new_user_name)
 	if all_user_name.has(new_user_name) or DirAccess.dir_exists_absolute(new_path):
 		return "新用户名已存在"
+	var was_current: bool = curr_user_name == old_name
+	if was_current and (not Global.save_service.is_current_profile_loaded() or not Global.save_service.save_now()):
+		return "当前玩家存档未成功保存，不能重命名"
 	var moved: bool = DirAccess.dir_exists_absolute(old_path)
 	if moved and DirAccess.rename_absolute(old_path, new_path) != OK:
 		return "迁移存档目录失败"
 	var index: int = all_user_name.find(old_name)
-	var was_current: bool = curr_user_name == old_name
 	all_user_name[index] = new_user_name
 	if was_current:
 		curr_user_name = new_user_name
@@ -126,6 +136,7 @@ func rename_user(old_name: String, new_name: String) -> String:
 		if moved:
 			DirAccess.rename_absolute(new_path, old_path)
 		return "无法保存用户索引"
+	signal_user_renamed.emit(old_name, new_user_name)
 	signal_users_update.emit()
 	return ""
 

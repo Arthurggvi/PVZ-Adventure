@@ -17,6 +17,13 @@ var _auto_save_timer: Timer
 var _safe_to_save := true
 var _loaded_profile := ""
 
+func _ready() -> void:
+	user_manager.signal_user_renamed.connect(_on_user_renamed)
+
+func _on_user_renamed(previous: String, current: String) -> void:
+	if _safe_to_save and _loaded_profile == previous:
+		_loaded_profile = current
+
 func is_current_profile_loaded() -> bool:
 	return _safe_to_save and user_manager != null and _loaded_profile == user_manager.curr_user_name
 
