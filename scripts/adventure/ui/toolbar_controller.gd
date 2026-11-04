@@ -4,6 +4,7 @@ extends CanvasLayer
 const View = preload("res://scripts/adventure/ui/toolbar_view.gd")
 const Features = preload("res://scripts/adventure/ui/toolbar_features.gd")
 const Inventory = preload("res://scripts/adventure/ui/inventory_window.gd")
+const MapNavigation = preload("res://scripts/adventure/ui/map_navigation.gd")
 const HOST_GROUP := &"adventure_toolbar_surface"
 var _view: AdventureToolbarView
 var _hooks: Dictionary = {}
@@ -11,6 +12,7 @@ var _host_allowed := false
 var _interactive := false
 var _host_scene: Node
 var _inventory: AdventureInventoryWindow
+var _navigation: Node
 
 func _ready() -> void:
 	layer = 50 # Below existing SceneTransition (100), above ordinary map art.
@@ -19,6 +21,10 @@ func _ready() -> void:
 	_view.name = "ToolbarView"
 	add_child(_view)
 	_view.feature_pressed.connect(_on_feature_pressed)
+	_navigation = MapNavigation.new()
+	_navigation.name = "MapNavigation"
+	add_child(_navigation)
+	_navigation.navigation_state_changed.connect(_sync_input)
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Global.user_manager.signal_users_update.connect(_refresh)
 	register_feature("inventory", Callable(self, "_can_open_inventory"), Callable(self, "_open_inventory"))
@@ -31,7 +37,8 @@ func _process(_delta: float) -> void:
 		_refresh()
 
 func _sync_input() -> void:
-	var allowed := _host_allowed and is_instance_valid(_host_scene) and not get_tree().paused
+	var allowed: bool = _host_allowed and is_instance_valid(_host_scene) and not get_tree().paused \
+		and not _navigation.is_open()
 	if allowed and _host_scene.has_method("is_adventure_toolbar_blocked"):
 		allowed = not bool(_host_scene.call("is_adventure_toolbar_blocked"))
 	if allowed == _interactive:
@@ -48,6 +55,7 @@ func _sync_scene_from_tree() -> void:
 	_apply_host_scene(get_tree().current_scene)
 
 func _apply_host_scene(scene: Node) -> void:
+	_navigation.close()
 	if is_instance_valid(_inventory):
 		_inventory.queue_free()
 	_inventory = null
@@ -57,6 +65,12 @@ func _apply_host_scene(scene: Node) -> void:
 	visible = _host_allowed
 	_sync_input()
 	_refresh()
+
+## Same navigation entry for the menu ship and any map toolbar.
+func open_map_navigation() -> bool:
+	if not _host_allowed or not is_instance_valid(_host_scene):
+		return false
+	return _navigation.open_from(_host_scene)
 
 func _can_open_inventory() -> bool:
 	return Global.save_service != null and Global.save_service.is_current_profile_loaded() \
@@ -106,16 +120,8 @@ func _on_feature_pressed(feature_id: String) -> void:
 	if is_instance_valid(_inventory) and feature_id != "inventory":
 		return
 	if feature_id == "map":
-		if not Features.can_open_map():
-			return
-		var scene := get_tree().current_scene
-		if is_instance_valid(scene) and scene.has_method("open_adventure_toolbar_map"):
-			scene.call("open_adventure_toolbar_map") # Scene chooses its region navigation.
-			return
-		if is_instance_valid(scene) and scene.scene_file_path == AdventureSession.MAP_SCENE:
-			return # Already viewing the canonical map.
-		if not AdventureSession.open_adventure():
-			push_warning("Adventure toolbar: " + AdventureSession.entry_error)
+		if Features.can_open_map():
+			open_map_navigation()
 		return
 	if not _hooks.has(feature_id):
 		return

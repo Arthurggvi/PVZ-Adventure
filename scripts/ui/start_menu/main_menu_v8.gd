@@ -5,13 +5,6 @@ extends "res://scripts/ui/start_menu/main_menu_v6.gd"
 const PLAQUE_TEXT_OFFSET_Y := 10.0
 ## 存档名牌沿用原按钮交互，只追加可复用的悬停反馈组件。
 const PLAQUE_HOVER = preload("res://scripts/ui/start_menu/plaque_hover_feedback.gd")
-## 本次首次实装的地区界面，关闭时保留同一个 V8 实例。
-const DESTINATION_PICKER = preload("res://scenes/adventure/AdventureDestinationPicker.tscn")
-## 当前唯一弹层；场景离开时随菜单自动释放。
-var _destination_picker: Control
-## 打开弹层前的处理模式，关闭时原样恢复。
-var _menu_process_mode: ProcessMode
-
 ## 总环境动效开关，不控制既有乌鸦、按钮和音乐。
 @export var environment_fx_enabled := true:
 	set(value):
@@ -106,57 +99,6 @@ func _on_item_button_1_pressed() -> void:
 func _on_item_button_3_pressed() -> void:
 	pass
 
-## Shared toolbar navigation contract: use the existing region picker rather than bypassing it.
-func is_adventure_toolbar_blocked() -> bool:
-	return is_instance_valid(_destination_picker)
-
-func open_adventure_toolbar_map() -> void:
-	_on_button_1_pressed()
-
-## 正式冒险按钮只打开地区选择器；重复点击不叠加界面，也不读取或初始化进度。
+## Both the ship button and the toolbar use the same persistent map navigation owner.
 func _on_button_1_pressed() -> void:
-	if is_instance_valid(_destination_picker):
-		return
-	_destination_picker = DESTINATION_PICKER.instantiate()
-	_destination_picker.close_requested.connect(_close_destination_picker)
-	_destination_picker.destination_selected.connect(_enter_destination)
-	_menu_process_mode = process_mode
-	process_mode = Node.PROCESS_MODE_DISABLED
-	get_viewport().gui_release_focus()
-	add_child(_destination_picker)
-
-## 释放唯一弹层，恢复菜单输入及出发按钮焦点；不重建菜单或更换玩家。
-func _close_destination_picker() -> void:
-	if not is_instance_valid(_destination_picker):
-		return
-	_destination_picker.hide()
-	_destination_picker.queue_free()
-	_destination_picker = null
-	process_mode = _menu_process_mode
-	$ArtCanvas/ship_button.grab_focus()
-
-## [param destination_id] 是选择意图；只有真实已实现的僵尸岛能进入原安全入口。
-func _enter_destination(destination_id: String) -> void:
-	if not is_instance_valid(_destination_picker) or not _destination_picker.is_presented() \
-		or not _destination_picker.can_select(destination_id):
-		return
-	match destination_id:
-		"zombie_island":
-			if not $SceneTransition.run(_open_zombie_island):
-				_destination_picker.set_navigation_pending(false)
-
-## 遮幕完成后才调用原安全入口；失败返回 false 让组件揭幕并恢复原界面。
-func _open_zombie_island() -> bool:
-	if not is_instance_valid(_destination_picker):
-		return false
-	if AdventureSession.open_adventure():
-		return true
-	_destination_picker.show_entry_error(AdventureSession.entry_error)
-	return false
-
-## 原入口报成功却未离场时，撤回本次会话锁并允许重试；不改进度对象或任何文件。
-func _on_scene_transition_failed() -> void:
-	if not is_instance_valid(_destination_picker):
-		return
-	AdventureSession.adventure_active = false
-	_destination_picker.recover_navigation_error("僵尸岛场景加载失败，请检查工程资源后重试。")
+	AdventureToolbar.open_map_navigation()

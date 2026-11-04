@@ -46,9 +46,9 @@ func _run() -> void:
 		return _fail("Live V8 map entry did not show the persistent toolbar")
 	real_menu._on_button_1_pressed()
 	await get_tree().create_timer(0.10).timeout
-	if real_menu.process_mode != Node.PROCESS_MODE_DISABLED or not bar.visible or bar._interactive:
-		return _fail("Live destination picker incorrectly removed the toolbar")
-	real_menu._close_destination_picker()
+	if not bar._navigation.is_open() or not bar.visible or bar._interactive:
+		return _fail("The shared destination picker must block toolbar input without hiding it")
+	bar._navigation.close()
 	await get_tree().create_timer(0.10).timeout
 	if not bar.visible or not bar._interactive:
 		return _fail("Live V8 modal close did not restore toolbar input")
@@ -60,6 +60,15 @@ func _run() -> void:
 	bar._apply_host_scene(holder)
 	if not bar.visible or not bar._interactive:
 		return _fail("Map root did not activate toolbar")
+	if view._available.get("map", false):
+		bar._on_feature_pressed("map")
+		await get_tree().process_frame
+		if not bar._navigation.is_open() or bar._interactive:
+			return _fail("Map slot cannot reopen the shared selector after a host change")
+		bar._navigation.close()
+		await get_tree().process_frame
+		if not bar._interactive:
+			return _fail("Map slot remained locked after dismissing the selector")
 	var original_id := view.get_instance_id()
 	if not _is_flush(view):
 		return _fail("Live viewport handle does not touch right/bottom edge")
@@ -99,7 +108,34 @@ func _run() -> void:
 	bar._apply_host_scene(holder)
 	if not bar.visible or view.get_instance_id() != original_id:
 		return _fail("Toolbar was re-created or failed to return after map switch")
-	print("TOOLBAR_SMOKE_PASS: persistent host, modal lock, scene switch, viewport edges, 7 slots")
+	# Actual regional map, no saving: selecting the current region must close, not disable navigation.
+	var previous_progress: RefCounted = AdventureSession.progress
+	var previous_active: bool = AdventureSession.adventure_active
+	AdventureSession.progress = load("res://scripts/adventure/island_progress.gd").new(
+		Global.global_game_state.adventure_state)
+	var actual_map: Control = (load(AdventureSession.MAP_SCENE) as PackedScene).instantiate()
+	get_tree().root.add_child(actual_map)
+	get_tree().current_scene = actual_map
+	bar._apply_host_scene(actual_map)
+	await get_tree().create_timer(0.4).timeout
+	bar._on_feature_pressed("map")
+	await get_tree().create_timer(0.6).timeout
+	if not bar._navigation.is_open():
+		return _fail("Actual zombie-island map did not open the shared picker")
+	bar._navigation._navigate("zombie_island")
+	await get_tree().process_frame
+	if bar._navigation.is_open() or get_tree().current_scene != actual_map or not bar._interactive:
+		return _fail("Selecting the current map must dismiss the picker without replacing scene")
+	bar._on_feature_pressed("map")
+	await get_tree().process_frame
+	if not bar._navigation.is_open():
+		return _fail("Map slot failed to reopen after a map selection")
+	bar._navigation.close()
+	get_tree().current_scene = self
+	actual_map.queue_free()
+	AdventureSession.progress = previous_progress
+	AdventureSession.adventure_active = previous_active
+	print("TOOLBAR_SMOKE_PASS: current-region route, reopen, persistent HUD and modal input")
 	holder.queue_free()
 	non_map.queue_free()
 	get_tree().quit(0)

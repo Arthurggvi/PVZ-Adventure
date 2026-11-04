@@ -544,7 +544,6 @@ theme_override_constants/shadow_offset_y = 2
 
 [node name="SceneTransition" parent="." instance=ExtResource("transition")]
 
-[connection signal="transition_failed" from="SceneTransition" to="." method="_on_scene_transition_failed"]
 
 [connection signal="pressed" from="ArtCanvas/ship_button" to="." method="_on_button_1_pressed"]
 
