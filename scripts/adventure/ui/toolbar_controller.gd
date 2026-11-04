@@ -4,6 +4,7 @@ extends CanvasLayer
 const View = preload("res://scripts/adventure/ui/toolbar_view.gd")
 const Features = preload("res://scripts/adventure/ui/toolbar_features.gd")
 const Inventory = preload("res://scripts/adventure/ui/inventory_window.gd")
+const Research = preload("res://scripts/adventure/ui/research_window.gd")
 const MapNavigation = preload("res://scripts/adventure/ui/map_navigation.gd")
 const HOST_GROUP := &"adventure_toolbar_surface"
 var _view: AdventureToolbarView
@@ -12,6 +13,7 @@ var _host_allowed := false
 var _interactive := false
 var _host_scene: Node
 var _inventory: AdventureInventoryWindow
+var _research: AdventureResearchWindow
 var _navigation: Node
 
 func _ready() -> void:
@@ -28,6 +30,7 @@ func _ready() -> void:
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Global.user_manager.signal_users_update.connect(_refresh)
 	register_feature("inventory", Callable(self, "_can_open_inventory"), Callable(self, "_open_inventory"))
+	register_feature("research", Callable(self, "can_open_research_preview"), Callable(self, "_open_research"))
 	_on_scene_changed()
 
 func _process(_delta: float) -> void:
@@ -59,6 +62,9 @@ func _apply_host_scene(scene: Node) -> void:
 	if is_instance_valid(_inventory):
 		_inventory.queue_free()
 	_inventory = null
+	if is_instance_valid(_research):
+		_research.queue_free()
+	_research = null
 	_host_scene = scene
 	_view.reset_for_scene()
 	_host_allowed = is_instance_valid(scene) and scene.is_in_group(HOST_GROUP)
@@ -77,6 +83,8 @@ func _can_open_inventory() -> bool:
 		and Global.adventure_inventory != null and Global.global_game_state.adventure_state != null
 
 func _open_inventory() -> void:
+	if is_instance_valid(_research):
+		return
 	if is_instance_valid(_inventory):
 		_inventory.request_close()
 		return
@@ -88,6 +96,26 @@ func _open_inventory() -> void:
 	# Toolbar stays above the modal, so its inventory icon can close it again.
 	move_child(_view, get_child_count() - 1)
 	_inventory.closed.connect(func(): _inventory = null)
+
+## The research front-end is preview-only and must not mutate player progression.
+func can_open_research_preview() -> bool:
+	return Features.can_open_map()
+
+func open_research_preview() -> void:
+	if _host_allowed and _interactive and can_open_research_preview():
+		_open_research()
+
+func _open_research() -> void:
+	if is_instance_valid(_research):
+		_research.request_close()
+		return
+	if is_instance_valid(_inventory) or not can_open_research_preview():
+		return
+	_research = Research.new()
+	_research.name = "AdventureResearchWindow"
+	add_child(_research)
+	move_child(_view, get_child_count() - 1)
+	_research.closed.connect(func(): _research = null)
 
 ## Additional modules register a real screen and its actual unlock predicate here.
 ## Registration alone never changes a player's stored progress.
@@ -118,6 +146,8 @@ func _on_feature_pressed(feature_id: String) -> void:
 		return
 	# Modal window blocks map and unrelated navigation; inventory remains a toggle.
 	if is_instance_valid(_inventory) and feature_id != "inventory":
+		return
+	if is_instance_valid(_research) and feature_id != "research":
 		return
 	if feature_id == "map":
 		if Features.can_open_map():

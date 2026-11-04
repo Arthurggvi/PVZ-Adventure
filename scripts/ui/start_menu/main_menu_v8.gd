@@ -24,6 +24,7 @@ func _ready() -> void:
 	SoundManager.play_town_bgm()
 	$ArtCanvas/Option.hide()
 	Global.user_manager.signal_users_update.connect(_fit_profile_name)
+	Global.user_manager.signal_users_update.connect(_sync_research_preview_button)
 	_fit_profile_name()
 	_align_plaque_titles()
 	# Background ownership remains reversible; only interior foliage is distorted.
@@ -31,6 +32,7 @@ func _ready() -> void:
 	# Explicit dependency injection: foreground art shares the existing wind controller.
 	$ArtCanvas/ForegroundLeaves.bind_wind($ArtCanvas/EnvironmentFX/FoliageFX/Wind)
 	_apply_environment()
+	_setup_research_preview_button()
 
 ## 只切换纹理引用，不修改原始PNG；复用现有画布与环境子场景。
 func _apply_environment() -> void:
@@ -98,6 +100,18 @@ func _on_item_button_1_pressed() -> void:
 ## 尚未实装的补给车也禁止通过旧程序入口进入。
 func _on_item_button_3_pressed() -> void:
 	pass
+
+## Front-end-only laboratory entrance, using the same persistent owner as the toolbar.
+func _setup_research_preview_button() -> void:
+	var button: TextureButton = $ArtCanvas/research_button
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.pressed.connect(AdventureToolbar.open_research_preview)
+	_sync_research_preview_button()
+
+func _sync_research_preview_button() -> void:
+	var button: TextureButton = $ArtCanvas/research_button
+	button.disabled = not AdventureToolbar.can_open_research_preview()
+	_refresh_plaque_titles()
 
 ## Both the ship button and the toolbar use the same persistent map navigation owner.
 func _on_button_1_pressed() -> void:
