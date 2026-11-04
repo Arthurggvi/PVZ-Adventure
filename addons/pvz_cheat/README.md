@@ -1,6 +1,6 @@
 # PVZ-Adventure Cheat Console · P0
 
-- Ctrl+Alt+C toggles a single cached, non-modal right-side console; Esc closes it. Clicks outside the panel pass through to gameplay. Modules load only when selected; hidden windows intercept no input. No game data changes until an action is clicked.
+- Tab+O toggles a single cached, non-modal right-side console; Esc closes it. Clicks outside the panel pass through to gameplay. Modules load only when selected; hidden windows intercept no input. No game data changes until an action is clicked.
 - Cards: grant registered plants as distinct UIDs, 1–20 stars, up to 32 cards per action.
 - Items: grant/consume any ItemRegistry ID; category bulk grants use one save transaction.
 - Coins: add/subtract/set the one authoritative coin balance, including setting 0.

@@ -41,7 +41,7 @@ func _ready() -> void:
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(title)
 	var exit := Button.new()
-	exit.text = "关闭  Ctrl+Alt+C"
+	exit.text = "关闭  Tab+O"
 	exit.custom_minimum_size = Vector2(126, 42)
 	exit.pressed.connect(func(): close_requested.emit())
 	top.add_child(exit)

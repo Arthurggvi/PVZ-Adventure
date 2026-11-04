@@ -9,6 +9,8 @@ var window: Control
 var commands: RefCounted
 var _requested_open := false
 var _creating := false
+var _tab_held := false
+var _o_held := false
 
 func _ready() -> void:
 	layer = 90
@@ -21,9 +23,17 @@ func _input(event: InputEvent) -> void:
 	if not enabled or not event is InputEventKey:
 		return
 	var key := event as InputEventKey
-	if key.pressed and not key.echo and key.ctrl_pressed and key.alt_pressed and (key.physical_keycode == KEY_C or key.keycode == KEY_C):
-		toggle()
-		get_viewport().set_input_as_handled()
+	var code := key.physical_keycode if key.physical_keycode != KEY_NONE else key.keycode
+	if code == KEY_TAB:
+		if key.pressed and not key.echo and not _tab_held and _o_held:
+			toggle()
+			get_viewport().set_input_as_handled()
+		_tab_held = key.pressed
+	elif code == KEY_O:
+		if key.pressed and not key.echo and not _o_held and _tab_held:
+			toggle()
+			get_viewport().set_input_as_handled()
+		_o_held = key.pressed
 
 func toggle() -> void:
 	set_open(not _requested_open)
@@ -60,6 +70,11 @@ func set_enabled(value: bool) -> void:
 
 func is_open() -> bool:
 	return _requested_open
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		_tab_held = false
+		_o_held = false
 
 func _exit_tree() -> void:
 	_requested_open = false
