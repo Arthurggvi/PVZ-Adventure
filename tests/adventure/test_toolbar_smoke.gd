@@ -67,23 +67,20 @@ func _run() -> void:
 		return _fail("Locked reserved slot dispatched")
 	view._toggle()
 	await get_tree().create_timer(0.33).timeout
-	if not view.expanded or absf(view._panel.position.x - view._panel_x()) > 1.0:
+	if not view.expanded or not view._panel.visible or absf(view._panel.position.x - view._panel_x()) > 1.0:
 		return _fail("Expanded panel not correctly anchored")
 	holder.process_mode = Node.PROCESS_MODE_DISABLED
 	await get_tree().create_timer(0.07).timeout
-	if not bar.visible or bar._interactive or not view._handle.disabled:
-		return _fail("Modal input lock must not hide the map toolbar")
-	view._on_pressed("map")
-	if not dispatches.is_empty():
-		return _fail("Disabled host dispatched navigation")
+	if not bar.visible or not bar._interactive or view._handle.disabled:
+		return _fail("Map process mode incorrectly locked persistent toolbar input")
 	holder.process_mode = Node.PROCESS_MODE_INHERIT
 	await get_tree().create_timer(0.07).timeout
 	if not bar.visible or not bar._interactive or view._handle.disabled:
 		return _fail("Toolbar did not recover when modal closed")
 	view._toggle()
 	await get_tree().create_timer(0.33).timeout
-	if view.expanded or not _is_flush(view):
-		return _fail("Collapsed toolbar lost right edge")
+	if view.expanded or view._panel.visible or view._panel.position.x < get_viewport().get_visible_rect().size.x - 1.0 or not _is_flush(view):
+		return _fail("Collapsed toolbar leaked panel or lost right edge")
 	var window_size := get_window().size
 	get_window().size = Vector2i(1200, 740)
 	await get_tree().create_timer(0.08).timeout

@@ -107,6 +107,9 @@ func _on_item_button_3_pressed() -> void:
 	pass
 
 ## Shared toolbar navigation contract: use the existing region picker rather than bypassing it.
+func is_adventure_toolbar_blocked() -> bool:
+	return is_instance_valid(_destination_picker)
+
 func open_adventure_toolbar_map() -> void:
 	_on_button_1_pressed()
 

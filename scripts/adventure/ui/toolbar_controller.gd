@@ -31,8 +31,9 @@ func _process(_delta: float) -> void:
 		_refresh()
 
 func _sync_input() -> void:
-	var allowed := _host_allowed and is_instance_valid(_host_scene) \
-		and _host_scene.process_mode != Node.PROCESS_MODE_DISABLED and not get_tree().paused
+	var allowed := _host_allowed and is_instance_valid(_host_scene) and not get_tree().paused
+	if allowed and _host_scene.has_method("is_adventure_toolbar_blocked"):
+		allowed = not bool(_host_scene.call("is_adventure_toolbar_blocked"))
 	if allowed == _interactive:
 		return
 	_interactive = allowed
@@ -43,6 +44,7 @@ func _on_scene_changed(scene: Node) -> void:
 		_inventory.queue_free()
 	_inventory = null
 	_host_scene = scene
+	_view.reset_for_scene()
 	_host_allowed = is_instance_valid(scene) and scene.is_in_group(HOST_GROUP)
 	visible = _host_allowed
 	_sync_input()

@@ -38,6 +38,10 @@ var notice_panel: Panel
 ## 每次选择关卡时建立阶段窗口，属于地图 UI，不持久化。
 var phase_dialog: ConfirmationDialog
 
+## Modal policy for the shared HUD; game-scene processing flags never imply toolbar lockout.
+func is_adventure_toolbar_blocked() -> bool:
+	return is_instance_valid(phase_dialog) and phase_dialog.visible
+
 ## 读取素材布局，建立独立显示层并恢复首次引导。
 func _ready() -> void:
 	# 编辑器直接运行地图也不得绕过原生档案入口。

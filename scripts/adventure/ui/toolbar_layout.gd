@@ -16,5 +16,5 @@ static func calculate(viewport_size: Vector2, expanded: bool) -> Dictionary:
 	return {
 		"scale": factor,
 		"handle": handle,
-		"panel": handle - Vector2(BAR_SIZE.x * factor if expanded else 0.0, 0.0)
+		"panel": Vector2(handle.x - BAR_SIZE.x * factor if expanded else viewport_size.x, handle.y)
 	}

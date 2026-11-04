@@ -34,6 +34,7 @@ func _build_panel() -> void:
 	_panel.name = "SlidePanel"
 	_panel.size = Layout.BAR_SIZE
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel.visible = expanded
 	add_child(_panel)
 	var backdrop := TextureRect.new()
 	backdrop.size = _panel.size
@@ -109,8 +110,15 @@ func _toggle() -> void:
 	SoundManager.play_other_SFX(&"buttonclick")
 	if is_instance_valid(_anim):
 		_anim.kill()
+	if expanded:
+		_panel.position.x = float(Layout.calculate(get_viewport().get_visible_rect().size, false).panel.x)
+		_panel.show()
 	_anim = create_tween()
 	_anim.tween_property(_panel, "position:x", _panel_x(), 0.26).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if not expanded:
+		_anim.finished.connect(func():
+			if not expanded:
+				_panel.hide())
 
 func _panel_x() -> float:
 	return float(Layout.calculate(get_viewport().get_visible_rect().size, expanded).panel.x)
@@ -124,9 +132,19 @@ func _place() -> void:
 		_anim.kill()
 	_panel.scale = Vector2.ONE * float(bounds.scale)
 	_panel.position = bounds.panel
+	_panel.visible = expanded
 	_handle.scale = Vector2.ONE * float(bounds.scale)
 	_handle.position = bounds.handle
 ## A modal can block toolbar input without hiding the persistent map HUD.
+func reset_for_scene() -> void:
+	if is_instance_valid(_anim):
+		_anim.kill()
+	expanded = false
+	_panel.hide()
+	_tip.hide()
+	_hover_id = ""
+	_set_handle_image()
+	_place()
 
 func set_interaction_enabled(enabled: bool) -> void:
 	if _interactive == enabled:
