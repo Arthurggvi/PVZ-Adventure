@@ -6,6 +6,8 @@ const RewardService = preload("res://scripts/adventure/adventure_reward_service.
 signal battle_finished(stage_id: int, result: String)
 var progress: RefCounted
 var active_level: ResourceLevelData
+var active_stage: StageDefinition
+var active_phase: StagePhaseDefinition
 var active_stage_number: int = 0
 var active_phase_kind: int = 0
 ## 当前战斗独有的波次资源快照，场景内不重复读磁盘配置。
@@ -26,6 +28,8 @@ func _ready() -> void:
 func _on_profile_changed() -> void:
 	progress = null
 	active_level = null
+	active_stage = null
+	active_phase = null
 	active_stage_number = 0
 	active_phase_kind = 0
 	active_wave_profile = null
@@ -103,21 +107,23 @@ func enter_stage(stage_number: int, phase_kind: int) -> bool:
 		stage_number, phase_kind, Global.global_game_state.adventure_state, Global.adventure_inventory)
 	if not error_message.is_empty():
 		return false
-	var level: ResourceLevelData = AdventureStageCatalog.build_level(stage_number, phase_kind)
-	if level == null:
-		error_message = "无法生成该阶段的原版战斗模板。"
-		return false
 	var stage: StageDefinition = AdventureStageCatalog.load_stage(stage_number)
 	var phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, phase_kind)
 	if phase == null or phase.wave_profile == null:
 		error_message = "冒险波次数据未就绪。"
+		return false
+	var level: ResourceLevelData = AdventureBattleEnvironmentAdapter.build(stage.environment, phase)
+	if level == null:
+		error_message = "无法从本局环境及阶段配置构建战斗。"
 		return false
 	battle_loadout.clear()
 	boss_exit_results.clear()
 	pending_reward.clear()
 	active_stage_number = stage_number
 	active_phase_kind = phase_kind
-	active_wave_profile = phase.wave_profile.duplicate(true)
+	active_stage = stage
+	active_phase = phase
+	active_wave_profile = phase.wave_profile
 	active_level = level
 	battle_failed = false
 	Global.game_para = active_level
@@ -126,6 +132,8 @@ func enter_stage(stage_number: int, phase_kind: int) -> bool:
 		active_level = null
 		active_stage_number = 0
 		active_phase_kind = 0
+		active_stage = null
+		active_phase = null
 		active_wave_profile = null
 		Global.game_para = null
 		error_message = "关卡场景加载失败。"
@@ -166,11 +174,14 @@ func owns_battle(level: ResourceLevelData) -> bool:
 func get_active_wave_profile(level: ResourceLevelData) -> WaveProfile:
 	return active_wave_profile if owns_battle(level) else null
 
+func get_active_phase(level: ResourceLevelData) -> StagePhaseDefinition:
+	return active_phase if owns_battle(level) else null
+
 func finish_victory() -> void:
 	if active_level == null or battle_failed or progress == null:
 		return
-	var stage: StageDefinition = AdventureStageCatalog.load_stage(active_stage_number)
-	var phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, active_phase_kind)
+	var stage: StageDefinition = active_stage
+	var phase: StagePhaseDefinition = active_phase
 	if phase == null:
 		return
 	var defeated_boss := false
@@ -266,6 +277,8 @@ func abandon_battle() -> void:
 func return_to_map() -> void:
 	adventure_active = true
 	active_level = null
+	active_stage = null
+	active_phase = null
 	active_stage_number = 0
 	active_phase_kind = 0
 	active_wave_profile = null

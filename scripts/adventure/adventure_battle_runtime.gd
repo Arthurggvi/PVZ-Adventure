@@ -1,7 +1,7 @@
 ## 冒险关卡事件及 Boss 触发；原版模式不实例化此节点。
 ## 监听自然波次信号，不按帧遍历僵尸或植物实例。
 extends Node
-class_name AdventureStageRuntime
+class_name AdventureBattleRuntime
 
 var waves: ZombieWaveManager
 var zombies: ZombieManager

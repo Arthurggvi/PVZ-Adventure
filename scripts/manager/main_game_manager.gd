@@ -253,6 +253,12 @@ func init_manager():
 	game_item_manager.init_manager()
 	hand_manager.init_manager()
 	zombie_manager.init_manager()
+	if AdventureSession.owns_battle(game_para):
+		var phase: StagePhaseDefinition = AdventureSession.get_active_phase(game_para)
+		if phase != null:
+			var adventure_runtime := AdventureBattleRuntime.new()
+			adventure_runtime.setup(zombie_manager.zombie_wave_manager, zombie_manager, phase)
+			add_child(adventure_runtime)
 	background_manager.init_manager()
 	drop_item_manager.init_manager()
 	day_suns_manager.init_manager()

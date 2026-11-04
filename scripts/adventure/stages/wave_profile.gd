@@ -6,6 +6,11 @@ class_name WaveProfile
 @export var profile_id: StringName = &""
 ## 阶段自然波次总数，必须显式配置为正整数。
 @export var wave_count: int = 0
+## 可选的大波波次（1-based）；末波始终为 Final，默认具备最终大波表现。
+@export var flag_waves: Array[int] = []
+
+func is_flag_wave(wave_number: int) -> bool:
+	return flag_waves.has(wave_number)
 ## 可编辑的波段资源列表，不在校验期间排序或改写。
 @export var bands: Array[WaveBandDefinition] = []
 
@@ -14,8 +19,13 @@ func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 	var errors := PackedStringArray() # 每次返回全新的错误列表。
 	if str(profile_id).strip_edges().is_empty():
 		errors.append("波次配置缺少稳定 ID。")
-	if wave_count < 1:
+	if wave_count < 2:
 		errors.append("自然波次总数必须为正整数。")
+	var flag_seen: Dictionary = {}
+	for number: int in flag_waves:
+		if number < 2 or number > wave_count or flag_seen.has(number):
+			errors.append("特殊大波编号越界或重复：" + str(number))
+		flag_seen[number] = true
 	if bands.is_empty():
 		errors.append("自然波次配置缺少波段。")
 	var ids: Dictionary = {} # 本配置内的稳定波段 ID。

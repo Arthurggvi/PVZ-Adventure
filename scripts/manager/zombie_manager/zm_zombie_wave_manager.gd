@@ -100,13 +100,7 @@ func init_zombie_wave_manager(game_para:ResourceLevelData):
 	progress_bar_segment_every_wave = 100.0 / (max_wave_one_round - 1)
 
 	zombie_wave_create_manager.init_zombie_wave_create_manager(game_para)
-	if zombie_wave_create_manager.adventure_wave_profile != null:
-		var stage: StageDefinition = AdventureStageCatalog.load_stage(AdventureSession.active_stage_number)
-		var phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, AdventureSession.active_phase_kind)
-		if phase != null:
-			var runtime := AdventureStageRuntime.new()
-			runtime.setup(self, zombie_manager, phase)
-			add_child(runtime)
+	# 冒险事件由 MainGameManager 持有；波次管理器只负责发出波次事件。
 
 ## 切换下一轮波次并取消旧轮等待；[param finish_current_round] 表示本轮实际由 Boss 条件结束。
 ## 仅实际 Boss 提前胜利时跳过未生成波次，先推进到原末波，再扩大下一轮的波次上界。
@@ -171,40 +165,37 @@ func start_next_wave() -> void:
 	curr_wave += 1
 	# 本波正常生成的实例，用于接入掉血刷新和统计本波总血量。
 	var curr_wave_all_zombies:Array[Zombie000Base]
-	# 旗前波
-	if curr_wave % 10 == 8:
+	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile
+	var wave_number: int = curr_wave + 1
+	var is_final: bool = curr_wave == max_wave - 1
+	var is_flag: bool = (profile.is_flag_wave(wave_number) if profile != null else curr_wave % 10 == 9)
+	var is_flag_front: bool = (profile.is_flag_wave(wave_number + 1) or wave_number + 1 == max_wave if profile != null else curr_wave % 10 == 8)
+	if is_final:
+		curr_wave_type = E_WaveType.Final
+		await ui_remind_word.zombie_approach(true)
+		if not _is_wave_refresh_current(refresh_generation):
+			return
+		curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, true)
+		set_progress_bar()
+		if profile == null:
+			zombie_wave_create_manager.spawn_special_zombie_in_big_wave(true)
+			if is_have_tombston:
+				call_tombstone_create_zombie()
+	elif is_flag:
+		curr_wave_type = E_WaveType.Flag
+		await ui_remind_word.zombie_approach(false)
+		if not _is_wave_refresh_current(refresh_generation):
+			return
+		curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, true)
+		set_progress_bar()
+		if profile == null:
+			zombie_wave_create_manager.spawn_special_zombie_in_big_wave(false)
+			if is_have_tombston:
+				call_tombstone_create_zombie()
+	elif is_flag_front:
 		curr_wave_type = E_WaveType.FlagFront
 		curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, false)
-	# 旗帜波
-	elif curr_wave % 10 == 9 :
-		# 最后一波
-		if curr_wave == max_wave - 1:
-			curr_wave_type = E_WaveType.Final
-			await ui_remind_word.zombie_approach(true)
-			if not _is_wave_refresh_current(refresh_generation):
-				return
-			curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, true)
-			set_progress_bar(int(curr_wave%max_wave_one_round/10.0))
-			# 额外生成大波特殊僵尸,珊瑚僵尸,蹦极僵尸
-			if zombie_wave_create_manager.adventure_wave_profile == null:
-				zombie_wave_create_manager.spawn_special_zombie_in_big_wave(true)
-
-		else:
-			curr_wave_type = E_WaveType.Flag
-			await ui_remind_word.zombie_approach(false)
-			if not _is_wave_refresh_current(refresh_generation):
-				return
-			curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, true)
-			set_progress_bar(int(curr_wave%max_wave_one_round/10.0))
-			# 额外生成大波特殊僵尸,珊瑚僵尸,蹦极僵尸
-			if zombie_wave_create_manager.adventure_wave_profile == null:
-				zombie_wave_create_manager.spawn_special_zombie_in_big_wave(false)
-
-		# 如果有墓碑
-		if is_have_tombston and zombie_wave_create_manager.adventure_wave_profile == null:
-			call_tombstone_create_zombie()
-
-	# 普通波
+		set_progress_bar()
 	else:
 		curr_wave_type = E_WaveType.Norm
 		curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, false)
@@ -250,12 +241,14 @@ func call_tombstone_create_zombie():
 ## 更新每秒旗帜进度(僵尸波次更新管理器信号触发)
 func update_progress_bar_segment_mini_every_sec(time:float):
 	## 如果是旗帜波，时间加6（僵尸靠近）+3（最后一波置为0）秒红字时间
-	if curr_wave % 10 == 9:
+	if curr_wave == max_wave - 1:
+		progress_bar_segment_mini_every_sec = 0.0
+		return
+	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile
+	var is_flag: bool = (profile.is_flag_wave(curr_wave + 1) if profile != null else curr_wave % 10 == 9)
+	if is_flag:
 		time += 6
-		if curr_wave == max_wave - 1:
-			time = 0
-
-	progress_bar_segment_mini_every_sec = progress_bar_segment_every_wave / time
+	progress_bar_segment_mini_every_sec = progress_bar_segment_every_wave / maxf(time, 0.001)
 
 ## 战斗阶段随时间每秒更新进度条；停止前已排队的计时回调不再推进。
 func _on_every_wave_progress_timer_timeout() -> void:

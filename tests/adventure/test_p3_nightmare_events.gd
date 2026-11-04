@@ -28,9 +28,9 @@ func _run() -> void:
 	assert(AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE)
 	assert(battle.game_para.look_show_zombie and battle.game_para.can_choosed_card)
 	var waves: ZombieWaveManager = battle.zombie_manager.zombie_wave_manager
-	var runtime: AdventureStageRuntime
+	var runtime: AdventureBattleRuntime
 	for node: Node in waves.get_children():
-		if node is AdventureStageRuntime:
+		if node is AdventureBattleRuntime:
 			runtime = node
 			break
 	assert(runtime != null and runtime.phase.events.size() == 2)
