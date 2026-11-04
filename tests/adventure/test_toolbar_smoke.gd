@@ -20,7 +20,7 @@ func _run() -> void:
 		var source: Texture2D = view._icons[id].texture
 		if source == null or not source.resource_path.begins_with("res://assets/adventure/ui/bottom_bar/"):
 			return _fail("Missing real toolbar art: " + id)
-	for path in ["res://scenes/main/01StartMenuV8.tscn", AdventureSession.MAP_SCENE]:
+	for path in ["res://scenes/main/01StartMenu.tscn", "res://scenes/main/01StartMenuV8.tscn", AdventureSession.MAP_SCENE]:
 		var scene := (load(path) as PackedScene).instantiate()
 		var registered := scene.is_in_group("adventure_toolbar_surface")
 		scene.free()
@@ -35,9 +35,12 @@ func _run() -> void:
 				return _fail("Not flush to right/bottom screen edge: " + str(dimensions))
 			if expanded and (absf(box.panel.x + Layout.BAR_SIZE.x * scale - box.handle.x) > 0.01 or box.panel.x < -0.01):
 				return _fail("Expanded panel clips the viewport: " + str(dimensions))
+	# F6 launch emits a zero-argument scene_changed notification on some editor paths.
+	bar._on_scene_changed()
+	await get_tree().process_frame
 	var real_menu: Control = (load("res://scenes/main/01StartMenuV8.tscn") as PackedScene).instantiate()
 	get_tree().root.add_child(real_menu)
-	bar._on_scene_changed(real_menu)
+	bar._apply_host_scene(real_menu)
 	await get_tree().create_timer(0.10).timeout
 	if not bar.visible or not bar._interactive:
 		return _fail("Live V8 map entry did not show the persistent toolbar")
@@ -54,7 +57,7 @@ func _run() -> void:
 	var holder := Control.new()
 	holder.add_to_group("adventure_toolbar_surface")
 	get_tree().root.add_child(holder)
-	bar._on_scene_changed(holder)
+	bar._apply_host_scene(holder)
 	if not bar.visible or not bar._interactive:
 		return _fail("Map root did not activate toolbar")
 	var original_id := view.get_instance_id()
@@ -90,10 +93,10 @@ func _run() -> void:
 	await get_tree().process_frame
 	var non_map := Control.new()
 	get_tree().root.add_child(non_map)
-	bar._on_scene_changed(non_map)
+	bar._apply_host_scene(non_map)
 	if bar.visible:
 		return _fail("Non-map gameplay scene incorrectly shows toolbar")
-	bar._on_scene_changed(holder)
+	bar._apply_host_scene(holder)
 	if not bar.visible or view.get_instance_id() != original_id:
 		return _fail("Toolbar was re-created or failed to return after map switch")
 	print("TOOLBAR_SMOKE_PASS: persistent host, modal lock, scene switch, viewport edges, 7 slots")

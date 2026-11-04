@@ -1455,7 +1455,7 @@ expand_margin_top = 4.0
 expand_margin_right = 4.0
 expand_margin_bottom = 4.0
 
-[node name="StartMenu" type="Control" unique_id=1859818695]
+[node name="StartMenu" type="Control" unique_id=1859818695 groups=["adventure_toolbar_surface"]]
 process_mode = 3
 layout_mode = 3
 anchors_preset = 15

@@ -22,7 +22,7 @@ func _ready() -> void:
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Global.user_manager.signal_users_update.connect(_refresh)
 	register_feature("inventory", Callable(self, "_can_open_inventory"), Callable(self, "_open_inventory"))
-	_on_scene_changed(get_tree().current_scene)
+	_on_scene_changed()
 
 func _process(_delta: float) -> void:
 	# Scene ownership controls visibility; temporary modal input locks never hide the HUD.
@@ -39,7 +39,15 @@ func _sync_input() -> void:
 	_interactive = allowed
 	_view.set_interaction_enabled(allowed)
 
-func _on_scene_changed(scene: Node) -> void:
+## SceneTree.scene_changed can be delivered with zero or one argument across launch paths.
+## Resolve the authoritative current scene after the notification, not from its payload.
+func _on_scene_changed(_signal_scene: Node = null) -> void:
+	_sync_scene_from_tree.call_deferred()
+
+func _sync_scene_from_tree() -> void:
+	_apply_host_scene(get_tree().current_scene)
+
+func _apply_host_scene(scene: Node) -> void:
 	if is_instance_valid(_inventory):
 		_inventory.queue_free()
 	_inventory = null
