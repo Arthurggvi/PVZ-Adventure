@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://tests/adventure/test_inventory_ui.gd" id="1"]
+[node name="InventorySmoke" type="Node" groups=["adventure_toolbar_surface"]]
+script = ExtResource("1")

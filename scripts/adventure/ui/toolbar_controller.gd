@@ -3,11 +3,13 @@ extends CanvasLayer
 
 const View = preload("res://scripts/adventure/ui/toolbar_view.gd")
 const Features = preload("res://scripts/adventure/ui/toolbar_features.gd")
+const Inventory = preload("res://scripts/adventure/ui/inventory_window.gd")
 const HOST_GROUP := &"adventure_toolbar_surface"
 var _view: AdventureToolbarView
 var _hooks: Dictionary = {}
 var _host_allowed := false
 var _host_scene: Node
+var _inventory: AdventureInventoryWindow
 
 func _ready() -> void:
 	layer = 50 # Below existing SceneTransition (100), above ordinary map art.
@@ -18,9 +20,13 @@ func _ready() -> void:
 	_view.feature_pressed.connect(_on_feature_pressed)
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Global.user_manager.signal_users_update.connect(_refresh)
+	register_feature("inventory", Callable(self, "_can_open_inventory"), Callable(self, "_open_inventory"))
 	_on_scene_changed(get_tree().current_scene)
 
 func _process(_delta: float) -> void:
+	# Profile load completes after the user-update signal; sync availability on transition only.
+	if is_instance_valid(_view) and _view._available.get("inventory", false) != _can_open_inventory():
+		_refresh()
 	# Menus temporarily disabled by modal navigation cannot leak clicks to this layer.
 	var can_show := _host_allowed and is_instance_valid(_host_scene) \
 		and _host_scene.process_mode != Node.PROCESS_MODE_DISABLED and not get_tree().paused
@@ -28,10 +34,30 @@ func _process(_delta: float) -> void:
 		visible = can_show
 
 func _on_scene_changed(scene: Node) -> void:
+	if is_instance_valid(_inventory):
+		_inventory.queue_free()
+	_inventory = null
 	_host_scene = scene
 	_host_allowed = is_instance_valid(scene) and scene.is_in_group(HOST_GROUP)
 	visible = _host_allowed
 	_refresh()
+
+func _can_open_inventory() -> bool:
+	return Global.save_service != null and Global.save_service.is_current_profile_loaded() \
+		and Global.adventure_inventory != null and Global.global_game_state.adventure_state != null
+
+func _open_inventory() -> void:
+	if is_instance_valid(_inventory):
+		_inventory.request_close()
+		return
+	if not _can_open_inventory():
+		return
+	_inventory = Inventory.new()
+	_inventory.name = "AdventureInventoryWindow"
+	add_child(_inventory)
+	# Toolbar stays above the modal, so its inventory icon can close it again.
+	move_child(_view, get_child_count() - 1)
+	_inventory.closed.connect(func(): _inventory = null)
 
 ## Additional modules register a real screen and its actual unlock predicate here.
 ## Registration alone never changes a player's stored progress.
@@ -58,6 +84,9 @@ func _refresh() -> void:
 	_view.refresh(enabled)
 
 func _on_feature_pressed(feature_id: String) -> void:
+	# Modal window blocks map and unrelated navigation; inventory remains a toggle.
+	if is_instance_valid(_inventory) and feature_id != "inventory":
+		return
 	if feature_id == "map":
 		if not Features.can_open_map():
 			return
