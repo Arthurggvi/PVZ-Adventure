@@ -1,0 +1,301 @@
+[gd_resource type="Resource" script_class="StageDefinition" format=3]
+
+[ext_resource type="Resource" path="res://resources/adventure/island_lawn.tres" id="1_poq6g"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_phase_definition.gd" id="2_27t80"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/boss_encounter_definition.gd" id="3_nblmh"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="4_l15qu"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="5_bhmky"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="6_76pil"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="7_xmhla"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="8_w5rub"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_definition.gd" id="9_udwye"]
+
+[sub_resource type="Resource" id="Resource_3s5n8"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.unsaturated_fat"
+rule = 3
+asset_kind = 1
+asset_id = &"unsaturated_fat"
+quantity_min = 2
+quantity_max = 2
+
+[sub_resource type="Resource" id="Resource_cjye7"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.nut_fragments"
+rule = 3
+asset_kind = 1
+asset_id = &"nut_fragments"
+quantity_min = 2
+quantity_max = 2
+
+[sub_resource type="Resource" id="Resource_m5ne6"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.explosive_seed"
+rule = 3
+asset_kind = 1
+asset_id = &"explosive_seed"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_1hbgx"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.plant_starch"
+rule = 3
+asset_kind = 1
+asset_id = &"plant_starch"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_efmn0"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.recipe_wall_nut"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_wall_nut"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="Resource_x2ai0"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.recipe_potato_mine"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_potato_mine"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="Resource_xux0j"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.fertilizer_lv1"
+rule = 1
+asset_kind = 1
+asset_id = &"fertilizer_lv1"
+quantity_min = 1
+quantity_max = 1
+chance = 0.15
+
+[sub_resource type="Resource" id="Resource_dkgv7"]
+script = ExtResource("5_bhmky")
+table_id = &"zombie_island.default.normal.drops"
+entries = Array[ExtResource("4_l15qu")]([SubResource("Resource_3s5n8"), SubResource("Resource_cjye7"), SubResource("Resource_m5ne6"), SubResource("Resource_1hbgx"), SubResource("Resource_efmn0"), SubResource("Resource_x2ai0"), SubResource("Resource_xux0j")])
+min_material_count = 6
+min_recipe_count = 1
+weighted_draw_count = 1
+weighted_selection = 1
+
+[sub_resource type="Resource" id="Resource_brxvj"]
+script = ExtResource("7_xmhla")
+band_id = &"zombie_island.lawn.normal.waves"
+first_wave = 1
+last_wave = 10
+zombie_weights = Dictionary[int, int]({
+1: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+
+[sub_resource type="Resource" id="Resource_a2g6r"]
+script = ExtResource("8_w5rub")
+profile_id = &"zombie_island.default.normal.waves"
+wave_count = 10
+bands = Array[ExtResource("7_xmhla")]([SubResource("Resource_brxvj")])
+
+[sub_resource type="Resource" id="Resource_h2513"]
+script = ExtResource("2_27t80")
+phase_id = &"zombie_island.default.normal"
+kind = 1
+unlock_rule = 1
+key_use = 1
+card_mode = 1
+max_selected_cards = 2
+wave_profile = SubResource("Resource_a2g6r")
+drop_table = SubResource("Resource_dkgv7")
+first_clear_coin = 2000
+
+[sub_resource type="Resource" id="Resource_4pwy7"]
+script = ExtResource("3_nblmh")
+encounter_id = &"zombie_island.default.boss"
+boss_type = 1
+timing = 3
+wave = 7
+natural_waves = 2
+summon_rule = 2
+summon_while_paused = 1
+summon_end = 1
+summon_interval_seconds = 5.0
+summon_count = 2
+max_alive_summons = 8
+summon_zombie_weights = Dictionary[int, int]({
+1: 4,
+3: 1
+})
+summon_tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+
+[sub_resource type="Resource" id="Resource_yf50e"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.unsaturated_fat"
+rule = 3
+asset_kind = 1
+asset_id = &"unsaturated_fat"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_hadfh"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.nut_fragments"
+rule = 3
+asset_kind = 1
+asset_id = &"nut_fragments"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_behuu"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.explosive_seed"
+rule = 3
+asset_kind = 1
+asset_id = &"explosive_seed"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_mocbg"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.plant_starch"
+rule = 3
+asset_kind = 1
+asset_id = &"plant_starch"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_7kv7r"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.rotten_wood_core"
+rule = 3
+asset_kind = 1
+asset_id = &"rotten_wood_core"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_kd6yl"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.rusted_scrap"
+rule = 3
+asset_kind = 1
+asset_id = &"rusted_scrap"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_jy87l"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.grave_moss"
+rule = 3
+asset_kind = 1
+asset_id = &"grave_moss"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_fc7wy"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.zombie_thread"
+rule = 3
+asset_kind = 1
+asset_id = &"zombie_thread"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_n2kxg"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.recipe_wall_nut"
+rule = 3
+asset_kind = 1
+asset_id = &"recipe_wall_nut"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_ka2t0"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.recipe_potato_mine"
+rule = 3
+asset_kind = 1
+asset_id = &"recipe_potato_mine"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="Resource_jp6ra"]
+script = ExtResource("4_l15qu")
+entry_id = &"lawn.drop.growth_agent"
+rule = 1
+asset_kind = 1
+asset_id = &"growth_agent"
+quantity_min = 1
+quantity_max = 1
+chance = 0.1
+
+[sub_resource type="Resource" id="Resource_sejao"]
+script = ExtResource("5_bhmky")
+table_id = &"zombie_island.default.nightmare.drops"
+entries = Array[ExtResource("4_l15qu")]([SubResource("Resource_yf50e"), SubResource("Resource_hadfh"), SubResource("Resource_behuu"), SubResource("Resource_mocbg"), SubResource("Resource_7kv7r"), SubResource("Resource_kd6yl"), SubResource("Resource_jy87l"), SubResource("Resource_fc7wy"), SubResource("Resource_n2kxg"), SubResource("Resource_ka2t0"), SubResource("Resource_jp6ra")])
+min_material_count = 8
+min_recipe_count = 2
+min_distinct_materials = 8
+
+[sub_resource type="Resource" id="Resource_8yu58"]
+script = ExtResource("7_xmhla")
+band_id = &"zombie_island.lawn.nightmare.early"
+first_wave = 1
+last_wave = 5
+zombie_weights = Dictionary[int, int]({
+1: 10,
+3: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+
+[sub_resource type="Resource" id="Resource_nn38w"]
+script = ExtResource("7_xmhla")
+band_id = &"zombie_island.lawn.nightmare.late"
+first_wave = 6
+last_wave = 10
+zombie_weights = Dictionary[int, int]({
+1: 5,
+3: 2
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 5,
+&"elite": 1,
+&"veteran": 2
+})
+
+[sub_resource type="Resource" id="Resource_d7hvt"]
+script = ExtResource("8_w5rub")
+profile_id = &"zombie_island.default.nightmare.waves"
+wave_count = 10
+bands = Array[ExtResource("7_xmhla")]([SubResource("Resource_8yu58"), SubResource("Resource_nn38w")])
+
+[sub_resource type="Resource" id="Resource_8ci6l"]
+script = ExtResource("2_27t80")
+phase_id = &"zombie_island.default.nightmare"
+kind = 2
+unlock_rule = 4
+key_id = &"lawn_nightmare_key"
+key_count = 1
+key_use = 2
+card_mode = 1
+max_selected_cards = 2
+wave_profile = SubResource("Resource_d7hvt")
+drop_table = SubResource("Resource_sejao")
+first_clear_coin = 10000
+first_clear_requires_boss_kill = true
+boss_encounters = Array[ExtResource("3_nblmh")]([SubResource("Resource_4pwy7")])
+
+[resource]
+script = ExtResource("9_udwye")
+stage_id = &"zombie_island.default"
+battle_template = ExtResource("1_poq6g")
+phases = Array[ExtResource("2_27t80")]([SubResource("Resource_h2513"), SubResource("Resource_8ci6l")])

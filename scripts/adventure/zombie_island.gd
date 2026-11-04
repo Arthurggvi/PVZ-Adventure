@@ -68,7 +68,10 @@ func _ready() -> void:
 		var node := StageButton.new() # 独立贴图按钮与动态文字层。
 		node.name = "Stage%d" % stage.id
 		canvas.add_child(node)
-		node.configure(stage, AdventureSession.is_unlocked(stage.id), stage.id == 1 and AdventureSession.progress.stage_1_cleared, _select_stage.bind(stage.id))
+		var cleared: bool = AdventureStageCatalog.is_cleared(
+			Global.global_game_state.adventure_state, AdventureStageRegistry.stage_id(stage.id),
+			StagePhaseDefinition.Kind.NORMAL)
+		node.configure(stage, AdventureSession.is_unlocked(stage.id), cleared, _select_stage.bind(stage.id))
 	UI.official_button(canvas, "返回主菜单", Rect2(40, 30, 270, 66), _return_menu)
 	# 底部提示独立面板，避免白色文字压在复杂背景上。
 	notice_panel = Panel.new()
@@ -101,9 +104,7 @@ func _apply_environment() -> void:
 ## [param stage_id] 为配置中的关卡编号；锁定和待实现节点只给提示。
 func _select_stage(stage_id: int) -> void:
 	if not AdventureSession.is_unlocked(stage_id):
-		_show_notice("通关草坪后开放没落营地。" if stage_id == 2 else "此区域尚未开放，后续章节继续探索。")
-	elif stage_id != 1:
-		_show_notice("没落营地已开放，战斗将在后续阶段实装。")
+		_show_notice("请先通关前一关普通阶段。")
 	else:
 		_open_phase_dialog(stage_id)
 
@@ -116,7 +117,7 @@ func _open_phase_dialog(stage_id: int) -> void:
 	var normal_error := AdventureStageCatalog.entry_error(stage_id, StagePhaseDefinition.Kind.NORMAL, state, inventory)
 	var nightmare_error := AdventureStageCatalog.entry_error(stage_id, StagePhaseDefinition.Kind.NIGHTMARE, state, inventory)
 	phase_dialog = ConfirmationDialog.new()
-	phase_dialog.title = "草坪 · 挑战阶段"
+	phase_dialog.title = AdventureStageRegistry.display_name(stage_id) + " · 挑战阶段"
 	phase_dialog.dialog_text = "普通阶段：%s\n噩梦阶段：%s" % [
 		"可进入" if normal_error.is_empty() else normal_error,
 		"可进入" if nightmare_error.is_empty() else nightmare_error]

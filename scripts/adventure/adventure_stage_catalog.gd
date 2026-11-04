@@ -1,13 +1,10 @@
-## 僵尸岛关卡静态目录、阶段进入约束与原版波次模板适配。
-## 波段权重和已实现等阶统一来自配置与 AdventureZombieTierCatalog。
+## 冒险关卡配置门面：地区默认值 + 单关覆盖，解锁/战斗/奖励统一使用阶段身份。
 extends RefCounted
 class_name AdventureStageCatalog
 
-const REGION_ID := "zombie_island"
-const BASE_TIER: StringName = &"base"
+const REGION_ID := AdventureStageRegistry.REGION_ID
 const LAWN_ID: StringName = &"zombie_island.lawn"
-const LAWN_PATH := "res://resources/adventure/stages/zombie_island_lawn.tres"
-const LAWN_NIGHTMARE_KEY := "lawn_nightmare_key"
+const BASE_TIER: StringName = &"base"
 
 static func tier_ids() -> Array[StringName]:
 	return AdventureZombieTierCatalog.tier_ids()
@@ -16,15 +13,15 @@ static func tier_threat_costs() -> Dictionary:
 	return AdventureZombieTierCatalog.threat_costs()
 
 static func key_ids() -> Array[StringName]:
-	var keys: Array[StringName] = []
-	if ItemRegistry.has_item(LAWN_NIGHTMARE_KEY):
-		keys.append(&"lawn_nightmare_key")
-	return keys
+	var result: Array[StringName] = []
+	for stage_number: int in range(1, AdventureStageRegistry.SLUGS.size() + 1):
+		var key: StringName = AdventureStageRegistry.key_id(stage_number)
+		if ItemRegistry.has_item(str(key)):
+			result.append(key)
+	return result
 
 static func load_stage(stage_number: int) -> StageDefinition:
-	if stage_number != 1 or not ResourceLoader.exists(LAWN_PATH, "Resource"):
-		return null
-	return ResourceLoader.load(LAWN_PATH) as StageDefinition
+	return AdventureStageRegistry.resolve(stage_number)
 
 static func find_phase(stage: StageDefinition, kind: int) -> StagePhaseDefinition:
 	if stage == null:
@@ -38,8 +35,9 @@ static func is_cleared(state: AdventureState, stage_id: StringName, kind: int) -
 	if state == null:
 		return false
 	var region: Dictionary = state.regions.get(REGION_ID, {})
-	if stage_id == LAWN_ID and kind == StagePhaseDefinition.Kind.NORMAL and region.get("stage_1_cleared", false) == true:
-		return true
+	if stage_id == LAWN_ID and kind == StagePhaseDefinition.Kind.NORMAL:
+		if region.get("stage_1_cleared", false) == true:
+			return true
 	var cleared: Dictionary = region.get("cleared_phases", {})
 	return cleared.get(_clear_id(stage_id, kind), false) == true
 
@@ -56,13 +54,24 @@ static func _clear_id(stage_id: StringName, kind: int) -> String:
 	var suffix := "normal" if kind == StagePhaseDefinition.Kind.NORMAL else "nightmare"
 	return "%s/%s" % [stage_id, suffix]
 
-## 空字符串表示可进入；所有未实现模式明确拒绝，不能静默退回原版规则。
-static func entry_error(stage_number: int, kind: int, state: AdventureState, inventory: AdventureInventoryService) -> String:
+static func is_unlocked(stage_number: int, state: AdventureState) -> bool:
+	if AdventureStageRegistry.stage_id(stage_number) == &"":
+		return false
+	if stage_number == 1:
+		return true
+	return is_cleared(state, AdventureStageRegistry.previous_stage_id(stage_number),
+		StagePhaseDefinition.Kind.NORMAL)
+
+## 空字符串即允许进入。不可执行的事件或资源错误在这里拦截，不能静默退回原版。
+static func entry_error(stage_number: int, kind: int, state: AdventureState,
+		inventory: AdventureInventoryService) -> String:
 	if state == null or inventory == null:
 		return "玩家冒险数据未就绪。"
+	if not is_unlocked(stage_number, state):
+		return "请先通关上一关普通阶段。"
 	var stage: StageDefinition = load_stage(stage_number)
 	if stage == null:
-		return "该关卡尚未配置战斗。"
+		return "关卡配置不存在。"
 	var issues: PackedStringArray = stage.validate(tier_ids(), key_ids())
 	if not issues.is_empty():
 		return "关卡配置无效：" + issues[0]
@@ -77,10 +86,10 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState, inv
 		if inventory.get_item_count(str(phase.key_id)) < phase.key_count:
 			return "缺少进入噩梦阶段的钥匙。"
 		if phase.key_use == StagePhaseDefinition.KeyUse.CONSUME:
-			return "消耗式钥匙入口尚未接入。"
+			return "消耗式钥匙尚未接入。"
 		if phase.boss_encounters.is_empty():
 			return "噩梦阶段必须配置 Boss 遭遇。"
-	if kind not in [StagePhaseDefinition.Kind.NORMAL, StagePhaseDefinition.Kind.NIGHTMARE]:
+	elif kind != StagePhaseDefinition.Kind.NORMAL:
 		return "该阶段类型尚未支持。"
 	for event: StageEventDefinition in phase.events:
 		if event.trigger == StageEventDefinition.Trigger.BATTLE_END:
@@ -94,13 +103,13 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState, inv
 	var check_rng := RandomNumberGenerator.new()
 	check_rng.seed = 1
 	for band: WaveBandDefinition in phase.wave_profile.bands:
-		var wave_index: int = band.first_wave - 1
-		var base_power: int = wave_index / 3 + 1
-		var is_flag_wave: bool = wave_index % 10 == 9
-		var budget: int = (int(base_power * 2.5) if is_flag_wave else base_power) * stage.battle_template.zombie_multy
+		var index: int = band.first_wave - 1
+		var power: int = index / 3 + 1
+		var is_flag_wave: bool = index % 10 == 9
+		var budget: int = (int(power * 2.5) if is_flag_wave else power) * stage.battle_template.zombie_multy
 		if AdventureWavePlanner.build_plan(phase.wave_profile, band.first_wave,
 				budget, 1, tier_threat_costs(), check_rng).is_empty():
-			return "波段[%s]首波的战力预算不足以生成配置中的僵尸。" % band.band_id
+			return "波段[%s]首波战力预算不足。" % band.band_id
 	return ""
 
 static func build_level(stage_number: int, kind: int) -> ResourceLevelData:
@@ -117,6 +126,4 @@ static func build_level(stage_number: int, kind: int) -> ResourceLevelData:
 		for zombie_type: int in band.zombie_weights:
 			if band.zombie_weights[zombie_type] > 0 and not level.zombie_refresh_types.has(zombie_type):
 				level.zombie_refresh_types.append(zombie_type as CharacterRegistry.ZombieType)
-	if level.zombie_refresh_types.is_empty():
-		return null
-	return level
+	return level if not level.zombie_refresh_types.is_empty() else null

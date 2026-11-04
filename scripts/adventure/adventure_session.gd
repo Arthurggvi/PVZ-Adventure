@@ -55,7 +55,9 @@ func open_adventure() -> bool:
 	return_to_map()
 	return true
 func is_unlocked(stage_id: int) -> bool:
-	return stage_id == 1 or (stage_id == 2 and progress != null and progress.stage_1_cleared)
+	if progress == null:
+		return false
+	return AdventureStageCatalog.is_unlocked(stage_id, Global.global_game_state.adventure_state)
 ## 新手赠卡只检查持久领取标记；重复播放对话、跳过均不重复发放。
 func grant_starter_cards() -> bool:
 	if progress == null or not progress.started:
@@ -126,7 +128,7 @@ func enter_stage(stage_number: int, phase_kind: int) -> bool:
 		active_phase_kind = 0
 		active_wave_profile = null
 		Global.game_para = null
-		error_message = "草坪场景加载失败。"
+		error_message = "关卡场景加载失败。"
 		return false
 	return true
 ## 接收备战画面按 UID 选择的卡，仅确认时冻结快照和更新当前玩家的历史卡组。
@@ -208,7 +210,7 @@ func finish_victory() -> void:
 	var claim_id: String = str(pending_reward["claim_id"])
 	if not claim_id.is_empty():
 		state.claimed_rewards[claim_id] = true
-	if active_phase_kind == StagePhaseDefinition.Kind.NORMAL and not progress.record_victory():
+	if active_stage_number == 1 and active_phase_kind == StagePhaseDefinition.Kind.NORMAL and not progress.record_victory():
 		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
 		error_message = "草坪胜利进度无法更新。"
 		return
@@ -219,7 +221,9 @@ func finish_victory() -> void:
 		_show_save_retry()
 		return
 	var phase_name: String = "普通" if active_phase_kind == StagePhaseDefinition.Kind.NORMAL else "噩梦"
-	notice = "草坪%s阶段通关！奖励：%s种物品，金币+%d。" % [phase_name, reward_items.size(), reward_coin]
+	notice = "%s%s阶段通关！奖励：%s种物品，金币+%d。" % [
+		AdventureStageRegistry.display_name(active_stage_number), phase_name,
+		reward_items.size(), reward_coin]
 	battle_finished.emit(active_stage_number, "victory")
 	return_to_map()
 
@@ -251,13 +255,13 @@ func _show_save_retry() -> void:
 func finish_defeat() -> void:
 	if active_level == null:
 		return
-	notice = "草坪挑战失败，再试一次吧。"
-	battle_finished.emit(1, "defeat")
+	notice = "%s挑战失败。" % AdventureStageRegistry.display_name(active_stage_number)
+	battle_finished.emit(active_stage_number, "defeat")
 	return_to_map()
 func abandon_battle() -> void:
 	if active_level != null:
-		notice = "已离开草坪，本次未结算通关。"
-		battle_finished.emit(1, "abandoned")
+		notice = "已离开%s，本次未结算通关。" % AdventureStageRegistry.display_name(active_stage_number)
+		battle_finished.emit(active_stage_number, "abandoned")
 	return_to_map()
 func return_to_map() -> void:
 	adventure_active = true
