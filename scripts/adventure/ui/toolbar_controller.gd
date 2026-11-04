@@ -8,6 +8,7 @@ const HOST_GROUP := &"adventure_toolbar_surface"
 var _view: AdventureToolbarView
 var _hooks: Dictionary = {}
 var _host_allowed := false
+var _interactive := false
 var _host_scene: Node
 var _inventory: AdventureInventoryWindow
 
@@ -24,14 +25,18 @@ func _ready() -> void:
 	_on_scene_changed(get_tree().current_scene)
 
 func _process(_delta: float) -> void:
-	# Profile load completes after the user-update signal; sync availability on transition only.
-	if is_instance_valid(_view) and _view._available.get("inventory", false) != _can_open_inventory():
+	# Scene ownership controls visibility; temporary modal input locks never hide the HUD.
+	_sync_input()
+	if _host_allowed and _view._available.get("inventory", false) != _can_open_inventory():
 		_refresh()
-	# Menus temporarily disabled by modal navigation cannot leak clicks to this layer.
-	var can_show := _host_allowed and is_instance_valid(_host_scene) \
+
+func _sync_input() -> void:
+	var allowed := _host_allowed and is_instance_valid(_host_scene) \
 		and _host_scene.process_mode != Node.PROCESS_MODE_DISABLED and not get_tree().paused
-	if visible != can_show:
-		visible = can_show
+	if allowed == _interactive:
+		return
+	_interactive = allowed
+	_view.set_interaction_enabled(allowed)
 
 func _on_scene_changed(scene: Node) -> void:
 	if is_instance_valid(_inventory):
@@ -40,6 +45,7 @@ func _on_scene_changed(scene: Node) -> void:
 	_host_scene = scene
 	_host_allowed = is_instance_valid(scene) and scene.is_in_group(HOST_GROUP)
 	visible = _host_allowed
+	_sync_input()
 	_refresh()
 
 func _can_open_inventory() -> bool:
@@ -84,6 +90,8 @@ func _refresh() -> void:
 	_view.refresh(enabled)
 
 func _on_feature_pressed(feature_id: String) -> void:
+	if not _host_allowed or not _interactive:
+		return
 	# Modal window blocks map and unrelated navigation; inventory remains a toggle.
 	if is_instance_valid(_inventory) and feature_id != "inventory":
 		return

@@ -5,11 +5,8 @@ class_name AdventureToolbarView
 signal feature_pressed(feature_id: String)
 
 const Features = preload("res://scripts/adventure/ui/toolbar_features.gd")
-const ART := "res://assets/adventure/ui/bottom_bar/"
-const BAR_WIDTH := 1080.0
-const BAR_HEIGHT := 176.0
-const HANDLE_WIDTH := 94.0
-const DESIGN_SIZE := Vector2(1920.0, 1080.0)
+const SlotSkin = preload("res://scripts/adventure/ui/toolbar_slot_skin.gd")
+const Layout = preload("res://scripts/adventure/ui/toolbar_layout.gd")
 const LOCKED_SHADER := preload("res://shaders/adventure/toolbar_locked.gdshader")
 var expanded := false
 var _panel: Control
@@ -20,31 +17,29 @@ var _icons: Dictionary = {}
 var _buttons: Dictionary = {}
 var _available: Dictionary = {}
 var _anim: Tween
-var _scale_factor := 1.0
 var _hover_id := ""
+var _interactive := true
+var _locked_materials: Dictionary = {}
+
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_panel()
 	_build_handle()
-	resized.connect(_place)
+	get_viewport().size_changed.connect(_place)
 	_place()
-
-func _asset(relative_path: String) -> Texture2D:
-	var path := ART + relative_path
-	return load(path) as Texture2D if ResourceLoader.exists(path) else null
 
 func _build_panel() -> void:
 	_panel = Control.new()
 	_panel.name = "SlidePanel"
-	_panel.size = Vector2(BAR_WIDTH, BAR_HEIGHT)
+	_panel.size = Layout.BAR_SIZE
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_panel)
 	var backdrop := TextureRect.new()
 	backdrop.size = _panel.size
 	backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	backdrop.stretch_mode = TextureRect.STRETCH_SCALE
-	backdrop.texture = _asset("bg/toolbar_normal.png")
+	backdrop.texture = SlotSkin.asset("bg/toolbar_normal.png")
 	if backdrop.texture == null:
 		backdrop.texture = load("res://assets/adventure/main_menu/v8/art/ui/utility_console_body.png")
 	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -71,50 +66,20 @@ func _build_panel() -> void:
 	_tip.add_child(_tip_text)
 
 func _add_slot(entry: Dictionary, index: int) -> void:
-	var feature_id: String = entry.id
-	var pos := Vector2(45.0 + float(index) * 141.0, 22.0)
-	var icon := TextureRect.new()
-	icon.name = feature_id + "_Icon"
-	icon.position = pos
-	icon.size = Vector2(132, 132)
-	icon.pivot_offset = icon.size * 0.5
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.texture = _asset("slots/slot_empty.png" if feature_id == "empty" else "icons/" + str(entry.asset))
-	_panel.add_child(icon)
-	_icons[feature_id] = icon
-	if icon.texture == null:
-		var fallback := Label.new()
-		fallback.text = str(entry.label).left(1)
-		fallback.size = icon.size
-		fallback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		fallback.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		fallback.add_theme_font_size_override("font_size", 54)
-		fallback.add_theme_color_override("font_color", Color("d7b16c"))
-		fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon.add_child(fallback)
-	var hitbox := Button.new()
-	hitbox.name = feature_id + "_Hitbox"
-	hitbox.position = pos
-	hitbox.size = icon.size
-	hitbox.focus_mode = Control.FOCUS_NONE
-	hitbox.flat = true
-	hitbox.mouse_entered.connect(_on_hover.bind(feature_id, index))
-	hitbox.mouse_exited.connect(_off_hover.bind(feature_id))
-	hitbox.pressed.connect(_on_pressed.bind(feature_id))
-	_panel.add_child(hitbox)
-	_buttons[feature_id] = hitbox
+	var slot: Dictionary = SlotSkin.make_slot(
+		_panel, entry, index, _on_hover, _off_hover, _on_pressed)
+	_icons[entry.id] = slot.icon
+	_buttons[entry.id] = slot.button
 
 func _build_handle() -> void:
 	_handle = Button.new()
 	_handle.name = "ExpandHandle"
-	_handle.size = Vector2(HANDLE_WIDTH, BAR_HEIGHT)
+	_handle.size = Vector2(Layout.HANDLE_WIDTH, Layout.BAR_SIZE.y)
 	_handle.flat = true
 	_handle.expand_icon = true
 	_handle.focus_mode = Control.FOCUS_NONE
 	_handle.pressed.connect(_toggle)
-	_handle.button_down.connect(func(): _handle.icon = _asset("handle/handle_pressed.png"))
+	_handle.button_down.connect(func(): _handle.icon = SlotSkin.asset("handle/handle_pressed.png"))
 	_handle.button_up.connect(_set_handle_image)
 	_handle.mouse_entered.connect(_handle_hover)
 	_handle.mouse_exited.connect(_set_handle_image)
@@ -122,7 +87,7 @@ func _build_handle() -> void:
 	_set_handle_image()
 
 func _set_handle_image() -> void:
-	_handle.icon = _asset("handle/handle_expanded.png" if expanded else "handle/handle_collapsed.png")
+	_handle.icon = SlotSkin.asset("handle/handle_expanded.png" if expanded else "handle/handle_collapsed.png")
 	_handle.text = "" if _handle.icon != null else ("▶" if expanded else "◀")
 	_handle.add_theme_font_size_override("font_size", 56)
 	_handle.add_theme_color_override("font_color", Color("e8c47d"))
@@ -130,11 +95,13 @@ func _set_handle_image() -> void:
 
 func _handle_hover() -> void:
 	SoundManager.play_other_SFX(&"bleep")
-	var hover_image := _asset("handle/handle_hover.png")
+	var hover_image := SlotSkin.asset("handle/handle_hover.png")
 	if hover_image != null:
 		_handle.icon = hover_image
 
 func _toggle() -> void:
+	if not _interactive:
+		return
 	expanded = not expanded
 	_tip.hide()
 	_hover_id = ""
@@ -146,27 +113,42 @@ func _toggle() -> void:
 	_anim.tween_property(_panel, "position:x", _panel_x(), 0.26).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 func _panel_x() -> float:
-	var right_edge := get_viewport_rect().size.x - 9.0 - HANDLE_WIDTH * _scale_factor
-	return right_edge - (BAR_WIDTH * _scale_factor if expanded else 0.0)
+	return float(Layout.calculate(get_viewport().get_visible_rect().size, expanded).panel.x)
 
 func _place() -> void:
-	_scale_factor = minf(get_viewport_rect().size.x / DESIGN_SIZE.x, get_viewport_rect().size.y / DESIGN_SIZE.y)
-	var bottom_y := get_viewport_rect().size.y - 10.0 - BAR_HEIGHT * _scale_factor
+	var viewport_size := get_viewport().get_visible_rect().size
+	if viewport_size.x <= 0.0 or viewport_size.y <= 0.0:
+		return
+	var bounds: Dictionary = Layout.calculate(viewport_size, expanded)
 	if is_instance_valid(_anim):
 		_anim.kill()
-	_panel.scale = Vector2.ONE * _scale_factor
-	_panel.position = Vector2(_panel_x(), bottom_y)
-	_handle.scale = Vector2.ONE * _scale_factor
-	_handle.position = Vector2(get_viewport_rect().size.x - 9.0 - HANDLE_WIDTH * _scale_factor, bottom_y)
+	_panel.scale = Vector2.ONE * float(bounds.scale)
+	_panel.position = bounds.panel
+	_handle.scale = Vector2.ONE * float(bounds.scale)
+	_handle.position = bounds.handle
+## A modal can block toolbar input without hiding the persistent map HUD.
+
+func set_interaction_enabled(enabled: bool) -> void:
+	if _interactive == enabled:
+		return
+	_interactive = enabled
+	_handle.disabled = not enabled
+	for button: Button in _buttons.values():
+		button.disabled = not enabled
+	if not enabled:
+		_tip.hide()
+		_hover_id = ""
 
 func refresh(availability: Dictionary) -> void:
 	for id: String in _icons:
 		var enabled: bool = availability.get(id, false) == true
 		_available[id] = enabled
 		var icon: TextureRect = _icons[id]
-		icon.material = null if enabled else ShaderMaterial.new()
-		if not enabled:
-			(icon.material as ShaderMaterial).shader = LOCKED_SHADER
+		if not enabled and not _locked_materials.has(id):
+			var locked := ShaderMaterial.new()
+			locked.shader = LOCKED_SHADER
+			_locked_materials[id] = locked
+		icon.material = null if enabled else _locked_materials[id]
 		_buttons[id].mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if enabled else Control.CURSOR_ARROW
 
 func _on_hover(feature_id: String, index: int) -> void:
@@ -190,7 +172,7 @@ func _pulse(feature_id: String, target: Vector2) -> void:
 	tween.tween_property(icon, "scale", target, 0.12).set_trans(Tween.TRANS_QUAD)
 
 func _on_pressed(feature_id: String) -> void:
-	if not _available.get(feature_id, false):
+	if not _interactive or not _available.get(feature_id, false):
 		return
 	var bounce := create_tween()
 	bounce.tween_property(_icons[feature_id], "scale", Vector2.ONE * 0.92, 0.065)
