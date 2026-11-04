@@ -35,12 +35,12 @@ func _ready() -> void:
 
 
 ## 在 `user_manager.curr_user_name` 已更新后，加载该用户下的全局存档与配置（与启动时一致）。
-func reload_session_for_current_user() -> void:
-	if user_manager.curr_user_name.is_empty():
-		return
-	save_service.load_global_game_data()
+func reload_session_for_current_user() -> bool:
+	if user_manager.curr_user_name.is_empty() or not save_service.load_global_game_data():
+		return false
 	adventure_inventory = AdventureInventoryService.new(global_game_state.adventure_state)
 	config_service.load_and_apply_config()
+	return true
 
 var main_game:MainGameManager
 var game_para:ResourceLevelData

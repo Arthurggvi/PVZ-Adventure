@@ -52,8 +52,10 @@ func open_adventure() -> bool:
 		return false
 	progress = Progress.new(Global.global_game_state.adventure_state)
 	if not progress.started:
+		var before: Dictionary = Global.global_game_state.adventure_state.regions.duplicate(true)
 		progress.start()
 		if not Global.save_service.save_now():
+			Global.global_game_state.adventure_state.regions = before
 			progress = null
 			entry_error = "无法保存冒险初始化状态。"
 			return false
@@ -65,6 +67,7 @@ func is_unlocked(stage_id: int) -> bool:
 		return false
 	return AdventureStageCatalog.is_unlocked(stage_id, Global.global_game_state.adventure_state)
 ## 新手赠卡只检查持久领取标记；重复播放对话、跳过均不重复发放。
+## 新手赠卡统一事务：两卡、UID游标、卡组和领取标记一起成功或一起回滚。
 func grant_starter_cards() -> bool:
 	if progress == null or not progress.started:
 		error_message = "冒险尚未开始。"
@@ -73,27 +76,41 @@ func grant_starter_cards() -> bool:
 	if state.claimed_rewards.get("intro_starter_cards", false):
 		return true
 	var inventory: AdventureInventoryService = Global.adventure_inventory
-	var sunflower_uid: String = inventory.add_card(CharacterRegistry.PlantType.P002SunFlower)
-	var peashooter_uid: String = inventory.add_card(CharacterRegistry.PlantType.P001PeaShooterSingle)
-	if sunflower_uid.is_empty() or peashooter_uid.is_empty():
-		if not sunflower_uid.is_empty():
-			inventory.remove_card(sunflower_uid)
-		if not peashooter_uid.is_empty():
-			inventory.remove_card(peashooter_uid)
-		error_message = "初始植物卡创建失败。"
-		return false
-	if state.selected_card_uids.is_empty():
-		state.selected_card_uids = [sunflower_uid, peashooter_uid]
-	state.claimed_rewards["intro_starter_cards"] = true
-	if not Global.save_service.save_now():
-		error_message = "无法保存初始植物卡。"
-		return false
-	error_message = ""
-	return true
+	var old_next_id: int = state.next_card_id
+	var old_deck: Array[String] = state.selected_card_uids.duplicate()
+	var had_claim: bool = state.claimed_rewards.has("intro_starter_cards")
+	var previous_claim: bool = state.claimed_rewards.get("intro_starter_cards", false)
+	var sunflower: String = inventory.add_card(CharacterRegistry.PlantType.P002SunFlower)
+	var peashooter: String = inventory.add_card(CharacterRegistry.PlantType.P001PeaShooterSingle)
+	if not sunflower.is_empty() and not peashooter.is_empty():
+		if state.selected_card_uids.is_empty():
+			state.selected_card_uids = [sunflower, peashooter]
+		state.claimed_rewards["intro_starter_cards"] = true
+		if Global.save_service.save_now():
+			error_message = ""
+			return true
+	if not sunflower.is_empty():
+		inventory.remove_card(sunflower)
+	if not peashooter.is_empty():
+		inventory.remove_card(peashooter)
+	state.next_card_id = old_next_id
+	state.selected_card_uids = old_deck
+	if had_claim:
+		state.claimed_rewards["intro_starter_cards"] = previous_claim
+	else:
+		state.claimed_rewards.erase("intro_starter_cards")
+	error_message = "初始卡牌领取失败，状态已回滚，可重试。"
+	return false
+
 func complete_intro() -> bool:
-	if not grant_starter_cards() or not progress.complete_intro():
+	if not grant_starter_cards():
+		return false
+	var state: AdventureState = Global.global_game_state.adventure_state
+	var before: Dictionary = state.regions.duplicate(true)
+	if not progress.complete_intro():
 		return false
 	if not Global.save_service.save_now():
+		state.regions = before
 		error_message = "无法保存引导进度。"
 		return false
 	error_message = ""

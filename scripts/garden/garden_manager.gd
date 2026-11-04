@@ -125,6 +125,8 @@ func init_new_page():
 			empty_plant_cell.init_new_plant_cell()
 			Global.global_game_state.curr_num_new_garden_plant -= 1
 		num_new_plant_no_plant_cell.text = "待放置植物数量:" + str(Global.global_game_state.curr_num_new_garden_plant)
+		# 安置幼苗与当前页数据在同一同步流程中写入全局状态，避免自动保存截取中间状态。
+		snapshot_curr_page()
 
 	page_info_label.text = str(curr_page + 1) + "/" + str(int(Global.global_game_state.garden_data["num_bg_page_" + str(curr_bg_type)]))
 	page_info_label2.text = str(curr_bg_type + 1) + "/" + str(E_GardenBgType.size())
@@ -140,7 +142,7 @@ func _update_back_from_store():
 
 
 ##更新当前页花园数据
-func save_curr_page_data():
+func snapshot_curr_page() -> void:
 	var curr_bg_page_data:Dictionary = {}
 	for i in range(curr_bg_page_node.all_plant_cells.size()):
 		var plant_cell :PlantCellGarden = curr_bg_page_node.all_plant_cells[i]
@@ -152,6 +154,9 @@ func save_curr_page_data():
 	Global.global_game_state.garden_data["第"+str(curr_bg_type)+"类背景"]["第"+str(curr_page)+"页"] = curr_bg_page_data
 	## 独轮车信息
 	Global.global_game_state.garden_data["WheelBarrow"] = wheel_barrow.choosed_plant_data
+
+func save_curr_page_data() -> void:
+	snapshot_curr_page()
 	Global.save_service.save_now()
 
 #region 按钮信号连接函数

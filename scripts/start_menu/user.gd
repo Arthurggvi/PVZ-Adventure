@@ -90,11 +90,22 @@ func _on_button_ok_pressed():
 	if curr_user_button == null:
 		dialog_choose_null.visible = true
 		return
-
-	# 切换用户：先存当前用户全局档，再切用户并加载新用户的存档+配置（见 Global 顶部注释）
-	Global.save_service.save_now()
-	Global.user_manager.set_current_user(curr_user_button.user_name_on_curr_button)
-	Global.reload_session_for_current_user()
+	var target: String = curr_user_button.user_name_on_curr_button
+	var previous: String = Global.user_manager.curr_user_name
+	if not Global.save_service.can_load_user(target):
+		push_error("目标玩家存档无效，已取消切换：" + target)
+		return
+	if Global.save_service.is_current_profile_loaded() and not Global.save_service.save_now():
+		push_error("当前玩家存档失败，已取消切换。")
+		return
+	if not Global.user_manager.set_current_user(target):
+		return
+	if not Global.reload_session_for_current_user():
+		if not previous.is_empty():
+			Global.user_manager.set_current_user(previous)
+			Global.reload_session_for_current_user()
+		push_error("目标档案加载失败，已取消本次切换。")
+		return
 	visible = false
 
 ## 点击 删除 按钮

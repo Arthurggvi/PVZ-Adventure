@@ -13,11 +13,55 @@ const SaveGameFileName := "GlobalSaveGame.json"
 const MAIN_GAME_SAVE_DIR_NAME := "main_game_saves_data"
 
 var _auto_save_timer: Timer
+## 解析失败的档案不可被自动保存/战斗结算覆盖。
+var _safe_to_save := true
+var _loaded_profile := ""
+
+func is_current_profile_loaded() -> bool:
+	return _safe_to_save and user_manager != null and _loaded_profile == user_manager.curr_user_name
 
 func _get_save_game_path() -> String:
-	if user_manager == null or user_manager.curr_user_name.is_empty():
+	if user_manager == null or not UserManager.is_valid_user_name(user_manager.curr_user_name):
 		return ""
 	return "user://" + user_manager.curr_user_name + "/" + SaveGameFileName
+
+func _path_for_user(name: String) -> String:
+	return "user://" + name + "/" + SaveGameFileName if UserManager.is_valid_user_name(name) else ""
+
+## 先校验目标档，旧档损坏时绝不切换、也不自动创建替代存档。
+func can_load_user(name: String) -> bool:
+	var path: String = _path_for_user(name)
+	if path.is_empty():
+		return false
+	return _decode_profile(path).get("ok", false)
+
+func _valid_nonnegative_number(value: Variant) -> bool:
+	return (typeof(value) == TYPE_INT or typeof(value) == TYPE_FLOAT) and is_finite(value) \
+		and value >= 0 and value <= PlantCardInstance.MAX_JSON_INTEGER and value == floor(value)
+
+func _decode_profile(path: String) -> Dictionary:
+	var response: Dictionary = SaveFileStore.read(path)
+	if not response.get("ok", false):
+		return {"ok": false}
+	if not response.get("exists", false):
+		return {"ok": true, "new": true, "adventure": AdventureState.new(), "data": {}}
+	var data: Dictionary = response["data"]
+	if data.has("version") and str(data["version"]) != SaveGameVersion:
+		return {"ok": false}
+	if not data.has("coin_value") or not _valid_nonnegative_number(data["coin_value"]):
+		return {"ok": false}
+	if not data.has("garden_data") or not data["garden_data"] is Dictionary:
+		return {"ok": false}
+	if not data.has("curr_all_level_state_data") or not data["curr_all_level_state_data"] is Dictionary:
+		return {"ok": false}
+	if not data.has("curr_num_new_garden_plant") or not _valid_nonnegative_number(data["curr_num_new_garden_plant"]):
+		return {"ok": false}
+	var adventure: AdventureState = AdventureState.new()
+	if data.has("adventure"):
+		adventure = AdventureState.from_dict(data["adventure"])
+		if adventure == null:
+			return {"ok": false}
+	return {"ok": true, "new": false, "data": data, "adventure": adventure}
 
 ## 启用自动保存存档
 func start_autosave(interval_sec: float = 60.0) -> void:
@@ -54,8 +98,8 @@ func save_now() -> bool:
 		print("全局存档跳过：未登录用户或用户名为空")
 		return false
 
-	if global_game_state == null:
-		push_error("❌ 全局存档失败：GlobalGameState 未就绪")
+	if global_game_state == null or not _safe_to_save or _loaded_profile != user_manager.curr_user_name:
+		push_error("未加载或无法确认玩家档案完整性，拒绝写入存档。")
 		return false
 
 	# 冒险域必须可序列化，不能用空字典覆盖未完成或非法的内存状态。
@@ -83,77 +127,42 @@ func save_now() -> bool:
 
 ## 读取当前用户的全局状态；选卡只恢复新格式身份，缺失或无效条目按空列表处理。[br]
 ## 用户未登录或运行态未就绪时跳过，其他状态沿用各自默认值。
-func load_global_game_data() -> void:
-	# 当前用户的全局存档路径；空路径不执行读取。
-	var path := _get_save_game_path()
-	if path.is_empty():
-		return
-
-	if global_game_state == null:
-		return
-
-	# 从 JSON 读取的状态字典，旧实验档没有 adventure 字段时初始化空冒险状态。
-	var data := _load_json(path) as Dictionary
-	var restored_adventure: AdventureState = AdventureState.new()
-	if data.has("adventure"):
-		restored_adventure = AdventureState.from_dict(data["adventure"])
-		if restored_adventure == null:
-			global_game_state.adventure_state = AdventureState.new()
-			push_error("冒险数据格式不支持，未加载其余玩家数据。")
-			return
-
-	# 本次恢复的运行态对象，避免重复访问服务成员。
-	var state := global_game_state
-	state.adventure_state = restored_adventure
-	state.coin_value = data.get("coin_value", state.DEFAULT_COIN_VALUE)
-	state.curr_num_new_garden_plant = data.get("curr_num_new_garden_plant", state.DEFAULT_CURR_NUM_NEW_GARDEN_PLANT)
+func load_global_game_data() -> bool:
+	var path: String = _get_save_game_path()
+	_safe_to_save = false
+	_loaded_profile = ""
+	if path.is_empty() or global_game_state == null:
+		return false
+	var decoded: Dictionary = _decode_profile(path)
+	if not decoded.get("ok", false):
+		push_error("玩家存档无效或无法读取，拒绝混用其他玩家数据：" + path)
+		return false
+	var state: GlobalGameState = global_game_state
+	var data: Dictionary = decoded["data"]
+	state.adventure_state = decoded["adventure"]
+	state.coin_value = int(data.get("coin_value", state.DEFAULT_COIN_VALUE))
+	state.curr_num_new_garden_plant = int(data.get("curr_num_new_garden_plant", state.DEFAULT_CURR_NUM_NEW_GARDEN_PLANT))
 	state.garden_data = data.get("garden_data", state.DEFAULT_GARDEN_DATA).duplicate(true)
 	state.curr_all_level_state_data = data.get("curr_all_level_state_data", state.DEFAULT_CURR_ALL_LEVEL_STATE_DATA).duplicate(true)
 	state.selected_cards = _deserialize_selected_cards(data.get("selected_cards", []))
-
-	### 从存档读取当前植物和僵尸
-	#var loaded_curr_plant_raw: Array = data.get("curr_plant", state.curr_plant)
-	#var loaded_curr_plant: Array[CharacterRegistry.PlantType] = []
-	#for plant_type in loaded_curr_plant_raw:
-		#loaded_curr_plant.append(int(plant_type) as CharacterRegistry.PlantType)
-	#state.curr_plant = loaded_curr_plant
-#
-	#var loaded_curr_zombie_raw: Array = data.get("curr_zombie", state.curr_zombie)
-	#var loaded_curr_zombie: Array[CharacterRegistry.ZombieType] = []
-	#for zombie_type in loaded_curr_zombie_raw:
-		#loaded_curr_zombie.append(int(zombie_type) as CharacterRegistry.ZombieType)
-	#state.curr_zombie = loaded_curr_zombie
-
+	_loaded_profile = user_manager.curr_user_name
+	_safe_to_save = true
+	return true
 
 ## 单独保存上次选卡的新格式身份列表，保留全局存档中的其他字段。[br]
 ## 用户未登录或运行态未就绪时跳过，选卡 Resource 不直接写入 JSON。
 func save_selected_cards() -> void:
-	# 当前用户的全局存档路径；空路径表示尚未登录。
-	var path := _get_save_game_path()
-	if path.is_empty():
-		print("选卡存档跳过：未登录用户或用户名为空")
-		return
-	if global_game_state == null:
-		push_error("❌ 选卡存档失败：GlobalGameState 未就绪")
-		return
-	# 现有存档内容，只更新选卡字段后原样写回其余数据。
-	var data := _load_json(path)
-	data["selected_cards"] = _serialize_selected_cards()
-	if not _save_json(data, path):
-		return
+	# 只使用统一的完整存档事务，不能读到坏 JSON 再局部覆盖其他字段。
+	save_now()
 
-## 单独恢复上次选卡的统一引用，保持存档顺序；旧格式及无效条目不会恢复。[br]
-## 用户未登录或运行态未就绪时跳过，缺失列表恢复为空。
+## 与完整读取共享同一验证及身份解码，不允许坏档写入空出战列表。
 func load_selected_cards() -> void:
-	# 当前用户的全局存档路径；空路径不执行读取。
-	var path := _get_save_game_path()
-	if path.is_empty():
+	var path: String = _get_save_game_path()
+	if path.is_empty() or global_game_state == null:
 		return
-	if global_game_state == null:
-		return
-	# 现有全局存档，本次只读取其中的选卡身份列表。
-	var data := _load_json(path)
-	global_game_state.selected_cards = _deserialize_selected_cards(data.get("selected_cards", []))
+	var decoded: Dictionary = _decode_profile(path)
+	if decoded.get("ok", false):
+		global_game_state.selected_cards = _deserialize_selected_cards(decoded["data"].get("selected_cards", []))
 
 ## 将上次选卡引用转成 JSON 可写的字典列表，保持卡槽顺序；不写入 Resource 实例。
 func _serialize_selected_cards() -> Array[Dictionary]:
@@ -183,26 +192,8 @@ func _deserialize_selected_cards(data: Variant) -> Array[ResourceCardReference]:
 	return selected_card_references
 
 func _save_json(data: Dictionary, path: String) -> bool:
-	var file := FileAccess.open(path, FileAccess.WRITE)
-	if file == null:
-		var err := FileAccess.get_open_error()
-		push_error("❌ 存档写入失败：无法打开文件 %s（错误码 %d）" % [path, err])
-		return false
-
-	var json_text := JSON.stringify(data, "\t") # 可读性更强
-	file.store_string(json_text)
-	file.close()
-	return true
+	return SaveFileStore.write(path, data)
 
 func _load_json(path: String) -> Dictionary:
-	if not FileAccess.file_exists(path):
-		return {}
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		return {}
-	var json_text := file.get_as_text()
-	file.close()
-	var result: Dictionary = JSON.parse_string(json_text) as Dictionary
-	if result == null:
-		return {}
-	return result
+	var result: Dictionary = SaveFileStore.read(path)
+	return result["data"] if result.get("ok", false) and result.get("exists", false) else {}
