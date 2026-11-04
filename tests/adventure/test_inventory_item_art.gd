@@ -19,6 +19,8 @@ func _run() -> void:
 		assert(ResourceLoader.exists(Asset.ROOT + backing))
 	assert(str(m.backgrounds["recipe"]) == "<null>" or m.backgrounds["recipe"] == null)
 	assert(Asset.icon_uri("recipe_wall_nut") == Asset.icon_uri("recipe_potato_mine"))
+	assert(not Asset.recipe_overlay_uri("recipe_wall_nut").is_empty())
+	assert(Asset.recipe_overlay_uri("recipe_wall_nut") == Asset.recipe_overlay_uri("recipe_potato_mine"))
 	assert(Asset.recipe_plant_type("recipe_wall_nut") == CharacterRegistry.PlantType.P004WallNut)
 	assert(Asset.recipe_plant_type("recipe_potato_mine") == CharacterRegistry.PlantType.P005PotatoMine)
 	var variants: Array[Dictionary] = [
@@ -42,6 +44,9 @@ func _run() -> void:
 		assert(backing.texture.resource_path == Asset.backing_uri(str(entry.id)))
 		assert(icon.texture.resource_path == Asset.icon_uri(str(entry.id)))
 		tile.set_active(true)
+		var frame: TextureRect = tile.get_child(tile.get_child_count() - 1) as TextureRect
+		assert(frame != null and frame.visible)
+		assert(frame.texture.resource_path.ends_with("item_slot_selected_frame.png"))
 		assert(backing.position == anchor and icon.position == Vector2(14,8))
 		tile.queue_free()
 	var empty: Control = Tile.new()
@@ -55,6 +60,8 @@ func _run() -> void:
 	assert(recipe.get_child_count() >= 4)
 	assert(recipe.get_child(1) is TextureRect and recipe.get_child(2) is Node2D)
 	assert((recipe.get_child(1) as TextureRect).texture.resource_path == Asset.icon_uri("recipe_wall_nut"))
+	var recipe_wax: TextureRect = recipe.get_child(3) as TextureRect
+	assert(recipe_wax != null and recipe_wax.texture.resource_path == Asset.recipe_overlay_uri("recipe_wall_nut"))
 	recipe.queue_free()
 	print("INVENTORY_ITEM_ART_PASS 23 IDs 27 PNGs slot-anchoring recipe-reuse")
 	get_tree().quit(0)

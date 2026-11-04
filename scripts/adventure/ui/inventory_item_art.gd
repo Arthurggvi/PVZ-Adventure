@@ -36,6 +36,13 @@ static func backing_uri(item_id: String) -> String:
 	var path := ROOT + file
 	return path if not file.is_empty() and ResourceLoader.exists(path) else ""
 
+static func recipe_overlay_uri(item_id: String) -> String:
+	if str(entry(item_id).get("category", "")) != "recipe":
+		return ""
+	var file: String = str(entry(item_id).get("overlay", ""))
+	var path := ROOT + file
+	return path if not file.is_empty() and ResourceLoader.exists(path) else ""
+
 static func recipe_plant_type(item_id: String) -> int:
 	var name: String = str(entry(item_id).get("portrait_from_plant_type", ""))
 	return int(CharacterRegistry.PlantType.get(name, 0)) if not name.is_empty() else 0

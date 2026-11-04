@@ -15,6 +15,8 @@ var drag_allowed := false
 var _plant_slot := false
 var _selected := false
 var _slot: TextureRect
+var _frame: TextureRect
+var _hovered := false
 
 func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = false, active: bool = false) -> void:
 	record = value.duplicate(true)
@@ -25,7 +27,7 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 	size = Vector2(86, 96)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	_slot = Art.image(self, _slot_file(false), Vector2.ZERO, size)
+	_slot = Art.image(self, "slots/%s_slot_normal.png" % ("plant" if plants_tab else "item"), Vector2.ZERO, size)
 	mouse_entered.connect(_on_mouse_entered)
 	mouse_exited.connect(_on_mouse_exited)
 	if record.is_empty():
@@ -55,26 +57,36 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 			Art.image(self, icon, ICON_POSITION, ICON_SIZE)
 		if str(record.get("category", "")) == "recipe":
 			ItemArt.add_recipe_portrait(self, str(record["id"]), ICON_POSITION + ICON_SIZE * 0.5, 0.42)
+			var wax: String = ItemArt.recipe_overlay_uri(str(record["id"]))
+			if not wax.is_empty():
+				Art.image(self, wax, Vector2(49, 47), Vector2(20, 20))
 		var amount: Label = Art.label(self, "×%d" % int(record.get("qty", 0)), Vector2(8, 66), Vector2(72, 23), 17)
 		amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	# Border-only overlay is always the top child, above icons, wax seal and quantity.
+	_frame = Art.image(self, "slots/%s_slot_selected_frame.png" % ("plant" if plants_tab else "item"), Vector2.ZERO, size)
+	_update_frame()
 
-## Selection changes only the slot texture; backing and item never move.
+## Selection affects only the border overlay, never the slot backing or icon.
 func set_active(value: bool) -> void:
 	_selected = value
-	if is_instance_valid(_slot):
-		_slot.texture = Art.texture(_slot_file(false))
+	_update_frame()
 
-func _slot_file(hovered: bool) -> String:
-	var prefix := "plant" if _plant_slot else "item"
-	var state := "hover" if hovered else ("selected" if _selected else "normal")
-	return "slots/%s_slot_%s.png" % [prefix, state]
+func _update_frame() -> void:
+	if not is_instance_valid(_frame):
+		return
+	_frame.visible = not record.is_empty() and (_selected or _hovered)
+	if _frame.visible:
+		var prefix := "plant" if _plant_slot else "item"
+		var state := "selected" if _selected else "hover"
+		_frame.texture = Art.texture("slots/%s_slot_%s_frame.png" % [prefix, state])
 
 func _on_mouse_entered() -> void:
-	if not record.is_empty():
-		_slot.texture = Art.texture(_slot_file(true))
+	_hovered = true
+	_update_frame()
 
 func _on_mouse_exited() -> void:
-	_slot.texture = Art.texture(_slot_file(false))
+	_hovered = false
+	_update_frame()
 
 func _gui_input(event: InputEvent) -> void:
 	if record.is_empty():

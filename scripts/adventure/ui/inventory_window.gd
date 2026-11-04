@@ -178,6 +178,9 @@ func _render_detail() -> void:
 			Art.image(root, icon, Vector2(110, 95), Vector2(170, 170))
 		if str(selected.get("category", "")) == "recipe":
 			ItemArt.add_recipe_portrait(root, str(selected["id"]), Vector2(195, 180), 1.15)
+			var wax: String = ItemArt.recipe_overlay_uri(str(selected["id"]))
+			if not wax.is_empty():
+				Art.image(root, wax, Vector2(224, 215), Vector2(48, 48))
 		Art.label(root, "持有数量  ×%d" % int(selected.get("qty", 0)), Vector2(31, 294), Vector2(346, 55), 28)
 		Art.label(root, "使用与消耗功能将在下一轮开放", Vector2(24, 420), Vector2(366, 68), 19)
 func _confirm_discard() -> void:
