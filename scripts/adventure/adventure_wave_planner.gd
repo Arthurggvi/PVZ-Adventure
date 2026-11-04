@@ -59,6 +59,7 @@ static func build_plan(profile: WaveProfile, wave_number: int, power_budget: int
 		used_power += int(choice.cost)
 	return plan
 
-## 进入场景树前仅写入本次战斗等阶身份；数值强化由具体等阶规则单独接管。
+## 进入场景树前写入本次战斗等阶属性；组件 _ready 会使用新最大生命与攻击值。
 static func bind_tier(zombie: Zombie000Base, tier_id: StringName) -> void:
-	zombie.adventure_tier_id = tier_id
+	if not AdventureZombieTierCatalog.bind(zombie, tier_id):
+		push_error("未能应用僵尸冒险等阶：" + str(tier_id))

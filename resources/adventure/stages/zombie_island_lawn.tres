@@ -299,7 +299,9 @@ zombie_weights = Dictionary[int, int]({
 3: 2
 })
 tier_weights = Dictionary[StringName, int]({
-&"base": 1
+&"base": 5,
+&"veteran": 2,
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="Resource_acfi4"]

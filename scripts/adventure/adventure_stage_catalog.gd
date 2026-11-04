@@ -1,5 +1,5 @@
 ## 僵尸岛关卡静态目录、阶段进入约束与原版波次模板适配。
-## P2 波段与物种权重由 AdventureWavePlanner 执行；等阶强度规则未冻结前只开放基础等阶。
+## 波段权重和已实现等阶统一来自配置与 AdventureZombieTierCatalog。
 extends RefCounted
 class_name AdventureStageCatalog
 
@@ -10,10 +10,10 @@ const LAWN_PATH := "res://resources/adventure/stages/zombie_island_lawn.tres"
 const LAWN_NIGHTMARE_KEY := "lawn_nightmare_key"
 
 static func tier_ids() -> Array[StringName]:
-	return [BASE_TIER]
+	return AdventureZombieTierCatalog.tier_ids()
 
 static func tier_threat_costs() -> Dictionary:
-	return {BASE_TIER: 1.0}
+	return AdventureZombieTierCatalog.threat_costs()
 
 static func key_ids() -> Array[StringName]:
 	var keys: Array[StringName] = []
@@ -94,9 +94,6 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState, inv
 	var check_rng := RandomNumberGenerator.new()
 	check_rng.seed = 1
 	for band: WaveBandDefinition in phase.wave_profile.bands:
-		for tier_id: StringName in band.tier_weights:
-			if tier_id != BASE_TIER and band.tier_weights[tier_id] > 0:
-				return "高级僵尸等阶尚未接入。"
 		var wave_index: int = band.first_wave - 1
 		var base_power: int = wave_index / 3 + 1
 		var is_flag_wave: bool = wave_index % 10 == 9
