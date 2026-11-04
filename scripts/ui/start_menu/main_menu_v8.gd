@@ -33,6 +33,8 @@ func _ready() -> void:
 	Global.user_manager.signal_users_update.connect(_fit_profile_name)
 	_fit_profile_name()
 	_align_plaque_titles()
+	# Background ownership remains reversible; only interior foliage is distorted.
+	$ArtCanvas/EnvironmentFX/FoliageFX.bind_background($ArtCanvas/coastal_yard)
 	# Explicit dependency injection: foreground art shares the existing wind controller.
 	$ArtCanvas/ForegroundLeaves.bind_wind($ArtCanvas/EnvironmentFX/FoliageFX/Wind)
 	_apply_environment()

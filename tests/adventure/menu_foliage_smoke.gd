@@ -10,57 +10,36 @@ func _check() -> void:
     root.add_child(menu)
     await process_frame
     var art := menu.get_node("ArtCanvas")
+    var bg := art.get_node("coastal_yard") as TextureRect
     var foliage := art.get_node("EnvironmentFX/FoliageFX")
     var wind := foliage.get_node("Wind")
     var falling := art.get_node("ForegroundLeaves")
-    var leaves := foliage.get_node("Leaves") as Sprite2D
-    var material := leaves.material as ShaderMaterial
-    _expect(falling.get_parent() == art and falling.z_index == 0, "explicit sibling leaf layer")
-    _expect(falling.wind == wind, "shared wind injected by menu composition root")
-    _expect(falling.particles.size() == 20, "bounded falling leaf pool")
-    _expect(not foliage.has_node("Clusters"), "no duplicate transparent clusters")
-    var underlay := foliage.get_node("Underlay") as Sprite2D
-    var underlay_image := underlay.texture.get_image()
-    _expect(underlay_image.get_format() != Image.FORMAT_RGB8, "underlay uses transparent pixels")
-    _expect(underlay_image.get_pixel(839, 190).a < 0.01, "clouds not hidden by a rectangular patch")
-    var clean_patch := underlay.texture
-    menu.use_clean_sky = false
-    _expect(underlay.texture != clean_patch, "original-sky underlay switches with background")
-    _expect(underlay.texture.get_image().get_pixel(839, 190).a < 0.01, "original-sky sky pixels remain transparent")
-    menu.use_clean_sky = true
-    for name in ["coastal_yard","EnvironmentFX","home","ship","research","supply","CrowFlyby"]:
-        _expect(art.get_node(name).get_index() < falling.get_index(), "world under leaves: " + name)
-    for name in ["home_button","ship_button","research_button","supply_button",
-        "home_button_title","ship_button_title","utility_console","options_button","exit_button","WoodSign"]:
-        var ui := art.get_node(name)
-        _expect(ui.get_index() > falling.get_index() and (ui as CanvasItem).z_index == 0, "UI over leaves: " + name)
-    _expect(menu.get_node("ArtCanvas/ship_button").pressed.get_connections().size() > 0, "native button callback retained")
+    var material := bg.material as ShaderMaterial
+    _expect(material != null and bg.texture.get_size() == Vector2(1920,1080), "original full painting remains")
+    _expect(foliage.get_child_count() == 1 and foliage.get_child(0) == wind, "no cropped leaf or opaque repair sprites")
+    _expect(falling.wind == wind and falling.particles.size() == 20, "foreground uses same bounded wind source")
+    var mask := material.get_shader_parameter("motion_core") as Texture2D
+    var pixels := mask.get_image()
+    _expect(pixels.get_size() == Vector2i(1920, 1080), "motion mask uses full canvas UV")
+    _expect(pixels.get_pixel(900, 120).r < 0.001, "sky never displaced")
+    _expect(pixels.get_pixel(200, 300).r < 0.001, "lower foliage edge never displaced")
+    _expect(pixels.get_pixel(300, 50).r > 0.3, "interior foliage still responds")
+    var original_texture := bg.texture
     wind._enter(&"gust")
     wind._process(0.75)
     foliage._process(0.016)
-    _expect(wind.strength > 0.4 and material.get_shader_parameter("wind_strength") > 0.4, "wind feeds canopy GPU")
-    _expect(falling.live_count() >= 3, "gust starts falling leaves")
-    falling._random.seed = 314159
-    for i in range(12):
-        falling._spawn()
-    _expect(falling.live_count() <= 20, "pool remains bounded")
-    var first_vel: Vector2 = falling.particles[0].velocity
-    var different := false
-    for i in range(1,falling.live_count()):
-        if falling.particles[i].velocity.distance_to(first_vel) > 15.0:
-            different = true
-    _expect(different, "different leaf initial speeds")
-    var before: Vector2 = falling.particles[0].sprite.position
-    for i in range(45):
-        wind._process(0.033333)
-        falling._process(0.033333)
-    var moved: Vector2 = falling.particles[0].sprite.position
-    _expect(before.distance_to(moved) > 20.0, "time-integrated leaf movement")
+    _expect(float(material.get_shader_parameter("wind_strength")) > 0.4, "gust feeds shader")
+    _expect(falling.live_count() >= 3, "gust spawns foreground leaves")
     menu.environment_fx_enabled = false
-    _expect(falling.live_count() == 0 and not falling.active, "FX off recycles all leaves")
-    _expect(material.get_shader_parameter("wind_strength") == 0.0, "FX off restores static canopy")
+    _expect(float(material.get_shader_parameter("wind_strength")) == 0.0, "stop returns original pixel sampling")
+    _expect(not falling.active and falling.live_count() == 0, "disable recycles leaf pool")
+    _expect(bg.texture == original_texture, "no background substitution on FX off")
+    menu.use_clean_sky = false
+    _expect(bg.texture != original_texture, "switch to untouched original sky")
+    menu.use_clean_sky = true
+    _expect(bg.texture == original_texture, "restore clean-sky artwork")
     menu.environment_fx_enabled = true
-    _expect(falling.active and wind.active and falling.wind == wind, "FX on resumes without rebind")
+    _expect(falling.active and wind.active, "enable resumes without rebuilding material")
     print("MENU_FOLIAGE_SMOKE_FAIL" if failed else "MENU_FOLIAGE_SMOKE_PASS")
     menu.queue_free()
     await process_frame

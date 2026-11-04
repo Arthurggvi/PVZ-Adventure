@@ -36,8 +36,7 @@ func _check() -> void:
     _expect(left_change > 0.04, "cloud visible before old 840px rectangle edge")
     _expect(right_change > 0.04, "cloud continues past the old 840px edge")
     _expect(not foliage.has_node("Clusters"), "no overlapping leaf-cluster sprites")
-    var png_result := with_cloud.save_png("user://menu_canopy_cloud_boundary_v4.png")
-    print("CLOUD_BOUNDARY left=",left_change," right=",right_change," image=",png_result)
+    print("CLOUD_BOUNDARY left=",left_change," right=",right_change)
     print("CANOPY_CLOUD_FAIL" if failed else "CANOPY_CLOUD_PASS")
     menu.queue_free()
     await process_frame
