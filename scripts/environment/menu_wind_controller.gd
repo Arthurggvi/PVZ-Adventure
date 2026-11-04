@@ -1,5 +1,4 @@
-## Menu-only wind envelope shared by canopy and falling-leaf emitters.
-## State transitions are time-based; no timers, no global singleton.
+## Shared, smoothly varying wind for the menu canopy and drifting leaf sprites.
 extends Node
 
 signal gust_started(power: float)
@@ -10,11 +9,13 @@ signal gust_started(power: float)
 @export var strength_speed := 1.9
 
 var strength := 0.0
+var direction := 1.0
 var state := &"breeze"
 var active := false
 var wind_time := 0.0
 var _remaining := 0.0
 var _target := 0.0
+var _direction_target := 1.0
 var _random := RandomNumberGenerator.new()
 
 func _ready() -> void:
@@ -43,6 +44,8 @@ func _process(delta: float) -> void:
             &"gust":
                 _enter(&"calm")
     strength = move_toward(strength, _target, strength_speed * delta)
+    # Direction takes seconds to turn, rather than abruptly teleporting leaves.
+    direction = move_toward(direction, _direction_target, 0.32 * delta)
 
 func _enter(next_state: StringName) -> void:
     state = next_state
@@ -57,3 +60,5 @@ func _enter(next_state: StringName) -> void:
         _:
             _target = _random.randf_range(0.78, 1.05)
             _remaining = _random.randf_range(breeze_seconds.x, breeze_seconds.y)
+            # Mostly oceanward wind; uncommon reversals add realistic eddies.
+            _direction_target = -0.7 if _random.randf() < 0.17 else 1.0

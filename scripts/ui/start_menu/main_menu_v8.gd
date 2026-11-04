@@ -33,6 +33,8 @@ func _ready() -> void:
 	Global.user_manager.signal_users_update.connect(_fit_profile_name)
 	_fit_profile_name()
 	_align_plaque_titles()
+	# Explicit dependency injection: foreground art shares the existing wind controller.
+	$ArtCanvas/ForegroundLeaves.bind_wind($ArtCanvas/EnvironmentFX/FoliageFX/Wind)
 	_apply_environment()
 
 ## 只切换纹理引用，不修改原始PNG；复用现有画布与环境子场景。
@@ -40,6 +42,7 @@ func _apply_environment() -> void:
 	$ArtCanvas/coastal_yard.texture = load("res://assets/adventure/environment_fx/v1/sky_cleanup_v1/backgrounds/main_menu_sky_clean_1920x1080.png" if use_clean_sky else "res://assets/adventure/main_menu/v6/background/coastal_yard.png")
 	$ArtCanvas/EnvironmentFX.set_flags(environment_fx_enabled, use_clean_sky)
 	$ArtCanvas/EnvironmentFX/FoliageFX.set_environment_state(environment_fx_enabled, use_clean_sky)
+	$ArtCanvas/ForegroundLeaves.set_active(environment_fx_enabled)
 
 ## 仅替换原生名牌外观，保留玩家名 Label、档案按钮及事件连接。
 func _layout_native_profile() -> void:

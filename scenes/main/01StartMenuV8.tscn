@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3]
+[gd_scene load_steps=55 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/main/01StartMenu.tscn" id="base"]
 
@@ -75,6 +75,7 @@
 [ext_resource type="Shader" path="res://shaders/adventure/plaque_breathing_glow.gdshader" id="plaque_glow"]
 
 [ext_resource type="PackedScene" path="res://scenes/environment/main_menu_fx.tscn" id="environment_fx"]
+[ext_resource type="PackedScene" path="res://scenes/environment/main_menu_leaf_overlay.tscn" id="leaf_overlay"]
 
 [ext_resource type="Shader" path="res://shaders/adventure/environment_mask.gdshader" id="terrain_mask"]
 [ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v1/generated_masks/dock_foreground.png" id="dock_mask"]
@@ -271,6 +272,8 @@ mouse_filter = 2
 modulate = Color(1, 1, 1, 0.35)
 
 [node name="CrowFlyby" parent="ArtCanvas" instance=ExtResource("crow")]
+
+[node name="ForegroundLeaves" parent="ArtCanvas" instance=ExtResource("leaf_overlay")]
 
 [node name="home_button" type="TextureButton" parent="ArtCanvas"]
 layout_mode = 0
