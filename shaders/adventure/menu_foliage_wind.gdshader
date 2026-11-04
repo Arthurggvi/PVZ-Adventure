@@ -1,9 +1,10 @@
 shader_type canvas_item;
 
-// Only the transparent leaf texture moves; the trunk and cloud/background pixels stay static.
-uniform bool wind_enabled = false;
+// Coordinates are the original 840x320 hand-painted, transparent canopy artwork.
 uniform vec2 artwork_pixels = vec2(840.0, 320.0);
-uniform float amplitude_pixels : hint_range(0.0, 9.0) = 4.6;
+uniform float amplitude_pixels : hint_range(0.0, 24.0) = 14.0;
+uniform float wind_strength : hint_range(0.0, 2.0) = 0.0;
+uniform float wind_time = 0.0;
 varying vec4 tint;
 
 void vertex() {
@@ -11,37 +12,38 @@ void vertex() {
 }
 
 void fragment() {
-    vec2 shifted_uv = UV;
-    if (wind_enabled) {
+    vec2 source_uv = UV;
+    if (wind_strength > 0.001) {
         vec2 p = UV * artwork_pixels;
-        float t = TIME;
-        // Continuous, overlapping wind zones avoid hard cut lines across the canopy.
+        float t = wind_time;
+        // Smooth spatial weights avoid visible seams between adjacent crown groups.
         vec4 zone = vec4(
-            exp(-pow((p.x - 95.0) / 185.0, 2.0)),
-            exp(-pow((p.x - 295.0) / 150.0, 2.0)),
-            exp(-pow((p.x - 485.0) / 150.0, 2.0)),
-            exp(-pow((p.x - 675.0) / 175.0, 2.0))
+            exp(-pow((p.x - 105.0) / 190.0, 2.0)),
+            exp(-pow((p.x - 310.0) / 165.0, 2.0)),
+            exp(-pow((p.x - 505.0) / 165.0, 2.0)),
+            exp(-pow((p.x - 710.0) / 175.0, 2.0))
         );
         vec4 phases = vec4(
-            sin(t * 0.84 + 0.1),
-            sin(t * 0.69 + 1.3),
-            sin(t * 0.76 + 2.5),
-            sin(t * 0.58 + 3.4)
+            sin(t * 1.20 + 0.6),
+            sin(t * 1.32 + 1.9),
+            sin(t * 1.10 + 2.7),
+            sin(t * 1.42 + 3.4)
         );
         float sway = dot(zone, phases) / max(dot(zone, vec4(1.0)), 0.001);
-        // The wood-side and low foliage moves less; exposed outer leaves move more.
-        float tip = mix(0.25, 1.0, 1.0 - smoothstep(80.0, 255.0, p.y));
-        float gust = 0.79 + 0.21 * sin(t * 0.23 + 0.7);
-        vec2 offset_pixels = amplitude_pixels * tip * gust * vec2(
-            sway + 0.13 * sin(t * 1.47 + p.x * 0.013),
-            0.29 * sin(t * 0.72 + p.x * 0.009 + 0.8)
-        );
-        shifted_uv -= offset_pixels / artwork_pixels;
+        // Root/wood side remains restrained; exposed edge responds to gusts.
+        float outer = 1.0 - smoothstep(35.0, 245.0, p.y);
+        float flex = mix(0.2, 1.0, outer);
+        float ruffle = sin(t * 2.15 + p.x * 0.021 + p.y * 0.01);
+        vec2 offset = vec2(
+            (sway + ruffle * 0.16) * amplitude_pixels * flex,
+            (sin(t * 1.33 + p.x * 0.016) * 0.21) * amplitude_pixels * flex
+        ) * wind_strength;
+        source_uv -= offset / artwork_pixels;
     }
-    if (any(lessThan(shifted_uv, vec2(0.0))) ||
-        any(greaterThan(shifted_uv, vec2(1.0)))) {
+    if (any(lessThan(source_uv, vec2(0.0))) ||
+        any(greaterThan(source_uv, vec2(1.0)))) {
         COLOR = vec4(0.0);
     } else {
-        COLOR = texture(TEXTURE, shifted_uv) * tint;
+        COLOR = texture(TEXTURE, source_uv) * tint;
     }
 }

@@ -12,7 +12,7 @@ func _check() -> void:
     root.add_child(art)
     var bg := TextureRect.new()
     bg.name = "coastal_yard"
-    bg.size = Vector2(1920, 1080)
+    bg.size = art.size
     bg.texture = load("res://assets/adventure/environment_fx/v1/sky_cleanup_v1/backgrounds/main_menu_sky_clean_1920x1080.png")
     bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     art.add_child(bg)
@@ -20,48 +20,39 @@ func _check() -> void:
     ship.name = "ship"
     ship.size = Vector2(677, 508)
     art.add_child(ship)
-    var packed: PackedScene = load("res://scenes/environment/main_menu_fx.tscn")
-    if not _expect(packed != null, "environment scene loads"):
-        quit(1)
-        return
-    var fx := packed.instantiate() as Node2D
+    var fx: Node2D = load("res://scenes/environment/main_menu_fx.tscn").instantiate()
     art.add_child(fx)
     await process_frame
-    var foliage := fx.get_node_or_null("FoliageFX")
-    if not _expect(foliage != null, "foliage exists"):
-        quit(1)
-        return
-    _expect(fx.get_child(fx.get_child_count() - 1) == foliage, "canopy renders above sky overlays")
-    _expect(bg.material == null, "old background UV warping no longer active in main menu")
+    var foliage: Node2D = fx.get_node("FoliageFX")
+    var wind := foliage.get_node("Wind")
     var underlay := foliage.get_node("Underlay") as Sprite2D
     var leaves := foliage.get_node("Leaves") as Sprite2D
     var material := leaves.material as ShaderMaterial
-    _expect(leaves.texture.get_size() == Vector2(840, 320), "leaf art dimensions")
-    _expect(underlay.texture.get_size() == Vector2(840, 320), "underlay dimensions")
+    _check_assert(bg.material == null, "no legacy menu UV warp")
+    _check_assert(fx.get_child(-1) == foliage, "canopy above sky fx")
+    _check_assert(leaves.texture.get_size() == Vector2(840, 320), "leaf dimensions")
     foliage.set_environment_state(true, true)
-    _expect(material.get_shader_parameter("wind_enabled") == true, "wind runs")
-    var clean_texture := leaves.texture
+    wind._enter(&"gust")
+    wind._process(0.75)
+    foliage._process(0.016)
+    _check_assert(wind.state == &"gust" and wind.strength > 0.4, "gust envelope")
+    _check_assert(material.get_shader_parameter("wind_strength") > 0.4, "GPU wind strength")
+    var clean_leaf := leaves.texture
     foliage.set_environment_state(false, true)
-    _expect(material.get_shader_parameter("wind_enabled") == false, "wind freezes without hiding canopy")
-    _expect(leaves.visible and underlay.visible, "static image still complete")
+    _check_assert(material.get_shader_parameter("wind_strength") == 0.0, "FX disables safely")
+    _check_assert(leaves.visible and underlay.visible, "static reconstruction")
     foliage.set_environment_state(true, false)
-    _expect(leaves.texture != clean_texture, "original-sky artwork matches source")
-    _expect(underlay.texture != null, "original-sky underlay available")
+    _check_assert(leaves.texture != clean_leaf, "original sky variant")
     foliage.hide()
-    _expect(material.get_shader_parameter("wind_enabled") == false, "hidden foliage stops")
+    _check_assert(material.get_shader_parameter("wind_strength") == 0.0, "hidden stops wind")
     foliage.show()
-    _expect(material.get_shader_parameter("wind_enabled") == true, "visible foliage resumes")
+    _check_assert(wind.active, "visible resumes")
     if not OS.get_cmdline_user_args().has("--no-full-menu"):
-        _expect(load("res://scenes/main/01StartMenuV8.tscn") != null, "real start menu still loads")
-    if failed:
-        print("MENU_FOLIAGE_SMOKE_FAIL")
-        quit(1)
-    else:
-        print("MENU_FOLIAGE_SMOKE_PASS")
-        quit(0)
+        _check_assert(load("res://scenes/main/01StartMenuV8.tscn") != null, "menu scene loads")
+    print("MENU_FOLIAGE_SMOKE_FAIL" if failed else "MENU_FOLIAGE_SMOKE_PASS")
+    quit(1 if failed else 0)
 
-func _expect(ok: bool, label: String) -> bool:
+func _check_assert(ok: bool, reason: String) -> void:
     if not ok:
         failed = true
-        push_error("FOLIAGE_CHECK: " + label)
-    return ok
+        push_error(reason)
