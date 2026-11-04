@@ -14,30 +14,25 @@ var content: VBoxContainer
 var feedback: Label
 var _section := ""
 var _tab_buttons: Dictionary = {}
+var _panel: PanelContainer
 
 func initialize(commands: RefCounted) -> void:
 	service = commands
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	var dim := ColorRect.new()
-	dim.color = Color(0.045, 0.035, 0.022, 0.78)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(dim)
-	var panel := PanelContainer.new()
-	panel.name = "CheatConsolePanel"
-	panel.anchor_left = 0.065
-	panel.anchor_top = 0.07
-	panel.anchor_right = 0.935
-	panel.anchor_bottom = 0.93
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.add_theme_stylebox_override("panel", _style())
-	add_child(panel)
+	# An in-game debug tool must not intercept input outside its own panel.
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel = PanelContainer.new()
+	_panel.name = "CheatConsolePanel"
+	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_panel.add_theme_stylebox_override("panel", _style())
+	add_child(_panel)
+	resized.connect(_layout_panel)
+	_layout_panel()
 	var outer := VBoxContainer.new()
 	outer.add_theme_constant_override("separation", 12)
-	panel.add_child(outer)
+	_panel.add_child(outer)
 	var top := HBoxContainer.new()
 	outer.add_child(top)
 	var title := Label.new()
@@ -82,6 +77,20 @@ func _ready() -> void:
 	feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	outer.add_child(feedback)
 	# F9 only builds the lightweight shell; modules are loaded on explicit selection.
+
+## Dock to the right edge while leaving the game canvas interactive on the left.
+func _layout_panel() -> void:
+	if not is_instance_valid(_panel):
+		return
+	var width := minf(720.0, maxf(440.0, size.x * 0.68))
+	_panel.anchor_left = 1.0
+	_panel.anchor_right = 1.0
+	_panel.anchor_top = 0.0
+	_panel.anchor_bottom = 1.0
+	_panel.offset_left = -width
+	_panel.offset_right = -12.0
+	_panel.offset_top = 12.0
+	_panel.offset_bottom = -12.0
 
 func _style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
