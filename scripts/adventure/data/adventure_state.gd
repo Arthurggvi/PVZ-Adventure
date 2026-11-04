@@ -10,6 +10,8 @@ var cards: Dictionary[String, PlantCardInstance] = {}
 var items: Dictionary[String, int] = {}
 ## 有序出战 UID 列表，必须存在于 cards 且不重复。
 var selected_card_uids: Array[String] = []
+## 背包植物永久展示顺序；与上次出战 UID 分离，必须覆盖 cards 的每张实例。
+var card_order_uids: Array[String] = []
 ## 下一个未分配编号，删除卡片不回退，序列化后继续递增。
 var next_card_id: int = 1
 ## 未来地区进度的 JSON 字典，不解释其业务含义。
@@ -28,7 +30,7 @@ func to_dict() -> Dictionary:
 		encoded_cards[card_uid] = cards[card_uid].to_dict()
 	var data: Dictionary = {"schema_version": schema_version, "cards": encoded_cards,
 		"items": items.duplicate(true), "selected_card_uids": selected_card_uids.duplicate(),
-		"next_card_id": next_card_id, "regions": regions.duplicate(true),
+		"card_order_uids": card_order_uids.duplicate(), "next_card_id": next_card_id, "regions": regions.duplicate(true),
 		"claimed_rewards": claimed_rewards.duplicate(true)} # 所有嵌套容器独立于运行态。
 	return data if from_dict(data) != null else {}
 
@@ -45,6 +47,8 @@ static func from_dict(data: Variant) -> AdventureState:
 	if not data.cards is Dictionary or not data.items is Dictionary or not data.selected_card_uids is Array \
 		or not data.regions is Dictionary or not data.claimed_rewards is Dictionary or not _is_json_value(data.regions):
 		return null
+	if data.has("card_order_uids") and not data.card_order_uids is Array:
+		return null
 	var state := AdventureState.new() # 所有容器和卡片都在此新实例中恢复。
 	state.next_card_id = int(data.next_card_id)
 	for card_uid: Variant in data.cards: # UID 必须规范、与卡内一致，并小于下一个分配编号。
@@ -53,6 +57,18 @@ static func from_dict(data: Variant) -> AdventureState:
 		if number == 0 or number >= state.next_card_id or card == null or card.uid != card_uid:
 			return null
 		state.cards[card_uid] = card
+	# 旧版存档没有显式排序：从稳定 UID 数字恢复首次顺序，不触碰卡组。
+	if data.has("card_order_uids"):
+		for card_uid: Variant in data.card_order_uids:
+			if typeof(card_uid) != TYPE_STRING or not state.cards.has(card_uid) or state.card_order_uids.has(card_uid):
+				return null
+			state.card_order_uids.append(card_uid)
+		if state.card_order_uids.size() != state.cards.size():
+			return null
+	else:
+		for card_uid: String in state.cards:
+			state.card_order_uids.append(card_uid)
+		state.card_order_uids.sort_custom(_uid_before)
 	for item_id: Variant in data.items: # 不接受未知种类、零/负数或非整数数量。
 		if typeof(item_id) != TYPE_STRING or not ItemRegistry.has_item(item_id) \
 			or not PlantCardInstance.is_positive_integer(data.items[item_id]):
@@ -72,6 +88,10 @@ static func from_dict(data: Variant) -> AdventureState:
 			return null
 		state.claimed_rewards[reward_id] = data.claimed_rewards[reward_id]
 	return state
+
+## 旧存档首次排序按 UID 递增；文本排序在编号超过六位时会失序。
+static func _uid_before(a: String, b: String) -> bool:
+	return PlantCardInstance.uid_number(a) < PlantCardInstance.uid_number(b)
 
 ## [param value] 仅可包含 JSON 基础类型；[param depth] 限制异常深度与循环容器。
 static func _is_json_value(value: Variant, depth: int = 0) -> bool:

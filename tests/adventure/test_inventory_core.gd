@@ -23,6 +23,15 @@ func _run() -> void:
 	assert(inventory.add_card(123456).is_empty() and inventory.add_card(1, 0).is_empty())
 	assert(inventory.add_card(true).is_empty() and inventory.add_card(1, 1.5).is_empty())
 	assert(inventory.list_cards().size() == 2 and state.next_card_id == 3)
+	assert(inventory.get_card_order() == [first, second])
+	assert(inventory.move_card(second, 0) and inventory.get_card_order() == [second, first])
+	assert(inventory.list_cards()[0].uid == second) # 与选卡候选顺序共享。
+	assert(not inventory.move_card("PC999999", 0) and not inventory.move_card(first, 2))
+	assert(not inventory.set_card_order([first, first]) and not inventory.set_card_order([first]))
+	assert(inventory.get_card_order() == [second, first])
+	var order_copy: Array[String] = inventory.get_card_order()
+	order_copy.clear()
+	assert(inventory.get_card_order() == [second, first])
 	var card_copy: Dictionary = inventory.get_card(first) # 查询结果不能成为修改真实卡的旁路。
 	card_copy.stars = 99
 	var card_list: Array[Dictionary] = inventory.list_cards() # 列表中的每个字典也必须独立。
@@ -37,8 +46,10 @@ func _run() -> void:
 	assert(not inventory.set_deck(duplicate_deck) and not inventory.set_deck(missing_deck))
 	assert(state.selected_card_uids == [first, second])
 	assert(inventory.remove_card(first) and state.selected_card_uids == [second])
+	assert(inventory.get_card_order() == [second])
 	assert(not inventory.remove_card(first) and inventory.get_card(first).is_empty())
 	assert(inventory.add_card(1) == "PC000003") # 删除不会回收历史编号。
+	assert(inventory.get_card_order() == [second, "PC000003"])
 	assert(inventory.add_item("nut_fragments", 2) and inventory.add_item("nut_fragments", 3))
 	assert(inventory.consume_item("nut_fragments", 2) and inventory.get_item_count("nut_fragments") == 3)
 	assert(not inventory.consume_item("nut_fragments", 4))
@@ -66,6 +77,12 @@ func _run() -> void:
 	assert(restored != null and restored.cards.size() == 2)
 	assert(restored.cards[second].promotion_1 == "branch_a" and restored.cards[second].promotion_2.is_empty())
 	assert(restored.selected_card_uids == [second] and restored.items.fertilizer_lv1 == 2)
+	assert(restored.card_order_uids == [second, "PC000003"])
+	var legacy: Dictionary = JSON.parse_string(encoded)
+	legacy.erase("card_order_uids")
+	var migrated: AdventureState = state_model.from_dict(legacy)
+	assert(migrated != null and migrated.card_order_uids == [second, "PC000003"])
+	assert(migrated.to_dict().has("card_order_uids"))
 	# Godot JSON 将数组内数字解码为浮点；比较数值语义，不要求原始 Variant 数字类型相同。
 	assert(restored.regions.zombie_island.cleared.size() == 1 and restored.regions.zombie_island.cleared[0] == 1 and restored.claimed_rewards.starter)
 	var resumed: RefCounted = service_model.new(restored) # 恢复后继续使用持久计数器。
@@ -108,6 +125,10 @@ func _run() -> void:
 	invalid_state = JSON.parse_string(encoded)
 	invalid_state.items = {"unknown": 1}
 	assert(state_model.from_dict(invalid_state) == null)
+	for malformed_order: Variant in [[second, second], [second], [second, "PC999999"], "bad"]:
+		invalid_state = JSON.parse_string(encoded)
+		invalid_state.card_order_uids = malformed_order
+		assert(state_model.from_dict(invalid_state) == null)
 	invalid_state = JSON.parse_string(encoded)
 	invalid_state.selected_card_uids = [second, second]
 	assert(state_model.from_dict(invalid_state) == null)

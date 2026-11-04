@@ -24,6 +24,7 @@ func add_card(plant_type: Variant, stars: Variant = 1) -> String:
 	card.plant_type = int(plant_type)
 	card.stars = int(stars)
 	_state.cards[card_uid] = card
+	_state.card_order_uids.append(card_uid)
 	_state.next_card_id += 1
 	return card_uid
 
@@ -31,6 +32,7 @@ func add_card(plant_type: Variant, stars: Variant = 1) -> String:
 func remove_card(uid: String) -> bool:
 	if not _state.cards.erase(uid):
 		return false
+	_state.card_order_uids.erase(uid)
 	while _state.selected_card_uids.has(uid):
 		_state.selected_card_uids.erase(uid)
 	return true
@@ -42,9 +44,34 @@ func get_card(uid: String) -> Dictionary:
 ## 返回所有卡的独立字典列表，不向外暴露可写卡对象。
 func list_cards() -> Array[Dictionary]:
 	var result: Array[Dictionary] = [] # 每个列表元素也是重新构造的纯数据副本。
-	for card_uid: String in _state.cards: # 沿当前状态的插入顺序返回。
+	for card_uid: String in _state.card_order_uids: # 背包与冒险选卡共用保存后的卡牌 UID 顺序。
 		result.append(get_card(card_uid))
 	return result
+
+## 返回独立排序快照，界面拖拽不能直接改写状态数组。
+func get_card_order() -> Array[String]:
+	return _state.card_order_uids.duplicate()
+
+## 原子设置完整卡牌顺序；漏卡、重复 UID 或跨档 UID 一律拒绝。
+func set_card_order(uids: Array[String]) -> bool:
+	if uids.size() != _state.cards.size():
+		return false
+	var seen: Dictionary = {}
+	for uid: String in uids:
+		if not _state.cards.has(uid) or seen.has(uid):
+			return false
+		seen[uid] = true
+	_state.card_order_uids = uids.duplicate()
+	return true
+
+## 背包拖拽将单卡插入目标序位，其他卡平移；仅移动引用，不改变出战历史。
+func move_card(uid: String, target_index: int) -> bool:
+	if not _state.cards.has(uid) or target_index < 0 or target_index >= _state.card_order_uids.size():
+		return false
+	var order: Array[String] = _state.card_order_uids.duplicate()
+	order.erase(uid)
+	order.insert(target_index, uid)
+	return set_card_order(order)
 
 ## 用 [param uids] 原子替换出战列表；重复或不存在的 UID 拒绝，旧列表保持不变。
 func set_deck(uids: Array[String]) -> bool:
