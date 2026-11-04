@@ -22,12 +22,13 @@ func _ready() -> void:
     set_active(true)
 
 func set_active(enabled: bool) -> void:
+    var previously_active := active
     active = enabled
     set_process(enabled)
     if not enabled:
         strength = 0.0
         _target = 0.0
-    elif _remaining <= 0.0:
+    elif not previously_active or _remaining <= 0.0:
         _enter(&"breeze")
 
 func _process(delta: float) -> void:

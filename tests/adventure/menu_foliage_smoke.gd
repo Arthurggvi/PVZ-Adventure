@@ -25,6 +25,10 @@ func _check() -> void:
     await process_frame
     var foliage: Node2D = fx.get_node("FoliageFX")
     var wind := foliage.get_node("Wind")
+    var clusters := foliage.get_node("Clusters")
+    var falling := foliage.get_node("FallingLeaves")
+    _check_assert(clusters.pivots.size() == 4, "4 independent canopy clusters")
+    _check_assert(falling.particles.size() == 20, "bounded falling-leaf pool")
     var underlay := foliage.get_node("Underlay") as Sprite2D
     var leaves := foliage.get_node("Leaves") as Sprite2D
     var material := leaves.material as ShaderMaterial
@@ -37,12 +41,21 @@ func _check() -> void:
     foliage._process(0.016)
     _check_assert(wind.state == &"gust" and wind.strength > 0.4, "gust envelope")
     _check_assert(material.get_shader_parameter("wind_strength") > 0.4, "GPU wind strength")
+    _check_assert(falling.live_count() >= 3, "gust emits falling leaves")
+    for _i in range(10):
+        falling._gust_burst(1.5)
+    _check_assert(falling.live_count() == 20, "pool remains capped under repeated gusts")
+    clusters._process(1.0)
+    _check_assert(absf(clusters.pivots[2].rotation) > 0.001, "independent pivot motion")
     var clean_leaf := leaves.texture
     foliage.set_environment_state(false, true)
     _check_assert(material.get_shader_parameter("wind_strength") == 0.0, "FX disables safely")
     _check_assert(leaves.visible and underlay.visible, "static reconstruction")
+    _check_assert(falling.live_count() == 0 and not falling.active, "leaf pool recycled on FX off")
     foliage.set_environment_state(true, false)
+    _check_assert(wind.active and wind._target > 0.5, "re-enabled wind resumes immediately")
     _check_assert(leaves.texture != clean_leaf, "original sky variant")
+    _check_assert(clusters.sprites[0].texture != clusters.CLEAN[0], "cluster sky variant")
     foliage.hide()
     _check_assert(material.get_shader_parameter("wind_strength") == 0.0, "hidden stops wind")
     foliage.show()
