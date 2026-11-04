@@ -5,7 +5,7 @@ class_name StageDefinition
 ## 关卡稳定 ID，不使用场景文件名、列表下标或展示文本替代。
 @export var stage_id: StringName = &""
 ## 复用原版地形/环境/战斗参数模板，阶段只注入自己的动态规则。
-@export var battle_template: ResourceLevelData
+@export var environment: AdventureBattleEnvironment
 ## 两个独立阶段资源，身份与锁在阶段内显式配置.
 @export var phases: Array[StagePhaseDefinition] = []
 
@@ -14,10 +14,10 @@ func validate(known_tier_ids: Array[StringName] = [], known_key_ids: Array[Strin
 	var errors := PackedStringArray() # 汇总所有静态错误，不自动修复或变更配置。
 	if str(stage_id).strip_edges().is_empty():
 		errors.append("关卡缺少稳定 ID。")
-	if battle_template == null:
-		errors.append("关卡缺少原版战斗模板。")
+	if environment == null:
+		errors.append("关卡缺少冒险环境配置。")
 	else:
-		errors.append_array(AdventureLevelTemplateAdapter.validate(battle_template))
+		errors.append_array(environment.validate())
 	if phases.size() != 2:
 		errors.append("一关必须恰好包含 normal 和 nightmare 两个阶段。")
 	var phase_ids: Dictionary = {} # 当前关卡内的唯一阶段 ID。

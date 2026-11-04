@@ -3,7 +3,7 @@
 extends Resource
 class_name AdventureStageOverride
 
-@export var battle_template: ResourceLevelData
+@export var environment: AdventureBattleEnvironment
 @export var normal_wave_profile: WaveProfile
 @export var nightmare_wave_profile: WaveProfile
 @export var normal_drop_table: DropTable
@@ -29,8 +29,8 @@ func apply(stage: StageDefinition) -> bool:
 			nightmare = phase
 	if normal == null or nightmare == null:
 		return false
-	if battle_template != null:
-		stage.battle_template = battle_template.duplicate(true) as ResourceLevelData
+	if environment != null:
+		stage.environment = environment.duplicate(true) as AdventureBattleEnvironment
 	if normal_wave_profile != null:
 		normal.wave_profile = normal_wave_profile.duplicate(true) as WaveProfile
 	if nightmare_wave_profile != null:

@@ -99,13 +99,13 @@ func _run() -> void:
 	_event_model = load("res://scripts/adventure/stages/stage_event_definition.gd")
 	var stage: Resource = _stage_model.new() # 一关恰好 normal 和 nightmare 两阶段。
 	stage.stage_id = &"fixture_stage"
-	stage.battle_template = load("res://resources/adventure/island_lawn.tres")
+	stage.environment = AdventureBattleEnvironment.new()
 	stage.phases.append(_phase(_phase_model.Kind.NORMAL))
 	stage.phases.append(_phase(_phase_model.Kind.NIGHTMARE))
 	assert(stage.validate(TIERS, KEYS).is_empty())
-	stage.battle_template = null
+	stage.environment = null
 	assert(not stage.validate(TIERS, KEYS).is_empty())
-	stage.battle_template = load("res://resources/adventure/island_lawn.tres")
+	stage.environment = AdventureBattleEnvironment.new()
 	var phase: Resource = stage.phases[0] # 以下负例修改独立夹具并立即还原。
 	var band: Resource = phase.wave_profile.bands[0] # 唯一自然波段。
 	assert(not stage.validate(NO_TIERS, KEYS).is_empty()) # 未知等阶不能静态引用。

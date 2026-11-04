@@ -106,7 +106,7 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState,
 		var index: int = band.first_wave - 1
 		var power: int = index / 3 + 1
 		var is_flag_wave: bool = index % 10 == 9
-		var budget: int = (int(power * 2.5) if is_flag_wave else power) * stage.battle_template.zombie_multy
+		var budget: int = (int(power * 2.5) if is_flag_wave else power) * stage.environment.zombie_power_multiplier
 		if AdventureWavePlanner.build_plan(phase.wave_profile, band.first_wave,
 				budget, 1, tier_threat_costs(), check_rng).is_empty():
 			return "波段[%s]首波战力预算不足。" % band.band_id
@@ -115,15 +115,6 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState,
 static func build_level(stage_number: int, kind: int) -> ResourceLevelData:
 	var stage: StageDefinition = load_stage(stage_number)
 	var phase: StagePhaseDefinition = find_phase(stage, kind)
-	if phase == null:
+	if stage == null or phase == null:
 		return null
-	var level: ResourceLevelData = AdventureLevelTemplateAdapter.build(stage.battle_template, phase.max_selected_cards)
-	if level == null:
-		return null
-	level.max_wave = phase.wave_profile.wave_count
-	level.zombie_refresh_types.clear()
-	for band: WaveBandDefinition in phase.wave_profile.bands:
-		for zombie_type: int in band.zombie_weights:
-			if band.zombie_weights[zombie_type] > 0 and not level.zombie_refresh_types.has(zombie_type):
-				level.zombie_refresh_types.append(zombie_type as CharacterRegistry.ZombieType)
-	return level if not level.zombie_refresh_types.is_empty() else null
+	return AdventureBattleEnvironmentAdapter.build(stage.environment, phase)

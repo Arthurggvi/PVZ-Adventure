@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="StageDefinition" format=3]
 
-[ext_resource type="Resource" path="res://resources/adventure/island_lawn.tres" id="1_rehtx"]
+[ext_resource type="Script" path="res://scripts/resources/level/pre_plant_in_level.gd" id="1_rx0cf"]
+[ext_resource type="Script" path="res://scripts/adventure/adventure_battle_environment.gd" id="2_g3gx0"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/stage_phase_definition.gd" id="2_rx0cf"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/boss_encounter_definition.gd" id="3_g3gx0"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="4_g1pq0"]
@@ -9,6 +10,9 @@
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="7_qif7b"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="8_4ulqo"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/stage_definition.gd" id="9_s56om"]
+
+[sub_resource type="Resource" id="Resource_mw5ds"]
+script = ExtResource("2_g3gx0")
 
 [sub_resource type="Resource" id="Resource_rehtx"]
 script = ExtResource("4_g1pq0")
@@ -300,8 +304,8 @@ zombie_weights = Dictionary[int, int]({
 })
 tier_weights = Dictionary[StringName, int]({
 &"base": 5,
-&"veteran": 2,
-&"elite": 1
+&"elite": 1,
+&"veteran": 2
 })
 
 [sub_resource type="Resource" id="Resource_acfi4"]
@@ -330,5 +334,5 @@ events = Array[ExtResource("6_6xuwk")]([SubResource("Resource_pcfk5"), SubResour
 [resource]
 script = ExtResource("9_s56om")
 stage_id = &"zombie_island.lawn"
-battle_template = ExtResource("1_rehtx")
+environment = SubResource("Resource_mw5ds")
 phases = Array[ExtResource("2_rx0cf")]([SubResource("Resource_jbaxt"), SubResource("Resource_ojo8i")])

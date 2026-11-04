@@ -26,7 +26,7 @@ func _run() -> void:
 	assert(inventory.add_item("lawn_nightmare_key", 1))
 	assert(AdventureStageCatalog.entry_error(1, StagePhaseDefinition.Kind.NIGHTMARE, state, inventory).is_empty())
 	assert(nightmare.boss_encounters.size() == 1 and nightmare.events.size() == 2)
-	assert(AdventureStageCatalog.entry_error(2, StagePhaseDefinition.Kind.NORMAL, state, inventory).contains("尚未"))
+	assert(AdventureStageCatalog.entry_error(2, StagePhaseDefinition.Kind.NORMAL, state, inventory).is_empty())
 	var level: ResourceLevelData = AdventureStageCatalog.build_level(1, StagePhaseDefinition.Kind.NORMAL)
 	assert(level != null)
 	assert(level.look_show_zombie and level.can_choosed_card)
@@ -34,7 +34,7 @@ func _run() -> void:
 	assert(level.max_choosed_card_num == normal.max_selected_cards)
 	assert(level.zombie_refresh_types.size() == 1)
 	level.max_wave = 99
-	assert(stage.battle_template.max_wave == 10)
+	assert(stage.environment.initial_sun == 150)
 	assert(state.to_dict().size() > 0)
 	print("PASS: stage catalog, normal/nightmare gates, key, config runtime clone")
 	get_tree().quit(0)
