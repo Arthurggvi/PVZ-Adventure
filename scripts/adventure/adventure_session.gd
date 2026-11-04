@@ -18,6 +18,7 @@ var battle_loadout: Array[Dictionary] = []
 var boss_exit_results: Dictionary[StringName, int] = {}
 ## 存档失败后沿用同一次掉落结果，重试不得重新抽奖。
 var pending_reward: Dictionary = {}
+var victory_settled := false
 var notice := ""
 var battle_failed := false
 var adventure_active := false
@@ -36,6 +37,7 @@ func _on_profile_changed() -> void:
 	battle_loadout.clear()
 	boss_exit_results.clear()
 	pending_reward.clear()
+	victory_settled = false
 	adventure_active = false
 func open_adventure() -> bool:
 	if adventure_active:
@@ -119,6 +121,7 @@ func enter_stage(stage_number: int, phase_kind: int) -> bool:
 	battle_loadout.clear()
 	boss_exit_results.clear()
 	pending_reward.clear()
+	victory_settled = false
 	active_stage_number = stage_number
 	active_phase_kind = phase_kind
 	active_stage = stage
@@ -141,7 +144,7 @@ func enter_stage(stage_number: int, phase_kind: int) -> bool:
 	return true
 ## 接收备战画面按 UID 选择的卡，仅确认时冻结快照和更新当前玩家的历史卡组。
 func confirm_selected_cards(cards: Array[Card]) -> bool:
-	if not owns_battle(Global.game_para) or cards.is_empty() or cards.size() > active_level.max_choosed_card_num:
+	if not owns_battle(Global.game_para) or active_phase == null or not battle_loadout.is_empty() or cards.is_empty() or cards.size() > active_level.max_choosed_card_num:
 		return false
 	var inventory: AdventureInventoryService = Global.adventure_inventory
 	var uids: Array[String] = []
@@ -156,8 +159,18 @@ func confirm_selected_cards(cards: Array[Card]) -> bool:
 	if not inventory.set_deck(uids):
 		return false
 	var snapshot: Array[Dictionary] = AdventureBattleAdapter.create_loadout(state)
-	if snapshot.size() != cards.size() or not Global.save_service.save_now():
+	var charge_key: bool = active_phase.key_use == StagePhaseDefinition.KeyUse.CONSUME and active_phase.key_count > 0
+	var inventory_key: String = str(active_phase.key_id)
+	if snapshot.size() != cards.size():
 		state.selected_card_uids = previous_uids
+		return false
+	if charge_key and not inventory.consume_item(inventory_key, active_phase.key_count):
+		state.selected_card_uids = previous_uids
+		return false
+	if not Global.save_service.save_now():
+		state.selected_card_uids = previous_uids
+		if charge_key:
+			inventory.add_item(inventory_key, active_phase.key_count)
 		return false
 	battle_loadout = snapshot
 	for index: int in range(cards.size()):
@@ -177,36 +190,58 @@ func get_active_wave_profile(level: ResourceLevelData) -> WaveProfile:
 func get_active_phase(level: ResourceLevelData) -> StagePhaseDefinition:
 	return active_phase if owns_battle(level) else null
 
-func finish_victory() -> void:
-	if active_level == null or battle_failed or progress == null:
-		return
+## Boss 遭遇尚未结束时拒绝提前接受末波胜利，避免卡死结算。
+func can_accept_victory() -> bool:
+	if active_level == null or active_phase == null:
+		return false
+	var runtime: AdventureBattleRuntime = _active_runtime()
+	if runtime != null and runtime.boss_runtime != null and runtime.boss_runtime.active:
+		return false
+	if active_phase_kind != StagePhaseDefinition.Kind.NIGHTMARE:
+		return true
+	for encounter: BossEncounterDefinition in active_phase.boss_encounters:
+		if not boss_exit_results.has(encounter.encounter_id):
+			return false
+	return true
+
+## 权威胜利事务：战斗胜利被接受时执行，独立于奖杯 UI 和玩家是否点击。
+func settle_victory() -> bool:
+	if victory_settled:
+		return true
+	if active_level == null or battle_failed or progress == null or active_stage == null or active_phase == null:
+		return false
 	var stage: StageDefinition = active_stage
 	var phase: StagePhaseDefinition = active_phase
-	if phase == null:
-		return
+	var runtime: AdventureBattleRuntime = _active_runtime()
 	var defeated_boss := false
 	var loot_table: DropTable = phase.drop_table
 	if active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE:
 		for encounter: BossEncounterDefinition in phase.boss_encounters:
 			if not boss_exit_results.has(encounter.encounter_id):
 				error_message = "Boss 遭遇未结束，不能结算胜利。"
-				return
+				return false
 			if boss_exit_results[encounter.encounter_id] == StageEventDefinition.BossExitReason.DEFEATED:
 				defeated_boss = true
 		if not defeated_boss:
 			var normal: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, StagePhaseDefinition.Kind.NORMAL)
 			if normal == null:
-				return
-			loot_table = normal.drop_table # Boss 逃跑仅获得普通材料，不获得 Boss 专属掉落。
+				return false
+			loot_table = normal.drop_table
+	if runtime != null:
+		runtime.finish_battle(true)
 	var state: AdventureState = Global.global_game_state.adventure_state
 	if pending_reward.is_empty():
 		var rng := RandomNumberGenerator.new()
 		rng.randomize()
 		pending_reward = RewardService.prepare(
 			phase, loot_table, state.claimed_rewards, defeated_boss, rng)
+		if pending_reward.get("ok", false) and runtime != null:
+			var items: Dictionary = pending_reward["items"]
+			for item_id: String in runtime.requested_items:
+				items[item_id] = int(items.get(item_id, 0)) + int(runtime.requested_items[item_id])
 	if not pending_reward.get("ok", false):
 		error_message = "关卡奖励配置无效，未结算。"
-		return
+		return false
 	var before_items: Dictionary = state.items.duplicate(true)
 	var before_claims: Dictionary = state.claimed_rewards.duplicate(true)
 	var before_regions: Dictionary = state.regions.duplicate(true)
@@ -217,26 +252,44 @@ func finish_victory() -> void:
 			state, Global.adventure_inventory, Global.global_game_state):
 		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
 		error_message = "奖励入账失败，请检查库存容量。"
-		return
+		return false
 	var claim_id: String = str(pending_reward["claim_id"])
 	if not claim_id.is_empty():
 		state.claimed_rewards[claim_id] = true
 	if active_stage_number == 1 and active_phase_kind == StagePhaseDefinition.Kind.NORMAL and not progress.record_victory():
 		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
 		error_message = "草坪胜利进度无法更新。"
-		return
+		return false
 	AdventureStageCatalog.mark_cleared(state, stage.stage_id, active_phase_kind)
+	if runtime != null and not runtime.pending_region_flags.is_empty():
+		var region: Dictionary = state.regions.get(AdventureStageCatalog.REGION_ID, {}).duplicate(true)
+		var flags: Dictionary = region.get("event_flags", {}).duplicate(true)
+		for flag_id: StringName in runtime.pending_region_flags:
+			flags[str(flag_id)] = runtime.pending_region_flags[flag_id]
+		region["event_flags"] = flags
+		state.regions[AdventureStageCatalog.REGION_ID] = region
 	if not Global.save_service.save_now():
 		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
 		error_message = "奖励或通关记录保存失败，可重试相同掉落。"
-		_show_save_retry()
-		return
+		return false
+	victory_settled = true
 	var phase_name: String = "普通" if active_phase_kind == StagePhaseDefinition.Kind.NORMAL else "噩梦"
 	notice = "%s%s阶段通关！奖励：%s种物品，金币+%d。" % [
 		AdventureStageRegistry.display_name(active_stage_number), phase_name,
 		reward_items.size(), reward_coin]
 	battle_finished.emit(active_stage_number, "victory")
-	return_to_map()
+	return true
+
+func _active_runtime() -> AdventureBattleRuntime:
+	var game: MainGameManager = Global.main_game
+	if game == null or not owns_battle(game.game_para):
+		return null
+	return game.adventure_runtime
+
+## 奖杯按钮仅确认已落盘的结算结果，不能进行第二次抽奖或修改资产。
+func finish_victory() -> void:
+	if victory_settled:
+		return_to_map()
 
 func _restore_reward_snapshot(items: Dictionary, claims: Dictionary,
 		regions: Dictionary, coin: int) -> void:
@@ -250,27 +303,36 @@ func _restore_reward_snapshot(items: Dictionary, claims: Dictionary,
 	state.regions = regions.duplicate(true)
 	Global.global_game_state.coin_value = coin
 
-func _show_save_retry() -> void:
+## 仅在事务失败时弹出重试入口；主游戏自身恢复奖杯演出。
+func prompt_victory_retry(retry_action: Callable) -> void:
 	var retry := AcceptDialog.new()
 	retry.dialog_text = error_message
-	retry.ok_button_text = "重试保存"
+	retry.ok_button_text = "重试结算"
 	retry.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(retry)
 	retry.confirmed.connect(func():
 		retry.queue_free()
-		finish_victory())
+		if retry_action.is_valid():
+			retry_action.call_deferred())
 	retry.canceled.connect(func():
 		retry.queue_free()
-		_show_save_retry.call_deferred())
+		prompt_victory_retry.call_deferred(retry_action))
 	retry.popup_centered(Vector2i(520, 150))
+
 func finish_defeat() -> void:
 	if active_level == null:
 		return
+	var runtime: AdventureBattleRuntime = _active_runtime()
+	if runtime != null:
+		runtime.finish_battle()
 	notice = "%s挑战失败。" % AdventureStageRegistry.display_name(active_stage_number)
 	battle_finished.emit(active_stage_number, "defeat")
 	return_to_map()
 func abandon_battle() -> void:
 	if active_level != null:
+		var runtime: AdventureBattleRuntime = _active_runtime()
+		if runtime != null:
+			runtime.finish_battle()
 		notice = "已离开%s，本次未结算通关。" % AdventureStageRegistry.display_name(active_stage_number)
 		battle_finished.emit(active_stage_number, "abandoned")
 	return_to_map()
@@ -285,6 +347,7 @@ func return_to_map() -> void:
 	battle_loadout.clear()
 	boss_exit_results.clear()
 	pending_reward.clear()
+	victory_settled = false
 	Global.game_para = null
 	TreePauseManager.end_tree_pause_clear_all_pause_factors()
 	Global.time_scale = 1.0

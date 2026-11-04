@@ -13,15 +13,40 @@ var _threshold_states: Dictionary[StringName, bool] = {}
 var _last_clear_wave := 0
 var _ordered_events: Array[StageEventDefinition] = []
 var _cooldown_effects: Dictionary[StringName, Dictionary] = {}
+var requested_items: Dictionary[String, int] = {}
+var pending_region_flags: Dictionary[StringName, bool] = {}
+var _reward_rng := RandomNumberGenerator.new()
+var _battle_ended := false
+var _battle_won := false
+var _ending_requested := false
+var _last_zombie_count := -1
+
+## 只在实际胜/负判定时发一次 BATTLE_END；战斗事件不允许自行落盘。
+func finish_battle(victory: bool = false) -> void:
+	if _battle_ended:
+		return
+	_battle_ended = true
+	_battle_won = victory
+	_fire(StageEventDefinition.Trigger.BATTLE_END)
+	_cooldown_effects.clear()
+	_refresh_card_cooldowns()
 
 func setup(wave_manager: ZombieWaveManager, zombie_manager: ZombieManager,
 		stage_phase: StagePhaseDefinition) -> void:
 	waves = wave_manager
 	zombies = zombie_manager
-	phase = stage_phase.duplicate(true) as StagePhaseDefinition
+	phase = stage_phase # 共享 AdventureSession 已冻结的本局阶段快照，不重复读取资源文件。
+	_reward_rng.randomize()
 	_ordered_events = phase.events.duplicate()
 	_ordered_events.sort_custom(func(a: StageEventDefinition, b: StageEventDefinition) -> bool:
 		return a.order < b.order)
+	var requires_tick := false
+	for event: StageEventDefinition in _ordered_events:
+		if event.trigger in [StageEventDefinition.Trigger.ELAPSED_TIME,
+				StageEventDefinition.Trigger.ZOMBIE_COUNT] or event.action == StageEventDefinition.Action.MODIFY_CARD_COOLDOWN:
+			requires_tick = true
+			break
+	set_process(requires_tick)
 
 func _ready() -> void:
 	waves.adventure_battle_started.connect(_on_battle_start)
@@ -71,9 +96,14 @@ func _process(delta: float) -> void:
 		if changed:
 			_refresh_card_cooldowns()
 	_fire(StageEventDefinition.Trigger.ELAPSED_TIME)
-	_fire(StageEventDefinition.Trigger.ZOMBIE_COUNT, 0, {"count": zombies.curr_zombie_num})
+	var count: int = zombies.curr_zombie_num
+	if count != _last_zombie_count:
+		_last_zombie_count = count
+		_fire(StageEventDefinition.Trigger.ZOMBIE_COUNT, 0, {"count": count})
 
 func _fire(trigger: int, wave_number: int = 0, payload: Dictionary = {}) -> void:
+	if _battle_ended and trigger != StageEventDefinition.Trigger.BATTLE_END:
+		return
 	for event: StageEventDefinition in _ordered_events:
 		if event.trigger != trigger or (_fired.has(event.event_id) and
 			(event.repeat_rule == StageEventDefinition.RepeatRule.ONCE_PER_PHASE or
@@ -116,6 +146,15 @@ func _apply_action(event: StageEventDefinition) -> void:
 				waves.resume_advancement()
 		StageEventDefinition.Action.MODIFY_CARD_COOLDOWN:
 			_apply_cooldown(event)
+		StageEventDefinition.Action.REQUEST_DROP, StageEventDefinition.Action.SET_REGION_FLAG:
+			if event.trigger == StageEventDefinition.Trigger.BATTLE_END and not _battle_won:
+				return
+			if not AdventureBattleEventLedger.apply(event, requested_items, pending_region_flags, _reward_rng):
+				push_error("关卡事件结算失败：" + str(event.event_id))
+		StageEventDefinition.Action.FINISH_BATTLE:
+			if not _battle_ended and not _ending_requested:
+				_ending_requested = true
+				zombies.main_game.request_adventure_event_result.call_deferred(event.action_battle_result)
 
 func _begin_matching_boss(timing: int, wave_number: int) -> void:
 	for encounter: BossEncounterDefinition in phase.boss_encounters:
@@ -168,6 +207,12 @@ func _on_boss_exit(encounter_id: StringName, reason: int) -> void:
 		completed.queue_free()
 	if boss_runtime == completed:
 		boss_runtime = null
+	# 末波已清空但曾因 Boss 存活而拒绝胜利时，Boss 离场后补发唯一胜利请求。
+	if waves.curr_wave == waves.max_wave - 1 and zombies.curr_zombie_num == 0 \
+			and (boss_runtime == null or not boss_runtime.active) \
+			and AdventureSession.can_accept_victory():
+		var game: MainGameManager = zombies.main_game
+		game.create_trophy.call_deferred(game.camera_2d.get_screen_center_position())
 
 func _apply_cooldown(event: StageEventDefinition) -> void:
 	if event.cooldown_operation == StageEventDefinition.CooldownOperation.ADJUST_REMAINING_SECONDS:

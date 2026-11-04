@@ -68,6 +68,7 @@ func _run() -> void:
 	assert(not waves.is_advancement_suspended and waves.curr_wave > old_wave)
 	assert(AdventureSession.boss_exit_results[encounter_id] == StageEventDefinition.BossExitReason.ESCAPED)
 	# 人工调用胜利结算只验证存档路由，不作为完成十波的证据。
+	assert(AdventureSession.settle_victory())
 	AdventureSession.finish_victory()
 	await _frames()
 	assert(AdventureStageCatalog.is_cleared(Global.global_game_state.adventure_state,

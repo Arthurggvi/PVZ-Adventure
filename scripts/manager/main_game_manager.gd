@@ -113,6 +113,8 @@ var _round_transition_pending: bool = false
 var _round_end_claimed: bool = false
 ## 本轮实际由额外 Boss 条件结束，用于等待演出和跳过剩余自然波次。
 var _round_end_by_boss: bool = false
+## 冒险本局权威控制器；由主战斗场景持有，不隶属于原版波次系统。
+var adventure_runtime: AdventureBattleRuntime
 ## 当前关卡流程阶段；更新时同步通知卡槽与角色行为。
 var main_game_progress := E_MainGameProgress.NONE:
 	set(value):
@@ -256,7 +258,7 @@ func init_manager():
 	if AdventureSession.owns_battle(game_para):
 		var phase: StagePhaseDefinition = AdventureSession.get_active_phase(game_para)
 		if phase != null:
-			var adventure_runtime := AdventureBattleRuntime.new()
+			adventure_runtime = AdventureBattleRuntime.new()
 			adventure_runtime.setup(zombie_manager.zombie_wave_manager, zombie_manager, phase)
 			add_child(adventure_runtime)
 	background_manager.init_manager()
@@ -503,6 +505,8 @@ func try_claim_round_end(is_boss_win: bool = false) -> bool:
 		or _round_end_claimed or _round_transition_pending \
 		or TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.GameOver, false):
 		return false
+	if AdventureSession.owns_battle(game_para) and not AdventureSession.can_accept_victory():
+		return false
 	_round_end_claimed = true
 	_round_end_by_boss = is_boss_win
 	return true
@@ -510,6 +514,17 @@ func try_claim_round_end(is_boss_win: bool = false) -> bool:
 
 ## 普通胜利请求共用一次性结算入口；[param glo_pos] 为奖杯生成的世界坐标。
 ## 清场、罐子和脑子条件始终有效，与额外 Boss 胜利选项独立。
+## 事件结束战斗统一走本局唯一的胜负判定与结算链，不得绕过奖励事务。
+func request_adventure_event_result(result: int) -> void:
+	if not AdventureSession.owns_battle(game_para) or main_game_progress != E_MainGameProgress.MAIN_GAME:
+		return
+	if result == StageEventDefinition.BattleResult.VICTORY:
+		create_trophy(camera_2d.get_screen_center_position())
+	elif result == StageEventDefinition.BattleResult.DEFEAT:
+		main_game_progress = E_MainGameProgress.GAME_OVER
+		zombie_manager.zombie_wave_manager.stop_wave_refresh()
+		AdventureSession.finish_defeat()
+
 func create_trophy(glo_pos: Vector2) -> void:
 	if not try_claim_round_end():
 		return
@@ -538,6 +553,11 @@ func _finish_round_victory(glo_pos: Vector2) -> void:
 
 	print("=======================游戏结束，您获胜了=======================")
 	# 本轮唯一奖杯，由已接受的胜利请求创建。
+	if AdventureSession.owns_battle(game_para) and not AdventureSession.settle_victory():
+		main_game_progress = E_MainGameProgress.GAME_OVER
+		zombie_manager.zombie_wave_manager.stop_wave_refresh()
+		AdventureSession.prompt_victory_retry(_finish_round_victory.bind(glo_pos))
+		return
 	var trophy = SceneRegistry.TROPHY.instantiate()
 	canvas_layer_temp.add_child(trophy)
 	trophy.global_position = glo_pos
