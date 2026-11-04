@@ -74,6 +74,13 @@ var natural_refresh_zombie_count: int:
 		return _natural_refresh_zombies.size()
 ## 自然刷新参与数量发生变化时发出；[param num] 不包含博士及其衍生僵尸。
 signal signal_natural_refresh_zombie_num_change(num: int)
+## 僵尸出生波次独立计数；避免上一波残敌死亡被归入当前波。
+signal signal_natural_wave_count_change(wave_number: int, count: int)
+var _natural_wave_by_id: Dictionary[int, int] = {}
+var _natural_wave_counts: Dictionary[int, int] = {}
+
+func get_natural_wave_count(wave_index: int) -> int:
+	return _natural_wave_counts.get(wave_index + 1, 0)
 
 ## 是否为最后一波,最后一波时，僵尸数量为0后结束游戏
 var is_end_wave := false
@@ -642,6 +649,11 @@ func _register_natural_refresh_zombie(zombie: Zombie000Base) -> void:
 	if _natural_refresh_zombies.has(instance_id):
 		return
 	_natural_refresh_zombies[instance_id] = weakref(zombie)
+	if zombie.curr_wave >= 0:
+		var wave_number: int = zombie.curr_wave + 1
+		_natural_wave_by_id[instance_id] = wave_number
+		_natural_wave_counts[wave_number] = _natural_wave_counts.get(wave_number, 0) + 1
+		signal_natural_wave_count_change.emit(wave_number, _natural_wave_counts[wave_number])
 	zombie.tree_exiting.connect(_on_natural_refresh_zombie_tree_exiting.bind(instance_id))
 	signal_natural_refresh_zombie_num_change.emit(natural_refresh_zombie_count)
 
@@ -650,6 +662,13 @@ func _register_natural_refresh_zombie(zombie: Zombie000Base) -> void:
 func _remove_natural_refresh_zombie(instance_id: int) -> void:
 	if not _natural_refresh_zombies.erase(instance_id):
 		return
+	var wave_number: int = _natural_wave_by_id.get(instance_id, 0)
+	_natural_wave_by_id.erase(instance_id)
+	if wave_number > 0:
+		var remaining: int = maxi(0, _natural_wave_counts.get(wave_number, 0) - 1)
+		_natural_wave_counts[wave_number] = remaining
+		if is_game_running():
+			signal_natural_wave_count_change.emit(wave_number, remaining)
 	if is_game_running():
 		signal_natural_refresh_zombie_num_change.emit(natural_refresh_zombie_count)
 

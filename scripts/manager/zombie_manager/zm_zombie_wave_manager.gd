@@ -145,78 +145,63 @@ func _is_wave_refresh_current(refresh_generation: int) -> bool:
 	return refresh_generation == _refresh_generation and zombie_manager.is_game_running()
 
 ## 战斗阶段生成下一波并发出刷新信号；大波提示等待后检查战斗阶段及停止版本。
+## 一次自然波次：先判断并展示，再确认未暂停，最后才更新波次编号与实例。
+## await 期间出现 Boss 时保留待启动波次，不会偷跑生成。
 func start_next_wave() -> void:
 	if is_advancement_suspended:
 		_pending_advancement = true
 		return
-	if zombie_wave_create_manager.adventure_wave_profile != null:
-		var next_wave_number: int = curr_wave + 2
+	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile
+	var next_wave_index: int = curr_wave + 1
+	if profile != null:
+		var next_wave_number: int = next_wave_index + 1
 		if next_wave_number != _before_wave_signalled:
 			_before_wave_signalled = next_wave_number
 			adventure_wave_before.emit(next_wave_number)
 			if is_advancement_suspended:
 				_pending_advancement = true
 				return
-	# 捕获当前刷新版本，避免旧提示在下一轮恢复后继续生成旧波。
 	var refresh_generation: int = _refresh_generation
-	# 提前刷新信号通过 deferred 发出，Boss 死亡后仍可能有已排队的回调。
 	if not _is_wave_refresh_current(refresh_generation):
 		return
-	curr_wave += 1
-	# 本波正常生成的实例，用于接入掉血刷新和统计本波总血量。
-	var curr_wave_all_zombies:Array[Zombie000Base]
-	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile
-	var wave_number: int = curr_wave + 1
-	var is_final: bool = curr_wave == max_wave - 1
-	var is_flag: bool = (profile.is_flag_wave(wave_number) if profile != null else curr_wave % 10 == 9)
-	var is_flag_front: bool = (profile.is_flag_wave(wave_number + 1) or wave_number + 1 == max_wave if profile != null else curr_wave % 10 == 8)
-	if is_final:
-		curr_wave_type = E_WaveType.Final
-		await ui_remind_word.zombie_approach(true)
-		if not _is_wave_refresh_current(refresh_generation):
-			return
-		curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, true)
-		set_progress_bar()
-		if profile == null:
-			zombie_wave_create_manager.spawn_special_zombie_in_big_wave(true)
-			if is_have_tombston:
-				call_tombstone_create_zombie()
+	var wave_number: int = next_wave_index + 1
+	var is_final: bool = next_wave_index == max_wave - 1
+	var is_flag: bool = profile.is_flag_wave(wave_number) if profile != null else next_wave_index % 10 == 9
+	var is_flag_front: bool = (profile.is_flag_wave(wave_number + 1) or wave_number + 1 == max_wave) \
+		if profile != null else next_wave_index % 10 == 8
+	var next_type: E_WaveType = E_WaveType.Norm
+	if is_final and (profile != null or is_flag):
+		next_type = E_WaveType.Final
 	elif is_flag:
-		curr_wave_type = E_WaveType.Flag
-		await ui_remind_word.zombie_approach(false)
+		next_type = E_WaveType.Flag
+	elif is_flag_front:
+		next_type = E_WaveType.FlagFront
+	if next_type in [E_WaveType.Final, E_WaveType.Flag]:
+		await ui_remind_word.zombie_approach(next_type == E_WaveType.Final)
 		if not _is_wave_refresh_current(refresh_generation):
 			return
-		curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, true)
-		set_progress_bar()
-		if profile == null:
-			zombie_wave_create_manager.spawn_special_zombie_in_big_wave(false)
-			if is_have_tombston:
-				call_tombstone_create_zombie()
-	elif is_flag_front:
-		curr_wave_type = E_WaveType.FlagFront
-		curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, false)
-		set_progress_bar()
-	else:
-		curr_wave_type = E_WaveType.Norm
-		curr_wave_all_zombies = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, false)
-		set_progress_bar()
-
-	# 生成回调可能结束本轮，不能再重启刷新计时或发出旧波信号。
+		if is_advancement_suspended:
+			_pending_advancement = true
+			return
+	curr_wave = next_wave_index
+	curr_wave_type = next_type
+	var is_big_wave: bool = next_type in [E_WaveType.Final, E_WaveType.Flag]
+	var spawned: Array[Zombie000Base] = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, is_big_wave)
+	set_progress_bar()
+	if profile == null and is_big_wave:
+		zombie_wave_create_manager.spawn_special_zombie_in_big_wave(is_final)
+		if is_have_tombston:
+			call_tombstone_create_zombie()
 	if not _is_wave_refresh_current(refresh_generation):
 		return
-	# 本波生成时的总血量，作为残半刷新的计算基准。
 	var wave_all_hp := 0
-	# 当前接入自然波次掉血统计的僵尸。
-	for zombie:Zombie000Base in curr_wave_all_zombies:
-		# 波次生成的僵尸额外连接掉血信号,旗前波死亡触发信号
+	for zombie: Zombie000Base in spawned:
 		zombie.signal_zombie_hp_loss.connect(zombie_wave_refresh_manager.judge_half_refresh)
 		wave_all_hp += zombie.hp_component.get_all_hp()
-
 	zombie_wave_refresh_manager.update_wave_health_data(wave_all_hp, curr_wave_type, curr_wave)
-
-	signal_wave_refresh.emit(curr_wave == max_wave - 1)
-	if zombie_wave_create_manager.adventure_wave_profile != null:
-		adventure_wave_started.emit(curr_wave + 1)
+	signal_wave_refresh.emit(is_final)
+	if profile != null:
+		adventure_wave_started.emit(wave_number)
 
 ## 请求生成墓碑后等待 1 个游戏秒，再从本关卡墓碑生成僵尸；停止、切轮或结束战斗时取消。
 func call_tombstone_create_zombie():

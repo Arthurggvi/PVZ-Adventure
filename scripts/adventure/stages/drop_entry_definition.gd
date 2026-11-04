@@ -32,9 +32,15 @@ func validate() -> PackedStringArray:
 		errors.append("掉落规则未配置或无效。")
 	if not AssetKind.values().has(asset_kind) or asset_kind == AssetKind.UNSET:
 		errors.append("掉落资产类型未配置或无效。")
-	if asset_kind in [AssetKind.ITEM, AssetKind.KEY] and str(asset_id).strip_edges().is_empty():
-		errors.append("物品或钥匙掉落必须指定静态 ID。")
-	if quantity_min < 1 or quantity_max < quantity_min:
+	if asset_kind in [AssetKind.ITEM, AssetKind.KEY]:
+		var id: String = str(asset_id)
+		if id.strip_edges().is_empty() or not ItemRegistry.has_item(id):
+			errors.append("物品或钥匙必须引用已注册的静态道具 ID。")
+		else:
+			var is_key: bool = str(ItemRegistry.get_item_definition(id).get("category", "")) == "key"
+			if (asset_kind == AssetKind.KEY) != is_key:
+				errors.append("掉落资产类别与道具注册类别不一致：" + id)
+	if quantity_min < 1 or quantity_max < quantity_min or quantity_max > PlantCardInstance.MAX_JSON_INTEGER:
 		errors.append("掉落数量区间无效。")
 	if rule == Rule.CHANCE:
 		if not is_finite(chance) or chance < 0.0 or chance > 1.0:

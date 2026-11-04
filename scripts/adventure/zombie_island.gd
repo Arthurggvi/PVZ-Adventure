@@ -145,4 +145,5 @@ func _show_notice(message: String) -> void:
 
 ## 经复用遮幕返回原有菜单；只增加表现时序，保留进度、音乐和原返回目的地。
 func _return_menu() -> void:
+	AdventureSession.adventure_active = false
 	$SceneTransition.change_scene("res://scenes/main/01StartMenuV8.tscn")

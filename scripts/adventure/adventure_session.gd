@@ -40,8 +40,11 @@ func _on_profile_changed() -> void:
 	victory_settled = false
 	adventure_active = false
 func open_adventure() -> bool:
-	if adventure_active:
+	# 当前确实仍在地图时才可复用；从菜单或战斗返回后须重新完成场景切换。
+	var scene: Node = get_tree().current_scene
+	if adventure_active and is_instance_valid(scene) and scene.scene_file_path == MAP_SCENE:
 		return true
+	adventure_active = false
 	progress = null
 	entry_error = ""
 	error_message = ""
@@ -212,7 +215,7 @@ func can_accept_victory() -> bool:
 	if active_level == null or active_phase == null:
 		return false
 	var runtime: AdventureBattleRuntime = _active_runtime()
-	if runtime != null and runtime.boss_runtime != null and runtime.boss_runtime.active:
+	if runtime != null and runtime.has_pending_bosses():
 		return false
 	if active_phase_kind != StagePhaseDefinition.Kind.NIGHTMARE:
 		return true

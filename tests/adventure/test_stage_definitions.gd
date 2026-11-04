@@ -36,7 +36,7 @@ func _drop_table() -> Resource:
 	entry.entry_id = &"fixture_drop"
 	entry.rule = _entry_model.Rule.GUARANTEED
 	entry.asset_kind = _entry_model.AssetKind.ITEM
-	entry.asset_id = &"fixture_reward"
+	entry.asset_id = &"unsaturated_fat"
 	entry.quantity_min = 1
 	entry.quantity_max = 1
 	var table: Resource = _drop_model.new() # 无加权池时不设置抽取策略。

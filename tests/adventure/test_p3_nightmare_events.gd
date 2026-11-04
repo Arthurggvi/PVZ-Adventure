@@ -28,11 +28,7 @@ func _run() -> void:
 	assert(AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE)
 	assert(battle.game_para.look_show_zombie and battle.game_para.can_choosed_card)
 	var waves: ZombieWaveManager = battle.zombie_manager.zombie_wave_manager
-	var runtime: AdventureBattleRuntime
-	for node: Node in waves.get_children():
-		if node is AdventureBattleRuntime:
-			runtime = node
-			break
+	var runtime: AdventureBattleRuntime = battle.adventure_runtime
 	assert(runtime != null and runtime.phase.events.size() == 2)
 	assert(runtime.phase.boss_encounters.size() == 1)
 	var deadline: int = Time.get_ticks_msec() + 30000
@@ -50,8 +46,8 @@ func _run() -> void:
 	cards[0].card_cool()
 	assert(is_equal_approx(cards[0]._cool_timer, cards[0].cool_time * 1.5))
 	cards[0].set_card_cool_end()
-	runtime.elapsed_seconds += 21.0
-	runtime._process(0.0)
+	runtime._cooldown._elapsed += 21.0
+	runtime._cooldown._process(0.0)
 	assert(is_equal_approx(cards[0].adventure_cooldown_multiplier, 1.0))
 	waves.adventure_wave_started.emit(7)
 	assert(runtime.boss_runtime != null and runtime.boss_runtime.active)
