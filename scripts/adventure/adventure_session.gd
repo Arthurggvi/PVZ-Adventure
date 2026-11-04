@@ -2,6 +2,7 @@
 extends Node
 const MAP_SCENE := "res://scenes/adventure/zombie_island.tscn"
 const Progress = preload("res://scripts/adventure/island_progress.gd")
+const RewardService = preload("res://scripts/adventure/adventure_reward_service.gd")
 signal battle_finished(stage_id: int, result: String)
 var progress: RefCounted
 var active_level: ResourceLevelData
@@ -13,6 +14,8 @@ var active_wave_profile: WaveProfile
 var battle_loadout: Array[Dictionary] = []
 ## 本局 Boss 结果，仅供战后掉落判定；明确区分击败与主动撤退。
 var boss_exit_results: Dictionary[StringName, int] = {}
+## 存档失败后沿用同一次掉落结果，重试不得重新抽奖。
+var pending_reward: Dictionary = {}
 var notice := ""
 var battle_failed := false
 var adventure_active := false
@@ -28,6 +31,7 @@ func _on_profile_changed() -> void:
 	active_wave_profile = null
 	battle_loadout.clear()
 	boss_exit_results.clear()
+	pending_reward.clear()
 	adventure_active = false
 func open_adventure() -> bool:
 	if adventure_active:
@@ -108,6 +112,7 @@ func enter_stage(stage_number: int, phase_kind: int) -> bool:
 		return false
 	battle_loadout.clear()
 	boss_exit_results.clear()
+	pending_reward.clear()
 	active_stage_number = stage_number
 	active_phase_kind = phase_kind
 	active_wave_profile = phase.wave_profile.duplicate(true)
@@ -162,24 +167,74 @@ func get_active_wave_profile(level: ResourceLevelData) -> WaveProfile:
 func finish_victory() -> void:
 	if active_level == null or battle_failed or progress == null:
 		return
-	if active_stage_number != 1:
+	var stage: StageDefinition = AdventureStageCatalog.load_stage(active_stage_number)
+	var phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, active_phase_kind)
+	if phase == null:
 		return
-	if active_phase_kind == StagePhaseDefinition.Kind.NORMAL:
-		if not progress.record_victory():
-			error_message = "草坪胜利进度无法更新。"
-			_show_save_retry()
-			return
-	elif active_phase_kind != StagePhaseDefinition.Kind.NIGHTMARE:
+	var defeated_boss := false
+	var loot_table: DropTable = phase.drop_table
+	if active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE:
+		for encounter: BossEncounterDefinition in phase.boss_encounters:
+			if not boss_exit_results.has(encounter.encounter_id):
+				error_message = "Boss 遭遇未结束，不能结算胜利。"
+				return
+			if boss_exit_results[encounter.encounter_id] == StageEventDefinition.BossExitReason.DEFEATED:
+				defeated_boss = true
+		if not defeated_boss:
+			var normal: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, StagePhaseDefinition.Kind.NORMAL)
+			if normal == null:
+				return
+			loot_table = normal.drop_table # Boss 逃跑仅获得普通材料，不获得 Boss 专属掉落。
+	var state: AdventureState = Global.global_game_state.adventure_state
+	if pending_reward.is_empty():
+		var rng := RandomNumberGenerator.new()
+		rng.randomize()
+		pending_reward = RewardService.prepare(
+			phase, loot_table, state.claimed_rewards, defeated_boss, rng)
+	if not pending_reward.get("ok", false):
+		error_message = "关卡奖励配置无效，未结算。"
 		return
-	AdventureStageCatalog.mark_cleared(
-		Global.global_game_state.adventure_state, AdventureStageCatalog.LAWN_ID, active_phase_kind)
+	var before_items: Dictionary = state.items.duplicate(true)
+	var before_claims: Dictionary = state.claimed_rewards.duplicate(true)
+	var before_regions: Dictionary = state.regions.duplicate(true)
+	var before_coin: int = Global.global_game_state.coin_value
+	var reward_items: Dictionary = pending_reward["items"]
+	var reward_coin: int = int(pending_reward["coin"])
+	if not RewardService.apply(reward_items, reward_coin,
+			state, Global.adventure_inventory, Global.global_game_state):
+		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
+		error_message = "奖励入账失败，请检查库存容量。"
+		return
+	var claim_id: String = str(pending_reward["claim_id"])
+	if not claim_id.is_empty():
+		state.claimed_rewards[claim_id] = true
+	if active_phase_kind == StagePhaseDefinition.Kind.NORMAL and not progress.record_victory():
+		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
+		error_message = "草坪胜利进度无法更新。"
+		return
+	AdventureStageCatalog.mark_cleared(state, stage.stage_id, active_phase_kind)
 	if not Global.save_service.save_now():
-		error_message = "无法保存草坪通关状态。"
+		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
+		error_message = "奖励或通关记录保存失败，可重试相同掉落。"
 		_show_save_retry()
 		return
-	notice = "草坪普通阶段已通关，没落营地已开放！" if active_phase_kind == StagePhaseDefinition.Kind.NORMAL else "草坪噩梦阶段已通关！"
-	battle_finished.emit(1, "victory")
+	var phase_name: String = "普通" if active_phase_kind == StagePhaseDefinition.Kind.NORMAL else "噩梦"
+	notice = "草坪%s阶段通关！奖励：%s种物品，金币+%d。" % [phase_name, reward_items.size(), reward_coin]
+	battle_finished.emit(active_stage_number, "victory")
 	return_to_map()
+
+func _restore_reward_snapshot(items: Dictionary, claims: Dictionary,
+		regions: Dictionary, coin: int) -> void:
+	var state: AdventureState = Global.global_game_state.adventure_state
+	state.items.clear()
+	for id: String in items:
+		state.items[id] = items[id]
+	state.claimed_rewards.clear()
+	for claim_id: String in claims:
+		state.claimed_rewards[claim_id] = claims[claim_id]
+	state.regions = regions.duplicate(true)
+	Global.global_game_state.coin_value = coin
+
 func _show_save_retry() -> void:
 	var retry := AcceptDialog.new()
 	retry.dialog_text = error_message
@@ -212,6 +267,7 @@ func return_to_map() -> void:
 	active_wave_profile = null
 	battle_loadout.clear()
 	boss_exit_results.clear()
+	pending_reward.clear()
 	Global.game_para = null
 	TreePauseManager.end_tree_pause_clear_all_pause_factors()
 	Global.time_scale = 1.0

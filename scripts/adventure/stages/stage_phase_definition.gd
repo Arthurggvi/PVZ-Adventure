@@ -34,6 +34,11 @@ enum CardMode { UNSET, CHOOSE_CARDS, FIXED_DECK, CONVEYOR, COIN }
 @export var wave_profile: WaveProfile
 ## 独立掉落表；此处只引用，不执行奖励。
 @export var drop_table: DropTable
+## 阶段首次达成指定条件时一次性奖励，与重复通关掉落独立。
+@export var first_clear_coin: int = 0
+@export var first_clear_items: Dictionary[StringName, int] = {}
+## 噩梦 Boss 被击败才发放首通 Boss 奖励；逃跑仍可完成普通波次。
+@export var first_clear_requires_boss_kill: bool = false
 ## 当前阶段的 Boss 遭遇元数据，可为空。
 @export var boss_encounters: Array[BossEncounterDefinition] = []
 ## 当前阶段的事件元数据，可为空。
@@ -75,6 +80,13 @@ func validate(known_tier_ids: Array[StringName] = [], known_key_ids: Array[Strin
 		errors.append("阶段缺少独立 DropTable。")
 	else:
 		errors.append_array(drop_table.validate())
+	if first_clear_coin < 0 or first_clear_coin > PlantCardInstance.MAX_JSON_INTEGER:
+		errors.append("首通金币数量无效。")
+	for item_id: StringName in first_clear_items:
+		if not ItemRegistry.has_item(str(item_id)) or first_clear_items[item_id] < 1:
+			errors.append("首通道具配置非法：" + str(item_id))
+	if first_clear_requires_boss_kill and (kind != Kind.NIGHTMARE or boss_encounters.is_empty()):
+		errors.append("首通击杀奖励需要噩梦 Boss。")
 	var encounter_ids: Array[StringName] = [] # 先建立完整目录，允许事件引用列表中稍后的遭遇。
 	for encounter: BossEncounterDefinition in boss_encounters: # 不实例化遭遇资源所描述的角色。
 		if encounter == null:

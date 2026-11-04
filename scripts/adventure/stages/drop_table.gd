@@ -8,6 +8,10 @@ enum WeightedSelection { UNSET, WITH_REPLACEMENT, WITHOUT_REPLACEMENT }
 @export var table_id: StringName = &""
 ## 强类型条目列表，禁止空条目和重复 ID。
 @export var entries: Array[DropEntryDefinition] = []
+## 结算后补齐的数量保底；仅从本表的素材/配方候选中补足。
+@export var min_material_count: int = 0
+@export var min_recipe_count: int = 0
+@export var min_distinct_materials: int = 0
 ## 加权池抽取次数，不影响独立概率和固定发放条目。
 @export var weighted_draw_count: int = 0
 ## 加权池的放回策略，不隐式选择。
@@ -21,17 +25,33 @@ func validate() -> PackedStringArray:
 	if entries.is_empty():
 		errors.append("掉落表为空。")
 	var ids: Dictionary = {} # 条目 ID 在本表内唯一。
+	if min_material_count < 0 or min_recipe_count < 0 or min_distinct_materials < 0:
+		errors.append("掉落保底数量不得为负数。")
+	var material_ids: Dictionary = {}
+	var recipe_ids: Dictionary = {}
 	var weighted_count := 0 # 加权池成员数，用于禁止空抽取或无放回超额抽取。
 	for entry: DropEntryDefinition in entries: # 只读取子资源，不修正原配置。
 		if entry == null:
 			errors.append("掉落表包含空条目。")
 			continue
 		errors.append_array(entry.validate())
+		if ItemRegistry.has_item(str(entry.asset_id)):
+			var category: String = str(ItemRegistry.get_item_definition(str(entry.asset_id)).get("category", ""))
+			if category == "material":
+				material_ids[str(entry.asset_id)] = true
+			elif category == "recipe":
+				recipe_ids[str(entry.asset_id)] = true
 		if ids.has(entry.entry_id):
 			errors.append("掉落条目 ID 重复：%s。" % entry.entry_id)
 		ids[entry.entry_id] = true
 		if entry.rule == DropEntryDefinition.Rule.WEIGHTED:
 			weighted_count += 1
+	if min_material_count > 0 and material_ids.is_empty():
+		errors.append("素材保底配置没有任何素材候选。")
+	if min_recipe_count > 0 and recipe_ids.is_empty():
+		errors.append("配方保底配置没有任何配方候选。")
+	if min_distinct_materials > material_ids.size():
+		errors.append("素材种类保底超过掉落池可提供的种类数。")
 	if weighted_count > 0:
 		if weighted_draw_count < 1 or weighted_selection not in [WeightedSelection.WITH_REPLACEMENT, WeightedSelection.WITHOUT_REPLACEMENT]:
 			errors.append("加权池必须显式配置正抽取次数及放回策略。")
