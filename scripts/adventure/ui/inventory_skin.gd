@@ -3,7 +3,7 @@ extends RefCounted
 const ROOT := "res://assets/adventure/ui/inventory/"
 
 static func texture(path: String) -> Texture2D:
-	var uri := ROOT + path
+	var uri: String = path if path.begins_with("res://") else ROOT + path
 	return load(uri) as Texture2D if ResourceLoader.exists(uri) else null
 
 static func panel(parent: Node, path: String, pos: Vector2, size: Vector2, margin: int = 31) -> NinePatchRect:
@@ -22,12 +22,13 @@ static func panel(parent: Node, path: String, pos: Vector2, size: Vector2, margi
 static func image(parent: Node, path: String, pos: Vector2, size: Vector2) -> TextureRect:
 	var node := TextureRect.new()
 	node.texture = texture(path)
-	node.position = pos
-	node.size = size
 	node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	node.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(node)
+	# Godot applies the texture minimum size on tree insertion; enforce final slot geometry after it.
+	node.position = pos
+	node.size = size
 	return node
 
 static func label(parent: Node, value: String, pos: Vector2, size: Vector2, font_size: int = 24, color: Color = Color("382719")) -> Label:

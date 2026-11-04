@@ -6,6 +6,7 @@ const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 const Data = preload("res://scripts/adventure/ui/inventory_data.gd")
 const Builder = preload("res://scripts/adventure/ui/inventory_builder.gd")
 const Tile = preload("res://scripts/adventure/ui/inventory_tile.gd")
+const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 const PAGE_SIZE := 66
 var category := "plants"
 var search := ""
@@ -102,15 +103,27 @@ func _render() -> void:
 		var tile: Control = Tile.new()
 		tile.position = Vector2((i % 11) * 92.0, (i / 11) * 103.0)
 		grid.add_child(tile)
-		tile.setup(entry, position_index, category == "plants" and sort_mode == 0 and search.is_empty())
+		tile.setup(entry, position_index, category == "plants" and sort_mode == 0 and search.is_empty(), category == "plants", _row_key(entry) == _row_key(selected) and not selected.is_empty())
 		tile.chosen.connect(_select)
 		tile.reorder_requested.connect(_reorder)
 	if selected.is_empty() and not rows.is_empty():
 		selected = rows[0].duplicate(true)
+	_update_tile_selection()
 	_render_detail()
+
+func _row_key(value: Dictionary) -> String:
+	return str(value.get("uid", value.get("id", "")))
+
+func _update_tile_selection() -> void:
+	var key: String = _row_key(selected)
+	for node: Node in ui.cells.get_children():
+		if node is Control and node.has_method("set_active"):
+			node.set_active(not key.is_empty() and _row_key(node.record) == key)
+
 func _select(record: Dictionary) -> void:
 	selected = record.duplicate(true)
 	SoundManager.play_other_SFX(&"tap")
+	_update_tile_selection()
 	_render_detail()
 func _reorder(uid: String, target: int) -> void:
 	if category != "plants" or sort_mode != 0 or not search.is_empty():
@@ -156,7 +169,15 @@ func _render_detail() -> void:
 		discard.pressed.connect(_confirm_discard)
 		root.add_child(discard)
 	else:
-		Art.image(root, Data.item_icon(selected), Vector2(104, 85), Vector2(182, 170))
+		# Both layers are anchored to detail panel coordinates, independently of the item.
+		var backing: String = Data.item_backing(selected)
+		if not backing.is_empty():
+			Art.image(root, backing, Vector2(93, 78), Vector2(200, 200))
+		var icon: String = Data.item_icon(selected)
+		if not icon.is_empty():
+			Art.image(root, icon, Vector2(110, 95), Vector2(170, 170))
+		if str(selected.get("category", "")) == "recipe":
+			ItemArt.add_recipe_portrait(root, str(selected["id"]), Vector2(195, 180), 1.15)
 		Art.label(root, "持有数量  ×%d" % int(selected.get("qty", 0)), Vector2(31, 294), Vector2(346, 55), 28)
 		Art.label(root, "使用与消耗功能将在下一轮开放", Vector2(24, 420), Vector2(366, 68), 19)
 func _confirm_discard() -> void:

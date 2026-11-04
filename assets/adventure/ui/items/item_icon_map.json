@@ -1,0 +1,138 @@
+{
+  "version": "3.1",
+  "base_path": "res://assets/adventure/ui/items/",
+  "ids": {
+    "unsaturated_fat": {
+      "category": "material",
+      "icon": "materials/unsaturated_fat.png"
+    },
+    "nut_fragments": {
+      "category": "material",
+      "icon": "materials/nut_fragments.png"
+    },
+    "explosive_seed": {
+      "category": "material",
+      "icon": "materials/explosive_seed.png"
+    },
+    "plant_starch": {
+      "category": "material",
+      "icon": "materials/plant_starch.png"
+    },
+    "rotten_wood_core": {
+      "category": "material",
+      "icon": "materials/rotten_wood_core.png"
+    },
+    "rusted_scrap": {
+      "category": "material",
+      "icon": "materials/rusted_scrap.png"
+    },
+    "grave_moss": {
+      "category": "material",
+      "icon": "materials/grave_moss.png"
+    },
+    "zombie_thread": {
+      "category": "material",
+      "icon": "materials/zombie_thread.png"
+    },
+    "recipe_wall_nut": {
+      "category": "recipe",
+      "icon": "recipes/recipe_scroll.png",
+      "portrait_from_plant_type": "P004WallNut",
+      "overlay": "decorations/recipe_wax_seal.png"
+    },
+    "recipe_potato_mine": {
+      "category": "recipe",
+      "icon": "recipes/recipe_scroll.png",
+      "portrait_from_plant_type": "P005PotatoMine",
+      "overlay": "decorations/recipe_wax_seal.png"
+    },
+    "lawn_nightmare_key": {
+      "category": "key",
+      "icon": "keys/lawn_nightmare_key.png"
+    },
+    "zombie_island.fallen_camp.nightmare_key": {
+      "category": "key",
+      "icon": "keys/fallen_camp_nightmare_key.png"
+    },
+    "zombie_island.grave_upstream.nightmare_key": {
+      "category": "key",
+      "icon": "keys/grave_upstream_nightmare_key.png"
+    },
+    "zombie_island.grave_downstream.nightmare_key": {
+      "category": "key",
+      "icon": "keys/grave_downstream_nightmare_key.png"
+    },
+    "zombie_island.sewer.nightmare_key": {
+      "category": "key",
+      "icon": "keys/sewer_nightmare_key.png"
+    },
+    "zombie_island.edgar_temple.nightmare_key": {
+      "category": "key",
+      "icon": "keys/edgar_temple_nightmare_key.png"
+    },
+    "seedling_pot": {
+      "category": "consumable",
+      "icon": "consumables/seedling_pot.png"
+    },
+    "growth_agent": {
+      "category": "consumable",
+      "icon": "consumables/growth_agent.png"
+    },
+    "fertilizer_lv1": {
+      "category": "consumable",
+      "icon": "consumables/fertilizer_lv1.png"
+    },
+    "fertilizer_lv2": {
+      "category": "consumable",
+      "icon": "consumables/fertilizer_lv2.png"
+    },
+    "fertilizer_lv3": {
+      "category": "consumable",
+      "icon": "consumables/fertilizer_lv3.png"
+    },
+    "fertilizer_lv4": {
+      "category": "consumable",
+      "icon": "consumables/fertilizer_lv4.png"
+    },
+    "fertilizer_lv5": {
+      "category": "consumable",
+      "icon": "consumables/fertilizer_lv5.png"
+    }
+  },
+  "backgrounds": {
+    "material": "backgrounds/material_backing.png",
+    "key": "backgrounds/key_backing.png",
+    "consumable": "backgrounds/consumable_backing.png",
+    "recipe": null
+  },
+  "render_order": [
+    "item_slot",
+    "category_background_if_present",
+    "item_icon",
+    "quantity_label",
+    "selection_overlay"
+  ],
+  "display_guidance": {
+    "tile_size": [
+      86,
+      86
+    ],
+    "category_background_position": [
+      9,
+      3
+    ],
+    "category_background_size": [
+      68,
+      68
+    ],
+    "item_icon_position": [
+      14,
+      8
+    ],
+    "item_icon_size": [
+      58,
+      58
+    ],
+    "recipe": "use reusable scroll and Godot plant portrait; do not add another backing"
+  }
+}

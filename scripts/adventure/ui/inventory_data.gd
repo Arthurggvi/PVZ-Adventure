@@ -1,5 +1,6 @@
 ## Adapter over existing UID card instances and ItemRegistry: no parallel inventory data.
 extends RefCounted
+const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 
 static func rows(category: String, search: String, order_mode: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -43,8 +44,9 @@ static func plant_name(type_id: int) -> String:
 	return str(Global.character_registry.get_plant_info(type_id as CharacterRegistry.PlantType,
 		CharacterRegistry.PlantInfoAttribute.PlantName))
 
+## ItemRegistry validates ownership; the art manifest decides only visual resources.
 static func item_icon(row: Dictionary) -> String:
-	match str(row.get("category", "")):
-		"recipe": return "icons/category_recipes.png"
-		"material": return "icons/category_materials.png"
-		_: return "icons/category_items.png"
+	return ItemArt.icon_uri(str(row.get("id", "")))
+
+static func item_backing(row: Dictionary) -> String:
+	return ItemArt.backing_uri(str(row.get("id", "")))
