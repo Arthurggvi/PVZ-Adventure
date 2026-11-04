@@ -92,7 +92,7 @@ shader = ExtResource("water_contact")
 [sub_resource type="ShaderMaterial" id="plaque_glow_material"]
 shader = ExtResource("plaque_glow")
 
-[node name="StartMenuV8" instance=ExtResource("base")]
+[node name="StartMenuV8" groups=["adventure_toolbar_surface"] instance=ExtResource("base")]
 script = ExtResource("script")
 
 [node name="ArtCanvas" type="Control" parent="."]

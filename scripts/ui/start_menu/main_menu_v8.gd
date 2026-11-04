@@ -100,6 +100,10 @@ func _on_item_button_1_pressed() -> void:
 func _on_item_button_3_pressed() -> void:
 	pass
 
+## Shared toolbar navigation contract: use the existing region picker rather than bypassing it.
+func open_adventure_toolbar_map() -> void:
+	_on_button_1_pressed()
+
 ## 正式冒险按钮只打开地区选择器；重复点击不叠加界面，也不读取或初始化进度。
 func _on_button_1_pressed() -> void:
 	if is_instance_valid(_destination_picker):

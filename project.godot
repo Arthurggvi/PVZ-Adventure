@@ -30,6 +30,7 @@ GlobalUtils="*res://scripts/autoload/util/global_utils.gd"
 EventBus="*res://scripts/autoload/event_bus.gd"
 TreePauseManager="*res://scripts/autoload/tree_pause_manager.gd"
 AdventureSession="*res://scripts/adventure/adventure_session.gd"
+AdventureToolbar="*res://scripts/adventure/ui/toolbar_controller.gd"
 
 [display]
 
