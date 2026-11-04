@@ -121,11 +121,22 @@ func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 
 
 ## 生成波次僵尸
+## Boss 援军及事件突袭独立生成；仍计入场上敌人，但不参与自然波次残血/清空刷新。
+func spawn_stage_support(zombie_type: CharacterRegistry.ZombieType, tier_id: StringName) -> Zombie000Base:
+	if not zombie_manager.is_game_running() or not Global.character_registry.ZombieInfo.has(zombie_type):
+		return null
+	var row_type: CharacterRegistry.ZombieRowType = Global.character_registry.ZombieInfo[zombie_type][CharacterRegistry.ZombieInfoAttribute.ZombieRowType]
+	var lane: int = zombie_choose_row_system.select_spawn_row(row_type)
+	if lane < 0:
+		return null
+	return wave_create_zombie(zombie_type, lane, -1, AdventureWavePlanner.bind_tier.bind(tier_id), false)
+
 func wave_create_zombie(
 	zombie_type:CharacterRegistry.ZombieType,
 	lane:int, 	## 僵尸行
 	curr_wave:int,		## 僵尸波次
-	init_zombie_special:Callable = Callable()		## 初始化僵尸特殊属性
+	init_zombie_special:Callable = Callable(),	## 初始化僵尸特殊属性
+	is_natural: bool = true
 ):
 	# 直接调用者也必须使用真实存在的行，防止错误下标进入通用创建入口。
 	if lane < 0 or lane >= zombie_manager.all_zombie_rows.size():
@@ -134,6 +145,7 @@ func wave_create_zombie(
 		Zombie000Base.E_ZInitAttr.CharacterInitType:Character000Base.E_CharacterInitType.IsNorm,
 		Zombie000Base.E_ZInitAttr.Lane:lane,
 		Zombie000Base.E_ZInitAttr.CurrWave:curr_wave,
+		Zombie000Base.E_ZInitAttr.ParticipatesNaturalRefresh:is_natural,
 	}
 	var zombie_parent = zombie_manager.all_zombie_rows[lane]
 	var zombie_glo_pos = zombie_manager.all_zombie_rows[lane].zombie_create_position.global_position + Vector2(randf_range(-10, 10), 0)

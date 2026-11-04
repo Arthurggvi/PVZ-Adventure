@@ -45,6 +45,30 @@ var progress_bar_segment_every_wave:float
 var progress_bar_segment_mini_every_sec:float
 ## 每次停止或切轮递增；等待中的旧波流程不能在下一轮重新进入战斗后恢复。
 var _refresh_generation: int = 0
+var is_advancement_suspended := false
+var _pending_advancement := false
+var _before_wave_signalled: int = -1
+signal adventure_battle_started
+signal adventure_wave_before(wave_number: int)
+signal adventure_wave_started(wave_number: int)
+
+## 暂停自然波次的计时、进度和下一波调度；不会影响游戏世界及 Boss 援军。
+func suspend_advancement() -> void:
+	if is_advancement_suspended:
+		return
+	is_advancement_suspended = true
+	every_wave_progress_timer.paused = true
+	zombie_wave_refresh_manager.suspend_refresh()
+
+func resume_advancement() -> void:
+	if not is_advancement_suspended:
+		return
+	is_advancement_suspended = false
+	every_wave_progress_timer.paused = false
+	zombie_wave_refresh_manager.resume_refresh()
+	if _pending_advancement:
+		_pending_advancement = false
+		start_next_wave.call_deferred()
 
 ## 波次刷新信号,给zombie_manager,删除魅惑僵尸，更新是否为最后一波
 signal signal_wave_refresh(is_end_wave:bool)
@@ -58,6 +82,10 @@ func _ready() -> void:
 
 ## 初始化波次管理器
 func init_zombie_wave_manager(game_para:ResourceLevelData):
+	is_advancement_suspended = false
+	_pending_advancement = false
+	_before_wave_signalled = -1
+	every_wave_progress_timer.paused = false
 	is_have_tombston = game_para.is_have_tombston
 	max_wave_one_round = game_para.max_wave
 	## 如果存在存档
@@ -72,6 +100,13 @@ func init_zombie_wave_manager(game_para:ResourceLevelData):
 	progress_bar_segment_every_wave = 100.0 / (max_wave_one_round - 1)
 
 	zombie_wave_create_manager.init_zombie_wave_create_manager(game_para)
+	if zombie_wave_create_manager.adventure_wave_profile != null:
+		var stage: StageDefinition = AdventureStageCatalog.load_stage(AdventureSession.active_stage_number)
+		var phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, AdventureSession.active_phase_kind)
+		if phase != null:
+			var runtime := AdventureStageRuntime.new()
+			runtime.setup(self, zombie_manager, phase)
+			add_child(runtime)
 
 ## 切换下一轮波次并取消旧轮等待；[param finish_current_round] 表示本轮实际由 Boss 条件结束。
 ## 仅实际 Boss 提前胜利时跳过未生成波次，先推进到原末波，再扩大下一轮的波次上界。
@@ -91,17 +126,23 @@ func set_progress_bar(curr_flag:int=-1):
 
 ## 战斗阶段开始第一波并启动进度计时；关卡已结束时不启动。
 func start_first_wave():
+	if zombie_wave_create_manager.adventure_wave_profile != null:
+		adventure_battle_started.emit()
 	# 第一波生成期间若停止或切轮，不再重启旧轮进度计时器。
 	var refresh_generation: int = _refresh_generation
 	start_next_wave()
 	if not _is_wave_refresh_current(refresh_generation):
 		return
 	every_wave_progress_timer.start()
+	every_wave_progress_timer.paused = is_advancement_suspended
 	flag_progress_bar.visible = true
 
 ## 停止自然波次与进度计时并失效旧轮等待；下一轮进入战斗也不会恢复旧波流程。
 func stop_wave_refresh() -> void:
 	_refresh_generation += 1
+	is_advancement_suspended = false
+	_pending_advancement = false
+	every_wave_progress_timer.paused = false
 	every_wave_progress_timer.stop()
 	zombie_wave_refresh_manager.stop_refresh()
 
@@ -111,6 +152,17 @@ func _is_wave_refresh_current(refresh_generation: int) -> bool:
 
 ## 战斗阶段生成下一波并发出刷新信号；大波提示等待后检查战斗阶段及停止版本。
 func start_next_wave() -> void:
+	if is_advancement_suspended:
+		_pending_advancement = true
+		return
+	if zombie_wave_create_manager.adventure_wave_profile != null:
+		var next_wave_number: int = curr_wave + 2
+		if next_wave_number != _before_wave_signalled:
+			_before_wave_signalled = next_wave_number
+			adventure_wave_before.emit(next_wave_number)
+			if is_advancement_suspended:
+				_pending_advancement = true
+				return
 	# 捕获当前刷新版本，避免旧提示在下一轮恢复后继续生成旧波。
 	var refresh_generation: int = _refresh_generation
 	# 提前刷新信号通过 deferred 发出，Boss 死亡后仍可能有已排队的回调。
@@ -172,6 +224,8 @@ func start_next_wave() -> void:
 	zombie_wave_refresh_manager.update_wave_health_data(wave_all_hp, curr_wave_type, curr_wave)
 
 	signal_wave_refresh.emit(curr_wave == max_wave - 1)
+	if zombie_wave_create_manager.adventure_wave_profile != null:
+		adventure_wave_started.emit(curr_wave + 1)
 
 ## 请求生成墓碑后等待 1 个游戏秒，再从本关卡墓碑生成僵尸；停止、切轮或结束战斗时取消。
 func call_tombstone_create_zombie():
@@ -205,7 +259,7 @@ func update_progress_bar_segment_mini_every_sec(time:float):
 
 ## 战斗阶段随时间每秒更新进度条；停止前已排队的计时回调不再推进。
 func _on_every_wave_progress_timer_timeout() -> void:
-	if not zombie_manager.is_game_running():
+	if is_advancement_suspended or not zombie_manager.is_game_running():
 		return
 	# 每秒进度条增加对应的进度值
 	flag_progress_bar.set_progress_add_every_sec(progress_bar_segment_mini_every_sec)

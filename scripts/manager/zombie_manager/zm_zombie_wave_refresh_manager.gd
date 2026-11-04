@@ -47,6 +47,22 @@ enum E_RefreshStatus{
 var curr_refresh_status:=E_RefreshStatus.DisableRefresh
 ## 停止或切波时递增，最短波间隔的旧等待不能消费新波次的刷新机会。
 var _refresh_generation: int = 0
+## Boss 遭遇期间只挂起自然刷新，保留剩余时间与当前提前刷新条件。
+var _is_suspended: bool = false
+
+func suspend_refresh() -> void:
+	if _is_suspended:
+		return
+	_is_suspended = true
+	wave_norm_refresh_timer.paused = true
+	wave_min_time_timer.paused = true
+
+func resume_refresh() -> void:
+	if not _is_suspended:
+		return
+	_is_suspended = false
+	wave_norm_refresh_timer.paused = false
+	wave_min_time_timer.paused = false
 ## 当前可以的刷新类型,不可以选Norm正常刷新
 var curr_can_refresh_type = E_RefreshType.Null
 ## 波次总血量
@@ -74,6 +90,9 @@ func _ready() -> void:
 
 ## 停止自然刷新和最短波间隔计时，并关闭提前刷新；已排队的回调仍检查战斗阶段。
 func stop_refresh() -> void:
+	_is_suspended = false
+	wave_norm_refresh_timer.paused = false
+	wave_min_time_timer.paused = false
 	_refresh_generation += 1
 	wave_norm_refresh_timer.stop()
 	wave_min_time_timer.stop()
@@ -142,7 +161,7 @@ func judge_total_refresh(zombie_num: int) -> void:
 
 ## 等待最短波间隔后触发提前刷新；关卡结束或本波不再允许刷新时不新增等待。
 func _trigger_refresh():
-	if not zombie_manager.is_game_running() or curr_can_refresh_type == E_RefreshType.Null:
+	if _is_suspended or not zombie_manager.is_game_running() or curr_can_refresh_type == E_RefreshType.Null:
 		return
 	if curr_refresh_status == E_RefreshStatus.AwaitRefresh:
 		refresh_once()
@@ -150,12 +169,12 @@ func _trigger_refresh():
 		# 多个掉血回调可能同时等待，绑定本次刷新版本，停止或切波后旧等待失效。
 		var refresh_generation: int = _refresh_generation
 		await signal_start_await_refresh
-		if refresh_generation == _refresh_generation and curr_refresh_status == E_RefreshStatus.AwaitRefresh:
+		if not _is_suspended and refresh_generation == _refresh_generation and curr_refresh_status == E_RefreshStatus.AwaitRefresh:
 			refresh_once()
 
 ## 波次最小时间到达后允许提前刷新；结束战斗后不重新激活刷新状态。
 func _on_wave_min_time_timer_timeout() -> void:
-	if not zombie_manager.is_game_running() or curr_can_refresh_type == E_RefreshType.Null:
+	if _is_suspended or not zombie_manager.is_game_running() or curr_can_refresh_type == E_RefreshType.Null:
 		return
 	curr_refresh_status = E_RefreshStatus.AwaitRefresh
 	signal_start_await_refresh.emit()
@@ -170,12 +189,12 @@ func _on_wave_min_time_timer_timeout() -> void:
 
 ## 正常计时到达后请求下一波；关卡已结束时忽略回调。
 func _on_wave_norm_refresh_timer_timeout() -> void:
-	if curr_refresh_status == E_RefreshStatus.AwaitRefresh:
+	if not _is_suspended and curr_refresh_status == E_RefreshStatus.AwaitRefresh:
 		refresh_once()
 
 ## 消费本波刷新机会并延迟发出下一波信号；结束战斗后不再排队刷新请求。
 func refresh_once():
-	if not zombie_manager.is_game_running():
+	if _is_suspended or not zombie_manager.is_game_running():
 		return
 	curr_refresh_status = E_RefreshStatus.CompleteRefresh
 	curr_can_refresh_type = E_RefreshType.Null

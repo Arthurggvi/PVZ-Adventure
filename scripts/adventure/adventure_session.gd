@@ -11,6 +11,8 @@ var active_phase_kind: int = 0
 var active_wave_profile: WaveProfile
 ## 本局已冻结的玩家卡数据；不写玩家存档、不反向修改背包。
 var battle_loadout: Array[Dictionary] = []
+## 本局 Boss 结果，仅供战后掉落判定；明确区分击败与主动撤退。
+var boss_exit_results: Dictionary[StringName, int] = {}
 var notice := ""
 var battle_failed := false
 var adventure_active := false
@@ -25,6 +27,7 @@ func _on_profile_changed() -> void:
 	active_phase_kind = 0
 	active_wave_profile = null
 	battle_loadout.clear()
+	boss_exit_results.clear()
 	adventure_active = false
 func open_adventure() -> bool:
 	if adventure_active:
@@ -104,6 +107,7 @@ func enter_stage(stage_number: int, phase_kind: int) -> bool:
 		error_message = "冒险波次数据未就绪。"
 		return false
 	battle_loadout.clear()
+	boss_exit_results.clear()
 	active_stage_number = stage_number
 	active_phase_kind = phase_kind
 	active_wave_profile = phase.wave_profile.duplicate(true)
@@ -158,11 +162,14 @@ func get_active_wave_profile(level: ResourceLevelData) -> WaveProfile:
 func finish_victory() -> void:
 	if active_level == null or battle_failed or progress == null:
 		return
-	if active_stage_number != 1 or active_phase_kind != StagePhaseDefinition.Kind.NORMAL:
-		return # 其他阶段必须由后续运行时提供可靠的通关判定。
-	if not progress.record_victory():
-		error_message = "草坪胜利进度无法更新。"
-		_show_save_retry()
+	if active_stage_number != 1:
+		return
+	if active_phase_kind == StagePhaseDefinition.Kind.NORMAL:
+		if not progress.record_victory():
+			error_message = "草坪胜利进度无法更新。"
+			_show_save_retry()
+			return
+	elif active_phase_kind != StagePhaseDefinition.Kind.NIGHTMARE:
 		return
 	AdventureStageCatalog.mark_cleared(
 		Global.global_game_state.adventure_state, AdventureStageCatalog.LAWN_ID, active_phase_kind)
@@ -170,7 +177,7 @@ func finish_victory() -> void:
 		error_message = "无法保存草坪通关状态。"
 		_show_save_retry()
 		return
-	notice = "草坪普通阶段已通关，没落营地已开放！"
+	notice = "草坪普通阶段已通关，没落营地已开放！" if active_phase_kind == StagePhaseDefinition.Kind.NORMAL else "草坪噩梦阶段已通关！"
 	battle_finished.emit(1, "victory")
 	return_to_map()
 func _show_save_retry() -> void:
@@ -204,6 +211,7 @@ func return_to_map() -> void:
 	active_phase_kind = 0
 	active_wave_profile = null
 	battle_loadout.clear()
+	boss_exit_results.clear()
 	Global.game_para = null
 	TreePauseManager.end_tree_pause_clear_all_pause_factors()
 	Global.time_scale = 1.0

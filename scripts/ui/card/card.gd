@@ -27,6 +27,17 @@ var _is_cooling: bool = false
 var is_sun_enough: bool = true
 ## 剩余冷却时间，单位为游戏秒。
 var _cool_timer: float = 0.0
+## 冒险事件倍率只影响新开始的冷却，不反向改动卡牌原有冷却参数。
+var adventure_cooldown_multiplier := 1.0
+
+func adventure_adjust_remaining_cooldown(seconds: float) -> void:
+	if not _is_cooling:
+		return
+	_cool_timer = maxf(0.0, _cool_timer + seconds)
+	_cool_mask.value = _cool_timer
+	if _cool_timer <= 0:
+		_is_cooling = false
+		judge_card_ready()
 ## 当前是否可以使用，由冷却、费用和种植条件共同决定。
 var is_can_click: bool = true
 ## 临时卡消失前的闪烁补间；停止时释放引用。
@@ -165,8 +176,8 @@ func card_not_can_click() -> void:
 func card_cool() -> void:
 	_is_cooling = true
 	_cool_mask.show()
-	_cool_timer = cool_time
-	_cool_mask.value = cool_time
+	_cool_timer = maxf(0.0, cool_time * adventure_cooldown_multiplier)
+	_cool_mask.value = _cool_timer
 	is_can_click = false
 
 

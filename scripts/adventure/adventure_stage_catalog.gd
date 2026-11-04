@@ -69,6 +69,8 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState, inv
 	var phase: StagePhaseDefinition = find_phase(stage, kind)
 	if phase == null:
 		return "该战斗阶段不存在。"
+	if inventory.list_cards().is_empty():
+		return "当前玩家没有可出战植物卡。"
 	if kind == StagePhaseDefinition.Kind.NIGHTMARE:
 		if not is_cleared(state, stage.stage_id, StagePhaseDefinition.Kind.NORMAL):
 			return "请先通关普通阶段。"
@@ -76,11 +78,19 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState, inv
 			return "缺少进入噩梦阶段的钥匙。"
 		if phase.key_use == StagePhaseDefinition.KeyUse.CONSUME:
 			return "消耗式钥匙入口尚未接入。"
-		return "噩梦 Boss 和事件运行时尚未接入，暂不可挑战。"
-	if kind != StagePhaseDefinition.Kind.NORMAL:
+		if phase.boss_encounters.is_empty():
+			return "噩梦阶段必须配置 Boss 遭遇。"
+	if kind not in [StagePhaseDefinition.Kind.NORMAL, StagePhaseDefinition.Kind.NIGHTMARE]:
 		return "该阶段类型尚未支持。"
-	if not phase.boss_encounters.is_empty() or not phase.events.is_empty():
-		return "此阶段的 Boss 或事件调度尚未接入。"
+	for event: StageEventDefinition in phase.events:
+		if event.trigger == StageEventDefinition.Trigger.BATTLE_END:
+			return "该阶段存在未实装的事件触发时机。"
+		if event.action not in [StageEventDefinition.Action.SPAWN_ZOMBIES,
+				StageEventDefinition.Action.BEGIN_BOSS_ENCOUNTER,
+				StageEventDefinition.Action.PAUSE_NATURAL_WAVES,
+				StageEventDefinition.Action.RESUME_NATURAL_WAVES,
+				StageEventDefinition.Action.MODIFY_CARD_COOLDOWN]:
+			return "该阶段存在未实装的事件动作。"
 	var check_rng := RandomNumberGenerator.new()
 	check_rng.seed = 1
 	for band: WaveBandDefinition in phase.wave_profile.bands:
@@ -94,8 +104,6 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState, inv
 		if AdventureWavePlanner.build_plan(phase.wave_profile, band.first_wave,
 				budget, 1, tier_threat_costs(), check_rng).is_empty():
 			return "波段[%s]首波的战力预算不足以生成配置中的僵尸。" % band.band_id
-	if inventory.list_cards().is_empty():
-		return "当前玩家没有可出战植物卡。"
 	return ""
 
 static func build_level(stage_number: int, kind: int) -> ResourceLevelData:
