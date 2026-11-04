@@ -36,9 +36,44 @@ static func build(env: AdventureBattleEnvironment,
 	level.boss_spawn_wave = 0
 	level.prechosen_cards.clear()
 	level.save_game_data_main_game = null
-	level.zombie_refresh_types.clear()
-	for band: WaveBandDefinition in phase.wave_profile.bands:
-		for zombie_type: int in band.zombie_weights:
-			if band.zombie_weights[zombie_type] > 0 and not level.zombie_refresh_types.has(zombie_type):
-				level.zombie_refresh_types.append(zombie_type as CharacterRegistry.ZombieType)
+	level.zombie_refresh_types = preview_zombies(phase)
 	return level if level.max_wave >= 2 and not level.zombie_refresh_types.is_empty() else null
+
+## 完整冒险敌人预览：自然波、Boss 援军与事件突袭均由该阶段定义，不使用原版随机白名单。
+static func preview_zombies(phase: StagePhaseDefinition) -> Array[CharacterRegistry.ZombieType]:
+	var types: Array[CharacterRegistry.ZombieType] = []
+	if phase == null or phase.wave_profile == null:
+		return types
+	for band: WaveBandDefinition in phase.wave_profile.bands:
+		for zombie_type: CharacterRegistry.ZombieType in band.zombie_weights:
+			if band.zombie_weights[zombie_type] > 0 and not types.has(zombie_type):
+				types.append(zombie_type)
+	for encounter: BossEncounterDefinition in phase.boss_encounters:
+		for zombie_type: CharacterRegistry.ZombieType in encounter.summon_zombie_weights:
+			if encounter.summon_zombie_weights[zombie_type] > 0 and not types.has(zombie_type):
+				types.append(zombie_type)
+	for event: StageEventDefinition in phase.events:
+		if event.action == StageEventDefinition.Action.SPAWN_ZOMBIES and not types.has(event.action_zombie_type):
+			types.append(event.action_zombie_type)
+	return types
+
+## 只拦截与场景行地形不相容的配置；显式冒险物种不受原版随机刷怪黑名单限制。
+static func validate_terrain(stage: StageDefinition) -> PackedStringArray:
+	var errors := PackedStringArray()
+	if stage == null or stage.environment == null:
+		errors.append("缺少冒险场景环境配置。")
+		return errors
+	var scene: MainSceneRegistry.MainScenes = stage.environment.scene
+	if not Global.main_scene_registry.ZombieRowTypewithMainScenesMap.has(scene):
+		errors.append("当前冒险场景不具备僵尸行类型。")
+		return errors
+	var terrain: CharacterRegistry.ZombieRowType = Global.main_scene_registry.ZombieRowTypewithMainScenesMap[scene]
+	for phase: StagePhaseDefinition in stage.phases:
+		for zombie_type: CharacterRegistry.ZombieType in preview_zombies(phase):
+			if not Global.character_registry.ZombieInfo.has(zombie_type):
+				errors.append("阶段 %s 未注册的僵尸类型 %s。" % [phase.phase_id, zombie_type])
+				continue
+			var zombie_terrain: CharacterRegistry.ZombieRowType = Global.character_registry.ZombieInfo[zombie_type][CharacterRegistry.ZombieInfoAttribute.ZombieRowType]
+			if terrain != CharacterRegistry.ZombieRowType.Both and zombie_terrain != CharacterRegistry.ZombieRowType.Both and terrain != zombie_terrain:
+				errors.append("阶段 %s 僵尸 %s 与地图地形不兼容。" % [phase.phase_id, zombie_type])
+	return errors

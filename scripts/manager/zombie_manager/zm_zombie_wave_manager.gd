@@ -96,10 +96,13 @@ func init_zombie_wave_manager(game_para:ResourceLevelData):
 		curr_wave = -1
 		max_wave = game_para.max_wave
 
-	flag_progress_bar.init_flag_from_wave(max_wave_one_round)
-	progress_bar_segment_every_wave = 100.0 / (max_wave_one_round - 1)
-
 	zombie_wave_create_manager.init_zombie_wave_create_manager(game_para)
+	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile
+	if profile != null:
+		flag_progress_bar.init_flag_from_adventure_profile(profile)
+	else:
+		flag_progress_bar.init_flag_from_wave(max_wave_one_round)
+	progress_bar_segment_every_wave = 100.0 / (max_wave_one_round - 1)
 	# 冒险事件由 MainGameManager 持有；波次管理器只负责发出波次事件。
 
 ## 切换下一轮波次并取消旧轮等待；[param finish_current_round] 表示本轮实际由 Boss 条件结束。

@@ -57,9 +57,10 @@ func _run() -> void:
 	Global.global_game_state.coin_value += 1
 	await get_tree().create_timer(0.3).timeout
 	assert(FileAccess.get_file_as_bytes(original_path) != original_bytes)
+	Global.save_service.stop_autosave() # 已验证自动落盘；后续长场景验收不按0.1秒持续刷盘。
 	map._select_stage(2)
 	assert(get_tree().current_scene == map)
-	assert(map.notice_label.text.contains("通关草坪"))
+	assert(map.notice_label.text.contains("请先通关前一关普通阶段"))
 	for dimensions: Vector2 in [Vector2(1280, 720), Vector2(1920, 1080), Vector2(1024, 768)]: # 同比例与留边。
 		map.size = dimensions
 		map._fit_canvas()
@@ -112,7 +113,7 @@ func _run() -> void:
 		await get_tree().create_timer(0.5).timeout
 	assert(saw_zombies and battle.zombie_manager.is_end_wave)
 	assert(battle.zombie_manager.curr_zombie_num == 0)
-	assert(not AdventureSession.progress.stage_1_cleared)
+	assert(AdventureSession.progress.stage_1_cleared)
 	var trophy: Trophy # 原清场逻辑创建的奖杯。
 	for item: Node in battle.canvas_layer_temp.get_children(): # 查找真实奖杯。
 		if item is Trophy:
@@ -169,9 +170,11 @@ func _run() -> void:
 	await get_tree().create_timer(0.3).timeout
 	assert(not AdventureSession.adventure_active)
 	original_bytes = FileAccess.get_file_as_bytes(original_path)
+	Global.save_service.start_autosave(0.1)
 	Global.global_game_state.coin_value += 1
 	await get_tree().create_timer(0.3).timeout
 	assert(FileAccess.get_file_as_bytes(original_path) != original_bytes)
+	Global.save_service.stop_autosave()
 	# 沿用用户改名接口迁移冒险文件，之后真正调用继续入口。
 	assert(Global.user_manager.rename_user(username + "-skip", username + "-renamed").is_empty())
 	await _enter_island_from_menu()
@@ -179,7 +182,7 @@ func _run() -> void:
 	assert(AdventureSession.progress.intro_completed)
 	assert(not get_tree().current_scene.canvas.has_node("Intro"))
 	assert(Global.adventure_inventory.list_cards().size() == 2)
-	print("PASS: menu, seven lines, third-line immediate skip lifecycle, gift, layout, planting, defeat, natural waves, trophy victory, restart, abandon, shared autosave and restoration, rename, continue")
+	print("PASS: native menu, 11-line intro, gift, layout, planting, defeat, natural waves, pre-trophy settlement, trophy, autosave, rename, continue")
 	get_tree().quit(0)
 
 ## 等待场景入树、布局及已接入的表现组件完成，不使用固定长延迟。

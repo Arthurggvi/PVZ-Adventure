@@ -75,6 +75,9 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState,
 	var issues: PackedStringArray = stage.validate(tier_ids(), key_ids())
 	if not issues.is_empty():
 		return "关卡配置无效：" + issues[0]
+	var terrain_errors: PackedStringArray = AdventureBattleEnvironmentAdapter.validate_terrain(stage)
+	if not terrain_errors.is_empty():
+		return "关卡地形配置无效：" + terrain_errors[0]
 	var phase: StagePhaseDefinition = find_phase(stage, kind)
 	if phase == null:
 		return "该战斗阶段不存在。"

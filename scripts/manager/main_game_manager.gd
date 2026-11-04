@@ -176,6 +176,11 @@ func _ready() -> void:
 	# 参数资源负责校验与初始化；失败时保持 NONE 阶段，不继续选卡或初始化子管理器。
 	if not game_para.init_para():
 		return
+	# 原版初始化仅保留随机白名单里的预览物种；冒险在这一层恢复完整阶段敌人池。
+	# Legacy 不走该分支，仍使用其原有筛选和刷怪规则。
+	if AdventureSession.owns_battle(game_para):
+		game_para.zombie_refresh_types = AdventureBattleEnvironmentAdapter.preview_zombies(
+			AdventureSession.get_active_phase(game_para))
 	## 多轮游戏并且有存档
 	is_save_game_data_on_init = game_para.game_round != 1 and game_para.save_game_data_main_game != null
 

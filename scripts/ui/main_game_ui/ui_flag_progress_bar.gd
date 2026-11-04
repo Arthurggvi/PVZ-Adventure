@@ -39,31 +39,45 @@ func _ready() -> void:
 
 
 ## 根据旗帜数量生成旗帜，并删除原本的旗帜
-func create_flag(flag_num:int):
+## 原版仍按每十波生成一面旗，位置和原计算一致。
+func create_flag(flag_num: int) -> void:
+	var positions: Array[float] = []
+	var total_distance: float = start_flag - end_flag
+	for index: int in range(1, flag_num + 1):
+		positions.append(start_flag - total_distance * ((index * 10.0 - 1.0) / (flag_num * 10.0 - 1.0)))
+	_build_flag_nodes(positions)
+
+func init_flag_from_wave(wave_num: int) -> void:
+	assert(wave_num % 10 == 0, "原版关卡波次数必须为10的倍数")
+	create_flag(wave_num / 10)
+
+## 冒险波次无十波要求；旗帜对应 WaveProfile 标记的大波和最后一波。
+func init_flag_from_adventure_profile(profile: WaveProfile) -> void:
+	if profile == null or profile.wave_count < 2:
+		push_error("冒险旗帜要求至少两波。")
+		return
+	var marks: Array[int] = profile.flag_waves.duplicate()
+	if not marks.has(profile.wave_count):
+		marks.append(profile.wave_count)
+	marks.sort()
+	var positions: Array[float] = []
+	var total_distance: float = start_flag - end_flag
+	for wave_number: int in marks:
+		positions.append(start_flag - total_distance * float(wave_number - 1) / float(profile.wave_count - 1))
+	_build_flag_nodes(positions)
+
+func _build_flag_nodes(positions: Array[float]) -> void:
+	for old: FlagProgressBarFlag in flag_arr:
+		if is_instance_valid(old):
+			old.queue_free()
 	flag_arr.clear()
-	# 计算总距离
-	var total_distance = start_flag - end_flag
-	#var segment_length_wave = total_distance / (flag_num * 10 - 1)
-
-	# 计算每个分段的结束位置
-	for i in range(1, flag_num+1):  # 1到10
-		var end_pos = start_flag - total_distance * ((i*10.0-1)/(flag_num * 10.0-1))
-
-		var flag_new : FlagProgressBarFlag = flag.duplicate()
-
-		add_child(flag_new)
-		move_child(flag_new, 1)
-		flag_arr.append(flag_new)
-		flag_new.position.x = end_pos
-
-	## 删除原始的flag
+	for x: float in positions:
+		var new_flag: FlagProgressBarFlag = flag.duplicate() as FlagProgressBarFlag
+		add_child(new_flag)
+		move_child(new_flag, 1)
+		new_flag.position.x = x
+		flag_arr.append(new_flag)
 	flag.queue_free()
-
-## 根据波数生成大波的旗帜
-func init_flag_from_wave(wave_num:int):
-	assert(wave_num % 10 == 0, "当前波数不为10的倍数")
-	var flag_num : int = int(wave_num / 10.0)
-	create_flag(flag_num)
 
 ## 开始下一轮游戏,进度条更新数据
 func start_next_game_flag_progress_bar_update():
