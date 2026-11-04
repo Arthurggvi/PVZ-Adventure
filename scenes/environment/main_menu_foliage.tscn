@@ -1,10 +1,9 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/environment/main_menu_foliage.gd" id="script"]
 [ext_resource type="Script" path="res://scripts/environment/menu_wind_controller.gd" id="wind_controller"]
-[ext_resource type="Script" path="res://scripts/environment/menu_leaf_clusters.gd" id="clusters"]
 [ext_resource type="Shader" path="res://shaders/adventure/menu_foliage_wind.gdshader" id="wind"]
-[ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v2/art/foliage/main_menu/tree_underlay_clean.png" id="underlay"]
+[ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v4/art/foliage/main_menu/tree_underlay_clean_alpha.png" id="underlay"]
 [ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v2/art/foliage/main_menu/tree_leaves_clean.png" id="leaves"]
 
 [sub_resource type="ShaderMaterial" id="canopy_wind"]
@@ -27,6 +26,3 @@ texture = ExtResource("leaves")
 
 [node name="Wind" type="Node" parent="."]
 script = ExtResource("wind_controller")
-
-[node name="Clusters" type="Node2D" parent="."]
-script = ExtResource("clusters")

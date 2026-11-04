@@ -12,13 +12,22 @@ func _check() -> void:
     var art := menu.get_node("ArtCanvas")
     var foliage := art.get_node("EnvironmentFX/FoliageFX")
     var wind := foliage.get_node("Wind")
-    var clusters := foliage.get_node("Clusters")
     var falling := art.get_node("ForegroundLeaves")
     var leaves := foliage.get_node("Leaves") as Sprite2D
     var material := leaves.material as ShaderMaterial
     _expect(falling.get_parent() == art and falling.z_index == 0, "explicit sibling leaf layer")
     _expect(falling.wind == wind, "shared wind injected by menu composition root")
-    _expect(falling.particles.size() == 20 and clusters.pivots.size() == 4, "bounded pool and independent clusters")
+    _expect(falling.particles.size() == 20, "bounded falling leaf pool")
+    _expect(not foliage.has_node("Clusters"), "no duplicate transparent clusters")
+    var underlay := foliage.get_node("Underlay") as Sprite2D
+    var underlay_image := underlay.texture.get_image()
+    _expect(underlay_image.get_format() != Image.FORMAT_RGB8, "underlay uses transparent pixels")
+    _expect(underlay_image.get_pixel(839, 190).a < 0.01, "clouds not hidden by a rectangular patch")
+    var clean_patch := underlay.texture
+    menu.use_clean_sky = false
+    _expect(underlay.texture != clean_patch, "original-sky underlay switches with background")
+    _expect(underlay.texture.get_image().get_pixel(839, 190).a < 0.01, "original-sky sky pixels remain transparent")
+    menu.use_clean_sky = true
     for name in ["coastal_yard","EnvironmentFX","home","ship","research","supply","CrowFlyby"]:
         _expect(art.get_node(name).get_index() < falling.get_index(), "world under leaves: " + name)
     for name in ["home_button","ship_button","research_button","supply_button",

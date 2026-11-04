@@ -1,68 +1,10 @@
 {
-  "format": 1,
+  "format": 2,
   "design_canvas": [
     1920,
     1080
   ],
   "origin": "main_menu original painting + PVZ original selector leaves",
-  "clusters": [
-    {
-      "name": "cluster_a",
-      "rect": [
-        115,
-        0,
-        180,
-        112
-      ],
-      "anchor": [
-        208,
-        33
-      ],
-      "period": 2.0
-    },
-    {
-      "name": "cluster_b",
-      "rect": [
-        272,
-        0,
-        143,
-        115
-      ],
-      "anchor": [
-        340,
-        34
-      ],
-      "period": 2.37
-    },
-    {
-      "name": "cluster_c",
-      "rect": [
-        575,
-        0,
-        232,
-        172
-      ],
-      "anchor": [
-        687,
-        67
-      ],
-      "period": 2.74
-    },
-    {
-      "name": "cluster_d",
-      "rect": [
-        480,
-        85,
-        198,
-        133
-      ],
-      "anchor": [
-        568,
-        143
-      ],
-      "period": 3.11
-    }
-  ],
   "falling_leaves": [
     {
       "name": "leaf_01.png",

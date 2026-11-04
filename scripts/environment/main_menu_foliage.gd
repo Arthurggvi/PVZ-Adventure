@@ -1,15 +1,14 @@
-## Reversible menu foliage layer with one local wind controller and capped leaf effects.
+## Single-source menu canopy: transparent repair underlay, one leaf layer and shared wind.
 extends Node2D
 
-const CLEAN_UNDERLAY = preload("res://assets/adventure/environment_fx/v2/art/foliage/main_menu/tree_underlay_clean.png")
-const ORIGINAL_UNDERLAY = preload("res://assets/adventure/environment_fx/v2/art/foliage/main_menu/tree_underlay_original.png")
+const CLEAN_UNDERLAY = preload("res://assets/adventure/environment_fx/v4/art/foliage/main_menu/tree_underlay_clean_alpha.png")
+const ORIGINAL_UNDERLAY = preload("res://assets/adventure/environment_fx/v4/art/foliage/main_menu/tree_underlay_original_alpha.png")
 const CLEAN_LEAVES = preload("res://assets/adventure/environment_fx/v2/art/foliage/main_menu/tree_leaves_clean.png")
 const ORIGINAL_LEAVES = preload("res://assets/adventure/environment_fx/v2/art/foliage/main_menu/tree_leaves_original.png")
 
 @onready var underlay: Sprite2D = $Underlay
 @onready var leaves: Sprite2D = $Leaves
 @onready var wind: Node = $Wind
-@onready var clusters: Node2D = $Clusters
 
 var _active := true
 var _clean_sky := true
@@ -30,7 +29,6 @@ func _refresh() -> void:
     leaves.texture = CLEAN_LEAVES if _clean_sky else ORIGINAL_LEAVES
     var running := _active and is_visible_in_tree()
     wind.set_active(running)
-    clusters.configure(running, _clean_sky)
     set_process(running)
     if not running:
         (leaves.material as ShaderMaterial).set_shader_parameter("wind_strength", 0.0)
