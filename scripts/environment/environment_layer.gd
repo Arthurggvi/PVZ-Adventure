@@ -76,6 +76,10 @@ func _ready() -> void:
 		add_child(effect)
 		effect.configure(entry, ship, display_region)
 		effects.append(effect)
+	# Sky/cloud effects are built at runtime; the tree must render after them.
+	# The whole environment node still remains behind buildings and menu UI.
+	if has_node("FoliageFX"):
+		move_child($FoliageFX, get_child_count() - 1)
 	visibility_changed.connect(_apply_running)
 	_apply_running()
 

@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3]
 [ext_resource type="Script" path="res://scripts/environment/environment_layer.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v2/art/water/masks/menu_water_only_mask.png" id="water_mask"]
-[ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v2/art/foliage/masks/main_menu_leaf_wind_mask.png" id="leaf_mask"]
+[ext_resource type="PackedScene" path="res://scenes/environment/main_menu_foliage.tscn" id="foliage"]
 [node name="EnvironmentFX" type="Node2D"]
 script = ExtResource("1")
 configuration = "res://data/environment/main_menu.json"
@@ -11,6 +11,4 @@ water_drift_pixels_per_second = 10.0
 water_drift_distance_pixels = 160.0
 shoreline_pulse_seconds = 4.0
 water_region_mask = ExtResource("water_mask")
-provisional_leaf_wind_enabled = true
-leaf_region_mask = ExtResource("leaf_mask")
-leaf_amplitude_pixels = 2.0
+[node name="FoliageFX" parent="." instance=ExtResource("foliage")]
