@@ -41,7 +41,7 @@ func _ready() -> void:
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(title)
 	var exit := Button.new()
-	exit.text = "关闭  F9"
+	exit.text = "关闭  Ctrl+Alt+C"
 	exit.custom_minimum_size = Vector2(126, 42)
 	exit.pressed.connect(func(): close_requested.emit())
 	top.add_child(exit)
@@ -76,7 +76,7 @@ func _ready() -> void:
 	feedback.add_theme_font_size_override("font_size", 16)
 	feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	outer.add_child(feedback)
-	# F9 only builds the lightweight shell; modules are loaded on explicit selection.
+	# The shortcut only builds the lightweight shell; modules are loaded on explicit selection.
 
 ## Dock to the right edge while leaving the game canvas interactive on the left.
 func _layout_panel() -> void:

@@ -15,26 +15,34 @@ func _check() -> void:
 	var clicks: Array[int] = []
 	game_button.pressed.connect(func(): clicks.append(1))
 	await get_tree().create_timer(0.9).timeout
-	var f9 := InputEventKey.new()
-	f9.physical_keycode = KEY_F9
-	f9.pressed = true
-	get_viewport().push_input(f9,true)
+	var old_key := InputEventKey.new()
+	old_key.keycode = KEY_F9
+	old_key.pressed = true
+	get_viewport().push_input(old_key, true)
+	await get_tree().process_frame
+	assert(not PVZCheat.is_open(), "F9 must remain unbound")
+	var shortcut := InputEventKey.new()
+	shortcut.physical_keycode = KEY_C
+	shortcut.ctrl_pressed = true
+	shortcut.alt_pressed = true
+	shortcut.pressed = true
+	get_viewport().push_input(shortcut,true)
 	await get_tree().create_timer(0.15).timeout
 	var win: Control = PVZCheat.implementation.window
 	assert(PVZCheat.is_open() and win.visible and win.mouse_filter == Control.MOUSE_FILTER_IGNORE)
 	var panel: Control = win.get_node("CheatConsolePanel")
-	print("F9_HIT visible=",win.visible," panel=",panel.get_global_rect()," game=",game_button.get_global_rect())
+	print("Ctrl+Alt+C_HIT visible=",win.visible," panel=",panel.get_global_rect()," game=",game_button.get_global_rect())
 	await _click(game_button.get_global_rect().get_center())
 	var hovered := get_viewport().gui_get_hovered_control()
-	print("F9_HIT game_pressed=",clicks.size()," hovered=", hovered.name if hovered != null else "none")
+	print("Ctrl+Alt+C_HIT game_pressed=",clicks.size()," hovered=", hovered.name if hovered != null else "none")
 	assert(clicks.size() == 1,"Game-side click must pass through non-modal debug root")
 	var tab: Button = win._tab_buttons["items"]
 	await _click(tab.get_global_rect().get_center())
-	print("F9_HIT tab_selected=",win._section)
-	assert(win._section == "items","Cheat tab must be clickable at first F9")
+	print("Ctrl+Alt+C_HIT tab_selected=",win._section)
+	assert(win._section == "items","Cheat tab must be clickable at first Ctrl+Alt+C")
 	PVZCheat.toggle()
 	assert(not PVZCheat.is_open())
-	print("F9_HIT_PASS first-open panel clicks + live game pass-through")
+	print("Ctrl+Alt+C_HIT_PASS first-open panel clicks + live game pass-through")
 	get_tree().quit(0)
 
 func _click(position: Vector2) -> void:

@@ -21,7 +21,7 @@ func _input(event: InputEvent) -> void:
 	if not enabled or not event is InputEventKey:
 		return
 	var key := event as InputEventKey
-	if key.pressed and not key.echo and (key.physical_keycode == KEY_F9 or key.keycode == KEY_F9):
+	if key.pressed and not key.echo and key.ctrl_pressed and key.alt_pressed and (key.physical_keycode == KEY_C or key.keycode == KEY_C):
 		toggle()
 		get_viewport().set_input_as_handled()
 
