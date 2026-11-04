@@ -25,7 +25,8 @@ func _on_user_renamed(previous: String, current: String) -> void:
 		_loaded_profile = current
 
 func is_current_profile_loaded() -> bool:
-	return _safe_to_save and user_manager != null and _loaded_profile == user_manager.curr_user_name
+	return _safe_to_save and user_manager != null and not user_manager.curr_user_name.is_empty() \
+		and _loaded_profile == user_manager.curr_user_name
 
 func _get_save_game_path() -> String:
 	if user_manager == null or not UserManager.is_valid_user_name(user_manager.curr_user_name):
