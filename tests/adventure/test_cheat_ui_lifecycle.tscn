@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://tests/adventure/test_cheat_ui_lifecycle.gd" id="1"]
+[node name="CheatUiLifecycleTest" type="Node"]
+script = ExtResource("1")

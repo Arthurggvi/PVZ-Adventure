@@ -12,7 +12,7 @@ const SECTIONS := [
 var service: RefCounted
 var content: VBoxContainer
 var feedback: Label
-var _section := "cards"
+var _section := ""
 var _tab_buttons: Dictionary = {}
 
 func initialize(commands: RefCounted) -> void:
@@ -81,7 +81,7 @@ func _ready() -> void:
 	feedback.add_theme_font_size_override("font_size", 16)
 	feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	outer.add_child(feedback)
-	select_section(_section)
+	# F9 only builds the lightweight shell; modules are loaded on explicit selection.
 
 func _style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -95,16 +95,39 @@ func _style() -> StyleBoxFlat:
 	style.content_margin_bottom = 16
 	return style
 
+## Presentation and raw-input ownership change together; hidden windows cannot consume Esc.
+func set_presented(value: bool) -> void:
+	if value:
+		prepare_open()
+	visible = value
+	set_process_input(value)
+
+func prepare_open() -> void:
+	if not is_instance_valid(content):
+		return
+	_section = ""
+	_clear_content()
+	for key: String in _tab_buttons:
+		(_tab_buttons[key] as Button).set_pressed_no_signal(false)
+	var note := Label.new()
+	note.text = "请选择左侧功能模块。卡片与物品目录按需载入。"
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(note)
+	feedback.text = "开发者功能已启用。修改存档前请先创建备份。"
+
 func select_section(value: String) -> void:
 	if not is_instance_valid(content):
 		return
 	_section = value
+	_clear_content()
 	for key: String in _tab_buttons:
-		(_tab_buttons[key] as Button).button_pressed = key == value
-	for node: Node in content.get_children():
-		content.remove_child(node)
-		node.queue_free()
+		(_tab_buttons[key] as Button).set_pressed_no_signal(key == value)
 	Pages.build(content, value, service, Callable(self, "report"))
+
+func _clear_content() -> void:
+	for child: Node in content.get_children():
+		content.remove_child(child)
+		child.queue_free()
 
 func report(result: Dictionary) -> void:
 	if not is_instance_valid(feedback):

@@ -30,10 +30,7 @@ func toggle() -> void:
 func set_enabled(value: bool) -> bool:
 	if not is_instance_valid(implementation):
 		return false
-	implementation.enabled = value
-	implementation.set_process_input(value)
-	if not value and implementation.is_open():
-		implementation.toggle()
+	implementation.set_enabled(value)
 	return true
 
 func is_open() -> bool:
