@@ -173,14 +173,14 @@ func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 	var footprint: Array[PlantCell] = condition.placement_cells(self)
 	if footprint.is_empty():
 		return null
+	# Player planting obeys terrain and active restrictions. Level setup may
+	# directly place a registered plant on empty cells or upgrade complete
+	# prerequisites. Save restore and transformation never consume prerequisites.
+	if origin == PlacementOrigin.Player and not condition.judge_is_can_plant(self, plant_type):
+		return null
 	var claims: Array[Dictionary] = []
-	if origin == PlacementOrigin.Player:
-		if condition.is_purple_card:
-			claims = condition.get_upgrade_claims(self, plant_type)
-			if claims.size() != footprint.size():
-				return null
-		elif not condition.judge_is_can_plant(self, plant_type):
-			return null
+	if condition.is_purple_card and origin in [PlacementOrigin.Player, PlacementOrigin.LevelSetup]:
+		claims = condition.get_upgrade_claims(self, plant_type)
 	if not _placement_is_available(condition, footprint, claims):
 		return null
 
@@ -209,19 +209,22 @@ func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 	plant.plant_spawn_profile = spawn_profile
 
 	# Two-phase commit: validate all claims again before consuming a single plant.
-	if origin == PlacementOrigin.Player:
-		if condition.is_purple_card:
-			var current_claims: Array[Dictionary] = condition.get_upgrade_claims(self, plant_type)
-			if current_claims.size() != claims.size():
-				plant.free()
-				return null
-			for i in range(claims.size()):
-				if current_claims[i]["plant"] != claims[i]["plant"]:
-					plant.free()
-					return null
-		elif not condition.judge_is_can_plant(self, plant_type):
+	if origin == PlacementOrigin.Player and not condition.judge_is_can_plant(self, plant_type):
+		plant.free()
+		return null
+	# The same claims apply to player upgrades and scripted level upgrades.
+	# Verify the complete set again before the first predecessor is consumed.
+	if not claims.is_empty():
+		var current_claims: Array[Dictionary] = condition.get_upgrade_claims(self, plant_type)
+		if current_claims.size() != claims.size():
 			plant.free()
 			return null
+		for i in range(claims.size()):
+			if current_claims[i]["cell"] != claims[i]["cell"] \
+					or current_claims[i]["slot"] != claims[i]["slot"] \
+					or current_claims[i]["plant"] != claims[i]["plant"]:
+				plant.free()
+				return null
 	if not _placement_is_available(condition, footprint, claims):
 		plant.free()
 		return null

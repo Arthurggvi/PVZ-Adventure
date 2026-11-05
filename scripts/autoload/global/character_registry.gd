@@ -568,6 +568,12 @@ const PlantInfo = {
 }
 
 
+## Resolve registered plant scenes without exposing the registry's preload map.
+func get_plant_scene(plant_type: int) -> PackedScene:
+	if not PlantInfo.has(plant_type):
+		return null
+	return PlantInfo[plant_type].get(PlantInfoAttribute.PlantScenes)
+
 ## 获取植物属性方法
 func get_plant_info(plant_type:PlantType, info_attribute:PlantInfoAttribute):
 	if not PlantInfo.has(plant_type):

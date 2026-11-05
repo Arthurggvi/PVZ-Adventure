@@ -3,12 +3,10 @@
 extends RefCounted
 class_name PlantSceneFactory
 
-static func create(plant_type: CharacterRegistry.PlantType) -> Plant000Base:
-	if not CharacterRegistry.PlantInfo.has(plant_type):
-		push_error("PlantSceneFactory: unregistered species %s" % plant_type)
-		return null
-	var entry: Dictionary = CharacterRegistry.PlantInfo[plant_type]
-	var scene: PackedScene = entry.get(CharacterRegistry.PlantInfoAttribute.PlantScenes)
+static func create(plant_type: int) -> Plant000Base:
+	# The registry resolves scenes at runtime; static preload dependencies here
+	# would create a cycle: registry -> condition resource -> plant cell -> factory.
+	var scene: PackedScene = Global.character_registry.get_plant_scene(plant_type)
 	if scene == null:
 		push_error("PlantSceneFactory: missing plant scene for species %s" % plant_type)
 		return null

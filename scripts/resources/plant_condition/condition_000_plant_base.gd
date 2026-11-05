@@ -58,7 +58,14 @@ func get_upgrade_claims(cell: PlantCell, plant_type: CharacterRegistry.PlantType
 ## All planting entrypoints use the same conditions before mutating the board.
 func judge_is_can_plant(plant_cell: PlantCell, curr_plant_type: CharacterRegistry.PlantType) -> bool:
 	if is_purple_card:
-		return not get_upgrade_claims(plant_cell, curr_plant_type).is_empty()
+		var cells: Array[PlantCell] = placement_cells(plant_cell)
+		if cells.is_empty():
+			return false
+		for cell: PlantCell in cells:
+			if not is_instance_valid(cell) or not cell.can_common_plant \
+					or not (plant_condition & cell.curr_condition):
+				return false
+		return get_upgrade_claims(plant_cell, curr_plant_type).size() == cells.size()
 	if is_special_plants:
 		return judge_special_plants_condition(plant_cell)
 	if not plant_cell.can_common_plant or not (plant_condition & plant_cell.curr_condition):
@@ -78,7 +85,7 @@ func judge_is_can_plant(plant_cell: PlantCell, curr_plant_type: CharacterRegistr
 func judge_purple_card_can_plant(all_plant_cells, curr_plant_type: CharacterRegistry.PlantType) -> bool:
 	for cells: Array in all_plant_cells:
 		for cell: PlantCell in cells:
-			if not get_upgrade_claims(cell, curr_plant_type).is_empty():
+			if judge_is_can_plant(cell, curr_plant_type):
 				return true
 	return false
 
@@ -87,10 +94,13 @@ func judge_purple_card_can_plant(all_plant_cells, curr_plant_type: CharacterRegi
 func get_all_preplant_purple(all_plant_cells, curr_plant_type:CharacterRegistry.PlantType):
 	var all_preplant_purple:Array[Plant000Base]
 	for plant_cells_row in all_plant_cells:
-		for plant_cell in plant_cells_row:
-			var claims: Array[Dictionary] = get_upgrade_claims(plant_cell, curr_plant_type)
-			if not claims.is_empty():
-				all_preplant_purple.append(claims[0]["plant"])
+		for plant_cell: PlantCell in plant_cells_row:
+			if not judge_is_can_plant(plant_cell, curr_plant_type):
+				continue
+			for claim: Dictionary in get_upgrade_claims(plant_cell, curr_plant_type):
+				var predecessor: Plant000Base = claim["plant"]
+				if not all_preplant_purple.has(predecessor):
+					all_preplant_purple.append(predecessor)
 
 	return all_preplant_purple
 
