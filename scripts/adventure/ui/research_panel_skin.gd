@@ -51,7 +51,7 @@ static func build(owner: Control, with_background: bool = false) -> Dictionary:
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.size = DESIGN
 	canvas.add_child(content)
-	var status := Art.label(canvas, "展示界面 · 暂不消耗资源", Vector2(142, 906),
+	var status := Art.label(canvas, "请选择研究操作", Vector2(142, 906),
 		Vector2(1060, 55), 25, Color("fae6b8"))
 	var action := Art.button(canvas, "buttons/action_confirm", Vector2(1490, 899),
 		Vector2(268, 82), Callable(owner, "perform_action"))
@@ -62,3 +62,22 @@ static func build(owner: Control, with_background: bool = false) -> Dictionary:
 	action_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	return {"canvas": canvas, "tabs": tabs, "coin": coin, "content": content,
 		"status": status, "action": action, "action_text": action_text}
+
+## Confirmation UI lives with the shared panel skin, not the operation transaction.
+static func promotion_confirmation(owner: Control, preview: Dictionary,
+		choice: Dictionary, execute: Callable) -> ConfirmationDialog:
+	var title := str(choice.get("book_id", ""))
+	for branch: Dictionary in preview.get("branches", []):
+		if str(branch.get("id", "")) == title:
+			title = str(branch.get("title", title))
+			break
+	var dialog := ConfirmationDialog.new()
+	dialog.title = "确认不可撤销的转职"
+	dialog.dialog_text = "植物卡 %s\n第 %d 次转职：%s\n消耗转职书 ×1、金币 $%d。\n选择不可撤销，星级保持不变。" % [
+		str(choice.get("uid", "")), int(preview.get("tier", 0)),
+		title, int(preview.get("fee", 0))]
+	dialog.ok_button_text = "确认转职"
+	owner.add_child(dialog)
+	dialog.confirmed.connect(execute)
+	dialog.popup_centered(Vector2i(560, 235))
+	return dialog

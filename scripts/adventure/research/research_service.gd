@@ -6,6 +6,7 @@ const Recipes = preload("res://scripts/adventure/research/research_recipe_catalo
 const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
 const Enhancement = preload("res://scripts/adventure/research/research_enhancement_rules.gd")
 const Transaction = preload("res://scripts/adventure/research/research_transaction.gd")
+const Operation = preload("res://scripts/adventure/research/research_operation.gd")
 var state: AdventureState
 var inventory: AdventureInventoryService
 var wallet: GlobalGameState
@@ -55,6 +56,7 @@ func _craft_quote(id: String) -> Dictionary:
 		if owned < 1:
 			enough = false
 	recipe["slots"] = material_slots
+	recipe["fee"] = Recipes.COST
 	recipe["ready"] = enough
 	recipe["message"] = "可合成" if enough else "缺少制作书、材料或金币。"
 	return recipe
@@ -62,7 +64,10 @@ func _craft_quote(id: String) -> Dictionary:
 func _upgrade_quote(choice: Dictionary) -> Dictionary:
 	var uid: String = str(choice.get("uid", ""))
 	var main: PlantCardInstance = state.cards.get(uid)
-	var consumed: Array = choice.get("materials", [])
+	var raw_materials: Variant = choice.get("materials", [])
+	if not raw_materials is Array:
+		return {"ready": false, "message": "耗材卡列表格式无效。"}
+	var consumed: Array = raw_materials
 	var pot: bool = bool(choice.get("use_pot", false))
 	var fertilizer: String = str(choice.get("fertilizer", ""))
 	var pot_cost: int = Enhancement.protection_count(main.stars + 1) if main != null else 0
@@ -70,7 +75,7 @@ func _upgrade_quote(choice: Dictionary) -> Dictionary:
 	for card_uid: Variant in consumed:
 		material_cards.append(inventory.get_card(str(card_uid)))
 	var data := {"ready": false, "uid": uid, "type": main.plant_type if main else 0,
-		"fee": Enhancement.COST, "pot_required": pot_cost,
+		"fee": Enhancement.COST, "pot_required": pot_cost, "target_star": mini(Enhancement.MAX_STARS, int(main.stars) + 1) if main else 0,
 		"pot_owned": inventory.get_item_count("seedling_pot"),
 		"materials": consumed.duplicate(), "material_cards": material_cards,
 		"use_pot": pot, "fertilizer": fertilizer,
@@ -81,9 +86,16 @@ func _upgrade_quote(choice: Dictionary) -> Dictionary:
 	if not issue.is_empty():
 		data["message"] = issue
 		return data
-	var chance: Variant = Enhancement.success_probability(main, consumed, fertilizer)
+	var material_instances: Array[PlantCardInstance] = []
+	for material_uid: Variant in consumed:
+		material_instances.append(state.cards[str(material_uid)])
+	var chance: Variant = Enhancement.success_probability(main, material_instances, fertilizer)
 	if chance == null:
 		data["message"] = "概率算法未定义：强化执行暂不可用。"
+		return data
+	if typeof(chance) not in [TYPE_INT, TYPE_FLOAT] or not is_finite(chance) \
+			or chance < 0.0 or chance > 1.0:
+		data["message"] = "强化成功率返回值无效。"
 		return data
 	data["chance"] = chance
 	data["ready"] = true
@@ -119,26 +131,10 @@ func _promotion_quote(choice: Dictionary) -> Dictionary:
 	data["message"] = "转职不影响星级，选择后不可撤销。"
 	return data
 
-## Re-quotes live state; never trusts display snapshots as executable commands.
+## The transaction owns the only save boundary and re-quotes immediately before writing.
 func execute(mode: String, choice: Dictionary) -> Dictionary:
-	var preview: Dictionary = quote(mode, choice)
-	if not preview.get("ready", false):
-		return {"ok": false, "message": str(preview.get("message", "条件不满足。"))}
-	var plan: Dictionary = {}
-	match mode:
-		"craft":
-			var id: String = str(choice.recipe_id)
-			var ingredients: Dictionary = {id: 1}
-			for material_id: String in preview.materials:
-				ingredients[material_id] = 1
-			plan = {"fee": Recipes.COST, "consume": ingredients,
-				"create_type": int(preview.plant_type)}
-		"promotion":
-			plan = {"fee": Promotions.COST, "consume": {str(choice.book_id): 1},
-				"update_uid": str(choice.uid), "promotion_tier": int(preview.tier),
-				"promotion_id": str(choice.book_id)}
-		"upgrade":
-			return {"ok": false, "message": "强化概率尚未定义，未扣除任何资源。"}
-		_:
-			return {"ok": false, "message": "未知操作。"}
-	return Transaction.commit(state, inventory, wallet, persist, plan)
+	var action: AdventureResearchOperation = Operation.from_choice(mode, choice)
+	if action == null:
+		return {"ok": false, "message": "无效研究操作。"}
+	return Transaction.commit(state, inventory, wallet, persist, action,
+		Callable(self, "quote"))

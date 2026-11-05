@@ -21,8 +21,8 @@ func _run() -> void:
 	assert(Asset.icon_uri("recipe_wall_nut") == Asset.icon_uri("recipe_potato_mine"))
 	assert(not Asset.recipe_overlay_uri("recipe_wall_nut").is_empty())
 	assert(Asset.recipe_overlay_uri("recipe_wall_nut") == Asset.recipe_overlay_uri("recipe_potato_mine"))
-	assert(Asset.recipe_plant_type("recipe_wall_nut") == CharacterRegistry.PlantType.P004WallNut)
-	assert(Asset.recipe_plant_type("recipe_potato_mine") == CharacterRegistry.PlantType.P005PotatoMine)
+	assert(AdventureRecipeCatalog.definition("recipe_wall_nut").plant_type == CharacterRegistry.PlantType.P004WallNut)
+	assert(AdventureRecipeCatalog.definition("recipe_potato_mine").plant_type == CharacterRegistry.PlantType.P005PotatoMine)
 	var variants: Array[Dictionary] = [
 		{"id":"unsaturated_fat","category":"material"},
 		{"id":"lawn_nightmare_key","category":"key"},
@@ -56,7 +56,7 @@ func _run() -> void:
 	empty.queue_free()
 	var recipe: Control = Tile.new()
 	add_child(recipe)
-	recipe.setup({"kind":"item","id":"recipe_wall_nut","category":"recipe","qty":1}, 1, false, false)
+	recipe.setup({"kind":"item","id":"recipe_wall_nut","category":"recipe","plant_type":4,"qty":1}, 1, false, false)
 	assert(recipe.get_child_count() >= 4)
 	assert(recipe.get_child(1) is TextureRect and recipe.get_child(2) is Node2D)
 	assert((recipe.get_child(1) as TextureRect).texture.resource_path == Asset.icon_uri("recipe_wall_nut"))

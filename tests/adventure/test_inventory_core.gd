@@ -73,11 +73,13 @@ func _run() -> void:
 	state.regions = {"zombie_island": {"cleared": [1], "note": null}}
 	state.claimed_rewards["starter"] = true
 	state.cards[second].promotion_1 = "branch_a"
+	assert(state.to_dict().is_empty(), "Unknown promotion IDs must not enter saves.")
+	state.cards[second].promotion_1 = ""
 	var encoded: String = JSON.stringify(state.to_dict()) # 仅经 JSON 基础类型往返。
 	var payload: Dictionary = JSON.parse_string(encoded) # 解码得到独立、无类型约束的输入字典。
 	var restored: RefCounted = state_model.from_dict(payload) # 第二个状态由协议恢复。
 	assert(restored != null and restored.cards.size() == 2)
-	assert(restored.cards[second].promotion_1 == "branch_a" and restored.cards[second].promotion_2.is_empty())
+	assert(restored.cards[second].promotion_1.is_empty() and restored.cards[second].promotion_2.is_empty())
 	assert(restored.selected_card_uids == [second] and restored.items.fertilizer_lv1 == 2)
 	assert(restored.card_order_uids == [second, "PC000003"])
 	assert(restored.cards["PC000003"].stars == 0, "零星卡必须完整经过 JSON 往返")

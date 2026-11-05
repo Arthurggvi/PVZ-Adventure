@@ -28,6 +28,7 @@ func _run() -> void:
 	var state := AdventureState.new()
 	var inventory := AdventureInventoryService.new(state)
 	var wallet := GlobalGameState.new()
+	wallet.adventure_state = state
 	wallet.coin_value = 30000
 	var service: RefCounted = Research.new(state, inventory, wallet, Callable(self, "_persist"))
 	assert(inventory.add_item("recipe_wall_nut", 1))
@@ -88,5 +89,15 @@ func _run() -> void:
 	old.erase("promotion_3")
 	old.erase("promotion_4")
 	assert(PlantCardInstance.from_dict(old).promotion_4.is_empty())
+	# A known book in the wrong tier or a different plant must not be persisted or applied.
+	state.cards[sunflower].promotion_3 = "promotion_sunflower_synergy"
+	assert(state.to_dict().is_empty())
+	assert(Promotions.effects(state.cards[sunflower]).stats.is_empty())
+	state.cards[sunflower].promotion_3 = ""
+	var retained: String = JSON.stringify(state.to_dict())
+	wallet.adventure_state = AdventureState.new()
+	assert(not service.execute("promotion", failed_choice).ok)
+	assert(JSON.stringify(state.to_dict()) == retained)
+	wallet.adventure_state = state
 	print("RESEARCH_CORE_PASS 49 recipes, craft, irreversible promotion, rollback, upgrade contract")
 	quit(0)

@@ -56,7 +56,7 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 		if not icon.is_empty():
 			Art.image(self, icon, ICON_POSITION, ICON_SIZE)
 		if str(record.get("category", "")) == "recipe":
-			ItemArt.add_recipe_portrait(self, str(record["id"]), ICON_POSITION + ICON_SIZE * 0.5, 0.42)
+			ItemArt.add_recipe_portrait(self, int(record.get("plant_type", 0)), ICON_POSITION + ICON_SIZE * 0.5, 0.42)
 			var wax: String = ItemArt.recipe_overlay_uri(str(record["id"]))
 			if not wax.is_empty():
 				Art.image(self, wax, Vector2(49, 47), Vector2(20, 20))

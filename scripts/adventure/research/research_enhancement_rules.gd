@@ -41,8 +41,8 @@ static func validate(state: AdventureState, main_uid: String, material_uids: Arr
 	return ""
 
 ## Future RNG implementation must supply one computed probability to both UI and settlement.
-static func success_probability(_main: PlantCardInstance, _consumed: Array,
-		_fertilizer_id: String) -> Variant:
+static func success_probability(_main: PlantCardInstance,
+		_material_cards: Array[PlantCardInstance], _fertilizer_id: String) -> Variant:
 	return null
 
 static func result_star(before: int, success: bool, protected: bool) -> int:

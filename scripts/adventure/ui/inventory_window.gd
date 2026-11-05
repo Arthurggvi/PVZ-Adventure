@@ -179,7 +179,7 @@ func _render_detail() -> void:
 		if not icon.is_empty():
 			Art.image(root, icon, Vector2(110, 95), Vector2(170, 170))
 		if str(selected.get("category", "")) == "recipe":
-			ItemArt.add_recipe_portrait(root, str(selected["id"]), Vector2(195, 180), 1.15)
+			ItemArt.add_recipe_portrait(root, int(selected.get("plant_type", 0)), Vector2(195, 180), 1.15)
 			var wax: String = ItemArt.recipe_overlay_uri(str(selected["id"]))
 			if not wax.is_empty():
 				Art.image(root, wax, Vector2(224, 215), Vector2(48, 48))

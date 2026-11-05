@@ -1,6 +1,7 @@
 ## Adapter over existing UID card instances and ItemRegistry: no parallel inventory data.
 extends RefCounted
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
+const Recipes = preload("res://scripts/adventure/research/research_recipe_catalog.gd")
 
 static func rows(category: String, search: String, order_mode: int) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -23,7 +24,11 @@ static func rows(category: String, search: String, order_mode: int) -> Array[Dic
 				continue
 			if category == "items" and group != "key" and group != "consumable" and group != "promotion_book":
 				continue
-			result.append({"kind": "item", "id": id, "title": str(definition.get("name", id)), "qty": int(counts[id]), "category": group})
+			var row := {"kind": "item", "id": id, "title": str(definition.get("name", id)),
+				"qty": int(counts[id]), "category": group}
+			if group == "recipe":
+				row["plant_type"] = int(Recipes.definition(id).get("plant_type", 0))
+			result.append(row)
 	if not search.strip_edges().is_empty():
 		var needle := search.strip_edges().to_lower()
 		var filtered: Array[Dictionary] = []

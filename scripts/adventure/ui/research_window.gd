@@ -22,6 +22,7 @@ var _picking_material := false
 var _closing := false
 var _busy := false
 var _notice := ""
+var _confirmation: ConfirmationDialog
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -140,14 +141,37 @@ func _render() -> void:
 func perform_action() -> void:
 	if _busy or _closing or _service == null or not _is_current_profile():
 		return
+	var chosen: Dictionary = selection.duplicate(true)
+	if mode == "promotion":
+		_confirm_promotion(chosen)
+		return
+	_execute_action(mode, chosen)
+
+## The player must explicitly approve the irreversible branch and its fee.
+func _confirm_promotion(chosen: Dictionary) -> void:
+	if is_instance_valid(_confirmation):
+		return
+	var preview: Dictionary = _service.quote("promotion", chosen)
+	if not preview.get("ready", false):
+		_notice = str(preview.get("message", "转职条件不满足。"))
+		_render()
+		return
+	var dialog := Builder.promotion_confirmation(self, preview, chosen,
+		Callable(self, "_execute_action").bind("promotion", chosen))
+	_confirmation = dialog
+	dialog.tree_exited.connect(func(): _confirmation = null)
+
+func _execute_action(operation_mode: String, chosen: Dictionary) -> void:
+	if _busy or _closing or _service == null or not _is_current_profile():
+		return
 	_busy = true
 	ui.action.disabled = true
-	var result: Dictionary = _service.execute(mode, selection.duplicate(true))
+	var result: Dictionary = _service.execute(operation_mode, chosen)
 	_notice = str(result.get("message", "操作失败。"))
 	if result.get("ok", false):
-		if mode == "craft":
+		if operation_mode == "craft":
 			_notice = "合成成功，新植物卡 UID：" + str(result.get("uid", ""))
-		elif mode == "promotion":
+		elif operation_mode == "promotion":
 			_notice = "转职成功，星级保持不变。"
 		choice = 0
 		selection.clear()

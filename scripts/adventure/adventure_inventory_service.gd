@@ -10,6 +10,10 @@ func _init(state: AdventureState) -> void:
 	assert(state != null, "必须注入 AdventureState")
 	_state = state
 
+## Explicit identity check for multi-system asset transactions and profile isolation.
+func owns_state(state: AdventureState) -> bool:
+	return _state == state
+
 ## 添加 [param plant_type]、[param stars] 指定的卡，返回新 UID；非法输入或编号耗尽返回空字符串。
 func add_card(plant_type: Variant, stars: Variant = 0) -> String:
 	if not PlantCardInstance.is_plant_type(plant_type) or not PlantCardInstance.is_nonnegative_integer(stars) \

@@ -30,22 +30,30 @@ const BOOKS: Dictionary = {
 static func definition(id: String) -> Dictionary:
 	return BOOKS.get(id, {}).duplicate(true)
 
-static func next_tier(card: PlantCardInstance) -> int:
+## A rank is a historical choice, independent of the card's current star count.
+## Star thresholds are checked only when buying the next promotion.
+static func is_valid_chain(card: PlantCardInstance) -> bool:
 	if card == null:
-		return 0
-	var next := 0
+		return false
+	var gap := false
 	for tier: int in range(1, 5):
-		var filled: bool = not card.get_promotion(tier).is_empty()
-		if not filled and next == 0:
-			next = tier
-		elif filled and next != 0:
-			return 0 # A higher tier without its prerequisite is invalid.
-		if filled:
-			var existing: Dictionary = definition(card.get_promotion(tier))
-			if existing.is_empty() or int(existing.tier) != tier \
-					or int(existing.plant_type) != card.plant_type:
-				return 0
-	return next
+		var book_id := card.get_promotion(tier)
+		if book_id.is_empty():
+			gap = true
+			continue
+		var book: Dictionary = definition(book_id)
+		if gap or book.is_empty() or int(book.get("tier", 0)) != tier \
+				or int(book.get("plant_type", 0)) != card.plant_type:
+			return false
+	return true
+
+static func next_tier(card: PlantCardInstance) -> int:
+	if not is_valid_chain(card):
+		return 0
+	for tier: int in range(1, 5):
+		if card.get_promotion(tier).is_empty():
+			return tier
+	return 0
 
 static func options(card: PlantCardInstance) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -65,6 +73,8 @@ static func options(card: PlantCardInstance) -> Array[Dictionary]:
 static func effects(card: PlantCardInstance) -> Dictionary:
 	var stats: Dictionary = {}
 	var events: Array[Dictionary] = []
+	if not is_valid_chain(card):
+		return {"stats": stats, "events": events}
 	for tier: int in range(1, 5):
 		var id := card.get_promotion(tier)
 		if not BOOKS.has(id):

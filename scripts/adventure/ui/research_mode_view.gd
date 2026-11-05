@@ -34,7 +34,7 @@ static func upgrade(owner: Control, parent: Control,
 		Vector2(600, 427), Vector2(590, 43), 25)
 	plant(parent, main_type, Vector2(856, 483), Vector2(150, 175))
 	_label(parent, "%d → %d 星" % [int(preview.get("stars", 0)),
-		mini(10, int(preview.get("stars", 0)) + 1)],
+		int(preview.get("target_star", 0))],
 		Vector2(1018, 535), Vector2(210, 48), 26)
 	var material_cards: Array = preview.get("material_cards", [])
 	for index: int in range(3):
@@ -51,7 +51,7 @@ static func upgrade(owner: Control, parent: Control,
 	var caption := "选择耗材中…" if picking else "添加耗材卡"
 	Art.action_button(parent, caption, "buttons/action_neutral",
 		Vector2(599, 515), Vector2(217, 58), Callable(owner, "toggle_material_pick"))
-	_label(parent, "强化费用：$500", Vector2(1315, 444), Vector2(425, 43), 28)
+	_label(parent, "强化费用：$%d" % int(preview.get("fee", 0)), Vector2(1315, 444), Vector2(425, 43), 28)
 	_label(parent, "成功率：下一阶段接入", Vector2(1315, 505), Vector2(445, 43), 25)
 	_label(parent, "4星起失败降1星（未保护）", Vector2(1315, 560),
 		Vector2(445, 48), 22)
@@ -90,7 +90,7 @@ static func promotion(owner: Control, parent: Control,
 		_hit(parent, pos, Vector2(285, 87),
 			Callable(owner, "choose_branch").bind(str(b.id)))
 	_label(parent, "分支仅可选择一次", Vector2(635, 771), Vector2(560, 48), 25)
-	_label(parent, "转职费用：$5,000", Vector2(1315, 445), Vector2(455, 45), 28)
+	_label(parent, "转职费用：$%d" % int(preview.get("fee", 0)), Vector2(1315, 445), Vector2(455, 45), 28)
 	_label(parent, "星级：%d（转职不改变星级）" % int(preview.get("stars", 0)),
 		Vector2(1315, 512), Vector2(450, 45), 23)
 	_label(parent, "对应转职书必须持有", Vector2(1315, 569), Vector2(450, 45), 23)

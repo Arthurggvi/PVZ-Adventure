@@ -2,6 +2,8 @@
 extends RefCounted
 class_name AdventureState
 
+const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
+
 ## 第一阶段协议版本，未知版本不自动初始化或迁移。
 var schema_version: int = 1
 ## 按独立 UID 索引的植物卡实例。
@@ -54,7 +56,8 @@ static func from_dict(data: Variant) -> AdventureState:
 	for card_uid: Variant in data.cards: # UID 必须规范、与卡内一致，并小于下一个分配编号。
 		var number: int = PlantCardInstance.uid_number(card_uid) # 当前已有卡的编号。
 		var card: PlantCardInstance = PlantCardInstance.from_dict(data.cards[card_uid]) # 独立恢复的卡实例。
-		if number == 0 or number >= state.next_card_id or card == null or card.uid != card_uid:
+		if number == 0 or number >= state.next_card_id or card == null or card.uid != card_uid \
+			or not Promotions.is_valid_chain(card):
 			return null
 		state.cards[card_uid] = card
 	# 旧版存档没有显式排序：从稳定 UID 数字恢复首次顺序，不触碰卡组。

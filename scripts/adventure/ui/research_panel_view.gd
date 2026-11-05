@@ -94,7 +94,7 @@ static func _craft(parent: Control, preview: Dictionary) -> void:
 		Vector2(445, 51), 28)
 	Art.label(parent, "初始星级：0 星", Vector2(1315, 579),
 		Vector2(442, 42), 25)
-	Art.label(parent, "固定费用：$2,000", Vector2(1315, 651),
+	Art.label(parent, "固定费用：$%d" % int(preview.get("fee", 0)), Vector2(1315, 651),
 		Vector2(442, 42), 25)
 	Art.label(parent, "消耗制作书 ×1", Vector2(1315, 722),
 		Vector2(442, 42), 24)
