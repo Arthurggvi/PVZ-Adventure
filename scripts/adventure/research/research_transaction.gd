@@ -31,7 +31,7 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 		AdventureResearchOperation.Kind.CRAFT:
 			var recipe: Dictionary = Recipes.definition(operation.recipe_id)
 			if recipe.is_empty():
-				return _error("未知制作书。")
+				return _error("未知配方。")
 			fee = Recipes.COST
 			created_type = int(recipe.plant_type)
 			consume[operation.recipe_id] = 1
@@ -46,7 +46,7 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 			if promotion_tier == 0 or promotion_tier != int(book.tier) \
 					or target.plant_type != int(book.plant_type) \
 					or target.stars < Promotions.REQUIREMENTS[promotion_tier - 1]:
-				return _error("当前卡片不满足该转职书条件。")
+				return _error("当前卡片不满足该技能书条件。")
 			fee = Promotions.COST
 			updated_uid = target.uid
 			promotion_id = operation.book_id

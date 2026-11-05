@@ -11,6 +11,8 @@ const Service = preload("res://scripts/adventure/research/research_service.gd")
 const Picker = preload("res://scripts/adventure/ui/research_slot_picker.gd")
 ## 独立绘制操作结果，不把提示混在工作槽刷新逻辑中。
 const Feedback = preload("res://scripts/adventure/ui/research_feedback.gd")
+## 与背包复用面板、按钮与模态交互。
+const InventoryDialog = preload("res://scripts/adventure/ui/inventory_dialog.gd")
 var mode := "craft"
 var with_background := false
 ## 进出动画的共同根节点，由组合窗口在入树前设置。独立窗口默认使用自身。
@@ -28,7 +30,8 @@ var _closing := false
 var _busy := false
 ## 可复用的屏幕提示条，随研究室进出。
 var _feedback: Feedback
-var _confirmation: ConfirmationDialog
+## 当前打开的转职确认；关闭后解除对研究槽位的输入限制。
+var _confirmation: InventoryDialog
 ## 当前进出动画，入场途中关闭时从当前透明度转为淡出。
 var _fade: Tween
 
@@ -90,14 +93,16 @@ func choose_entry(index: int) -> void:
 	if not _can_select() or index < 0 or index >= _options.size():
 		return
 	var entry: Dictionary = _options[index] # 当前点击的候选行。
-	if mode == "promotion" and _picker.active_slot == Picker.Slot.MAIN_CARD:
-		var card: Dictionary = _service.inventory.get_card(str(entry.uid)) # 点击时读取最新的卡片星级。
-		if card.is_empty():
-			_render()
-			return
-		if not Picker.meets_promotion_minimum(card):
-			_show_result(mode, "%d 星及以上的植物卡才能进行转职。" % AdventurePromotionCatalog.REQUIREMENTS[0], false)
-			return
+	var issue := "" # 使用当前库存验证植物卡，候选列表不隐藏星级或路线不符的卡。
+	match _picker.active_slot:
+		Picker.Slot.MAIN_CARD:
+			issue = _service.main_card_issue(mode, str(entry.uid))
+		Picker.Slot.MATERIAL_CARD:
+			issue = AdventureEnhancementRules.validate(_service.state,
+				_picker.key_for(Picker.Slot.MAIN_CARD), [str(entry.uid)], false, "")
+	if not issue.is_empty():
+		_show_result(mode, issue, false)
+		return
 	if mode == "upgrade" and _picker.active_slot == Picker.Slot.POT:
 		var quote: Dictionary = _service.quote(mode, _picker.operation_choice(mode)) # 点击时检查当前主卡的需求与真实库存。
 		var required: int = int(quote.get("pot_required", 0)) # 当前目标星级所需花盆数。
@@ -137,11 +142,11 @@ func _render() -> void:
 	if ui.is_empty():
 		return
 	var service: AdventureResearchService = _service if _is_current_profile() else null # 切档后不继续读取旧库存。
-	var primary: Array[Dictionary] = service.options(mode) if service != null else [] # 保留服务的主卡和制作书资格规则。
+	var primary: Array[Dictionary] = service.options(mode) if service != null else [] # 主卡列表包含所有已拥有植物卡。
 	_picker.ensure_primary(mode, primary)
 	_preview = service.quote(mode, _picker.operation_choice(mode)) if service != null \
 		else {"ready": false, "message": "请先加载有效玩家档案。"}
-	_options = _picker.candidates(mode, service, primary, _preview)
+	_options = _picker.candidates(service, primary, _preview)
 	for key: String in ui.tabs:
 		var tab: TextureButton = ui.tabs[key]
 		tab.texture_normal = Builder.Art.texture(
@@ -173,22 +178,21 @@ func perform_action() -> void:
 		_render()
 		return
 	if mode == "promotion":
-		_confirm_promotion(chosen, preview)
+		_confirm_promotion(chosen)
 		return
 	_execute_action(mode, chosen)
 
-## 根据 [param chosen] 和最新 [param preview] 显示不可撤销的转职确认。
-func _confirm_promotion(chosen: Dictionary, preview: Dictionary) -> void:
-	var dialog := Builder.promotion_confirmation(self, preview, chosen,
-		Callable(self, "_execute_action").bind("promotion", chosen))
+## 用素材弹窗确认 [param chosen]；确认时由研究服务重新校验并执行。
+func _confirm_promotion(chosen: Dictionary) -> void:
+	var dialog: InventoryDialog = InventoryDialog.new() # 只收集确认，不直接修改资产。
+	dialog.setup_confirmation("确认转职吗？", "转职后将无法撤销", "是", "算了", Color("a32824"))
 	_confirmation = dialog
-	SoundManager.play_other_SFX(&"buttonclick")
+	dialog.closed.connect(func(): _confirmation = null)
+	dialog.confirmed.connect(func(_quantity: int): _execute_action("promotion", chosen))
 	dialog.canceled.connect(SoundManager.play_other_SFX.bind(&"tap"))
-	# 系统弹窗关闭时只隐藏节点，释放它才能继续操作工作槽或再次确认。
-	dialog.visibility_changed.connect(func():
-		if not dialog.visible:
-			dialog.queue_free())
-	dialog.tree_exited.connect(func(): _confirmation = null)
+	add_child(dialog)
+	dialog.z_index = _feedback.z_index + 1 # 模态遮罩覆盖仍在淡出的结果提示。
+	SoundManager.play_other_SFX(&"buttonclick")
 
 func _execute_action(operation_mode: String, chosen: Dictionary) -> void:
 	if _busy or _closing:

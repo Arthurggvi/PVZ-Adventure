@@ -7,6 +7,8 @@ const Promotions = preload("res://scripts/adventure/research/research_promotion_
 const Enhancement = preload("res://scripts/adventure/research/research_enhancement_rules.gd")
 const Transaction = preload("res://scripts/adventure/research/research_transaction.gd")
 const Operation = preload("res://scripts/adventure/research/research_operation.gd")
+## 当前物种和转职阶段没有可用路线时的提示。
+const NO_PROMOTION_ROUTE := "当前没有已定义的转职路线。"
 var state: AdventureState
 var inventory: AdventureInventoryService
 var wallet: GlobalGameState
@@ -28,11 +30,25 @@ func options(mode: String) -> Array[Dictionary]:
 				definition["title"] = ItemRegistry.get_item_definition(id).get("name", id)
 				entries.append(definition)
 	elif mode == "upgrade" or mode == "promotion":
-		for card: Dictionary in inventory.list_cards():
-			if mode == "promotion" and Promotions.options(state.cards[card.uid]).is_empty():
-				continue
-			entries.append(card)
+		entries = inventory.list_cards()
+		for card: Dictionary in entries: # 不剔除不满足操作条件的已拥有卡。
+			card["selection_issue"] = main_card_issue(mode, str(card.uid))
 	return entries
+
+## 返回 [param uid] 在 [param mode] 中不能放入主卡槽的原因；可放入时返回空字符串。
+func main_card_issue(mode: String, uid: String) -> String:
+	var card: PlantCardInstance = state.cards.get(uid) # 点击时从真实库存读取最新星级及转职状态。
+	if card == null:
+		return "该植物卡已不在背包。"
+	if mode == "upgrade" and card.stars >= Enhancement.MAX_STARS:
+		return "主卡已达到星级上限。"
+	if mode == "promotion":
+		var minimum: int = Promotions.REQUIREMENTS[0] # 主卡至少达到一转门槛；后续门槛由报价校验。
+		if card.stars < minimum:
+			return "%d 星及以上的植物卡才能进行转职。" % minimum
+		if Promotions.options(card).is_empty():
+			return NO_PROMOTION_ROUTE
+	return ""
 
 func quote(mode: String, choice: Dictionary) -> Dictionary:
 	match mode:
@@ -47,7 +63,7 @@ func quote(mode: String, choice: Dictionary) -> Dictionary:
 func _craft_quote(id: String) -> Dictionary:
 	var recipe: Dictionary = Recipes.definition(id)
 	if recipe.is_empty():
-		return {"ready": false, "message": "请选择已登记的制作书。"}
+		return {"ready": false, "message": "请选择已登记的配方。"}
 	var material_slots: Array[Dictionary] = []
 	var enough := inventory.get_item_count(id) > 0 and wallet.coin_value >= Recipes.COST
 	for material_id: String in recipe.materials:
@@ -58,7 +74,7 @@ func _craft_quote(id: String) -> Dictionary:
 	recipe["slots"] = material_slots
 	recipe["fee"] = Recipes.COST
 	recipe["ready"] = enough
-	recipe["message"] = "可合成" if enough else "缺少制作书、材料或金币。"
+	recipe["message"] = "可合成" if enough else "缺少配方、材料或金币。"
 	return recipe
 
 func _upgrade_quote(choice: Dictionary) -> Dictionary:
@@ -119,16 +135,16 @@ func _promotion_quote(choice: Dictionary) -> Dictionary:
 	for branch: Dictionary in branches:
 		branch["owned"] = inventory.get_item_count(str(branch.id))
 	if tier == 0 or branches.is_empty():
-		data["message"] = "当前没有已定义的转职路线。"
+		data["message"] = NO_PROMOTION_ROUTE
 		return data
 	if card.stars < Promotions.REQUIREMENTS[tier - 1]:
 		data["message"] = "第%d次转职要求至少%d星。" % [tier, Promotions.REQUIREMENTS[tier - 1]]
 		return data
 	if not branches.any(func(entry: Dictionary) -> bool: return entry.id == book_id):
-		data["message"] = "请选择这一阶段的转职书。"
+		data["message"] = "请选择这一阶段的技能书。"
 		return data
 	if inventory.get_item_count(book_id) < 1 or wallet.coin_value < Promotions.COST:
-		data["message"] = "缺少转职书或金币。"
+		data["message"] = "缺少技能书或金币。"
 		return data
 	data["ready"] = true
 	data["message"] = "转职不影响星级，选择后不可撤销。"

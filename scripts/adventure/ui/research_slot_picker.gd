@@ -48,21 +48,12 @@ func ensure_primary(mode: String, primary: Array[Dictionary]) -> void:
 	var first: String = "" # 默认选择第一张可用主卡或制作书。
 	for entry: Dictionary in primary:
 		var key: String = str(entry[key_field]) # 主选择的真实库存身份。
-		if key == current and (mode != "promotion" or meets_promotion_minimum(entry)):
+		var available: bool = str(entry.get("selection_issue", "")).is_empty() # 默认只选可以放入的卡。
+		if key == current and (mode != "promotion" or available):
 			return
-		if first.is_empty() and _is_primary_candidate(mode, entry):
+		if first.is_empty() and available:
 			first = key
 	_set_primary(mode, first)
-
-## 按 [param mode] 检查 [param entry] 是否可自动选为主卡。
-func _is_primary_candidate(mode: String, entry: Dictionary) -> bool:
-	if mode == "promotion":
-		return meets_promotion_minimum(entry)
-	return mode != "upgrade" or int(entry.get("stars", 0)) < Enhancement.MAX_STARS
-
-## 返回 [param card] 是否达到进入转职工作区的最低星级；各阶要求仍由研究服务校验。
-static func meets_promotion_minimum(card: Dictionary) -> bool:
-	return int(card.get("stars", 0)) >= AdventurePromotionCatalog.REQUIREMENTS[0]
 
 ## 更换 [param mode] 的主选择 [param key]，清除依赖旧主卡的耗材、保护和转职书。
 func _set_primary(mode: String, key: String) -> void:
@@ -146,8 +137,8 @@ func slot_row(inventory: AdventureInventoryService, slot: Slot, index: int = 0) 
 		return Data.plant_row(inventory.get_card(key))
 	return Data.item_row(key, inventory.get_item_count(key))
 
-## 基于 [param mode]、[param service] 库存、[param primary] 主选项与 [param preview] 报价筛选候选。
-func candidates(mode: String, service: AdventureResearchService, primary: Array[Dictionary], preview: Dictionary) -> Array[Dictionary]:
+## 基于 [param service] 库存、[param primary] 主选项与 [param preview] 报价筛选候选。
+func candidates(service: AdventureResearchService, primary: Array[Dictionary], preview: Dictionary) -> Array[Dictionary]:
 	var rows: Array[Dictionary] = [] # 当前网格只持有展示副本。
 	if service == null:
 		return rows
@@ -156,17 +147,14 @@ func candidates(mode: String, service: AdventureResearchService, primary: Array[
 			for recipe: Dictionary in primary:
 				_append_owned_item(rows, service.inventory, str(recipe.id))
 		Slot.MAIN_CARD:
-			for card: Dictionary in primary:
-				# 转职保留低星候选供点击时说明原因，但不会自动选中。
-				if mode == "promotion" or _is_primary_candidate(mode, card):
-					rows.append(Data.plant_row(card))
+			for card: Dictionary in primary: # 星级及路线条件在点击时反馈。
+				rows.append(Data.plant_row(card))
 		Slot.MATERIAL_CARD:
 			for card: Dictionary in primary:
 				var uid: String = str(card.uid) # 正在替换的槽可保留原卡，其余已填槽不能重复占用。
-				if _materials.has(uid) and uid != _materials[active_index]:
+				if uid == _main_uid or (_materials.has(uid) and uid != _materials[active_index]):
 					continue
-				if Enhancement.validate(service.state, _main_uid, [uid], false, "").is_empty():
-					rows.append(Data.plant_row(card))
+				rows.append(Data.plant_row(card))
 		Slot.POT:
 			if int(preview.get("pot_required", 0)) > 0:
 				# 库存不足时仍提供可点选的花盆格，工作槽的填入由窗口校验。
@@ -204,10 +192,10 @@ func operation_choice(mode: String) -> Dictionary:
 ## [param slot]、[param index] 的用途名称，用于空槽与替换槽的悬停提示。
 static func slot_title(slot: Slot, index: int) -> String:
 	match slot:
-		Slot.RECIPE: return "制作书"
+		Slot.RECIPE: return "配方"
 		Slot.MAIN_CARD: return "主卡"
 		Slot.MATERIAL_CARD: return "耗材卡 %d" % (index + 1)
 		Slot.POT: return "育苗花盆"
 		Slot.FERTILIZER: return "肥料"
-		Slot.PROMOTION_BOOK: return "转职书"
+		Slot.PROMOTION_BOOK: return "技能书"
 	return ""

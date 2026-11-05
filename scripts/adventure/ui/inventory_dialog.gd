@@ -1,8 +1,10 @@
-## 背包共用的素材弹窗：仅收集确认与数量，不读取库存、不扣除资产、不保存。
+## 共用素材弹窗；仅收集确认与数量，不读取库存、不扣除资产、不保存。
 extends Control
 
 ## 确认时发出已校验的整数数量；弹窗关闭后才派发，防止重复提交。
 signal confirmed(quantity: int)
+## 双按钮弹窗被取消时发出，确认路径不会触发此信号。
+signal canceled
 ## 取消、确认或关闭提示时发出，供宿主清理引用。
 signal closed
 ## 所有按钮、面板及输入框背景复用背包已有素材。
@@ -11,8 +13,14 @@ const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 var _heading: String = ""
 ## 弹窗说明，不包含需要执行的行为。
 var _message: String = ""
-## 正值为丢弃确认及其数量上限；零为只有确定按钮的信息提示。
+## 丢弃数量上限；无需数量的确认或提示使用零。
 var _limit: int = 0
+## 主操作按钮文案。
+var _accept_text: String = "确定"
+## 取消按钮文案；空字符串表示单按钮提示。
+var _cancel_text: String = ""
+## 说明文字颜色，警示确认可覆写。
+var _message_color: Color = Color("382719")
 ## 原始布局尺寸，按有无数量输入区调整高度。
 var _design_size: Vector2
 ## 统一缩放的弹窗画布。
@@ -31,6 +39,18 @@ func setup(heading: String, message: String, limit: int = 0) -> void:
 	_heading = heading
 	_message = message
 	_limit = maxi(0, limit)
+	_accept_text = "丢弃" if _limit > 0 else "确定"
+	_cancel_text = "取消" if _limit > 0 else ""
+	_message_color = Color("382719")
+
+## 入树前设置双按钮确认的 [param heading]、[param message]、[param accept_text]、[param cancel_text] 和 [param message_color]。
+## 此模式不请求数量，确认时发出固定值 1，默认聚焦取消按钮。
+func setup_confirmation(heading: String, message: String, accept_text: String, cancel_text: String,
+		message_color: Color = Color("382719")) -> void:
+	setup(heading, message)
+	_accept_text = accept_text
+	_cancel_text = cancel_text
+	_message_color = message_color
 
 ## 使用既有木框、羊皮纸及按钮素材构建模态界面。
 func _ready() -> void:
@@ -51,20 +71,31 @@ func _ready() -> void:
 	Art.panel(_canvas, "panels/parchment_ninepatch.png", Vector2(16, 16), _design_size - Vector2(32, 32), 24)
 	var heading: Label = Art.label(_canvas, _heading, Vector2(36, 25), Vector2(548, 48), 31) # 弹窗标题居中。
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var message: Label = Art.label(_canvas, _message, Vector2(42, 84), Vector2(536, 106), 23) # 说明自动换行，保持中文阅读顺序。
+	var has_cancel: bool = not _cancel_text.is_empty() # 双按钮对话框允许取消。
+	var simple_confirmation: bool = has_cancel and _limit == 0 # 无数量确认采用居中说明与左确认、右取消的布局。
+	var message: Label = Art.label(_canvas, _message, Vector2(42, 84), Vector2(536, 106), 23, _message_color) # 说明自动换行。
 	message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	message.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	if simple_confirmation:
+		message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		message.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	if _limit > 1:
 		_build_quantity()
-	if _limit > 0:
-		Art.action_button(_canvas, "取消", "buttons/action_neutral", Vector2(92, _design_size.y - 76), Vector2(190, 56), dismiss)
-	_confirm_button = Art.action_button(_canvas, "丢弃" if _limit > 0 else "确定", "buttons/action_danger" if _limit > 0 else "buttons/action_confirm", Vector2(338 if _limit > 0 else 215, _design_size.y - 76), Vector2(190, 56), _accept)
+	var cancel_button: Button # 双按钮模式下用于取消并接收初始焦点。
+	if has_cancel:
+		cancel_button = Art.action_button(_canvas, _cancel_text, "buttons/action_neutral",
+			Vector2(338 if simple_confirmation else 92, _design_size.y - 76), Vector2(190, 56), dismiss)
+	var accept_x: float = 338.0 if _limit > 0 else (92.0 if simple_confirmation else 215.0) # 丢弃和单按钮提示沿用原布局。
+	_confirm_button = Art.action_button(_canvas, _accept_text,
+		"buttons/action_danger" if _limit > 0 else "buttons/action_confirm",
+		Vector2(accept_x, _design_size.y - 76), Vector2(190, 56), _accept)
 	resized.connect(_fit)
 	_fit()
-	_confine_focus()
+	_confine_focus(cancel_button if simple_confirmation else _confirm_button)
 
 ## 弹窗内建立闭合焦点环，Tab 和方向键不会切换到底层分类、搜索框或丢弃按钮。
-func _confine_focus() -> void:
+## 无数量输入时聚焦 [param initial_button]。
+func _confine_focus(initial_button: Button) -> void:
 	var controls: Array[Control] = [] # 仅收集本弹窗画布中的输入控件与素材按钮。
 	for child: Node in _canvas.get_children():
 		if child is Control and child.focus_mode != Control.FOCUS_NONE:
@@ -83,7 +114,7 @@ func _confine_focus() -> void:
 		_quantity.grab_focus()
 		_quantity.select_all()
 	else:
-		_confirm_button.grab_focus()
+		initial_button.grab_focus()
 
 ## 生成使用已有素材的数量输入、增减及全部按钮；不使用系统默认 SpinBox 箭头。
 func _build_quantity() -> void:
@@ -147,14 +178,20 @@ func _accept() -> void:
 	var quantity: int = _read_quantity() # 单卡或提示不需要数量控件。
 	if _finished or quantity == 0:
 		return
-	dismiss()
-	if _limit > 0:
+	_close()
+	if not _cancel_text.is_empty():
 		confirmed.emit(quantity)
 
-## 幂等关闭弹窗，取消、Esc 和信息提示均复用此入口，不修改资产。
+## 取消或按 Esc 关闭弹窗；只有双按钮确认会派发取消信号。
 func dismiss() -> void:
 	if _finished:
 		return
+	_close()
+	if not _cancel_text.is_empty():
+		canceled.emit()
+
+## 先释放模态界面和焦点，再由调用者发出确认或取消。
+func _close() -> void:
 	_finished = true
 	hide()
 	if is_instance_valid(_previous_focus) and _previous_focus.is_inside_tree() and _previous_focus.is_visible_in_tree():

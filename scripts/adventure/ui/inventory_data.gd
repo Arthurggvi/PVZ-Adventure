@@ -2,6 +2,8 @@
 extends RefCounted
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 const Recipes = preload("res://scripts/adventure/research/research_recipe_catalog.gd")
+## 肥料说明使用强化成功率计算中的倍率。
+const Enhancement = preload("res://scripts/adventure/research/research_enhancement_rules.gd")
 ## 图鉴尚无条目的特殊植物中文名；不改变注册表使用的稳定索引。
 const SPECIAL_PLANT_NAMES: Dictionary[int, String] = {
 	CharacterRegistry.PlantType.P049PeaShooterDoubleReverse: "反向双发射手",
@@ -122,7 +124,16 @@ static func item_row(id: String, quantity: int, definition: Dictionary = {}) -> 
 	var row := {"kind": "item", "id": id, "title": str(item.get("name", id)),
 		"qty": quantity, "category": category, "description": str(item.get("description", ""))} # 一次展示所需的字段。
 	if category == "recipe":
-		row["plant_type"] = int(Recipes.definition(id).get("plant_type", 0))
+		var recipe: Dictionary = Recipes.definition(id) # 预览物种和所需材料读取同一个合成定义。
+		row["plant_type"] = int(recipe.get("plant_type", 0))
+		var material_names := PackedStringArray() # 按配方顺序列出中文材料名。
+		for material_id: String in recipe.get("materials", []): # 材料数量由合成规则处理。
+			material_names.append(str(ItemRegistry.get_item_definition(material_id).get("name", material_id)))
+		if not material_names.is_empty():
+			row["description"] = "所需材料：%s" % "、".join(material_names)
+	elif item.has("fertilizer_level"):
+		var multiplier: float = Enhancement.fertilizer_multiplier(id) # 与研究室使用肥料时的计算一致。
+		row["description"] = "强化时使用，本次成功率变为原来的 %.1f 倍，最高为 100%%。" % multiplier
 	return row
 
 ## 返回 [param type_id] 的中文显示名；图鉴内部英文键只用于查询，不用于 UI。

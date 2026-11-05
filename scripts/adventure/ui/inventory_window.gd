@@ -10,6 +10,8 @@ const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 const PromotionVisual = preload("res://scripts/adventure/ui/promotion_book_visual.gd")
 ## 只负责素材界面与数量确认，不操作玩家资产。
 const InventoryDialog = preload("res://scripts/adventure/ui/inventory_dialog.gd")
+## 道具名称颜色由共享的品质文字样式负责。
+const ItemName = preload("res://scripts/adventure/ui/item_name_style.gd")
 ## 集中处理移除、保存与失败回滚，界面不再内联资产修改。
 const DiscardAction = preload("res://scripts/adventure/inventory_discard_action.gd")
 const PAGE_SIZE := 66
@@ -158,9 +160,9 @@ func _render_detail() -> void:
 	if selected.is_empty():
 		Art.label(root, "暂无物品", Vector2(25, 58), Vector2(340, 60), 27)
 		return
-	Art.label(root, str(selected.get("title", "")), Vector2(24, 12), Vector2(367, 54), 29)
+	ItemName.draw(root, str(selected.get("title", "")), str(selected.get("id", "")), Rect2(24, 12, 367, 54), 29)
 	var preview_bounds: Rect2 = Builder.DETAIL_PREVIEW_BOUNDS # 所有分类共用的等比预览区域。
-	var description_top: float = preview_bounds.end.y + 18.0 # 紧接预览图显示描述；已转职时为其文字留出空间。
+	var description_top: float = preview_bounds.end.y + 18.0 # 描述框紧接预览图，不受转职数量影响。
 	if str(selected.get("kind", "")) == "plant":
 		var reference := ResourceCardReference.create(ResourceCardReference.CardType.Plant, int(selected["plant_type"]))
 		var card: Card = AllCards.create_card(reference, Card.CardContext.Catalog)
@@ -172,11 +174,6 @@ func _render_detail() -> void:
 			Builder.fit_content(card, card.get_combined_minimum_size(), preview_bounds)
 			card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		for field: String in PlantCardInstance.PROMOTION_FIELDS: # Show only actual irreversible promotion choices.
-			var promotion: String = str(selected.get(field, "")).strip_edges() # 当前卡的实际转职值。
-			if not promotion.is_empty():
-				Art.label(root, "%s  %s" % ["第%d次转职" % (PlantCardInstance.PROMOTION_FIELDS.find(field) + 1), promotion], Vector2(38, description_top), Vector2(338, 35), 21)
-				description_top += 35.0
 	else:
 		# 道具底图、图标与配方组件共用预览中心，保持各组件原始长宽比。
 		var preview_center: Vector2 = preview_bounds.get_center()
@@ -203,14 +200,33 @@ func _render_detail() -> void:
 	var discard: Button = Art.action_button(root, "丢弃", "buttons/action_danger", Vector2((root.size.x - 277.0) * 0.5, root.size.y - 77.0), Vector2(277, 65), _confirm_discard) # 所有分类共用一个素材按钮。
 	discard.disabled = not _is_current_profile() or (str(selected.get("kind", "")) == "plant" and _opened_state.cards.size() <= 1)
 
-## 在 [param root] 的 [param top] 处绘制唯一描述框；空描述保留空框，不显示字段标题或占位说明。
+## 在 [param root] 的 [param top] 处绘制描述框，植物的已学技能按阶数排列在基础描述之后。
 func _render_description(root: Control, top: float) -> void:
 	var bottom: float = root.size.y - 65.0 - 12.0 - 18.0 # 所有分类为统一丢弃按钮留出空间。
 	var box_size := Vector2(367, bottom - top) # 填满预览下方剩余空间。
 	var box: NinePatchRect = Art.panel(root, "panels/parchment_ninepatch.png", Vector2(24, top), box_size, 18) # 沿用背包的羊皮纸方框样式。
-	var description: Label = Art.label(box, str(selected.get("description", "")), Vector2(18, 14), box_size - Vector2(36, 28), 22) # 描述只读展示，不改变卡实例或道具定义。
-	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	var scroll := ScrollContainer.new() # 说明过长时可滚动，丢弃按钮留在框外。
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	box.add_child(scroll)
+	scroll.position = Vector2(18, 14)
+	scroll.size = box_size - Vector2(36, 28)
+	var content := VBoxContainer.new() # 按文字实际换行高度排列，不使用固定行高。
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 8)
+	scroll.add_child(content)
+	var description: String = str(selected.get("description", "")) # 基础描述始终排在最上方。
+	if not description.is_empty():
+		ItemName.draw(content, description, "", Rect2(), 22, true)
+	if str(selected.get("kind", "")) != "plant":
+		return
+	for field: String in PlantCardInstance.PROMOTION_FIELDS: # 按一转至四转读取实际已学技能。
+		var book_id: String = str(selected.get(field, "")) # 用内部 ID 查技能名称和描述，界面只显示可读文本。
+		if book_id.is_empty():
+			continue
+		var skill: Dictionary = AdventurePromotionCatalog.definition(book_id) # 与研究室共用技能定义。
+		if not skill.is_empty():
+			var caption: String = "%s：%s" % [skill.title, skill.summary] # 整条描述使用同一转职阶数的配色。
+			ItemName.draw(content, caption, book_id, Rect2(), 21, true)
 
 ## 确认界面使用所选行的独立快照；只读取当前数量，不提前扣除。
 func _confirm_discard() -> void:

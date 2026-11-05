@@ -1,6 +1,8 @@
 ## Work-area widgets for upgrade and promotion; selection only, no business mutations.
 extends RefCounted
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
+## 转职技能标题与背包名称共用文字配色。
+const ItemName = preload("res://scripts/adventure/ui/item_name_style.gd")
 ## 信息区文字与三个面板使用同一套边界。
 const Layout = preload("res://scripts/adventure/ui/research_panel_skin.gd")
 ## 槽位组件负责复用背包格并派发点击。
@@ -145,7 +147,7 @@ static func promotion(owner: Control, parent: Control, preview: Dictionary,
 			effect_text = str(branch.summary)
 			break
 	var bounds: Rect2 = Layout.INFO_REGION.grow(-42.0) # 右侧内容使用统一内边距。
-	Art.label(parent, skill_name, bounds.position, Vector2(bounds.size.x, 52), 34)
+	ItemName.draw(parent, skill_name, current, Rect2(bounds.position, Vector2(bounds.size.x, 52)), 34)
 	_divider(parent, bounds.position + Vector2(0, 72), bounds.size.x)
 	var effect: Label = Art.label(parent, effect_text, bounds.position + Vector2(0, 100),
 		Vector2(bounds.size.x, bounds.size.y - 248), 26, Color("24558c")) # 技能效果在两条分割线之间自动换行。
