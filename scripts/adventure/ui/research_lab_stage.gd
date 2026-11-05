@@ -25,6 +25,7 @@ func _ready() -> void:
 	_window = ResearchWindow.new()
 	_window.name = "ResearchPanel"
 	_window.with_background = true
+	_window.transition_root = self # 背景和面板继承同一层的透明度，共用进出动画。
 	add_child(_window)
 	_window.closed.connect(_on_window_closed)
 	resized.connect(_layout_background)
@@ -42,9 +43,10 @@ func _layout_background() -> void:
 	_background.scale = Vector2.ONE * factor
 	_background.position = (dimensions - Background.CANVAS_SIZE * factor) * 0.5
 
+## 响应外部工具栏关闭请求，沿用入口已播放的按键音。
 func request_close() -> void:
 	if not _closing and is_instance_valid(_window):
-		_window.request_close()
+		_window.request_close(false)
 
 func _on_window_closed() -> void:
 	if _closing:

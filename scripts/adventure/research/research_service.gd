@@ -82,8 +82,6 @@ func _upgrade_quote(choice: Dictionary) -> Dictionary:
 		"fertilizer_multiplier": Enhancement.fertilizer_multiplier(fertilizer),
 		"stars": main.stars if main else 0}
 	var issue: String = Enhancement.validate(state, uid, consumed, pot, fertilizer)
-	if issue.is_empty() and wallet.coin_value < Enhancement.COST:
-		issue = "金币不足。"
 	if not issue.is_empty():
 		data["message"] = issue
 		return data
@@ -99,6 +97,10 @@ func _upgrade_quote(choice: Dictionary) -> Dictionary:
 		data["message"] = "强化成功率返回值无效。"
 		return data
 	data["chance"] = chance
+	# 余额只决定能否执行，材料有效时仍返回强化概率供界面预览。
+	if wallet.coin_value < Enhancement.COST:
+		data["message"] = "金币不足。"
+		return data
 	data["ready"] = true
 	data["message"] = "可强化"
 	return data

@@ -5,10 +5,20 @@ const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 const Preview = preload("res://scripts/adventure/ui/research_ui_meta.gd")
 const DESIGN := Vector2(1920.0, 1080.0)
 const FRAME := Rect2(55, 74, 1810, 948)
+## 三个内容面板从页首木条下沿开始，底部与操作栏留出间距。
+const CONTENT_TOP: float = 228.0
+## 页首按钮移走后可用于内容的高度。
+const CONTENT_HEIGHT: float = 873.0 - CONTENT_TOP
+## 左侧候选格的面板边界。
+const SELECTION_REGION := Rect2(112, CONTENT_TOP, 414, CONTENT_HEIGHT)
+## 工作槽布局从中间面板边界计算。
+const WORK_REGION := Rect2(544, CONTENT_TOP, 710, CONTENT_HEIGHT)
+## 右侧信息布局的面板边界。
+const INFO_REGION := Rect2(1270, CONTENT_TOP, 530, CONTENT_HEIGHT)
 const CONTENT_REGIONS := [
-	Rect2(112, 350, 414, 523),
-	Rect2(544, 350, 710, 523),
-	Rect2(1270, 350, 530, 523)
+	SELECTION_REGION,
+	WORK_REGION,
+	INFO_REGION
 ]
 
 static func build(owner: Control, with_background: bool = false) -> Dictionary:
@@ -28,9 +38,7 @@ static func build(owner: Control, with_background: bool = false) -> Dictionary:
 	Art.panel(canvas, "panels/wood_ninepatch.png", Vector2(110, 887), Vector2(1700, 106), 30)
 	for region: Rect2 in CONTENT_REGIONS:
 		Art.panel(canvas, "panels/parchment_ninepatch.png", region.position, region.size, 30)
-	Art.label(canvas, "植物研究所", Vector2(144, 128), Vector2(650, 85), 52, Color("f7e5af"))
-	Art.image(canvas, "icons/currency_unified.png", Vector2(1515, 136), Vector2(57, 57))
-	var coin := Art.label(canvas, "金币：—", Vector2(1581, 139), Vector2(149, 58), 26, Color("fae6b8"))
+	var coin := Art.label(canvas, "$0", Vector2(1450, 139), Vector2(280, 58), 26, Color("fae6b8")) # 金币只显示符号和数值。
 	coin.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	var close := Art.button(canvas, "controls/close", Vector2(1731, 126),
 		Vector2(74, 74), Callable(owner, "request_close"))
@@ -40,19 +48,17 @@ static func build(owner: Control, with_background: bool = false) -> Dictionary:
 	var icons := ["icons/category_recipes.png", "overlays/star_filled.png", "icons/category_plants.png"]
 	for i in Preview.MODES.size():
 		var key: String = Preview.MODES[i]
-		var btn := Art.button(canvas, "tabs/tab", Vector2(560 + i * 273, 237),
-			Vector2(245, 90), Callable(owner, "choose_mode").bind(key))
+		var btn := Art.button(canvas, "tabs/tab", Vector2(116 + i * 210, 126.5),
+			Vector2(196, 72), Callable(owner, "choose_mode").bind(key)) # 按原比例缩放，横排在页首左侧。
 		btn.name = "ResearchTab_" + key
-		Art.image(btn, icons[i], Vector2(22, 15), Vector2(60, 60))
-		Art.label(btn, labels[i], Vector2(93, 18), Vector2(122, 59), 35)
+		Art.image(btn, icons[i], Vector2(18, 12), Vector2(48, 48))
+		Art.label(btn, labels[i], Vector2(74, 14), Vector2(98, 47), 28)
 		tabs[key] = btn
 	var content := Control.new()
 	content.name = "ResearchModeContent"
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.size = DESIGN
 	canvas.add_child(content)
-	var status := Art.label(canvas, "请选择研究操作", Vector2(142, 906),
-		Vector2(1060, 55), 25, Color("fae6b8"))
 	var action := Art.button(canvas, "buttons/action_confirm", Vector2(1490, 899),
 		Vector2(268, 82), Callable(owner, "perform_action"))
 	action.name = "ResearchAction"
@@ -61,7 +67,7 @@ static func build(owner: Control, with_background: bool = false) -> Dictionary:
 	var action_text := Art.label(action, "合成", Vector2(48, 10), Vector2(170, 65), 35)
 	action_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	return {"canvas": canvas, "tabs": tabs, "coin": coin, "content": content,
-		"status": status, "action": action, "action_text": action_text}
+		"action": action, "action_text": action_text}
 
 ## Confirmation UI lives with the shared panel skin, not the operation transaction.
 static func promotion_confirmation(owner: Control, preview: Dictionary,

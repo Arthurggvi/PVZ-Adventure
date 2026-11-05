@@ -24,7 +24,7 @@ func _check() -> void:
 	panel.choose_mode("upgrade")
 	assert(panel.mode == "upgrade")
 	panel.choose_mode("promotion")
-	assert(panel.mode == "promotion" and panel.ui.action.disabled)
+	assert(panel.mode == "promotion" and not panel._preview.get("ready", false)) # 条件未满足时允许点击查看原因，报价仍拒绝执行。
 	panel.choose_mode("craft")
 	assert(Global.global_game_state.coin_value == initial_coins)
 	stage.request_close()

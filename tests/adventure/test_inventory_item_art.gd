@@ -27,7 +27,7 @@ func _run() -> void:
 		{"id":"unsaturated_fat","category":"material"},
 		{"id":"lawn_nightmare_key","category":"key"},
 		{"id":"growth_agent","category":"consumable"}]
-	var anchor := Vector2(9, 3)
+	var anchor := Vector2(-5, 0) # 道具底图按格子高度填充后的居中位置。
 	for entry: Dictionary in variants:
 		var tile: Control = Tile.new()
 		add_child(tile)
@@ -38,8 +38,9 @@ func _run() -> void:
 		var icon: TextureRect = tile.get_child(2) as TextureRect
 		assert(slot != null and backing != null and icon != null)
 		print("LAYER_DEBUG ", str(entry.id), " backing=", backing.position, " size=", backing.size, " icon=", icon.position, " icon_size=", icon.size)
-		assert(backing.position == anchor and backing.size == Vector2(68,68))
-		assert(icon.position == Vector2(14,8) and icon.size == Vector2(58,58))
+		assert(not slot.visible) # 仅替换底层填色，默认边框由独立上层节点绘制。
+		assert(backing.position == anchor and backing.size == Tile.BACKING_SIZE)
+		assert(icon.position == Tile.ICON_POSITION and icon.size == Tile.ICON_SIZE)
 		assert(backing.position + backing.size * 0.5 == icon.position + icon.size * 0.5)
 		assert(backing.texture.resource_path == Asset.backing_uri(str(entry.id)))
 		assert(icon.texture.resource_path == Asset.icon_uri(str(entry.id)))
@@ -47,7 +48,7 @@ func _run() -> void:
 		var frame: TextureRect = tile.get_child(tile.get_child_count() - 1) as TextureRect
 		assert(frame != null and frame.visible)
 		assert(frame.texture.resource_path.ends_with("item_slot_selected_frame.png"))
-		assert(backing.position == anchor and icon.position == Vector2(14,8))
+		assert(backing.position == anchor and icon.position == Tile.ICON_POSITION)
 		tile.queue_free()
 	var empty: Control = Tile.new()
 	add_child(empty)
@@ -60,6 +61,9 @@ func _run() -> void:
 	assert(recipe.get_child_count() >= 4)
 	assert(recipe.get_child(1) is TextureRect and recipe.get_child(2) is Node2D)
 	assert((recipe.get_child(1) as TextureRect).texture.resource_path == Asset.icon_uri("recipe_wall_nut"))
+	assert(not (recipe.get_child(0) as TextureRect).visible) # 卷轴作为底图，默认边框独立叠加。
+	assert((recipe.get_child(1) as TextureRect).position == Tile.BACKING_POSITION)
+	assert((recipe.get_child(1) as TextureRect).size == Tile.BACKING_SIZE)
 	var recipe_wax: TextureRect = recipe.get_child(3) as TextureRect
 	assert(recipe_wax != null and recipe_wax.texture.resource_path == Asset.recipe_overlay_uri("recipe_wall_nut"))
 	recipe.queue_free()

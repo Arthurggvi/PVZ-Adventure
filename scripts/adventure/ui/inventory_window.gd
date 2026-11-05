@@ -7,6 +7,10 @@ const Data = preload("res://scripts/adventure/ui/inventory_data.gd")
 const Builder = preload("res://scripts/adventure/ui/inventory_builder.gd")
 const Tile = preload("res://scripts/adventure/ui/inventory_tile.gd")
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
+## 只负责素材界面与数量确认，不操作玩家资产。
+const InventoryDialog = preload("res://scripts/adventure/ui/inventory_dialog.gd")
+## 集中处理移除、保存与失败回滚，界面不再内联资产修改。
+const DiscardAction = preload("res://scripts/adventure/inventory_discard_action.gd")
 const PAGE_SIZE := 66
 var category := "plants"
 var search := ""
@@ -16,8 +20,15 @@ var selected: Dictionary = {}
 var ui: Dictionary = {}
 var closing := false
 var _anim: Tween
-var _dialog: ConfirmationDialog
+## 当前唯一的确认或提示弹窗。
+var _dialog: InventoryDialog
+## 打开背包时的玩家状态引用，用于拒绝跨档或重载后的旧界面请求。
+var _opened_state: AdventureState
+## 打开背包时的玩家名，不写入存档。
+var _opened_profile: String
 func _ready() -> void:
+	_opened_state = Global.global_game_state.adventure_state
+	_opened_profile = Global.user_manager.curr_user_name
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	ui = Builder.build(self)
@@ -72,11 +83,6 @@ func search_changed(value: String) -> void:
 	page = 0
 	selected = {}
 	_render()
-func cycle_sort() -> void:
-	sort_mode = (sort_mode + 1) % 3
-	page = 0
-	SoundManager.play_other_SFX(&"bleep")
-	_render()
 func change_page(delta: int) -> void:
 	var total: int = Data.rows(category, search, sort_mode).size()
 	page = clampi(page + delta, 0, maxi(0, (total - 1) / PAGE_SIZE))
@@ -89,7 +95,6 @@ func _render() -> void:
 	for key: String in ui.tabs:
 		var button: TextureButton = ui.tabs[key]
 		button.texture_normal = Art.texture("tabs/tab_selected.png" if key == category else "tabs/tab_normal.png")
-	ui.sort_label.text = ["自定义排序", "名称排序", "星级排序"][sort_mode]
 	var rows: Array[Dictionary] = Data.rows(category, search, sort_mode)
 	page = mini(page, maxi(0, (rows.size() - 1) / PAGE_SIZE))
 	ui.page_label.text = "%d / %d" % [page + 1, maxi(1, ceili(float(rows.size()) / PAGE_SIZE))]
@@ -106,6 +111,13 @@ func _render() -> void:
 		tile.setup(entry, position_index, category == "plants" and sort_mode == 0 and search.is_empty(), category == "plants", _row_key(entry) == _row_key(selected) and not selected.is_empty())
 		tile.chosen.connect(_select)
 		tile.reorder_requested.connect(_reorder)
+	if not selected.is_empty():
+		var selected_key: String = _row_key(selected) # 用当前库存刷新所选行，避免部分丢弃后沿用旧数量。
+		selected = {}
+		for row: Dictionary in rows:
+			if _row_key(row) == selected_key:
+				selected = row.duplicate(true)
+				break
 	if selected.is_empty() and not rows.is_empty():
 		selected = rows[0].duplicate(true)
 	_update_tile_selection()
@@ -146,78 +158,112 @@ func _render_detail() -> void:
 		Art.label(root, "暂无物品", Vector2(25, 58), Vector2(340, 60), 27)
 		return
 	Art.label(root, str(selected.get("title", "")), Vector2(24, 12), Vector2(367, 54), 29)
+	var preview_bounds: Rect2 = Builder.DETAIL_PREVIEW_BOUNDS # 所有分类共用的等比预览区域。
+	var description_top: float = preview_bounds.end.y + 18.0 # 紧接预览图显示描述；已转职时为其文字留出空间。
 	if str(selected.get("kind", "")) == "plant":
 		var reference := ResourceCardReference.create(ResourceCardReference.CardType.Plant, int(selected["plant_type"]))
 		var card: Card = AllCards.create_card(reference, Card.CardContext.Catalog)
 		if card != null:
-			card.battle_card_data = selected.duplicate(true)
+			card.plant_spawn_profile = AdventureBattleAdapter.profile_for(selected)
+			# 详情使用所选卡 UID 的真实星级，展示角标不改变卡牌数据。
 			root.add_child(card)
 			card.visible = true
-			card.position = Vector2(138, 95)
-			card.scale = Vector2(2.35, 2.35)
+			Builder.fit_content(card, card.get_combined_minimum_size(), preview_bounds)
 			card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		Art.label(root, "星级  ★%s" % selected.get("stars", 0), Vector2(38, 290), Vector2(325, 46), 28)
-		Art.label(root, "身份  %s" % selected.get("uid", ""), Vector2(38, 343), Vector2(334, 43), 23)
-		for field: String in PlantCardInstance.PROMOTION_FIELDS:
-			var promotion: String = str(selected.get(field, "")).strip_edges()
+		for field: String in PlantCardInstance.PROMOTION_FIELDS: # Show only actual irreversible promotion choices.
+			var promotion: String = str(selected.get(field, "")).strip_edges() # 当前卡的实际转职值。
 			if not promotion.is_empty():
-				Art.label(root, "第%d次转职：%s" % [PlantCardInstance.PROMOTION_FIELDS.find(field) + 1, promotion], Vector2(38, 403 + PlantCardInstance.PROMOTION_FIELDS.find(field) * 35), Vector2(338, 35), 21)
-		var discard: Button = Button.new()
-		discard.text = "丢弃植物…"
-		discard.position = Vector2(68, 540)
-		discard.size = Vector2(277, 65)
-		discard.disabled = Global.adventure_inventory.get_card_order().size() <= 1
-		discard.pressed.connect(_confirm_discard)
-		root.add_child(discard)
+				Art.label(root, "%s  %s" % ["第%d次转职" % (PlantCardInstance.PROMOTION_FIELDS.find(field) + 1), promotion], Vector2(38, description_top), Vector2(338, 35), 21)
+				description_top += 35.0
 	else:
-		# Both layers are anchored to detail panel coordinates, independently of the item.
+		# 道具底图、图标与配方组件共用预览中心，保持各组件原始长宽比。
+		var preview_center: Vector2 = preview_bounds.get_center() # 对齐详情区的水平中心。
+		var backing_size := Vector2.ONE * preview_bounds.size.y # 分类底图填满预览区域高度。
 		var backing: String = Data.item_backing(selected)
 		if not backing.is_empty():
-			Art.image(root, backing, Vector2(93, 78), Vector2(200, 200))
+			Art.image(root, backing, preview_center - backing_size * 0.5, backing_size)
 		var icon: String = Data.item_icon(selected)
+		var is_recipe: bool = str(selected.get("category", "")) == "recipe" # 卷轴作为配方的完整底图。
+		var icon_size: Vector2 = backing_size if is_recipe else backing_size * (170.0 / 200.0) # 道具前景保留与分类底图的比例。
 		if not icon.is_empty():
-			Art.image(root, icon, Vector2(110, 95), Vector2(170, 170))
-		if str(selected.get("category", "")) == "recipe":
-			ItemArt.add_recipe_portrait(root, int(selected.get("plant_type", 0)), Vector2(195, 180), 1.15)
+			Art.image(root, icon, preview_center - icon_size * 0.5, icon_size)
+		if is_recipe:
+			var recipe_scale: float = icon_size.y / 170.0 # 卷轴、植物和蜡封整体等比缩放。
+			ItemArt.add_recipe_portrait(root, int(selected.get("plant_type", 0)), preview_center, 1.15 * recipe_scale)
 			var wax: String = ItemArt.recipe_overlay_uri(str(selected["id"]))
 			if not wax.is_empty():
-				Art.image(root, wax, Vector2(224, 215), Vector2(48, 48))
-		Art.label(root, "持有数量  ×%d" % int(selected.get("qty", 0)), Vector2(31, 294), Vector2(346, 55), 28)
-		Art.label(root, "使用与消耗功能将在下一轮开放", Vector2(24, 420), Vector2(366, 68), 19)
+				Art.image(root, wax, preview_center + Vector2(29, 35) * recipe_scale, Vector2(48, 48) * recipe_scale)
+	_render_description(root, description_top)
+	var discard: Button = Art.action_button(root, "丢弃", "buttons/action_danger", Vector2((root.size.x - 277.0) * 0.5, root.size.y - 77.0), Vector2(277, 65), _confirm_discard) # 所有分类共用一个素材按钮。
+	discard.disabled = not _is_current_profile() or (str(selected.get("kind", "")) == "plant" and _opened_state.cards.size() <= 1)
+
+## 在 [param root] 的 [param top] 处绘制唯一描述框；空描述保留空框，不显示字段标题或占位说明。
+func _render_description(root: Control, top: float) -> void:
+	var bottom: float = root.size.y - 65.0 - 12.0 - 18.0 # 所有分类为统一丢弃按钮留出空间。
+	var box_size := Vector2(367, bottom - top) # 填满预览下方剩余空间。
+	var box: NinePatchRect = Art.panel(root, "panels/parchment_ninepatch.png", Vector2(24, top), box_size, 18) # 沿用背包的羊皮纸方框样式。
+	var description: Label = Art.label(box, str(selected.get("description", "")), Vector2(18, 14), box_size - Vector2(36, 28), 22) # 描述只读展示，不改变卡实例或道具定义。
+	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	description.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+
+## 确认界面使用所选行的独立快照；只读取当前数量，不提前扣除。
 func _confirm_discard() -> void:
-	var uid: String = str(selected.get("uid", ""))
-	if uid.is_empty() or Global.adventure_inventory.get_card_order().size() <= 1:
+	if selected.is_empty() or is_instance_valid(_dialog):
 		return
-	_dialog = ConfirmationDialog.new()
-	_dialog.title = "确认永久丢弃"
-	_dialog.dialog_text = "%s\n%s · ★%s\n此操作将永久删除这张独立植物卡及其出战引用。" % [selected.get("title", ""), uid, selected.get("stars", 0)]
-	_dialog.confirmed.connect(_discard.bind(uid))
-	_dialog.confirmed.connect(_dialog.queue_free)
-	_dialog.canceled.connect(func(): _dialog.queue_free())
-	add_child(_dialog)
-	_dialog.popup_centered(Vector2i(600, 220))
-func _discard(uid: String) -> void:
-	var state: AdventureState = Global.global_game_state.adventure_state
-	if state.cards.size() <= 1 or not state.cards.has(uid):
+	if not _is_current_profile():
+		_show_message("玩家状态已变更，请关闭并重新打开背包。")
 		return
-	var old_card: PlantCardInstance = state.cards[uid]
-	var old_order: Array[String] = state.card_order_uids.duplicate()
-	var old_deck: Array[String] = state.selected_card_uids.duplicate()
-	if not Global.adventure_inventory.remove_card(uid):
+	var record: Dictionary = selected.duplicate(true) # 固定确认对象，回调不依赖后续选择状态。
+	var is_plant: bool = str(record.get("kind", "")) == "plant" # 单卡与堆叠物品分别给出数量上限。
+	var limit: int = 1 if is_plant else Global.adventure_inventory.get_item_count(str(record.get("id", ""))) # 不使用界面缓存数量。
+	if is_plant and _opened_state.cards.size() <= 1:
+		_show_message("至少需要保留一张植物卡。")
 		return
-	if not Global.save_service.save_now():
-		state.cards[uid] = old_card
-		state.card_order_uids = old_order
-		state.selected_card_uids = old_deck
-		_show_message("丢弃保存失败，卡牌已恢复。")
-	else:
-		selected = {}
+	if limit < 1:
+		_show_message("物品已不存在，请重新选择。")
+		_render()
+		return
+	var prompt: String = "确定丢弃这张植物卡？" if is_plant else ("请选择要丢弃的数量。" if limit > 1 else "确定丢弃这件物品？") # 只有堆叠数量大于一才要求输入。
+	var message: String = "%s\n%s\n丢弃后无法恢复。" % [record.get("title", ""), prompt] # 不展示内部 UID 或开发说明。
+	var dialog: InventoryDialog = _open_dialog("丢弃", message, limit) # 弹窗仅派发确认，不直接修改状态。
+	dialog.confirmed.connect(_discard.bind(record))
+
+## [param quantity] 来自弹窗，[param record] 是打开确认时的快照；执行前再次核对当前玩家。
+func _discard(quantity: int, record: Dictionary) -> void:
+	if closing or not _is_current_profile():
+		_show_message("玩家状态已变更，本次丢弃已取消。")
+		return
+	var error: String = DiscardAction.execute(Global.adventure_inventory, _opened_state, record, quantity, Global.save_service.save_now) # 同步操作及保存，失败由操作对象回滚。
+	if error.is_empty():
 		SoundManager.play_other_SFX(&"tap")
+	else:
+		_show_message(error)
 	_render()
+
+## 只允许本窗口打开时的玩家状态继续执行写操作，换档或重载后拒绝旧确认。
+func _is_current_profile() -> bool:
+	return Global.save_service != null and Global.save_service.is_current_profile_loaded() \
+		and Global.user_manager.curr_user_name == _opened_profile \
+		and Global.global_game_state.adventure_state == _opened_state \
+		and Global.adventure_inventory != null and _opened_state != null
+
+## 创建唯一素材弹窗，参数 [param heading]、[param message]、[param limit] 原样交给只读界面。
+func _open_dialog(heading: String, message: String, limit: int = 0) -> InventoryDialog:
+	var dialog: InventoryDialog = InventoryDialog.new() # 使用独立弹窗，不复用系统灰色默认窗口。
+	dialog.setup(heading, message, limit)
+	_dialog = dialog
+	dialog.closed.connect(_on_dialog_closed.bind(dialog))
+	add_child(dialog)
+	return dialog
+
+## 仅清理 [param dialog] 对应的引用，不覆盖回调中新打开的提示框。
+func _on_dialog_closed(dialog: InventoryDialog) -> void:
+	if _dialog == dialog:
+		_dialog = null
+
+## [param value] 的错误提示也复用同一素材弹窗，不显示系统默认 AcceptDialog。
 func _show_message(value: String) -> void:
-	var popup := AcceptDialog.new()
-	popup.dialog_text = value
-	add_child(popup)
-	popup.popup_centered(Vector2i(510, 160))
-	popup.confirmed.connect(popup.queue_free)
+	if is_instance_valid(_dialog):
+		_dialog.dismiss()
+	_open_dialog("提示", value)

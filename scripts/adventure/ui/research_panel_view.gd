@@ -4,99 +4,75 @@ const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 const Names = preload("res://scripts/adventure/ui/inventory_data.gd")
 const ModeView = preload("res://scripts/adventure/ui/research_mode_view.gd")
+## 信息区文字相对于面板边界布局。
+const Layout = preload("res://scripts/adventure/ui/research_panel_skin.gd")
+## 研究槽位和选择区使用同一套背包格。
+const Slots = preload("res://scripts/adventure/ui/research_slot_view.gd")
+## 选择区使用的临时槽位状态。
+const Picker = preload("res://scripts/adventure/ui/research_slot_picker.gd")
 
+## 在 [param target] 中刷新 [param mode] 的选择、工作、信息区。[param owner] 接收交互。
+## [param options] 是过滤后的展示行，[param preview] 为服务报价，[param picker] 与 [param inventory] 用于显示槽位。
+## [param coin_balance] 为用于价格提示的当前金币余额。
 static func render(owner: Control, target: Control, mode: String,
-		options: Array[Dictionary], choice: int, preview: Dictionary,
-		selection: Dictionary, picking: bool) -> void:
+		options: Array[Dictionary], preview: Dictionary, picker: Picker,
+		inventory: AdventureInventoryService, coin_balance: int) -> void:
 	for child: Node in target.get_children():
 		target.remove_child(child)
 		child.queue_free()
-	Art.label(target, "选择区", Vector2(149, 368), Vector2(335, 52), 34)
-	Art.label(target, "工作区", Vector2(582, 368), Vector2(600, 52), 34)
-	Art.label(target, "信息区", Vector2(1303, 368), Vector2(447, 52), 34)
-	var note := "已持有制作书" if mode == "craft" else (
-		"请选择耗材卡" if mode == "upgrade" and picking else "选择植物")
-	Art.label(target, note, Vector2(149, 420), Vector2(330, 39), 23)
-	_choices(owner, target, mode, options, choice)
-	if options.is_empty():
-		Art.label(target, "当前没有可用条目", Vector2(160, 505),
-			Vector2(340, 50), 22)
-		return
+	Slots.choices(owner, target, options, picker)
 	match mode:
 		"craft":
-			_craft(target, preview)
+			_craft(target, preview, coin_balance)
 		"upgrade":
-			ModeView.upgrade(owner, target, preview, selection, picking)
+			ModeView.upgrade(owner, target, preview, picker, inventory, coin_balance)
 		"promotion":
-			ModeView.promotion(owner, target, preview, selection)
+			ModeView.promotion(owner, target, preview, picker, inventory, coin_balance)
 
-static func _choices(owner: Control, target: Control, mode: String,
-		options: Array[Dictionary], chosen: int) -> void:
-	var scroll := ScrollContainer.new()
-	scroll.position = Vector2(139, 475)
-	scroll.size = Vector2(358, 386)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	target.add_child(scroll)
-	var stack := VBoxContainer.new()
-	stack.custom_minimum_size = Vector2(335, 0)
-	stack.add_theme_constant_override("separation", 11)
-	scroll.add_child(stack)
-	for index: int in options.size():
-		var entry: Dictionary = options[index]
-		var row := Control.new()
-		row.custom_minimum_size = Vector2(335, 86)
-		stack.add_child(row)
-		var frame := Art.panel(row, "panels/wood_ninepatch.png",
-			Vector2.ZERO, Vector2(335, 85), 18)
-		frame.modulate = Color("eed087") if index == chosen else Color.WHITE
-		Art.image(row, "icons/category_recipes.png" if mode == "craft" else
-			"icons/category_plants.png", Vector2(10, 11), Vector2(59, 60))
-		var label: String = str(entry.get("title", ""))
-		if mode != "craft":
-			label = Names.plant_name(int(entry.get("plant_type", 0)))
-			label += " ★%d" % int(entry.get("stars", 0))
-		var text := Art.label(row, label, Vector2(76, 13),
-			Vector2(252, 58), 22, Color("f9e7b8"))
-		text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		var button := Button.new()
-		button.name = "ResearchChoice_%d" % index
-		button.flat = true
-		button.size = Vector2(335, 85)
-		button.focus_mode = Control.FOCUS_NONE
-		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		button.pressed.connect(Callable(owner, "choose_entry").bind(index))
-		row.add_child(button)
+## 在 [param parent] 显示 [param preview] 的产物和材料。产物居于上排，材料按固定位置放在下排。
+## [param coin_balance] 低于配方报价时，右侧价格标红。
+static func _craft(parent: Control, preview: Dictionary, coin_balance: int) -> void:
+	var slots: Array = preview.get("slots", []) # 材料与库存状态由合成报价提供。
+	var top_bounds: Rect2 = Slots.work_cell(1, 2, 0) # 上排跨工作区全宽，产物独立居中。
+	var result_size: Vector2 = Slots.work_cell(2, 1, 1).size * 0.5 # 以上一版右侧预览的尺寸为基准，宽高各缩小一半。
+	var plant_type: int = int(preview.get("plant_type", 0)) # 由配方指定的产物物种。
+	ModeView.plant(parent, plant_type, top_bounds.get_center() - result_size * 0.5, result_size)
+	for index: int in range(3):
+		var slot: Dictionary = slots[index] if index < slots.size() else {} # 配方缺少对应材料时仍绘制空槽。
+		_craft_material(parent, slot, Slots.work_cell(3, 2, 3 + index, Slots.COMPACT_SLOT_SCALE))
+	if not preview.has("plant_type"):
+		return
+	var info_bounds: Rect2 = Layout.INFO_REGION.grow(-42.0) # 为名称、描述和价格预留统一内边距。
+	Art.label(parent, Names.plant_name(plant_type), info_bounds.position, Vector2(info_bounds.size.x, 52), 34)
+	var description: Label = Art.label(parent, Names.plant_description(plant_type),
+		info_bounds.position + Vector2(0, 72), Vector2(info_bounds.size.x, info_bounds.size.y - 136), 26) # 与背包共用植物描述。
+	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	description.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	ModeView.price(parent, info_bounds, int(preview.fee), coin_balance)
 
-static func _craft(parent: Control, preview: Dictionary) -> void:
-	Art.label(parent, "材料自动匹配 · 每种消耗一份", Vector2(580, 420),
-		Vector2(630, 52), 25)
-	var slots: Array = preview.get("slots", [])
-	for index: int in slots.size():
-		var slot: Dictionary = slots[index]
-		var position := Vector2(595 + index * 192, 497)
-		Art.image(parent, "slots/item_slot_normal.png", position, Vector2(137, 137))
-		var icon: String = ItemArt.icon_uri(str(slot.id))
-		var sprite := Art.image(parent, icon, position + Vector2(24, 20),
-			Vector2(90, 90))
-		var enough := int(slot.owned) >= int(slot.required)
-		if not enough:
-			sprite.modulate = Color(0.38, 0.38, 0.38, 0.68)
-		Art.label(parent, str(ItemRegistry.get_item_definition(str(slot.id)).get("name", slot.id)),
-			position + Vector2(-19, 142), Vector2(185, 38), 20)
-		Art.label(parent, "%d / %d" % [int(slot.owned), int(slot.required)],
-			position + Vector2(-8, 183), Vector2(155, 39), 22,
-			Color("356c38") if enough else Color("b34f3a"))
-	ModeView.plant(parent, int(preview.get("plant_type", 0)),
-		Vector2(1070, 498), Vector2(136, 175))
-	Art.label(parent, "合成产物", Vector2(1315, 437), Vector2(450, 48), 30)
-	var plant_type: int = int(preview.get("plant_type", 0))
-	Art.label(parent, Names.plant_name(plant_type), Vector2(1315, 507),
-		Vector2(445, 51), 28)
-	Art.label(parent, "初始星级：0 星", Vector2(1315, 579),
-		Vector2(442, 42), 25)
-	Art.label(parent, "固定费用：$%d" % int(preview.get("fee", 0)), Vector2(1315, 651),
-		Vector2(442, 42), 25)
-	Art.label(parent, "消耗制作书 ×1", Vector2(1315, 722),
-		Vector2(442, 42), 24)
-	Art.label(parent, "单次产出植物卡 ×1", Vector2(600, 786),
-		Vector2(596, 43), 23)
+## 将 [param slot] 的素材等比放入 [param parent] 的 [param bounds]，数量显示在格内，名称放入悬停提示。
+static func _craft_material(parent: Control, slot: Dictionary, bounds: Rect2) -> void:
+	var side: float = minf(bounds.size.x, bounds.size.y) # 用缩放后的区域短边绘制方槽。
+	var size := Vector2.ONE * side # 整个格子的绘制尺寸。
+	var position: Vector2 = bounds.get_center() - size * 0.5 # 在工作槽范围内居中。
+	if slot.is_empty():
+		Art.image(parent, "slots/item_slot_normal.png", position, size)
+		return
+	var id: String = str(slot.id) # 用道具目录识别材料与图标。
+	var backing: String = ItemArt.backing_uri(id) # 与背包共用材料分类底图。
+	if backing.is_empty():
+		Art.image(parent, "slots/item_slot_normal.png", position, size)
+	else:
+		# 补偿分类底图的透明留边和圆角，让图案覆盖槽框内沿。
+		Art.image(parent, backing, position - size * 0.02, size * 1.04)
+	var owned: int = int(slot.owned) # 当前持有数。
+	var required: int = int(slot.required) # 本次合成所需数量。
+	var enough: bool = owned >= required # 材料不足时降低图案亮度。
+	var sprite: TextureRect = Art.image(parent, ItemArt.icon_uri(id), position + size * 0.16, size * 0.68) # 图标保持原比例。
+	if not enough:
+		sprite.modulate = Color(0.38, 0.38, 0.38, 0.68)
+	var frame: TextureRect = Art.slot_frame(parent, position, size) # 原版边框压在底图和图标上层。
+	frame.mouse_filter = Control.MOUSE_FILTER_PASS
+	frame.tooltip_text = str(ItemRegistry.get_item_definition(id).get("name", id))
+	Art.count_badge(parent, "%d / %d" % [owned, required], position + size - Vector2(12, 12),
+		Color("fff4d6") if enough else Color("ffb8a2"), 22)

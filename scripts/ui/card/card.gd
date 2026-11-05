@@ -123,7 +123,8 @@ func _ready() -> void:
 	if card_reference == null or not card_reference.is_valid():
 		is_can_click = false
 		return
-	if not battle_card_data.is_empty():
+	# 星级与实例尾号仅用于选卡和战斗，避免覆盖目录预览的阳光费用。
+	if card_context in [CardContext.Selection, CardContext.Battle] and not battle_card_data.is_empty():
 		_battle_marker = Label.new()
 		_battle_marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_battle_marker.add_theme_font_size_override("font_size", 9)

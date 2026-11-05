@@ -1,14 +1,18 @@
-## One independently positioned grid slot: slot -> category backing -> item -> text.
+## 背包格子的底图、图标与边框独立布局；数量徽标始终覆盖在边框上层。
 extends Control
 signal chosen(record: Dictionary)
 signal reorder_requested(uid: String, target: int)
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 const Data = preload("res://scripts/adventure/ui/inventory_data.gd")
-const BACKING_POSITION := Vector2(9, 3)
-const BACKING_SIZE := Vector2(68, 68)
-const ICON_POSITION := Vector2(14, 8)
-const ICON_SIZE := Vector2(58, 58)
+## 道具底图按格子高度等比填充，透明边缘允许超出格子的水平区域。
+const BACKING_SIZE := Vector2(96, 96)
+## 底图相对 86 × 96 格子的居中坐标，不改变格子尺寸。
+const BACKING_POSITION := (Vector2(86, 96) - BACKING_SIZE) * 0.5
+## 道具前景保留相对分类底图的原始大小比例。
+const ICON_SIZE := BACKING_SIZE * (58.0 / 68.0)
+## 前景与底图共用格子中心。
+const ICON_POSITION := (Vector2(86, 96) - ICON_SIZE) * 0.5
 var record: Dictionary = {}
 var index := -1
 var drag_allowed := false
@@ -41,28 +45,37 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 			card.plant_spawn_profile = AdventureBattleAdapter.profile_for(record)
 			add_child(card)
 			card.visible = true
-			card.position = Vector2(15, 5)
-			card.scale = Vector2(1.10, 1.09)
+			# 还原卡牌原生尺寸，避免继承源目录容器拉伸后的比例。
+			card.size = card.get_combined_minimum_size()
+			var card_scale: float = size.y / card.size.y # 按格子高度等比填充。
+			card.scale = Vector2.ONE * card_scale
+			card.position = (size - card.size * card_scale) * 0.5 # 两个方向均居中。
 			card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var stars: Label = Art.label(self, "★%s" % record.get("stars", 0), Vector2(8, 78), Vector2(75, 17), 15, Color("eac15e"))
 		stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	else:
-		# Category backing is fixed to THIS slot. It never inherits icon transform.
+		# 分类底图或卷轴替换普通方格的填色，默认边框在内容之后独立绘制。
 		var backing: String = Data.item_backing(record)
+		var category: String = str(record.get("category", "")) # 配方和转职书都使用卷轴作为底图。
+		var uses_scroll: bool = category in ["recipe", "promotion_book"] # 卷轴格保留边框，隐藏普通方格填色。
+		_slot.visible = backing.is_empty() and not uses_scroll
 		if not backing.is_empty():
 			Art.image(self, backing, BACKING_POSITION, BACKING_SIZE)
 		var icon: String = Data.item_icon(record)
+		var icon_size: Vector2 = BACKING_SIZE if uses_scroll else ICON_SIZE # 卷轴使用完整底图区域。
+		var icon_position: Vector2 = (size - icon_size) * 0.5 # 所有道具前景共用格子中心。
 		if not icon.is_empty():
-			Art.image(self, icon, ICON_POSITION, ICON_SIZE)
-		if str(record.get("category", "")) == "recipe":
-			ItemArt.add_recipe_portrait(self, int(record.get("plant_type", 0)), ICON_POSITION + ICON_SIZE * 0.5, 0.42)
+			Art.image(self, icon, icon_position, icon_size)
+		if category == "recipe":
+			var recipe_scale: float = icon_size.y / 58.0 # 植物和蜡封随卷轴整体等比放大。
+			ItemArt.add_recipe_portrait(self, int(record.get("plant_type", 0)), size * 0.5, 0.42 * recipe_scale)
 			var wax: String = ItemArt.recipe_overlay_uri(str(record["id"]))
 			if not wax.is_empty():
-				Art.image(self, wax, Vector2(49, 47), Vector2(20, 20))
-		var amount: Label = Art.label(self, "×%d" % int(record.get("qty", 0)), Vector2(8, 66), Vector2(72, 23), 17)
-		amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	# Border-only overlay is always the top child, above icons, wax seal and quantity.
+				Art.image(self, wax, icon_position + Vector2(35, 39) * recipe_scale, Vector2(20, 20) * recipe_scale)
+		Art.count_badge(self, "×%d" % int(record.get("qty", 0)), size - Vector2(4, 5))
+	# 默认边框常驻内容上层，悬停与选中边框再叠加在默认边框之上。
+	Art.slot_frame(self, Vector2.ZERO, size, plants_tab)
 	_frame = Art.image(self, "slots/%s_slot_selected_frame.png" % ("plant" if plants_tab else "item"), Vector2.ZERO, size)
 	_update_frame()
 

@@ -20,6 +20,8 @@ var _anim: Tween
 var _hover_id := ""
 var _interactive := true
 var _locked_materials: Dictionary = {}
+## 各按钮当前的悬停缩放动画，状态变为不可用时立即终止。
+var _hover_tweens: Dictionary = {}
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -92,7 +94,6 @@ func _set_handle_image() -> void:
 	_handle.text = "" if _handle.icon != null else ("▶" if expanded else "◀")
 	_handle.add_theme_font_size_override("font_size", 56)
 	_handle.add_theme_color_override("font_color", Color("e8c47d"))
-	_handle.tooltip_text = "收起工具栏" if expanded else "展开工具栏"
 
 func _handle_hover() -> void:
 	SoundManager.play_other_SFX(&"bleep")
@@ -168,11 +169,20 @@ func refresh(availability: Dictionary) -> void:
 			_locked_materials[id] = locked
 		icon.material = null if enabled else _locked_materials[id]
 		_buttons[id].mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if enabled else Control.CURSOR_ARROW
+		if not enabled:
+			if is_instance_valid(_hover_tweens.get(id)):
+				_hover_tweens[id].kill()
+			icon.scale = Vector2.ONE
+			if _hover_id == id:
+				_tip.hide()
+				_hover_id = ""
 
 func _on_hover(feature_id: String, index: int) -> void:
+	if not _interactive or not _available.get(feature_id, false):
+		return
 	_hover_id = feature_id
 	var name: String = Features.ENTRIES[index].label
-	_tip_text.text = name if _available.get(feature_id, false) else name + " · 未开放"
+	_tip_text.text = name
 	_tip.position = Vector2(24.0 + index * 141.0, -56.0)
 	_tip.show()
 	_pulse(feature_id, Vector2.ONE * 1.07)
@@ -182,11 +192,16 @@ func _off_hover(feature_id: String) -> void:
 	if _hover_id == feature_id:
 		_tip.hide()
 		_hover_id = ""
+	if not _interactive or not _available.get(feature_id, false):
+		return
 	_pulse(feature_id, Vector2.ONE)
 
 func _pulse(feature_id: String, target: Vector2) -> void:
 	var icon: TextureRect = _icons[feature_id]
-	var tween := create_tween()
+	if is_instance_valid(_hover_tweens.get(feature_id)):
+		_hover_tweens[feature_id].kill()
+	var tween := create_tween() # 同一图标只保留最新的悬停动画，避免反复进出时叠加。
+	_hover_tweens[feature_id] = tween
 	tween.tween_property(icon, "scale", target, 0.12).set_trans(Tween.TRANS_QUAD)
 
 func _on_pressed(feature_id: String) -> void:
