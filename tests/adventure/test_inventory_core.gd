@@ -18,16 +18,18 @@ func _run() -> void:
 	var first: String = inventory.add_card(1) # 第一张豌豆射手。
 	var second: String = inventory.add_card(1, 2) # 同物种的第二张独立卡。
 	assert(first == "PC000001" and second == "PC000002")
-	assert(inventory.get_card(first).stars == 1 and inventory.get_card(second).stars == 2)
+	assert(inventory.get_card(first).stars == 0 and inventory.get_card(second).stars == 2)
 	assert(inventory.add_card(0).is_empty() and inventory.add_card(999).is_empty())
-	assert(inventory.add_card(123456).is_empty() and inventory.add_card(1, 0).is_empty())
+	assert(inventory.add_card(123456).is_empty() and inventory.add_card(1, -1).is_empty())
 	assert(inventory.add_card(true).is_empty() and inventory.add_card(1, 1.5).is_empty())
 	assert(inventory.list_cards().size() == 2 and state.next_card_id == 3)
 	assert(inventory.get_card_order() == [first, second])
 	assert(inventory.move_card(second, 0) and inventory.get_card_order() == [second, first])
 	assert(inventory.list_cards()[0].uid == second) # 与选卡候选顺序共享。
 	assert(not inventory.move_card("PC999999", 0) and not inventory.move_card(first, 2))
-	assert(not inventory.set_card_order([first, first]) and not inventory.set_card_order([first]))
+	var duplicate_order: Array[String] = [first, first]
+	var incomplete_order: Array[String] = [first]
+	assert(not inventory.set_card_order(duplicate_order) and not inventory.set_card_order(incomplete_order))
 	assert(inventory.get_card_order() == [second, first])
 	var order_copy: Array[String] = inventory.get_card_order()
 	order_copy.clear()
@@ -36,7 +38,7 @@ func _run() -> void:
 	card_copy.stars = 99
 	var card_list: Array[Dictionary] = inventory.list_cards() # 列表中的每个字典也必须独立。
 	card_list[0].stars = 88
-	assert(inventory.get_card(first).stars == 1)
+	assert(inventory.get_card(first).stars == 0)
 	var deck: Array[String] = [first, second] # 合法双卡出战列表。
 	assert(inventory.set_deck(deck))
 	deck.clear()
@@ -78,6 +80,7 @@ func _run() -> void:
 	assert(restored.cards[second].promotion_1 == "branch_a" and restored.cards[second].promotion_2.is_empty())
 	assert(restored.selected_card_uids == [second] and restored.items.fertilizer_lv1 == 2)
 	assert(restored.card_order_uids == [second, "PC000003"])
+	assert(restored.cards["PC000003"].stars == 0, "零星卡必须完整经过 JSON 往返")
 	var legacy: Dictionary = JSON.parse_string(encoded)
 	legacy.erase("card_order_uids")
 	var migrated: AdventureState = state_model.from_dict(legacy)
@@ -95,6 +98,13 @@ func _run() -> void:
 	assert(other.add_item("fertilizer_lv1", 7))
 	assert(inventory.get_item_count("fertilizer_lv1") == 2 and inventory.list_cards().size() == 2)
 	var valid_card: Dictionary = inventory.get_card(second) # 合法单卡协议基线。
+	for invalid_star: Variant in [-1, 1.5, true, "0"]:
+		var invalid_card: Dictionary = valid_card.duplicate(true)
+		invalid_card.stars = invalid_star
+		assert(card_model.from_dict(invalid_card) == null)
+	var zero_star: Dictionary = valid_card.duplicate(true)
+	zero_star.stars = 0
+	assert(card_model.from_dict(zero_star).stars == 0)
 	for invalid_uid: String in ["", "PC000000", "PC1", "PC+00001", "PC0000002", "PC000002x"]: # 拒绝非法或非规范 UID。
 		var invalid_card: Dictionary = valid_card.duplicate(true) # 每次只改变一个输入边界。
 		invalid_card.uid = invalid_uid

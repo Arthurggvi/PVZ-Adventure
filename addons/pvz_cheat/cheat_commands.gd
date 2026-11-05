@@ -15,8 +15,8 @@ static func result(ok: bool, message: String) -> Dictionary:
 func add_cards(plant_type: int, stars: int, amount: int) -> Dictionary:
 	if not available():
 		return result(false, "请先选择有效的玩家存档。")
-	if not PlantCardInstance.is_plant_type(plant_type) or stars < 1 or stars > 20 or amount < 1 or amount > 32:
-		return result(false, "植物、星级或数量无效（一次最多32张，星级1–20）。")
+	if not PlantCardInstance.is_plant_type(plant_type) or stars < 0 or stars > 20 or amount < 1 or amount > 32:
+		return result(false, "植物、星级或数量无效（一次最多32张，星级0–20）。")
 	var state: AdventureState = Global.global_game_state.adventure_state
 	var previous_next: int = state.next_card_id
 	var created: Array[String] = []

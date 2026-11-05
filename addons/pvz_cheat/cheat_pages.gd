@@ -84,6 +84,8 @@ static func _cards(root: VBoxContainer, service: RefCounted, report: Callable) -
 	var count := _count(row, 1, 32)
 	_note(row, "星级")
 	var stars := _count(row, 1, 20)
+	stars.min_value = 0
+	stars.value = 0
 	_button(root, "获得卡牌", func():
 		if choice.item_count == 0:
 			report.call({"ok": false, "message": "没有匹配的植物。"})

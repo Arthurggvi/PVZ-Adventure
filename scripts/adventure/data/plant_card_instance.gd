@@ -8,8 +8,8 @@ const MAX_JSON_INTEGER: int = 9007199254740991
 var uid: String = ""
 ## 已注册植物物种，排除空物种及模仿者模板。
 var plant_type: int = 0
-## 独立星级，第一阶段只要求正整数，不预设升级上限。
-var stars: int = 1
+## 独立星级，零星为新卡默认值；不预设升级上限。
+var stars: int = 0
 ## 第一转职标记，空字符串表示尚未转职。
 var promotion_1: String = ""
 ## 第二转职标记，空字符串表示尚未转职。
@@ -24,14 +24,14 @@ func to_dict() -> Dictionary:
 ## 从 [param data] 创建独立卡；非法身份、物种、星级或转职字段返回 null。
 static func from_dict(data: Variant) -> PlantCardInstance:
 	if not data is Dictionary or uid_number(data.get("uid")) == 0 \
-		or not is_plant_type(data.get("plant_type")) or not is_positive_integer(data.get("stars", 1)):
+		or not is_plant_type(data.get("plant_type")) or not is_nonnegative_integer(data.get("stars", 0)):
 		return null
 	if typeof(data.get("promotion_1", "")) != TYPE_STRING or typeof(data.get("promotion_2", "")) != TYPE_STRING:
 		return null
 	var card := PlantCardInstance.new() # 仅在所有输入验证通过后创建数据对象。
 	card.uid = data.uid
 	card.plant_type = int(data.plant_type)
-	card.stars = int(data.get("stars", 1))
+	card.stars = int(data.get("stars", 0))
 	card.promotion_1 = data.get("promotion_1", "")
 	card.promotion_2 = data.get("promotion_2", "")
 	return card
@@ -41,6 +41,12 @@ static func is_positive_integer(value: Variant) -> bool:
 	if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
 		return false
 	return is_finite(value) and value > 0 and value <= MAX_JSON_INTEGER and value == floor(value)
+
+## 星级允许零；其他数量与 UID 仍必须使用正整数校验。
+static func is_nonnegative_integer(value: Variant) -> bool:
+	if typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT:
+		return false
+	return is_finite(value) and value >= 0 and value <= MAX_JSON_INTEGER and value == floor(value)
 
 ## [param value] 必须是已注册且非空、非模仿者模板的植物编号。
 static func is_plant_type(value: Variant) -> bool:

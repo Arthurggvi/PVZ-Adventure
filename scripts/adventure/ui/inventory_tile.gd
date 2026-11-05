@@ -45,7 +45,7 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 			card.scale = Vector2(1.10, 1.09)
 			card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var stars: Label = Art.label(self, "★%s" % record.get("stars", 1), Vector2(8, 78), Vector2(75, 17), 15, Color("eac15e"))
+		var stars: Label = Art.label(self, "★%s" % record.get("stars", 0), Vector2(8, 78), Vector2(75, 17), 15, Color("eac15e"))
 		stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	else:
 		# Category backing is fixed to THIS slot. It never inherits icon transform.
