@@ -26,6 +26,8 @@ var _registry_cooldown: float = 0.0
 ## Runtime field additions are separate from permanent star/promotion modifiers.
 var _sun_surcharge: int = 0
 var _battle_marker: Label = null
+var _star_badge: Control = null
+const StarBadge = preload("res://scripts/adventure/ui/star_badge_view.gd")
 
 var battle_card_data: Dictionary:
 	get:
@@ -45,6 +47,7 @@ var plant_spawn_profile: PlantSpawnProfile:
 		if is_node_ready():
 			_apply_profile_card_stats()
 			_refresh_battle_marker()
+			_sync_star_badge()
 
 func _refresh_battle_marker() -> void:
 	if not is_instance_valid(_battle_marker):
@@ -54,8 +57,22 @@ func _refresh_battle_marker() -> void:
 	if data.is_empty():
 		return
 	var uid: String = str(data.get("uid", ""))
-	_battle_marker.text = "★%s · %s" % [
-		str(data.get("stars", 0)), uid.substr(maxi(0, uid.length() - 3))]
+	_battle_marker.text = uid.substr(maxi(0, uid.length() - 3))
+
+## One UI component for inventory, research and adventure battle cards.
+## The active spawn profile is the sole star-level authority.
+func _sync_star_badge() -> void:
+	var data: Dictionary = battle_card_data
+	var rank: int = int(data.get("stars", 0))
+	if rank <= 0:
+		if is_instance_valid(_star_badge):
+			_star_badge.queue_free()
+			_star_badge = null
+		return
+	if not is_instance_valid(_star_badge):
+		_star_badge = StarBadge.new()
+		add_child(_star_badge)
+	_star_badge.configure(rank)
 
 ## Resolve permanent modifiers from the registry baseline exactly once.
 func _resolved_card_stats() -> Dictionary:
@@ -134,6 +151,7 @@ func _ready() -> void:
 		_battle_marker.offset_top = -13
 		add_child(_battle_marker)
 		_refresh_battle_marker()
+	_sync_star_badge()
 	if card_reference.card_type == ResourceCardReference.CardType.ZombieBoss:
 		# 源模板隐藏了费用，复制实例入树时必须按用途显式恢复可见性。
 		cost.visible = card_context == CardContext.Selection or card_context == CardContext.Battle

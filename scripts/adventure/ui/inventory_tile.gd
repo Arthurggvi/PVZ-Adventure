@@ -52,8 +52,6 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 			card.position = (size - card.size * card_scale) * 0.5 # 两个方向均居中。
 			card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var stars: Label = Art.label(self, "★%s" % record.get("stars", 0), Vector2(8, 78), Vector2(75, 17), 15, Color("eac15e"))
-		stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	else:
 		# 分类底图或卷轴替换普通方格的填色，默认边框在内容之后独立绘制。
 		var backing: String = Data.item_backing(record)
