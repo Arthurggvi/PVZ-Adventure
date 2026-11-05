@@ -5,3 +5,7 @@ class_name ZombieSpawnModifier
 
 func apply(_zombie: Zombie000Base) -> bool:
 	return false
+
+## Explicit inheritance policy. Ordinary modifiers opt out by default.
+func for_child() -> ZombieSpawnModifier:
+	return null

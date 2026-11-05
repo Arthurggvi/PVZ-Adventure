@@ -150,16 +150,17 @@ func plant_be_flattened():
 
 #region 植物(僵尸)种植(死亡)
 ## 模仿者创建植物
-func imitater_create_plant(plant_type:CharacterRegistry.PlantType, is_plant_start_effect:=true):
+func imitater_create_plant(plant_type:CharacterRegistry.PlantType, is_plant_start_effect:=true,
+		spawn_profile: PlantSpawnProfile = null):
 	await get_tree().process_frame
-	var plant = create_plant(plant_type, false, is_plant_start_effect, true)
+	var plant = create_plant(plant_type, false, is_plant_start_effect, true, false, spawn_profile)
 	return plant
 ## 新植物种植
 ##[is_imitater:bool] 植物是否为模仿者
 ##[is_plant_start_effect:bool] 是否有种植特效
 ##[is_imitater_material:bool] 是否为模仿者材质
 ##[is_zombie_mode:bool] 是否为我是僵尸模式
-func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is_plant_start_effect:=true, is_imitater_material:=false, is_zombie_mode:=false, battle_card_data: Dictionary = {}, spawn_modifier: PlantSpawnModifier = null) -> Plant000Base:
+func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is_plant_start_effect:=true, is_imitater_material:=false, is_zombie_mode:=false, spawn_profile: PlantSpawnProfile = null) -> Plant000Base:
 	var plant_condition:ResourcePlantCondition
 	var plant :Plant000Base
 	var predecessor: Plant000Base = null
@@ -191,13 +192,14 @@ func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is
 		Plant000Base.E_PInitAttr.PlantCell:self,
 		Plant000Base.E_PInitAttr.IsImitaterMaterial:is_imitater_material,
 		Plant000Base.E_PInitAttr.IsZombieMode:is_zombie_mode,
-		Plant000Base.E_PInitAttr.BattleCardData:battle_card_data.duplicate(true)
+		Plant000Base.E_PInitAttr.BattleCardData:spawn_profile.snapshot() if spawn_profile != null else {}
 	}
 	plant.init_plant(plant_init_para)
-	# The caller supplies optional battle rules; planting never imports research.
-	if spawn_modifier != null and not spawn_modifier.apply(plant):
+	# The caller supplies one coherent recipe, not independent snapshot/rule inputs.
+	if spawn_profile != null and not spawn_profile.apply(plant):
 		plant.free()
 		return null
+	plant.plant_spawn_profile = spawn_profile
 	if is_instance_valid(predecessor):
 		predecessor.character_death_disappear()
 	if is_imitater:

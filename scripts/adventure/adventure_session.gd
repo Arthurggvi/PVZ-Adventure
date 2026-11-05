@@ -195,6 +195,8 @@ func confirm_selected_cards(cards: Array[Card]) -> bool:
 	battle_loadout = snapshot
 	for index: int in range(cards.size()):
 		cards[index].battle_card_data = snapshot[index].duplicate(true)
+		cards[index].plant_spawn_profile = PlantSpawnProfile.new(
+			snapshot[index], AdventureResearchBattleEffects.new())
 		AdventureResearchBattleEffects.apply_card(cards[index])
 	return true
 ## 仅供原版预选卡槽获取对应序号的冻结身份；普通模式不走此入口。

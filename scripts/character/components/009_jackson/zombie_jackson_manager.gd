@@ -181,7 +181,8 @@ func call_zombie_dancer():
 					Global.main_game.zombie_manager.all_zombie_rows[new_zombie_dancer_lane_and_pos["lane"]],
 					zombie_init_para,
 					new_zombie_dancer_lane_and_pos["pos"],
-					call_dancer_init.bind(i)
+					call_dancer_init.bind(i),
+					zombie_dancers[-1].inherited_child_modifier()
 				)
 
 			## 不能生成伴舞，用true填充

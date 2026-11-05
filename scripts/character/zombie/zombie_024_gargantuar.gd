@@ -40,7 +40,7 @@ func ready_norm_signal_connect():
 
 ## 血量变化判断是否丢小鬼
 func jugde_throw_imp_form_hp_change(curr_hp:int, _is_drop:=true):
-	if not is_throw_once and global_position.x>MinXThrowGargantuar and curr_hp <= 1500:
+	if not is_throw_once and global_position.x>MinXThrowGargantuar and curr_hp <= hp_component.max_hp * 0.5:
 		is_throw_once = true
 		is_throw = true
 
@@ -68,7 +68,8 @@ func create_imp():
 		Global.main_game.zombie_manager.all_zombie_rows[lane],
 		zombie_init_para,
 		_get_imp_throw_glo_pos(),
-		update_imp_throw_pos
+		update_imp_throw_pos,
+		inherited_child_modifier()
 	)
 
 ## 获取投掷小鬼的目标位置

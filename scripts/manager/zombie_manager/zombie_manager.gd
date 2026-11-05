@@ -589,9 +589,11 @@ func create_norm_zombie(
 
 	zombie.init_zombie(zombie_init_para)
 	# A typed spawn modifier is validated separately from one-off entity setup.
-	if spawn_modifier != null and not spawn_modifier.apply(zombie):
-		zombie.free()
-		return null
+	if spawn_modifier != null:
+		if not spawn_modifier.apply(zombie):
+			zombie.free()
+			return null
+		zombie.combat_spawn_modifier = spawn_modifier
 	if not init_zombie_special.is_null():
 		init_zombie_special.call(zombie)
 	zombie.position = global_pos - zombie_parent.global_position

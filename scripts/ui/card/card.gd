@@ -21,6 +21,8 @@ enum CardContext {
 var card_context: CardContext = CardContext.Catalog
 ## 仅战斗期间的出战卡绑定，空字典代表原版模式；每张卡持有独立快照。
 var battle_card_data: Dictionary = {}
+## Frozen combat spawn contract supplied by the current game mode.
+var plant_spawn_profile: PlantSpawnProfile = null
 ## Prevent applying promotion modifiers twice when the selected card is rebound at battle start.
 var research_applied_uid: String = ""
 ## 是否处于冷却中。

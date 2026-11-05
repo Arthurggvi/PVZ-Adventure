@@ -8,6 +8,9 @@ var _tier_id: StringName
 func _init(tier_id: StringName) -> void:
 	_tier_id = tier_id
 
+func for_child() -> ZombieSpawnModifier:
+	return AdventureZombieTierBinding.new(_tier_id)
+
 const Tiers = preload("res://scripts/adventure/adventure_zombie_tier_catalog.gd")
 
 ## Called before add_child(). Component _ready derives HP bars from final max HP.
