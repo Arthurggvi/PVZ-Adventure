@@ -78,14 +78,19 @@ func scale_spawn_thresholds(body_factor: float, armor_factor: float) -> void:
 ## Rebase visual damage stages when a newly spawned plant's maximum HP changes.
 ## The stage component owns this data; callers never edit threshold arrays.
 func set_spawn_max_health(new_max: int) -> void:
-	var original_max: int = hp_component.max_hp
+	# Spawn binding runs before @onready references become available.
+	var health: HpComponent = get_parent().get_node_or_null("HpComponent") as HpComponent
+	if health == null:
+		push_error("HpStageChangeComponent requires sibling HpComponent")
+		return
+	var original_max: int = health.max_hp
 	if original_max <= 0 or new_max <= 0:
 		push_error("Invalid health for stage rebasing")
 		return
 	scale_positive_thresholds(boundary_value_hp, float(new_max) / float(original_max))
-	hp_component.set_spawn_max_health(new_max)
+	health.set_spawn_max_health(new_max)
 	if not boundary_value_hp.is_empty() and boundary_value_hp[-1] != 0:
-		hp_component.set_death_hp(boundary_value_hp[-1])
+		health.set_death_hp(boundary_value_hp[-1])
 
 #region 本体body变化
 ## 判断body是否需要变化

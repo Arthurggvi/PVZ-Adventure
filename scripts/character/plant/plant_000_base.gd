@@ -1,6 +1,5 @@
 extends Character000Base
 class_name Plant000Base
-const ResearchEffects = preload("res://scripts/adventure/research/research_battle_effects.gd")
 
 @onready var sleep_component: SleepComponent = %SleepComponent
 @onready var blink_component: BlinkComponent = %BlinkComponent
@@ -134,7 +133,6 @@ func ready_norm_signal_connect():
 ## 初始化正常出战角色
 func ready_norm():
 	super()
-	ResearchEffects.apply_plant(self)
 	garden_component.queue_free()
 	curr_be_attack_status = init_be_attack_status
 	## 如果白天睡觉

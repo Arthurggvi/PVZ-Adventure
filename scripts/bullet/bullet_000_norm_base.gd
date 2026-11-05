@@ -17,6 +17,8 @@ var curr_attack_num:=0
 var _hit_boss_ids: Dictionary[int, bool] = {}
 ## 子弹伤害
 @export var attack_value := 20
+## Immutable attack origin passed across projectile transformations (e.g. Torchwood).
+var source_damage_multiplier: float = 1.0
 ## 子弹默认移动速度
 @export var speed: float = 300.0
 ## 子弹默认移动方向
@@ -86,11 +88,11 @@ func init_bullet(bullet_paras:Dictionary):
 	self.direction = bullet_paras.get(E_InitParasAttr.Direction, Vector2.RIGHT)
 	self.can_attack_plant_status = bullet_paras.get(E_InitParasAttr.CanAttackPlantState, can_attack_plant_status)
 	self.can_attack_zombie_status = bullet_paras.get(E_InitParasAttr.CanAttackZombieState, can_attack_zombie_status)
-	var factor: float = float(bullet_paras.get(E_InitParasAttr.DamageMultiplier, 1.0))
-	attack_value = maxi(0, roundi(float(attack_value) * factor))
+	source_damage_multiplier = float(bullet_paras.get(E_InitParasAttr.DamageMultiplier, 1.0))
+	attack_value = maxi(0, roundi(float(attack_value) * source_damage_multiplier))
 	var splash: SpatterComponent = get_node_or_null("SpatterComponent") as SpatterComponent
 	if splash != null:
-		splash.apply_damage_multiplier(factor)
+		splash.apply_damage_multiplier(source_damage_multiplier)
 
 
 ## 获取子弹属性
@@ -102,6 +104,7 @@ func get_bullet_paras()->Dictionary[E_InitParasAttr,Variant]:
 		E_InitParasAttr.Direction : self.direction,
 		E_InitParasAttr.CanAttackPlantState : self.can_attack_plant_status,
 		E_InitParasAttr.CanAttackZombieState : self.can_attack_zombie_status,
+		E_InitParasAttr.DamageMultiplier : self.source_damage_multiplier,
 	}
 
 ## 子弹与敌人碰撞

@@ -80,7 +80,9 @@ func set_spawn_max_health(new_max: int) -> void:
 		push_error("Combat health maximum must be positive")
 		return
 	max_hp = new_max
-	curr_hp = new_max
+	# Before scene-tree entry, _ready initializes current HP and its UI.
+	if is_node_ready():
+		curr_hp = new_max
 
 func get_all_hp():
 	return curr_hp

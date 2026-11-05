@@ -1,6 +1,6 @@
 ## Apply promotion and star-growth effects to frozen battle card snapshots.
 ## Ordinary modes have no snapshot and keep all original combat values.
-extends RefCounted
+extends PlantSpawnModifier
 class_name AdventureResearchBattleEffects
 
 const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
@@ -33,26 +33,32 @@ static func apply_card(card: Variant) -> void:
 	if modifiers.has("cooldown"):
 		card.cool_time = Promotions.resolve_stat(card.cool_time, modifiers.cooldown)
 
-static func apply_plant(plant: Variant) -> void:
+func apply(plant: Plant000Base) -> bool:
 	var record := _record(plant.battle_card_data)
-	if record == null or plant.research_effects_applied:
-		return
-	plant.research_effects_applied = true
+	if record == null:
+		return false
+	if plant.research_effects_applied:
+		return true
 	var modifiers: Dictionary = _stats(record)
 	if modifiers.has("damage"):
 		plant.battle_damage_multiplier = maxf(0.0, 1.0 + float(modifiers.damage.get("percent", 0.0)))
 	if modifiers.has("max_health"):
+		var health: HpComponent = plant.get_node_or_null("HpComponent") as HpComponent
+		if health == null:
+			push_error("Adventure plant has no HpComponent")
+			return false
 		var new_max: int = maxi(1, roundi(Promotions.resolve_stat(
-			float(plant.hp_component.max_hp), modifiers.max_health)))
+			float(health.max_hp), modifiers.max_health)))
 		var stages: HpStageChangeComponent = plant.get_node_or_null(
 			"HpStageChangeComponent") as HpStageChangeComponent
 		if stages != null:
 			stages.set_spawn_max_health(new_max)
 		else:
-			plant.hp_component.set_spawn_max_health(new_max)
+			health.set_spawn_max_health(new_max)
 	var component: CreateSunComponent = plant.get_node_or_null("CreateSunComponent")
 	if component == null:
-		return
+		plant.research_effects_applied = true
+		return true
 	# Only subsequent production intervals change; first sun, sun amount, cost
 	# and card cooldown are untouched. Ten-star growth is capped at +15%.
 	if modifiers.has("sun_production_rate"):
@@ -72,3 +78,5 @@ static func apply_plant(plant: Variant) -> void:
 				if reward > 0:
 					plant.signal_character_death.connect(
 						func(): component.spawn_specific_sun(reward), CONNECT_ONE_SHOT)
+	plant.research_effects_applied = true
+	return true

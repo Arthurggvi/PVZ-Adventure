@@ -579,7 +579,8 @@ func create_norm_zombie(
 	zombie_parent:Node,				## 僵尸父节点
 	zombie_init_para:Dictionary,			## 僵尸初始化参数
 	global_pos:Vector2=Vector2.ZERO,
-	init_zombie_special:Callable = Callable()		## 初始化僵尸特殊属性
+	init_zombie_special:Callable = Callable(),		## 初始化僵尸特殊属性
+	spawn_modifier: ZombieSpawnModifier = null
 ) -> Zombie000Base:
 	# 新实例入树前由初始化参数确定刷新归属；博士来源不会登记到自然刷新集合。
 	var zombie:Zombie000Base = Global.character_registry.get_zombie_info(zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieScenes).instantiate()
@@ -587,12 +588,12 @@ func create_norm_zombie(
 	zombie_init_para[Zombie000Base.E_ZInitAttr.IsZombieMode] = game_para.is_zombie_mode
 
 	zombie.init_zombie(zombie_init_para)
+	# A typed spawn modifier is validated separately from one-off entity setup.
+	if spawn_modifier != null and not spawn_modifier.apply(zombie):
+		zombie.free()
+		return null
 	if not init_zombie_special.is_null():
-		var initialized: Variant = init_zombie_special.call(zombie)
-		# A failed pre-spawn contract must not create a vanilla-strength enemy.
-		if initialized is bool and not initialized:
-			zombie.free()
-			return null
+		init_zombie_special.call(zombie)
 	zombie.position = global_pos - zombie_parent.global_position
 	zombie_parent.add_child(zombie)
 

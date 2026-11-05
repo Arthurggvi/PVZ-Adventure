@@ -159,18 +159,17 @@ func imitater_create_plant(plant_type:CharacterRegistry.PlantType, is_plant_star
 ##[is_plant_start_effect:bool] 是否有种植特效
 ##[is_imitater_material:bool] 是否为模仿者材质
 ##[is_zombie_mode:bool] 是否为我是僵尸模式
-func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is_plant_start_effect:=true, is_imitater_material:=false, is_zombie_mode:=false, battle_card_data: Dictionary = {}) -> Plant000Base:
+func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is_plant_start_effect:=true, is_imitater_material:=false, is_zombie_mode:=false, battle_card_data: Dictionary = {}, spawn_modifier: PlantSpawnModifier = null) -> Plant000Base:
 	var plant_condition:ResourcePlantCondition
 	var plant :Plant000Base
+	var predecessor: Plant000Base = null
 	plant_condition = Global.character_registry.get_plant_info(plant_type, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
 
 	## 如果该植物为紫卡
 	if plant_condition.is_purple_card:
-		## 删除紫卡前置植物,创建新植物
+		## Keep the precursor until the replacement passes its spawn contract.
 		var condition_pre_plant :ResourcePlantCondition = Global.character_registry.get_plant_info(Global.character_registry.AllPrePlantPurple[plant_type], CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
-		if is_instance_valid(plant_in_cell[condition_pre_plant.place_plant_in_cell]):
-			plant_in_cell[condition_pre_plant.place_plant_in_cell].character_death_disappear()
-			#await get_tree().process_frame
+		predecessor = plant_in_cell[condition_pre_plant.place_plant_in_cell] as Plant000Base
 	else:
 		## 非紫卡 如果该位置已经存在植物,返回
 		if is_instance_valid(plant_in_cell[plant_condition.place_plant_in_cell]):
@@ -195,6 +194,12 @@ func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is
 		Plant000Base.E_PInitAttr.BattleCardData:battle_card_data.duplicate(true)
 	}
 	plant.init_plant(plant_init_para)
+	# The caller supplies optional battle rules; planting never imports research.
+	if spawn_modifier != null and not spawn_modifier.apply(plant):
+		plant.free()
+		return null
+	if is_instance_valid(predecessor):
+		predecessor.character_death_disappear()
 	if is_imitater:
 		plant_container_node[CharacterRegistry.PlacePlantInCell.Imitater].add_child(plant)
 	else:

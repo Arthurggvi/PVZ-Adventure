@@ -1,13 +1,19 @@
 ## Applies the immutable zombie tier catalog to a freshly spawned battle instance.
 ## No stage configuration, saving, allocation, or UI side effects here.
-extends RefCounted
+extends ZombieSpawnModifier
 class_name AdventureZombieTierBinding
+
+var _tier_id: StringName
+
+func _init(tier_id: StringName) -> void:
+	_tier_id = tier_id
 
 const Tiers = preload("res://scripts/adventure/adventure_zombie_tier_catalog.gd")
 
 ## Called before add_child(). Component _ready derives HP bars from final max HP.
 ## Ordinary bite damage scales; special attacks (hammer, crush, etc.) stay intact.
-static func bind(zombie: Zombie000Base, id: StringName) -> bool:
+func apply(zombie: Zombie000Base) -> bool:
+	var id: StringName = _tier_id
 	if zombie == null or zombie.is_inside_tree() or zombie.adventure_tier_id != &"":
 		return false
 	var tier: Dictionary = Tiers.get_tier(id)
