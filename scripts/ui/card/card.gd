@@ -19,12 +19,49 @@ enum CardContext {
 
 ## 当前实例的点击用途；创建入口应在入树前设置。
 var card_context: CardContext = CardContext.Catalog
-## 仅战斗期间的出战卡绑定，空字典代表原版模式；每张卡持有独立快照。
-var battle_card_data: Dictionary = {}
-## Frozen combat spawn contract supplied by the current game mode.
-var plant_spawn_profile: PlantSpawnProfile = null
-## Prevent applying promotion modifiers twice when the selected card is rebound at battle start.
-var research_applied_uid: String = ""
+## The profile is the sole source for card UI and any spawned plant.
+var _plant_spawn_profile: PlantSpawnProfile = null
+var _registry_sun_cost: int = -1
+var _registry_cooldown: float = 0.0
+var _battle_marker: Label = null
+
+var battle_card_data: Dictionary:
+	get:
+		return _plant_spawn_profile.snapshot() if _plant_spawn_profile != null else {}
+
+var plant_spawn_profile: PlantSpawnProfile:
+	get:
+		return _plant_spawn_profile
+	set(value):
+		if value != null and not value.is_valid_profile():
+			push_error("Invalid plant spawn profile")
+			return
+		_plant_spawn_profile = value
+		if is_node_ready():
+			_apply_profile_card_stats()
+			_refresh_battle_marker()
+
+func _refresh_battle_marker() -> void:
+	if not is_instance_valid(_battle_marker):
+		return
+	var data: Dictionary = battle_card_data
+	_battle_marker.visible = not data.is_empty()
+	if data.is_empty():
+		return
+	var uid: String = str(data.get("uid", ""))
+	_battle_marker.text = "★%s · %s" % [
+		str(data.get("stars", 0)), uid.substr(maxi(0, uid.length() - 3))]
+
+func _apply_profile_card_stats() -> void:
+	if _plant_spawn_profile == null or _registry_sun_cost < 0:
+		return
+	var stats: Dictionary = _plant_spawn_profile.card_stats(
+		_registry_sun_cost, _registry_cooldown)
+	if stats.is_empty():
+		push_error("Invalid combat card stat resolution")
+		return
+	sun_cost = maxi(0, int(stats.sun_cost))
+	cool_time = maxf(0.0, float(stats.cooldown))
 ## 是否处于冷却中。
 var _is_cooling: bool = false
 ## 当前费用是否已被卡槽判定为足够。
@@ -52,7 +89,6 @@ var is_choosed_pre_card: bool = false
 var card_candidate_container: CardCandidateContainer
 ## 模仿卡共用的着色材质，每个展示实例使用独立副本。
 const IMITATER = preload("res://shader_material/imitater.tres")
-const ResearchEffects = preload("res://scripts/adventure/research/research_battle_effects.gd")
 ## 选卡或图鉴点击通知，始终携带实际被点击的卡牌。
 signal signal_card_click(card: Card)
 ## 内容成功放置后的结算通知，由所属卡槽或临时卡管理器消费一次。
@@ -63,22 +99,23 @@ signal signal_card_use_end(card: Card)
 ## 初始化参数与模仿外观；僵王的选卡和战斗实例显示费用，目录及图鉴实例只保留外观。
 func _ready() -> void:
 	super()
+	_registry_sun_cost = sun_cost
+	_registry_cooldown = cool_time
+	_apply_profile_card_stats()
 	_cool_mask.value = 0
 	if card_reference == null or not card_reference.is_valid():
 		is_can_click = false
 		return
 	if not battle_card_data.is_empty():
-		ResearchEffects.apply_card(self)
-		var uid: String = str(battle_card_data.get("uid", ""))
-		var marker := Label.new()
-		marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		marker.text = "★%s · %s" % [str(battle_card_data.get("stars", 0)), uid.substr(maxi(0, uid.length() - 3))]
-		marker.add_theme_font_size_override("font_size", 9)
-		marker.add_theme_color_override("font_color", Color(1, 0.95, 0.68))
-		marker.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-		marker.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-		marker.offset_top = -13
-		add_child(marker)
+		_battle_marker = Label.new()
+		_battle_marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_battle_marker.add_theme_font_size_override("font_size", 9)
+		_battle_marker.add_theme_color_override("font_color", Color(1, 0.95, 0.68))
+		_battle_marker.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+		_battle_marker.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+		_battle_marker.offset_top = -13
+		add_child(_battle_marker)
+		_refresh_battle_marker()
 	if card_reference.card_type == ResourceCardReference.CardType.ZombieBoss:
 		# 源模板隐藏了费用，复制实例入树时必须按用途显式恢复可见性。
 		cost.visible = card_context == CardContext.Selection or card_context == CardContext.Battle

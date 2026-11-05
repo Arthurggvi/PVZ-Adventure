@@ -2,6 +2,12 @@
 extends RefCounted
 class_name AdventureBattleAdapter
 
+## The only adventure-side factory for validated plant spawn configurations.
+static func profile_for(snapshot: Dictionary) -> PlantSpawnProfile:
+	if PlantCardInstance.from_dict(snapshot) == null:
+		return null
+	return PlantSpawnProfile.create(snapshot, AdventureResearchBattleEffects.new())
+
 ## 在关卡入口冻结选中的独立卡数据；战斗中不再读取可变玩家库存。
 static func create_loadout(state: AdventureState) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []

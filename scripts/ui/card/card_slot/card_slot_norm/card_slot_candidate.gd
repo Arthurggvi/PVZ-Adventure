@@ -81,7 +81,10 @@ func _create_candidate_pages(card_type: int, grid_template: GridContainer, page_
 		if new_card == null:
 			continue
 		if adventure_mode:
-			new_card.battle_card_data = (record["build"] as Dictionary).duplicate(true)
+			new_card.plant_spawn_profile = AdventureBattleAdapter.profile_for(record["build"])
+			if new_card.plant_spawn_profile == null:
+				new_card.free()
+				continue
 		var page_index: int = card_index / page_capacity
 		if page_index >= pages.size():
 			var page: GridContainer = grid_template.duplicate() as GridContainer

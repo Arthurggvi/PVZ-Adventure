@@ -584,10 +584,13 @@ func create_norm_zombie(
 ) -> Zombie000Base:
 	# 新实例入树前由初始化参数确定刷新归属；博士来源不会登记到自然刷新集合。
 	var zombie:Zombie000Base = Global.character_registry.get_zombie_info(zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieScenes).instantiate()
-	zombie_init_para[Zombie000Base.E_ZInitAttr.IsMiniZombie] = game_para.is_mini_zombie
-	zombie_init_para[Zombie000Base.E_ZInitAttr.IsZombieMode] = game_para.is_zombie_mode
+	var spawn_parameters: Dictionary = zombie_init_para.duplicate(true)
+	if not spawn_parameters.has(Zombie000Base.E_ZInitAttr.IsMiniZombie):
+		spawn_parameters[Zombie000Base.E_ZInitAttr.IsMiniZombie] = game_para.is_mini_zombie
+	if not spawn_parameters.has(Zombie000Base.E_ZInitAttr.IsZombieMode):
+		spawn_parameters[Zombie000Base.E_ZInitAttr.IsZombieMode] = game_para.is_zombie_mode
 
-	zombie.init_zombie(zombie_init_para)
+	zombie.init_zombie(spawn_parameters)
 	# A typed spawn modifier is validated separately from one-off entity setup.
 	if spawn_modifier != null:
 		if not spawn_modifier.apply(zombie):

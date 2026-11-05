@@ -38,7 +38,7 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 		var reference := ResourceCardReference.create(ResourceCardReference.CardType.Plant, int(record["plant_type"]))
 		var card: Card = AllCards.create_card(reference, Card.CardContext.Catalog)
 		if card != null:
-			card.battle_card_data = record.duplicate(true)
+			card.plant_spawn_profile = AdventureBattleAdapter.profile_for(record)
 			add_child(card)
 			card.visible = true
 			card.position = Vector2(15, 5)

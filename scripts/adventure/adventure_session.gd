@@ -184,6 +184,13 @@ func confirm_selected_cards(cards: Array[Card]) -> bool:
 	if snapshot.size() != cards.size():
 		state.selected_card_uids = previous_uids
 		return false
+	var profiles: Array[PlantSpawnProfile] = []
+	for build: Dictionary in snapshot:
+		var profile: PlantSpawnProfile = AdventureBattleAdapter.profile_for(build)
+		if profile == null:
+			state.selected_card_uids = previous_uids
+			return false
+		profiles.append(profile)
 	if charge_key and not inventory.consume_item(inventory_key, active_phase.key_count):
 		state.selected_card_uids = previous_uids
 		return false
@@ -194,10 +201,7 @@ func confirm_selected_cards(cards: Array[Card]) -> bool:
 		return false
 	battle_loadout = snapshot
 	for index: int in range(cards.size()):
-		cards[index].battle_card_data = snapshot[index].duplicate(true)
-		cards[index].plant_spawn_profile = PlantSpawnProfile.new(
-			snapshot[index], AdventureResearchBattleEffects.new())
-		AdventureResearchBattleEffects.apply_card(cards[index])
+		cards[index].plant_spawn_profile = profiles[index]
 	return true
 ## 仅供原版预选卡槽获取对应序号的冻结身份；普通模式不走此入口。
 func get_prechosen_battle_data(slot_index: int, reference: ResourceCardReference) -> Dictionary:

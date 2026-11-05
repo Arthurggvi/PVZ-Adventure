@@ -87,7 +87,10 @@ func init_pre_choosed_card(references: Array[ResourceCardReference]) -> void:
 				push_error("冒险预选卡 UID 与卡槽模板不匹配，取消本卡绑定。")
 				card.free()
 				continue
-			card.battle_card_data = build
+			card.plant_spawn_profile = AdventureBattleAdapter.profile_for(build)
+			if card.plant_spawn_profile == null:
+				card.free()
+				continue
 		card_slot_battle.curr_cards.append(card)
 		pre_choosed_card(card, card_slot_battle.cards_placeholder[card_slot_battle.curr_cards.size() - 1])
 		if reference.is_imitater:

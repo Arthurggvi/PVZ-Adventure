@@ -22,16 +22,17 @@ static func _stats(record: PlantCardInstance) -> Dictionary:
 		result[stat] = entry
 	return result
 
-static func apply_card(card: Variant) -> void:
-	var record := _record(card.battle_card_data)
-	if record == null or card.research_applied_uid == record.uid:
-		return
+func card_stats(snapshot: Dictionary, base_sun_cost: int, base_cooldown: float) -> Dictionary:
+	var record := _record(snapshot)
+	if record == null:
+		return {}
 	var modifiers: Dictionary = _stats(record)
-	card.research_applied_uid = record.uid
-	if modifiers.has("sun_cost"):
-		card.sun_cost = roundi(Promotions.resolve_stat(card.sun_cost, modifiers.sun_cost))
-	if modifiers.has("cooldown"):
-		card.cool_time = Promotions.resolve_stat(card.cool_time, modifiers.cooldown)
+	return {
+		"sun_cost": roundi(Promotions.resolve_stat(float(base_sun_cost),
+			modifiers.get("sun_cost", {}))),
+		"cooldown": Promotions.resolve_stat(base_cooldown,
+			modifiers.get("cooldown", {}))
+	}
 
 func apply(plant: Plant000Base) -> bool:
 	var record := _record(plant.battle_card_data)
