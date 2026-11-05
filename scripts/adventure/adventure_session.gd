@@ -195,6 +195,7 @@ func confirm_selected_cards(cards: Array[Card]) -> bool:
 	battle_loadout = snapshot
 	for index: int in range(cards.size()):
 		cards[index].battle_card_data = snapshot[index].duplicate(true)
+		AdventureResearchBattleEffects.apply_card(cards[index])
 	return true
 ## 仅供原版预选卡槽获取对应序号的冻结身份；普通模式不走此入口。
 func get_prechosen_battle_data(slot_index: int, reference: ResourceCardReference) -> Dictionary:

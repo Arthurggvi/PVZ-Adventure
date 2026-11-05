@@ -1,4 +1,4 @@
-## Single read-only scene validation: greenhouse art, animation and shared panel.
+## Single scene-shell check: greenhouse art, animation and shared panel.
 extends Node
 
 const Stage = preload("res://scripts/adventure/ui/research_lab_stage.gd")
@@ -22,7 +22,7 @@ func _check() -> void:
 	await get_tree().create_timer(0.26).timeout
 	assert(absf(left_vine.rotation - before) > 0.0001, "Independent vine animation runs")
 	panel.choose_mode("upgrade")
-	assert(panel.mode == "upgrade" and panel.ui.action.disabled)
+	assert(panel.mode == "upgrade")
 	panel.choose_mode("promotion")
 	assert(panel.mode == "promotion" and panel.ui.action.disabled)
 	panel.choose_mode("craft")

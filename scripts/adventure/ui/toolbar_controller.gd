@@ -30,7 +30,7 @@ func _ready() -> void:
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Global.user_manager.signal_users_update.connect(_refresh)
 	register_feature("inventory", Callable(self, "_can_open_inventory"), Callable(self, "_open_inventory"))
-	register_feature("research", Callable(self, "can_open_research_preview"), Callable(self, "_open_research"))
+	register_feature("research", Callable(self, "can_open_research"), Callable(self, "_open_research"))
 	_on_scene_changed()
 
 func _process(_delta: float) -> void:
@@ -97,19 +97,19 @@ func _open_inventory() -> void:
 	move_child(_view, get_child_count() - 1)
 	_inventory.closed.connect(func(): _inventory = null)
 
-## The research front-end is preview-only and must not mutate player progression.
-func can_open_research_preview() -> bool:
-	return Features.can_open_map()
+## Research uses the current loaded profile; the window revalidates before every write.
+func can_open_research() -> bool:
+	return _can_open_inventory()
 
-func open_research_preview() -> void:
-	if _host_allowed and _interactive and can_open_research_preview():
+func open_research() -> void:
+	if _host_allowed and _interactive and can_open_research():
 		_open_research()
 
 func _open_research() -> void:
 	if is_instance_valid(_research):
 		_research.request_close()
 		return
-	if is_instance_valid(_inventory) or not can_open_research_preview():
+	if is_instance_valid(_inventory) or not can_open_research():
 		return
 	_research = Research.new()
 	_research.name = "AdventureResearchWindow"

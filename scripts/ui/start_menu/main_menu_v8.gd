@@ -105,12 +105,12 @@ func _on_item_button_3_pressed() -> void:
 func _setup_research_preview_button() -> void:
 	var button: TextureButton = $ArtCanvas/research_button
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
-	button.pressed.connect(AdventureToolbar.open_research_preview)
+	button.pressed.connect(AdventureToolbar.open_research)
 	_sync_research_preview_button()
 
 func _sync_research_preview_button() -> void:
 	var button: TextureButton = $ArtCanvas/research_button
-	button.disabled = not AdventureToolbar.can_open_research_preview()
+	button.disabled = not AdventureToolbar.can_open_research()
 	_refresh_plaque_titles()
 
 ## Both the ship button and the toolbar use the same persistent map navigation owner.

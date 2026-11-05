@@ -21,6 +21,8 @@ enum CardContext {
 var card_context: CardContext = CardContext.Catalog
 ## 仅战斗期间的出战卡绑定，空字典代表原版模式；每张卡持有独立快照。
 var battle_card_data: Dictionary = {}
+## Prevent applying promotion modifiers twice when the selected card is rebound at battle start.
+var research_applied_uid: String = ""
 ## 是否处于冷却中。
 var _is_cooling: bool = false
 ## 当前费用是否已被卡槽判定为足够。
@@ -48,6 +50,7 @@ var is_choosed_pre_card: bool = false
 var card_candidate_container: CardCandidateContainer
 ## 模仿卡共用的着色材质，每个展示实例使用独立副本。
 const IMITATER = preload("res://shader_material/imitater.tres")
+const ResearchEffects = preload("res://scripts/adventure/research/research_battle_effects.gd")
 ## 选卡或图鉴点击通知，始终携带实际被点击的卡牌。
 signal signal_card_click(card: Card)
 ## 内容成功放置后的结算通知，由所属卡槽或临时卡管理器消费一次。
@@ -63,6 +66,7 @@ func _ready() -> void:
 		is_can_click = false
 		return
 	if not battle_card_data.is_empty():
+		ResearchEffects.apply_card(self)
 		var uid: String = str(battle_card_data.get("uid", ""))
 		var marker := Label.new()
 		marker.mouse_filter = Control.MOUSE_FILTER_IGNORE

@@ -1,123 +1,102 @@
-## Rebuilds mode-only contents; all textures and card portraits are shared game resources.
-## Selectable rows change the preview only. Material slots are deliberately non-interactive.
+## Research shared panel renderer. All input records are service-owned read-only snapshots.
 extends RefCounted
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
-const Preview = preload("res://scripts/adventure/ui/research_preview_data.gd")
+const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
+const Names = preload("res://scripts/adventure/ui/inventory_data.gd")
+const ModeView = preload("res://scripts/adventure/ui/research_mode_view.gd")
 
-static func render(owner: Control, target: Control, mode: String, choice: int) -> void:
+static func render(owner: Control, target: Control, mode: String,
+		options: Array[Dictionary], choice: int, preview: Dictionary,
+		selection: Dictionary, picking: bool) -> void:
 	for child: Node in target.get_children():
 		target.remove_child(child)
 		child.queue_free()
-	var options: Array = Preview.records(mode)
-	var record: Dictionary = options[clampi(choice, 0, options.size() - 1)]
 	Art.label(target, "选择区", Vector2(149, 368), Vector2(335, 52), 34)
 	Art.label(target, "工作区", Vector2(582, 368), Vector2(600, 52), 34)
 	Art.label(target, "信息区", Vector2(1303, 368), Vector2(447, 52), 34)
-	_text(target, "预览选项 · 不改变背包", Vector2(149, 422), 25)
-	for index in options.size():
-		_add_choice(target, options[index], index, index == choice, owner)
-	match mode:
-		"craft": _craft(target, record)
-		"upgrade": _upgrade(target, record)
-		"promotion": _promotion(target, record)
-
-static func _text(parent: Node, value: String, at: Vector2, size: int = 24,
-		color: Color = Color("4b3324")) -> void:
-	var width := 353.0 if at.x < 545.0 else (625.0 if at.x < 1270.0 else 450.0)
-	Art.label(parent, value, at, Vector2(width, 43), size, color)
-
-static func _add_choice(parent: Control, entry: Dictionary, index: int,
-		selected: bool, owner: Control) -> void:
-	var pos := Vector2(139, 485 + index * 111)
-	var row := Art.panel(parent, "panels/wood_ninepatch.png", pos,
-		Vector2(358, 87), 18)
-	row.modulate = Color("f8cf85") if selected else Color("ffffff")
-	Art.image(parent, "icons/category_recipes.png" if owner.mode == "craft" else
-		"icons/category_plants.png", pos + Vector2(16, 12), Vector2(61, 60))
-	_text(parent, str(entry.title), pos + Vector2(88, 14), 27, Color("f9e1ae"))
-	var hit := Button.new()
-	hit.name = "ResearchChoice_%d" % index
-	hit.position = pos
-	hit.size = Vector2(358, 87)
-	hit.flat = true
-	hit.focus_mode = Control.FOCUS_NONE
-	hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	hit.pressed.connect(Callable(owner, "choose_entry").bind(index))
-	parent.add_child(hit)
-
-static func _material(parent: Control, id: String, pos: Vector2) -> void:
-	Art.image(parent, "slots/item_slot_normal.png", pos, Vector2(120, 120))
-	Art.image(parent, Preview.ITEM_ROOT + id + ".png",
-		pos + Vector2(24, 20), Vector2(72, 72))
-	_text(parent, str(Preview.MATERIAL_LABELS.get(id, id)),
-		pos + Vector2(-12, 128), 22)
-
-static func _plant(parent: Control, type_id: int, pos: Vector2,
-		dimensions: Vector2) -> void:
-	Art.image(parent, "slots/plant_slot_normal.png", pos, dimensions)
-	var ref := ResourceCardReference.create(ResourceCardReference.CardType.Plant, type_id)
-	var card: Card = AllCards.create_card(ref, Card.CardContext.Catalog)
-	if card == null:
-		Art.image(parent, "slots/empty_plant_symbol.png",
-			pos + dimensions * 0.22, dimensions * 0.56)
+	var note := "已持有制作书" if mode == "craft" else (
+		"请选择耗材卡" if mode == "upgrade" and picking else "选择植物")
+	Art.label(target, note, Vector2(149, 420), Vector2(330, 39), 23)
+	_choices(owner, target, mode, options, choice)
+	if options.is_empty():
+		Art.label(target, "当前没有可用条目", Vector2(160, 505),
+			Vector2(340, 50), 22)
 		return
-	parent.add_child(card)
-	card.visible = true
-	card.size = card.get_combined_minimum_size()
-	var factor: float = minf(dimensions.x / card.size.x, dimensions.y / card.size.y) * 0.88
-	card.scale = Vector2.ONE * factor
-	card.position = pos + (dimensions - card.size * factor) * 0.5
-	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	match mode:
+		"craft":
+			_craft(target, preview)
+		"upgrade":
+			ModeView.upgrade(owner, target, preview, selection, picking)
+		"promotion":
+			ModeView.promotion(owner, target, preview, selection)
 
-static func _craft(parent: Control, entry: Dictionary) -> void:
-	_text(parent, "选择配方后，材料将自动匹配", Vector2(580, 422), 25)
-	var materials: Array = entry.materials
-	for i in materials.size():
-		_material(parent, str(materials[i]), Vector2(652 + i * 183, 495))
-	_text(parent, "→", Vector2(1014, 545), 43)
-	_plant(parent, int(entry.type), Vector2(1080, 488), Vector2(114, 154))
-	_text(parent, "产物：%s" % str(entry.title).trim_suffix("制作书"),
-		Vector2(1315, 435), 28)
-	_text(parent, "材料需求", Vector2(1315, 502), 28)
-	for i in materials.size():
-		_text(parent, "• %s：库存 / 需求待接入" %
-			str(Preview.MATERIAL_LABELS.get(str(materials[i]), "")),
-			Vector2(1323, 563 + 57 * i), 23)
-	_text(parent, "费用：由正式配方数据决定", Vector2(1315, 724))
-	_text(parent, "材料槽只读，无需手动选择", Vector2(590, 744), 23)
+static func _choices(owner: Control, target: Control, mode: String,
+		options: Array[Dictionary], chosen: int) -> void:
+	var scroll := ScrollContainer.new()
+	scroll.position = Vector2(139, 475)
+	scroll.size = Vector2(358, 386)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	target.add_child(scroll)
+	var stack := VBoxContainer.new()
+	stack.custom_minimum_size = Vector2(335, 0)
+	stack.add_theme_constant_override("separation", 11)
+	scroll.add_child(stack)
+	for index: int in options.size():
+		var entry: Dictionary = options[index]
+		var row := Control.new()
+		row.custom_minimum_size = Vector2(335, 86)
+		stack.add_child(row)
+		var frame := Art.panel(row, "panels/wood_ninepatch.png",
+			Vector2.ZERO, Vector2(335, 85), 18)
+		frame.modulate = Color("eed087") if index == chosen else Color.WHITE
+		Art.image(row, "icons/category_recipes.png" if mode == "craft" else
+			"icons/category_plants.png", Vector2(10, 11), Vector2(59, 60))
+		var label: String = str(entry.get("title", ""))
+		if mode != "craft":
+			label = Names.plant_name(int(entry.get("plant_type", 0)))
+			label += " ★%d" % int(entry.get("stars", 0))
+		var text := Art.label(row, label, Vector2(76, 13),
+			Vector2(252, 58), 22, Color("f9e7b8"))
+		text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var button := Button.new()
+		button.name = "ResearchChoice_%d" % index
+		button.flat = true
+		button.size = Vector2(335, 85)
+		button.focus_mode = Control.FOCUS_NONE
+		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		button.pressed.connect(Callable(owner, "choose_entry").bind(index))
+		row.add_child(button)
 
-static func _upgrade(parent: Control, entry: Dictionary) -> void:
-	_text(parent, "中央保留主卡，最多三张耗材卡", Vector2(582, 424), 25)
-	_plant(parent, int(entry.type), Vector2(834, 458), Vector2(144, 182))
-	for i in 3:
-		var pos := Vector2(665 + i * 178, 681)
-		Art.image(parent, "slots/plant_slot_normal.png", pos, Vector2(124, 145))
-		Art.image(parent, "slots/empty_plant_symbol.png",
-			pos + Vector2(34, 38), Vector2(56, 63))
-		_text(parent, "耗材卡 %d" % (i + 1), pos + Vector2(-3, 148), 21)
-	_text(parent, "升星前 → 升星后", Vector2(1315, 444), 28)
-	for i in 3:
-		Art.image(parent, "overlays/star_filled.png" if i == 0 else
-			"overlays/star_empty.png", Vector2(1335 + i * 64, 507), Vector2(56, 56))
-	_text(parent, "成功率：等待强化规则", Vector2(1315, 606))
-	_text(parent, "失败风险：等待强化规则", Vector2(1315, 665))
-	Art.image(parent, "res://assets/adventure/ui/items/consumables/seedling_pot.png",
-		Vector2(1324, 729), Vector2(64, 69))
-	_text(parent, "育苗花盆：保星道具", Vector2(1404, 741), 22)
-
-static func _promotion(parent: Control, entry: Dictionary) -> void:
-	_text(parent, "当前形态", Vector2(680, 443), 28)
-	_text(parent, "进阶目标", Vector2(1031, 443), 28)
-	_plant(parent, int(entry.type), Vector2(689, 492), Vector2(158, 206))
-	_text(parent, "→", Vector2(895, 572), 58)
-	Art.image(parent, "slots/plant_slot_disabled.png",
-		Vector2(1044, 492), Vector2(150, 206))
-	Art.image(parent, "slots/empty_plant_symbol.png",
-		Vector2(1088, 549), Vector2(63, 67))
-	_text(parent, "分支根据实际职业配置生成", Vector2(599, 766), 22)
-	_text(parent, "进阶路线与条件", Vector2(1315, 445), 28)
-	_text(parent, "• 原卡保留独立身份", Vector2(1323, 524))
-	_text(parent, "• 可用分支：等待定义", Vector2(1323, 592))
-	_text(parent, "• 资源要求：等待定义", Vector2(1323, 659))
-	_text(parent, "不会预设职业或固定路线数", Vector2(1315, 741), 21)
+static func _craft(parent: Control, preview: Dictionary) -> void:
+	Art.label(parent, "材料自动匹配 · 每种消耗一份", Vector2(580, 420),
+		Vector2(630, 52), 25)
+	var slots: Array = preview.get("slots", [])
+	for index: int in slots.size():
+		var slot: Dictionary = slots[index]
+		var position := Vector2(595 + index * 192, 497)
+		Art.image(parent, "slots/item_slot_normal.png", position, Vector2(137, 137))
+		var icon: String = ItemArt.icon_uri(str(slot.id))
+		var sprite := Art.image(parent, icon, position + Vector2(24, 20),
+			Vector2(90, 90))
+		var enough := int(slot.owned) >= int(slot.required)
+		if not enough:
+			sprite.modulate = Color(0.38, 0.38, 0.38, 0.68)
+		Art.label(parent, str(ItemRegistry.get_item_definition(str(slot.id)).get("name", slot.id)),
+			position + Vector2(-19, 142), Vector2(185, 38), 20)
+		Art.label(parent, "%d / %d" % [int(slot.owned), int(slot.required)],
+			position + Vector2(-8, 183), Vector2(155, 39), 22,
+			Color("356c38") if enough else Color("b34f3a"))
+	ModeView.plant(parent, int(preview.get("plant_type", 0)),
+		Vector2(1070, 498), Vector2(136, 175))
+	Art.label(parent, "合成产物", Vector2(1315, 437), Vector2(450, 48), 30)
+	var plant_type: int = int(preview.get("plant_type", 0))
+	Art.label(parent, Names.plant_name(plant_type), Vector2(1315, 507),
+		Vector2(445, 51), 28)
+	Art.label(parent, "初始星级：0 星", Vector2(1315, 579),
+		Vector2(442, 42), 25)
+	Art.label(parent, "固定费用：$2,000", Vector2(1315, 651),
+		Vector2(442, 42), 25)
+	Art.label(parent, "消耗制作书 ×1", Vector2(1315, 722),
+		Vector2(442, 42), 24)
+	Art.label(parent, "单次产出植物卡 ×1", Vector2(600, 786),
+		Vector2(596, 43), 23)

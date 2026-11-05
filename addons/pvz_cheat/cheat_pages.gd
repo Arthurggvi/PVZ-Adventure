@@ -83,7 +83,7 @@ static func _cards(root: VBoxContainer, service: RefCounted, report: Callable) -
 	_note(row, "数量")
 	var count := _count(row, 1, 32)
 	_note(row, "星级")
-	var stars := _count(row, 1, 20)
+	var stars := _count(row, 1, 10)
 	stars.min_value = 0
 	stars.value = 0
 	_button(root, "获得卡牌", func():

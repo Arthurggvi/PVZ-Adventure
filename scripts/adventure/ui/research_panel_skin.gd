@@ -2,7 +2,7 @@
 ## No baked labels, data or mode-specific pictures in the shared background.
 extends RefCounted
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
-const Preview = preload("res://scripts/adventure/ui/research_preview_data.gd")
+const Preview = preload("res://scripts/adventure/ui/research_ui_meta.gd")
 const DESIGN := Vector2(1920.0, 1080.0)
 const FRAME := Rect2(55, 74, 1810, 948)
 const CONTENT_REGIONS := [
@@ -54,8 +54,8 @@ static func build(owner: Control, with_background: bool = false) -> Dictionary:
 	var status := Art.label(canvas, "展示界面 · 暂不消耗资源", Vector2(142, 906),
 		Vector2(1060, 55), 25, Color("fae6b8"))
 	var action := Art.button(canvas, "buttons/action_confirm", Vector2(1490, 899),
-		Vector2(268, 82), Callable())
-	action.name = "ResearchUnavailableAction"
+		Vector2(268, 82), Callable(owner, "perform_action"))
+	action.name = "ResearchAction"
 	action.texture_disabled = Art.texture("buttons/action_confirm_disabled.png")
 	action.disabled = true
 	var action_text := Art.label(action, "合成", Vector2(48, 10), Vector2(170, 65), 35)

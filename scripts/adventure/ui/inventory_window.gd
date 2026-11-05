@@ -157,10 +157,12 @@ func _render_detail() -> void:
 			card.scale = Vector2(2.35, 2.35)
 			card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		Art.label(root, "星级  ★%s" % selected.get("stars", 1), Vector2(38, 290), Vector2(325, 46), 28)
+		Art.label(root, "星级  ★%s" % selected.get("stars", 0), Vector2(38, 290), Vector2(325, 46), 28)
 		Art.label(root, "身份  %s" % selected.get("uid", ""), Vector2(38, 343), Vector2(334, 43), 23)
-		Art.label(root, "转职一  %s" % str(("未转职" if str(selected.get("promotion_1", "")).is_empty() else str(selected.get("promotion_1")))), Vector2(38, 403), Vector2(338, 35), 21)
-		Art.label(root, "转职二  %s" % str(("未转职" if str(selected.get("promotion_2", "")).is_empty() else str(selected.get("promotion_2")))), Vector2(38, 447), Vector2(338, 35), 21)
+		for field: String in PlantCardInstance.PROMOTION_FIELDS:
+			var promotion: String = str(selected.get(field, "")).strip_edges()
+			if not promotion.is_empty():
+				Art.label(root, "第%d次转职：%s" % [PlantCardInstance.PROMOTION_FIELDS.find(field) + 1, promotion], Vector2(38, 403 + PlantCardInstance.PROMOTION_FIELDS.find(field) * 35), Vector2(338, 35), 21)
 		var discard: Button = Button.new()
 		discard.text = "丢弃植物…"
 		discard.position = Vector2(68, 540)
@@ -189,7 +191,7 @@ func _confirm_discard() -> void:
 		return
 	_dialog = ConfirmationDialog.new()
 	_dialog.title = "确认永久丢弃"
-	_dialog.dialog_text = "%s\n%s · ★%s\n此操作将永久删除这张独立植物卡及其出战引用。" % [selected.get("title", ""), uid, selected.get("stars", 1)]
+	_dialog.dialog_text = "%s\n%s · ★%s\n此操作将永久删除这张独立植物卡及其出战引用。" % [selected.get("title", ""), uid, selected.get("stars", 0)]
 	_dialog.confirmed.connect(_discard.bind(uid))
 	_dialog.confirmed.connect(_dialog.queue_free)
 	_dialog.canceled.connect(func(): _dialog.queue_free())

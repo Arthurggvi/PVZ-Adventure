@@ -1,6 +1,7 @@
 ## Image composition catalog; the item manifest supplies art paths, never item ownership.
 extends RefCounted
 const ROOT := "res://assets/adventure/ui/items/"
+const Recipes = preload("res://scripts/adventure/research/research_recipe_catalog.gd")
 const MANIFEST := ROOT + "item_icon_map.json"
 static var _loaded := false
 static var _catalog: Dictionary = {}
@@ -20,6 +21,12 @@ static func entry(item_id: String) -> Dictionary:
 		return {}
 	var data: Dictionary = manifest().get("ids", {}).get(item_id, {})
 	if data.is_empty():
+		var category: String = str(ItemRegistry.get_item_definition(item_id).get("category", ""))
+		if category == "recipe" and not Recipes.definition(item_id).is_empty():
+			return {"category": "recipe", "icon": "recipes/recipe_scroll.png",
+				"overlay": "decorations/recipe_wax_seal.png"}
+		if category == "promotion_book":
+			return {"category": "promotion_book", "icon": "recipes/recipe_scroll.png"}
 		return {}
 	if str(data.get("category", "")) != str(ItemRegistry.get_item_definition(item_id).get("category", "")):
 		return {}
@@ -45,7 +52,7 @@ static func recipe_overlay_uri(item_id: String) -> String:
 
 static func recipe_plant_type(item_id: String) -> int:
 	var name: String = str(entry(item_id).get("portrait_from_plant_type", ""))
-	return int(CharacterRegistry.PlantType.get(name, 0)) if not name.is_empty() else 0
+	return int(CharacterRegistry.PlantType.get(name, 0)) if not name.is_empty() else int(Recipes.definition(item_id).get("plant_type", 0))
 
 ## Place only the original registered character artwork over the reusable scroll.
 static func add_recipe_portrait(parent: Node, item_id: String, center: Vector2, scale_value: float) -> Node2D:

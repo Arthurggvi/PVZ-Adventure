@@ -21,7 +21,7 @@ static func rows(category: String, search: String, order_mode: int) -> Array[Dic
 				continue
 			if category == "materials" and group != "material":
 				continue
-			if category == "items" and group != "key" and group != "consumable":
+			if category == "items" and group != "key" and group != "consumable" and group != "promotion_book":
 				continue
 			result.append({"kind": "item", "id": id, "title": str(definition.get("name", id)), "qty": int(counts[id]), "category": group})
 	if not search.strip_edges().is_empty():

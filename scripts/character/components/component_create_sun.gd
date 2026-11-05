@@ -13,6 +13,9 @@ class_name CreateSunComponent
 @export var marker_2d_create_sun: Marker2D
 ## 生产阳光的个数
 @export var num_create_sun:int=1
+## Extra small suns per production, set only from frozen adventure promotion effects.
+var extra_small_sun_min: int = 0
+var extra_small_sun_max: int = 0
 @export_group("生产间隔时间")
 ## 第一个阳光生产时间范围
 @export var create_time_range_first:Vector2 = Vector2(3, 12.5)
@@ -84,27 +87,33 @@ func change_production_interval():
 
 
 ## 创建阳光
-func _spawn_sun():
-	## 播放音效
+func _spawn_sun() -> void:
 	SoundManager.play_character_SFX(&"Throw1")
 	for i in range(num_create_sun):
-		var new_sun:Sun = SceneRegistry.SUN.instantiate()
-		new_sun.init_sun(sun_value, Global.main_game.suns.to_local(marker_2d_create_sun.global_position))
-		Global.main_game.suns.add_child(new_sun)
+		_spawn_sun_value(sun_value)
+	var extra := randi_range(extra_small_sun_min, extra_small_sun_max)
+	for i in range(extra):
+		_spawn_sun_value(15)
 
-		# 控制阳光下落
-		var tween = new_sun.create_tween()
-		var center_y : float = -15
-		var target_y : float = 45
-		tween.tween_property(new_sun, "position:y", center_y, 0.3).as_relative().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(new_sun, "position:y", target_y, 0.6).as_relative().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+## A separate drop value shares the same Sun animation and scene ownership.
+func spawn_specific_sun(value: int) -> void:
+	if value <= 0:
+		return
+	SoundManager.play_character_SFX(&"Throw1")
+	_spawn_sun_value(value)
 
-		new_sun.spawn_sun_tween = get_tree().create_tween()
-		new_sun.spawn_sun_tween.set_parallel()
-		new_sun.spawn_sun_tween.tween_subtween(tween)
-		new_sun.spawn_sun_tween.tween_property(new_sun, "position:x", randf_range(-30, 30), 0.9).as_relative()
-
-		new_sun.spawn_sun_tween.finished.connect(new_sun.on_sun_tween_finished)
+func _spawn_sun_value(value: int) -> void:
+	var new_sun: Sun = SceneRegistry.SUN.instantiate()
+	new_sun.init_sun(value, Global.main_game.suns.to_local(marker_2d_create_sun.global_position))
+	Global.main_game.suns.add_child(new_sun)
+	var tween := new_sun.create_tween()
+	tween.tween_property(new_sun, "position:y", -15.0, 0.3).as_relative().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(new_sun, "position:y", 45.0, 0.6).as_relative().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	new_sun.spawn_sun_tween = get_tree().create_tween()
+	new_sun.spawn_sun_tween.set_parallel()
+	new_sun.spawn_sun_tween.tween_subtween(tween)
+	new_sun.spawn_sun_tween.tween_property(new_sun, "position:x", randf_range(-30, 30), 0.9).as_relative()
+	new_sun.spawn_sun_tween.finished.connect(new_sun.on_sun_tween_finished)
 
 
 ## 创建阳光全流程：身体发光、生产阳光、身体不发光
