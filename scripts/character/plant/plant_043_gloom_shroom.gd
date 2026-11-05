@@ -5,6 +5,8 @@ class_name Plant043GloomShroom
 @onready var all_bullet_fx: Array[Node2D] = [%Bullet_FX, %Bullet_FX2, %Bullet_FX3, %Bullet_FX4]
 var all_bullet_fx_particles :Array[Array]
 var num_attack :int = 0
+## Direct-area attack damage, shared with the adventure damage binding.
+@export var attack_value: int = 20
 
 func ready_norm():
 	super()
@@ -29,4 +31,4 @@ func attack_once():
 
 	var all_enemy:Array[Character000Base] = attack_component.detect_component.get_all_enemy_can_be_attacked()
 	for enemy in all_enemy:
-		enemy.be_attacked_bullet(20,BulletRegistry.AttackMode.Penetration)
+		enemy.be_attacked_bullet(attack_value,BulletRegistry.AttackMode.Penetration)

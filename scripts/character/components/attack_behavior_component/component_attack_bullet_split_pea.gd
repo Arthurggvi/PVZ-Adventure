@@ -20,11 +20,7 @@ func _shoot_bullet():
 	var ray_direction = detect_component.ray_area_direction[0]
 	## 子弹初始位置
 	var bullet_pos_ori = markers_2d_bullet[0].global_position
-	var bullet_paras = {
-		Bullet000NormBase.E_InitParasAttr.BulletLane : owner.lane,
-		Bullet000NormBase.E_InitParasAttr.Position :  bullets.to_local(bullet_pos_ori),
-		Bullet000NormBase.E_InitParasAttr.Direction : ray_direction
-	}
+	var bullet_paras = get_bullet_paras(bullet_pos_ori, ray_direction)
 	bullet.init_bullet(bullet_paras)
 	bullets.add_child(bullet)
 	play_throw_sfx()
@@ -35,11 +31,7 @@ func _shoot_bullet_2():
 	var ray_direction = detect_component.ray_area_direction[1]
 	## 子弹初始位置
 	var bullet_pos_ori = markers_2d_bullet[1].global_position
-	var bullet_paras = {
-		Bullet000NormBase.E_InitParasAttr.BulletLane : owner.lane,
-		Bullet000NormBase.E_InitParasAttr.Position :  bullets.to_local(bullet_pos_ori),
-		Bullet000NormBase.E_InitParasAttr.Direction : ray_direction
-	}
+	var bullet_paras = get_bullet_paras(bullet_pos_ori, ray_direction)
 	bullet.init_bullet(bullet_paras)
 	bullets.add_child(bullet)
 	play_throw_sfx()

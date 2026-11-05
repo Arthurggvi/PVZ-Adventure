@@ -5,8 +5,12 @@ var target_global_pos :Vector2
 @onready var bomb_component: BombComponentNorm = %BombComponent
 @onready var area_2d_bomb: Area2D = $BombComponent/Area2DBomb
 
-func init_cannon(curr_target_global_pos:Vector2):
+## One-shot damage comes from the firing plant; the projectile owns its bomb.
+func init_cannon(curr_target_global_pos:Vector2, damage_factor:float = 1.0):
 	self.target_global_pos = curr_target_global_pos
+	var bomb: BombComponentBase = get_node_or_null("BombComponent") as BombComponentBase
+	if bomb != null:
+		bomb.apply_damage_multiplier(damage_factor)
 	z_index = 4000
 
 

@@ -9,6 +9,14 @@ class_name BombComponentBase
 @export var bomb_lane:int=-1
 ## 爆炸伤害
 @export var bomb_value:int = 1800
+## Applied once on an adventure instance before the bomb activates.
+var damage_multiplier_applied := false
+
+func apply_damage_multiplier(factor: float) -> void:
+	if damage_multiplier_applied:
+		return
+	damage_multiplier_applied = true
+	bomb_value = maxi(0, roundi(float(bomb_value) * factor))
 ## 是否为灰烬炸弹（非土豆雷）
 @export var is_cherry_bomb:= true
 ## 死亡时是否自动引爆

@@ -97,6 +97,9 @@ func get_bullet_paras(marker_2d_bullet_glo_pos:Vector2, ray_direction:Vector2) -
 		Bullet000NormBase.E_InitParasAttr.Direction : ray_direction,
 		Bullet000NormBase.E_InitParasAttr.CanAttackPlantState : can_attack_plant_status,
 		Bullet000NormBase.E_InitParasAttr.CanAttackZombieState : can_attack_zombie_status,
+		Bullet000NormBase.E_InitParasAttr.DamageMultiplier : (
+			(owner as Plant000Base).battle_damage_multiplier
+			if owner is Plant000Base else 1.0),
 	}
 
 

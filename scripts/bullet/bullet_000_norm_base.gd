@@ -65,6 +65,7 @@ enum E_InitParasAttr{
 	Direction,			## 子弹起始方向
 	CanAttackPlantState,	## 子弹可以攻击的敌人(植物)状态
 	CanAttackZombieState,	## 子弹可以攻击的敌人(僵尸)状态
+	DamageMultiplier,	## Frozen adventure card's attack multiplier; default 1.0
 
 	## 抛物线子弹\追踪子弹额外属性
 	Enemy,				## 子弹选中的敌人
@@ -85,6 +86,11 @@ func init_bullet(bullet_paras:Dictionary):
 	self.direction = bullet_paras.get(E_InitParasAttr.Direction, Vector2.RIGHT)
 	self.can_attack_plant_status = bullet_paras.get(E_InitParasAttr.CanAttackPlantState, can_attack_plant_status)
 	self.can_attack_zombie_status = bullet_paras.get(E_InitParasAttr.CanAttackZombieState, can_attack_zombie_status)
+	var factor: float = float(bullet_paras.get(E_InitParasAttr.DamageMultiplier, 1.0))
+	attack_value = maxi(0, roundi(float(attack_value) * factor))
+	var splash: SpatterComponent = get_node_or_null("SpatterComponent") as SpatterComponent
+	if splash != null:
+		splash.apply_damage_multiplier(factor)
 
 
 ## 获取子弹属性

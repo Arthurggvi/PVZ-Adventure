@@ -17,6 +17,14 @@ class_name SpatterComponent
 ## 允许溅射的普通僵尸状态；僵王按正常状态处理。
 @export_flags("1 正常", "2 跳跃", "4 水下", "8 空中", "16 地下") var can_attack_zombie_status:int = 1
 
+## Scale the entire splash distribution from the firing card, once per projectile.
+## Both sum and per-target bounds scale, preserving crowd-sharing semantics.
+func apply_damage_multiplier(factor: float) -> void:
+	sum_attack_value = maxi(0, roundi(float(sum_attack_value) * factor))
+	range_attack_value = Vector2i(
+		maxi(0, roundi(float(range_attack_value.x) * factor)),
+		maxi(0, roundi(float(range_attack_value.y) * factor)))
+
 ## [param direct_hit_enemy] 本次直击目标，不再分摊溅射；可为空，表示子弹落空后溅射。[br]
 ## [param lane] 弹道行，-1 表示不限制行。先筛选、去重，再按实际候选角色数量分摊伤害。
 func spatter_all_area_zombie(direct_hit_enemy:Character000Base, lane:int=-1):

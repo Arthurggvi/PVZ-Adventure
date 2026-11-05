@@ -1,4 +1,4 @@
-## Enhancement rules and pure probability calculation. Star-derived battle bonuses remain unimplemented.
+## Enhancement success, protection and failure rules. Battle growth is a separate catalog.
 extends RefCounted
 class_name AdventureEnhancementRules
 
@@ -102,7 +102,3 @@ static func result_star(before: int, success: bool, protected: bool) -> int:
 	if before >= 4 and not protected:
 		return before - 1
 	return before
-
-## Future per-star battle attributes are intentionally absent, not fabricated.
-static func stat_modifiers(_stars: int) -> Dictionary:
-	return {}

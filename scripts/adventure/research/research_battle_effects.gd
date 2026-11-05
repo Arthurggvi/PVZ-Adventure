@@ -1,10 +1,11 @@
-## Apply declarative promotion-book effects only to frozen adventure card snapshots.
-## Legacy cards have empty battle data and remain unmodified.
+## Apply promotion and star-growth effects to frozen battle card snapshots.
+## Ordinary modes have no snapshot and keep all original combat values.
 extends RefCounted
 class_name AdventureResearchBattleEffects
 
 const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
-const Enhancement = preload("res://scripts/adventure/research/research_enhancement_rules.gd")
+const Growth = preload("res://scripts/adventure/adventure_plant_growth_catalog.gd")
+const DamageBinding = preload("res://scripts/adventure/adventure_plant_damage_binding.gd")
 
 static func _record(snapshot: Dictionary) -> PlantCardInstance:
 	if snapshot.is_empty():
@@ -13,7 +14,7 @@ static func _record(snapshot: Dictionary) -> PlantCardInstance:
 
 static func _stats(record: PlantCardInstance) -> Dictionary:
 	var result: Dictionary = Promotions.effects(record).stats
-	var from_stars: Dictionary = Enhancement.stat_modifiers(record.stars)
+	var from_stars: Dictionary = Growth.modifiers(record.stars)
 	for stat: String in from_stars:
 		var addition: Dictionary = from_stars[stat]
 		var entry: Dictionary = result.get(stat, {"flat": 0.0, "percent": 0.0})
@@ -35,9 +36,13 @@ static func apply_card(card: Variant) -> void:
 
 static func apply_plant(plant: Variant) -> void:
 	var record := _record(plant.battle_card_data)
-	if record == null:
+	if record == null or plant.research_effects_applied:
 		return
+	plant.research_effects_applied = true
 	var modifiers: Dictionary = _stats(record)
+	if modifiers.has("damage"):
+		plant.battle_damage_multiplier = maxf(0.0, 1.0 + float(modifiers.damage.get("percent", 0.0)))
+		DamageBinding.bind(plant, plant.battle_damage_multiplier)
 	if modifiers.has("max_health"):
 		var new_max: int = maxi(1, roundi(Promotions.resolve_stat(
 			float(plant.hp_component.max_hp), modifiers.max_health)))
@@ -46,6 +51,11 @@ static func apply_plant(plant: Variant) -> void:
 	var component: CreateSunComponent = plant.get_node_or_null("CreateSunComponent")
 	if component == null:
 		return
+	# Only subsequent production intervals change; first sun, sun amount, cost
+	# and card cooldown are untouched. Ten-star growth is capped at +15%.
+	if modifiers.has("sun_production_rate"):
+		var bonus: float = clampf(float(modifiers.sun_production_rate.get("percent", 0.0)), 0.0, 0.15)
+		component.create_time_range_other /= 1.0 + bonus
 	if modifiers.has("sun_value"):
 		component.change_sun_value(roundi(Promotions.resolve_stat(
 			float(component.sun_value), modifiers.sun_value)))

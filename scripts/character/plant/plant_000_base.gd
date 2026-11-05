@@ -24,6 +24,9 @@ var row_col:Vector2i = Vector2i(-1, -1)
 var plant_cell:PlantCell
 ## 只属于本次战斗的卡牌来源快照；普通原版种植保持空字典。
 var battle_card_data: Dictionary = {}
+## Transient attack scaling from the frozen adventure card; never saved to the card.
+var battle_damage_multiplier: float = 1.0
+var research_effects_applied: bool = false
 ## 植物死亡后是否直接删除
 var is_death_free:= true
 ## 是否为模仿者材质

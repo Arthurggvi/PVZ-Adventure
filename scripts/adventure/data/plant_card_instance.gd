@@ -31,7 +31,8 @@ func to_dict() -> Dictionary:
 ## 从 [param data] 创建独立卡；非法身份、物种、星级或转职字段返回 null。
 static func from_dict(data: Variant) -> PlantCardInstance:
 	if not data is Dictionary or uid_number(data.get("uid")) == 0 \
-		or not is_plant_type(data.get("plant_type")) or not is_nonnegative_integer(data.get("stars", 0)):
+		or not is_plant_type(data.get("plant_type")) or not is_nonnegative_integer(data.get("stars", 0)) \
+		or int(data.get("stars", 0)) > MAX_STARS:
 		return null
 	for field: String in PROMOTION_FIELDS:
 		if typeof(data.get(field, "")) != TYPE_STRING:
