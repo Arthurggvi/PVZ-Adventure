@@ -23,6 +23,8 @@ var card_context: CardContext = CardContext.Catalog
 var _plant_spawn_profile: PlantSpawnProfile = null
 var _registry_sun_cost: int = -1
 var _registry_cooldown: float = 0.0
+## Runtime field additions are separate from permanent star/promotion modifiers.
+var _sun_surcharge: int = 0
 var _battle_marker: Label = null
 
 var battle_card_data: Dictionary:
@@ -33,8 +35,11 @@ var plant_spawn_profile: PlantSpawnProfile:
 	get:
 		return _plant_spawn_profile
 	set(value):
-		if value != null and not value.is_valid_profile():
-			push_error("Invalid plant spawn profile")
+		if value != null and (not value.is_valid_profile()
+				or card_reference == null
+				or card_reference.card_type != ResourceCardReference.CardType.Plant
+				or not value.matches_plant_type(card_reference.content_id)):
+			push_error("Spawn profile must match this plant card")
 			return
 		_plant_spawn_profile = value
 		if is_node_ready():
@@ -52,16 +57,28 @@ func _refresh_battle_marker() -> void:
 	_battle_marker.text = "★%s · %s" % [
 		str(data.get("stars", 0)), uid.substr(maxi(0, uid.length() - 3))]
 
+## Resolve permanent modifiers from the registry baseline exactly once.
+func _resolved_card_stats() -> Dictionary:
+	if _registry_sun_cost < 0:
+		return {}
+	if _plant_spawn_profile == null:
+		return {"sun_cost": _registry_sun_cost, "cooldown": _registry_cooldown}
+	return _plant_spawn_profile.card_stats(_registry_sun_cost, _registry_cooldown)
+
 func _apply_profile_card_stats() -> void:
-	if _plant_spawn_profile == null or _registry_sun_cost < 0:
-		return
-	var stats: Dictionary = _plant_spawn_profile.card_stats(
-		_registry_sun_cost, _registry_cooldown)
+	var stats: Dictionary = _resolved_card_stats()
 	if stats.is_empty():
 		push_error("Invalid combat card stat resolution")
 		return
-	sun_cost = maxi(0, int(stats.sun_cost))
+	sun_cost = maxi(0, int(stats.sun_cost) + _sun_surcharge)
 	cool_time = maxf(0.0, float(stats.cooldown))
+
+## Dynamic board costs are added after permanent card modifiers.
+func set_sun_surcharge(amount: int) -> void:
+	_sun_surcharge = maxi(0, amount)
+	var stats: Dictionary = _resolved_card_stats()
+	if not stats.is_empty():
+		sun_cost = maxi(0, int(stats.sun_cost) + _sun_surcharge)
 ## 是否处于冷却中。
 var _is_cooling: bool = false
 ## 当前费用是否已被卡槽判定为足够。

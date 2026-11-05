@@ -3,7 +3,7 @@
 extends RefCounted
 class_name PlantSpawnModifier
 
-func apply(_plant: Plant000Base) -> bool:
+func apply(_plant: Plant000Base, _snapshot: Dictionary) -> bool:
 	return false
 
 ## Optional card presentation values calculated from original registry values.

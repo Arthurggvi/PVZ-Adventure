@@ -34,12 +34,10 @@ func card_stats(snapshot: Dictionary, base_sun_cost: int, base_cooldown: float) 
 			modifiers.get("cooldown", {}))
 	}
 
-func apply(plant: Plant000Base) -> bool:
-	var record := _record(plant.battle_card_data)
+func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
+	var record := _record(snapshot)
 	if record == null:
 		return false
-	if plant.research_effects_applied:
-		return true
 	var modifiers: Dictionary = _stats(record)
 	if modifiers.has("damage"):
 		plant.battle_damage_multiplier = maxf(0.0, 1.0 + float(modifiers.damage.get("percent", 0.0)))
@@ -58,7 +56,6 @@ func apply(plant: Plant000Base) -> bool:
 			health.set_spawn_max_health(new_max)
 	var component: CreateSunComponent = plant.get_node_or_null("CreateSunComponent")
 	if component == null:
-		plant.research_effects_applied = true
 		return true
 	# Only subsequent production intervals change; first sun, sun amount, cost
 	# and card cooldown are untouched. Ten-star growth is capped at +15%.
@@ -79,5 +76,4 @@ func apply(plant: Plant000Base) -> bool:
 				if reward > 0:
 					plant.signal_character_death.connect(
 						func(): component.spawn_specific_sun(reward), CONNECT_ONE_SHOT)
-	plant.research_effects_applied = true
 	return true

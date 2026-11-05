@@ -21,18 +21,20 @@ var curr_be_attack_status:E_BeAttackStatusPlant = E_BeAttackStatusPlant.IsNorm
 var row_col:Vector2i = Vector2i(-1, -1)
 ## 植物所在格子
 var plant_cell:PlantCell
-## 只属于本次战斗的卡牌来源快照；普通原版种植保持空字典。
-var battle_card_data: Dictionary = {}
 ## Immutable source recipe for transformations into another plant instance.
 var plant_spawn_profile: PlantSpawnProfile = null
 ## Transient attack scaling from the frozen adventure card; never saved to the card.
 var battle_damage_multiplier: float = 1.0
-var research_effects_applied: bool = false
+var spawn_attributes_applied: bool = false
 
 ## Single explicit attack contract for plant-owned direct damage.
 ## No card snapshot in vanilla means a factor of 1.0.
 func battle_damage(source_damage: int) -> int:
 	return maxi(0, roundi(float(source_damage) * battle_damage_multiplier))
+
+## The species represented by this spawn, independent of rendering/transform.
+func spawn_species_id() -> int:
+	return int(plant_type)
 ## 植物死亡后是否直接删除
 var is_death_free:= true
 ## 是否为模仿者材质
@@ -87,7 +89,6 @@ enum E_PInitAttr{
 	IsImitaterMaterial,	## 是否为模仿者材质
 	GardenDate,			## 花园数据
 	IsZombieMode,			## 我是僵尸模式
-	BattleCardData,		## 选中卡的战斗快照（可选）
 }
 ## 植物初始化相关, 创建植物时 加入场景树之前赋值
 func init_plant(plant_init_para:Dictionary):
@@ -95,7 +96,6 @@ func init_plant(plant_init_para:Dictionary):
 	self.character_init_type = plant_init_para[E_PInitAttr.CharacterInitType]
 	self.is_imitater_material = plant_init_para.get(E_PInitAttr.IsImitaterMaterial, false)
 	self.is_zombie_mode = plant_init_para.get(E_PInitAttr.IsZombieMode, false)
-	battle_card_data = plant_init_para.get(E_PInitAttr.BattleCardData, {}).duplicate(true)
 	match character_init_type:
 		E_CharacterInitType.IsNorm:
 			self.plant_cell = plant_init_para[E_PInitAttr.PlantCell]

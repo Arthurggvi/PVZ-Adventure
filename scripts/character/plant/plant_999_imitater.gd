@@ -5,6 +5,9 @@ class_name Plant999Imitater
 var imitater_plant_type :CharacterRegistry.PlantType = CharacterRegistry.PlantType.Null
 @onready var imitater_effect: Node2D = $ImitaterEffect
 
+func spawn_species_id() -> int:
+	return int(imitater_plant_type)
+
 
 ## 更新模仿者植物
 func update_imitater():

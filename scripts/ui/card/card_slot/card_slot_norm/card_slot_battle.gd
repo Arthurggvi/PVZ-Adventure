@@ -105,6 +105,7 @@ func update_card_purple_sun_cost():
 			continue
 		# 紫卡的植物内容编号，用于查询本关同种植物数量。
 		var plant_type: int = card.card_reference.content_id
-		if card.is_purple_card and Global.main_game.plant_cell_manager.curr_plant_num.has(plant_type):
-			card.sun_cost = Global.character_registry.get_plant_info(plant_type, CharacterRegistry.PlantInfoAttribute.SunCost) + 50 * Global.main_game.plant_cell_manager.curr_plant_num[plant_type]
+		if card.is_purple_card:
+			var count: int = int(Global.main_game.plant_cell_manager.curr_plant_num.get(plant_type, 0))
+			card.set_sun_surcharge(50 * maxi(0, count))
 			card.judge_sun_enough(sun_value)
