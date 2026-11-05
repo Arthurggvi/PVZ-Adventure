@@ -108,7 +108,7 @@ func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 	for curr_wave_one_zombie_date in curr_wave_zombie_date:
 		var tier_callback: Callable = Callable()
 		if adventure_wave_profile != null:
-			tier_callback = AdventureWavePlanner.bind_tier.bind(curr_wave_one_zombie_date["tier_id"])
+			tier_callback = _bind_stage_tier.bind(curr_wave_one_zombie_date["tier_id"])
 		var zombie = wave_create_zombie(
 			curr_wave_one_zombie_date["zombie_type"],
 			curr_wave_one_zombie_date["lane"],
@@ -129,7 +129,14 @@ func spawn_stage_support(zombie_type: CharacterRegistry.ZombieType, tier_id: Str
 	var lane: int = zombie_choose_row_system.select_spawn_row(row_type)
 	if lane < 0:
 		return null
-	return wave_create_zombie(zombie_type, lane, -1, AdventureWavePlanner.bind_tier.bind(tier_id), false)
+	return wave_create_zombie(zombie_type, lane, -1, _bind_stage_tier.bind(tier_id), false)
+
+## Entity binding belongs to the spawning layer; the planner only returns tier IDs.
+func _bind_stage_tier(zombie: Zombie000Base, tier_id: StringName) -> bool:
+	if AdventureZombieTierBinding.bind(zombie, tier_id):
+		return true
+	push_error("未能应用僵尸冒险等阶：" + str(tier_id))
+	return false
 
 func wave_create_zombie(
 	zombie_type:CharacterRegistry.ZombieType,

@@ -31,7 +31,7 @@ func _attack_once():
 		# 普通僵尸和僵王共用真实伤害入口；不调用冰车的地刺反伤逻辑。
 		var enemy := target_reference as Character000Base
 		if (enemy is Zombie000Base or enemy is ZB000Base) and not enemy.is_death and not enemy.is_queued_for_deletion():
-			enemy.be_attacked_bullet(attack_value, BulletRegistry.AttackMode.Real, true, true)
+			enemy.be_attacked_bullet(battle_damage(attack_value), BulletRegistry.AttackMode.Real, true, true)
 
 ## 被压扁
 ## [character:Character000Base] 发动攻击的角色

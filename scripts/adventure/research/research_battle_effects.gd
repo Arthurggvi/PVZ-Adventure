@@ -5,7 +5,6 @@ class_name AdventureResearchBattleEffects
 
 const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
 const Growth = preload("res://scripts/adventure/adventure_plant_growth_catalog.gd")
-const DamageBinding = preload("res://scripts/adventure/adventure_plant_damage_binding.gd")
 
 static func _record(snapshot: Dictionary) -> PlantCardInstance:
 	if snapshot.is_empty():
@@ -42,12 +41,15 @@ static func apply_plant(plant: Variant) -> void:
 	var modifiers: Dictionary = _stats(record)
 	if modifiers.has("damage"):
 		plant.battle_damage_multiplier = maxf(0.0, 1.0 + float(modifiers.damage.get("percent", 0.0)))
-		DamageBinding.bind(plant, plant.battle_damage_multiplier)
 	if modifiers.has("max_health"):
 		var new_max: int = maxi(1, roundi(Promotions.resolve_stat(
 			float(plant.hp_component.max_hp), modifiers.max_health)))
-		plant.hp_component.max_hp = new_max
-		plant.hp_component.curr_hp = new_max
+		var stages: HpStageChangeComponent = plant.get_node_or_null(
+			"HpStageChangeComponent") as HpStageChangeComponent
+		if stages != null:
+			stages.set_spawn_max_health(new_max)
+		else:
+			plant.hp_component.set_spawn_max_health(new_max)
 	var component: CreateSunComponent = plant.get_node_or_null("CreateSunComponent")
 	if component == null:
 		return

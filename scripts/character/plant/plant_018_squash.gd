@@ -89,10 +89,10 @@ func squash_all_area_zombie():
 		if enemy is ZB000Base:
 			if (can_attack_zombie_status & Zombie000Base.E_BeAttackStatusZombie.IsNorm) != 0:
 				# 僵王伤害入口再次检查受击窗口，致死时保留状态机死亡演出。
-				enemy.be_attacked_bullet(attack_value, BulletRegistry.AttackMode.Penetration, false, false)
+				enemy.be_attacked_bullet(battle_damage(attack_value), BulletRegistry.AttackMode.Penetration, false, false)
 		elif enemy is Zombie000Base and enemy.lane == row_col.x:
 			if (enemy.curr_be_attack_status & can_attack_zombie_status) != 0:
-				enemy.be_squash(attack_value)
+				enemy.be_squash(battle_damage(attack_value))
 
 ## 跳入水中判断
 func judge_jump_pool():

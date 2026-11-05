@@ -588,7 +588,11 @@ func create_norm_zombie(
 
 	zombie.init_zombie(zombie_init_para)
 	if not init_zombie_special.is_null():
-		init_zombie_special.call(zombie)
+		var initialized: Variant = init_zombie_special.call(zombie)
+		# A failed pre-spawn contract must not create a vanilla-strength enemy.
+		if initialized is bool and not initialized:
+			zombie.free()
+			return null
 	zombie.position = global_pos - zombie_parent.global_position
 	zombie_parent.add_child(zombie)
 
@@ -884,18 +888,19 @@ func jalapeno_bomb_item_lane(lane:int):
 
 ## 火爆辣椒处理整行普通僵尸，并攻击所有存活僵王；僵王检查受击窗口，不限制行号。[br]
 ## [param lane] 辣椒所在的零起始行号，仅用于选择受影响的普通僵尸。
-func jalapeno_bomb_lane_zombie(lane:int):
+## [param damage] 由爆炸组件计算的实际伤害；本管理器不解释植物星级。
+func jalapeno_bomb_lane_zombie(lane:int, damage:int):
 	# 倒序遍历当前行，普通僵尸被炸死时可能立即从列表移除。
 	for i in range(all_zombies_2d[lane].size()-1,-1,-1) :
 		if is_instance_valid(all_zombies_2d[lane][i]):
 			# 当前接受爆炸伤害的普通僵尸，继续沿用其原有灰烬与删除规则。
 			var zombie:Zombie000Base = all_zombies_2d[lane][i]
-			zombie.be_bomb(1800, true)
+			zombie.be_bomb(damage, true)
 	# 任意行的辣椒都可命中僵王，使用专用入口检查受击窗口并保留完整死亡演出。
 	# 使用快照，某只僵王死亡不会影响其余实例遍历。
 	for boss: ZB000Base in get_living_bosses():
 		if is_instance_valid(boss):
-			boss.be_jalapeno(1800)
+			boss.be_jalapeno(damage)
 
 ## 三叶草吹走空中僵尸
 func blover_blow_away_in_sky_zombie():

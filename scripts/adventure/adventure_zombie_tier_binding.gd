@@ -20,6 +20,10 @@ static func bind(zombie: Zombie000Base, id: StringName) -> bool:
 	hp.max_hp = Tiers.scaled(hp.max_hp, float(tier.hp))
 	hp.max_hp_armor1 = Tiers.scaled(hp.max_hp_armor1, float(tier.armor))
 	hp.max_hp_armor2 = Tiers.scaled(hp.max_hp_armor2, float(tier.armor))
+	var stages: HpStageChangeComponent = zombie.get_node_or_null(
+		"HpStageChangeComponent") as HpStageChangeComponent
+	if stages != null:
+		stages.scale_spawn_thresholds(float(tier.hp), float(tier.armor))
 	if attack != null:
 		attack.init_attack_value_per_min = Tiers.scaled(
 			attack.init_attack_value_per_min, float(tier.attack))

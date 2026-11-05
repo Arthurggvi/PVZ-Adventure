@@ -34,7 +34,7 @@ func _attack_once():
 		# 主动攻击兼容僵王；地刺王被碾压时的耐久处理保持独立。
 		var enemy := target_reference as Character000Base
 		if (enemy is Zombie000Base or enemy is ZB000Base) and not enemy.is_death and not enemy.is_queued_for_deletion():
-			enemy.be_attacked_bullet(attack_value, BulletRegistry.AttackMode.Real, true, true)
+			enemy.be_attacked_bullet(battle_damage(attack_value), BulletRegistry.AttackMode.Real, true, true)
 
 ## 被压扁
 ## [character:Character000Base] 发动攻击的角色

@@ -31,7 +31,7 @@ func start_grap_zombie():
 ## [param target_zombie] 已确认的本次目标。普通僵尸拖入水中，僵王只扣血，两者都会消耗海草。
 func grap_in_pool(target_zombie:Character000Base):
 	if target_zombie is ZB000Base:
-		target_zombie.be_attacked_bullet(boss_attack_value, BulletRegistry.AttackMode.Penetration, false, false)
+		target_zombie.be_attacked_bullet(battle_damage(boss_attack_value), BulletRegistry.AttackMode.Penetration, false, false)
 	elif target_zombie is Zombie000Base:
 		grap_component.activate_it_to_grap_zombie(target_zombie)
 	await get_tree().create_timer(0.3).timeout

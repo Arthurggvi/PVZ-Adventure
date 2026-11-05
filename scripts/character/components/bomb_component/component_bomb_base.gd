@@ -9,14 +9,14 @@ class_name BombComponentBase
 @export var bomb_lane:int=-1
 ## 爆炸伤害
 @export var bomb_value:int = 1800
-## Applied once on an adventure instance before the bomb activates.
-var damage_multiplier_applied := false
+## Bombs normally inherit their plant owner's combat multiplier.
+## Projectile-owned bombs receive the same factor at projectile creation.
+var projectile_damage_multiplier: float = 1.0
 
-func apply_damage_multiplier(factor: float) -> void:
-	if damage_multiplier_applied:
-		return
-	damage_multiplier_applied = true
-	bomb_value = maxi(0, roundi(float(bomb_value) * factor))
+func resolved_damage() -> int:
+	if owner is Plant000Base:
+		return (owner as Plant000Base).battle_damage(bomb_value)
+	return maxi(0, roundi(float(bomb_value) * projectile_damage_multiplier))
 ## 是否为灰烬炸弹（非土豆雷）
 @export var is_cherry_bomb:= true
 ## 死亡时是否自动引爆

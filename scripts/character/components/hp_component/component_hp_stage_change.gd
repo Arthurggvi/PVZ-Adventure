@@ -63,6 +63,30 @@ func _ready() -> void:
 			boundary_value_hp_armor2.append(hp_component.max_hp_armor2 * 1 / 3 - 1)
 			boundary_value_hp_armor2.append(0)
 
+## Before _ready, scale only explicit scene thresholds. Empty arrays will be
+## generated from the already-scaled maximum HP by the component itself.
+static func scale_positive_thresholds(values: Array[int], factor: float) -> void:
+	for i in range(values.size()):
+		if values[i] > 0:
+			values[i] = maxi(1, roundi(float(values[i]) * factor))
+
+func scale_spawn_thresholds(body_factor: float, armor_factor: float) -> void:
+	scale_positive_thresholds(boundary_value_hp, body_factor)
+	scale_positive_thresholds(boundary_value_hp_armor1, armor_factor)
+	scale_positive_thresholds(boundary_value_hp_armor2, armor_factor)
+
+## Rebase visual damage stages when a newly spawned plant's maximum HP changes.
+## The stage component owns this data; callers never edit threshold arrays.
+func set_spawn_max_health(new_max: int) -> void:
+	var original_max: int = hp_component.max_hp
+	if original_max <= 0 or new_max <= 0:
+		push_error("Invalid health for stage rebasing")
+		return
+	scale_positive_thresholds(boundary_value_hp, float(new_max) / float(original_max))
+	hp_component.set_spawn_max_health(new_max)
+	if not boundary_value_hp.is_empty() and boundary_value_hp[-1] != 0:
+		hp_component.set_death_hp(boundary_value_hp[-1])
+
 #region 本体body变化
 ## 判断body是否需要变化
 ## curr_hp: 当前剩余血量

@@ -31,4 +31,4 @@ func attack_once():
 
 	var all_enemy:Array[Character000Base] = attack_component.detect_component.get_all_enemy_can_be_attacked()
 	for enemy in all_enemy:
-		enemy.be_attacked_bullet(attack_value,BulletRegistry.AttackMode.Penetration)
+		enemy.be_attacked_bullet(battle_damage(attack_value),BulletRegistry.AttackMode.Penetration)

@@ -27,6 +27,11 @@ var battle_card_data: Dictionary = {}
 ## Transient attack scaling from the frozen adventure card; never saved to the card.
 var battle_damage_multiplier: float = 1.0
 var research_effects_applied: bool = false
+
+## Single explicit attack contract for plant-owned direct damage.
+## No card snapshot in vanilla means a factor of 1.0.
+func battle_damage(source_damage: int) -> int:
+	return maxi(0, roundi(float(source_damage) * battle_damage_multiplier))
 ## 植物死亡后是否直接删除
 var is_death_free:= true
 ## 是否为模仿者材质

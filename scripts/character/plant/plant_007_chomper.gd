@@ -66,9 +66,9 @@ func _eat_zombie():
 	# 当前关键帧仍处于攻击范围和受击窗口内的目标。
 	var enemy: Character000Base = detect_component.update_first_enemy()
 	if enemy is ZB000Base:
-		enemy.be_attacked_bullet(eat_attack, BulletRegistry.AttackMode.Penetration, false, false)
+		enemy.be_attacked_bullet(battle_damage(eat_attack), BulletRegistry.AttackMode.Penetration, false, false)
 	elif enemy is Zombie000Base:
-		enemy.be_chomper_eat(eat_attack)
+		enemy.be_chomper_eat(battle_damage(eat_attack))
 	else:
 		return
 	chew_timer.start_scaled()

@@ -11,6 +11,7 @@ func _start_bomb_fx():
 
 ## 收集范围内的有效敌人并按角色去重；僵王跨行由受击区域决定，致死后保留死亡演出。
 func _bomb_all_enemy():
+	var damage: int = resolved_damage()
 	# 保存未转换的引用，前一个目标的死亡回调可能释放后续目标。
 	var targets: Array = []
 	# 同一角色可能有多个受击区域，一次爆炸只登记一次。
@@ -37,9 +38,9 @@ func _bomb_all_enemy():
 		if not _can_bomb_character(target):
 			continue
 		if target is ZB000Base:
-			target.be_attacked_bullet(bomb_value, BulletRegistry.AttackMode.Penetration, false, false)
+			target.be_attacked_bullet(damage, BulletRegistry.AttackMode.Penetration, false, false)
 		elif target is Zombie000Base:
-			target.be_bomb(bomb_value, is_cherry_bomb)
+			target.be_bomb(damage, is_cherry_bomb)
 
 
 ## [param enemy] 已与爆炸区域重叠的角色；返回是否可结算伤害，不扩大爆炸范围。

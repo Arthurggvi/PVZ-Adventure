@@ -74,6 +74,14 @@ func change_display_HP_label(value:bool):
 func set_death_hp(new_death_hp:int):
 	self.death_hp = new_death_hp
 
+## Fresh combat-instance maximum health; does not change persistent plant data.
+func set_spawn_max_health(new_max: int) -> void:
+	if new_max <= 0:
+		push_error("Combat health maximum must be positive")
+		return
+	max_hp = new_max
+	curr_hp = new_max
+
 func get_all_hp():
 	return curr_hp
 
