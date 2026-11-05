@@ -431,7 +431,8 @@ func pot_open_update(is_zombie:bool, glo_pos:Vector2):
 #endregion
 
 func plant_cell_pre_plant(plant_cell:PlantCell, plant_type:CharacterRegistry.PlantType, is_imitater:bool, is_zombie_mode:=false):
-	plant_cell.create_plant(plant_type, false, false, is_imitater, is_zombie_mode)
+	plant_cell.create_plant(plant_type, false, false, is_imitater, is_zombie_mode,
+		null, PlantCell.PlacementOrigin.LevelSetup)
 
 func create_tombstone(new_num:int):
 	tomb_stone_manager.create_tombstone(new_num)

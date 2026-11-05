@@ -1,9 +1,6 @@
 extends Plant000Base
 class_name Plant048CobCannon
 
-## 前轮的植物格子
-var plant_cell_next:PlantCell
-
 ## 加农炮子弹,设置其明暗交替
 @onready var cob_cannon_cob: Sprite2D = $Body/BodyCorrect/CobCannon_cob
 @onready var area_2d_mouse: Area2D = $Body/Area2DMouse
@@ -31,14 +28,6 @@ var charge_cd_timer:Timer
 func ready_norm():
 	super()
 	cob_cannon_bright_dark()
-
-	## 玉米加农炮种植时删除前轮的植物格子的玉米投手,同时更新前轮的植物格子的数据
-	plant_cell_next = Global.main_game.plant_cell_manager.all_plant_cells[row_col.x][row_col.y+1]
-	if is_instance_valid(plant_cell_next.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]):
-		plant_cell_next.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm].character_death_disappear()
-	plant_cell_next.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm] = self
-	signal_character_death.connect(plant_cell_next.one_plant_free.bind(self))
-
 
 	charge_cd_timer = Timer.new()
 	charge_cd_timer.wait_time = charge_cd

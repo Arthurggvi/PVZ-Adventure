@@ -570,11 +570,11 @@ const PlantInfo = {
 
 ## 获取植物属性方法
 func get_plant_info(plant_type:PlantType, info_attribute:PlantInfoAttribute):
-	if plant_type == PlantType.Null:
-		print("warning:获取空植物信息")
+	if not PlantInfo.has(plant_type):
+		push_warning("Unregistered plant species: %s" % plant_type)
 		return null
-	var curr_plant_info = PlantInfo[plant_type]
-	return curr_plant_info[info_attribute]
+	var curr_plant_info: Dictionary = PlantInfo[plant_type]
+	return curr_plant_info.get(info_attribute)
 
 #endregion
 

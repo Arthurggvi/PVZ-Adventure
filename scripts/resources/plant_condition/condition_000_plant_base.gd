@@ -18,56 +18,69 @@ var plant_condition:int = 22
 #@export var is_double_plant_cell:=false
 
 
-## 判断是否可以种植
-func judge_is_can_plant(plant_cell:PlantCell, curr_plant_type:CharacterRegistry.PlantType) -> bool:
-	## 特殊植物
+## One footprint contract for preview, placement, transformation and save restore.
+## A subclass only describes geometry, never mutates cells or destroys plants.
+func placement_cells(cell: PlantCell) -> Array[PlantCell]:
+	return [cell]
+
+## Additional restrictions for footprints (e.g. two-column cannon needs clear shells).
+func upgrade_footprint_available(_cells: Array[PlantCell]) -> bool:
+	return true
+
+## Resolve every predecessor before placement; an empty result means invalid.
+## Entries carry the owning cell and the actual slot, so upgrades can span cells.
+func get_upgrade_claims(cell: PlantCell, plant_type: CharacterRegistry.PlantType) -> Array[Dictionary]:
+	var claims: Array[Dictionary] = []
+	if not is_purple_card or not Global.character_registry.AllPrePlantPurple.has(plant_type):
+		return claims
+	var predecessor_type: CharacterRegistry.PlantType = Global.character_registry.AllPrePlantPurple[plant_type]
+	var predecessor_condition: ResourcePlantCondition = Global.character_registry.get_plant_info(
+		predecessor_type, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
+	if predecessor_condition == null:
+		return claims
+	var cells: Array[PlantCell] = placement_cells(cell)
+	if cells.is_empty() or not upgrade_footprint_available(cells):
+		return claims
+	for target: PlantCell in cells:
+		if not is_instance_valid(target):
+			return []
+		var source_slot: CharacterRegistry.PlacePlantInCell = predecessor_condition.place_plant_in_cell
+		var predecessor: Plant000Base = target.plant_in_cell.get(source_slot)
+		if not is_instance_valid(predecessor) or predecessor.is_queued_for_deletion() \
+				or predecessor.plant_type != predecessor_type:
+			return []
+		var destination: Plant000Base = target.plant_in_cell.get(place_plant_in_cell)
+		if is_instance_valid(destination) and destination != predecessor:
+			return []
+		claims.append({"cell": target, "slot": source_slot, "plant": predecessor})
+	return claims
+
+## All planting entrypoints use the same conditions before mutating the board.
+func judge_is_can_plant(plant_cell: PlantCell, curr_plant_type: CharacterRegistry.PlantType) -> bool:
+	if is_purple_card:
+		return not get_upgrade_claims(plant_cell, curr_plant_type).is_empty()
 	if is_special_plants:
 		return judge_special_plants_condition(plant_cell)
-	## 普通植物非紫卡
-	elif not is_purple_card:
-		## 当前可以种植普通植物 and 当前格子地形符合 and 当前格子对应的植物位置为空
-		if plant_cell.can_common_plant and plant_condition & plant_cell.curr_condition and not is_instance_valid(plant_cell.plant_in_cell[place_plant_in_cell]):
-			## 如果是壳类植物,若当前植物格子中Norm为玉米加农炮
-			if place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Shell \
-			and is_instance_valid(plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm])\
-			and plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm].plant_type == CharacterRegistry.PlantType.P048CobCannon:
+	if not plant_cell.can_common_plant or not (plant_condition & plant_cell.curr_condition):
+		return false
+	if is_instance_valid(plant_cell.plant_in_cell[place_plant_in_cell]):
+		return false
+	## A shell cannot cover a plant occupying multiple cells, regardless of species.
+	if place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Shell:
+		var occupant: Plant000Base = plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]
+		if is_instance_valid(occupant) and is_instance_valid(occupant.plant_cell):
+			var occupant_condition: ResourcePlantCondition = Global.character_registry.get_plant_info(
+				occupant.spawn_species_id(), CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
+			if occupant_condition != null and occupant_condition.placement_cells(occupant.plant_cell).size() > 1:
 				return false
+	return true
 
-			return true
-		else:
-			return false
-	else:
-		if get_preplant_purple(plant_cell, curr_plant_type) != null:
-			return true
-		else:
-			return false
-
-
-## 判断当前场上是否有紫卡预种植植物,紫卡是否可以种植
-func judge_purple_card_can_plant(all_plant_cells, curr_plant_type:CharacterRegistry.PlantType)->bool:
-	for plant_cells_row in all_plant_cells:
-		for plant_cell in plant_cells_row:
-			if get_preplant_purple(plant_cell, curr_plant_type) != null:
+func judge_purple_card_can_plant(all_plant_cells, curr_plant_type: CharacterRegistry.PlantType) -> bool:
+	for cells: Array in all_plant_cells:
+		for cell: PlantCell in cells:
+			if not get_upgrade_claims(cell, curr_plant_type).is_empty():
 				return true
 	return false
-
-## 获取当前格子紫卡预种植植物
-## 返回预种植植物,若当前植物格子可以种植紫卡,返回预种植紫卡,
-func get_preplant_purple(plant_cell:PlantCell, curr_plant_type:CharacterRegistry.PlantType) ->Plant000Base:
-	## 紫卡前置植物
-	var precondition_plant:CharacterRegistry.PlantType = Global.character_registry.AllPrePlantPurple[curr_plant_type]
-	## 当前格子存在前置种植植物
-	var condition_precondition_plant :ResourcePlantCondition = Global.character_registry.get_plant_info(precondition_plant, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
-	var place_precondition_plant:CharacterRegistry.PlacePlantInCell = condition_precondition_plant.place_plant_in_cell
-	if is_instance_valid(plant_cell.plant_in_cell[place_precondition_plant]) and\
-	plant_cell.plant_in_cell[place_precondition_plant].plant_type == precondition_plant:
-		## 如果种植位置不相同,并且当前植物格子已有紫卡植物位置的植物
-		if place_precondition_plant != place_plant_in_cell and is_instance_valid(plant_cell.plant_in_cell[place_plant_in_cell]):
-			return null
-		else:
-			return plant_cell.plant_in_cell[place_precondition_plant]
-	else:
-		return null
 
 
 ## 获取当前场上所有的紫卡植物的对应预种植植物
@@ -75,9 +88,9 @@ func get_all_preplant_purple(all_plant_cells, curr_plant_type:CharacterRegistry.
 	var all_preplant_purple:Array[Plant000Base]
 	for plant_cells_row in all_plant_cells:
 		for plant_cell in plant_cells_row:
-			var preplant_purple:Plant000Base = get_preplant_purple(plant_cell, curr_plant_type)
-			if preplant_purple != null:
-				all_preplant_purple.append(preplant_purple)
+			var claims: Array[Dictionary] = get_upgrade_claims(plant_cell, curr_plant_type)
+			if not claims.is_empty():
+				all_preplant_purple.append(claims[0]["plant"])
 
 	return all_preplant_purple
 

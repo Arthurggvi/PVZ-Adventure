@@ -1,24 +1,21 @@
+## Cob cannon is an ordinary upgrade transaction with a two-cell footprint.
+## No plant deletion or cell mutation is allowed inside the condition resource.
 extends ResourcePlantCondition
 class_name ResourcePlantConditionCobCannon
 
-## 玉米加农炮判定是否可以种植
-func judge_special_plants_condition(plant_cell:PlantCell) -> bool:
-	if get_preplant_purple(plant_cell, CharacterRegistry.PlantType.P048CobCannon) != null:
-		return true
-	return false
+func placement_cells(cell: PlantCell) -> Array[PlantCell]:
+	if not is_instance_valid(cell) or not is_instance_valid(Global.main_game):
+		return []
+	var manager: PlantCellManager = Global.main_game.plant_cell_manager
+	var r: int = cell.row_col.x
+	var next_column: int = cell.row_col.y + 1
+	if r < 0 or r >= manager.all_plant_cells.size() \
+			or next_column >= manager.all_plant_cells[r].size():
+		return []
+	return [cell, manager.all_plant_cells[r][next_column]]
 
-## 判段是否存在紫卡预种植植物,并且不存在南瓜壳
-func _judge_pre_plant(plant_cell:PlantCell) -> bool:
-	return is_instance_valid(plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]) \
-	and plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm].plant_type == CharacterRegistry.PlantType.P035CornPult \
-	and not is_instance_valid(plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Shell])
-
-## 获取当前格子紫卡预种植植物
-## 返回预种植植物,若当前植物格子可以种植紫卡,返回预种植紫卡,
-func get_preplant_purple(plant_cell:PlantCell, _curr_plant_type:CharacterRegistry.PlantType) ->Plant000Base:
-	## 非最后一列,前轮有植物,且没有南瓜
-	if plant_cell.row_col.y < Global.main_game.plant_cell_manager.row_col.y-1 and\
-	_judge_pre_plant(plant_cell) and _judge_pre_plant(Global.main_game.plant_cell_manager.all_plant_cells[plant_cell.row_col.x][plant_cell.row_col.y+1]):
-		return plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]
-	else:
-		return null
+func upgrade_footprint_available(cells: Array[PlantCell]) -> bool:
+	for cell: PlantCell in cells:
+		if is_instance_valid(cell.plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Shell)):
+			return false
+	return true

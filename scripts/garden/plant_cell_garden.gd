@@ -80,7 +80,11 @@ func _add_new_plant(curr_plant_cell_data:Dictionary={}):
 	else:
 		curr_plant_type = curr_plant_cell_data["curr_plant_type"]
 		## 植物种植条件
-		var curr_plant_new_plant_condition:ResourcePlantCondition = Global.character_registry.get_plant_info(curr_plant_type, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
+		var curr_plant_new_plant_condition:ResourcePlantCondition = Global.character_registry.get_plant_info(
+			curr_plant_type, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
+		if curr_plant_new_plant_condition == null:
+			push_warning("Garden: invalid plant species %s" % curr_plant_type)
+			return
 		curr_plant_place = curr_plant_new_plant_condition.place_plant_in_cell
 		curr_plant_condition = curr_plant_new_plant_condition.plant_condition
 		## 如果是Down类植物，修改为Norm类植物

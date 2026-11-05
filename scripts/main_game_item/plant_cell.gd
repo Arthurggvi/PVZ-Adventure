@@ -153,70 +153,88 @@ func plant_be_flattened():
 func imitater_create_plant(plant_type:CharacterRegistry.PlantType, is_plant_start_effect:=true,
 		spawn_profile: PlantSpawnProfile = null):
 	await get_tree().process_frame
-	var plant = create_plant(plant_type, false, is_plant_start_effect, true, false, spawn_profile)
+	var plant = create_plant(plant_type, false, is_plant_start_effect, true, false,
+		spawn_profile, PlacementOrigin.Transformation)
 	return plant
-## 新植物种植
-##[is_imitater:bool] 植物是否为模仿者
-##[is_plant_start_effect:bool] 是否有种植特效
-##[is_imitater_material:bool] 是否为模仿者材质
-##[is_zombie_mode:bool] 是否为我是僵尸模式
-func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is_plant_start_effect:=true, is_imitater_material:=false, is_zombie_mode:=false, spawn_profile: PlantSpawnProfile = null) -> Plant000Base:
-	var plant_condition:ResourcePlantCondition
-	var plant :Plant000Base
-	var predecessor: Plant000Base = null
+## Explicit placement purpose separates player eligibility from setup/restore.
+## Every path uses the same registered footprint and lifetime ownership rules.
+enum PlacementOrigin { Player, LevelSetup, SaveRestore, Transformation }
+
+func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
+		is_plant_start_effect := true, is_imitater_material := false,
+		is_zombie_mode := false, spawn_profile: PlantSpawnProfile = null,
+		origin: PlacementOrigin = PlacementOrigin.Player) -> Plant000Base:
 	if spawn_profile != null and not spawn_profile.matches_plant_type(int(plant_type)):
-		push_error("Plant spawn profile species does not match the requested plant")
 		return null
-	plant_condition = Global.character_registry.get_plant_info(plant_type, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
+	var condition: ResourcePlantCondition = Global.character_registry.get_plant_info(
+		plant_type, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
+	if condition == null:
+		return null
+	var footprint: Array[PlantCell] = condition.placement_cells(self)
+	if footprint.is_empty():
+		return null
+	var claims: Array[Dictionary] = []
+	if origin == PlacementOrigin.Player:
+		if condition.is_purple_card:
+			claims = condition.get_upgrade_claims(self, plant_type)
+			if claims.size() != footprint.size():
+				return null
+		elif not condition.judge_is_can_plant(self, plant_type):
+			return null
+	if not _placement_is_available(condition, footprint, claims):
+		return null
 
-	## 如果该植物为紫卡
-	if plant_condition.is_purple_card:
-		## Keep the precursor until the replacement passes its spawn contract.
-		var condition_pre_plant :ResourcePlantCondition = Global.character_registry.get_plant_info(Global.character_registry.AllPrePlantPurple[plant_type], CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
-		predecessor = plant_in_cell[condition_pre_plant.place_plant_in_cell] as Plant000Base
-	else:
-		## 非紫卡 如果该位置已经存在植物,返回
-		if is_instance_valid(plant_in_cell[plant_condition.place_plant_in_cell]):
-			print("当前位置", row_col, "已经有植物：", plant_in_cell[plant_condition.place_plant_in_cell].name)
-			return
-
-	## 创建植物
+	var plant: Plant000Base
 	if is_imitater:
 		plant = PlantSceneFactory.create(CharacterRegistry.PlantType.P999Imitater)
-		if plant == null:
-			return null
 		var imitater: Plant999Imitater = plant as Plant999Imitater
 		if imitater == null:
-			push_error("PlantCell: registered imitater scene has the wrong script")
-			plant.free()
+			if plant != null:
+				plant.free()
 			return null
 		imitater.imitater_plant_type = plant_type
 	else:
 		plant = PlantSceneFactory.create(plant_type)
-		if plant == null:
-			return null
-
-	var plant_init_para = {
-		Plant000Base.E_PInitAttr.CharacterInitType:Character000Base.E_CharacterInitType.IsNorm,
-		Plant000Base.E_PInitAttr.PlantCell:self,
-		Plant000Base.E_PInitAttr.IsImitaterMaterial:is_imitater_material,
-		Plant000Base.E_PInitAttr.IsZombieMode:is_zombie_mode
-	}
-	plant.init_plant(plant_init_para)
-	# The caller supplies one coherent recipe, not independent snapshot/rule inputs.
+	if plant == null:
+		return null
+	plant.init_plant({
+		Plant000Base.E_PInitAttr.CharacterInitType: Character000Base.E_CharacterInitType.IsNorm,
+		Plant000Base.E_PInitAttr.PlantCell: self,
+		Plant000Base.E_PInitAttr.IsImitaterMaterial: is_imitater_material,
+		Plant000Base.E_PInitAttr.IsZombieMode: is_zombie_mode,
+	})
 	if spawn_profile != null and not spawn_profile.apply(plant, int(plant_type)):
 		plant.free()
 		return null
 	plant.plant_spawn_profile = spawn_profile
-	if is_instance_valid(predecessor):
-		predecessor.character_death_disappear()
+
+	# Two-phase commit: validate all claims again before consuming a single plant.
+	if origin == PlacementOrigin.Player:
+		if condition.is_purple_card:
+			var current_claims: Array[Dictionary] = condition.get_upgrade_claims(self, plant_type)
+			if current_claims.size() != claims.size():
+				plant.free()
+				return null
+			for i in range(claims.size()):
+				if current_claims[i]["plant"] != claims[i]["plant"]:
+					plant.free()
+					return null
+		elif not condition.judge_is_can_plant(self, plant_type):
+			plant.free()
+			return null
+	if not _placement_is_available(condition, footprint, claims):
+		plant.free()
+		return null
+	for claim: Dictionary in claims:
+		(claim["plant"] as Plant000Base).character_death_disappear()
 	if is_imitater:
 		plant_container_node[CharacterRegistry.PlacePlantInCell.Imitater].add_child(plant)
 	else:
-		plant_container_node[plant_condition.place_plant_in_cell].add_child(plant)
-
-	plant_in_cell[plant_condition.place_plant_in_cell] = plant
-	plant.signal_character_death.connect(one_plant_free.bind(plant))
+		plant_container_node[condition.place_plant_in_cell].add_child(plant)
+	for cell: PlantCell in footprint:
+		cell.plant_in_cell[condition.place_plant_in_cell] = plant
+		plant.signal_character_death.connect(cell.one_plant_free.bind(plant))
+	var plant_condition: ResourcePlantCondition = condition
 
 	if is_plant_start_effect:
 		## 种植特效
@@ -246,6 +264,24 @@ func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is
 
 	return plant
 
+## Read-only occupancy validation for all cells in a placement footprint.
+func _placement_is_available(condition: ResourcePlantCondition,
+		footprint: Array[PlantCell], claims: Array[Dictionary]) -> bool:
+	for cell: PlantCell in footprint:
+		if not is_instance_valid(cell):
+			return false
+		var occupant: Plant000Base = cell.plant_in_cell.get(condition.place_plant_in_cell)
+		if not is_instance_valid(occupant) or occupant.is_queued_for_deletion():
+			continue
+		var expected := false
+		for claim: Dictionary in claims:
+			if claim["cell"] == cell and claim["plant"] == occupant:
+				expected = true
+				break
+		if not expected:
+			return false
+	return true
+
 ## 咖啡豆唤醒在睡眠中的植物
 func coffee_bean_awake_up():
 	if is_instance_valid(plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]):
@@ -257,33 +293,37 @@ func coffee_bean_awake_up():
 func get_new_plant_static_shadow_global_position(place_plant_in_cell:CharacterRegistry.PlacePlantInCell):
 	return plant_container_node[place_plant_in_cell].global_position
 
-## 植物死亡
-func one_plant_free(plant:Plant000Base):
-	var curr_plant_condition :ResourcePlantCondition = Global.character_registry.get_plant_info(plant.plant_type, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
-
+## Release cell ownership by actual occupant identity, not by exported scene ID.
+## Shared-footprint plants notify every occupied cell but update global counts once.
+func one_plant_free(plant: Plant000Base) -> void:
+	var slots: Array[CharacterRegistry.PlacePlantInCell] = []
+	for place: CharacterRegistry.PlacePlantInCell in plant_in_cell:
+		if plant_in_cell[place] == plant:
+			slots.append(place)
+	if slots.is_empty():
+		return
 	if is_instance_valid(ladder):
-		if curr_plant_condition.place_plant_in_cell in [CharacterRegistry.PlacePlantInCell.Down, CharacterRegistry.PlacePlantInCell.Norm, CharacterRegistry.PlacePlantInCell.Shell]:
-			ladder.ladder_death()
-
-	#plant_in_cell[curr_plant_condition.place_plant_in_cell] = null
-	## 如果是down位置植物，下降中间植物和壳的位置，修改节点结构
-	if curr_plant_condition.place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Down:
-		## 中间植物的节点修改回来
-		plant.down_plant_container.remove_child(plant_container_node[CharacterRegistry.PlacePlantInCell.Norm])
+		for place: CharacterRegistry.PlacePlantInCell in slots:
+			if place in [CharacterRegistry.PlacePlantInCell.Down,
+					CharacterRegistry.PlacePlantInCell.Norm,
+					CharacterRegistry.PlacePlantInCell.Shell]:
+				ladder.ladder_death()
+				break
+	if plant.plant_cell == self and slots.has(CharacterRegistry.PlacePlantInCell.Down):
+		plant.down_plant_container.remove_child(
+			plant_container_node[CharacterRegistry.PlacePlantInCell.Norm])
 		add_child(plant_container_node[CharacterRegistry.PlacePlantInCell.Norm])
-		plant_container_node[CharacterRegistry.PlacePlantInCell.Norm].global_position = plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Norm]
-
-		plant.down_plant_container.remove_child(plant_container_node[CharacterRegistry.PlacePlantInCell.Shell])
+		plant_container_node[CharacterRegistry.PlacePlantInCell.Norm].global_position = \
+			plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Norm]
+		plant.down_plant_container.remove_child(
+			plant_container_node[CharacterRegistry.PlacePlantInCell.Shell])
 		add_child(plant_container_node[CharacterRegistry.PlacePlantInCell.Shell])
-		plant_container_node[CharacterRegistry.PlacePlantInCell.Shell].global_position = plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Shell]
-	## 玉米加农炮只有后轮plantcell发射信号更新植物数据
-	if plant.plant_type == CharacterRegistry.PlantType.P048CobCannon:
-		if plant.plant_cell == self:
-			signal_plant_free.emit(self, plant.plant_type)
-	else:
+		plant_container_node[CharacterRegistry.PlacePlantInCell.Shell].global_position = \
+			plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Shell]
+	for place: CharacterRegistry.PlacePlantInCell in slots:
+		plant_in_cell[place] = null
+	if plant.plant_cell == self:
 		signal_plant_free.emit(self, plant.plant_type)
-
-	##如果植物死亡时鼠标在当前植物格子中，等待一帧后重新发射鼠标进入格子信号检测种植
 	if is_mouse_in_ui(button):
 		await get_tree().process_frame
 		_on_button_mouse_entered()
@@ -666,14 +706,12 @@ func get_save_game_data_plant_cell() -> ResourceSaveGamePlantCell:
 	var save_game_data_plant_cell:ResourceSaveGamePlantCell = ResourceSaveGamePlantCell.new()
 	save_game_data_plant_cell.row_col = row_col
 	for place_plant_in_cell in plant_in_cell:
-		if is_instance_valid(plant_in_cell[place_plant_in_cell]):
-			## 如果不是加农炮
-			if not plant_in_cell[place_plant_in_cell] is Plant048CobCannon:
-				save_game_data_plant_cell.plant_type_in_cell[place_plant_in_cell] = plant_in_cell[place_plant_in_cell].gat_save_game_data_plant()
-			else:
-				var plant_48_cob_cannon:Plant048CobCannon = plant_in_cell[place_plant_in_cell] as Plant048CobCannon
-				if plant_48_cob_cannon.plant_cell_next != self:
-					save_game_data_plant_cell.plant_type_in_cell[place_plant_in_cell] = plant_in_cell[place_plant_in_cell].gat_save_game_data_plant()
+		var plant: Plant000Base = plant_in_cell[place_plant_in_cell]
+		# Shared-footprint instances have exactly one save authority: origin cell.
+		if is_instance_valid(plant) and not plant.is_queued_for_deletion() \
+				and plant.plant_cell == self:
+			save_game_data_plant_cell.plant_type_in_cell[place_plant_in_cell] = \
+				plant.gat_save_game_data_plant()
 
 	if is_instance_valid(ladder):
 		save_game_data_plant_cell.is_ladder = true
@@ -699,7 +737,9 @@ func clear_data_plant_cell():
 ## 读档时创建植物
 func _load_game_data_create_plant(game_data_plant):
 	var plant:Plant000Base
-	plant = create_plant(game_data_plant["plant_type"], false, false, game_data_plant["is_imitater_material"])
+	plant = create_plant(game_data_plant["plant_type"], false, false,
+		game_data_plant["is_imitater_material"], false, null,
+		PlacementOrigin.SaveRestore)
 	if plant != null:
 		plant.load_game_data_plant(game_data_plant)
 #endregion
