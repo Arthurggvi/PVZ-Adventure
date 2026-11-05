@@ -79,8 +79,6 @@ func _add_new_plant(curr_plant_cell_data:Dictionary={}):
 
 	else:
 		curr_plant_type = curr_plant_cell_data["curr_plant_type"]
-		### 植物
-		#var curr_plant:Plant000Base = Global.character_registry.get_plant_info(curr_plant_type, CharacterRegistry.PlantInfoAttribute.PlantScenes).instantiate()
 		## 植物种植条件
 		var curr_plant_new_plant_condition:ResourcePlantCondition = Global.character_registry.get_plant_info(curr_plant_type, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
 		curr_plant_place = curr_plant_new_plant_condition.place_plant_in_cell
@@ -88,6 +86,11 @@ func _add_new_plant(curr_plant_cell_data:Dictionary={}):
 		## 如果是Down类植物，修改为Norm类植物
 		if curr_plant_place == CharacterRegistry.PlacePlantInCell.Down:
 			curr_plant_place = CharacterRegistry.PlacePlantInCell.Norm
+	## Validate the scene before mutating flower pots or container layout.
+	var curr_plant: Plant000Base = PlantSceneFactory.create(curr_plant_type)
+	if curr_plant == null:
+		return
+
 	## 花盆
 	plant_up_position = Vector2(0, 15)
 	var is_last_flower_pot:bool = flower_pot != null
@@ -126,8 +129,6 @@ func _add_new_plant(curr_plant_cell_data:Dictionary={}):
 
 		plant_container_node[CharacterRegistry.PlacePlantInCell.Norm].global_position = plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Norm] - plant_up_position
 		plant_container_node[CharacterRegistry.PlacePlantInCell.Shell].global_position = plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Shell] - plant_up_position
-
-	var curr_plant:Plant000Base = Global.character_registry.get_plant_info(curr_plant_type, CharacterRegistry.PlantInfoAttribute.PlantScenes).instantiate()
 
 	## 花园植物初始化数据
 	var garden_date_init:Dictionary = {

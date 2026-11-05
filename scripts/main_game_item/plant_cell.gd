@@ -182,13 +182,19 @@ func create_plant(plant_type:CharacterRegistry.PlantType, is_imitater:=false, is
 
 	## 创建植物
 	if is_imitater:
-		## 创建植物
-		#plant_condition = Global.character_registry.get_plant_info(CharacterRegistry.PlantType.P999Imitater, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
-		plant = Global.character_registry.get_plant_info(CharacterRegistry.PlantType.P999Imitater, CharacterRegistry.PlantInfoAttribute.PlantScenes).instantiate()
-		plant = plant as Plant999Imitater
-		plant.imitater_plant_type = plant_type
+		plant = PlantSceneFactory.create(CharacterRegistry.PlantType.P999Imitater)
+		if plant == null:
+			return null
+		var imitater: Plant999Imitater = plant as Plant999Imitater
+		if imitater == null:
+			push_error("PlantCell: registered imitater scene has the wrong script")
+			plant.free()
+			return null
+		imitater.imitater_plant_type = plant_type
 	else:
-		plant = Global.character_registry.get_plant_info(plant_type, CharacterRegistry.PlantInfoAttribute.PlantScenes).instantiate()
+		plant = PlantSceneFactory.create(plant_type)
+		if plant == null:
+			return null
 
 	var plant_init_para = {
 		Plant000Base.E_PInitAttr.CharacterInitType:Character000Base.E_CharacterInitType.IsNorm,

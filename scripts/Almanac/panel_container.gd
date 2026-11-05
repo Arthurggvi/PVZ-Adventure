@@ -76,7 +76,13 @@ func show_card(reference: ResourceCardReference) -> void:
 ## 所有实例均在入树前设为 IsShow，不创建出战状态、主游戏连接或战场注册。
 func _create_show_character(reference: ResourceCardReference, character_scene: PackedScene) -> void:
 	# 当前创建的角色展示实例，三类角色都继承公共角色基类。
-	var next_character: Character000Base = character_scene.instantiate()
+	var next_character: Character000Base
+	if reference.card_type == ResourceCardReference.CardType.Plant:
+		next_character = PlantSceneFactory.create(reference.content_id)
+	else:
+		next_character = character_scene.instantiate()
+	if next_character == null:
+		return
 	match reference.card_type:
 		ResourceCardReference.CardType.Plant:
 			# 植物展示实例保留统一引用中的模仿者材质标记。
