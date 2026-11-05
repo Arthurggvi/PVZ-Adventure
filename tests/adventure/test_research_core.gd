@@ -13,6 +13,21 @@ func _initialize() -> void:
 func _persist() -> bool:
 	return save_ok
 
+func _chance(star: int, amount: int, fodder_star: int, type_id: int = 1,
+		fertilizer_id: String = "") -> float:
+	var main := PlantCardInstance.new()
+	main.stars = star
+	main.plant_type = 1
+	var material_cards: Array[PlantCardInstance] = []
+	for i in range(amount):
+		var card := PlantCardInstance.new()
+		card.stars = fodder_star
+		card.plant_type = type_id
+		material_cards.append(card)
+	var value: Variant = Enhancement.success_probability(main, material_cards, fertilizer_id)
+	assert(value != null)
+	return float(value)
+
 func _run() -> void:
 	assert(OS.get_user_data_dir().contains("research-core-test"))
 	assert(Recipes.all_ids().size() == 49)
@@ -83,7 +98,20 @@ func _run() -> void:
 	assert(not service.quote("upgrade", invalid).ready)
 	var compatible: String = inventory.add_card(1, 5)
 	var quote: Dictionary = service.quote("upgrade", {"uid": sunflower, "materials": [compatible]})
-	assert(not quote.ready and str(quote.message).contains("概率算法未定义"))
+	assert(quote.ready and quote.chance > 0.0)
+	# Golden probability anchors: three equal-star 100-sun fodders, no fertilizer.
+	assert(absf(_chance(4, 3, 4) - 0.86171) < 0.0001)
+	assert(absf(_chance(6, 3, 6) - 0.41480) < 0.0001)
+	assert(absf(_chance(7, 3, 7) - 0.22625) < 0.0001)
+	assert(absf(_chance(9, 3, 9) - 0.05091) < 0.0001)
+	assert(_chance(7, 1, 7) < _chance(7, 2, 7))
+	assert(_chance(7, 2, 7) < _chance(7, 3, 7))
+	assert(_chance(4, 3, 4, 2) < _chance(4, 3, 4, 1)) # 50 < 100
+	assert(is_equal_approx(_chance(4, 3, 4, 1), _chance(4, 3, 4, 8))) # 100 = 200
+	assert(_chance(4, 3, 4, 8) < _chance(4, 3, 4, 41)) # 250 > 200
+	assert(_chance(7, 3, 5) < _chance(7, 3, 7))
+	assert(is_equal_approx(_chance(7, 3, 7, 1, "fertilizer_lv5"),
+		minf(1.0, _chance(7, 3, 7) * 1.5)))
 	assert(state.to_dict() != {})
 	var old: Dictionary = state.cards[sunflower].to_dict()
 	old.erase("promotion_3")
@@ -99,5 +127,25 @@ func _run() -> void:
 	assert(not service.execute("promotion", failed_choice).ok)
 	assert(JSON.stringify(state.to_dict()) == retained)
 	wallet.adventure_state = state
-	print("RESEARCH_CORE_PASS 49 recipes, craft, irreversible promotion, rollback, upgrade contract")
+	# At 0 stars, three equal-star cards + level-one fertilizer guarantee success.
+	# Verify the real inventory/write transaction, not only the formula.
+	var main_uid: String = inventory.add_card(1, 0)
+	var fodder_uids: Array[String] = []
+	for i in range(3):
+		fodder_uids.append(inventory.add_card(1, 0))
+	assert(inventory.add_item("fertilizer_lv1", 1))
+	assert(inventory.set_deck([main_uid, fodder_uids[0]]))
+	var choice_upgrade := {"uid": main_uid, "materials": fodder_uids,
+		"fertilizer": "fertilizer_lv1"}
+	var quote_upgrade: Dictionary = service.quote("upgrade", choice_upgrade)
+	assert(quote_upgrade.ready and is_equal_approx(float(quote_upgrade.chance), 1.0))
+	var coins_before_upgrade: int = wallet.coin_value
+	var upgraded: Dictionary = service.execute("upgrade", choice_upgrade)
+	assert(upgraded.ok and upgraded.success and upgraded.stars == 1)
+	assert(state.cards[main_uid].stars == 1 and state.selected_card_uids == [main_uid])
+	for uid: String in fodder_uids:
+		assert(inventory.get_card(uid).is_empty())
+	assert(inventory.get_item_count("fertilizer_lv1") == 0)
+	assert(wallet.coin_value == coins_before_upgrade - Enhancement.COST)
+	print("RESEARCH_CORE_PASS 49 recipes, promotions, rollback, enhancement curve and settlement")
 	quit(0)

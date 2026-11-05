@@ -79,6 +79,7 @@ func _upgrade_quote(choice: Dictionary) -> Dictionary:
 		"pot_owned": inventory.get_item_count("seedling_pot"),
 		"materials": consumed.duplicate(), "material_cards": material_cards,
 		"use_pot": pot, "fertilizer": fertilizer,
+		"fertilizer_multiplier": Enhancement.fertilizer_multiplier(fertilizer),
 		"stars": main.stars if main else 0}
 	var issue: String = Enhancement.validate(state, uid, consumed, pot, fertilizer)
 	if issue.is_empty() and wallet.coin_value < Enhancement.COST:

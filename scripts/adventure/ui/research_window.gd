@@ -123,6 +123,12 @@ func _render() -> void:
 		return
 	_options = _service.options(mode) if _service != null and _is_current_profile() else []
 	choice = clampi(choice, 0, maxi(0, _options.size() - 1))
+	# Deleting fodder changes inventory order; keep the main card highlighted by UID.
+	if mode == "upgrade" and selection.has("uid"):
+		for index: int in _options.size():
+			if str(_options[index].get("uid", "")) == str(selection.uid):
+				choice = index
+				break
 	if not _options.is_empty() and selection.is_empty():
 		var first: Dictionary = _options[choice]
 		selection = {"recipe_id": first.id} if mode == "craft" else {"uid": first.uid}
@@ -173,8 +179,15 @@ func _execute_action(operation_mode: String, chosen: Dictionary) -> void:
 			_notice = "合成成功，新植物卡 UID：" + str(result.get("uid", ""))
 		elif operation_mode == "promotion":
 			_notice = "转职成功，星级保持不变。"
-		choice = 0
-		selection.clear()
+		elif operation_mode == "upgrade":
+			var outcome := "成功" if result.get("success", false) else "失败"
+			_notice = "强化%s，主卡当前为 %d 星。" % [
+				outcome, int(result.get("stars", 0))]
+			selection = {"uid": str(chosen.get("uid", "")),
+				"use_pot": bool(chosen.get("use_pot", false))}
+		if operation_mode != "upgrade":
+			choice = 0
+			selection.clear()
 		_picking_material = false
 	_busy = false
 	_render()

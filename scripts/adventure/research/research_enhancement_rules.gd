@@ -1,4 +1,4 @@
-## Enhancement contracts. Probability and star-derived battle bonuses intentionally unimplemented.
+## Enhancement rules and pure probability calculation. Star-derived battle bonuses remain unimplemented.
 extends RefCounted
 class_name AdventureEnhancementRules
 
@@ -7,6 +7,17 @@ const MAX_STARS := PlantCardInstance.MAX_STARS
 const MAX_MATERIAL_CARDS := 3
 const FERTILIZERS := ["fertilizer_lv1", "fertilizer_lv2", "fertilizer_lv3",
 	"fertilizer_lv4", "fertilizer_lv5"]
+const BASE_RATE := 0.08
+const BASE_STAR_COEFFICIENT := 0.65
+const BASE_EXPONENT := 1.5
+const FODDER_RATE := 0.85
+const HIGH_STAR_PENALTY := 0.26
+const HIGH_STAR_START := 4
+const FODDER_EXPONENT := 2.0
+const HIGHER_STAR_BONUS := 0.08
+const HIGHER_STAR_CAP := 1.32
+const LOW_COST_MULTIPLIER := 0.95
+const HIGH_COST_MULTIPLIER := 1.05
 
 static func protection_count(target_star: int) -> int:
 	if target_star < 1 or target_star > MAX_STARS:
@@ -40,10 +51,50 @@ static func validate(state: AdventureState, main_uid: String, material_uids: Arr
 		return "肥料不足。"
 	return ""
 
-## Future RNG implementation must supply one computed probability to both UI and settlement.
-static func success_probability(_main: PlantCardInstance,
-		_material_cards: Array[PlantCardInstance], _fertilizer_id: String) -> Variant:
-	return null
+## Same pure probability for display and transaction; null means invalid configuration.
+## Always use the plant registry's ORIGINAL sun cost, never battle-time cost modifiers.
+static func success_probability(main: PlantCardInstance,
+		material_cards: Array[PlantCardInstance], fertilizer_id: String) -> Variant:
+	if main == null or main.stars < 0 or main.stars >= MAX_STARS \
+			or material_cards.is_empty() or material_cards.size() > MAX_MATERIAL_CARDS:
+		return null
+	var multiplier: float = fertilizer_multiplier(fertilizer_id)
+	if multiplier <= 0.0:
+		return null
+	var total_weight := 0.0
+	for card: PlantCardInstance in material_cards:
+		if card == null or card == main or main.stars - card.stars >= 3:
+			return null
+		var info: Dictionary = CharacterRegistry.PlantInfo.get(card.plant_type, {})
+		if not info.has(CharacterRegistry.PlantInfoAttribute.SunCost):
+			return null
+		var cost: int = int(info[CharacterRegistry.PlantInfoAttribute.SunCost])
+		var tier_weight := 1.0
+		if cost < 100:
+			tier_weight = LOW_COST_MULTIPLIER
+		elif cost > 200:
+			tier_weight = HIGH_COST_MULTIPLIER
+		var star_gap: int = main.stars - card.stars
+		var star_weight := 1.0
+		if star_gap == 1:
+			star_weight = 0.70
+		elif star_gap == 2:
+			star_weight = 0.35
+		elif star_gap < 0:
+			star_weight = minf(1.0 + (-star_gap) * HIGHER_STAR_BONUS, HIGHER_STAR_CAP)
+		total_weight += tier_weight * star_weight
+	var s: float = float(main.stars)
+	var base := BASE_RATE / pow(1.0 + BASE_STAR_COEFFICIENT * s, BASE_EXPONENT)
+	var penalty := exp(-HIGH_STAR_PENALTY * pow(maxf(0.0, s - HIGH_STAR_START), BASE_EXPONENT))
+	var fodder := FODDER_RATE * penalty * pow(total_weight / MAX_MATERIAL_CARDS, FODDER_EXPONENT)
+	return clampf((base + fodder) * multiplier, 0.0, 1.0)
+
+## Invalid fertilizer IDs are rejected, rather than silently treated as no fertilizer.
+static func fertilizer_multiplier(fertilizer_id: String) -> float:
+	if fertilizer_id.is_empty():
+		return 1.0
+	var index := FERTILIZERS.find(fertilizer_id)
+	return 0.0 if index < 0 else 1.1 + 0.1 * float(index)
 
 static func result_star(before: int, success: bool, protected: bool) -> int:
 	if success:

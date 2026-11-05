@@ -52,7 +52,11 @@ static func upgrade(owner: Control, parent: Control,
 	Art.action_button(parent, caption, "buttons/action_neutral",
 		Vector2(599, 515), Vector2(217, 58), Callable(owner, "toggle_material_pick"))
 	_label(parent, "强化费用：$%d" % int(preview.get("fee", 0)), Vector2(1315, 444), Vector2(425, 43), 28)
-	_label(parent, "成功率：下一阶段接入", Vector2(1315, 505), Vector2(445, 43), 25)
+	var chance: Variant = preview.get("chance")
+	var probability_text := "成功率：—"
+	if chance != null:
+		probability_text = "成功率：%.2f%%" % [float(chance) * 100.0]
+	_label(parent, probability_text, Vector2(1315, 505), Vector2(445, 43), 25)
 	_label(parent, "4星起失败降1星（未保护）", Vector2(1315, 560),
 		Vector2(445, 48), 22)
 	var pot_count := int(preview.get("pot_required", 0))
@@ -62,8 +66,10 @@ static func upgrade(owner: Control, parent: Control,
 		"buttons/action_neutral", Vector2(1318, 670), Vector2(225, 58),
 		Callable(owner, "toggle_protection"))
 	var fertilizer: String = str(selection.get("fertilizer", ""))
-	_label(parent, "肥料：" + (ItemRegistry.get_item_definition(fertilizer).get("name", "无")
-		if not fertilizer.is_empty() else "无"), Vector2(1315, 737), Vector2(443, 40), 22)
+	var fertilizer_name: String = str(ItemRegistry.get_item_definition(fertilizer).get("name", fertilizer)) if not fertilizer.is_empty() else "无"
+	_label(parent, "肥料：%s ×%.2f" % [fertilizer_name,
+		float(preview.get("fertilizer_multiplier", 1.0))],
+		Vector2(1315, 737), Vector2(443, 40), 22)
 	Art.action_button(parent, "更换肥料", "buttons/action_neutral",
 		Vector2(1318, 786), Vector2(225, 58), Callable(owner, "cycle_fertilizer"))
 
