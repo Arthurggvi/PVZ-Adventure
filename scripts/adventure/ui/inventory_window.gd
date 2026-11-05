@@ -7,6 +7,7 @@ const Data = preload("res://scripts/adventure/ui/inventory_data.gd")
 const Builder = preload("res://scripts/adventure/ui/inventory_builder.gd")
 const Tile = preload("res://scripts/adventure/ui/inventory_tile.gd")
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
+const PromotionVisual = preload("res://scripts/adventure/ui/promotion_book_visual.gd")
 ## 只负责素材界面与数量确认，不操作玩家资产。
 const InventoryDialog = preload("res://scripts/adventure/ui/inventory_dialog.gd")
 ## 集中处理移除、保存与失败回滚，界面不再内联资产修改。
@@ -178,22 +179,26 @@ func _render_detail() -> void:
 				description_top += 35.0
 	else:
 		# 道具底图、图标与配方组件共用预览中心，保持各组件原始长宽比。
-		var preview_center: Vector2 = preview_bounds.get_center() # 对齐详情区的水平中心。
-		var backing_size := Vector2.ONE * preview_bounds.size.y # 分类底图填满预览区域高度。
-		var backing: String = Data.item_backing(selected)
-		if not backing.is_empty():
-			Art.image(root, backing, preview_center - backing_size * 0.5, backing_size)
-		var icon: String = Data.item_icon(selected)
-		var is_recipe: bool = str(selected.get("category", "")) == "recipe" # 卷轴作为配方的完整底图。
-		var icon_size: Vector2 = backing_size if is_recipe else backing_size * (170.0 / 200.0) # 道具前景保留与分类底图的比例。
-		if not icon.is_empty():
-			Art.image(root, icon, preview_center - icon_size * 0.5, icon_size)
-		if is_recipe:
-			var recipe_scale: float = icon_size.y / 170.0 # 卷轴、植物和蜡封整体等比缩放。
-			ItemArt.add_recipe_portrait(root, int(selected.get("plant_type", 0)), preview_center, 1.15 * recipe_scale)
-			var wax: String = ItemArt.recipe_overlay_uri(str(selected["id"]))
-			if not wax.is_empty():
-				Art.image(root, wax, preview_center + Vector2(29, 35) * recipe_scale, Vector2(48, 48) * recipe_scale)
+		var preview_center: Vector2 = preview_bounds.get_center()
+		var backing_size := Vector2.ONE * preview_bounds.size.y
+		if str(selected.get("category", "")) == "promotion_book":
+			PromotionVisual.draw(root, str(selected["id"]),
+				Rect2(preview_center - backing_size * 0.5, backing_size))
+		else:
+			var backing: String = Data.item_backing(selected)
+			if not backing.is_empty():
+				Art.image(root, backing, preview_center - backing_size * 0.5, backing_size)
+			var icon: String = Data.item_icon(selected)
+			var is_recipe: bool = str(selected.get("category", "")) == "recipe"
+			var icon_size: Vector2 = backing_size if is_recipe else backing_size * (170.0 / 200.0)
+			if not icon.is_empty():
+				Art.image(root, icon, preview_center - icon_size * 0.5, icon_size)
+			if is_recipe:
+				var recipe_scale: float = icon_size.y / 170.0
+				ItemArt.add_recipe_portrait(root, int(selected.get("plant_type", 0)), preview_center, 1.15 * recipe_scale)
+				var wax: String = ItemArt.recipe_overlay_uri(str(selected["id"]))
+				if not wax.is_empty():
+					Art.image(root, wax, preview_center + Vector2(29, 35) * recipe_scale, Vector2(48, 48) * recipe_scale)
 	_render_description(root, description_top)
 	var discard: Button = Art.action_button(root, "丢弃", "buttons/action_danger", Vector2((root.size.x - 277.0) * 0.5, root.size.y - 77.0), Vector2(277, 65), _confirm_discard) # 所有分类共用一个素材按钮。
 	discard.disabled = not _is_current_profile() or (str(selected.get("kind", "")) == "plant" and _opened_state.cards.size() <= 1)

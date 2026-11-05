@@ -1,7 +1,7 @@
 ## Image composition catalog; the item manifest supplies art paths, never item ownership.
 extends RefCounted
 const ROOT := "res://assets/adventure/ui/items/"
-## 转职书及未登记专用图标的配方共用的卷轴素材，相对 [constant ROOT]。
+## 配方书使用原卷轴；转职技能书通过 promotion_tiers 独立解析，不借用卷轴。
 const SCROLL_PATH := "recipes/recipe_scroll.png"
 ## Visual paths are resolved from the item category; recipe identity is supplied by the data adapter.
 const MANIFEST := ROOT + "item_icon_map.json"
@@ -30,13 +30,23 @@ static func entry(item_id: String) -> Dictionary:
 			return {"category": "recipe", "icon": SCROLL_PATH,
 				"overlay": "decorations/recipe_wax_seal.png"}
 		if category == "promotion_book":
-			return {"category": "promotion_book", "icon": SCROLL_PATH}
+			return {"category": "promotion_book"}
 		return {}
 	if str(data.get("category", "")) != str(ItemRegistry.get_item_definition(item_id).get("category", "")):
 		return {}
 	return data
 
+## Tier icon paths are defined once in the art manifest; the item catalog supplies the tier.
+static func promotion_tier_uri(tier: int) -> String:
+	var file: String = str(manifest().get("promotion_tiers", {}).get(str(tier), ""))
+	var uri: String = ROOT + file
+	return uri if not file.is_empty() and ResourceLoader.exists(uri) else ""
+
 static func icon_uri(item_id: String) -> String:
+	var category: String = str(ItemRegistry.get_item_definition(item_id).get("category", ""))
+	if category == "promotion_book":
+		var tier: int = int(ItemRegistry.get_item_definition(item_id).get("promotion_tier", 0))
+		return promotion_tier_uri(tier)
 	var file: String = str(entry(item_id).get("icon", ""))
 	var path := ROOT + file
 	return path if not file.is_empty() and ResourceLoader.exists(path) else ""

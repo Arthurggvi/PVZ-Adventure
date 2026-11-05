@@ -93,7 +93,7 @@ static func work(owner: Control, parent: Control, mode: String, picker: Picker,
 	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if record.is_empty():
 		var hint_item: String = EMPTY_ITEM_HINTS.get(slot, "") # 花盆槽和肥料槽按道具 ID 取图。
-		var hint_uri: String = ItemArt.ROOT + ItemArt.SCROLL_PATH if slot == Picker.Slot.PROMOTION_BOOK else ItemArt.icon_uri(hint_item) # 空转职书槽使用通用卷轴。
+		var hint_uri: String = ItemArt.promotion_tier_uri(1) if slot == Picker.Slot.PROMOTION_BOOK else ItemArt.icon_uri(hint_item) # 空转职书槽使用灰显的一转书本。
 		if not hint_uri.is_empty():
 			var hint: TextureRect = Art.image(tile, hint_uri, Tile.ICON_POSITION, Tile.ICON_SIZE) # 跟随背包格等比缩放。
 			var gray := ShaderMaterial.new() # 灰度材质只作用于占位图，不影响填入的道具。

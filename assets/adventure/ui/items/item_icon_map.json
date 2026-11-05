@@ -103,7 +103,14 @@
     "material": "backgrounds/material_backing.png",
     "key": "backgrounds/key_backing.png",
     "consumable": "backgrounds/consumable_backing.png",
-    "recipe": null
+    "recipe": null,
+    "promotion_book": "backgrounds/promotion_book_backing.png"
+  },
+  "promotion_tiers": {
+    "1": "promotion_books/promotion_book_tier_01.png",
+    "2": "promotion_books/promotion_book_tier_02.png",
+    "3": "promotion_books/promotion_book_tier_03.png",
+    "4": "promotion_books/promotion_book_tier_04.png"
   },
   "render_order": [
     "item_slot",

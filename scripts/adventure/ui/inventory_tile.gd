@@ -4,6 +4,7 @@ signal chosen(record: Dictionary)
 signal reorder_requested(uid: String, target: int)
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
+const PromotionVisual = preload("res://scripts/adventure/ui/promotion_book_visual.gd")
 const Data = preload("res://scripts/adventure/ui/inventory_data.gd")
 ## 道具底图按格子高度等比填充，透明边缘允许超出格子的水平区域。
 const BACKING_SIZE := Vector2(96, 96)
@@ -53,24 +54,28 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 			card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	else:
-		# 分类底图或卷轴替换普通方格的填色，默认边框在内容之后独立绘制。
-		var backing: String = Data.item_backing(record)
-		var category: String = str(record.get("category", "")) # 配方和转职书都使用卷轴作为底图。
-		var uses_scroll: bool = category in ["recipe", "promotion_book"] # 卷轴格保留边框，隐藏普通方格填色。
-		_slot.visible = backing.is_empty() and not uses_scroll
-		if not backing.is_empty():
-			Art.image(self, backing, BACKING_POSITION, BACKING_SIZE)
-		var icon: String = Data.item_icon(record)
-		var icon_size: Vector2 = BACKING_SIZE if uses_scroll else ICON_SIZE # 卷轴使用完整底图区域。
-		var icon_position: Vector2 = (size - icon_size) * 0.5 # 所有道具前景共用格子中心。
-		if not icon.is_empty():
-			Art.image(self, icon, icon_position, icon_size)
-		if category == "recipe":
-			var recipe_scale: float = icon_size.y / 58.0 # 植物和蜡封随卷轴整体等比放大。
-			ItemArt.add_recipe_portrait(self, int(record.get("plant_type", 0)), size * 0.5, 0.42 * recipe_scale)
-			var wax: String = ItemArt.recipe_overlay_uri(str(record["id"]))
-			if not wax.is_empty():
-				Art.image(self, wax, icon_position + Vector2(35, 39) * recipe_scale, Vector2(20, 20) * recipe_scale)
+		# 转职书是共享装配：背景、对应阶数书本和该植物的静态头像。
+		var category: String = str(record.get("category", ""))
+		if category == "promotion_book":
+			_slot.visible = false
+			PromotionVisual.draw(self, str(record["id"]), Rect2(BACKING_POSITION, BACKING_SIZE))
+		else:
+			var backing: String = Data.item_backing(record)
+			var uses_scroll: bool = category == "recipe"
+			_slot.visible = backing.is_empty() and not uses_scroll
+			if not backing.is_empty():
+				Art.image(self, backing, BACKING_POSITION, BACKING_SIZE)
+			var icon: String = Data.item_icon(record)
+			var icon_size: Vector2 = BACKING_SIZE if uses_scroll else ICON_SIZE
+			var icon_position: Vector2 = (size - icon_size) * 0.5
+			if not icon.is_empty():
+				Art.image(self, icon, icon_position, icon_size)
+			if category == "recipe":
+				var recipe_scale: float = icon_size.y / 58.0
+				ItemArt.add_recipe_portrait(self, int(record.get("plant_type", 0)), size * 0.5, 0.42 * recipe_scale)
+				var wax: String = ItemArt.recipe_overlay_uri(str(record["id"]))
+				if not wax.is_empty():
+					Art.image(self, wax, icon_position + Vector2(35, 39) * recipe_scale, Vector2(20, 20) * recipe_scale)
 		Art.count_badge(self, "×%d" % int(record.get("qty", 0)), size - Vector2(4, 5))
 	# 默认边框常驻内容上层，悬停与选中边框再叠加在默认边框之上。
 	Art.slot_frame(self, Vector2.ZERO, size, plants_tab)
