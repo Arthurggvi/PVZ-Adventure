@@ -142,6 +142,28 @@
         "res://assets/reanim/Zombie_polevaulter_outerleg_toe.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_outerleg_toe.png",
         "res://assets/reanim/Zombie_head.png": "res://assets/adventure/zombies/normal_zombie/tier4/Zombie_head.png"
       }
+    },
+    "2": {
+      "inherits": "1",
+      "veteran": {
+        "res://assets/reanim/Zombie_flag1.png": "res://assets/adventure/zombies/flag_zombie/tier2/Zombie_flag1.png",
+        "res://assets/reanim/Zombie_flag3.png": "res://assets/adventure/zombies/flag_zombie/tier2/Zombie_flag3.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_flag1.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_flag1.png",
+        "res://assets/reanim/Zombie_flag3.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_flag3.png",
+        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_outerarm_upper2.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_flag1.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_flag1.png",
+        "res://assets/reanim/Zombie_flag3.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_flag3.png",
+        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_outerarm_upper2.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_flag1.png": "res://assets/adventure/zombies/flag_zombie/tier5/Zombie_flag1.png",
+        "res://assets/reanim/Zombie_flag3.png": "res://assets/adventure/zombies/flag_zombie/tier5/Zombie_flag3.png",
+        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier5/Zombie_outerarm_upper2.png"
+      }
     }
   }
 }
