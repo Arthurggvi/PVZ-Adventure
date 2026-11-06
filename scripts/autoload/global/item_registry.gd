@@ -24,6 +24,32 @@ const ITEMS: Dictionary = {
 		"description": "长在墓碑背阴处的苔藓，摘下来后仍带着潮气。"},
 	"zombie_thread": {"name": "僵尸线头", "category": "material",
 		"description": "从僵尸破衣上扯下的线头，看着松散，拉起来却很结实。"},
+	"pea_stem": {"name": "豌豆茎", "category": "material",
+		"description": "豌豆植株上富有韧性的嫩茎，卷曲的藤须仍能牢牢抓住周围的东西。"},
+	"pea_pod": {"name": "豌豆荚", "category": "material",
+		"description": "饱满的绿色豆荚，里面的豌豆圆润结实，适合培育射击植物。"},
+	"sun_nectar": {"name": "日光花蜜", "category": "material",
+		"description": "向阳花朵积攒的金黄蜜液，装在瓶中仍透出暖暖的光泽。"},
+	"fungal_spores": {"name": "真菌孢子", "category": "material",
+		"description": "从蘑菇菌褶间收集的细小孢子，稍有风吹便会四散飘落。"},
+	"frost_crystal": {"name": "霜晶粉", "category": "material",
+		"description": "由寒霜凝成的细碎晶粉，摸上去冰凉，能够让植物带上寒气。"},
+	"ember_resin": {"name": "炽热树脂", "category": "material",
+		"description": "从灼热树木上凝结的红色树脂，冷却后内部仍隐约闪着火光。"},
+	"aquatic_fiber": {"name": "水生纤维", "category": "material",
+		"description": "从水草和湿润茎叶中剥离的柔韧纤维，离开水面也不易断裂。"},
+	"plant_fiber": {"name": "植物纤维", "category": "material",
+		"description": "晒干后捆扎成束的植物纤维，轻巧结实，可用于固定植物的根茎。"},
+	"thorn_spine": {"name": "棘刺", "category": "material",
+		"description": "从多刺植物上采下的尖硬棘刺，末端锋利，收拾时可得小心。"},
+	"flower_pollen": {"name": "花粉", "category": "material",
+		"description": "从盛开的花朵间采集的金色细粉，散发着淡淡的花香。"},
+	"fruit_pulp": {"name": "果肉精华", "category": "material",
+		"description": "从成熟果实中榨取的浓稠果肉，保留了果实最充沛的养分。"},
+	"launch_vine": {"name": "弹射藤", "category": "material",
+		"description": "富有弹性的卷曲藤蔓，弯折后会迅速弹回原状。"},
+	"leaf_membrane": {"name": "叶膜", "category": "material",
+		"description": "从宽大的叶片上分离出的薄膜，柔软透光，又能挡住细雨。"},
 	"recipe_wall_nut": {"subject": "坚果墙", "category": "recipe"},
 	"recipe_potato_mine": {"subject": "土豆雷", "category": "recipe"},
 	"recipe_p001": {"subject": "豌豆射手", "category": "recipe"},
@@ -104,6 +130,7 @@ static func get_item_definition(item_id: String) -> Dictionary:
 	match definition.get("category", ""):
 		"recipe":
 			definition["name"] = "配方-%s" % definition.subject
+			definition["description"] = "记载着制作%s的方法。收集所需材料后，可以在研究室合成这张植物卡。" % definition.subject
 		"key":
 			definition["name"] = "钥匙-%s" % definition.subject
 			definition["description"] = "可以打开%s深处的大门，开启精英挑战。" % definition.subject
@@ -118,4 +145,5 @@ static func get_item_definition(item_id: String) -> Dictionary:
 			var level: int = int(definition.get("fertilizer_level", 0)) # 其他消耗品没有肥料级别。
 			if level >= 1 and level <= FERTILIZER_NAMES.size():
 				definition["name"] = "%s肥料" % FERTILIZER_NAMES[level - 1]
+				definition["description"] = "供研究室强化植物卡时使用的%s肥料，可以提高强化成功的机会。" % FERTILIZER_NAMES[level - 1]
 	return definition

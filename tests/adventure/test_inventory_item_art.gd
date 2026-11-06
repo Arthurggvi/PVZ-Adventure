@@ -6,7 +6,7 @@ func _ready() -> void:
 	call_deferred("_run")
 func _run() -> void:
 	var m: Dictionary = Asset.manifest()
-	assert(m.has("ids") and (m["ids"] as Dictionary).size() == 23)
+	assert(m.has("ids") and (m["ids"] as Dictionary).size() == 36)
 	assert(m.has("backgrounds"))
 	for id: String in ItemRegistry.ITEMS:
 		assert(not Asset.entry(id).is_empty(), "Missing item art mapping: " + id)
@@ -18,6 +18,21 @@ func _run() -> void:
 		var backing: String = str(m.backgrounds[category])
 		assert(ResourceLoader.exists(Asset.ROOT + backing))
 	assert(str(m.backgrounds["recipe"]) == "<null>" or m.backgrounds["recipe"] == null)
+	assert((m["material_backings"] as Dictionary).size() == 7)
+	var materials: Array[String] = []
+	for id: String in ItemRegistry.ITEMS:
+		if ItemRegistry.get_item_definition(id).get("category", "") != "material":
+			continue
+		materials.append(id)
+		assert(not str(ItemRegistry.get_item_definition(id).get("description", "")).is_empty())
+		assert(m["ids"].has(id))
+		assert(not str(m["ids"][id].get("backing_group", "")).is_empty())
+		assert(not Asset.backing_uri(id).is_empty())
+		assert(load(Asset.backing_uri(id)) is Texture2D)
+	assert(materials.size() == 21)
+	assert(Asset.backing_uri("pea_stem") == Asset.backing_uri("plant_fiber"))
+	assert(Asset.backing_uri("fungal_spores") != Asset.backing_uri("grave_moss"))
+	assert(Asset.backing_uri("ember_resin") == Asset.backing_uri("frost_crystal"))
 	assert(Asset.icon_uri("recipe_wall_nut") == Asset.icon_uri("recipe_potato_mine"))
 	assert(not Asset.recipe_overlay_uri("recipe_wall_nut").is_empty())
 	assert(Asset.recipe_overlay_uri("recipe_wall_nut") == Asset.recipe_overlay_uri("recipe_potato_mine"))
@@ -25,6 +40,8 @@ func _run() -> void:
 	assert(AdventureRecipeCatalog.definition("recipe_potato_mine").plant_type == CharacterRegistry.PlantType.P005PotatoMine)
 	var variants: Array[Dictionary] = [
 		{"id":"unsaturated_fat","category":"material"},
+		{"id":"fungal_spores","category":"material"},
+		{"id":"aquatic_fiber","category":"material"},
 		{"id":"lawn_nightmare_key","category":"key"},
 		{"id":"growth_agent","category":"consumable"}]
 	var anchor := Vector2(-5, 0) # 道具底图按格子高度填充后的居中位置。
@@ -67,5 +84,5 @@ func _run() -> void:
 	var recipe_wax: TextureRect = recipe.get_child(3) as TextureRect
 	assert(recipe_wax != null and recipe_wax.texture.resource_path == Asset.recipe_overlay_uri("recipe_wall_nut"))
 	recipe.queue_free()
-	print("INVENTORY_ITEM_ART_PASS 23 IDs 27 PNGs slot-anchoring recipe-reuse")
+	print("INVENTORY_ITEM_ART_PASS 36 mapped IDs 21 materials 7 backings")
 	get_tree().quit(0)

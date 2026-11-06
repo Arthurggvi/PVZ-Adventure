@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DropEntryDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+entry_id = &"material.common.plant_fiber"
+rule = 1
+asset_kind = 1
+asset_id = &"plant_fiber"
+quantity_min = 1
+quantity_max = 1
+chance = 0.25

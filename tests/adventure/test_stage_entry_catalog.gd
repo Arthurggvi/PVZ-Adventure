@@ -11,6 +11,18 @@ func _run() -> void:
 	var normal: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, StagePhaseDefinition.Kind.NORMAL)
 	var nightmare: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, StagePhaseDefinition.Kind.NIGHTMARE)
 	assert(normal != null and nightmare != null)
+	assert(normal.first_clear_items.get(&"plant_fiber", 0) == 1)
+	var added_ids: Array[String] = [
+		"pea_stem", "pea_pod", "sun_nectar", "fungal_spores", "frost_crystal",
+		"ember_resin", "aquatic_fiber", "plant_fiber", "thorn_spine",
+		"flower_pollen", "fruit_pulp", "launch_vine", "leaf_membrane"]
+	for phase: StagePhaseDefinition in [normal, nightmare]:
+		assert(phase.drop_table.validate().is_empty())
+		var drops: Dictionary = {}
+		for entry: DropEntryDefinition in phase.drop_table.entries:
+			drops[str(entry.asset_id)] = true
+		for id: String in added_ids:
+			assert(drops.has(id), "Material missing from %s: %s" % [phase.phase_id, id])
 	assert(stage.nightmare_key_id == &"lawn_nightmare_key")
 	assert(stage.nightmare_key_use == StageDefinition.KeyUse.KEEP)
 	var state := AdventureState.new()

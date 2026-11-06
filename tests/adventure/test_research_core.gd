@@ -31,6 +31,13 @@ func _chance(star: int, amount: int, fodder_star: int, type_id: int = 1,
 func _run() -> void:
 	assert(OS.get_user_data_dir().contains("research-core-test"))
 	assert(Recipes.all_ids().size() == 49)
+	var three_material_plants: Array[int] = [3, 5, 6, 8, 13, 15, 16, 19, 20, 21, 23, 24, 28, 40, 49]
+	for plant_type: int in range(1, 50):
+		if plant_type > 40 and plant_type < 49:
+			continue # 紫卡配方保持原样，本次仅确认普通卡。
+		var rid: String = Recipes.recipe_id(plant_type)
+		assert(Recipes.definition(rid).materials.size() == (3 if three_material_plants.has(plant_type) else 2))
+	assert(Recipes.definition("recipe_potato_mine").materials.has("plant_fiber"))
 	for id: String in Recipes.all_ids():
 		var recipe: Dictionary = Recipes.definition(id)
 		assert(ItemRegistry.has_item(id))

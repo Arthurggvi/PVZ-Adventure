@@ -1,38 +1,45 @@
 {
-  "version": "3.1",
-  "base_path": "res://assets/adventure/ui/items/",
+  "version": "4.0",
   "ids": {
     "unsaturated_fat": {
       "category": "material",
-      "icon": "materials/unsaturated_fat.png"
+      "icon": "materials/unsaturated_fat.png",
+      "backing_group": "nutrition"
     },
     "nut_fragments": {
       "category": "material",
-      "icon": "materials/nut_fragments.png"
+      "icon": "materials/nut_fragments.png",
+      "backing_group": "nutrition"
     },
     "explosive_seed": {
       "category": "material",
-      "icon": "materials/explosive_seed.png"
+      "icon": "materials/explosive_seed.png",
+      "backing_group": "elemental"
     },
     "plant_starch": {
       "category": "material",
-      "icon": "materials/plant_starch.png"
+      "icon": "materials/plant_starch.png",
+      "backing_group": "nutrition"
     },
     "rotten_wood_core": {
       "category": "material",
-      "icon": "materials/rotten_wood_core.png"
+      "icon": "materials/rotten_wood_core.png",
+      "backing_group": "grave"
     },
     "rusted_scrap": {
       "category": "material",
-      "icon": "materials/rusted_scrap.png"
+      "icon": "materials/rusted_scrap.png",
+      "backing_group": "hard"
     },
     "grave_moss": {
       "category": "material",
-      "icon": "materials/grave_moss.png"
+      "icon": "materials/grave_moss.png",
+      "backing_group": "grave"
     },
     "zombie_thread": {
       "category": "material",
-      "icon": "materials/zombie_thread.png"
+      "icon": "materials/zombie_thread.png",
+      "backing_group": "grave"
     },
     "recipe_wall_nut": {
       "category": "recipe",
@@ -97,6 +104,71 @@
     "fertilizer_lv5": {
       "category": "consumable",
       "icon": "consumables/fertilizer_lv5.png"
+    },
+    "pea_stem": {
+      "category": "material",
+      "icon": "materials/pea_stem.png",
+      "backing_group": "plant_tissue"
+    },
+    "pea_pod": {
+      "category": "material",
+      "icon": "materials/pea_pod.png",
+      "backing_group": "plant_tissue"
+    },
+    "plant_fiber": {
+      "category": "material",
+      "icon": "materials/plant_fiber.png",
+      "backing_group": "plant_tissue"
+    },
+    "launch_vine": {
+      "category": "material",
+      "icon": "materials/launch_vine.png",
+      "backing_group": "plant_tissue"
+    },
+    "leaf_membrane": {
+      "category": "material",
+      "icon": "materials/leaf_membrane.png",
+      "backing_group": "plant_tissue"
+    },
+    "sun_nectar": {
+      "category": "material",
+      "icon": "materials/sun_nectar.png",
+      "backing_group": "nutrition"
+    },
+    "flower_pollen": {
+      "category": "material",
+      "icon": "materials/flower_pollen.png",
+      "backing_group": "nutrition"
+    },
+    "fruit_pulp": {
+      "category": "material",
+      "icon": "materials/fruit_pulp.png",
+      "backing_group": "nutrition"
+    },
+    "fungal_spores": {
+      "category": "material",
+      "icon": "materials/fungal_spores.png",
+      "backing_group": "fungal"
+    },
+    "ember_resin": {
+      "category": "material",
+      "icon": "materials/ember_resin.png",
+      "backing_group": "elemental"
+    },
+    "frost_crystal": {
+      "category": "material",
+      "icon": "materials/frost_crystal.png",
+      "backing_group": "elemental"
+    },
+    "aquatic_fiber": {
+      "category": "material",
+      "icon": "materials/aquatic_fiber.png",
+      "backing_group": "aquatic"
+    },
+    "thorn_spine": {
+      "category": "material",
+      "icon": "materials/thorn_spine.png",
+      "backing_group": "hard"
     }
   },
   "backgrounds": {
@@ -112,34 +184,13 @@
     "3": "promotion_books/promotion_book_tier_03.png",
     "4": "promotion_books/promotion_book_tier_04.png"
   },
-  "render_order": [
-    "item_slot",
-    "category_background_if_present",
-    "item_icon",
-    "quantity_label",
-    "selection_overlay"
-  ],
-  "display_guidance": {
-    "tile_size": [
-      86,
-      86
-    ],
-    "category_background_position": [
-      9,
-      3
-    ],
-    "category_background_size": [
-      68,
-      68
-    ],
-    "item_icon_position": [
-      14,
-      8
-    ],
-    "item_icon_size": [
-      58,
-      58
-    ],
-    "recipe": "use reusable scroll and Godot plant portrait; do not add another backing"
+  "material_backings": {
+    "plant_tissue": "backgrounds/material_backing.png",
+    "nutrition": "backgrounds/backing_nutrient_ceramic.png",
+    "fungal": "backgrounds/backing_fungal_cap.png",
+    "grave": "backgrounds/backing_grave_stone.png",
+    "elemental": "backgrounds/backing_elemental_geode.png",
+    "aquatic": "backgrounds/backing_aquatic_shell.png",
+    "hard": "backgrounds/backing_hard_armor.png"
   }
 }

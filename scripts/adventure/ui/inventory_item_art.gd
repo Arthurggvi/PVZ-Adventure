@@ -52,9 +52,15 @@ static func icon_uri(item_id: String) -> String:
 	return path if not file.is_empty() and ResourceLoader.exists(path) else ""
 
 static func backing_uri(item_id: String) -> String:
-	var category: String = str(entry(item_id).get("category", ""))
-	var file: String = str(manifest().get("backgrounds", {}).get(category, ""))
-	var path := ROOT + file
+	var definition: Dictionary = entry(item_id)
+	var category: String = str(definition.get("category", ""))
+	var file: String = ""
+	if category == "material":
+		var group: String = str(definition.get("backing_group", ""))
+		file = str(manifest().get("material_backings", {}).get(group, ""))
+	else:
+		file = str(manifest().get("backgrounds", {}).get(category, ""))
+	var path: String = ROOT + file
 	return path if not file.is_empty() and ResourceLoader.exists(path) else ""
 
 static func recipe_overlay_uri(item_id: String) -> String:

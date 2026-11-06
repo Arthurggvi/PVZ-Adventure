@@ -11,6 +11,19 @@
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="8_4ulqo"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/stage_definition.gd" id="9_s56om"]
 
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/pea_stem.tres" id="Material_pea_stem"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/pea_pod.tres" id="Material_pea_pod"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/sun_nectar.tres" id="Material_sun_nectar"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/fungal_spores.tres" id="Material_fungal_spores"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/frost_crystal.tres" id="Material_frost_crystal"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/ember_resin.tres" id="Material_ember_resin"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/aquatic_fiber.tres" id="Material_aquatic_fiber"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/plant_fiber.tres" id="Material_plant_fiber"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/thorn_spine.tres" id="Material_thorn_spine"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/flower_pollen.tres" id="Material_flower_pollen"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/fruit_pulp.tres" id="Material_fruit_pulp"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/launch_vine.tres" id="Material_launch_vine"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/leaf_membrane.tres" id="Material_leaf_membrane"]
 [sub_resource type="Resource" id="Resource_mw5ds"]
 script = ExtResource("2_g3gx0")
 
@@ -83,7 +96,7 @@ chance = 0.15
 [sub_resource type="Resource" id="Resource_4ulqo"]
 script = ExtResource("5_dgljq")
 table_id = &"zombie_island.lawn.normal"
-entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_rehtx"), SubResource("Resource_rx0cf"), SubResource("Resource_g3gx0"), SubResource("Resource_g1pq0"), SubResource("Resource_dgljq"), SubResource("Resource_6xuwk"), SubResource("Resource_qif7b")])
+entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_rehtx"), SubResource("Resource_rx0cf"), SubResource("Resource_g3gx0"), SubResource("Resource_g1pq0"), SubResource("Resource_dgljq"), SubResource("Resource_6xuwk"), SubResource("Resource_qif7b"), ExtResource("Material_pea_stem"), ExtResource("Material_pea_pod"), ExtResource("Material_sun_nectar"), ExtResource("Material_fungal_spores"), ExtResource("Material_frost_crystal"), ExtResource("Material_ember_resin"), ExtResource("Material_aquatic_fiber"), ExtResource("Material_plant_fiber"), ExtResource("Material_thorn_spine"), ExtResource("Material_flower_pollen"), ExtResource("Material_fruit_pulp"), ExtResource("Material_launch_vine"), ExtResource("Material_leaf_membrane")])
 min_material_count = 6
 min_recipe_count = 1
 weighted_draw_count = 1
@@ -119,7 +132,8 @@ first_clear_items = Dictionary[StringName, int]({
 &"nut_fragments": 1,
 &"recipe_potato_mine": 1,
 &"recipe_wall_nut": 1,
-&"unsaturated_fat": 1
+&"unsaturated_fat": 1,
+&"plant_fiber": 1
 })
 
 [sub_resource type="Resource" id="Resource_tifcb"]
@@ -246,7 +260,7 @@ chance = 0.1
 [sub_resource type="Resource" id="Resource_elkku"]
 script = ExtResource("5_dgljq")
 table_id = &"zombie_island.lawn.nightmare.boss"
-entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_p4d35"), SubResource("Resource_iiiv0"), SubResource("Resource_y6ptv"), SubResource("Resource_wd1bx"), SubResource("Resource_pd7hg"), SubResource("Resource_tnjdw"), SubResource("Resource_vyptr"), SubResource("Resource_f2oog"), SubResource("Resource_5lsqv"), SubResource("Resource_goppa"), SubResource("Resource_cv8j7")])
+entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_p4d35"), SubResource("Resource_iiiv0"), SubResource("Resource_y6ptv"), SubResource("Resource_wd1bx"), SubResource("Resource_pd7hg"), SubResource("Resource_tnjdw"), SubResource("Resource_vyptr"), SubResource("Resource_f2oog"), SubResource("Resource_5lsqv"), SubResource("Resource_goppa"), SubResource("Resource_cv8j7"), ExtResource("Material_pea_stem"), ExtResource("Material_pea_pod"), ExtResource("Material_sun_nectar"), ExtResource("Material_fungal_spores"), ExtResource("Material_frost_crystal"), ExtResource("Material_ember_resin"), ExtResource("Material_aquatic_fiber"), ExtResource("Material_plant_fiber"), ExtResource("Material_thorn_spine"), ExtResource("Material_flower_pollen"), ExtResource("Material_fruit_pulp"), ExtResource("Material_launch_vine"), ExtResource("Material_leaf_membrane")])
 min_material_count = 8
 min_recipe_count = 2
 min_distinct_materials = 8
