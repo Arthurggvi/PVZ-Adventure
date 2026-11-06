@@ -69,6 +69,29 @@
         "res://assets/reanim/Zombie_cone2.png": "res://assets/adventure/zombies/conehead/tier5/Zombie_cone2.png",
         "res://assets/reanim/Zombie_cone3.png": "res://assets/adventure/zombies/conehead/tier5/Zombie_cone3.png"
       }
+    },
+    "5": {
+      "inherits": "1",
+      "veteran": {
+        "res://assets/reanim/Zombie_bucket1.png": "res://assets/adventure/zombies/buckethead/tier2/Zombie_bucket1.png",
+        "res://assets/reanim/Zombie_bucket2.png": "res://assets/adventure/zombies/buckethead/tier2/Zombie_bucket2.png",
+        "res://assets/reanim/Zombie_bucket3.png": "res://assets/adventure/zombies/buckethead/tier2/Zombie_bucket3.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_bucket1.png": "res://assets/adventure/zombies/buckethead/tier3/Zombie_bucket1.png",
+        "res://assets/reanim/Zombie_bucket2.png": "res://assets/adventure/zombies/buckethead/tier3/Zombie_bucket2.png",
+        "res://assets/reanim/Zombie_bucket3.png": "res://assets/adventure/zombies/buckethead/tier3/Zombie_bucket3.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_bucket1.png": "res://assets/adventure/zombies/buckethead/tier3/Zombie_bucket1.png",
+        "res://assets/reanim/Zombie_bucket2.png": "res://assets/adventure/zombies/buckethead/tier3/Zombie_bucket2.png",
+        "res://assets/reanim/Zombie_bucket3.png": "res://assets/adventure/zombies/buckethead/tier3/Zombie_bucket3.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_bucket1.png": "res://assets/adventure/zombies/buckethead/tier5/Zombie_bucket1.png",
+        "res://assets/reanim/Zombie_bucket2.png": "res://assets/adventure/zombies/buckethead/tier5/Zombie_bucket2.png",
+        "res://assets/reanim/Zombie_bucket3.png": "res://assets/adventure/zombies/buckethead/tier5/Zombie_bucket3.png"
+      }
     }
   }
 }

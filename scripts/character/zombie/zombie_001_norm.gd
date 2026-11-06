@@ -49,9 +49,10 @@ func _random_anim_status():
 
 func _random_sprit_appear():
 	for sprite in init_sprite_random:
-		# 冒险普僵/路障固定领带；其他僵尸及 Legacy 维持原随机表现。
+		# 冒险普僵/路障/铁桶固定领带；其他僵尸及 Legacy 维持原随机表现。
 		if zombie_type in [CharacterRegistry.ZombieType.Z001Norm, \
-				CharacterRegistry.ZombieType.Z003Cone] and adventure_tier_id != &"" \
+				CharacterRegistry.ZombieType.Z003Cone, \
+				CharacterRegistry.ZombieType.Z005Bucket] and adventure_tier_id != &"" \
 				and sprite == get_node_or_null("Body/BodyCorrect/Zombie_tie"):
 			sprite.visible = true
 			continue
