@@ -432,16 +432,28 @@
     "11": {
       "inherits": "1",
       "veteran": {
-        "res://assets/reanim/Zombie_duckytube.png": "res://assets/adventure/zombies/duckytube/tier2/Zombie_duckytube.png"
+        "res://assets/reanim/Zombie_duckytube.png": "res://assets/adventure/zombies/duckytube/tier2/Zombie_duckytube.png",
+        "res://assets/reanim/Zombie_duckytubehead.png": "res://assets/adventure/zombies/duckytube/tier2/Zombie_duckytubehead.png",
+        "res://assets/reanim/Zombie_duckytube_inwater.png": "res://assets/adventure/zombies/duckytube/tier2/Zombie_duckytube_inwater.png",
+        "res://assets/reanim/Zombie_duckytube_whole.png": "res://assets/adventure/zombies/duckytube/tier2/Zombie_duckytube_whole.png"
       },
       "elite": {
-        "res://assets/reanim/Zombie_duckytube.png": "res://assets/adventure/zombies/duckytube/tier3/Zombie_duckytube.png"
+        "res://assets/reanim/Zombie_duckytube.png": "res://assets/adventure/zombies/duckytube/tier3/Zombie_duckytube.png",
+        "res://assets/reanim/Zombie_duckytubehead.png": "res://assets/adventure/zombies/duckytube/tier3/Zombie_duckytubehead.png",
+        "res://assets/reanim/Zombie_duckytube_inwater.png": "res://assets/adventure/zombies/duckytube/tier3/Zombie_duckytube_inwater.png",
+        "res://assets/reanim/Zombie_duckytube_whole.png": "res://assets/adventure/zombies/duckytube/tier3/Zombie_duckytube_whole.png"
       },
       "tier4": {
-        "res://assets/reanim/Zombie_duckytube.png": "res://assets/adventure/zombies/duckytube/tier4/Zombie_duckytube.png"
+        "res://assets/reanim/Zombie_duckytube.png": "res://assets/adventure/zombies/duckytube/tier4/Zombie_duckytube.png",
+        "res://assets/reanim/Zombie_duckytubehead.png": "res://assets/adventure/zombies/duckytube/tier4/Zombie_duckytubehead.png",
+        "res://assets/reanim/Zombie_duckytube_inwater.png": "res://assets/adventure/zombies/duckytube/tier4/Zombie_duckytube_inwater.png",
+        "res://assets/reanim/Zombie_duckytube_whole.png": "res://assets/adventure/zombies/duckytube/tier4/Zombie_duckytube_whole.png"
       },
       "tier5": {
-        "res://assets/reanim/Zombie_duckytube.png": "res://assets/adventure/zombies/duckytube/tier5/Zombie_duckytube.png"
+        "res://assets/reanim/Zombie_duckytube.png": "res://assets/adventure/zombies/duckytube/tier5/Zombie_duckytube.png",
+        "res://assets/reanim/Zombie_duckytubehead.png": "res://assets/adventure/zombies/duckytube/tier5/Zombie_duckytubehead.png",
+        "res://assets/reanim/Zombie_duckytube_inwater.png": "res://assets/adventure/zombies/duckytube/tier5/Zombie_duckytube_inwater.png",
+        "res://assets/reanim/Zombie_duckytube_whole.png": "res://assets/adventure/zombies/duckytube/tier5/Zombie_duckytube_whole.png"
       }
     }
   }

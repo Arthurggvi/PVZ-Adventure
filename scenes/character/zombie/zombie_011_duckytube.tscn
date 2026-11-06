@@ -4,7 +4,6 @@
 
 [node name="Zombie011Duckytube" instance=ExtResource("1_5dvt3")]
 zombie_type = 11
-zombie_type = 11
 
 [node name="Anim_innerarm3" parent="Body/BodyCorrect/Anim_innerarm" index="0"]
 position = Vector2(26.432024, 84.960785)
