@@ -63,7 +63,7 @@ static func resolve(index: int) -> StageDefinition:
 		for band: WaveBandDefinition in phase.wave_profile.bands:
 			band.band_id = StringName(str(phase.phase_id) + ".wave_" + str(band.first_wave))
 		if phase.kind == StagePhaseDefinition.Kind.NIGHTMARE:
-			phase.unlock_rule = StagePhaseDefinition.UnlockRule.NORMAL_CLEARED_AND_KEY
+			phase.unlock_rule = StagePhaseDefinition.UnlockRule.CONTINUE_WITH_KEY
 			phase.key_id = key_id(index)
 			phase.key_count = 1
 			phase.key_use = StagePhaseDefinition.KeyUse.KEEP

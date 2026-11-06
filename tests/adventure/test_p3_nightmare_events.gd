@@ -17,15 +17,26 @@ func _run() -> void:
 	map.canvas.get_node("Intro")._finish()
 	await _frames()
 	assert(AdventureSession.progress.intro_completed)
-	AdventureStageCatalog.mark_cleared(Global.global_game_state.adventure_state,
-		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NORMAL)
-	assert(Global.adventure_inventory.add_item("lawn_nightmare_key", 1))
 	map._select_stage(1)
-	assert(map.phase_dialog.dialog_text.contains("可进入"))
-	map.phase_dialog.custom_action.emit(&"nightmare")
 	await _wait_battle()
 	var battle: MainGameManager = Global.main_game
+	assert(AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NORMAL)
+	# 真实自然波次与清怪接口推进普通清场；首通钥匙在检查点结算后当场可用。
+	Engine.time_scale = 6.0
+	var normal_deadline: int = Time.get_ticks_msec() + 60000
+	while AdventureSession.challenge_state == AdventureSession.ChallengeState.NORMAL_ACTIVE \
+			and Time.get_ticks_msec() < normal_deadline:
+		if battle.zombie_manager.curr_zombie_num > 0:
+			battle.zombie_manager.death_all_zombie()
+		await get_tree().create_timer(0.2, true, false, true).timeout
+	assert(AdventureSession.challenge_state == AdventureSession.ChallengeState.NORMAL_COMPLETE)
+	assert(Global.adventure_inventory.get_item_count("lawn_nightmare_key") >= 1)
+	assert(battle.adventure_continuation.dialog != null)
+	Engine.time_scale = 1.0
+	battle.adventure_continuation.dialog.confirmed.emit()
+	await _frames()
 	assert(AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE)
+	assert(AdventureSession.challenge_state == AdventureSession.ChallengeState.NIGHTMARE_ACTIVE)
 	assert(battle.game_para.look_show_zombie and battle.game_para.can_choosed_card)
 	var waves: ZombieWaveManager = battle.zombie_manager.zombie_wave_manager
 	var runtime: AdventureBattleRuntime = battle.adventure_runtime
@@ -63,12 +74,14 @@ func _run() -> void:
 	await get_tree().create_timer(0.35).timeout
 	assert(not waves.is_advancement_suspended and waves.curr_wave > old_wave)
 	assert(AdventureSession.boss_exit_results[encounter_id] == StageEventDefinition.BossExitReason.ESCAPED)
-	# 人工调用胜利结算只验证存档路由，不作为完成十波的证据。
-	assert(AdventureSession.settle_victory())
-	AdventureSession.finish_victory()
-	await _frames()
+	# 任何未到最后自然波的外部结算请求均应被拒绝。
+	assert(not AdventureSession.settle_victory())
 	assert(AdventureStageCatalog.is_cleared(Global.global_game_state.adventure_state,
+		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NORMAL))
+	assert(not AdventureStageCatalog.is_cleared(Global.global_game_state.adventure_state,
 		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NIGHTMARE))
+	AdventureSession.abandon_battle()
+	await _frames()
 	assert(AdventureSession.active_level == null)
-	print("PASS: nightmare entry, events, boss independent minions, escape and victory save routing")
+	print("PASS: first-clear key continuation, independent nightmare waves, boss events and strict settlement")
 	get_tree().quit(0)

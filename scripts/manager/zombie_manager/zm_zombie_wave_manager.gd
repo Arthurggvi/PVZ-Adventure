@@ -121,6 +121,22 @@ func set_progress_bar(curr_flag:int=-1):
 	var curr_progress = curr_wave % max_wave_one_round * progress_bar_segment_every_wave
 	flag_progress_bar.set_progress(curr_progress, curr_flag)
 
+## 仅冒险阶段的独立波次重初始化；取消全部旧计时与 await 后重置波次编号。
+## 新阶段可拥有与普通阶段完全不同的波数及波段配置。
+func begin_adventure_phase(profile: WaveProfile) -> void:
+	assert(profile != null and profile.wave_count >= 2)
+	stop_wave_refresh()
+	zombie_wave_create_manager.begin_adventure_phase(profile)
+	curr_wave = -1
+	max_wave_one_round = profile.wave_count
+	max_wave = profile.wave_count
+	_before_wave_signalled = -1
+	curr_wave_type = E_WaveType.Norm
+	flag_progress_bar.init_flag_from_adventure_profile(profile)
+	flag_progress_bar.visible = false
+	progress_bar_segment_every_wave = 100.0 / (profile.wave_count - 1)
+	progress_bar_segment_mini_every_sec = 0.0
+
 ## 战斗阶段开始第一波并启动进度计时；关卡已结束时不启动。
 func start_first_wave():
 	if zombie_wave_create_manager.adventure_wave_profile != null:

@@ -40,6 +40,12 @@ func init_zombie_wave_create_manager(game_para:ResourceLevelData):
 	update_zombie_refresh_types()
 
 ## 更新可以刷新的僵尸列表
+## 阶段连续战斗切换时替换自然波次配置，不重建选行系统或战场。
+func begin_adventure_phase(profile: WaveProfile) -> void:
+	adventure_wave_profile = profile
+	_adventure_rng.randomize()
+	update_zombie_refresh_types()
+
 func update_zombie_refresh_types():
 	if adventure_wave_profile != null:
 		zombie_choose_random_pool = null

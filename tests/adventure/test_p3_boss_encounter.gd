@@ -17,7 +17,6 @@ func _run() -> void:
 	map.canvas.get_node("Intro")._finish()
 	await _frames()
 	map._select_stage(1)
-	map.phase_dialog.confirmed.emit()
 	await _wait_battle()
 	var battle: MainGameManager = Global.main_game
 	var waves: ZombieWaveManager = battle.zombie_manager.zombie_wave_manager

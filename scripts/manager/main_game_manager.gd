@@ -115,6 +115,8 @@ var _round_end_claimed: bool = false
 var _round_end_by_boss: bool = false
 ## 冒险本局权威控制器；由主战斗场景持有，不隶属于原版波次系统。
 var adventure_runtime: AdventureBattleRuntime
+## 仅冒险模式拥有的连续阶段调度器。
+var adventure_continuation: AdventureContinuationController
 ## 当前关卡流程阶段；更新时同步通知卡槽与角色行为。
 var main_game_progress := E_MainGameProgress.NONE:
 	set(value):
@@ -266,6 +268,9 @@ func init_manager():
 			adventure_runtime = AdventureBattleRuntime.new()
 			adventure_runtime.setup(zombie_manager.zombie_wave_manager, zombie_manager, phase)
 			add_child(adventure_runtime)
+			adventure_continuation = AdventureContinuationController.new()
+			adventure_continuation.setup(self)
+			add_child(adventure_continuation)
 	background_manager.init_manager()
 	drop_item_manager.init_manager()
 	day_suns_manager.init_manager()
@@ -533,7 +538,11 @@ func request_adventure_event_result(result: int) -> void:
 func create_trophy(glo_pos: Vector2) -> void:
 	if not try_claim_round_end():
 		return
-	_finish_round_victory(glo_pos)
+	if AdventureSession.owns_battle(game_para) \
+			and AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NORMAL:
+		adventure_continuation.complete_normal(glo_pos)
+	else:
+		_finish_round_victory(glo_pos)
 
 
 ## [param glo_pos] 为最后一只 Boss 请求的奖杯世界坐标；完成已接受的 Boss 胜利。

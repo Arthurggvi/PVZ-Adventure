@@ -70,10 +70,6 @@ func _run() -> void:
 	map._fit_canvas()
 	await _screenshot("map")
 	map._select_stage(1)
-	assert(map.phase_dialog != null)
-	assert(not map.phase_dialog.get_ok_button().disabled)
-	assert(map.phase_dialog.dialog_text.contains("噩梦阶段"))
-	map.phase_dialog.confirmed.emit()
 	await _wait_battle()
 	var battle: MainGameManager = Global.main_game # 原版草坪管理器。
 	assert(FileAccess.file_exists(original_path))
@@ -106,12 +102,18 @@ func _run() -> void:
 	battle = Global.main_game
 	# 加速自然十波，用原项目调试清怪入口缩短验收，不直接写胜利标记。
 	Engine.time_scale = 6.0
-	while battle.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME:
+	while AdventureSession.challenge_state == AdventureSession.ChallengeState.NORMAL_ACTIVE:
 		if battle.zombie_manager.curr_zombie_num > 0:
 			saw_zombies = true
 			battle.zombie_manager.death_all_zombie()
-		await get_tree().create_timer(0.5).timeout
+		await get_tree().create_timer(0.5, true, false, true).timeout
 	assert(saw_zombies and battle.zombie_manager.is_end_wave)
+	assert(AdventureSession.challenge_state == AdventureSession.ChallengeState.NORMAL_COMPLETE)
+	assert(battle.adventure_continuation.dialog != null and battle.adventure_continuation.dialog.visible)
+	# 首通奖励本轮发放钥匙，玩家应立即得到续战选择。选择结束后再生成奖杯。
+	battle.adventure_continuation.dialog.canceled.emit()
+	Engine.time_scale = 1.0
+	await _frames()
 	assert(battle.zombie_manager.curr_zombie_num == 0)
 	assert(AdventureSession.progress.stage_1_cleared)
 	var trophy: Trophy # 原清场逻辑创建的奖杯。
@@ -201,15 +203,25 @@ func _frames() -> void:
 			continue
 		break
 
-## 点击真实菜单入口；V8 新增地区步骤，保留旧 V6 的直达测试语义。
+## 从真正的持久工具栏地区导航进入地图；等待动效完成再选择。
 func _enter_island_from_menu() -> void:
-	var menu: Control = get_tree().current_scene # 信号可能立即清空 current_scene，先保留调用节点。
+	var menu: Control = get_tree().current_scene
 	menu.get_node("ArtCanvas/ship_button").pressed.emit()
+	var picker: Control
+	var deadline: int = Time.get_ticks_msec() + 12000
+	while Time.get_ticks_msec() < deadline:
+		picker = get_tree().root.get_node_or_null("AdventureToolbar/MapNavigation/MapDestinationPicker")
+		if picker != null and picker.is_presented():
+			break
+		await get_tree().process_frame
+	assert(picker != null and picker.is_presented())
+	picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island").pressed.emit()
+	while Time.get_ticks_msec() < deadline + 12000 and (
+			get_tree().current_scene == null or
+			get_tree().current_scene.scene_file_path != AdventureSession.MAP_SCENE):
+		await get_tree().process_frame
+	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
 	await _frames()
-	var picker: Control = get_tree().current_scene.get_node_or_null("AdventureDestinationPicker") # 仅 V8 实装独立地区选择器。
-	if picker != null:
-		picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island").pressed.emit()
-		await _frames()
 
 ## 集成测试必须经过真实选卡交互，不能再假设冒险自动进入战斗。
 func _wait_battle() -> void:

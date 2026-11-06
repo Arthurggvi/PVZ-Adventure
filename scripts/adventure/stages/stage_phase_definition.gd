@@ -4,8 +4,9 @@ class_name StagePhaseDefinition
 
 ## 阶段身份必须显式指定，不由名字或数组位置推断。
 enum Kind { UNSET, NORMAL, NIGHTMARE }
-## nightmare 必须先通关本关 normal；钥匙条件可与该阶段锁组合。
-enum UnlockRule { UNSET, OPEN, KEY, NORMAL_CLEARED, NORMAL_CLEARED_AND_KEY }
+## NIGHTMARE 的继续条件针对本次挑战已完成 normal，与历史首通记录无关。
+## 保持枚举序号以兼容已序列化的 .tres 资源。
+enum UnlockRule { UNSET = 0, OPEN = 1, CONTINUE_WITH_KEY = 4 }
 ## 无钥匙条件、检查但保留、检查并消费三种语义明确分离。
 enum KeyUse { UNSET, NOT_REQUIRED, KEEP, CONSUME }
 ## 仅主动选卡兼容本阶段契约，其他模式保留为可报告的非法配置。
@@ -51,13 +52,13 @@ func validate(known_tier_ids: Array[StringName] = [], known_key_ids: Array[Strin
 		errors.append("阶段缺少稳定 ID。")
 	if kind not in [Kind.NORMAL, Kind.NIGHTMARE]:
 		errors.append("阶段类型必须为 normal 或 nightmare。")
-	if kind == Kind.NORMAL and unlock_rule not in [UnlockRule.OPEN, UnlockRule.KEY]:
-		errors.append("normal 必须显式选择开放或钥匙条件，不能依赖自身通关。")
-	if kind == Kind.NIGHTMARE and unlock_rule not in [UnlockRule.NORMAL_CLEARED, UnlockRule.NORMAL_CLEARED_AND_KEY]:
-		errors.append("nightmare 必须先完成本关 normal。")
+	if kind == Kind.NORMAL and unlock_rule != UnlockRule.OPEN:
+		errors.append("normal 必须始终无条件开放，不能依赖钥匙或历史首通。")
+	if kind == Kind.NIGHTMARE and unlock_rule != UnlockRule.CONTINUE_WITH_KEY:
+		errors.append("nightmare 必须配置普通清场后依钥匙继续的规则。")
 	if unlock_rule == UnlockRule.UNSET or not UnlockRule.values().has(unlock_rule):
 		errors.append("阶段解锁条件未配置或无效。")
-	if unlock_rule in [UnlockRule.KEY, UnlockRule.NORMAL_CLEARED_AND_KEY]:
+	if unlock_rule == UnlockRule.CONTINUE_WITH_KEY:
 		if str(key_id).strip_edges().is_empty() or not known_key_ids.has(key_id) or key_count < 1:
 			errors.append("钥匙条件必须引用已定义钥匙并指定正数量。")
 		if key_use not in [KeyUse.KEEP, KeyUse.CONSUME]:

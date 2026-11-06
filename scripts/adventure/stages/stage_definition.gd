@@ -35,4 +35,16 @@ func validate(known_tier_ids: Array[StringName] = [], known_key_ids: Array[Strin
 		errors.append_array(phase.validate(known_tier_ids, known_key_ids))
 	if not kinds.has(StagePhaseDefinition.Kind.NORMAL) or not kinds.has(StagePhaseDefinition.Kind.NIGHTMARE):
 		errors.append("关卡必须分别声明 normal 与 nightmare。")
+	else:
+		var normal: StagePhaseDefinition
+		var nightmare: StagePhaseDefinition
+		for phase: StagePhaseDefinition in phases:
+			if phase != null and phase.kind == StagePhaseDefinition.Kind.NORMAL:
+				normal = phase
+			elif phase != null and phase.kind == StagePhaseDefinition.Kind.NIGHTMARE:
+				nightmare = phase
+		if normal.max_selected_cards != nightmare.max_selected_cards:
+			errors.append("连续阶段必须使用相同出战卡槽数量；本次挑战不重新选卡。")
+		if nightmare.boss_encounters.is_empty():
+			errors.append("噩梦阶段必须配置 Boss 遭遇。")
 	return errors

@@ -155,6 +155,22 @@ func init_manager() -> void:
 			## 波次刷新时判断是否为最后一波，删除多余魅惑僵尸
 			hammer_zombie_manager.signal_wave_refresh.connect(wave_refresh)
 
+## 冒险阶段在同一个场景内更换波次，植物、阳光和小推车保持不变。
+## 必须由普通末波真实清场且结算成功的唯一流程调用。
+func begin_adventure_phase(profile: WaveProfile) -> bool:
+	if not is_game_running() or not is_end_wave or curr_zombie_num != 0 or profile == null:
+		return false
+	if is_instance_valid(check_zombie_end_wave_timer):
+		check_zombie_end_wave_timer.stop()
+	if is_instance_valid(multi_round_end_wave_timer):
+		multi_round_end_wave_timer.stop()
+	_natural_refresh_zombies.clear()
+	_natural_wave_by_id.clear()
+	_natural_wave_counts.clear()
+	is_end_wave = false
+	zombie_wave_manager.begin_adventure_phase(profile)
+	return true
+
 ## 开始第一波
 func start_game():
 	if not is_game_running() or _start_requested:

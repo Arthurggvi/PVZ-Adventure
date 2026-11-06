@@ -19,12 +19,6 @@ func _run() -> void:
 	await _frames()
 	assert(AdventureSession.progress.intro_completed)
 	map._select_stage(1)
-	assert(map.phase_dialog != null and map.phase_dialog.visible)
-	assert(map.phase_dialog.title.contains("草坪"))
-	assert(map.phase_dialog.dialog_text.contains("噩梦阶段"))
-	assert(map.phase_dialog.dialog_text.contains("通关普通"))
-	assert(not map.phase_dialog.get_ok_button().disabled)
-	map.phase_dialog.confirmed.emit()
 	await _frames()
 	var battle: MainGameManager = Global.main_game
 	while not battle.card_manager.is_norm_appeared:
@@ -34,5 +28,5 @@ func _run() -> void:
 	assert(battle.main_game_progress == MainGameManager.E_MainGameProgress.CHOOSE_CARD)
 	assert(battle.game_para.look_show_zombie and battle.game_para.can_choosed_card)
 	assert(battle.zombie_manager.zombie_show_in_start.show_zombies_array.size() > 0)
-	print("PASS: map phase dialog, locked nightmare, stage config, zombie preview and UID draft")
+	print("PASS: map enters normal directly, no difficulty dialog, card selection and preview")
 	get_tree().quit(0)

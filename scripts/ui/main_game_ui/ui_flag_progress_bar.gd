@@ -71,13 +71,20 @@ func _build_flag_nodes(positions: Array[float]) -> void:
 		if is_instance_valid(old):
 			old.queue_free()
 	flag_arr.clear()
+	# 原场景 Flag 是不可释放的模板；连续阶段多次重建都从同一个模板复制。
+	flag.hide()
 	for x: float in positions:
 		var new_flag: FlagProgressBarFlag = flag.duplicate() as FlagProgressBarFlag
 		add_child(new_flag)
 		move_child(new_flag, 1)
 		new_flag.position.x = x
+		new_flag.show()
 		flag_arr.append(new_flag)
-	flag.queue_free()
+	# 普通、噩梦阶段的进度和旗帜均从0%开始。
+	real_value = 0.0
+	chase_value = 0.0
+	texture_progress_bar.value = 0
+	mini_zombie.position.x = start_minizombie
 
 ## 开始下一轮游戏,进度条更新数据
 func start_next_game_flag_progress_bar_update():
