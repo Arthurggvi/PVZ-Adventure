@@ -54,7 +54,8 @@ func _random_sprit_appear():
 				CharacterRegistry.ZombieType.Z002Flag, \
 				CharacterRegistry.ZombieType.Z003Cone, \
 				CharacterRegistry.ZombieType.Z005Bucket, \
-				CharacterRegistry.ZombieType.Z007ScreenDoor] and adventure_tier_id != &"" \
+				CharacterRegistry.ZombieType.Z007ScreenDoor, \
+				CharacterRegistry.ZombieType.Z011Duckytube] and adventure_tier_id != &"" \
 				and sprite == get_node_or_null("Body/BodyCorrect/Zombie_tie"):
 			sprite.visible = true
 			continue
