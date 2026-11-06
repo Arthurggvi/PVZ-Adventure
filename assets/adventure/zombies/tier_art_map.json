@@ -92,6 +92,56 @@
         "res://assets/reanim/Zombie_bucket2.png": "res://assets/adventure/zombies/buckethead/tier5/Zombie_bucket2.png",
         "res://assets/reanim/Zombie_bucket3.png": "res://assets/adventure/zombies/buckethead/tier5/Zombie_bucket3.png"
       }
+    },
+    "4": {
+      "veteran": {
+        "res://assets/reanim/Zombie_polevaulter_hair.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_hair.png",
+        "res://assets/reanim/Zombie_polevaulter_innerarm_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_innerarm_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_innerleg_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_innerleg_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_outerarm_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_outerarm_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_outerleg_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_outerleg_lower.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_polevaulter_hair.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_hair.png",
+        "res://assets/reanim/Zombie_polevaulter_innerarm_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_innerarm_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_innerleg_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_innerleg_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_outerarm_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_outerarm_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_outerleg_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_outerleg_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_body1.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_body1.png",
+        "res://assets/reanim/Zombie_polevaulter_body2.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_body2.png",
+        "res://assets/reanim/Zombie_polevaulter_innerleg_foot.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_innerleg_foot.png",
+        "res://assets/reanim/Zombie_polevaulter_innerleg_toe.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_innerleg_toe.png",
+        "res://assets/reanim/Zombie_polevaulter_outerleg_foot.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_outerleg_foot.png",
+        "res://assets/reanim/Zombie_polevaulter_outerleg_toe.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_outerleg_toe.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_polevaulter_hair.png": "res://assets/adventure/zombies/pole_vaulter/tier4/Zombie_polevaulter_hair.png",
+        "res://assets/reanim/Zombie_polevaulter_innerarm_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_innerarm_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_innerleg_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_innerleg_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_outerarm_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_outerarm_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_outerleg_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_outerleg_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_body1.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_body1.png",
+        "res://assets/reanim/Zombie_polevaulter_body2.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_body2.png",
+        "res://assets/reanim/Zombie_polevaulter_innerleg_foot.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_innerleg_foot.png",
+        "res://assets/reanim/Zombie_polevaulter_innerleg_toe.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_innerleg_toe.png",
+        "res://assets/reanim/Zombie_polevaulter_outerleg_foot.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_outerleg_foot.png",
+        "res://assets/reanim/Zombie_polevaulter_outerleg_toe.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_outerleg_toe.png",
+        "res://assets/reanim/Zombie_head.png": "res://assets/adventure/zombies/normal_zombie/tier4/Zombie_head.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_polevaulter_hair.png": "res://assets/adventure/zombies/pole_vaulter/tier4/Zombie_polevaulter_hair.png",
+        "res://assets/reanim/Zombie_polevaulter_innerarm_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_innerarm_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_innerleg_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_innerleg_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_outerarm_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_outerarm_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_outerleg_lower.png": "res://assets/adventure/zombies/pole_vaulter/tier2/Zombie_polevaulter_outerleg_lower.png",
+        "res://assets/reanim/Zombie_polevaulter_body1.png": "res://assets/adventure/zombies/pole_vaulter/tier5/Zombie_polevaulter_body1.png",
+        "res://assets/reanim/Zombie_polevaulter_body2.png": "res://assets/adventure/zombies/pole_vaulter/tier5/Zombie_polevaulter_body2.png",
+        "res://assets/reanim/Zombie_polevaulter_innerleg_foot.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_innerleg_foot.png",
+        "res://assets/reanim/Zombie_polevaulter_innerleg_toe.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_innerleg_toe.png",
+        "res://assets/reanim/Zombie_polevaulter_outerleg_foot.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_outerleg_foot.png",
+        "res://assets/reanim/Zombie_polevaulter_outerleg_toe.png": "res://assets/adventure/zombies/pole_vaulter/tier3/Zombie_polevaulter_outerleg_toe.png",
+        "res://assets/reanim/Zombie_head.png": "res://assets/adventure/zombies/normal_zombie/tier4/Zombie_head.png"
+      }
     }
   }
 }
