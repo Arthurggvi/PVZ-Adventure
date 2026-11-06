@@ -152,17 +152,20 @@
       "elite": {
         "res://assets/reanim/Zombie_flag1.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_flag1.png",
         "res://assets/reanim/Zombie_flag3.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_flag3.png",
-        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_outerarm_upper2.png"
+        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_innerarm_screendoor.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_innerarm_screendoor.png"
       },
       "tier4": {
         "res://assets/reanim/Zombie_flag1.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_flag1.png",
         "res://assets/reanim/Zombie_flag3.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_flag3.png",
-        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_outerarm_upper2.png"
+        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_innerarm_screendoor.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_innerarm_screendoor.png"
       },
       "tier5": {
         "res://assets/reanim/Zombie_flag1.png": "res://assets/adventure/zombies/flag_zombie/tier5/Zombie_flag1.png",
         "res://assets/reanim/Zombie_flag3.png": "res://assets/adventure/zombies/flag_zombie/tier5/Zombie_flag3.png",
-        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier5/Zombie_outerarm_upper2.png"
+        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier5/Zombie_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_innerarm_screendoor.png": "res://assets/adventure/zombies/flag_zombie/tier5/Zombie_innerarm_screendoor.png"
       }
     }
   }
