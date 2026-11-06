@@ -233,6 +233,38 @@
         "res://assets/reanim/Zombie_paper_rightarm_lower.png": "res://assets/adventure/zombies/paper_zombie/tier5/Zombie_paper_rightarm_lower.png",
         "res://assets/reanim/Zombie_paper_rightarm_upper.png": "res://assets/adventure/zombies/paper_zombie/tier5/Zombie_paper_rightarm_upper.png"
       }
+    },
+    "7": {
+      "inherits": "1",
+      "veteran": {
+        "res://assets/reanim/Zombie_screendoor1.png": "res://assets/adventure/zombies/screendoor/tier2/Zombie_screendoor1.png",
+        "res://assets/reanim/Zombie_screendoor2.png": "res://assets/adventure/zombies/screendoor/tier2/Zombie_screendoor2.png",
+        "res://assets/reanim/Zombie_screendoor3.png": "res://assets/adventure/zombies/screendoor/tier2/Zombie_screendoor3.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_screendoor1.png": "res://assets/adventure/zombies/screendoor/tier3/Zombie_screendoor1.png",
+        "res://assets/reanim/Zombie_screendoor2.png": "res://assets/adventure/zombies/screendoor/tier3/Zombie_screendoor2.png",
+        "res://assets/reanim/Zombie_screendoor3.png": "res://assets/adventure/zombies/screendoor/tier3/Zombie_screendoor3.png",
+        "res://assets/reanim/Zombie_outerarm_screendoor.png": "res://assets/adventure/zombies/screendoor/tier3/Zombie_outerarm_screendoor.png",
+        "res://assets/reanim/Zombie_innerarm_screendoor.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_innerarm_screendoor.png",
+        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_outerarm_upper2.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_screendoor1.png": "res://assets/adventure/zombies/screendoor/tier3/Zombie_screendoor1.png",
+        "res://assets/reanim/Zombie_screendoor2.png": "res://assets/adventure/zombies/screendoor/tier3/Zombie_screendoor2.png",
+        "res://assets/reanim/Zombie_screendoor3.png": "res://assets/adventure/zombies/screendoor/tier3/Zombie_screendoor3.png",
+        "res://assets/reanim/Zombie_outerarm_screendoor.png": "res://assets/adventure/zombies/screendoor/tier3/Zombie_outerarm_screendoor.png",
+        "res://assets/reanim/Zombie_innerarm_screendoor.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_innerarm_screendoor.png",
+        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier3/Zombie_outerarm_upper2.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_screendoor1.png": "res://assets/adventure/zombies/screendoor/tier5/Zombie_screendoor1.png",
+        "res://assets/reanim/Zombie_screendoor2.png": "res://assets/adventure/zombies/screendoor/tier5/Zombie_screendoor2.png",
+        "res://assets/reanim/Zombie_screendoor3.png": "res://assets/adventure/zombies/screendoor/tier5/Zombie_screendoor3.png",
+        "res://assets/reanim/Zombie_outerarm_screendoor.png": "res://assets/adventure/zombies/screendoor/tier5/Zombie_outerarm_screendoor.png",
+        "res://assets/reanim/Zombie_innerarm_screendoor.png": "res://assets/adventure/zombies/flag_zombie/tier5/Zombie_innerarm_screendoor.png",
+        "res://assets/reanim/Zombie_outerarm_upper2.png": "res://assets/adventure/zombies/flag_zombie/tier5/Zombie_outerarm_upper2.png"
+      }
     }
   }
 }
