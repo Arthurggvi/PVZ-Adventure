@@ -46,6 +46,29 @@
         "res://assets/reanim/Zombie_outerleg_upper.png": "res://assets/adventure/zombies/normal_zombie/tier5/Zombie_outerleg_upper.png",
         "res://assets/reanim/Zombie_head.png": "res://assets/adventure/zombies/normal_zombie/tier4/Zombie_head.png"
       }
+    },
+    "3": {
+      "inherits": "1",
+      "veteran": {
+        "res://assets/reanim/Zombie_cone1.png": "res://assets/adventure/zombies/conehead/tier2/Zombie_cone1.png",
+        "res://assets/reanim/Zombie_cone2.png": "res://assets/adventure/zombies/conehead/tier2/Zombie_cone2.png",
+        "res://assets/reanim/Zombie_cone3.png": "res://assets/adventure/zombies/conehead/tier2/Zombie_cone3.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_cone1.png": "res://assets/adventure/zombies/conehead/tier3/Zombie_cone1.png",
+        "res://assets/reanim/Zombie_cone2.png": "res://assets/adventure/zombies/conehead/tier3/Zombie_cone2.png",
+        "res://assets/reanim/Zombie_cone3.png": "res://assets/adventure/zombies/conehead/tier3/Zombie_cone3.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_cone1.png": "res://assets/adventure/zombies/conehead/tier3/Zombie_cone1.png",
+        "res://assets/reanim/Zombie_cone2.png": "res://assets/adventure/zombies/conehead/tier3/Zombie_cone2.png",
+        "res://assets/reanim/Zombie_cone3.png": "res://assets/adventure/zombies/conehead/tier3/Zombie_cone3.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_cone1.png": "res://assets/adventure/zombies/conehead/tier5/Zombie_cone1.png",
+        "res://assets/reanim/Zombie_cone2.png": "res://assets/adventure/zombies/conehead/tier5/Zombie_cone2.png",
+        "res://assets/reanim/Zombie_cone3.png": "res://assets/adventure/zombies/conehead/tier5/Zombie_cone3.png"
+      }
     }
   }
 }

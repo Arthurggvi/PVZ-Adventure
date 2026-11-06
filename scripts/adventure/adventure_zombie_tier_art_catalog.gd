@@ -33,15 +33,12 @@ static func textures_for(zombie_type: int, tier_id: StringName) -> Dictionary:
 		push_warning("僵尸等阶共享贴图映射必须为对象：" + tier_key)
 		return {}
 	source_paths.merge(common)
-	var species: Variant = types.get(str(zombie_type), {})
-	if not species is Dictionary:
-		push_warning("僵尸等阶物种目录必须为对象：" + str(zombie_type))
+	# 物种可声明 inherits=父物种编号，复用父物种已登记的全部分件。
+	# 只继承美术映射，不改变僵尸场景、行为或属性。
+	var resolved: Dictionary = _species_mapping(types, str(zombie_type), tier_key, {})
+	if not bool(resolved.get("ok", false)):
 		return {}
-	var specific: Variant = species.get(tier_key, {})
-	if not specific is Dictionary:
-		push_warning("僵尸等阶物种贴图映射必须为对象：" + tier_key)
-		return {}
-	source_paths.merge(specific, true)
+	source_paths.merge(resolved["paths"], true)
 	if source_paths.is_empty():
 		return {}
 	var textures: Dictionary = {}
@@ -64,6 +61,40 @@ static func textures_for(zombie_type: int, tier_id: StringName) -> Dictionary:
 			return {}
 		textures[original_path] = replacement
 	return textures
+
+## 递归解析物种映射：父物种在先，子物种在后；防止循环继承。
+## 任何无效继承关系都整组拒绝，不在游戏中使用部分替换。
+static func _species_mapping(
+		types: Dictionary, species_key: String, tier_key: String,
+		visited: Dictionary) -> Dictionary:
+	if visited.has(species_key):
+		push_warning("僵尸等阶美术目录存在循环继承：" + species_key)
+		return {"ok": false}
+	var species: Variant = types.get(species_key, {})
+	if not species is Dictionary:
+		push_warning("僵尸等阶物种目录必须为对象：" + species_key)
+		return {"ok": false}
+	visited[species_key] = true
+	var paths: Dictionary = {}
+	var parent: Variant = species.get("inherits", "")
+	if not parent is String:
+		push_warning("僵尸等阶美术 inherits 必须为物种编号字符串：" + species_key)
+		return {"ok": false}
+	if not parent.is_empty():
+		if not types.has(parent):
+			push_warning("僵尸等阶美术缺少继承物种：" + parent)
+			return {"ok": false}
+		var base: Dictionary = _species_mapping(types, parent, tier_key, visited)
+		if not bool(base.get("ok", false)):
+			return {"ok": false}
+		paths.merge(base["paths"], true)
+	var specific: Variant = species.get(tier_key, {})
+	if not specific is Dictionary:
+		push_warning("僵尸等阶美术映射必须为对象：" + species_key + "/" + tier_key)
+		return {"ok": false}
+	paths.merge(specific, true)
+	return {"ok": true, "paths": paths}
+
 
 ## 在首次冒险僵尸出生时读取唯一 manifest。
 static func _load_once() -> void:
