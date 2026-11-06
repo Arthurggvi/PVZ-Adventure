@@ -1,5 +1,51 @@
 {
   "schema_version": 1,
   "shared": {},
-  "zombies": {}
+  "zombies": {
+    "1": {
+      "veteran": {
+        "res://assets/reanim/Zombie_body.png": "res://assets/adventure/zombies/normal_zombie/tier2/Zombie_body.png",
+        "res://assets/reanim/Zombie_outerleg_lower.png": "res://assets/adventure/zombies/normal_zombie/tier2/Zombie_outerleg_lower.png",
+        "res://assets/reanim/Zombie_outerleg_upper.png": "res://assets/adventure/zombies/normal_zombie/tier2/Zombie_outerleg_upper.png",
+        "res://assets/reanim/Zombie_tie.png": "res://assets/adventure/zombies/normal_zombie/tier2/Zombie_tie.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_body.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_body.png",
+        "res://assets/reanim/Zombie_outerleg_lower.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_outerleg_lower.png",
+        "res://assets/reanim/Zombie_outerleg_upper.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_outerleg_upper.png",
+        "res://assets/reanim/Zombie_tie.png": "res://assets/adventure/zombies/normal_zombie/tier2/Zombie_tie.png",
+        "res://assets/reanim/Zombie_innerarm_lower.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_innerarm_lower.png",
+        "res://assets/reanim/Zombie_innerarm_upper.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_innerarm_upper.png",
+        "res://assets/reanim/Zombie_innerleg_lower.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_innerleg_lower.png",
+        "res://assets/reanim/Zombie_innerleg_upper.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_innerleg_upper.png",
+        "res://assets/reanim/Zombie_outerarm_lower.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_outerarm_lower.png",
+        "res://assets/reanim/Zombie_outerarm_upper.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_outerarm_upper.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_body.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_body.png",
+        "res://assets/reanim/Zombie_outerleg_lower.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_outerleg_lower.png",
+        "res://assets/reanim/Zombie_outerleg_upper.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_outerleg_upper.png",
+        "res://assets/reanim/Zombie_tie.png": "res://assets/adventure/zombies/normal_zombie/tier2/Zombie_tie.png",
+        "res://assets/reanim/Zombie_innerarm_lower.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_innerarm_lower.png",
+        "res://assets/reanim/Zombie_innerarm_upper.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_innerarm_upper.png",
+        "res://assets/reanim/Zombie_innerleg_lower.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_innerleg_lower.png",
+        "res://assets/reanim/Zombie_innerleg_upper.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_innerleg_upper.png",
+        "res://assets/reanim/Zombie_outerarm_lower.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_outerarm_lower.png",
+        "res://assets/reanim/Zombie_outerarm_upper.png": "res://assets/adventure/zombies/normal_zombie/tier3/Zombie_outerarm_upper.png",
+        "res://assets/reanim/Zombie_head.png": "res://assets/adventure/zombies/normal_zombie/tier4/Zombie_head.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_body.png": "res://assets/adventure/zombies/normal_zombie/tier5/Zombie_body.png",
+        "res://assets/reanim/Zombie_innerarm_lower.png": "res://assets/adventure/zombies/normal_zombie/tier5/Zombie_innerarm_lower.png",
+        "res://assets/reanim/Zombie_innerarm_upper.png": "res://assets/adventure/zombies/normal_zombie/tier5/Zombie_innerarm_upper.png",
+        "res://assets/reanim/Zombie_innerleg_lower.png": "res://assets/adventure/zombies/normal_zombie/tier5/Zombie_innerleg_lower.png",
+        "res://assets/reanim/Zombie_innerleg_upper.png": "res://assets/adventure/zombies/normal_zombie/tier5/Zombie_innerleg_upper.png",
+        "res://assets/reanim/Zombie_outerarm_lower.png": "res://assets/adventure/zombies/normal_zombie/tier5/Zombie_outerarm_lower.png",
+        "res://assets/reanim/Zombie_outerarm_upper.png": "res://assets/adventure/zombies/normal_zombie/tier5/Zombie_outerarm_upper.png",
+        "res://assets/reanim/Zombie_outerleg_lower.png": "res://assets/adventure/zombies/normal_zombie/tier5/Zombie_outerleg_lower.png",
+        "res://assets/reanim/Zombie_outerleg_upper.png": "res://assets/adventure/zombies/normal_zombie/tier5/Zombie_outerleg_upper.png",
+        "res://assets/reanim/Zombie_head.png": "res://assets/adventure/zombies/normal_zombie/tier4/Zombie_head.png"
+      }
+    }
+  }
 }
