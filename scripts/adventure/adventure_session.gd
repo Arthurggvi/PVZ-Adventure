@@ -13,18 +13,22 @@ var challenge_state: ChallengeState = ChallengeState.NONE
 var progress: RefCounted
 var active_level: ResourceLevelData
 var active_stage: StageDefinition
+## 当前阶段的唯一可变身份；类型与波次只能从该资源派生。
 var active_phase: StagePhaseDefinition
 var active_stage_number: int = 0
-var active_phase_kind: int = 0
-## 当前战斗独有的波次资源快照，场景内不重复读磁盘配置。
-var active_wave_profile: WaveProfile
+var active_phase_kind: int:
+	get:
+		return active_phase.kind if active_phase != null else StagePhaseDefinition.Kind.UNSET
+var active_wave_profile: WaveProfile:
+	get:
+		return active_phase.wave_profile if active_phase != null else null
 ## 本局已冻结的玩家卡数据；不写玩家存档、不反向修改背包。
 var battle_loadout: Array[Dictionary] = []
 ## 本局 Boss 结果，仅供战后掉落判定；明确区分击败与主动撤退。
 var boss_exit_results: Dictionary[StringName, int] = {}
 ## 存档失败后沿用同一次掉落结果，重试不得重新抽奖。
 var pending_reward: Dictionary = {}
-var victory_settled := false
+## 阶段完成由 ChallengeState.NORMAL_COMPLETE/COMPLETE 唯一表示。
 var notice := ""
 var battle_failed := false
 var adventure_active := false
@@ -38,12 +42,9 @@ func _on_profile_changed() -> void:
 	active_stage = null
 	active_phase = null
 	active_stage_number = 0
-	active_phase_kind = 0
-	active_wave_profile = null
 	battle_loadout.clear()
 	boss_exit_results.clear()
 	pending_reward.clear()
-	victory_settled = false
 	challenge_state = ChallengeState.NONE
 	adventure_active = false
 func open_adventure() -> bool:
@@ -151,13 +152,10 @@ func enter_stage(stage_number: int, phase_kind: int = StagePhaseDefinition.Kind.
 	battle_loadout.clear()
 	boss_exit_results.clear()
 	pending_reward.clear()
-	victory_settled = false
 	challenge_state = ChallengeState.NORMAL_ACTIVE
 	active_stage_number = stage_number
-	active_phase_kind = phase_kind
 	active_stage = stage
 	active_phase = phase
-	active_wave_profile = phase.wave_profile
 	active_level = level
 	battle_failed = false
 	Global.game_para = active_level
@@ -247,7 +245,7 @@ func can_offer_nightmare() -> bool:
 
 ## 用户拒绝续战，或根本没有对应钥匙：普通结算成为整局结算。
 func complete_normal_challenge() -> bool:
-	if challenge_state != ChallengeState.NORMAL_COMPLETE or not victory_settled:
+	if challenge_state != ChallengeState.NORMAL_COMPLETE:
 		return false
 	challenge_state = ChallengeState.COMPLETE
 	battle_finished.emit(active_stage_number, "victory")
@@ -275,19 +273,16 @@ func begin_nightmare() -> bool:
 			error_message = "无法保存钥匙消耗，阶段未切换。"
 			return false
 	active_phase = nightmare
-	active_phase_kind = StagePhaseDefinition.Kind.NIGHTMARE
-	active_wave_profile = nightmare.wave_profile
 	boss_exit_results.clear()
 	pending_reward.clear()
-	victory_settled = false
 	challenge_state = ChallengeState.NIGHTMARE_ACTIVE
 	error_message = ""
 	return true
 
 ## 权威胜利事务：战斗胜利被接受时执行，独立于奖杯 UI 和玩家是否点击。
 func settle_victory() -> bool:
-	if victory_settled:
-		return challenge_state in [ChallengeState.NORMAL_COMPLETE, ChallengeState.COMPLETE]
+	if challenge_state in [ChallengeState.NORMAL_COMPLETE, ChallengeState.COMPLETE]:
+		return true
 	if active_level == null or battle_failed or progress == null or active_stage == null or active_phase == null:
 		return false
 	if challenge_state in [ChallengeState.NORMAL_ACTIVE, ChallengeState.NIGHTMARE_ACTIVE]:
@@ -359,7 +354,6 @@ func settle_victory() -> bool:
 		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
 		error_message = "奖励或通关记录保存失败，可重试相同掉落。"
 		return false
-	victory_settled = true
 	error_message = ""
 	challenge_state = ChallengeState.NORMAL_COMPLETE if active_phase_kind == StagePhaseDefinition.Kind.NORMAL else ChallengeState.COMPLETE
 	var phase_name: String = "普通" if active_phase_kind == StagePhaseDefinition.Kind.NORMAL else "噩梦"
@@ -378,7 +372,7 @@ func _active_runtime() -> AdventureBattleRuntime:
 
 ## 奖杯按钮仅确认已落盘的结算结果，不能进行第二次抽奖或修改资产。
 func finish_victory() -> void:
-	if challenge_state == ChallengeState.COMPLETE and victory_settled:
+	if challenge_state == ChallengeState.COMPLETE:
 		return_to_map()
 
 func _restore_reward_snapshot(items: Dictionary, claims: Dictionary,
@@ -433,12 +427,9 @@ func return_to_map() -> void:
 	active_stage = null
 	active_phase = null
 	active_stage_number = 0
-	active_phase_kind = 0
-	active_wave_profile = null
 	battle_loadout.clear()
 	boss_exit_results.clear()
 	pending_reward.clear()
-	victory_settled = false
 	challenge_state = ChallengeState.NONE
 	Global.game_para = null
 	TreePauseManager.end_tree_pause_clear_all_pause_factors()

@@ -24,6 +24,23 @@ func _run() -> void:
 	while waves.curr_wave < 0 and Time.get_ticks_msec() < end_ms:
 		await get_tree().process_frame
 	assert(waves.curr_wave == 0)
+	# 已被接受但延迟发送的刷新请求，在 Boss 挂起期间必须保留，恢复后只发一次。
+	var refresh: ZombieWaveRefreshManager = waves.zombie_wave_refresh_manager
+	var delivered: Array[int] = [0]
+	refresh.signal_refresh.connect(func(_generation: int) -> void:
+		delivered[0] += 1)
+	refresh.refresh_once()
+	assert(refresh.curr_refresh_status == ZombieWaveRefreshManager.E_RefreshStatus.CompleteRefresh)
+	waves.suspend_advancement()
+	await _frames()
+	assert(waves.curr_wave == 0 and delivered[0] == 0)
+	waves.resume_advancement()
+	await _frames()
+	assert(waves.curr_wave == 1 and delivered[0] == 1)
+	# 同一代数可能被两个异步 resume 排队，重入不得生成第二波。
+	refresh._deliver_refresh.call_deferred(refresh._refresh_generation - 1)
+	await _frames()
+	assert(waves.curr_wave == 1 and delivered[0] == 1)
 	var cfg := BossEncounterDefinition.new()
 	cfg.encounter_id = &"test_p3_encounter"
 	cfg.boss_type = CharacterRegistry.ZombieBossType.ZB001Doctor
@@ -68,8 +85,9 @@ func _run() -> void:
 	assert(count_before_exit > 0)
 	assert(not waves.every_wave_progress_timer.paused)
 	assert(not waves.zombie_wave_refresh_manager.wave_norm_refresh_timer.paused)
+	# 撤退本身必须释放旧 Boss，第二次遭遇不允许依赖调用者手动清理。
+	assert(not is_instance_valid(encounter.boss))
 	# 第二次遭遇使用真实 Boss 生命值归零来触发死亡分支。
-	encounter.boss.queue_free()
 	var defeated := AdventureBossEncounter.new()
 	battle.add_child(defeated)
 	assert(defeated.begin(cfg, waves, battle.zombie_manager, AdventureStageCatalog.tier_ids()))

@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://bnwwtx66naab1" path="res://assets/image/ui/ui_challenge/Challenge_Window.png" id="6_o7rat"]
 [ext_resource type="Texture2D" uid="uid://vwk4r0yu588v" path="res://assets/image/ui/ui_challenge/Challenge_Window_Highlight.png" id="7_63bjb"]
 [ext_resource type="Texture2D" uid="uid://vi5ld75dko0v" path="res://assets/image/main_game_item/lock.png" id="7_80wmn"]
-[ext_resource type="Texture2D" uid="uid://c6mjipiwidgou" path="res://assets/image/ui/ui_challenge/MiniGame_trophy.png" id="8_w37fl"]
+[ext_resource type="Texture2D" path="res://assets/image/ui/ui_challenge/MiniGame_trophy.png" id="8_w37fl"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_oxhwj"]
 font = ExtResource("6_cc2hn")

@@ -79,41 +79,48 @@ func _run() -> void:
 	runtime._cooldown._elapsed += 21.0
 	runtime._cooldown._process(0.0)
 	assert(is_equal_approx(cards[0].adventure_cooldown_multiplier, 1.0))
-	waves.adventure_wave_started.emit(7)
-	assert(runtime.boss_runtime != null and runtime.boss_runtime.active)
-	assert(waves.is_advancement_suspended)
-	var old_wave: int = waves.curr_wave
-	waves.start_next_wave()
-	assert(waves.curr_wave == old_wave)
-	await get_tree().create_timer(5.8).timeout
-	assert(waves.is_advancement_suspended and waves.curr_wave == old_wave)
-	assert(runtime.boss_runtime._summons.size() >= 2)
-	var encounter_id: StringName = runtime.boss_runtime.config.encounter_id
-	runtime.boss_runtime.notify_escaped()
-	await get_tree().create_timer(0.35).timeout
-	assert(not waves.is_advancement_suspended and waves.curr_wave > old_wave)
-	assert(AdventureSession.boss_exit_results[encounter_id] == StageEventDefinition.BossExitReason.ESCAPED)
-	# 任何未到最后自然波的外部结算请求均应被拒绝。
+	# 由真实波次推进到末波，Boss 必须在最后一波生成后才启动。
 	assert(not AdventureSession.settle_victory())
-	assert(AdventureStageCatalog.is_cleared(Global.global_game_state.adventure_state,
-		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NORMAL))
-	assert(not AdventureStageCatalog.is_cleared(Global.global_game_state.adventure_state,
-		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NIGHTMARE))
-	# 继续完成全部真实自然波次，并以 Boss ESCAPED 的实际结果结算噩梦。
 	Engine.time_scale = 12.0
-	var nightmare_deadline: int = Time.get_ticks_msec() + 70000
-	while AdventureSession.challenge_state == AdventureSession.ChallengeState.NIGHTMARE_ACTIVE \
-			and Time.get_ticks_msec() < nightmare_deadline:
+	var final_wave_deadline: int = Time.get_ticks_msec() + 70000
+	while waves.curr_wave < waves.max_wave - 1 and Time.get_ticks_msec() < final_wave_deadline:
 		if zombies.curr_zombie_num > 0:
 			zombies.death_all_zombie()
 		await get_tree().create_timer(0.15, true, false, true).timeout
 	Engine.time_scale = 1.0
+	assert(waves.curr_wave == waves.max_wave - 1)
+	assert(zombies.is_end_wave)
+	var encounter: AdventureBossEncounter = runtime.boss_runtime
+	assert(encounter != null and encounter.active)
+	assert(waves.is_advancement_suspended)
+	var idle_deliveries: Array[int] = [0]
+	runtime._boss_director.idle.connect(func() -> void:
+		idle_deliveries[0] += 1)
+	await get_tree().create_timer(5.8).timeout
+	assert(waves.is_advancement_suspended)
+	assert(encounter._summons.size() >= 2)
+	# 仅针对本测试关闭援军计时，排除新一批援军和最后一只 Boss 离场的竞争。
+	encounter.summon_timer.stop()
+	zombies.death_all_zombie()
+	await _frames()
+	assert(zombies.curr_zombie_num == 1) # 剩余的唯一敌方登记是 Boss 本体。
+	assert(not AdventureSession.can_accept_victory())
+	var encounter_id: StringName = encounter.config.encounter_id
+	encounter.notify_escaped()
+	assert(idle_deliveries[0] == 1)
+	var reward_deadline: int = Time.get_ticks_msec() + 30000
+	while AdventureSession.challenge_state == AdventureSession.ChallengeState.NIGHTMARE_ACTIVE \
+			and Time.get_ticks_msec() < reward_deadline:
+		await get_tree().create_timer(0.1, true, false, true).timeout
+	assert(AdventureSession.boss_exit_results[encounter_id] == StageEventDefinition.BossExitReason.ESCAPED)
 	assert(AdventureSession.challenge_state == AdventureSession.ChallengeState.COMPLETE)
+	assert(AdventureStageCatalog.is_cleared(Global.global_game_state.adventure_state,
+		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NORMAL))
 	assert(AdventureStageCatalog.is_cleared(Global.global_game_state.adventure_state,
 		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NIGHTMARE))
 	assert(battle._round_end_claimed and battle.main_game_progress == MainGameManager.E_MainGameProgress.GAME_OVER)
 	battle.win_main_game()
 	await _frames()
 	assert(AdventureSession.active_level == null)
-	print("PASS: normal reward checkpoint, same-field nightmare, escaped boss, full nightmare waves, final reward and trophy")
+	print("PASS: stage 3+7, real final wave, last Boss exits after natural clear, single idle signal and trophy")
 	get_tree().quit(0)

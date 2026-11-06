@@ -43,7 +43,7 @@
 [ext_resource type="Texture2D" uid="uid://cl31cxpwg5y84" path="res://assets/image/ui/ui_start_menu/SelectorScreen_Almanac.png" id="31_sxpcx"]
 [ext_resource type="Texture2D" uid="uid://b2fq50reclr1l" path="res://assets/image/ui/ui_start_menu/SelectorScreen_AlmanacHighlight.png" id="32_ortyp"]
 [ext_resource type="BitMap" uid="uid://dmojvwlyh8417" path="res://assets/image/ui/ui_start_menu/SelectorScreen_Almanac_Mask.png" id="33_qniwh"]
-[ext_resource type="Texture2D" uid="uid://dup7h3yp7mvuw" path="res://assets/image/ui/ui_start_menu/SelectorScreen_BG_Left.png" id="37_at8of"]
+[ext_resource type="Texture2D" path="res://assets/image/ui/ui_start_menu/SelectorScreen_BG_Left.png" id="37_at8of"]
 [ext_resource type="Texture2D" uid="uid://54rpfashjbpk" path="res://assets/image/garden/plantspeechbubble.png" id="41_l67l0"]
 [ext_resource type="Script" uid="uid://i4n5co3domph" path="res://scripts/start_menu/garden_water_flag.gd" id="42_lvy6c"]
 [ext_resource type="Texture2D" uid="uid://ce2m54cahv50v" path="res://assets/image/garden/waterdrop.png" id="43_sa52e"]

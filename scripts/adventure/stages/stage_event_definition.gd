@@ -123,6 +123,9 @@ func validate(wave_count: int = 0, known_tier_ids: Array[StringName] = [], encou
 			errors.append("Boss 离场事件必须显式指定原因过滤。")
 	elif boss_exit_reason != BossExitReason.UNSET:
 		errors.append("非 Boss 离场事件不能填写离场原因。")
+	# 终局事件发生在胜负已确定、资产结算尚未落盘之间；只能写结算账本。
+	if trigger == Trigger.BATTLE_END and action not in [Action.REQUEST_DROP, Action.SET_REGION_FLAG]:
+		errors.append("BATTLE_END 只允许写入掉落或地区标记，不能重启/修改战斗。")
 	errors.append_array(_validate_action(known_tier_ids, encounter_ids))
 	return errors
 

@@ -47,6 +47,8 @@ enum E_RefreshStatus{
 var curr_refresh_status:=E_RefreshStatus.DisableRefresh
 ## 停止或切波时递增，最短波间隔的旧等待不能消费新波次的刷新机会。
 var _refresh_generation: int = 0
+## 本轮刷新请求只能投递一次；挂起时保留 CompleteRefresh 状态，恢复后投递。
+var _delivered_generation: int = -1
 ## Boss 遭遇期间只挂起自然刷新，保留剩余时间与当前提前刷新条件。
 var _is_suspended: bool = false
 
@@ -63,6 +65,10 @@ func resume_refresh() -> void:
 	_is_suspended = false
 	wave_norm_refresh_timer.paused = false
 	wave_min_time_timer.paused = false
+	# 已接受的刷新请求属于当前自然波次，不因 Boss 暂停而丢失。
+	if curr_refresh_status == E_RefreshStatus.CompleteRefresh \
+			and _delivered_generation != _refresh_generation:
+		_deliver_refresh.call_deferred(_refresh_generation)
 ## 当前可以的刷新类型,不可以选Norm正常刷新
 var curr_can_refresh_type = E_RefreshType.Null
 ## 波次总血量
@@ -201,13 +207,20 @@ func refresh_once() -> void:
 	curr_refresh_status = E_RefreshStatus.CompleteRefresh
 	curr_can_refresh_type = E_RefreshType.Null
 	# 延迟事件携带自身波次代数；停止、切波和切阶段都会废弃旧请求。
-	_emit_refresh_if_current.call_deferred(_refresh_generation)
+	_deliver_refresh.call_deferred(_refresh_generation)
 
+## 唯一刷新发放接口：失效代数丢弃，暂停中的有效请求保留，恢复后恰好投递一次。
+func _deliver_refresh(generation: int) -> void:
+	if generation != _refresh_generation or _delivered_generation == generation \
+			or curr_refresh_status != E_RefreshStatus.CompleteRefresh:
+		return
+	if _is_suspended or not zombie_manager.is_game_running():
+		return
+	_delivered_generation = generation
+	signal_refresh.emit(generation)
+
+## 供下游核验请求身份；只有本代确实发放的信号可以推进波次。
 func is_current_refresh_request(generation: int) -> bool:
-	return generation == _refresh_generation and \
-		curr_refresh_status == E_RefreshStatus.CompleteRefresh and \
-		not _is_suspended and zombie_manager.is_game_running()
-
-func _emit_refresh_if_current(generation: int) -> void:
-	if is_current_refresh_request(generation):
-		signal_refresh.emit(generation)
+	return generation == _refresh_generation and _delivered_generation == generation \
+		and curr_refresh_status == E_RefreshStatus.CompleteRefresh \
+		and not _is_suspended and zombie_manager.is_game_running()
