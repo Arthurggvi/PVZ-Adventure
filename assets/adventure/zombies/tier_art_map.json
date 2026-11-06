@@ -332,6 +332,56 @@
         "res://assets/reanim/Zombie_football_leftarm_eatinghand.png": "res://assets/adventure/zombies/football/tier5/Zombie_football_leftarm_eatinghand.png",
         "res://assets/reanim/Zombie_football_outerarm_eatinghand.png": "res://assets/adventure/zombies/football/tier5/Zombie_football_outerarm_eatinghand.png"
       }
+    },
+    "9": {
+      "veteran": {
+        "res://assets/reanim/Zombie_jackson_head.png": "res://assets/adventure/zombies/jackson/tier2/Zombie_jackson_head.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_Jackson_body1.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_body1.png",
+        "res://assets/reanim/Zombie_Jackson_body2.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_body2.png",
+        "res://assets/reanim/Zombie_Jackson_colar.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_colar.png",
+        "res://assets/reanim/Zombie_Jackson_innerarm_lower.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_innerarm_lower.png",
+        "res://assets/reanim/Zombie_Jackson_innerarm_upper.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_innerarm_upper.png",
+        "res://assets/reanim/Zombie_Jackson_innerleg_lower.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_innerleg_lower.png",
+        "res://assets/reanim/Zombie_Jackson_innerleg_upper.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_innerleg_upper.png",
+        "res://assets/reanim/Zombie_Jackson_outerarm_lower.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_outerarm_lower.png",
+        "res://assets/reanim/Zombie_Jackson_outerarm_upper.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_outerarm_upper.png",
+        "res://assets/reanim/Zombie_Jackson_outerarm_upper2.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_Jackson_outerleg_lower.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_outerleg_lower.png",
+        "res://assets/reanim/Zombie_Jackson_outerleg_upper.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_outerleg_upper.png",
+        "res://assets/reanim/Zombie_jackson_head.png": "res://assets/adventure/zombies/jackson/tier2/Zombie_jackson_head.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_Jackson_body1.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_body1.png",
+        "res://assets/reanim/Zombie_Jackson_body2.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_body2.png",
+        "res://assets/reanim/Zombie_Jackson_colar.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_colar.png",
+        "res://assets/reanim/Zombie_Jackson_innerarm_lower.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_innerarm_lower.png",
+        "res://assets/reanim/Zombie_Jackson_innerarm_upper.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_innerarm_upper.png",
+        "res://assets/reanim/Zombie_Jackson_innerleg_lower.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_innerleg_lower.png",
+        "res://assets/reanim/Zombie_Jackson_innerleg_upper.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_innerleg_upper.png",
+        "res://assets/reanim/Zombie_Jackson_outerarm_lower.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_outerarm_lower.png",
+        "res://assets/reanim/Zombie_Jackson_outerarm_upper.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_outerarm_upper.png",
+        "res://assets/reanim/Zombie_Jackson_outerarm_upper2.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_Jackson_outerleg_lower.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_outerleg_lower.png",
+        "res://assets/reanim/Zombie_Jackson_outerleg_upper.png": "res://assets/adventure/zombies/jackson/tier3/Zombie_Jackson_outerleg_upper.png",
+        "res://assets/reanim/Zombie_jackson_head.png": "res://assets/adventure/zombies/jackson/tier4/Zombie_jackson_head.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_Jackson_body1.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_body1.png",
+        "res://assets/reanim/Zombie_Jackson_body2.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_body2.png",
+        "res://assets/reanim/Zombie_Jackson_colar.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_colar.png",
+        "res://assets/reanim/Zombie_jackson_head.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_jackson_head.png",
+        "res://assets/reanim/Zombie_Jackson_innerarm_lower.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_innerarm_lower.png",
+        "res://assets/reanim/Zombie_Jackson_innerarm_upper.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_innerarm_upper.png",
+        "res://assets/reanim/Zombie_Jackson_innerleg_lower.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_innerleg_lower.png",
+        "res://assets/reanim/Zombie_Jackson_innerleg_upper.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_innerleg_upper.png",
+        "res://assets/reanim/Zombie_Jackson_outerarm_lower.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_outerarm_lower.png",
+        "res://assets/reanim/Zombie_Jackson_outerarm_upper.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_outerarm_upper.png",
+        "res://assets/reanim/Zombie_Jackson_outerarm_upper2.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_Jackson_outerleg_lower.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_outerleg_lower.png",
+        "res://assets/reanim/Zombie_Jackson_outerleg_upper.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_outerleg_upper.png"
+      }
     }
   }
 }
