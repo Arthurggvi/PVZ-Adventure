@@ -149,11 +149,6 @@ func _apply_action(event: StageEventDefinition) -> void:
 				if candidate.encounter_id == event.action_target_id:
 					_begin_boss(candidate)
 					break
-		StageEventDefinition.Action.PAUSE_NATURAL_WAVES:
-			waves.suspend_advancement()
-		StageEventDefinition.Action.RESUME_NATURAL_WAVES:
-			if not _boss_director.has_pending():
-				waves.resume_advancement()
 		StageEventDefinition.Action.MODIFY_CARD_COOLDOWN:
 			_cooldown.apply(event)
 		StageEventDefinition.Action.REQUEST_DROP, StageEventDefinition.Action.SET_REGION_FLAG:
@@ -162,7 +157,8 @@ func _apply_action(event: StageEventDefinition) -> void:
 			if not AdventureBattleEventLedger.apply(event, requested_items, pending_region_flags, _reward_rng):
 				push_error("关卡事件结算失败：" + str(event.event_id))
 		StageEventDefinition.Action.FINISH_BATTLE:
-			if not _battle_ended and not _ending_requested:
+			if not _battle_ended and not _ending_requested \
+					and event.action_battle_result == StageEventDefinition.BattleResult.DEFEAT:
 				_ending_requested = true
 				zombies.main_game.request_adventure_event_result.call_deferred(event.action_battle_result)
 

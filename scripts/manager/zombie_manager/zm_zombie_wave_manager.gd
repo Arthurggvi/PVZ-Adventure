@@ -48,6 +48,7 @@ var _refresh_generation: int = 0
 var is_advancement_suspended := false
 var _pending_advancement := false
 var _before_wave_signalled: int = -1
+var _last_refresh_request: int = -1
 signal adventure_battle_started
 signal adventure_wave_before(wave_number: int)
 signal adventure_wave_started(wave_number: int)
@@ -68,7 +69,11 @@ func resume_advancement() -> void:
 	zombie_wave_refresh_manager.resume_refresh()
 	if _pending_advancement:
 		_pending_advancement = false
-		start_next_wave.call_deferred()
+		_resume_pending_wave.call_deferred(_refresh_generation)
+
+func _resume_pending_wave(generation: int) -> void:
+	if _is_wave_refresh_current(generation) and not is_advancement_suspended:
+		start_next_wave()
 
 ## 波次刷新信号,给zombie_manager,删除魅惑僵尸，更新是否为最后一波
 signal signal_wave_refresh(is_end_wave:bool)
@@ -76,15 +81,24 @@ signal signal_wave_refresh(is_end_wave:bool)
 
 func _ready() -> void:
 	## 刷新波次信号
-	zombie_wave_refresh_manager.signal_refresh.connect(start_next_wave)
+	zombie_wave_refresh_manager.signal_refresh.connect(_on_refresh_requested)
 	## 新波次自然刷新时间
 	zombie_wave_refresh_manager.signal_norm_time.connect(update_progress_bar_segment_mini_every_sec)
+
+## 所有计时回调统一经有身份的请求入口；一个刷新代数只能推进一次。
+func _on_refresh_requested(generation: int) -> void:
+	if generation == _last_refresh_request or \
+			not zombie_wave_refresh_manager.is_current_refresh_request(generation):
+		return
+	_last_refresh_request = generation
+	start_next_wave()
 
 ## 初始化波次管理器
 func init_zombie_wave_manager(game_para:ResourceLevelData):
 	is_advancement_suspended = false
 	_pending_advancement = false
 	_before_wave_signalled = -1
+	_last_refresh_request = -1
 	every_wave_progress_timer.paused = false
 	is_have_tombston = game_para.is_have_tombston
 	max_wave_one_round = game_para.max_wave
@@ -130,6 +144,7 @@ func begin_adventure_phase(profile: WaveProfile) -> void:
 	curr_wave = -1
 	max_wave_one_round = profile.wave_count
 	max_wave = profile.wave_count
+	_last_refresh_request = -1
 	_before_wave_signalled = -1
 	curr_wave_type = E_WaveType.Norm
 	flag_progress_bar.init_flag_from_adventure_profile(profile)
@@ -167,6 +182,8 @@ func _is_wave_refresh_current(refresh_generation: int) -> bool:
 ## 一次自然波次：先判断并展示，再确认未暂停，最后才更新波次编号与实例。
 ## await 期间出现 Boss 时保留待启动波次，不会偷跑生成。
 func start_next_wave() -> void:
+	if not zombie_manager.is_game_running() or curr_wave + 1 >= max_wave:
+		return
 	if is_advancement_suspended:
 		_pending_advancement = true
 		return

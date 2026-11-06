@@ -3,11 +3,11 @@
 extends RefCounted
 class_name AdventureBattleEnvironmentAdapter
 
-static func build(env: AdventureBattleEnvironment,
-		phase: StagePhaseDefinition) -> ResourceLevelData:
-	if env == null or phase == null or phase.wave_profile == null:
+static func build(stage: StageDefinition, phase: StagePhaseDefinition) -> ResourceLevelData:
+	if stage == null or stage.environment == null or phase == null or phase.wave_profile == null:
 		return null
-	if not env.validate().is_empty() or phase.max_selected_cards < 1 or phase.max_selected_cards > 15:
+	var env: AdventureBattleEnvironment = stage.environment
+	if not env.validate().is_empty() or stage.max_selected_cards < 1 or stage.max_selected_cards > 15:
 		return null
 	var level := ResourceLevelData.new()
 	level.game_sences = env.scene
@@ -25,7 +25,7 @@ static func build(env: AdventureBattleEnvironment,
 	level.is_shovel = env.shovel_enabled
 	level.all_pre_plant_data = env.preplanted.duplicate(true)
 	level.max_wave = phase.wave_profile.wave_count
-	level.max_choosed_card_num = phase.max_selected_cards
+	level.max_choosed_card_num = stage.max_selected_cards
 	level.monster_mode = ConstLevelData.E_MonsterMode.Norm
 	level.card_mode = ConstLevelData.E_CardMode.Norm
 	level.look_show_zombie = true
@@ -38,6 +38,13 @@ static func build(env: AdventureBattleEnvironment,
 	level.save_game_data_main_game = null
 	level.zombie_refresh_types = preview_zombies(phase)
 	return level if level.max_wave >= 2 and not level.zombie_refresh_types.is_empty() else null
+
+## 原版 ResourceLevelData 只作为适配投影；阶段内容的唯一权威仍是 Session.active_phase。
+## 噩梦切换时同步所有遗留读取者所需的阶段投影，不为其再建第二份阶段状态。
+static func project_phase(level: ResourceLevelData, phase: StagePhaseDefinition) -> void:
+	assert(level != null and phase != null and phase.wave_profile != null)
+	level.max_wave = phase.wave_profile.wave_count
+	level.zombie_refresh_types = preview_zombies(phase)
 
 ## 完整冒险敌人预览：自然波、Boss 援军与事件突袭均由该阶段定义，不使用原版随机白名单。
 static func preview_zombies(phase: StagePhaseDefinition) -> Array[CharacterRegistry.ZombieType]:

@@ -68,7 +68,7 @@ func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 	var wave_spawn: Array[Dictionary] = []
 	if adventure_wave_profile != null:
 		wave_spawn = AdventureWavePlanner.build_plan(adventure_wave_profile, wave + 1,
-			calculate_wave_power_limit(wave, is_big_wave), max_zombies_per_wave,
+			AdventureWavePlanner.power_budget(wave, is_big_wave, zombie_multy), max_zombies_per_wave,
 			AdventureStageCatalog.tier_threat_costs(), _adventure_rng)
 	else:
 		for zombie_type: CharacterRegistry.ZombieType in create_curr_wave_zombie_list(wave, is_big_wave):

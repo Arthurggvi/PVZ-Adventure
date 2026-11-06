@@ -42,9 +42,14 @@ func begin(encounter: BossEncounterDefinition, waves: ZombieWaveManager,
 	return true
 
 ## Boss AI 可显式报告撤退；正式战斗中未死亡即离树也视为撤退。
+## 显式撤退包含遭遇结束和实体离场，不能留下一个仍占敌方计数的“已逃跑 Boss”。
 func notify_escaped() -> void:
-	if active and zombie_manager.is_game_running():
-		_finish(StageEventDefinition.BossExitReason.ESCAPED)
+	if not active or not zombie_manager.is_game_running():
+		return
+	var escaping: ZB000Base = boss
+	_finish(StageEventDefinition.BossExitReason.ESCAPED)
+	if is_instance_valid(escaping) and not escaping.is_queued_for_deletion():
+		escaping.queue_free()
 
 func _on_boss_defeated() -> void:
 	_finish(StageEventDefinition.BossExitReason.DEFEATED)
@@ -59,7 +64,7 @@ func _on_boss_tree_exiting() -> void:
 func _on_summon_tick() -> void:
 	if not active or not zombie_manager.is_game_running():
 		return
-	var capacity: int = config.max_alive_summons - _summons.size()
+	var capacity: int = config.max_alive_periodic_summons - _summons.size()
 	for i: int in range(mini(config.summon_count, capacity)):
 		var type_key: Variant = _weighted_pick(config.summon_zombie_weights)
 		var tier_key: Variant = _weighted_pick(config.summon_tier_weights)

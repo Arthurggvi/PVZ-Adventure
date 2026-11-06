@@ -528,9 +528,7 @@ func try_claim_round_end(is_boss_win: bool = false) -> bool:
 func request_adventure_event_result(result: int) -> void:
 	if not AdventureSession.owns_battle(game_para) or main_game_progress != E_MainGameProgress.MAIN_GAME:
 		return
-	if result == StageEventDefinition.BattleResult.VICTORY:
-		create_trophy(camera_2d.get_screen_center_position())
-	elif result == StageEventDefinition.BattleResult.DEFEAT:
+	if result == StageEventDefinition.BattleResult.DEFEAT:
 		main_game_progress = E_MainGameProgress.GAME_OVER
 		zombie_manager.zombie_wave_manager.stop_wave_refresh()
 		AdventureSession.finish_defeat()

@@ -55,6 +55,7 @@ static func resolve(index: int) -> StageDefinition:
 		return null
 	var stage: StageDefinition = base.duplicate(true) as StageDefinition
 	stage.stage_id = id
+	stage.nightmare_key_id = key_id(index)
 	for phase: StagePhaseDefinition in stage.phases:
 		var suffix := "normal" if phase.kind == StagePhaseDefinition.Kind.NORMAL else "nightmare"
 		phase.phase_id = StringName(str(id) + "." + suffix)
@@ -62,12 +63,7 @@ static func resolve(index: int) -> StageDefinition:
 		phase.drop_table.table_id = StringName(str(phase.phase_id) + ".drops")
 		for band: WaveBandDefinition in phase.wave_profile.bands:
 			band.band_id = StringName(str(phase.phase_id) + ".wave_" + str(band.first_wave))
-		if phase.kind == StagePhaseDefinition.Kind.NIGHTMARE:
-			phase.unlock_rule = StagePhaseDefinition.UnlockRule.CONTINUE_WITH_KEY
-			phase.key_id = key_id(index)
-			phase.key_count = 1
-			phase.key_use = StagePhaseDefinition.KeyUse.KEEP
-		elif phase.kind == StagePhaseDefinition.Kind.NORMAL:
+		if phase.kind == StagePhaseDefinition.Kind.NORMAL:
 			phase.first_clear_items.erase(&"lawn_nightmare_key")
 			phase.first_clear_items[key_id(index)] = 1
 	var partial_path: String = PARTIAL_OVERRIDES + REGION_ID + "_" + SLUGS[index - 1] + ".tres"

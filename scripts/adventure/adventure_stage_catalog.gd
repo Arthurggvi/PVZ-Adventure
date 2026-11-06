@@ -87,28 +87,10 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState,
 		return "只能从普通阶段开始关卡；噩梦需要在本次普通阶段清场后继续。"
 	# 普通入口必须同时验证后续噩梦配置，禁止玩家到达检查点后才发现非法阶段。
 	for candidate: StagePhaseDefinition in stage.phases:
-		for event: StageEventDefinition in candidate.events:
-			if event.trigger == StageEventDefinition.Trigger.BATTLE_END and event.action not in [
-					StageEventDefinition.Action.REQUEST_DROP, StageEventDefinition.Action.SET_REGION_FLAG]:
-				return "BATTLE_END 仅可发放奖励或更新地区状态。"
-			if event.action not in [StageEventDefinition.Action.REQUEST_DROP,
-					StageEventDefinition.Action.SET_REGION_FLAG, StageEventDefinition.Action.FINISH_BATTLE,
-					StageEventDefinition.Action.SPAWN_ZOMBIES,
-					StageEventDefinition.Action.BEGIN_BOSS_ENCOUNTER,
-					StageEventDefinition.Action.PAUSE_NATURAL_WAVES,
-					StageEventDefinition.Action.RESUME_NATURAL_WAVES,
-					StageEventDefinition.Action.MODIFY_CARD_COOLDOWN]:
-				return "该阶段存在未实装的事件动作。"
-		var check_rng := RandomNumberGenerator.new()
-		check_rng.seed = 1
-		for band: WaveBandDefinition in candidate.wave_profile.bands:
-			var index: int = band.first_wave - 1
-			var power: int = index / 3 + 1
-			var is_flag_wave: bool = candidate.wave_profile.is_flag_wave(band.first_wave) or band.first_wave == candidate.wave_profile.wave_count
-			var budget: int = (int(power * 2.5) if is_flag_wave else power) * stage.environment.zombie_power_multiplier
-			if AdventureWavePlanner.build_plan(candidate.wave_profile, band.first_wave,
-					budget, 1, tier_threat_costs(), check_rng).is_empty():
-				return "波段[%s]首波战力预算不足。" % band.band_id
+		var budget_errors: PackedStringArray = AdventureWavePlanner.validate_affordability(
+			candidate.wave_profile, stage.environment.zombie_power_multiplier, tier_threat_costs())
+		if not budget_errors.is_empty():
+			return "阶段[%s]战力预算无效：%s" % [candidate.phase_id, budget_errors[0]]
 	return ""
 
 ## 本次普通阶段成功落盘后才允许调用；不查询历史通关记录。
@@ -116,12 +98,7 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState,
 static func continuation_error(stage: StageDefinition, inventory: AdventureInventoryService) -> String:
 	if stage == null or inventory == null:
 		return "关卡或库存数据未就绪。"
-	var phase: StagePhaseDefinition = find_phase(stage, StagePhaseDefinition.Kind.NIGHTMARE)
-	if phase == null or phase.boss_encounters.is_empty():
-		return "噩梦阶段配置无效。"
-	if phase.unlock_rule != StagePhaseDefinition.UnlockRule.CONTINUE_WITH_KEY:
-		return "噩梦阶段继续规则无效。"
-	if inventory.get_item_count(str(phase.key_id)) < phase.key_count:
+	if inventory.get_item_count(str(stage.nightmare_key_id)) < stage.nightmare_key_count:
 		return "缺少本关的噩梦钥匙。"
 	return ""
 
@@ -130,4 +107,4 @@ static func build_level(stage_number: int, kind: int) -> ResourceLevelData:
 	var phase: StagePhaseDefinition = find_phase(stage, kind)
 	if stage == null or phase == null:
 		return null
-	return AdventureBattleEnvironmentAdapter.build(stage.environment, phase)
+	return AdventureBattleEnvironmentAdapter.build(stage, phase)

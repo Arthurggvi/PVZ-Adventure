@@ -111,10 +111,6 @@ bands = Array[ExtResource("7_xmhla")]([SubResource("Resource_brxvj")])
 script = ExtResource("2_27t80")
 phase_id = &"zombie_island.default.normal"
 kind = 1
-unlock_rule = 1
-key_use = 1
-card_mode = 1
-max_selected_cards = 2
 wave_profile = SubResource("Resource_a2g6r")
 drop_table = SubResource("Resource_dkgv7")
 first_clear_coin = 2000
@@ -131,7 +127,7 @@ summon_while_paused = 1
 summon_end = 1
 summon_interval_seconds = 5.0
 summon_count = 2
-max_alive_summons = 8
+max_alive_periodic_summons = 8
 summon_zombie_weights = Dictionary[int, int]({
 1: 4,
 3: 1
@@ -286,12 +282,6 @@ bands = Array[ExtResource("7_xmhla")]([SubResource("Resource_8yu58"), SubResourc
 script = ExtResource("2_27t80")
 phase_id = &"zombie_island.default.nightmare"
 kind = 2
-unlock_rule = 4
-key_id = &"lawn_nightmare_key"
-key_count = 1
-key_use = 2
-card_mode = 1
-max_selected_cards = 2
 wave_profile = SubResource("Resource_d7hvt")
 drop_table = SubResource("Resource_sejao")
 first_clear_coin = 10000
@@ -300,6 +290,10 @@ boss_encounters = Array[ExtResource("3_nblmh")]([SubResource("Resource_4pwy7")])
 
 [resource]
 script = ExtResource("9_udwye")
+max_selected_cards = 2
+nightmare_key_id = &"lawn_nightmare_key"
+nightmare_key_count = 1
+nightmare_key_use = 0
 stage_id = &"zombie_island.default"
 environment = SubResource("Resource_l15qu")
 phases = Array[ExtResource("2_27t80")]([SubResource("Resource_h2513"), SubResource("Resource_8ci6l")])

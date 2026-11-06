@@ -18,6 +18,19 @@ func _run() -> void:
 	await _frames()
 	assert(AdventureSession.progress.intro_completed)
 	map._select_stage(1)
+	# 本轮在单次入场与场景初始化之间调整独立阶段资源；不改正式 .tres。
+	# 普通3波，噩梦7波，Boss/事件编号仍在各自阶段合法范围。
+	var local_stage: StageDefinition = AdventureSession.active_stage
+	var local_normal: StagePhaseDefinition = AdventureStageCatalog.find_phase(
+		local_stage, StagePhaseDefinition.Kind.NORMAL)
+	var local_nightmare: StagePhaseDefinition = AdventureStageCatalog.find_phase(
+		local_stage, StagePhaseDefinition.Kind.NIGHTMARE)
+	local_normal.wave_profile.wave_count = 3
+	local_normal.wave_profile.bands[0].last_wave = 3
+	local_nightmare.wave_profile.wave_count = 7
+	local_nightmare.wave_profile.bands[1].last_wave = 7
+	assert(local_stage.validate(AdventureStageCatalog.tier_ids(), AdventureStageCatalog.key_ids()).is_empty())
+	AdventureBattleEnvironmentAdapter.project_phase(AdventureSession.active_level, local_normal)
 	await _wait_battle()
 	var battle: MainGameManager = Global.main_game
 	assert(AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NORMAL)
@@ -37,6 +50,12 @@ func _run() -> void:
 	await _frames()
 	assert(AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE)
 	assert(AdventureSession.challenge_state == AdventureSession.ChallengeState.NIGHTMARE_ACTIVE)
+	var current_waves: ZombieWaveManager = battle.zombie_manager.zombie_wave_manager
+	assert(battle.game_para.max_wave == current_waves.max_wave)
+	var previous_wave: int = current_waves.curr_wave
+	current_waves._on_refresh_requested(
+		current_waves.zombie_wave_refresh_manager._refresh_generation - 1)
+	assert(current_waves.curr_wave == previous_wave)
 	assert(battle.game_para.look_show_zombie and battle.game_para.can_choosed_card)
 	var waves: ZombieWaveManager = battle.zombie_manager.zombie_wave_manager
 	var runtime: AdventureBattleRuntime = battle.adventure_runtime
@@ -80,8 +99,21 @@ func _run() -> void:
 		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NORMAL))
 	assert(not AdventureStageCatalog.is_cleared(Global.global_game_state.adventure_state,
 		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NIGHTMARE))
-	AdventureSession.abandon_battle()
+	# 继续完成全部真实自然波次，并以 Boss ESCAPED 的实际结果结算噩梦。
+	Engine.time_scale = 12.0
+	var nightmare_deadline: int = Time.get_ticks_msec() + 70000
+	while AdventureSession.challenge_state == AdventureSession.ChallengeState.NIGHTMARE_ACTIVE \
+			and Time.get_ticks_msec() < nightmare_deadline:
+		if zombies.curr_zombie_num > 0:
+			zombies.death_all_zombie()
+		await get_tree().create_timer(0.15, true, false, true).timeout
+	Engine.time_scale = 1.0
+	assert(AdventureSession.challenge_state == AdventureSession.ChallengeState.COMPLETE)
+	assert(AdventureStageCatalog.is_cleared(Global.global_game_state.adventure_state,
+		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NIGHTMARE))
+	assert(battle._round_end_claimed and battle.main_game_progress == MainGameManager.E_MainGameProgress.GAME_OVER)
+	battle.win_main_game()
 	await _frames()
 	assert(AdventureSession.active_level == null)
-	print("PASS: first-clear key continuation, independent nightmare waves, boss events and strict settlement")
+	print("PASS: normal reward checkpoint, same-field nightmare, escaped boss, full nightmare waves, final reward and trophy")
 	get_tree().quit(0)

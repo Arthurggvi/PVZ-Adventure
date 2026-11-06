@@ -56,6 +56,13 @@ func _continue(glo_pos: Vector2) -> void:
 		push_error("冒险连续阶段的战场清空前置条件失效。")
 		_finish_normal(glo_pos)
 		return
+	var nightmare: StagePhaseDefinition = AdventureStageCatalog.find_phase(
+		AdventureSession.active_stage, StagePhaseDefinition.Kind.NIGHTMARE)
+	# 先完成不会改变资产的战场预检；成功后本次同步交接不再包含可失败步骤。
+	if nightmare == null or not game.zombie_manager.can_begin_adventure_phase(nightmare.wave_profile):
+		push_error("噩梦阶段的战场前置条件无效。")
+		_finish_normal(glo_pos)
+		return
 	if not AdventureSession.begin_nightmare():
 		_show_offer(glo_pos)
 		return
@@ -65,12 +72,10 @@ func _continue(glo_pos: Vector2) -> void:
 		game.remove_child(game.adventure_runtime)
 		game.adventure_runtime.free()
 		game.adventure_runtime = null
-	if not game.zombie_manager.begin_adventure_phase(AdventureSession.active_wave_profile):
-		push_error("冒险波次切换违反清场前置条件。")
-		AdventureSession.finish_defeat()
-		return
-	game.zombie_manager.zombie_refresh_types = AdventureBattleEnvironmentAdapter.preview_zombies(
-		AdventureSession.active_phase)
+	game.zombie_manager.begin_adventure_phase(AdventureSession.active_wave_profile)
+	# 旧 ResourceLevelData 是投影，所有阶段动态读取应以 Session.active_phase 为准。
+	AdventureBattleEnvironmentAdapter.project_phase(game.game_para, AdventureSession.active_phase)
+	game.zombie_manager.zombie_refresh_types = game.game_para.zombie_refresh_types
 	game.adventure_runtime = AdventureBattleRuntime.new()
 	game.adventure_runtime.setup(game.zombie_manager.zombie_wave_manager,
 		game.zombie_manager, AdventureSession.active_phase)

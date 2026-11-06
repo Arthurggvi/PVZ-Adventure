@@ -13,13 +13,13 @@ enum PlantFilter { UNSET, ANY, SPECIFIC }
 ## Boss 离场原因过滤，不隐式把所有离场当死亡。
 enum BossExitReason { UNSET, ANY, DEFEATED, ESCAPED }
 ## 动作仅是枚举与参数，P1-A 不提供任何执行器。
-enum Action { UNSET, PAUSE_NATURAL_WAVES, RESUME_NATURAL_WAVES, SPAWN_ZOMBIES, BEGIN_BOSS_ENCOUNTER, REQUEST_DROP, SET_REGION_FLAG, FINISH_BATTLE, MODIFY_CARD_COOLDOWN }
+enum Action { UNSET = 0, SPAWN_ZOMBIES = 3, BEGIN_BOSS_ENCOUNTER = 4, REQUEST_DROP = 5, SET_REGION_FLAG = 6, FINISH_BATTLE = 7, MODIFY_CARD_COOLDOWN = 8 }
 enum CooldownScope { UNSET, ALL_SELECTED, PLANT_TYPE }
 enum CooldownOperation { UNSET, NEXT_USE_MULTIPLIER, ADJUST_REMAINING_SECONDS }
 ## 标记动作的布尔目标值必须显式选择。
 enum FlagValue { UNSET, OFF, ON }
 ## 结束战斗动作的结果参数。
-enum BattleResult { UNSET, VICTORY, DEFEAT }
+enum BattleResult { UNSET = 0, DEFEAT = 2 }
 ## 当前阶段内唯一的事件静态 ID。
 @export var event_id: StringName = &""
 ## 强类型触发时机。
@@ -158,8 +158,8 @@ func _validate_action(known_tier_ids: Array[StringName], encounter_ids: Array[St
 	elif action_flag_value != FlagValue.UNSET:
 		errors.append("非标记动作不能填写标记值。")
 	if action == Action.FINISH_BATTLE:
-		if action_battle_result not in [BattleResult.VICTORY, BattleResult.DEFEAT]:
-			errors.append("结束战斗动作必须显式指定结果。")
+		if action_battle_result != BattleResult.DEFEAT:
+			errors.append("事件只能显式触发失败；阶段胜利由真实末波和 Boss 结果判定。")
 	elif action_battle_result != BattleResult.UNSET:
 		errors.append("非结束动作不能填写战斗结果。")
 	if action == Action.MODIFY_CARD_COOLDOWN:

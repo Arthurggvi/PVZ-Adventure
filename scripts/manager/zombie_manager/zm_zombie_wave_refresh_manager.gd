@@ -78,7 +78,7 @@ var curr_wave := -1
 
 ## 刷新下一波信号（当前波结束时调用）
 @warning_ignore("unused_signal")
-signal signal_refresh
+signal signal_refresh(generation: int)
 ## 当前波自然刷新时间（更新完当前波后触发,给波次管理器当前波自然刷新时间）
 signal signal_norm_time(time:float)
 ## 开始等待刷新，当前波次时间已达最小值，可以触发下次提前刷新
@@ -193,10 +193,21 @@ func _on_wave_norm_refresh_timer_timeout() -> void:
 		refresh_once()
 
 ## 消费本波刷新机会并延迟发出下一波信号；结束战斗后不再排队刷新请求。
-func refresh_once():
-	if _is_suspended or not zombie_manager.is_game_running():
+func refresh_once() -> void:
+	if _is_suspended or not zombie_manager.is_game_running() \
+			or curr_refresh_status == E_RefreshStatus.CompleteRefresh \
+			or curr_can_refresh_type == E_RefreshType.Null:
 		return
 	curr_refresh_status = E_RefreshStatus.CompleteRefresh
 	curr_can_refresh_type = E_RefreshType.Null
-	# 物理查询刷新期间不能改变状态，空闲后由下一波入口再次确认战斗阶段。
-	call_deferred(&"emit_signal", "signal_refresh")
+	# 延迟事件携带自身波次代数；停止、切波和切阶段都会废弃旧请求。
+	_emit_refresh_if_current.call_deferred(_refresh_generation)
+
+func is_current_refresh_request(generation: int) -> bool:
+	return generation == _refresh_generation and \
+		curr_refresh_status == E_RefreshStatus.CompleteRefresh and \
+		not _is_suspended and zombie_manager.is_game_running()
+
+func _emit_refresh_if_current(generation: int) -> void:
+	if is_current_refresh_request(generation):
+		signal_refresh.emit(generation)

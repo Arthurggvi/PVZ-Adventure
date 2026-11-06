@@ -2,6 +2,55 @@
 extends RefCounted
 class_name AdventureWavePlanner
 
+## 冒险阶段唯一战力预算算法；运行时出怪与入场校验共用这一数值定义。
+static func power_budget(wave_index: int, is_big_wave: bool, multiplier: int) -> int:
+	var base_power: int = wave_index / 3 + 1
+	return (int(base_power * 2.5) if is_big_wave else base_power) * multiplier
+
+## 检查整阶段每波必有可负担敌人，且任何设置正权重的物种/等阶组合至少在所处
+## 波段的一波具有实际出场机会；避免配置看似有效而高等阶始终被预算过滤。
+static func validate_affordability(profile: WaveProfile, multiplier: int,
+		threat: Dictionary) -> PackedStringArray:
+	var errors := PackedStringArray()
+	if profile == null or multiplier <= 0:
+		errors.append("阶段战力预算参数无效。")
+		return errors
+	for band: WaveBandDefinition in profile.bands:
+		if band == null:
+			continue
+		var reachable: Dictionary = {}
+		var weighted: Array[String] = []
+		for zombie_type: int in band.zombie_weights:
+			if band.zombie_weights[zombie_type] <= 0:
+				continue
+			for tier_id: StringName in band.tier_weights:
+				if band.tier_weights[tier_id] <= 0 or not threat.has(tier_id):
+					continue
+				var key: String = "%d/%s" % [zombie_type, tier_id]
+				weighted.append(key)
+				reachable[key] = false
+		for wave_number: int in range(band.first_wave, mini(band.last_wave, profile.wave_count) + 1):
+			var final_or_flag: bool = profile.is_flag_wave(wave_number) or wave_number == profile.wave_count
+			var budget: int = power_budget(wave_number - 1, final_or_flag, multiplier)
+			var any_affordable := false
+			for zombie_type: int in band.zombie_weights:
+				if band.zombie_weights[zombie_type] <= 0:
+					continue
+				for tier_id: StringName in band.tier_weights:
+					if band.tier_weights[tier_id] <= 0 or not threat.has(tier_id):
+						continue
+					var base_cost: int = int(CharacterRegistry.ZombieSpawnPower.get(zombie_type, 0))
+					var cost: int = maxi(1, ceili(float(base_cost) * float(threat[tier_id])))
+					if base_cost > 0 and cost <= budget:
+						reachable["%d/%s" % [zombie_type, tier_id]] = true
+						any_affordable = true
+			if not any_affordable:
+				errors.append("第%d波没有可负担敌人。" % wave_number)
+		for key: String in weighted:
+			if not reachable[key]:
+				errors.append("波段%s的物种/等阶组合%s永远不满足战力预算。" % [band.band_id, key])
+	return errors
+
 ## 所有波次配置使用 1-based 编号；原版 ZombieWaveManager 是 0-based。
 static func find_band(profile: WaveProfile, wave_number: int) -> WaveBandDefinition:
 	if profile == null or wave_number < 1 or wave_number > profile.wave_count:

@@ -34,7 +34,7 @@ func _run() -> void:
 	cfg.summon_end = BossEncounterDefinition.SummonEnd.BOSS_EXIT
 	cfg.summon_interval_seconds = 1.2
 	cfg.summon_count = 2
-	cfg.max_alive_summons = 5
+	cfg.max_alive_periodic_summons = 5
 	cfg.summon_zombie_weights[CharacterRegistry.ZombieType.Z001Norm] = 1
 	cfg.summon_tier_weights[&"base"] = 1
 	assert(cfg.validate(10, AdventureStageCatalog.tier_ids()).is_empty())
@@ -52,7 +52,7 @@ func _run() -> void:
 	await get_tree().create_timer(3.3).timeout
 	assert(waves.is_advancement_suspended and waves.curr_wave == before_wave)
 	assert(encounter._summons.size() >= 4) # 两次以上独立召唤，不是仅入场刷新一批。
-	assert(encounter._summons.size() <= cfg.max_alive_summons)
+	assert(encounter._summons.size() <= cfg.max_alive_periodic_summons)
 	for ref: WeakRef in encounter._summons.values():
 		var minion: Zombie000Base = ref.get_ref() as Zombie000Base
 		assert(minion != null and minion.adventure_tier_id == &"base")

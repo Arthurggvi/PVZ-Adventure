@@ -155,11 +155,15 @@ func init_manager() -> void:
 			## 波次刷新时判断是否为最后一波，删除多余魅惑僵尸
 			hammer_zombie_manager.signal_wave_refresh.connect(wave_refresh)
 
-## 冒险阶段在同一个场景内更换波次，植物、阳光和小推车保持不变。
-## 必须由普通末波真实清场且结算成功的唯一流程调用。
-func begin_adventure_phase(profile: WaveProfile) -> bool:
-	if not is_game_running() or not is_end_wave or curr_zombie_num != 0 or profile == null:
-		return false
+## 冒险阶段切换的唯一战场预检，必须先于钥匙消费。
+func can_begin_adventure_phase(profile: WaveProfile) -> bool:
+	return is_game_running() and is_end_wave and curr_zombie_num == 0 \
+		and profile != null and profile.wave_count >= 2
+
+## 确认预检及钥匙事务后同步提交战场；过程无额外失败分支。
+## 植物、阳光与卡组仍属于同一战场。
+func begin_adventure_phase(profile: WaveProfile) -> void:
+	assert(can_begin_adventure_phase(profile))
 	if is_instance_valid(check_zombie_end_wave_timer):
 		check_zombie_end_wave_timer.stop()
 	if is_instance_valid(multi_round_end_wave_timer):
@@ -169,7 +173,6 @@ func begin_adventure_phase(profile: WaveProfile) -> bool:
 	_natural_wave_counts.clear()
 	is_end_wave = false
 	zombie_wave_manager.begin_adventure_phase(profile)
-	return true
 
 ## 开始第一波
 func start_game():
@@ -388,6 +391,10 @@ func _on_boss_tree_exiting(instance_id: int) -> void:
 	if _boss_trophy_pending_id == instance_id:
 		_boss_trophy_pending_id = 0
 	_refresh_boss_progress()
+	# 逃跑通过树退出解除实体登记；若它恰好是末波最后一个敌人，需重新请求清场判定。
+	# Boss 结果尚未交给 Director 时 can_accept_victory 会拒绝，之后 idle 再次复核。
+	if is_game_running():
+		_try_finish_wave(main_game.camera_2d.get_screen_center_position())
 
 
 ## [param instance_id] 本局实例 ID；返回仍有效的登记僵王，已释放或未登记时返回 null。

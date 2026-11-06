@@ -144,7 +144,7 @@ func enter_stage(stage_number: int, phase_kind: int = StagePhaseDefinition.Kind.
 	if phase == null or phase.wave_profile == null:
 		error_message = "冒险波次数据未就绪。"
 		return false
-	var level: ResourceLevelData = AdventureBattleEnvironmentAdapter.build(stage.environment, phase)
+	var level: ResourceLevelData = AdventureBattleEnvironmentAdapter.build(stage, phase)
 	if level == null:
 		error_message = "无法从本局环境及阶段配置构建战斗。"
 		return false
@@ -261,17 +261,17 @@ func begin_nightmare() -> bool:
 		return false
 	var nightmare: StagePhaseDefinition = AdventureStageCatalog.find_phase(
 		active_stage, StagePhaseDefinition.Kind.NIGHTMARE)
-	if nightmare == null or battle_loadout.is_empty() or battle_loadout.size() > nightmare.max_selected_cards:
+	if nightmare == null or battle_loadout.is_empty() or battle_loadout.size() > active_stage.max_selected_cards:
 		error_message = "噩梦阶段与当前卡组不兼容。"
 		return false
-	var consume: bool = nightmare.key_use == StagePhaseDefinition.KeyUse.CONSUME
-	var key: String = str(nightmare.key_id)
+	var consume: bool = active_stage.nightmare_key_use == StageDefinition.KeyUse.CONSUME
+	var key: String = str(active_stage.nightmare_key_id)
 	if consume:
-		if not Global.adventure_inventory.consume_item(key, nightmare.key_count):
+		if not Global.adventure_inventory.consume_item(key, active_stage.nightmare_key_count):
 			error_message = "噩梦钥匙不足。"
 			return false
 		if not Global.save_service.save_now():
-			Global.adventure_inventory.add_item(key, nightmare.key_count)
+			Global.adventure_inventory.add_item(key, active_stage.nightmare_key_count)
 			error_message = "无法保存钥匙消耗，阶段未切换。"
 			return false
 	active_phase = nightmare

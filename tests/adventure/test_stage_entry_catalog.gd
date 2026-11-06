@@ -11,9 +11,8 @@ func _run() -> void:
 	var normal: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, StagePhaseDefinition.Kind.NORMAL)
 	var nightmare: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, StagePhaseDefinition.Kind.NIGHTMARE)
 	assert(normal != null and nightmare != null)
-	assert(nightmare.key_id == &"lawn_nightmare_key")
-	assert(nightmare.unlock_rule == StagePhaseDefinition.UnlockRule.CONTINUE_WITH_KEY)
-	assert(nightmare.key_use == StagePhaseDefinition.KeyUse.KEEP)
+	assert(stage.nightmare_key_id == &"lawn_nightmare_key")
+	assert(stage.nightmare_key_use == StageDefinition.KeyUse.KEEP)
 	var state := AdventureState.new()
 	var inventory := AdventureInventoryService.new(state)
 	assert(AdventureStageCatalog.entry_error(1, StagePhaseDefinition.Kind.NORMAL, state, inventory).contains("植物卡"))
@@ -36,7 +35,7 @@ func _run() -> void:
 	assert(level != null)
 	assert(level.look_show_zombie and level.can_choosed_card)
 	assert(level.max_wave == normal.wave_profile.wave_count)
-	assert(level.max_choosed_card_num == normal.max_selected_cards)
+	assert(level.max_choosed_card_num == stage.max_selected_cards)
 	assert(level.zombie_refresh_types.size() == 1)
 	level.max_wave = 99
 	# 两阶段独立波数：普通3波、噩梦7波，均可通过同一StageDefinition校验。
@@ -50,9 +49,9 @@ func _run() -> void:
 	short_nightmare.wave_profile.wave_count = 7
 	short_nightmare.wave_profile.bands[1].last_wave = 7
 	assert(short_stage.validate(AdventureStageCatalog.tier_ids(), AdventureStageCatalog.key_ids()).is_empty())
-	var short_level := AdventureBattleEnvironmentAdapter.build(short_stage.environment, short_normal)
+	var short_level := AdventureBattleEnvironmentAdapter.build(short_stage, short_normal)
 	assert(short_level != null and short_level.max_wave == 3)
-	assert(AdventureBattleEnvironmentAdapter.build(short_stage.environment, short_nightmare).max_wave == 7)
+	assert(AdventureBattleEnvironmentAdapter.build(short_stage, short_nightmare).max_wave == 7)
 	assert(stage.environment.initial_sun == 150)
 	assert(state.to_dict().size() > 0)
 	print("PASS: normal-only entry, key-gated continuation independent of prior clears, per-phase configs")
