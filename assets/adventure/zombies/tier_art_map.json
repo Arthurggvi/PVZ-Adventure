@@ -382,6 +382,52 @@
         "res://assets/reanim/Zombie_Jackson_outerleg_lower.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_outerleg_lower.png",
         "res://assets/reanim/Zombie_Jackson_outerleg_upper.png": "res://assets/adventure/zombies/jackson/tier5/Zombie_Jackson_outerleg_upper.png"
       }
+    },
+    "10": {
+      "veteran": {
+        "res://assets/reanim/Zombie_dancer_hair.png": "res://assets/adventure/zombies/dancer/tier2/Zombie_dancer_hair.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_dancer_belt.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_belt.png",
+        "res://assets/reanim/Zombie_dancer_body1.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_body1.png",
+        "res://assets/reanim/Zombie_dancer_body2.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_body2.png",
+        "res://assets/reanim/Zombie_dancer_colar.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_colar.png",
+        "res://assets/reanim/Zombie_dancer_hair.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_hair.png",
+        "res://assets/reanim/Zombie_dancer_innerarm_hand.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_innerarm_hand.png",
+        "res://assets/reanim/Zombie_dancer_innerleg_lower.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_innerleg_lower.png",
+        "res://assets/reanim/Zombie_dancer_innerleg_upper.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_innerleg_upper.png",
+        "res://assets/reanim/Zombie_dancer_outerarm_hand.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_outerarm_hand.png",
+        "res://assets/reanim/Zombie_dancer_outerleg_lower.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_outerleg_lower.png",
+        "res://assets/reanim/Zombie_dancer_outerleg_upper.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_outerleg_upper.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_dancer_belt.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_belt.png",
+        "res://assets/reanim/Zombie_dancer_body1.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_body1.png",
+        "res://assets/reanim/Zombie_dancer_body2.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_body2.png",
+        "res://assets/reanim/Zombie_dancer_colar.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_colar.png",
+        "res://assets/reanim/Zombie_dancer_hair.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_hair.png",
+        "res://assets/reanim/Zombie_dancer_innerarm_hand.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_innerarm_hand.png",
+        "res://assets/reanim/Zombie_dancer_innerleg_lower.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_innerleg_lower.png",
+        "res://assets/reanim/Zombie_dancer_innerleg_upper.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_innerleg_upper.png",
+        "res://assets/reanim/Zombie_dancer_outerarm_hand.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_outerarm_hand.png",
+        "res://assets/reanim/Zombie_dancer_outerleg_lower.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_outerleg_lower.png",
+        "res://assets/reanim/Zombie_dancer_outerleg_upper.png": "res://assets/adventure/zombies/dancer/tier3/Zombie_dancer_outerleg_upper.png",
+        "res://assets/reanim/Zombie_dancer__head.png": "res://assets/adventure/zombies/dancer/tier4/Zombie_dancer__head.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_dancer__head.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer__head.png",
+        "res://assets/reanim/Zombie_dancer_belt.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_belt.png",
+        "res://assets/reanim/Zombie_dancer_body1.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_body1.png",
+        "res://assets/reanim/Zombie_dancer_body2.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_body2.png",
+        "res://assets/reanim/Zombie_dancer_colar.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_colar.png",
+        "res://assets/reanim/Zombie_dancer_hair.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_hair.png",
+        "res://assets/reanim/Zombie_dancer_innerarm_hand.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_innerarm_hand.png",
+        "res://assets/reanim/Zombie_dancer_innerleg_lower.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_innerleg_lower.png",
+        "res://assets/reanim/Zombie_dancer_innerleg_upper.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_innerleg_upper.png",
+        "res://assets/reanim/Zombie_dancer_outerarm_hand.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_outerarm_hand.png",
+        "res://assets/reanim/Zombie_dancer_outerleg_lower.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_outerleg_lower.png",
+        "res://assets/reanim/Zombie_dancer_outerleg_upper.png": "res://assets/adventure/zombies/dancer/tier5/Zombie_dancer_outerleg_upper.png"
+      }
     }
   }
 }
