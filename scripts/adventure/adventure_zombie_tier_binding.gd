@@ -36,6 +36,8 @@ func apply(zombie: Zombie000Base) -> bool:
 	if attack != null:
 		attack.init_attack_value_per_min = Tiers.scaled(
 			attack.init_attack_value_per_min, float(tier.attack))
+	# 只在冒险出生时接入实例级美术；没有配置时维持既有颜色标识。
+	var art_loaded: bool = AdventureZombieTierArt.apply(zombie, id)
 	zombie.adventure_tier_id = id
-	zombie.modulate = tier.tint
+	zombie.modulate = Color.WHITE if art_loaded else tier.tint
 	return true
