@@ -16,7 +16,7 @@ visible = false
 visible = false
 
 [node name="AllStarVisual" type="AnimatedSprite2D" parent="Body" index="2"]
-position = Vector2(-108, -147)
+position = Vector2(-153, -209)
 sprite_frames = ExtResource("3_frames")
 animation = &"run"
 autoplay = "run"

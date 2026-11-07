@@ -14,10 +14,13 @@ func _run() -> void:
 	await get_tree().process_frame
 	var visual: AnimatedSprite2D = zombie.get_node("Body/AllStarVisual")
 	assert(visual.sprite_frames != null, "External sprite frames missing")
-	for clip in [&"idle", &"run", &"tackle", &"eat", &"death"]:
+	for clip in [&"idle", &"run", &"tackle", &"walk", &"eat", &"death"]:
 		assert(visual.sprite_frames.has_animation(clip), "Missing external clip %s" % clip)
 	assert(visual.sprite_frames.get_frame_count(&"run") == 26)
-	assert(visual.sprite_frames.get_frame_count(&"tackle") == 2)
+	assert(visual.sprite_frames.get_frame_count(&"tackle") == 11)
+	assert(visual.sprite_frames.get_frame_count(&"eat") == 19)
+	assert(visual.sprite_frames.get_frame_count(&"death") == 24)
+	assert(visual.sprite_frames.get_frame_count(&"walk") == 26)
 	assert(not zombie.get_node("Body/BodyCorrect").visible, "Legacy football visual must be hidden")
 	assert(CharacterRegistry.ZombieSpawnPower[CharacterRegistry.ZombieType.Z026AllStar] == 12)
 	print("ALL_STAR_EXTERNAL_ASSET_SCENE_OK")

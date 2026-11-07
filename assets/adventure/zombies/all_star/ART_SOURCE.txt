@@ -1,5 +1,6 @@
-Visual and tackle effect: PvZ Thyme fan mod, https://gamebanana.com/mods/562527
-Animation source: compiled/reanim/Zombie_football.reanim in that mod.
-Baked from that external source, not copied from this game repository. License noted by creator: CC BY-NC-ND 4.0; requires checking before redistribution.
-Generic tackle sound candidate: PvZ Android TV 1.1.5 external APK https://archive.org/details/pvz-android-tv
-External source images, original Reanim and full review manifest are retained at C:/Dev/PvZ/_review/all_star/thyme_allstar_external/
+Visual source: PvZ Thyme fan mod, https://gamebanana.com/mods/562527, derived from compiled/reanim/Zombie_football.reanim and its external black football sprite parts. This is NOT a native PvZ2/TV All-Star rip.
+Rebuilt original-source animation frames on 340x310 transparent canvas: idle 0..20 (21), run 21..46 (26), tackle 44..54 (11), walk 21..46 (26, retimed slower), eat 49..67 (19), death 79..102 (24).
+Tackle impact source frame 47 is animation frame index 3 (zero-based); sound and plant damage are triggered on that visual frame.
+Death reconstruction uses the source's black football head, jaw, and helmet parts from source frame 78, tumbling independently during the death sequence.
+Sound source: a generic original Android TV 1.1.5 bonk.wav, https://archive.org/details/pvz-android-tv; NOT a verified exclusive All-Star scoring sound.
+Source mod reports CC BY-NC-ND 4.0; derivative redistribution requires separate license clearance. Original PNG and Reanim, manifests and previews are retained outside the project at C:/Dev/PvZ/_review/all_star/.
