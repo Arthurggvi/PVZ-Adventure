@@ -8,6 +8,8 @@ class_name WaveBandDefinition
 @export var first_wave: int = 0
 ## 包含在波段内的末波。
 @export var last_wave: int = 0
+## 随机池的基础战力下限；0 沿用自然波预算，大波和战场倍率仍按规则叠加。
+@export var minimum_regular_power: int = 0
 ## 普通僵尸专用物种池，不使用 Boss 类型字段。
 @export var zombie_weights: Dictionary[CharacterRegistry.ZombieType, int] = {}
 ## 等阶 ID 必须存在于调用方明确提供的已定义目录，零权重也不能引用不存在的等阶。
@@ -20,6 +22,8 @@ func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 		errors.append("波段缺少稳定 ID。")
 	if first_wave < 1 or last_wave < first_wave:
 		errors.append("波段[%s]的波次闭区间无效。" % band_id)
+	if minimum_regular_power < 0:
+		errors.append("波段[%s]的基础战力下限不能为负数。" % band_id)
 	errors.append_array(validate_pool(zombie_weights, tier_weights, known_tier_ids))
 	return errors
 

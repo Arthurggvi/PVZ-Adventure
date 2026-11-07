@@ -58,7 +58,7 @@ func _run() -> void:
 	assert(Global.global_game_state.adventure_state.selected_card_uids == selected)
 	var wave_creator: ZombieWaveCreateManager = battle.zombie_manager.zombie_wave_manager.zombie_wave_create_manager
 	assert(wave_creator.adventure_wave_profile != null)
-	assert(wave_creator.adventure_wave_profile.wave_count == 10)
+	assert(wave_creator.adventure_wave_profile.wave_count == 20)
 	# 开战状态先于自然第一波，必须等实际生成后才检查实体。
 	var first_wave_deadline: int = Time.get_ticks_msec() + 30000
 	while wave_creator.wave_all_zombies.is_empty() and Time.get_ticks_msec() < first_wave_deadline:

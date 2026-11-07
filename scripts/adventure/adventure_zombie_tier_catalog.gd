@@ -18,6 +18,15 @@ const DEFINITIONS: Dictionary = {
 		"tint": Color(1.0, 0.65, 0.5)}
 }
 
+## 界面共用的中文阶数标签：base 为 1 阶，之后每级 +1，与交接稿的“1–5 阶”用语一致。
+const DISPLAY_NAMES: Dictionary = {
+	&"base": "1 阶",
+	&"veteran": "2 阶",
+	&"elite": "3 阶",
+	&"tier4": "4 阶",
+	&"tier5": "5 阶",
+}
+
 static func tier_ids() -> Array[StringName]:
 	var result: Array[StringName] = []
 	for id: StringName in DEFINITIONS:
@@ -32,6 +41,10 @@ static func threat_costs() -> Dictionary:
 
 static func get_tier(id: StringName) -> Dictionary:
 	return DEFINITIONS[id].duplicate(true) if DEFINITIONS.has(id) else {}
+
+## [param id] 的界面阶数标签；未知等阶原样返回，便于在配置错误时暴露真实 ID。
+static func display_name(id: StringName) -> String:
+	return str(DISPLAY_NAMES.get(id, id))
 
 ## Pure numeric rounding shared with the battle-time tier binding adapter.
 static func scaled(value: int, factor: float) -> int:

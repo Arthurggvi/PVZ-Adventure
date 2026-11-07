@@ -28,8 +28,15 @@ func create_coin(probability:Array=[0.5, 0.5, 0], global_position_new_coin:Vecto
 		new_coin = SceneRegistry.COIN_GOLD.instantiate()
 	else:
 		new_coin = SceneRegistry.COIN_DIAMOND.instantiate()
+	if is_instance_valid(Global.main_game) and Global.main_game.is_ancestor_of(self):
+		var effects: PlayerEffects = AdventureSession.player_effects_for(Global.main_game.game_para) # 原版得到中性倍率，花园不受冒险徽章影响。
+		var amount: int = PlayerEffects.scale_amount(new_coin.coin_value, effects.coin_multiplier) # 生成时固定金额，拾取不再乘算。
+		if amount < 1:
+			new_coin.free()
+			return
+		new_coin.coin_value = amount
 	all_drop_coin_parent.add_child(new_coin)
-	new_coin.setup(coin_bank_label.marker_2d_coin_target.global_position)
+	new_coin.setup(coin_bank_label.marker_2d_coin_target)
 	new_coin.global_position = global_position_new_coin
 	## 抛物线发射金币
 	new_coin.launch(target_position)

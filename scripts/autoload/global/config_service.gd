@@ -17,8 +17,6 @@ signal signal_track_bullet_mouse
 const CURRENT_CONFIG_FILE := "config.ini"
 
 ## 用户选项（持久化字段）
-var auto_collect_sun := false
-var auto_collect_coin := false
 
 var disappear_spare_card_Placeholder := false:
 	set(value):
@@ -88,8 +86,6 @@ func load_and_apply_config() -> void:
 	SoundManager.set_volume(SoundManager.Bus.SFX, config.get_value("audio", "sfx", 0.5))
 
 	# 用户选项控制台
-	auto_collect_sun = config.get_value("user_control", "auto_collect_sun", false)
-	auto_collect_coin = config.get_value("user_control", "auto_collect_coin", false)
 	disappear_spare_card_Placeholder = config.get_value("user_control", "disappear_spare_card_Placeholder", false)
 	display_plant_HP_label = config.get_value("user_control", "display_plant_HP_label", false)
 	display_zombie_HP_label = config.get_value("user_control", "display_zombie_HP_label", false)
@@ -114,8 +110,6 @@ func save_config() -> void:
 	config.set_value("audio", "sfx", SoundManager.get_volum(SoundManager.Bus.SFX))
 
 	# 用户选项控制台相关
-	config.set_value("user_control", "auto_collect_sun", auto_collect_sun)
-	config.set_value("user_control", "auto_collect_coin", auto_collect_coin)
 	config.set_value("user_control", "disappear_spare_card_Placeholder", disappear_spare_card_Placeholder)
 	config.set_value("user_control", "display_plant_HP_label", display_plant_HP_label)
 	config.set_value("user_control", "display_zombie_HP_label", display_zombie_HP_label)

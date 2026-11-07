@@ -20,9 +20,10 @@ void fragment() {
 	vec4 result = original;
 	float phase = mod(TIME, FX_PERIOD);
 	if (effect_mode == 1) {
-		float glint = smoothstep(1.03, 1.18, phase) *
-			(1.0 - smoothstep(1.40, 1.62, phase));
-		result.a *= glint;
+		float glint = smoothstep(1.00, 1.10, phase) *
+			(1.0 - smoothstep(1.50, 1.80, phase));
+		result.a = min(1.0, result.a * glint * 1.8);
+		result.rgb = mix(result.rgb, vec3(1.0), glint * 0.35);
 	} else if (effect_mode == 2) {
 		float crown_phase = mod(TIME, CROWN_PERIOD);
 		float ambient = 0.17 + 0.07 * (0.5 + 0.5 * sin(TIME * 0.79));

@@ -9,6 +9,12 @@ signal canceled
 signal closed
 ## 所有按钮、面板及输入框背景复用背包已有素材。
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
+## 弹层动效在场景树暂停时也按真实时间播放。
+const ModalMotion = preload("res://scripts/ui/transitions/modal_motion.gd")
+## 宿主在入树前启用开合动效和交互音效。
+var animated_feedback: bool = false
+## 可选的开合动效组件；退场期间保持模态遮罩有效。
+var _motion: ModalMotion
 ## 弹窗标题，由宿主在入树前设置。
 var _heading: String = ""
 ## 弹窗说明，不包含需要执行的行为。
@@ -66,14 +72,27 @@ func _ready() -> void:
 	_canvas = Control.new()
 	_canvas.size = _design_size
 	_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_canvas)
+	if animated_feedback:
+		var motion_target := Control.new() # 独立的表现层，缩放时不覆盖画布的窗口适配。
+		motion_target.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(motion_target)
+		motion_target.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		motion_target.add_child(_canvas)
+		_motion = ModalMotion.new()
+		_motion.target = motion_target
+		_motion.backdrop = shade
+		add_child(_motion)
+	else:
+		add_child(_canvas)
 	Art.panel(_canvas, "panels/outer_frame_ninepatch.png", Vector2.ZERO, _design_size, 32)
 	Art.panel(_canvas, "panels/parchment_ninepatch.png", Vector2(16, 16), _design_size - Vector2(32, 32), 24)
-	var heading: Label = Art.label(_canvas, _heading, Vector2(36, 25), Vector2(548, 48), 31) # 弹窗标题居中。
-	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if not _heading.is_empty():
+		var heading: Label = Art.label(_canvas, _heading, Vector2(36, 25), Vector2(548, 48), 31) # 可选的独立标题。
+		heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var has_cancel: bool = not _cancel_text.is_empty() # 双按钮对话框允许取消。
 	var simple_confirmation: bool = has_cancel and _limit == 0 # 无数量确认采用居中说明与左确认、右取消的布局。
-	var message: Label = Art.label(_canvas, _message, Vector2(42, 84), Vector2(536, 106), 23, _message_color) # 说明自动换行。
+	var message_top: float = 44.0 if _heading.is_empty() else 84.0 # 单行确认没有单独标题，文案占用完整上半区。
+	var message: Label = Art.label(_canvas, _message, Vector2(42, message_top), Vector2(536, 190.0 - message_top), 23, _message_color) # 说明自动换行。
 	message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	message.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	if simple_confirmation:
@@ -92,6 +111,20 @@ func _ready() -> void:
 	resized.connect(_fit)
 	_fit()
 	_confine_focus(cancel_button if simple_confirmation else _confirm_button)
+	if _motion != null:
+		var close_button: TextureButton = Art.button(_canvas, "controls/close", Vector2(558, 22), Vector2(40, 40), dismiss) # 复用背包的关闭按钮。
+		close_button.accessibility_name = "关闭"
+		close_button.mouse_entered.connect(_play_hover)
+		_confirm_button.mouse_entered.connect(_play_hover)
+		if cancel_button != null:
+			cancel_button.mouse_entered.connect(_play_hover)
+		SoundManager.play_other_SFX(&"pause")
+		_motion.play_open()
+
+## 悬停沿用游戏按钮音效；退场期间不再响应按钮。
+func _play_hover() -> void:
+	if not _finished:
+		SoundManager.play_other_SFX(&"bleep")
 
 ## 弹窗内建立闭合焦点环，Tab 和方向键不会切换到底层分类、搜索框或丢弃按钮。
 ## 无数量输入时聚焦 [param initial_button]。
@@ -178,36 +211,46 @@ func _accept() -> void:
 	var quantity: int = _read_quantity() # 单卡或提示不需要数量控件。
 	if _finished or quantity == 0:
 		return
-	_close()
-	if not _cancel_text.is_empty():
-		confirmed.emit(quantity)
+	_close(quantity)
 
 ## 取消或按 Esc 关闭弹窗；只有双按钮确认会派发取消信号。
 func dismiss() -> void:
 	if _finished:
 		return
 	_close()
-	if not _cancel_text.is_empty():
-		canceled.emit()
 
-## 先释放模态界面和焦点，再由调用者发出确认或取消。
-func _close() -> void:
+## 锁定本次选择；[param quantity] 为正表示确认，零表示取消或关闭。
+func _close(quantity: int = 0) -> void:
 	_finished = true
+	if _motion != null:
+		SoundManager.play_other_SFX(&"buttonclick" if quantity > 0 else &"tap")
+		_motion.closed.connect(_finish_close.bind(quantity), CONNECT_ONE_SHOT)
+		_motion.play_close()
+	else:
+		_finish_close(quantity)
+
+## 释放模态界面和焦点，再按 [param quantity] 派发确认或取消。
+func _finish_close(quantity: int) -> void:
 	hide()
 	if is_instance_valid(_previous_focus) and _previous_focus.is_inside_tree() and _previous_focus.is_visible_in_tree():
 		_previous_focus.grab_focus()
 	closed.emit()
 	queue_free()
+	if not _cancel_text.is_empty():
+		if quantity > 0:
+			confirmed.emit(quantity)
+		else:
+			canceled.emit()
 
 ## [param event] 的 Esc 在输入框处理前取消，避免被输入框吞掉或继续关闭整个背包。
 func _input(event: InputEvent) -> void:
-	if not _finished and event.is_action_pressed(&"ui_cancel"):
-		dismiss()
+	if is_visible_in_tree() and event.is_action_pressed(&"ui_cancel"):
 		get_viewport().set_input_as_handled()
+		dismiss()
 
 ## [param event] 的 Enter 在没有焦点控件处理时确认；输入框另通过 text_submitted 进入同一确认入口。
 func _unhandled_key_input(event: InputEvent) -> void:
-	if _finished or event.is_echo():
+	if _finished or not is_visible_in_tree() or event.is_echo():
 		return
 	if event.is_action_pressed(&"ui_accept"):
 		_accept()

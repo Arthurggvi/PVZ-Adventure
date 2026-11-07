@@ -13,7 +13,12 @@ func _run() -> void:
 		return _fail("Unregistered scene or seven-slot persistent layer")
 	if view._available.get("inventory", false) != bar._can_open_inventory():
 		return _fail("Inventory gate must reflect current profile, not outdated test assumptions")
-	for id in ["quests", "research", "empty"]:
+	if view._available.get("research", false) != bar.can_open_research():
+		return _fail("Research gate must reflect quest reward claim")
+	for id in ["quests"]:
+		if view._available.get(id, false) != bar._can_open_quests():
+			return _fail("Quest gate must reflect first normal stage clear: " + id)
+	for id in ["empty"]:
 		if view._available.get(id, true):
 			return _fail("Unregistered module became available: " + id)
 	for id: String in view._icons:

@@ -56,10 +56,7 @@ func init_flag_from_adventure_profile(profile: WaveProfile) -> void:
 	if profile == null or profile.wave_count < 2:
 		push_error("冒险旗帜要求至少两波。")
 		return
-	var marks: Array[int] = profile.flag_waves.duplicate()
-	if not marks.has(profile.wave_count):
-		marks.append(profile.wave_count)
-	marks.sort()
+	var marks: Array[int] = profile.flag_wave_numbers()
 	var positions: Array[float] = []
 	var total_distance: float = start_flag - end_flag
 	for wave_number: int in marks:

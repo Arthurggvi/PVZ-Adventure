@@ -48,6 +48,9 @@ func _run() -> void:
 			assert(not unique.has(material))
 			unique[material] = true
 	var state := AdventureState.new()
+	# 研究室业务用例从已领取首个任务奖励的档案开始，奖励库存仍由下方独立布置。
+	AdventureQuestService.record_event(state, "stage_cleared", "zombie_island.lawn/normal", "2026-11-07")
+	state.quests.records["first_expedition"].status = "claimed"
 	var inventory := AdventureInventoryService.new(state)
 	var wallet := GlobalGameState.new()
 	wallet.adventure_state = state

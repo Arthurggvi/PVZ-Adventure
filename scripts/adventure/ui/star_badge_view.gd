@@ -5,7 +5,7 @@ extends Control
 const Art = preload("res://scripts/adventure/ui/star_badge_art.gd")
 const CORNER_SIZE := Vector2(31, 31)
 const CORNER_OFFSET := Vector2(-3, -4)
-const GLINT_SIZE := Vector2(11, 11)
+const GLINT_SIZE := Vector2(15, 15)
 const HALO_SIZE := Vector2(45, 45)
 
 var _image: TextureRect

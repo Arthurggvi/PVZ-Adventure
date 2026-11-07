@@ -5,8 +5,19 @@ const ROOT := "res://assets/adventure/ui/inventory/"
 const FRAME_SHADER = preload("res://shaders/adventure/inventory_slot_frame.gdshader")
 
 static func texture(path: String) -> Texture2D:
+	if path.is_empty():
+		return null
 	var uri: String = path if path.begins_with("res://") else ROOT + path
 	return load(uri) as Texture2D if ResourceLoader.exists(uri) else null
+
+## 用 [param path] 的已有素材生成九宫格样式；[param margin] 保留边角，供筛选菜单和悬停提示复用。
+static func texture_style(path: String, margin: float = 16.0) -> StyleBoxTexture:
+	var style := StyleBoxTexture.new() # 每次返回独立样式，不修改其他控件的资源。
+	style.texture = texture(path)
+	for side: int in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]: # 四边同距，避免切割木框边角。
+		style.set_texture_margin(side, margin)
+		style.set_content_margin(side, margin)
+	return style
 
 static func panel(parent: Node, path: String, pos: Vector2, size: Vector2, margin: int = 31) -> NinePatchRect:
 	var node := NinePatchRect.new()

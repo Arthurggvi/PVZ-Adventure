@@ -100,7 +100,12 @@ func _run() -> void:
 	AdventureSession.enter_lawn()
 	await _wait_battle()
 	battle = Global.main_game
-	# 加速自然十波，用原项目调试清怪入口缩短验收，不直接写胜利标记。
+	var waves: ZombieWaveManager = battle.zombie_manager.zombie_wave_manager # 当前真实战场中的刷怪管理器。
+	assert(waves.max_wave == 20)
+	assert(waves.flag_progress_bar.flag_arr.size() == 2)
+	var spawned_waves: Array[int] = [] # 记录订阅之后实际生成的自然波编号。
+	waves.adventure_wave_started.connect(func(wave_number: int) -> void: spawned_waves.append(wave_number))
+	# 加速自然波次，用原项目调试清怪入口缩短验收，不直接写胜利标记。
 	Engine.time_scale = 6.0
 	while AdventureSession.challenge_state == AdventureSession.ChallengeState.NORMAL_ACTIVE:
 		if battle.zombie_manager.curr_zombie_num > 0:
@@ -108,10 +113,12 @@ func _run() -> void:
 			battle.zombie_manager.death_all_zombie()
 		await get_tree().create_timer(0.5, true, false, true).timeout
 	assert(saw_zombies and battle.zombie_manager.is_end_wave)
-	assert(AdventureSession.challenge_state == AdventureSession.ChallengeState.NORMAL_COMPLETE)
-	assert(battle.adventure_continuation.dialog != null and battle.adventure_continuation.dialog.visible)
-	# 首通奖励本轮发放钥匙，玩家应立即得到续战选择。选择结束后再生成奖杯。
-	battle.adventure_continuation.dialog.canceled.emit()
+	assert(spawned_waves.has(10) and spawned_waves.has(20) and spawned_waves.size() >= 19)
+	for flag: FlagProgressBarFlag in waves.flag_progress_bar.flag_arr: # 两次大波均应升旗。
+		assert(flag.flag.position.y == -10.0)
+	# 普通胜利不发放钥匙，空库存直接完成挑战并生成奖杯。
+	assert(AdventureSession.challenge_state == AdventureSession.ChallengeState.COMPLETE)
+	assert(battle.adventure_continuation.dialog == null)
 	Engine.time_scale = 1.0
 	await _frames()
 	assert(battle.zombie_manager.curr_zombie_num == 0)

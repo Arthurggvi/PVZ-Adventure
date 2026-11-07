@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EquipmentDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/player/equipment_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/outfit_icons/deepseek_whale.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/deepseek_whale.png" id="3"]
+
+[resource]
+script = ExtResource("1")
+id = &"deepseek_whale"
+display_name = "吃白饭的大肥鱼"
+description = "穿上蓝白色鲸鱼女仆装，角色立绘变为吃白饭的大肥鱼。"
+slot = 0
+icon = ExtResource("2")
+portrait = ExtResource("3")

@@ -223,7 +223,8 @@ func start_next_wave() -> void:
 	curr_wave_type = next_type
 	var is_big_wave: bool = next_type in [E_WaveType.Final, E_WaveType.Flag]
 	var spawned: Array[Zombie000Base] = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, is_big_wave)
-	set_progress_bar()
+	var flag_index: int = profile.flag_wave_numbers().find(wave_number) if profile != null and is_big_wave else -1 # 和进度条共用旗帜顺序。
+	set_progress_bar(flag_index)
 	if profile == null and is_big_wave:
 		zombie_wave_create_manager.spawn_special_zombie_in_big_wave(is_final)
 		if is_have_tombston:

@@ -21,7 +21,7 @@ var zombie_weights: Dictionary[CharacterRegistry.ZombieType, int] = CharacterReg
 var zombie_choose_random_pool:RandomPicker
 
 ## 每波最大僵尸数量
-@export var max_zombies_per_wave = 50
+@export var max_zombies_per_wave: int = WaveProfile.MAX_ZOMBIES_PER_WAVE
 ## 刷新类型最小战力
 var min_power:=100
 ## 当前波次生成的僵尸
@@ -67,8 +67,10 @@ func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 	## 获取当前波僵尸生成列表
 	var wave_spawn: Array[Dictionary] = []
 	if adventure_wave_profile != null:
-		wave_spawn = AdventureWavePlanner.build_plan(adventure_wave_profile, wave + 1,
-			AdventureWavePlanner.power_budget(wave, is_big_wave, zombie_multy), max_zombies_per_wave,
+		var wave_number: int = wave + 1 # 冒险资源使用从 1 开始的波次编号。
+		var budget: int = AdventureWavePlanner.wave_budget(adventure_wave_profile, wave_number, zombie_multy) # 与入口校验共用预算。
+		wave_spawn = AdventureWavePlanner.build_plan(adventure_wave_profile, wave_number,
+			budget, max_zombies_per_wave,
 			AdventureStageCatalog.tier_threat_costs(), _adventure_rng)
 	else:
 		for zombie_type: CharacterRegistry.ZombieType in create_curr_wave_zombie_list(wave, is_big_wave):
@@ -83,8 +85,14 @@ func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 		var spawn: Dictionary = wave_spawn[i]
 		var zombie_type: CharacterRegistry.ZombieType = spawn["zombie_type"]
 		var lane :int = -1
-		## 雪橇车僵尸
-		if zombie_type == CharacterRegistry.ZombieType.Z014Bobsled:
+		var fixed_row: int = spawn.get("row", 0) # 预排行从 1 开始，0 继续使用常规选行。
+		if fixed_row > 0:
+			lane = fixed_row - 1
+			if not zombie_manager.can_spawn_zombie_in_lane(zombie_type, lane):
+				push_error("预排出怪无法生成到第%d行。" % fixed_row)
+				continue
+			zombie_choose_row_system.on_zombie_spawned(lane)
+		elif zombie_type == CharacterRegistry.ZombieType.Z014Bobsled:
 			## 计算冰道权重
 			if special_base_weight.is_empty():
 				for row_ice_road:Array[IceRoad] in zombie_manager.all_ice_roads:

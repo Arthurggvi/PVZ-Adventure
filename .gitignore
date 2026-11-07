@@ -3,3 +3,19 @@
 /android/
 .vscode
 assets
+
+# 角色系统自有素材随代码交付；其他未跟踪资源继续忽略。
+!assets/
+assets/*
+!assets/adventure/
+assets/adventure/*
+!assets/adventure/ui/
+assets/adventure/ui/*
+!assets/adventure/ui/player/
+
+# 本批新增设置图标；仅放行该文件，不重新跟踪整个工具栏资源目录。
+!assets/adventure/ui/bottom_bar/
+assets/adventure/ui/bottom_bar/*
+!assets/adventure/ui/bottom_bar/icons/
+assets/adventure/ui/bottom_bar/icons/*
+!assets/adventure/ui/bottom_bar/icons/icon_settings.png

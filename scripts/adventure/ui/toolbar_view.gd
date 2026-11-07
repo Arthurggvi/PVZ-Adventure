@@ -7,6 +7,8 @@ signal feature_pressed(feature_id: String)
 const Features = preload("res://scripts/adventure/ui/toolbar_features.gd")
 const SlotSkin = preload("res://scripts/adventure/ui/toolbar_slot_skin.gd")
 const Layout = preload("res://scripts/adventure/ui/toolbar_layout.gd")
+## 与角色面板共享深棕色悬停提示。
+const HoverTip = preload("res://scripts/adventure/ui/hover_tip_skin.gd")
 const LOCKED_SHADER := preload("res://shaders/adventure/toolbar_locked.gdshader")
 var expanded := false
 var _panel: Control
@@ -22,12 +24,19 @@ var _interactive := true
 var _locked_materials: Dictionary = {}
 ## 各按钮当前的悬停缩放动画，状态变为不可用时立即终止。
 var _hover_tweens: Dictionary = {}
+## 任务可领奖时的独立高亮层，不与悬停缩放共用补间。
+var _quest_badge: Label
+## 可领取提示的呼吸动画，关闭提示时立即回收。
+var _quest_pulse: Tween
+## 当前是否显示可领奖提示，避免每次刷新重复启动动画。
+var _quest_attention := false
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build_panel()
 	_build_handle()
+	_build_quest_badge()
 	get_viewport().size_changed.connect(_place)
 	_place()
 
@@ -49,23 +58,16 @@ func _build_panel() -> void:
 	_panel.add_child(backdrop)
 	for i in Features.ENTRIES.size():
 		_add_slot(Features.ENTRIES[i], i)
-	_tip = PanelContainer.new()
+	_tip = HoverTip.panel()
 	_tip.visible = false
 	_tip.size = Vector2(170, 56)
-	_tip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color("291c12ed")
-	style.border_color = Color("b99459")
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(8)
-	_tip.add_theme_stylebox_override("panel", style)
 	_panel.add_child(_tip)
 	_tip_text = Label.new()
 	_tip_text.custom_minimum_size = Vector2(160, 48)
 	_tip_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_tip_text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_tip_text.add_theme_font_size_override("font_size", 22)
-	_tip_text.add_theme_color_override("font_color", Color("f5e1b6"))
+	_tip_text.add_theme_color_override("font_color", HoverTip.TEXT_COLOR)
 	_tip.add_child(_tip_text)
 
 func _add_slot(entry: Dictionary, index: int) -> void:
@@ -212,3 +214,41 @@ func _on_pressed(feature_id: String) -> void:
 	bounce.tween_property(_icons[feature_id], "scale", Vector2.ONE, 0.13)
 	SoundManager.play_other_SFX(&"tap")
 	feature_pressed.emit(feature_id)
+
+## 添加醒目的任务叹号，随任务图标定位和缩放，不拦截点击。
+func _build_quest_badge() -> void:
+	_quest_badge = Label.new()
+	_quest_badge.text = "!"
+	_quest_badge.position = Vector2(93, -8)
+	_quest_badge.size = Vector2(36, 50)
+	_quest_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_quest_badge.add_theme_font_size_override("font_size", 44)
+	_quest_badge.add_theme_color_override("font_color", Color("ffe46b"))
+	_quest_badge.add_theme_color_override("font_outline_color", Color("71351c"))
+	_quest_badge.add_theme_constant_override("outline_size", 9)
+	_quest_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_icons["quests"].add_child(_quest_badge)
+	_quest_badge.hide()
+
+## [param enabled] 由当前档案可领奖状态派生；收起工具栏时把提示延续到展开柄。
+func set_quest_attention(enabled: bool) -> void:
+	if _quest_attention == enabled:
+		return
+	_quest_attention = enabled
+	_quest_badge.visible = enabled
+	if is_instance_valid(_quest_pulse):
+		_quest_pulse.kill()
+	_icons["quests"].self_modulate = Color.WHITE
+	_handle.self_modulate = Color.WHITE
+	if enabled:
+		_quest_pulse = create_tween().set_loops()
+		_quest_pulse.tween_property(_icons["quests"], "self_modulate", Color(1.4, 1.25, 0.65), 0.65)
+		_quest_pulse.parallel().tween_property(_handle, "self_modulate", Color(1.3, 1.15, 0.65), 0.65)
+		_quest_pulse.tween_property(_icons["quests"], "self_modulate", Color.WHITE, 0.65)
+		_quest_pulse.parallel().tween_property(_handle, "self_modulate", Color.WHITE, 0.65)
+
+## 展开工具栏并返回 [param feature_id] 的真实按钮，教学不模拟点击。
+func guide_feature(feature_id: String) -> Control:
+	if not expanded:
+		_toggle()
+	return _buttons.get(feature_id)

@@ -2,6 +2,8 @@
 extends RefCounted
 const Stage = preload("res://addons/pvz_cheat/cheat_stages.gd")
 const Backup = preload("res://addons/pvz_cheat/cheat_backup.gd")
+## 战斗模块仅通过当前战场处理生成与结算。
+const Battle = preload("res://addons/pvz_cheat/cheat_battle.gd")
 var stage_service := Stage.new()
 var backup_service := Backup.new()
 
@@ -11,6 +13,20 @@ static func available() -> bool:
 
 static func result(ok: bool, message: String) -> Dictionary:
 	return {"ok": ok, "message": message}
+
+## 通过正式事务授予 [param id] 装备；不直接写角色库存，不绕过保存与战斗限制。
+func grant_equipment(id: String) -> Dictionary:
+	if not available():
+		return result(false, "请先选择有效的玩家存档。")
+	var issue: String = PlayerTransaction.commit(Global.global_game_state.adventure_state, PlayerTransaction.Action.GRANT, id) # 复用产品边界。
+	return result(issue.is_empty(), "装备已进入角色背包。" if issue.is_empty() else issue)
+
+## 设置 [param level] 及对应累计经验，通过现有门面同步任务条件。
+func set_player_level(level: int) -> Dictionary:
+	if not available() or AdventureSession.owns_battle(Global.game_para):
+		return result(false, "请先返回地图并选择有效存档。")
+	var success: bool = Global.set_player_level(level) # 成长曲线决定可表示等级，不复制公式。
+	return result(success, "角色等级已更新。" if success else "等级无效或保存失败。")
 
 func add_cards(plant_type: int, stars: int, amount: int) -> Dictionary:
 	if not available():
@@ -98,6 +114,14 @@ func enter_stage(stage: int, nightmare: bool) -> Dictionary:
 
 func settle_current() -> Dictionary:
 	return stage_service.settle_current()
+
+## 生成指定 [param zombie_type] 和 [param tier_id]；[param all_lanes] 为 true 时每行一只。
+func spawn_battle_zombies(zombie_type: int, tier_id: StringName, all_lanes: bool) -> Dictionary:
+	return Battle.spawn(zombie_type as CharacterRegistry.ZombieType, tier_id, all_lanes)
+
+## 请求当前战斗的一键通关。
+func clear_current_battle() -> Dictionary:
+	return Battle.clear_current()
 
 func snapshot() -> Dictionary:
 	return backup_service.snapshot()

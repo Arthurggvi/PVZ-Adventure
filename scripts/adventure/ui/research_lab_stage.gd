@@ -48,6 +48,10 @@ func request_close() -> void:
 	if not _closing and is_instance_valid(_window):
 		_window.request_close(false)
 
+## 将教学的 [param recipe_id] 交给窗口选择，返回真实合成按钮。
+func guide_recipe(recipe_id: String) -> Control:
+	return _window.guide_recipe(recipe_id) if is_instance_valid(_window) else null
+
 func _on_window_closed() -> void:
 	if _closing:
 		return

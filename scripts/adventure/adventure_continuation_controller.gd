@@ -3,8 +3,12 @@
 extends Node
 class_name AdventureContinuationController
 
+## 续战复用背包的素材确认框，战场暂停时仍接收输入。
+const InventoryDialog = preload("res://scripts/adventure/ui/inventory_dialog.gd")
+## 所属战斗场景，负责实际结算与阶段交接。
 var game: MainGameManager
-var dialog: ConfirmationDialog
+## 当前唯一的续战提示，退出战斗时一并释放。
+var dialog: InventoryDialog
 
 func setup(owner: MainGameManager) -> void:
 	game = owner
@@ -23,20 +27,21 @@ func complete_normal(glo_pos: Vector2) -> void:
 	else:
 		_finish_normal(glo_pos)
 
+## 显示当前钥匙规则和最近一次失败原因；[param glo_pos] 用于结束挑战时生成奖杯。
 func _show_offer(glo_pos: Vector2) -> void:
 	_dispose_dialog()
-	dialog = ConfirmationDialog.new()
-	dialog.title = "普通阶段完成"
-	dialog.dialog_text = "普通阶段已完成并保存奖励。是否使用持有的钥匙继续挑战噩梦阶段？"
+	var prompt: String = "消耗钥匙来继续挑战吗？" # 与现有关卡确认时的扣除行为一致。
+	if AdventureSession.active_stage.nightmare_key_use == StageDefinition.KeyUse.KEEP:
+		prompt = "使用钥匙来继续挑战吗？"
 	if not AdventureSession.error_message.is_empty():
-		dialog.dialog_text = AdventureSession.error_message + "\n" + dialog.dialog_text
-	dialog.get_ok_button().text = "继续挑战"
-	dialog.get_cancel_button().text = "结束挑战"
+		prompt += "\n" + AdventureSession.error_message
+	dialog = InventoryDialog.new()
+	dialog.setup_confirmation("", prompt, "继续挑战", "结束挑战")
+	dialog.animated_feedback = true
 	dialog.process_mode = Node.PROCESS_MODE_ALWAYS
-	game.canvas_layer_ui.add_child(dialog)
 	dialog.confirmed.connect(_continue.bind(glo_pos))
 	dialog.canceled.connect(_finish_normal.bind(glo_pos))
-	dialog.popup_centered(Vector2i(720, 230))
+	game.canvas_layer_ui.add_child(dialog)
 
 func _finish_normal(glo_pos: Vector2) -> void:
 	_dispose_dialog()
@@ -45,7 +50,9 @@ func _finish_normal(glo_pos: Vector2) -> void:
 	TreePauseManager.end_tree_pause(TreePauseManager.E_PauseFactor.AdventureContinue)
 	game._finish_round_victory(glo_pos)
 
-func _continue(glo_pos: Vector2) -> void:
+## [param _quantity] 是共用弹窗的固定确认值；实际钥匙数量来自关卡配置。
+## [param glo_pos] 用于续战资格失效时完成普通关卡结算。
+func _continue(_quantity: int, glo_pos: Vector2) -> void:
 	_dispose_dialog()
 	# 这两个条件来自本阶段自然清场边界，钥匙再次查询当前库存。
 	if not AdventureSession.can_offer_nightmare():
@@ -83,10 +90,12 @@ func _continue(glo_pos: Vector2) -> void:
 	game._round_end_claimed = false
 	game._round_end_by_boss = false
 	TreePauseManager.end_tree_pause(TreePauseManager.E_PauseFactor.AdventureContinue)
+	game.refresh_battle_bgm()
 	game.zombie_manager.zombie_wave_manager.start_first_wave()
 
 func _dispose_dialog() -> void:
 	if is_instance_valid(dialog):
+		dialog.hide()
 		dialog.queue_free()
 	dialog = null
 

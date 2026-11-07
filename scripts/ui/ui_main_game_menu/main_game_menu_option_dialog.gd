@@ -24,6 +24,23 @@ func _ready() -> void:
 	time_sacle_label.text = "倍速 " + str(Global.time_scale) + " 倍"
 
 
+## [param event] 为战斗空格键时切换暂停菜单，独立弹窗打开时交还输入。
+func _input(event: InputEvent) -> void:
+	if not event.is_action_pressed(&"ShortcutKeys_Pause", true, true):
+		return
+	var game: MainGameManager = Global.main_game # 仅当前正式战斗接管空格。
+	if not is_instance_valid(game) or get_tree().current_scene != game \
+		or game.main_game_progress != MainGameManager.E_MainGameProgress.MAIN_GAME:
+		return
+	if dialog.visible or canvas_layer_console.visible or canvas_layer_almanac.get_child_count() > 0 or PVZCheat.is_open():
+		return
+	if not visible and get_tree().paused:
+		return
+	get_viewport().set_input_as_handled()
+	if not event.is_echo():
+		_set_menu_open(not visible)
+
+
 func music_sound_signal(h_slider: HSlider, bus_index):
 	h_slider.value = SoundManager.get_volum(bus_index)
 	h_slider.value_changed.connect(func (v:float):
@@ -42,22 +59,23 @@ func time_sacle_signal(h_slider: HSlider):
 ## 出现菜单
 func appear_menu():
 	await get_tree().create_timer(0.1).timeout
-	# 游戏暂停
-
-	TreePauseManager.start_tree_pause(TreePauseManager.E_PauseFactor.Menu)
-	SoundManager.play_other_SFX("pause")
-
-	visible = true
-	#mouse_filter = Control.MOUSE_FILTER_STOP
+	_set_menu_open(true)
 
 ## 关闭菜单
 func return_button_pressed():
 	await get_tree().create_timer(0.1).timeout
-	SoundManager.play_other_SFX("pause")
-	visible = false
+	_set_menu_open(false)
 
-	TreePauseManager.end_tree_pause(TreePauseManager.E_PauseFactor.Menu)
-	#mouse_filter = Control.MOUSE_FILTER_IGNORE
+## [param is_open] 同步菜单显示与菜单暂停因素，保留其他暂停因素。
+func _set_menu_open(is_open: bool) -> void:
+	if visible == is_open:
+		return
+	visible = is_open
+	SoundManager.play_other_SFX("pause")
+	if is_open:
+		TreePauseManager.start_tree_pause(TreePauseManager.E_PauseFactor.Menu)
+	else:
+		TreePauseManager.end_tree_pause(TreePauseManager.E_PauseFactor.Menu)
 
 ## 图鉴
 func encyclopedia():
@@ -65,14 +83,16 @@ func encyclopedia():
 	canvas_layer_almanac.add_child(almance_node)
 
 
-## 重新开始
-func resume_game():
+## 冒险通过会话重开当前阶段；原版仍重置轮间存档并重载关卡。
+func resume_game() -> void:
+	var game: MainGameManager = Global.main_game # 当前暂停菜单所属的战斗。
+	if AdventureSession.owns_battle(game.game_para):
+		if not AdventureSession.restart_battle(game.game_para):
+			push_error(AdventureSession.error_message)
+		return
+
 	EventBus.push_event("change_is_mouse_visibel_on_hammer", true)
-	if AdventureSession.owns_battle(Global.main_game.game_para):
-		AdventureSession.battle_failed = false
-
-	Global.main_game.re_main_game()
-
+	game.re_main_game()
 	TreePauseManager.end_tree_pause_clear_all_pause_factors()
 	Global.time_scale = 1.0
 	Engine.time_scale = Global.time_scale

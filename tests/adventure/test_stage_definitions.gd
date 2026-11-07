@@ -11,18 +11,22 @@ func _run() -> void:
 	var normal := AdventureStageCatalog.find_phase(stage, StagePhaseDefinition.Kind.NORMAL)
 	var nightmare := AdventureStageCatalog.find_phase(stage, StagePhaseDefinition.Kind.NIGHTMARE)
 	assert(normal != null and nightmare != null)
-	assert(stage.max_selected_cards == 2)
+	assert(stage.max_selected_cards == 6)
 	assert(stage.nightmare_key_id == &"lawn_nightmare_key")
-	assert(stage.nightmare_key_use == StageDefinition.KeyUse.KEEP)
+	assert(stage.nightmare_key_use == StageDefinition.KeyUse.CONSUME)
 	# 单次入场约束归整关，任何无效钥匙或卡槽都不能通过。
 	stage.max_selected_cards = 0
 	assert(not stage.validate(AdventureStageCatalog.tier_ids(), AdventureStageCatalog.key_ids()).is_empty())
-	stage.max_selected_cards = 2
+	stage.max_selected_cards = 6
 	stage.nightmare_key_id = &"missing_key"
 	assert(not stage.validate(AdventureStageCatalog.tier_ids(), AdventureStageCatalog.key_ids()).is_empty())
 	stage.nightmare_key_id = &"lawn_nightmare_key"
 	# EVENT_ONLY Boss 必须有确定会经过的触发；玩家放置植物不能作为必需遭遇触发。
-	var encounter: BossEncounterDefinition = nightmare.boss_encounters[0]
+	var boss_phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(
+		AdventureStageCatalog.load_stage(2), StagePhaseDefinition.Kind.NIGHTMARE) # 地区模板仍提供可选 Boss 的校验样本。
+	var encounter: BossEncounterDefinition = boss_phase.boss_encounters[0] # 独立于正式草坪配置的测试遭遇。
+	encounter.wave = nightmare.wave_profile.wave_count
+	nightmare.boss_encounters.append(encounter)
 	var old_timing := encounter.timing
 	var old_wave := encounter.wave
 	encounter.timing = BossEncounterDefinition.Timing.EVENT_ONLY
@@ -80,5 +84,5 @@ func _run() -> void:
 	terminal.action_target_id = &"terminal_flag"
 	terminal.action_flag_value = StageEventDefinition.FlagValue.ON
 	assert(terminal.validate(7, AdventureStageCatalog.tier_ids()).is_empty())
-	print("PASS: stage admission, mandatory boss, and battle-end action contracts")
+	print("PASS: stage admission, optional boss, and battle-end action contracts")
 	get_tree().quit(0)

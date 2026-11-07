@@ -66,8 +66,10 @@ static func build(parent: VBoxContainer, section: String, service: RefCounted, r
 	match section:
 		"cards": _cards(parent, service, report)
 		"items": _items(parent, service, report)
+		"player": _player(parent, service, report)
 		"coins": _coins(parent, service, report)
 		"stages": _stages(parent, service, report)
+		"battle": _battle(parent, service, report)
 		"saves": _saves(parent, service, report)
 
 static func _cards(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
@@ -135,6 +137,33 @@ static func _items(root: VBoxContainer, service: RefCounted, report: Callable) -
 		var category: String = entry.category
 		var amount: int = entry.count
 		_button(quick, entry.label, func(): report.call(service.grant_category(category, amount)))
+	_equipment(root, service, report)
+
+## 角色调试入口只调用正式命令；[param root] 为页面容器，[param service] 提交事务，[param report] 显示结果。
+static func _player(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
+	_equipment(root, service, report)
+	var row: HBoxContainer = _row(root) # 等级设置与装备授予各自独立提交。
+	var highest: int = int(PlayerProgression.progress(PlayerProgression.MAX_EXPERIENCE).level) # 取真实可表示上限。
+	var level: SpinBox = _count(row, 1, highest) # 输入值为目标等级，不是经验。
+	_button(row, "设置角色等级", func(): report.call(service.set_player_level(int(level.value))))
+
+## 在 [param root] 创建共用的装备发放区；[param service] 提交事务，[param report] 显示结果。
+static func _equipment(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
+	_title(root, "获得装备")
+	_note(root, "在地图上发放装备，领取后到角色的装备背包查看。限时装备从发放时开始计时。")
+	var choice: OptionButton = _select(root) # 内容来自正式装备目录。
+	for item: EquipmentDefinition in EquipmentCatalog.definitions(): # 不复制装备 ID 列表。
+		var caption: String = item.display_name # 获取前标明限时版本的有效天数。
+		if item.lifetime_days > 0:
+			caption += "（%d 天）" % item.lifetime_days
+		choice.add_item(caption)
+		choice.set_item_metadata(choice.item_count - 1, str(item.id))
+	if choice.item_count > 0:
+		choice.select(0)
+	var grant: Button = _button(root, "获得所选装备", func(): # 两页都通过同一发放事务。
+		if choice.item_count > 0:
+			report.call(service.grant_equipment(str(choice.get_selected_metadata()))))
+	grant.disabled = choice.item_count == 0
 
 static func _coins(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
 	_title(root, "统一金币")
@@ -171,6 +200,35 @@ static func _stages(root: VBoxContainer, service: RefCounted, report: Callable) 
 	_button(second, "真实胜利结算", func(): report.call(service.settle_current()))
 	_button(root, "全部普通关卡通关（无奖励）", func(): report.call(service.clear_stage(6, false)))
 	_note(root, "真实结算遵守 Boss / 战斗事件条件；未满足时使用“标记通关”跳过奖励。")
+
+## 在 [param root] 绘制战斗工具，[param service] 执行命令，[param report] 接收结果。
+static func _battle(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
+	_title(root, "战斗")
+	_note(root, "仅在正式战斗中可用。单只出怪会随机选择兼容行，各路生成会先检查地形。")
+	_note(root, "僵尸类型")
+	var zombie: OptionButton = _select(root) # 选项 ID 直接使用僵尸注册表枚举值。
+	Global.global_read_data.ensure_almanac_loaded()
+	var almanac: Dictionary = Global.global_read_data.data_almanac.get("Zombie", {}) # 复用图鉴中文名。
+	var types: Array = CharacterRegistry.ZombieInfo.keys() # 只枚举有可用角色定义的普通僵尸。
+	types.sort()
+	for zombie_type: int in types: # 按注册编号排序。
+		var key: String = str(CharacterRegistry.ZombieInfo[zombie_type][CharacterRegistry.ZombieInfoAttribute.ZombieName]) # 用图鉴键查名称。
+		var entry: Dictionary = almanac.get(key, {}) # 无图鉴条目的类型显示注册名。
+		zombie.add_item(str(entry.get("名字", key)), zombie_type)
+	zombie.select(0)
+	_note(root, "等阶")
+	var tier: OptionButton = _select(root) # 展示现有的一至五阶，元数据保留稳定等阶 ID。
+	for tier_id: StringName in AdventureZombieTierCatalog.tier_ids(): # 目录顺序对应等阶编号。
+		tier.add_item("%d 阶" % (tier.item_count + 1))
+		tier.set_item_metadata(tier.item_count - 1, tier_id)
+	tier.select(0)
+	var spawn_buttons: HBoxContainer = _row(root) # 两个出怪动作共用当前选项。
+	_button(spawn_buttons, "生成一只", func():
+		report.call(service.spawn_battle_zombies(zombie.get_selected_id(), StringName(tier.get_selected_metadata()), false)))
+	_button(spawn_buttons, "各路各一只", func():
+		report.call(service.spawn_battle_zombies(zombie.get_selected_id(), StringName(tier.get_selected_metadata()), true)))
+	_note(root, "一键通关会结束当前阶段并保存正式结算；跳过的 Boss 不计击杀。")
+	_button(root, "一键通关", func(): report.call(service.clear_current_battle()))
 
 static func _saves(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
 	_title(root, "当前玩家备份")

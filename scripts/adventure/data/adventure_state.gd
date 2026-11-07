@@ -20,10 +20,21 @@ var next_card_id: int = 1
 var regions: Dictionary = {}
 ## 奖励 ID 对应的布尔领取标记，第一阶段不执行发奖业务。
 var claimed_rewards: Dictionary[String, bool] = {}
+## 玩家累计经验，升级曲线由成长系统提供。
+var experience: int = 0
+## 玩家当前等级，与具体任务进度分离。
+var player_level: int = 1
+## 角色装备库存及装配引用，不与普通道具数量混用。
+var equipment: PlayerEquipmentState = PlayerEquipmentState.new()
+## 任务进度和日常周期随同一档案保存。
+var quests: AdventureQuestState = AdventureQuestState.new()
+## 已完成的教学步骤；只保存业务节点，不保存窗口、动画或临时选择。
+var tutorial_steps: Dictionary[String, bool] = {}
 
 ## 返回深拷贝的 JSON 基础数据；非法内存状态返回空字典，不泄漏对象引用。
 func to_dict() -> Dictionary:
-	if not _is_json_value(regions):
+	if not _is_json_value(regions) or quests == null or AdventureQuestState.from_dict(quests.to_dict()) == null \
+			or equipment == null or PlayerEquipmentState.from_dict(equipment.to_dict()) == null:
 		return {}
 	var encoded_cards: Dictionary = {} # 卡实例逐个编码，不将 RefCounted 对象交给 JSON。
 	for card_uid: String in cards: # 字典键和实例 UID 还会经协议校验回比。
@@ -34,6 +45,11 @@ func to_dict() -> Dictionary:
 		"items": items.duplicate(true), "selected_card_uids": selected_card_uids.duplicate(),
 		"card_order_uids": card_order_uids.duplicate(), "next_card_id": next_card_id, "regions": regions.duplicate(true),
 		"claimed_rewards": claimed_rewards.duplicate(true)} # 所有嵌套容器独立于运行态。
+	data["quests"] = quests.to_dict()
+	data["experience"] = experience
+	data["player_level"] = player_level
+	data["equipment"] = equipment.to_dict()
+	data["tutorial_steps"] = tutorial_steps.duplicate()
 	return data if from_dict(data) != null else {}
 
 ## 从 [param data] 校验并创建独立状态；非法结构、版本、UID、出战列表或数量返回 null。
@@ -52,6 +68,31 @@ static func from_dict(data: Variant) -> AdventureState:
 	if data.has("card_order_uids") and not data.card_order_uids is Array:
 		return null
 	var state := AdventureState.new() # 所有容器和卡片都在此新实例中恢复。
+	var steps: Variant = data.get("tutorial_steps", {}) # 旧档缺字段时从当前任务节点恢复引导。
+	if not steps is Dictionary:
+		return null
+	for step: Variant in steps: # 拒绝损坏标记，不将任意数值隐式转换为布尔值。
+		if not step is String or step.is_empty() or not steps[step] is bool:
+			return null
+		state.tutorial_steps[step] = steps[step]
+	for field: String in ["experience", "player_level"]: # 旧档从零经验、一级开始，已有值严格校验。
+		var minimum: int = 1 if field == "player_level" else 0 # 每个成长字段的合法下界。
+		var value: Variant = data.get(field, minimum) # JSON 数值可能以浮点表示。
+		if (typeof(value) != TYPE_INT and typeof(value) != TYPE_FLOAT) or not is_finite(value) \
+				or value < minimum or value > PlantCardInstance.MAX_JSON_INTEGER or value != floor(value):
+			return null
+		state.set(field, int(value))
+	# 旧档保留累计经验；等级缓存按统一成长曲线恢复，不在读档时发放任何奖励。
+	state.player_level = int(PlayerProgression.progress(state.experience).level)
+	if data.has("equipment"):
+		state.equipment = PlayerEquipmentState.from_dict(data.equipment)
+		if state.equipment == null:
+			return null
+	# 旧档缺少任务域时初始化；存在但损坏时拒绝加载。
+	if data.has("quests"):
+		state.quests = AdventureQuestState.from_dict(data.quests)
+		if state.quests == null:
+			return null
 	state.next_card_id = int(data.next_card_id)
 	for card_uid: Variant in data.cards: # UID 必须规范、与卡内一致，并小于下一个分配编号。
 		var number: int = PlantCardInstance.uid_number(card_uid) # 当前已有卡的编号。

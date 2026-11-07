@@ -363,9 +363,13 @@ const SFXOtherMap := {
 	&"pause": preload("res://assets/audio/SFX/button/pause.ogg"),
 	## 点击阳光
 	&"points": preload("res://assets/audio/SFX/button/points.ogg"),
-	## 点击金币
+	## 拾取银币和金币。
 	&"coin":preload("res://assets/audio/SFX/item/coin.ogg"),
-	## 掉落花园植物
+	## 金币首次落地。
+	&"moneyfalls":preload("res://assets/audio/sounds/moneyfalls.ogg"),
+	## 拾取钻石。
+	&"diamond":preload("res://resources/audio/sfx/diamond_pickup.wav"),
+	## 钻石或花园植物掉出。
 	&"chime":preload("res://assets/audio/SFX/item/chime.ogg"),
 	##-------------------------- 卡片相关 --------------------------
 	&"buzzer":preload("res://assets/audio/SFX/card_and_shovel/buzzer.ogg"),

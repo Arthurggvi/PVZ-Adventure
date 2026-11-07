@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://dtmav58dv620c"]
+[gd_scene load_steps=11 format=3 uid="uid://dtmav58dv620c"]
 
 [ext_resource type="Script" uid="uid://browmxwsl8r2s" path="res://scripts/ui/coin/coin.gd" id="1_51ogi"]
 [ext_resource type="Texture2D" uid="uid://chwmxtl7cw5b" path="res://assets/reanim/Diamond.png" id="2_djgmt"]
@@ -8,7 +8,6 @@
 [ext_resource type="Texture2D" uid="uid://q8bxc4witsu3" path="res://assets/reanim/Diamond_shine3.png" id="5_ecdep"]
 [ext_resource type="Texture2D" uid="uid://c5pf8qgagoo8h" path="res://assets/reanim/Diamond_shine4.png" id="6_u6y0i"]
 [ext_resource type="Texture2D" uid="uid://bm54h17obbsyf" path="res://assets/reanim/Diamond_shine5.png" id="7_e32hp"]
-[ext_resource type="BitMap" uid="uid://bfd7eqrrbiib5" path="res://assets/reanim/Diamond_mask.png" id="8_djgmt"]
 
 [sub_resource type="Animation" id="Animation_fuck"]
 length = 1.7
@@ -526,6 +525,8 @@ _data = {
 [node name="Diamond" type="Node2D"]
 script = ExtResource("1_51ogi")
 coin_value = 1000
+launch_sound = &"chime"
+pickup_sound = &"diamond"
 
 [node name="PickUpGlow" type="Sprite2D" parent="."]
 scale = Vector2(0.693182, 0.670455)
@@ -577,9 +578,8 @@ libraries = {
 }
 
 [node name="Button" type="TextureButton" parent="."]
-offset_left = -34.0
-offset_top = -24.0
-offset_right = 34.0
-offset_bottom = 28.0
+offset_left = -48.0
+offset_top = -34.0
+offset_right = 48.0
+offset_bottom = 38.0
 mouse_default_cursor_shape = 2
-texture_click_mask = ExtResource("8_djgmt")

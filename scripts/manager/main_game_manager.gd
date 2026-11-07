@@ -294,15 +294,21 @@ func _init_game_BGM():
 	bgm_boss = load(path_bgm_boss) as AudioStream
 
 
-## 正式战斗时按存活僵王选择音乐；解除覆盖时从头播放关卡原曲。
+## 正式战斗时按当前阶段和存活僵王选择音乐；僵王离场后恢复本阶段曲目。
 ## 单轮僵王死亡获胜先进入结算，因此保留僵王音乐，不在结算阶段恢复原曲。
 ## 相同曲目继续播放，选卡、结算或场景卸载时不覆盖其他界面的音乐。
 func refresh_battle_bgm() -> void:
 	if not is_inside_tree() or is_queued_for_deletion() \
 		or get_tree().current_scene != self or main_game_progress != E_MainGameProgress.MAIN_GAME:
 		return
-	# 死亡演出中的僵王已不属于存活快照，不必等待动画结束或节点释放。
-	var battle_bgm: AudioStream = bgm_main_game if zombie_manager.get_living_bosses().is_empty() else bgm_boss
+	# 死亡演出中的僵王已不属于存活快照。
+	var has_boss: bool = not zombie_manager.get_living_bosses().is_empty()
+	var battle_bgm: AudioStream = bgm_boss if has_boss else bgm_main_game # 原版及未配置阶段曲目时的默认音乐。
+	var phase: StagePhaseDefinition = AdventureSession.get_active_phase(game_para) # 续战和重开均读取会话的当前阶段。
+	if phase != null:
+		var phase_music: AudioStream = phase.boss_music if has_boss else phase.battle_music # 当前战况对应的阶段曲目。
+		if phase_music != null:
+			battle_bgm = phase_music
 	SoundManager.play_bgm_if_changed(battle_bgm)
 
 
@@ -510,16 +516,49 @@ func on_zombie_go_home(zombie:Zombie000Base):
 ## 接受本轮第一次结束请求，成功返回 true；只在正式战斗且未失败、未过渡时接受。
 ## [param is_boss_win] 表示实际由额外 Boss 条件结束，不表示关卡是否启用了该选项。
 func try_claim_round_end(is_boss_win: bool = false) -> bool:
+	return _claim_round_end(is_boss_win, false)
+
+## [param is_boss_win] 记录胜利来源；仅修改器入口可用 [param skip_combat_checks] 跳过清场检查。
+func _claim_round_end(is_boss_win: bool, skip_combat_checks: bool) -> bool:
 	if not is_inside_tree() or is_queued_for_deletion() \
 		or main_game_progress != E_MainGameProgress.MAIN_GAME \
 		or _round_end_claimed or _round_transition_pending \
 		or TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.GameOver, false):
 		return false
-	if AdventureSession.owns_battle(game_para) and not AdventureSession.can_accept_victory():
+	if not skip_combat_checks and AdventureSession.owns_battle(game_para) and not AdventureSession.can_accept_victory():
 		return false
 	_round_end_claimed = true
 	_round_end_by_boss = is_boss_win
 	return true
+
+
+## 只在修改器打开时接受一键通关，仍占用本局唯一的胜利结算入口。
+func request_cheat_victory() -> bool:
+	if not PVZCheat.is_open() or not _claim_round_end(false, true):
+		return false
+	main_game_progress = E_MainGameProgress.GAME_OVER
+	zombie_manager.zombie_wave_manager.stop_wave_refresh()
+	if AdventureSession.owns_battle(game_para):
+		# 结算写盘失败时保留现有重试入口，等待期间停止战场动作。
+		TreePauseManager.start_tree_pause(TreePauseManager.E_PauseFactor.AdventureContinue)
+		_settle_cheat_adventure_victory()
+	else:
+		SoundManager.play_other_SFX(&"winmusic")
+		win_main_game()
+	return true
+
+
+## 结束当前冒险阶段；正式奖励保存成功后直接返回地图。
+func _settle_cheat_adventure_victory() -> void:
+	if not is_inside_tree() or get_tree().current_scene != self or not AdventureSession.owns_battle(game_para):
+		return
+	if not AdventureSession.settle_victory(true):
+		AdventureSession.prompt_victory_retry(_settle_cheat_adventure_victory)
+		return
+	if AdventureSession.challenge_state == AdventureSession.ChallengeState.NORMAL_COMPLETE:
+		AdventureSession.complete_normal_challenge()
+	SoundManager.play_other_SFX(&"winmusic")
+	AdventureSession.finish_victory()
 
 
 ## 普通胜利请求共用一次性结算入口；[param glo_pos] 为奖杯生成的世界坐标。

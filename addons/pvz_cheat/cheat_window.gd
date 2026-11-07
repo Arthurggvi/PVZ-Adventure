@@ -5,8 +5,10 @@ const Pages = preload("res://addons/pvz_cheat/cheat_pages.gd")
 const SECTIONS := [
 	{"id": "cards", "title": "植物卡牌"},
 	{"id": "items", "title": "物品材料"},
+	{"id": "player", "title": "角色装备"},
 	{"id": "coins", "title": "金币"},
 	{"id": "stages", "title": "关卡进度"},
+	{"id": "battle", "title": "战斗"},
 	{"id": "saves", "title": "存档备份"}
 ]
 var service: RefCounted

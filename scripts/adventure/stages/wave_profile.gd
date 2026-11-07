@@ -2,15 +2,27 @@
 extends Resource
 class_name WaveProfile
 
+## 自然波默认的生成上限；预排组和随机池共用容量。
+const MAX_ZOMBIES_PER_WAVE: int = 50
 ## 波次配置稳定 ID。
 @export var profile_id: StringName = &""
-## 阶段自然波次总数，必须显式配置为正整数。
+## 阶段自然波次总数，必须至少有两波。
 @export var wave_count: int = 0
 ## 可选的大波波次（1-based）；末波始终为 Final，默认具备最终大波表现。
 @export var flag_waves: Array[int] = []
+## 在对应波次先于随机池生成的出怪组，顺序由资源数组决定。
+@export var scheduled_spawns: Array[WaveSpawnGroup] = []
 
 func is_flag_wave(wave_number: int) -> bool:
 	return flag_waves.has(wave_number)
+
+## 返回按实际刷怪顺序排列的旗帜波次，末波始终有旗帜。
+func flag_wave_numbers() -> Array[int]:
+	var marks: Array[int] = flag_waves.duplicate() # 不改动资源里的自定义旗帜顺序。
+	if not marks.has(wave_count):
+		marks.append(wave_count)
+	marks.sort()
+	return marks
 ## 可编辑的波段资源列表，不在校验期间排序或改写。
 @export var bands: Array[WaveBandDefinition] = []
 
@@ -20,7 +32,7 @@ func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 	if str(profile_id).strip_edges().is_empty():
 		errors.append("波次配置缺少稳定 ID。")
 	if wave_count < 2:
-		errors.append("自然波次总数必须为正整数。")
+		errors.append("自然波次总数至少为 2。")
 	var flag_seen: Dictionary = {}
 	for number: int in flag_waves:
 		if number < 2 or number > wave_count or flag_seen.has(number):
@@ -56,4 +68,14 @@ func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 		next_uncovered = maxi(next_uncovered, interval.y + 1)
 	if next_uncovered <= wave_count:
 		errors.append("自然波次[%d..%d]没有波段配置。" % [next_uncovered, wave_count])
+	var scheduled_caps: Dictionary[int, int] = {} # 每波预排组可能占用的最大出怪数。
+	for group: WaveSpawnGroup in scheduled_spawns: # 按目标波验证预排配置。
+		if group == null:
+			errors.append("自然波次包含空的预排出怪组。")
+			continue
+		errors.append_array(group.validate(wave_count, known_tier_ids))
+		scheduled_caps[group.wave] = scheduled_caps.get(group.wave, 0) + group.count_range.y
+	for wave_number: int in scheduled_caps: # 每波必须给随机池至少留一个位置。
+		if scheduled_caps[wave_number] >= MAX_ZOMBIES_PER_WAVE:
+			errors.append("第%d波的预排出怪占满了随机池容量。" % wave_number)
 	return errors

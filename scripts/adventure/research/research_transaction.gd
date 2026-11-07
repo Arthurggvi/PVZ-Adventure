@@ -86,6 +86,8 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 	var before_deck: Array[String] = state.selected_card_uids.duplicate()
 	var before_next: int = state.next_card_id
 	var before_coin: int = wallet.coin_value
+	var before_quests: Dictionary = state.quests.to_dict() # 制卡进度与卡片资产在同一保存边界提交。
+	var before_steps: Dictionary = state.tutorial_steps.duplicate() # 坚果教学完成标记随失败事务回滚。
 	var before_target: Dictionary = state.cards[updated_uid].to_dict() if state.cards.has(updated_uid) else {}
 	var completed := true
 	for id: String in consume:
@@ -107,8 +109,14 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 		state.cards[updated_uid].stars = resulting_stars
 	if completed:
 		wallet.coin_value -= fee
+		if operation.kind == AdventureResearchOperation.Kind.CRAFT:
+			AdventureQuestService.record_event(state, "card_crafted", operation.recipe_id, AdventureQuestService.today())
+			if operation.recipe_id == "recipe_wall_nut":
+				state.tutorial_steps["research_wall_nut"] = true
 		completed = persist.call() == true
 	if not completed:
+		state.quests = AdventureQuestState.from_dict(before_quests)
+		state.tutorial_steps.assign(before_steps)
 		_restore(state, wallet, before_cards, before_items, before_order,
 			before_deck, before_next, before_coin, updated_uid, before_target)
 		return _error("操作或存档失败，所有资产已恢复。")

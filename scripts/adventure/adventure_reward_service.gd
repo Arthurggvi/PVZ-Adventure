@@ -3,18 +3,24 @@
 extends RefCounted
 class_name AdventureRewardService
 
-static func roll(table: DropTable, rng: RandomNumberGenerator) -> Dictionary:
+## 抽取 [param table]；[param effects] 仅修正随机材料/消耗品，固定与补齐奖励保持原配置。
+static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEffects = null) -> Dictionary:
 	if table == null or rng == null or not table.validate().is_empty():
 		return {"ok": false}
 	var items: Dictionary = {}
 	var weighted: Array[DropEntryDefinition] = []
 	for entry: DropEntryDefinition in table.entries:
+		var eligible: bool = effects != null and PlayerEffects.is_random_loot(str(entry.asset_id)) # 来源规则在计算处判定。
 		match entry.rule:
 			DropEntryDefinition.Rule.GUARANTEED:
 				_add(items, str(entry.asset_id), entry.quantity_min)
 			DropEntryDefinition.Rule.CHANCE:
-				if rng.randf() < entry.chance:
-					_add(items, str(entry.asset_id), rng.randi_range(entry.quantity_min, entry.quantity_max))
+				var chance: float = minf(1.0, entry.chance * effects.drop_chance_multiplier) if eligible else entry.chance # 相对概率封顶。
+				if rng.randf() < chance:
+					var quantity: int = _random_quantity(entry, rng, effects) # 生成时只应用一次数量加成。
+					if quantity < 1:
+						return {"ok": false}
+					_add(items, str(entry.asset_id), quantity)
 			DropEntryDefinition.Rule.WEIGHTED:
 				weighted.append(entry)
 	for draw: int in range(table.weighted_draw_count):
@@ -28,13 +34,22 @@ static func roll(table: DropTable, rng: RandomNumberGenerator) -> Dictionary:
 			var option: DropEntryDefinition = weighted[i]
 			choice -= option.weight
 			if choice <= 0:
-				_add(items, str(option.asset_id), rng.randi_range(option.quantity_min, option.quantity_max))
+				var quantity: int = _random_quantity(option, rng, effects) # 加权选中后的数量可加成，权重不整体乘倍。
+				if quantity < 1:
+					return {"ok": false}
+				_add(items, str(option.asset_id), quantity)
 				if table.weighted_selection == DropTable.WeightedSelection.WITHOUT_REPLACEMENT:
 					weighted.remove_at(i)
 				break
 	if not _fill_floor(items, table, rng):
 		return {"ok": false}
 	return {"ok": true, "items": items}
+
+## 抽取 [param entry] 数量并应用 [param effects]；[param rng] 沿用同次奖励随机源，溢出返回 -1。
+static func _random_quantity(entry: DropEntryDefinition, rng: RandomNumberGenerator, effects: PlayerEffects) -> int:
+	var quantity: int = rng.randi_range(entry.quantity_min, entry.quantity_max) # 每个条目只抽一次。
+	return PlayerEffects.scale_amount(quantity, float(effects.loot_multiplier)) \
+		if effects != null and PlayerEffects.is_random_loot(str(entry.asset_id)) else quantity
 
 static func _fill_floor(items: Dictionary, table: DropTable, rng: RandomNumberGenerator) -> bool:
 	var material_ids: Array[String] = []
@@ -73,10 +88,11 @@ static func _fill_quantity(items: Dictionary, candidates: Array[String], require
 static func _add(items: Dictionary, id: String, count: int) -> void:
 	items[id] = int(items.get(id, 0)) + count
 
-## 首通与 Boss 条件确定后合并所有奖励，不在此处修改玩家资产。
+## 按 [param phase]、[param table]、[param claimed] 与 [param boss_defeated] 合并奖励。
+## [param rng] 决定本次抽取，[param effects] 仅进入随机掉落计算，首通奖励不加成；不修改玩家资产。
 static func prepare(phase: StagePhaseDefinition, table: DropTable,
-		claimed: Dictionary, boss_defeated: bool, rng: RandomNumberGenerator) -> Dictionary:
-	var result: Dictionary = roll(table, rng)
+		claimed: Dictionary, boss_defeated: bool, rng: RandomNumberGenerator, effects: PlayerEffects = null) -> Dictionary:
+	var result: Dictionary = roll(table, rng, effects)
 	if not result.get("ok", false):
 		return {"ok": false}
 	var claim_id: String = "first_clear/" + str(phase.phase_id)

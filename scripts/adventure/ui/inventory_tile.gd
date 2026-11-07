@@ -6,6 +6,8 @@ const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 const PromotionVisual = preload("res://scripts/adventure/ui/promotion_book_visual.gd")
 const Data = preload("res://scripts/adventure/ui/inventory_data.gd")
+## 槽位提示沿用工具栏皮肤。
+const HoverTip = preload("res://scripts/adventure/ui/hover_tip_skin.gd")
 ## 道具底图按格子高度等比填充，透明边缘允许超出格子的水平区域。
 const BACKING_SIZE := Vector2(96, 96)
 ## 底图相对 86 × 96 格子的居中坐标，不改变格子尺寸。
@@ -22,6 +24,8 @@ var _selected := false
 var _slot: TextureRect
 var _frame: TextureRect
 var _hovered := false
+## 是否为该格启用紧凑槽位提示，由槽位界面显式设置。
+var _has_slot_hint: bool = false
 
 func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = false, active: bool = false) -> void:
 	record = value.duplicate(true)
@@ -53,6 +57,13 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 			card.position = (size - card.size * card_scale) * 0.5 # 两个方向均居中。
 			card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	elif str(record.get("kind", "")) == "icon":
+		# 独立图标投影仅包含表现数据，装备等新领域无需进入普通道具目录。
+		var icon: TextureRect = Art.image(self, "", ICON_POSITION, ICON_SIZE) # 复用背包原生图标比例和边框。
+		icon.texture = record.get("icon") as Texture2D
+		var badge: String = str(record.get("badge", "")) # 可选状态角标，不等同于道具数量。
+		if not badge.is_empty():
+			Art.count_badge(self, badge, size - Vector2(4, 5), Color("fff4d6"), 13)
 	else:
 		# 转职书是共享装配：背景、对应阶数书本和该植物的静态头像。
 		var category: String = str(record.get("category", ""))
@@ -81,6 +92,26 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 	Art.slot_frame(self, Vector2.ZERO, size, plants_tab)
 	_frame = Art.image(self, "slots/%s_slot_selected_frame.png" % ("plant" if plants_tab else "item"), Vector2.ZERO, size)
 	_update_frame()
+
+## 为当前格设置 [param title] 槽位名；空槽和已占用槽共用小提示。
+func set_slot_hint(title: String) -> void:
+	_has_slot_hint = true
+	tooltip_text = title
+	theme = Theme.new()
+	theme.set_stylebox("panel", "TooltipPanel", StyleBoxEmpty.new()) # 浮层背景由共用提示皮肤绘制。
+
+## 用工具栏样式显示 [param for_text] 槽位名；其他界面仍使用各自的提示。
+func _make_custom_tooltip(for_text: String) -> Object:
+	if not _has_slot_hint:
+		return null
+	var panel: PanelContainer = HoverTip.panel(6.0) # 槽位名只需一行，缩小留白。
+	var caption := Label.new() # 单行槽位名，无须展开装备说明。
+	caption.text = for_text
+	caption.add_theme_font_size_override("font_size", 15)
+	caption.add_theme_color_override("font_color", HoverTip.TEXT_COLOR)
+	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(caption)
+	return panel
 
 ## Selection affects only the border overlay, never the slot backing or icon.
 func set_active(value: bool) -> void:

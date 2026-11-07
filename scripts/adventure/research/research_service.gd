@@ -51,6 +51,8 @@ func main_card_issue(mode: String, uid: String) -> String:
 	return ""
 
 func quote(mode: String, choice: Dictionary) -> Dictionary:
+	if not AdventureQuestService.feature_unlocked(state, "research"):
+		return {"ready": false, "message": "领取「初次远征」奖励后解锁研究室。"}
 	match mode:
 		"craft":
 			return _craft_quote(str(choice.get("recipe_id", "")))
@@ -152,6 +154,8 @@ func _promotion_quote(choice: Dictionary) -> Dictionary:
 
 ## The transaction owns the only save boundary and re-quotes immediately before writing.
 func execute(mode: String, choice: Dictionary) -> Dictionary:
+	if not AdventureQuestService.feature_unlocked(state, "research"):
+		return {"ok": false, "message": "领取「初次远征」奖励后解锁研究室。"}
 	var action: AdventureResearchOperation = Operation.from_choice(mode, choice)
 	if action == null:
 		return {"ok": false, "message": "无效研究操作。"}

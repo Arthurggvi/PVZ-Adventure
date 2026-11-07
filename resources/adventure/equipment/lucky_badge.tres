@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EquipmentDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/player/equipment_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/icons/lucky_badge.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"lucky_badge"
+display_name = "幸运徽章"
+description = "冒险随机材料与消耗品的独立掉落概率提高 20%，最高为 100%。"
+slot = 3
+icon = ExtResource("2")
+drop_chance_multiplier = 1.2

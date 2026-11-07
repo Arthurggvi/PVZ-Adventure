@@ -207,6 +207,7 @@ func _execute_action(operation_mode: String, chosen: Dictionary) -> void:
 	var succeeded: bool = committed # 动效对应玩家看到的实际结果。
 	var detail: String = str(result.get("message", "操作失败。")) # 失败时展示服务给出的具体原因。
 	if committed:
+		Global.quests_changed.emit()
 		if operation_mode == "craft":
 			detail = "新植物卡已放入背包。"
 		elif operation_mode == "promotion":
@@ -220,6 +221,19 @@ func _execute_action(operation_mode: String, chosen: Dictionary) -> void:
 	_busy = false
 	_render()
 	_show_result(operation_mode, detail, succeeded)
+
+## 教学预选 [param recipe_id]，仍由玩家点击真实按钮并通过原合成事务消耗材料。
+func guide_recipe(recipe_id: String) -> Control:
+	if not _can_select():
+		return null
+	if _service.inventory.get_item_count(recipe_id) < 1:
+		return null
+	if mode != "craft" or _picker.key_for(Picker.Slot.RECIPE) != recipe_id:
+		mode = "craft"
+		_picker.reset(mode)
+		_picker.pick(mode, {"id": recipe_id})
+		_render()
+	return ui.action
 
 ## 将 [param operation_mode] 的 [param detail] 与 [param succeeded] 转为统一的屏幕与声音反馈。
 func _show_result(operation_mode: String, detail: String, succeeded: bool) -> void:

@@ -17,14 +17,13 @@ func init_pre_choosed_card(references: Array[ResourceCardReference]) -> void:
 		if not AllCards.is_battle_card(reference) or reference.card_type == ResourceCardReference.CardType.ZombieBoss:
 			push_error("CardSlotCoin：预选卡必须是已注册的植物或普通僵尸。")
 			continue
-		if card_slot_battle_coin.curr_cards.size() >= card_slot_battle_coin.cards_placeholder.size():
+		if not card_slot_battle_coin.has_free_slot():
 			break
 		# 挂载前设置合法引用和交互上下文。
 		var card: Card = AllCards.create_card(reference, Card.CardContext.Battle)
 		if card == null:
 			continue
-		card_slot_battle_coin.curr_cards.append(card)
-		pre_choosed_card(card, card_slot_battle_coin.cards_placeholder[card_slot_battle_coin.curr_cards.size() - 1])
+		pre_choosed_card(card, card_slot_battle_coin.append_card(card))
 
 ## 将 [param card] 挂到 [param target_parent] 的金币卡槽占位。
 func pre_choosed_card(card: Card, target_parent: Control) -> void:

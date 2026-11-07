@@ -27,7 +27,8 @@ func _sun_scale(new_sun_value:int):
 	scale = Vector2(new_scale,new_scale)
 
 
-func _on_button_pressed() -> void:
+## 收集阳光，由手动点击或装备触发。同一份阳光只结算一次。
+func collect() -> void:
 	if spawn_sun_tween:
 		spawn_sun_tween.kill()
 
@@ -69,5 +70,5 @@ func _start_fade_out() -> void:
 	)
 
 func on_sun_tween_finished():
-	if Global.config_service.auto_collect_sun:
-		_on_button_pressed()
+	if BattleCollectionPolicy.allows(true):
+		collect()

@@ -1,11 +1,9 @@
-extends PanelContainer
+extends FixedBattleCardSlots
 ## 出战卡槽
 class_name CardSlotBattleCoin
 ## 赌狗小游戏金币卡槽
 
 @onready var curr_coin_value: Label = $CoinLabelControl/CurrCoinValue
-@onready var card_placeholder_ori: TextureRect = $CardUiList/CardPlaceholder_ori
-@onready var card_ui_list: HBoxContainer = $CardUiList
 
 @onready var label_info: Label = $CoinLabelControl/LabelInfo
 @onready var next_wave_timer: Timer = $NextWaveTimer
@@ -19,10 +17,6 @@ var curr_wave_card:int=1
 ## 当前雪人逃跑概率
 var curr_p:float=0.1
 
-## 出战卡槽占位节点
-var cards_placeholder:Array = []
-## 出战卡片
-var curr_cards : Array[Card]
 var is_next_wave_refresh:=false
 var is_end_wave:=false
 
@@ -48,23 +42,14 @@ func update_label_info():
 	else:
 		label_info.text = "当前波次:"+str(curr_wave)+"\n当前波次卡片:"+str(curr_wave_card)+"\n雪人逃跑概率:"+str(curr_p)
 
-## 初始化出战卡槽，管理器调用
-func init_card_slot_battle(max_choosed_card_num:int):
+## 初始化金币显示并创建 [param capacity] 个出战占位，返回占位列表。
+func init_card_slot_battle(capacity: int) -> Array[Control]:
 	curr_coin_value.text = str(Global.global_game_state.coin_value)
-	for i in range(max_choosed_card_num):
-		var cloned_card_placeholder = card_placeholder_ori.duplicate()
-		card_ui_list.add_child(cloned_card_placeholder)
-
-	card_placeholder_ori.free()		## 立即删除掉该节点，下面获取卡槽占位节点
-	cards_placeholder = card_ui_list.get_children()
-	return cards_placeholder
+	return _initialize_slots(capacity)
 
 ## 切换为战斗交互并连接成功使用结算；僵王不能进入金币卡槽。
 func main_game_refresh_card():
-	# 出战卡顺序决定快捷键位置。
-	for i: int in range(curr_cards.size()):
-		# 当前槽位中需要启用战斗交互的卡片。
-		var card: Card = curr_cards[i]
+	for card: Card in curr_cards: # 当前槽位中待启用战斗交互的卡片。
 		if not AllCards.is_battle_card(card.card_reference) or card.card_reference.card_type == ResourceCardReference.CardType.ZombieBoss:
 			card.set_card_disable()
 			continue
@@ -72,7 +57,6 @@ func main_game_refresh_card():
 		card.judge_sun_enough(int(Global.global_game_state.coin_value / 10.0))
 		if not card.signal_card_use_end.is_connected(card_use_end):
 			card.signal_card_use_end.connect(card_use_end)
-		card.set_shortcut((i+1)%10)
 	judge_disappear_add_card_bar()
 
 ## [param card] 成功使用后扣除金币与本波次数，保留金币卡槽的专用结算规则。
@@ -117,15 +101,8 @@ func next_wave():
 #region 控制台相关
 ## 是否显示多余卡槽
 func judge_disappear_add_card_bar():
-	## 在游戏进行阶段
 	if Global.main_game.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME:
-		if Global.config_service.disappear_spare_card_Placeholder:
-			if curr_cards.size() < cards_placeholder.size():
-				for i in range(curr_cards.size(), cards_placeholder.size()):
-					cards_placeholder[i].visible = false
-		else:
-			for i in range(cards_placeholder.size()):
-				cards_placeholder[i].visible = true
+		_set_spare_slots_hidden(Global.config_service.disappear_spare_card_Placeholder)
 #endregion
 
 

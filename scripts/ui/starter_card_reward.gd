@@ -28,7 +28,6 @@ func _ready() -> void:
 		add_child(card)
 		card.pivot_offset = card.size / 2.0
 		card.button.disabled = true
-		card.short_cut.hide()
 		_ignore_input(card)
 		card.hide()
 		cards.append(card)

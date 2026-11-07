@@ -7,7 +7,7 @@ static func build(stage: StageDefinition, phase: StagePhaseDefinition) -> Resour
 	if stage == null or stage.environment == null or phase == null or phase.wave_profile == null:
 		return null
 	var env: AdventureBattleEnvironment = stage.environment
-	if not env.validate().is_empty() or stage.max_selected_cards < 1 or stage.max_selected_cards > 15:
+	if not env.validate().is_empty() or not CardSlotRules.is_valid_capacity(stage.max_selected_cards):
 		return null
 	var level := ResourceLevelData.new()
 	level.game_sences = env.scene
@@ -46,25 +46,12 @@ static func project_phase(level: ResourceLevelData, phase: StagePhaseDefinition)
 	level.max_wave = phase.wave_profile.wave_count
 	level.zombie_refresh_types = preview_zombies(phase)
 
-## 完整冒险敌人预览：自然波、Boss 援军与事件突袭均由该阶段定义，不使用原版随机白名单。
+## 汇总 [param phase] 的随机池、预排出怪、Boss 援军和事件突袭，供预览与地形校验使用。
+## 遍历顺序与去重语义由 AdventureStageRoster 维护，地图悬停预览复用同一份名单。
 static func preview_zombies(phase: StagePhaseDefinition) -> Array[CharacterRegistry.ZombieType]:
-	var types: Array[CharacterRegistry.ZombieType] = []
-	if phase == null or phase.wave_profile == null:
-		return types
-	for band: WaveBandDefinition in phase.wave_profile.bands:
-		for zombie_type: CharacterRegistry.ZombieType in band.zombie_weights:
-			if band.zombie_weights[zombie_type] > 0 and not types.has(zombie_type):
-				types.append(zombie_type)
-	for encounter: BossEncounterDefinition in phase.boss_encounters:
-		for zombie_type: CharacterRegistry.ZombieType in encounter.summon_zombie_weights:
-			if encounter.summon_zombie_weights[zombie_type] > 0 and not types.has(zombie_type):
-				types.append(zombie_type)
-	for event: StageEventDefinition in phase.events:
-		if event.action == StageEventDefinition.Action.SPAWN_ZOMBIES and not types.has(event.action_zombie_type):
-			types.append(event.action_zombie_type)
-	return types
+	return AdventureStageRoster.zombie_types(phase)
 
-## 只拦截与场景行地形不相容的配置；显式冒险物种不受原版随机刷怪黑名单限制。
+## 校验 [param stage] 的物种和预排行能否在实际场景生成。
 static func validate_terrain(stage: StageDefinition) -> PackedStringArray:
 	var errors := PackedStringArray()
 	if stage == null or stage.environment == null:
@@ -75,12 +62,54 @@ static func validate_terrain(stage: StageDefinition) -> PackedStringArray:
 		errors.append("当前冒险场景不具备僵尸行类型。")
 		return errors
 	var terrain: CharacterRegistry.ZombieRowType = Global.main_scene_registry.ZombieRowTypewithMainScenesMap[scene]
+	var rows: Array[CharacterRegistry.ZombieRowType] = [] # 仅在关卡确实指定行时读取实际布局。
 	for phase: StagePhaseDefinition in stage.phases:
+		if phase == null or phase.wave_profile == null:
+			continue
 		for zombie_type: CharacterRegistry.ZombieType in preview_zombies(phase):
 			if not Global.character_registry.ZombieInfo.has(zombie_type):
 				errors.append("阶段 %s 未注册的僵尸类型 %s。" % [phase.phase_id, zombie_type])
 				continue
 			var zombie_terrain: CharacterRegistry.ZombieRowType = Global.character_registry.ZombieInfo[zombie_type][CharacterRegistry.ZombieInfoAttribute.ZombieRowType]
-			if terrain != CharacterRegistry.ZombieRowType.Both and zombie_terrain != CharacterRegistry.ZombieRowType.Both and terrain != zombie_terrain:
+			if not ZombieRow.supports_spawn(zombie_terrain, terrain):
 				errors.append("阶段 %s 僵尸 %s 与地图地形不兼容。" % [phase.phase_id, zombie_type])
+		for group: WaveSpawnGroup in phase.wave_profile.scheduled_spawns: # 随机选行的组只需上面的场景地形校验。
+			if group == null or group.row <= 0:
+				continue
+			if rows.is_empty():
+				rows = _read_spawn_rows(scene)
+				if rows.is_empty():
+					errors.append("无法读取预排出怪所需的地图行。")
+					return errors
+			if group.row > rows.size():
+				errors.append("阶段 %s 第%d波的预排出怪行号 %d 超出地图范围。" % [phase.phase_id, group.wave, group.row])
+				continue
+			for zombie_type: CharacterRegistry.ZombieType in group.zombie_weights: # 检查固定行的每个正权重候选。
+				if group.zombie_weights[zombie_type] <= 0 or not Global.character_registry.ZombieInfo.has(zombie_type):
+					continue
+				var spawn_type: CharacterRegistry.ZombieRowType = Global.character_registry.get_zombie_info(
+					zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieRowType) # 注册表中的水陆要求。
+				if not ZombieRow.supports_spawn(spawn_type, rows[group.row - 1]):
+					errors.append("阶段 %s 第%d波的僵尸 %s 无法生成在第%d行。" % [phase.phase_id, group.wave, zombie_type, group.row])
 	return errors
+
+## 按战场的节点顺序读取 [param scene] 的行地形；临时实例不入树，因此不会启动战斗。
+static func _read_spawn_rows(scene: MainSceneRegistry.MainScenes) -> Array[CharacterRegistry.ZombieRowType]:
+	var rows: Array[CharacterRegistry.ZombieRowType] = [] # 无有效行返回空数组。
+	var path: String = Global.main_scene_registry.MainScenesMap.get(scene, "") # 场景注册表中的战场资源。
+	if path.is_empty():
+		return rows
+	var packed: PackedScene = load(path) as PackedScene # 实际战场布局，包含继承的行配置。
+	if packed == null or not packed.can_instantiate():
+		return rows
+	var battle: Node = packed.instantiate() # 离树检查，不触发战场节点的 _ready。
+	var root: Node = battle.get_node_or_null(^"ZombiesRoot") # 与运行时使用同一行容器。
+	if root != null:
+		for child: Node in root.get_children(): # 行序与战场运行时一致。
+			var row: ZombieRow = child as ZombieRow # 非行节点表示场景布局无效。
+			if row == null or not row.has_node(^"ZombieCreatePosition"):
+				rows.clear()
+				break
+			rows.append(row.zombie_row_type)
+	battle.free()
+	return rows

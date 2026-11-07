@@ -303,10 +303,9 @@ boss_encounters = Array[ExtResource("3_nblmh")]([SubResource("Resource_4pwy7")])
 
 [resource]
 script = ExtResource("9_udwye")
-max_selected_cards = 2
 nightmare_key_id = &"lawn_nightmare_key"
 nightmare_key_count = 1
-nightmare_key_use = 0
+nightmare_key_use = 1
 stage_id = &"zombie_island.default"
 environment = SubResource("Resource_l15qu")
 phases = Array[ExtResource("2_27t80")]([SubResource("Resource_h2513"), SubResource("Resource_8ci6l")])

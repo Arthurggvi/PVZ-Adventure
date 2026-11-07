@@ -7,6 +7,10 @@ enum Kind { UNSET, NORMAL, NIGHTMARE }
 ## 阶段只有战斗内容；钥匙/卡槽/预览属于整关入口契约。
 @export var phase_id: StringName = &""
 @export var kind: Kind = Kind.UNSET
+## 本阶段无存活 Boss 时的战斗曲目；未配置时沿用关卡环境音乐。
+@export var battle_music: AudioStream
+## 本阶段存在存活 Boss 时的战斗曲目；未配置时沿用默认 Boss 音乐。
+@export var boss_music: AudioStream
 ## 自然波次与分波段物种/等阶权重。
 @export var wave_profile: WaveProfile
 ## 独立掉落表；此处只引用，不执行奖励。

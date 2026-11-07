@@ -70,7 +70,7 @@ func init_pre_choosed_card(references: Array[ResourceCardReference]) -> void:
 		if not AllCards.is_battle_card(reference):
 			push_error("CardSlotNorm：预选卡必须是已注册的出战卡牌。")
 			continue
-		if card_slot_battle.curr_cards.size() >= card_slot_battle.cards_placeholder.size():
+		if not card_slot_battle.has_free_slot():
 			break
 		# 隐藏对应的候选卡，保持预选卡不可取消。
 		var container: CardCandidateContainer = card_slot_candidate.get_candidate(reference)
@@ -91,8 +91,7 @@ func init_pre_choosed_card(references: Array[ResourceCardReference]) -> void:
 			if card.plant_spawn_profile == null:
 				card.free()
 				continue
-		card_slot_battle.curr_cards.append(card)
-		pre_choosed_card(card, card_slot_battle.cards_placeholder[card_slot_battle.curr_cards.size() - 1])
+		pre_choosed_card(card, card_slot_battle.append_card(card))
 		if reference.is_imitater:
 			card_slot_candidate.imitater_be_choosed()
 	card_disconnect_click_in_choose()
@@ -110,18 +109,18 @@ func _on_card_click(card: Card) -> void:
 	if card.is_choosed_pre_card:
 		card.is_choosed_pre_card = false
 		# 移除后从原位置开始将后续卡片向前移动。
-		var card_index: int = card_slot_battle.curr_cards.find(card)
-		card_slot_battle.curr_cards.erase(card)
+		var card_index: int = card_slot_battle.remove_card(card) # 移除前的位置决定后续卡片的前移范围。
+		if card_index < 0:
+			return
 		# 需要重新定位的出战卡索引。
 		for index: int in range(card_index, card_slot_battle.curr_cards.size()):
-			move_card_to(card_slot_battle.curr_cards[index], card_slot_battle.cards_placeholder[index])
+			move_card_to(card_slot_battle.curr_cards[index], card_slot_battle.slot_at(index))
 		move_card_to(card, card.card_candidate_container)
-	elif card_slot_battle.curr_cards.size() >= card_slot_battle.cards_placeholder.size():
+	elif not card_slot_battle.has_free_slot():
 		SoundManager.play_other_SFX("buzzer")
 	else:
 		card.is_choosed_pre_card = true
-		card_slot_battle.curr_cards.append(card)
-		move_card_to(card, card_slot_battle.cards_placeholder[card_slot_battle.curr_cards.size() - 1])
+		move_card_to(card, card_slot_battle.append_card(card))
 
 ## [param card] 的模仿植物选择信号；独立入口本身不作为出战卡。
 func _on_imitater_card_click(card: Card) -> void:
@@ -131,22 +130,23 @@ func _on_imitater_card_click(card: Card) -> void:
 	if card.is_choosed_pre_card:
 		card.is_choosed_pre_card = false
 		# 原索引用于重新排列后续卡片。
-		var card_index: int = card_slot_battle.curr_cards.find(card)
-		card_slot_battle.curr_cards.erase(card)
+		var card_index: int = card_slot_battle.remove_card(card) # 模仿卡也使用同一队列管理。
+		if card_index < 0:
+			return
 		# 需要重新定位的出战卡索引。
 		for index: int in range(card_index, card_slot_battle.curr_cards.size()):
-			move_card_to(card_slot_battle.curr_cards[index], card_slot_battle.cards_placeholder[index])
+			move_card_to(card_slot_battle.curr_cards[index], card_slot_battle.slot_at(index))
 		await move_card_to(card, card_slot_candidate.card_imitater)
 		card.reparent(card.card_candidate_container, false)
 		card_slot_candidate.imitater_be_choosed_cancel()
-	elif card_slot_battle.curr_cards.size() >= card_slot_battle.cards_placeholder.size():
+	elif not card_slot_battle.has_free_slot():
 		SoundManager.play_other_SFX("buzzer")
 		card_slot_candidate.imitater_card_slot_disappear()
 	elif not card_slot_candidate.card_imitater.is_be_choosed_imitater:
 		card.is_choosed_pre_card = true
-		card_slot_battle.curr_cards.append(card)
+		var slot: Control = card_slot_battle.append_card(card) # 先登记出战顺序，再播放模仿卡移动。
 		card.reparent(card_slot_candidate.card_imitater, false)
-		move_card_to(card, card_slot_battle.cards_placeholder[card_slot_battle.curr_cards.size() - 1])
+		move_card_to(card, slot)
 		card_slot_candidate.imitater_be_choosed()
 
 ## 将 [param card] 动画移动到 [param target_parent] 的全局位置，再重新挂载。

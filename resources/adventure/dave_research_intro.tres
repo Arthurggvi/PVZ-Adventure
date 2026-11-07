@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="CrazyDaveDialogResource" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/crazy_dave_dialog_resource.gd" id="dialog"]
+[ext_resource type="Script" path="res://scripts/resources/crazy_dave_dialog_detail_resource.gd" id="line"]
+
+[sub_resource type="Resource" id="Line0"]
+script = ExtResource("line")
+text = "嘿"
+
+[sub_resource type="Resource" id="Line1"]
+script = ExtResource("line")
+text = "你干的真不错，不是吗？"
+
+[sub_resource type="Resource" id="Line2"]
+script = ExtResource("line")
+text = "我有一个好消息给你"
+
+[sub_resource type="Resource" id="Line3"]
+script = ExtResource("line")
+text = "我找到了我的研究室钥匙"
+
+[sub_resource type="Resource" id="Line4"]
+script = ExtResource("line")
+text = "你问这能干什么...？"
+
+[sub_resource type="Resource" id="Line5"]
+script = ExtResource("line")
+text = "来制作你的新朋友！"
+is_crazy = true
+
+[resource]
+script = ExtResource("dialog")
+dialog_detail_list = Array[ExtResource("line")]([SubResource("Line0"), SubResource("Line1"), SubResource("Line2"), SubResource("Line3"), SubResource("Line4"), SubResource("Line5")])

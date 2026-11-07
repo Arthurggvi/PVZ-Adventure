@@ -315,7 +315,7 @@ func _get_lane_weights(manager: ZombieManager, zombie_type: CharacterRegistry.Zo
 	row_weights.fill(0.0)
 	# 动画支持的零起始行号，逐项检查场景范围和水陆兼容性。
 	for lane: int in allowed_lanes:
-		if not manager.can_spawn_skill_zombie(zombie_type, lane):
+		if not manager.can_spawn_zombie_in_lane(zombie_type, lane):
 			continue
 		if zombie_type == CharacterRegistry.ZombieType.Z014Bobsled and not _has_ice_road(manager, lane):
 			continue

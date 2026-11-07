@@ -14,6 +14,7 @@ script = ExtResource("2_q46qq")
 layout_mode = 1
 offset_right = 128.0
 offset_bottom = 40.0
+mouse_filter = 2
 texture = ExtResource("3_hsc68")
 
 [node name="LabelCoinValue" type="Label" parent="TextureRect"]

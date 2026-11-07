@@ -19,7 +19,7 @@ func _run() -> void:
 	assert(AdventureToolbar._view._available.get("inventory", false))
 	AdventureToolbar._view._on_pressed("inventory")
 	await get_tree().process_frame
-	var modal: AdventureInventoryWindow = AdventureToolbar._inventory
+	var modal: AdventureInventoryWindow = AdventureToolbar.modal_for("inventory")
 	assert(is_instance_valid(modal))
 	assert(AdventureToolbar._view.get_index() > modal.get_index()) # Toolbar icon stays clickable.
 	assert(modal.ui.cells.get_child_count() == 66)
@@ -33,16 +33,16 @@ func _run() -> void:
 	assert(modal.ui.cells.get_child_count() == 66)
 	AdventureToolbar._view._on_pressed("inventory") # Toggle the same toolbar icon to close.
 	await get_tree().create_timer(0.42).timeout
-	assert(not is_instance_valid(AdventureToolbar._inventory))
+	assert(not is_instance_valid(AdventureToolbar.modal_for("inventory")))
 	AdventureToolbar._view._on_pressed("inventory") # Reopen using the actual icon signal path.
 	await get_tree().process_frame
-	modal = AdventureToolbar._inventory
+	modal = AdventureToolbar.modal_for("inventory")
 	assert(is_instance_valid(modal))
 	var close: TextureButton = modal.find_child("InventoryCloseButton", true, false)
 	assert(close != null)
 	close.pressed.emit()
 	await get_tree().create_timer(0.42).timeout
-	assert(not is_instance_valid(AdventureToolbar._inventory))
+	assert(not is_instance_valid(AdventureToolbar.modal_for("inventory")))
 	Global.user_manager.curr_user_name = previous
 	Global.reload_session_for_current_user()
 	print("INVENTORY_UI_SMOKE_PASS")

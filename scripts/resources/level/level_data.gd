@@ -126,7 +126,7 @@ func set_choose_level(curr_game_mode: MainSceneRegistry.MainScenes, curr_level_p
 @export var is_seed_rain := false
 @export_subgroup("正常卡槽参数")
 ## 最大卡槽数量
-@export_range(1, 15) var max_choosed_card_num: int = 10
+@export_range(CardSlotRules.MIN_CAPACITY, CardSlotRules.MAX_CAPACITY) var max_choosed_card_num: int = 10
 ## 开始阳光数量
 @export var start_sun: int = 50
 ## 系统预选卡片，按列表顺序入槽；只保存有效引用，选卡时不能取消。

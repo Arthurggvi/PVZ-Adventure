@@ -1,10 +1,13 @@
+## 显示战斗提示，并在刷怪前按顺序播放大波与末波红字。
 extends Control
 class_name UIRemindWord
 
 @onready var ready_plant: TextureRect = $Ready
 @onready var set_plant: TextureRect = $Set
 @onready var plant: TextureRect = $Plant
+## 每次大波前显示的红字。
 @onready var approaching: TextureRect = $Approaching
+## 仅在末波前、且大波提示结束后显示的红字。
 @onready var final_wave: TextureRect = $FinalWave
 @onready var zombies_won: TextureRect = $ZombiesWon
 
@@ -20,26 +23,40 @@ func ready_set_plant() -> void:
 	visible = false
 
 
-## 僵尸靠近
-func zombie_approach(final:bool) -> void:
-	visible = true
+## 播放大波提示；[param final] 为真时接着播放最后一波提示。
+## 动效包含在原有刷怪等待中，战斗暂停时与波次倒计时一起停止。
+func zombie_approach(final: bool) -> void:
+	show()
 	SoundManager.play_other_SFX("hugewave")
-	approaching.visible = true
-	await get_tree().create_timer(4, false).timeout  # 等待 4 秒
-	approaching.visible = false
-	await get_tree().create_timer(2, false).timeout  # 等待 2 秒
+	# 参照 TextFadeOn 的 12 FPS 素材，从约两倍大小收至原尺寸，尾段淡出。
+	await _animate_wave_word(approaching, 4.0, 2.003, 19.0 / 12.0, 4.0 / 12.0)
+	await get_tree().create_timer(2.0, false).timeout
 	if final:
-		# SFX 最后一波红字音效
 		SoundManager.play_other_SFX("finalwave")
-		final_wave.visible = true
-		await get_tree().create_timer(3, false).timeout  # 等待 3 秒
-		final_wave.visible = false
+		# 参照 FinalWave 素材使用更大的入场倍率和更快的收缩。
+		await _animate_wave_word(final_wave, 3.0, 3.905, 8.0 / 12.0, 0.25)
+	hide()
 
-	visible = false
+## [param word] 以中心为轴，从 [param start_scale] 倍缩回原尺寸。
+## [param enter_seconds] 和 [param exit_seconds] 是首尾动效的游戏秒数，计入 [param total_seconds]。
+func _animate_wave_word(word: TextureRect, total_seconds: float, start_scale: float,
+		enter_seconds: float, exit_seconds: float) -> void:
+	word.pivot_offset = word.size * 0.5
+	word.scale = Vector2.ONE * start_scale
+	word.modulate.a = 0.0
+	word.show()
+	var motion: Tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_STOP) # 跟随战斗暂停与游戏倍率。
+	motion.tween_property(word, "scale", Vector2.ONE, enter_seconds).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	motion.parallel().tween_property(word, "modulate:a", 1.0, enter_seconds)
+	motion.tween_interval(total_seconds - enter_seconds - exit_seconds)
+	motion.tween_property(word, "modulate:a", 0.0, exit_seconds)
+	await motion.finished
+	word.hide()
 
 ## 僵尸获胜
 func zombie_won_word_appear() -> void:
-
+	approaching.hide()
+	final_wave.hide()
 	visible = true
 	zombies_won.visible = true
 	#await get_tree().create_timer(0.8).timeout  # 等待 1 秒

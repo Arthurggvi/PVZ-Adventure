@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EquipmentDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/player/equipment_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/icons/sun_collector.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"sun_collector"
+display_name = "自动阳光收集器"
+description = "装备后在冒险战斗中自动收集阳光。"
+slot = 4
+lifetime_days = 7
+icon = ExtResource("2")

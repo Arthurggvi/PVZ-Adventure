@@ -33,6 +33,7 @@
 [ext_resource type="BitMap" uid="uid://cxokl66i7qyda" path="res://assets/image/ui/ui_main_game_menu/UI_BG/button_BG_mask.png" id="31_56ytc"]
 
 [ext_resource type="Script" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+[ext_resource type="FontFile" path="res://resources/ui/fonts/continuum_bold_14_digits.fnt" id="sun_counter_font"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_x628s"]
 texture = ExtResource("2_6irry")
@@ -86,14 +87,16 @@ size_flags_horizontal = 0
 
 [node name="CurrSunValue" type="Label" parent="CardSlotBattle/SunLabelControl" unique_id=64103177]
 layout_mode = 0
-offset_left = -101.0
+offset_left = -97.0
 offset_top = 51.0
-offset_right = 14.0
-offset_bottom = 79.0
+offset_right = 19.0
+offset_bottom = 73.0
 size_flags_horizontal = 0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "999990"
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("sun_counter_font")
+theme_override_font_sizes/font_size = 14
+text = "150"
 horizontal_alignment = 1
 vertical_alignment = 1
 

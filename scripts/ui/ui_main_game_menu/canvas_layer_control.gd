@@ -2,8 +2,6 @@ extends CanvasLayer
 class_name CanvasLayerConsole
 
 
-@onready var check_box: CheckBox = $OptionBG/HBoxContainer/VBoxContainer/CheckBox
-@onready var check_box_2: CheckBox = $OptionBG/HBoxContainer/VBoxContainer/CheckBox2
 @onready var check_box_3: CheckBox = $OptionBG/HBoxContainer/VBoxContainer/CheckBox3
 @onready var check_box_4: CheckBox = $OptionBG/HBoxContainer/VBoxContainer/CheckBox4
 @onready var check_box_5: CheckBox = $OptionBG/HBoxContainer/VBoxContainer/CheckBox5
@@ -28,8 +26,6 @@ func on_config_update():
 	_update_console_panel()
 
 func _update_console_panel():
-	check_box.button_pressed = Global.config_service.auto_collect_sun
-	check_box_2.button_pressed = Global.config_service.auto_collect_coin
 	check_box_3.button_pressed = Global.config_service.disappear_spare_card_Placeholder
 	check_box_4.button_pressed = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
 	check_box_5.button_pressed = Global.config_service.display_plant_HP_label
@@ -50,14 +46,6 @@ func _on_texture_button_pressed() -> void:
 func appear_canvas_layer_control() -> void:
 	visible = true
 	EventBus.push_event("change_is_mouse_visibel_on_hammer", true)
-
-## 自动收集阳光
-func _on_check_box_toggled(toggled_on: bool) -> void:
-	Global.config_service.auto_collect_sun = toggled_on
-
-## 自动收集金币
-func _on_check_box_2_toggled(toggled_on: bool) -> void:
-	Global.config_service.auto_collect_coin = toggled_on
 
 ## 隐藏多余卡槽
 func _on_check_box_3_toggled(toggled_on: bool) -> void:

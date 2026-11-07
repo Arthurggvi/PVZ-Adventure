@@ -16,16 +16,18 @@ func _ready():
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.set_loops()  # 无限循环
 
-	## 自动收集金币
-	if Global.config_service.auto_collect_coin:
-		_on_texture_button_pressed()
+	if BattleCollectionPolicy.allows(false):
+		collect()
 
 	## 等待10秒未点击删除
 	await get_tree().create_timer(10.0).timeout
 	queue_free()
 
 
-func _on_texture_button_pressed() -> void:
+## 拾取礼盒并登记花园植物，点击和自动拾取共用一次入账。
+func collect() -> void:
+	if not texture_button.visible:
+		return
 	SoundManager.play_other_SFX("prize")
 
 	var reminder_info :ReminderInformation =  SceneRegistry.REMINDER_INFORMATION.instantiate()

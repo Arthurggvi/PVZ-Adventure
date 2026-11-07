@@ -42,6 +42,7 @@
 [ext_resource type="Texture2D" uid="uid://dfpr4h80b1qyx" path="res://assets/image/background/background4_gameover_mask.png" id="23_401pl"]
 [ext_resource type="Texture2D" uid="uid://vcaw16pvdqga" path="res://assets/image/ui/ui_remind_word/ZombiesWon.png" id="23_vyo3a"]
 [ext_resource type="Script" uid="uid://dhkfw0onmxcyf" path="res://scripts/camera/main_game_camera.gd" id="24_b4qea"]
+[ext_resource type="Script" path="res://scripts/manager/drop_item_manager/dim_battle_drop.gd" id="40_bdrop"]
 [ext_resource type="Script" uid="uid://0num78yxy82x" path="res://scripts/manager/zombie_manager/zm_hammer_zombie_manager.gd" id="24_iuyhw"]
 [ext_resource type="Theme" uid="uid://em12la0rqibq" path="res://data/PVZ_theme.tres" id="25_aop5g"]
 [ext_resource type="Script" uid="uid://duv8spyw6f44n" path="res://scripts/manager/zombie_manager/zm_zombie_choose_row_system.gd" id="25_iuyhw"]
@@ -65,7 +66,6 @@
 [ext_resource type="Script" uid="uid://bkaiiq5qsbt5j" path="res://scripts/main_game_item/level_info.gd" id="46_y1sge"]
 [ext_resource type="FontFile" uid="uid://dqb8lum530s2f" path="res://assets/fonts/方正少儿_GBK.ttf" id="48_27j16"]
 [ext_resource type="Script" uid="uid://5unqafehbil7" path="res://scripts/fx/other_effect/canvas_layer_effect.gd" id="51_qfhda"]
-[ext_resource type="Script" uid="uid://l5xf5880s78e" path="res://scripts/ui/main_game_ui/label_zombie_sum.gd" id="59_b2sx0"]
 [ext_resource type="Script" uid="uid://bafp0ax1lmlge" path="res://scripts/character/components/detect_component/component_detect.gd" id="61_b2sx0"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_yy6tc"]
@@ -190,6 +190,10 @@ all_drop_coin_parent = NodePath("../../../CanvasLayerDropItem/AllDropCoin")
 [node name="DIM_GardenPlant" type="Node" parent="Manager/DropItemManager" unique_id=1886854044 node_paths=PackedStringArray("all_drop_garden_plant_parent")]
 script = ExtResource("23_41ccn")
 all_drop_garden_plant_parent = NodePath("../../../CanvasLayerDropItem/AllDropGardenPlant")
+
+[node name="DIM_BattleDrop" type="Node" parent="Manager/DropItemManager" node_paths=PackedStringArray("all_drop_parent")]
+script = ExtResource("40_bdrop")
+all_drop_parent = NodePath("../../../CanvasLayerDropItem/AllDropCoin")
 
 [node name="CanvasLayerBG" type="CanvasLayer" parent="." unique_id=710587300]
 layer = -10
@@ -411,17 +415,6 @@ unique_name_in_owner = true
 layer = 6
 follow_viewport_enabled = true
 
-[node name="CoinBankLabel" parent="CanvasLayerDropItem" unique_id=1533946444 instance=ExtResource("30_xh73d")]
-unique_name_in_owner = true
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 245.0
-offset_top = -41.0
-offset_right = 245.0
-offset_bottom = -41.0
-grow_vertical = 0
-
 [node name="AllDropCoin" type="Node2D" parent="CanvasLayerDropItem" unique_id=774699514]
 
 [node name="AllDropGardenPlant" type="Node2D" parent="CanvasLayerDropItem" unique_id=2097915783]
@@ -475,6 +468,21 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_ybhi1")
 [node name="CanvasLayerUI" type="CanvasLayer" parent="." unique_id=469240842]
 unique_name_in_owner = true
 layer = 50
+
+[node name="CoinBankLabel" parent="CanvasLayerUI" unique_id=1533946444 instance=ExtResource("30_xh73d")]
+unique_name_in_owner = true
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -140.0
+offset_top = -82.0
+offset_right = -12.0
+offset_bottom = -42.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
 
 [node name="UIRemindWord" type="Control" parent="CanvasLayerUI" unique_id=1779350334]
 unique_name_in_owner = true
@@ -1409,20 +1417,6 @@ offset_top = 132.0
 offset_right = 169.0
 offset_bottom = 155.0
 text = "没做"
-
-[node name="LabelZombieSum" type="Label" parent="CanvasLayerUI" unique_id=1797598203]
-unique_name_in_owner = true
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 25.0
-offset_top = -26.0
-offset_right = 213.0
-grow_vertical = 0
-theme = ExtResource("25_aop5g")
-theme_type_variation = &"Label3"
-text = "当前僵尸数量：0"
-script = ExtResource("59_b2sx0")
 
 [node name="LawnMovers" type="Node2D" parent="." unique_id=1179004034]
 unique_name_in_owner = true

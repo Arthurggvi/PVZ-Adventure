@@ -2,12 +2,15 @@
 extends Resource
 class_name StageDefinition
 
+## 冒险初始卡槽容量，关卡资源可显式覆盖。
+const DEFAULT_CARD_SLOTS: int = 6
+
 ## 关卡稳定 ID，不使用场景文件名、列表下标或展示文本替代。
 @export var stage_id: StringName = &""
 ## 复用原版地形/环境/战斗参数模板，阶段只注入自己的动态规则。
 @export var environment: AdventureBattleEnvironment
 ## 单次关卡入场统一选卡/预览；噩梦继承同一组卡和战场。
-@export_range(1, 15) var max_selected_cards: int = 0
+@export_range(CardSlotRules.MIN_CAPACITY, CardSlotRules.MAX_CAPACITY) var max_selected_cards: int = DEFAULT_CARD_SLOTS
 ## 唯一的噩梦续战钥匙规则：KEEP 不消耗，CONSUME 进入时扣除。
 enum KeyUse { KEEP, CONSUME }
 @export var nightmare_key_id: StringName = &""
@@ -26,8 +29,8 @@ func validate(known_tier_ids: Array[StringName] = [], known_key_ids: Array[Strin
 		errors.append_array(environment.validate())
 	if phases.size() != 2:
 		errors.append("一关必须恰好包含 normal 和 nightmare 两个阶段。")
-	if max_selected_cards < 1 or max_selected_cards > 15:
-		errors.append("整关初始选卡槽数必须为1到15。")
+	if not CardSlotRules.is_valid_capacity(max_selected_cards):
+		errors.append("整关初始选卡槽数必须为 %d 到 %d。" % [CardSlotRules.MIN_CAPACITY, CardSlotRules.MAX_CAPACITY])
 	if not known_key_ids.has(nightmare_key_id) or nightmare_key_count < 1 \
 			or nightmare_key_use not in [KeyUse.KEEP, KeyUse.CONSUME]:
 		errors.append("整关噩梦续战钥匙配置无效。")
@@ -46,14 +49,4 @@ func validate(known_tier_ids: Array[StringName] = [], known_key_ids: Array[Strin
 		errors.append_array(phase.validate(known_tier_ids))
 	if not kinds.has(StagePhaseDefinition.Kind.NORMAL) or not kinds.has(StagePhaseDefinition.Kind.NIGHTMARE):
 		errors.append("关卡必须分别声明 normal 与 nightmare。")
-	else:
-		var normal: StagePhaseDefinition
-		var nightmare: StagePhaseDefinition
-		for phase: StagePhaseDefinition in phases:
-			if phase != null and phase.kind == StagePhaseDefinition.Kind.NORMAL:
-				normal = phase
-			elif phase != null and phase.kind == StagePhaseDefinition.Kind.NIGHTMARE:
-				nightmare = phase
-		if nightmare.boss_encounters.is_empty():
-			errors.append("噩梦阶段必须配置 Boss 遭遇。")
 	return errors

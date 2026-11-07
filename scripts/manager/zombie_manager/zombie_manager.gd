@@ -11,8 +11,6 @@ signal signal_living_bosses_changed()
 @onready var zombie_wave_manager: ZombieWaveManager = $ZombieWaveManager
 @onready var zombie_show_in_start: ZombieShowInStart = $ZombieShowInStart
 @onready var hammer_zombie_manager: HammerZombieManager = $HammerZombieManager
-## 僵尸数量label
-@onready var label_zombie_sum: Label = %LabelZombieSum
 ## 所有僵尸根节点
 @onready var zombies_root: Node2D = %ZombiesRoot
 ## 僵王独立挂载，不混入会被当作僵尸行遍历的 ZombiesRoot。
@@ -61,10 +59,8 @@ var multi_round_end_wave_time :float = 49
 
 #endregion
 
-var curr_zombie_num:int = 0:
-	set(v):
-		curr_zombie_num=v
-		label_zombie_sum.text = "当前僵尸数量：" + str(curr_zombie_num)
+## 场上计入清场判定的敌人总数，包含已登记的存活僵王。
+var curr_zombie_num: int = 0
 
 ## 参与自然提前刷新的实例集合；弱引用避免已释放对象残留，实例 ID 用于幂等移除。
 var _natural_refresh_zombies: Dictionary[int, WeakRef] = {}
@@ -330,6 +326,9 @@ func _on_boss_dead(instance_id: int) -> void:
 	if boss == null or not boss.is_death or not _counted_boss_ids.erase(instance_id):
 		return
 	_boss_dead_total += 1
+	# Boss 注册死亡已去重，仅在有效战斗中计入日常，撤退和卸载不会经过此处。
+	if is_game_running():
+		Global.record_quest_event("boss_defeated")
 	curr_zombie_num -= 1
 	# 单轮启用死亡胜利且全部僵王已击杀时，延后音乐通知，避免获胜前短暂切回原曲。
 	var defer_bgm_update: bool = game_para.game_round == 1 and game_para.win_on_boss_death \
@@ -508,10 +507,10 @@ func _clear_bosses_for_next_round() -> void:
 	_refresh_boss_progress()
 
 #region 生成僵尸
-## 判断技能能否将指定类型放入目标行，不依赖普通波次选行器，也不改变计数。[br]
+## 判断指定类型能否放入目标行，不改变选行历史和场上计数。[br]
 ## [param zombie_type] 角色注册表中的僵尸类型。[br]
 ## [param lane] 从 0 开始的目标行号；不存在的行或不兼容的水陆类型返回 false。
-func can_spawn_skill_zombie(zombie_type: CharacterRegistry.ZombieType, lane: int) -> bool:
+func can_spawn_zombie_in_lane(zombie_type: CharacterRegistry.ZombieType, lane: int) -> bool:
 	if lane < 0 or lane >= all_zombie_rows.size() or lane >= all_zombies_2d.size():
 		return false
 	# 目标行及出生点必须仍属于有效场景，避免使用已卸载的行数据。
@@ -525,10 +524,8 @@ func can_spawn_skill_zombie(zombie_type: CharacterRegistry.ZombieType, lane: int
 	var scene: PackedScene = Global.character_registry.get_zombie_info(zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieScenes) as PackedScene
 	if scene == null or not scene.can_instantiate():
 		return false
-	# Both 表示两栖僵尸，或允许两种类型的行；其余情况要求水陆类型一致。
 	var row_type: CharacterRegistry.ZombieRowType = Global.character_registry.get_zombie_info(zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieRowType)
-	return row_type == CharacterRegistry.ZombieRowType.Both \
-		or row.zombie_row_type == CharacterRegistry.ZombieRowType.Both or row_type == row.zombie_row_type
+	return ZombieRow.supports_spawn(row_type, row.zombie_row_type)
 
 
 ## 技能生成入口：使用释放点 X 和目标行基准 Y，登记与计数复用普通创建流程。[br]
@@ -536,7 +533,7 @@ func can_spawn_skill_zombie(zombie_type: CharacterRegistry.ZombieType, lane: int
 ## [param lane] 本次准备阶段锁定的目标行号，从 0 开始。[br]
 ## [param spawn_x] 释放瞬间的全局 X 坐标；非法坐标或关卡已结束时返回 null。
 func create_skill_zombie(zombie_type: CharacterRegistry.ZombieType, lane: int, spawn_x: float) -> Zombie000Base:
-	if not is_game_running() or not is_finite(spawn_x) or not can_spawn_skill_zombie(zombie_type, lane):
+	if not is_game_running() or not is_finite(spawn_x) or not can_spawn_zombie_in_lane(zombie_type, lane):
 		return null
 	# 新僵尸挂载到实际目标行，继续沿用该行的绘制层级和后续换行规则。
 	var row: ZombieRow = all_zombie_rows[lane]
@@ -565,7 +562,7 @@ func create_skill_bungi(target_cell: PlantCell, anchor: Marker2D, on_created: Ca
 		return null
 	# 目标所在行，不使用展示用的一起始行号。
 	var lane: int = target_cell.row_col.x
-	if not can_spawn_skill_zombie(CharacterRegistry.ZombieType.Z021Bungi, lane):
+	if not can_spawn_zombie_in_lane(CharacterRegistry.ZombieType.Z021Bungi, lane):
 		return null
 	# 父节点沿用实际僵尸行，保持现有行层级和死亡登记方式。
 	var row: ZombieRow = all_zombie_rows[lane]

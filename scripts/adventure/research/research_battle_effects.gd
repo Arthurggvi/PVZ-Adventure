@@ -5,6 +5,10 @@ class_name AdventureResearchBattleEffects
 
 const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
 const Growth = preload("res://scripts/adventure/adventure_plant_growth_catalog.gd")
+## 卡片与已种植植物共用的星级图案和特效。
+const StarBadge = preload("res://scripts/adventure/ui/star_badge_view.gd")
+## 根部角标相对卡片角标的尺寸倍率。
+const ROOT_BADGE_SCALE: float = 0.72
 
 static func _record(snapshot: Dictionary) -> PlantCardInstance:
 	if snapshot.is_empty():
@@ -54,6 +58,7 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 			stages.set_spawn_max_health(new_max)
 		else:
 			health.set_spawn_max_health(new_max)
+	_attach_root_badge(plant, record.stars)
 	var component: CreateSunComponent = plant.get_node_or_null("CreateSunComponent")
 	if component == null:
 		return true
@@ -77,3 +82,20 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 					plant.signal_character_death.connect(
 						func(): component.spawn_specific_sun(reward), CONNECT_ONE_SHOT)
 	return true
+
+## 为入树前的出战植物 [param plant] 挂载 [param rank] 星角标；零星无需显示。
+func _attach_root_badge(plant: Plant000Base, rank: int) -> void:
+	if rank <= 0 or plant.character_init_type != Character000Base.E_CharacterInitType.IsNorm:
+		return
+	var shadow: Sprite2D = plant.get_node_or_null(^"Shadow") as Sprite2D # 阴影中心也适用于跨格植物。
+	var root_position: Vector2 = shadow.position if shadow != null else Vector2.ZERO # 缺少阴影时用种植原点。
+	var badge: Control = StarBadge.new() # 作为植物根节点的子控件，随植株移动，独立于身体动画。
+	plant.add_child(badge)
+	badge.configure(rank)
+	badge.pivot_offset = badge.size * 0.5
+	badge.position = root_position - badge.pivot_offset
+	badge.scale = Vector2(ROOT_BADGE_SCALE * plant.direction_x_root, ROOT_BADGE_SCALE)
+	plant.signal_direction_x_root_update.connect(func(direction: int) -> void: # 抵消根节点的水平翻转，保持数字可读。
+		badge.scale.x = ROOT_BADGE_SCALE * direction
+	)
+	plant.signal_character_death.connect(badge.hide, CONNECT_ONE_SHOT)

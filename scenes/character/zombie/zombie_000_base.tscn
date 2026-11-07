@@ -288,7 +288,6 @@ script = ExtResource("12_ewfmg")
 can_drop_x_range = null
 drop_coin_rate = null
 drop_coin_silver_glod_diamond_rate = null
-drop_garden_plant_rate = null
 is_enable_default = null
 
 [node name="HurtBoxComponent" parent="." index="10"]

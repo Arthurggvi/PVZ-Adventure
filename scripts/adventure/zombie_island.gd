@@ -11,6 +11,10 @@ const StageButton = preload("res://scripts/adventure/island_stage_button.gd")
 const Intro = preload("res://scripts/adventure/island_intro.gd")
 ## UI 构造工具。
 const UI = preload("res://scripts/adventure/island_ui.gd")
+## 悬停预览面板，挂在画布上随地图一起缩放。
+const PreviewPanel = preload("res://scripts/adventure/ui/stage_preview_panel.gd")
+## 预览视图模型，把已解析关卡投影成纯展示字典。
+const PreviewData = preload("res://scripts/adventure/ui/stage_preview_data.gd")
 ## 复用的环境场景，位于背景与关卡按钮之间。
 const ENVIRONMENT = preload("res://scenes/environment/zombie_island_fx.tscn")
 ## 总环境开关，关闭后停止内部动画与气泡。
@@ -31,13 +35,13 @@ var environment: Node2D
 var background: TextureRect
 ## 背景、按钮和引导共同挂载的设计画布。
 var canvas: Control
-## 一次性结果和锁定提示。
-var notice_label: Label
-## 仅在实际有结果或点击提示时显示的底部面板。
-var notice_panel: Panel
+## 悬停关卡的敌人与掉落预览，作为画布上唯一的面板覆盖层。
+var preview: Control
+## 已解析的关卡配置，首次悬停时读取；解析结果已深拷贝，不污染共享资源。
+var _stage_definitions: Dictionary = {}
 ## 地图上没有难度分流弹窗，挑战总从普通阶段开始。
 func is_adventure_toolbar_blocked() -> bool:
-	return false
+	return is_instance_valid(canvas) and canvas.has_node("Intro")
 
 ## 读取素材布局，建立独立显示层并恢复首次引导。
 func _ready() -> void:
@@ -65,25 +69,22 @@ func _ready() -> void:
 	_apply_environment()
 	# 只读取布局配置，不改动原 PNG，也不画节点路线。
 	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ASSET_ROOT + "layout.json"))
+	preview = PreviewPanel.new() # 建按钮期间只持有引用，面板最后加入以覆盖节点。
 	for stage: Dictionary in layout.stages: # 六个关卡共用同一实现。
 		var node := StageButton.new() # 独立贴图按钮与动态文字层。
 		node.name = "Stage%d" % stage.id
 		canvas.add_child(node)
+		var unlocked: bool = AdventureSession.is_unlocked(stage.id)
 		var cleared: bool = AdventureStageCatalog.is_cleared(
 			Global.global_game_state.adventure_state, AdventureStageRegistry.stage_id(stage.id),
 			StagePhaseDefinition.Kind.NORMAL)
-		node.configure(stage, AdventureSession.is_unlocked(stage.id), cleared, _select_stage.bind(stage.id))
+		node.configure(stage, unlocked, cleared, _select_stage.bind(stage.id))
+		if unlocked: # 未解锁关卡不参与悬停预览，按钮自身也不可按下。
+			node.mouse_entered.connect(_hover_stage.bind(stage, node, cleared))
+			node.mouse_exited.connect(preview.cancel)
+	preview.name = "StagePreview"
+	canvas.add_child(preview)
 	UI.official_button(canvas, "返回主菜单", Rect2(40, 30, 270, 66), _return_menu)
-	# 底部提示独立面板，避免白色文字压在复杂背景上。
-	notice_panel = Panel.new()
-	notice_panel.position = Vector2(340, 988)
-	notice_panel.size = Vector2(1240, 70)
-	notice_panel.add_theme_stylebox_override("panel", UI.panel_style(Color("1f332ded")))
-	notice_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	canvas.add_child(notice_panel)
-	notice_label = UI.label(notice_panel, "", Rect2(15, 0, 1210, 70), 28)
-	_show_notice(AdventureSession.notice)
-	AdventureSession.notice = ""
 	resized.connect(_fit_canvas)
 	_fit_canvas()
 	if AdventureSession.progress.started and not AdventureSession.progress.intro_completed:
@@ -102,17 +103,23 @@ func _apply_environment() -> void:
 	background.texture = load("res://assets/adventure/environment_fx/v1/sky_cleanup_v1/backgrounds/zombie_island_sky_clean_1920x1080.png" if use_clean_sky else ASSET_ROOT + "map/zombie_island_background_1920x1080.png")
 	environment.set_flags(environment_fx_enabled, use_clean_sky)
 
-## 单一关卡入口；续战选择由本次战斗普通阶段清场后负责。
+## 单一关卡入口；解锁与入场条件由按钮状态和会话入口判定。
 func _select_stage(stage_id: int) -> void:
-	if not AdventureSession.is_unlocked(stage_id):
-		_show_notice("请先通关前一关普通阶段。")
-	elif not AdventureSession.enter_stage(stage_id):
-		_show_notice(AdventureSession.error_message)
+	if AdventureSession.is_unlocked(stage_id):
+		AdventureSession.enter_stage(stage_id)
 
-## [param message] 为实际结果或点击提示；空消息隐藏面板，不显示常驻说明。
-func _show_notice(message: String) -> void:
-	notice_label.text = message
-	notice_panel.visible = not message.is_empty()
+## 悬停节点时投影本关配置；未通关的关卡由视图模型降级为问号占位。
+## [param stage] 为 layout.json 条目，[param node] 提供面板锚点，[param cleared] 来自本轮已算好的进度。
+func _hover_stage(stage: Dictionary, node: Control, cleared: bool) -> void:
+	var definition: StageDefinition = _stage_definition(int(stage.id))
+	preview.request(PreviewData.build(definition, str(stage.name), cleared),
+		Rect2(node.position, node.size))
+
+## 首次悬停才解析关卡；失败结果同样缓存，避免每次悬停重复读盘与重复报错。
+func _stage_definition(stage_number: int) -> StageDefinition:
+	if not _stage_definitions.has(stage_number):
+		_stage_definitions[stage_number] = AdventureStageCatalog.load_stage(stage_number)
+	return _stage_definitions[stage_number]
 
 ## 经复用遮幕返回原有菜单；只增加表现时序，保留进度、音乐和原返回目的地。
 func _return_menu() -> void:

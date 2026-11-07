@@ -4,8 +4,6 @@ class_name Card
 
 ## 静态缩略图容器，复制卡牌时不创建出战角色。
 @onready var character_static: Node2D = $CardBg/CharacterStatic
-## 卡槽快捷键文字。
-@onready var short_cut: Label = $ShortCut
 ## 接收卡牌点击的按钮。
 @onready var button: Button = $Button
 
@@ -25,7 +23,6 @@ var _registry_sun_cost: int = -1
 var _registry_cooldown: float = 0.0
 ## Runtime field additions are separate from permanent star/promotion modifiers.
 var _sun_surcharge: int = 0
-var _battle_marker: Label = null
 var _star_badge: Control = null
 const StarBadge = preload("res://scripts/adventure/ui/star_badge_view.gd")
 
@@ -46,18 +43,7 @@ var plant_spawn_profile: PlantSpawnProfile:
 		_plant_spawn_profile = value
 		if is_node_ready():
 			_apply_profile_card_stats()
-			_refresh_battle_marker()
 			_sync_star_badge()
-
-func _refresh_battle_marker() -> void:
-	if not is_instance_valid(_battle_marker):
-		return
-	var data: Dictionary = battle_card_data
-	_battle_marker.visible = not data.is_empty()
-	if data.is_empty():
-		return
-	var uid: String = str(data.get("uid", ""))
-	_battle_marker.text = uid.substr(maxi(0, uid.length() - 3))
 
 ## One UI component for inventory, research and adventure battle cards.
 ## The active spawn profile is the sole star-level authority.
@@ -140,22 +126,10 @@ func _ready() -> void:
 	if card_reference == null or not card_reference.is_valid():
 		is_can_click = false
 		return
-	# 星级与实例尾号仅用于选卡和战斗，避免覆盖目录预览的阳光费用。
-	if card_context in [CardContext.Selection, CardContext.Battle] and not battle_card_data.is_empty():
-		_battle_marker = Label.new()
-		_battle_marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_battle_marker.add_theme_font_size_override("font_size", 9)
-		_battle_marker.add_theme_color_override("font_color", Color(1, 0.95, 0.68))
-		_battle_marker.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-		_battle_marker.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-		_battle_marker.offset_top = -13
-		add_child(_battle_marker)
-		_refresh_battle_marker()
 	_sync_star_badge()
 	if card_reference.card_type == ResourceCardReference.CardType.ZombieBoss:
 		# 源模板隐藏了费用，复制实例入树时必须按用途显式恢复可见性。
 		cost.visible = card_context == CardContext.Selection or card_context == CardContext.Battle
-		short_cut.hide()
 		_cool_mask.hide()
 	if card_reference.is_imitater:
 		character_static.material = IMITATER.duplicate()
@@ -282,19 +256,6 @@ func _on_button_pressed() -> void:
 				EventBus.push_event("main_game_click_card", [self])
 			else:
 				SoundManager.play_other_SFX("buzzer")
-
-
-## 显示 [param i] 对应的卡槽快捷键编号；僵王只在战斗用途下分配快捷键。
-func set_shortcut(i: int) -> void:
-	if card_reference != null and card_reference.card_type == ResourceCardReference.CardType.ZombieBoss and card_context != CardContext.Battle:
-		return
-	short_cut.text = str(i)
-	short_cut.show()
-
-
-## 隐藏卡槽快捷键文字。
-func set_shortcut_disappear() -> void:
-	short_cut.hide()
 
 
 ## 启动循环闪烁；重复调用先停止旧补间。

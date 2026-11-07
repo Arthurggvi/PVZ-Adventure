@@ -31,7 +31,7 @@ static func display_name(index: int) -> String:
 	const NAMES := ["草坪", "没落营地", "墓地上游", "墓地下游", "下水道", "埃德加神殿"]
 	return NAMES[index - 1] if index >= 1 and index <= NAMES.size() else "未知关卡"
 
-## 完整阶段资源覆盖优先于地区默认资源；只对默认对象注入身份和关联钥匙。
+## 完整阶段资源覆盖优先于地区默认资源；为默认对象设置身份及续战所需钥匙。
 static func resolve(index: int) -> StageDefinition:
 	var id: StringName = stage_id(index)
 	if id == &"":
@@ -63,9 +63,6 @@ static func resolve(index: int) -> StageDefinition:
 		phase.drop_table.table_id = StringName(str(phase.phase_id) + ".drops")
 		for band: WaveBandDefinition in phase.wave_profile.bands:
 			band.band_id = StringName(str(phase.phase_id) + ".wave_" + str(band.first_wave))
-		if phase.kind == StagePhaseDefinition.Kind.NORMAL:
-			phase.first_clear_items.erase(&"lawn_nightmare_key")
-			phase.first_clear_items[key_id(index)] = 1
 	var partial_path: String = PARTIAL_OVERRIDES + REGION_ID + "_" + SLUGS[index - 1] + ".tres"
 	if ResourceLoader.exists(partial_path):
 		var partial: AdventureStageOverride = load(partial_path) as AdventureStageOverride

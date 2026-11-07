@@ -4,7 +4,7 @@ class_name AdventureToolbarFeatures
 
 const ENTRIES: Array[Dictionary] = [
 	{"id": "map", "label": "地图", "asset": "icon_map.png"},
-	{"id": "empty", "label": "预留功能", "asset": ""},
+	{"id": "settings", "label": "设置", "asset": "icon_settings.png"},
 	{"id": "quests", "label": "任务", "asset": "icon_quests.png"},
 	{"id": "inventory", "label": "背包", "asset": "icon_inventory.png"},
 	{"id": "research", "label": "研究室", "asset": "icon_research.png"},

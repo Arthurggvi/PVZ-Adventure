@@ -72,8 +72,13 @@ func _decode_profile(path: String) -> Dictionary:
 	return {"ok": true, "new": false, "data": data, "adventure": adventure}
 
 ## 启用自动保存存档
+## 无显示服务器（--headless 探针、导入或 CI 进程）不启动定时保存：
+## 这类进程会加载同一份用户档，若持续把旧内存状态写回，会覆盖正式游戏刚写下的进度。
 func start_autosave(interval_sec: float = 60.0) -> void:
 	if _auto_save_timer != null:
+		return
+	if DisplayServer.get_name() == "headless":
+		print("无显示环境，跳过自动保存定时器")
 		return
 
 	_auto_save_timer = Timer.new()
@@ -155,6 +160,9 @@ func load_global_game_data() -> bool:
 	state.selected_cards = _deserialize_selected_cards(data.get("selected_cards", []))
 	_loaded_profile = user_manager.curr_user_name
 	_safe_to_save = true
+	var equipment := PlayerEquipmentService.new(state.adventure_state.equipment) # 只在实际加载时迁移，不在档案预检时写盘。
+	if equipment.start_legacy_boost_lifetimes():
+		save_now()
 	return true
 
 ## 单独保存上次选卡的新格式身份列表，保留全局存档中的其他字段。[br]

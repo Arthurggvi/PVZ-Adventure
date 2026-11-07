@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EquipmentDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/player/equipment_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/double_loot.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"double_loot"
+display_name = "双倍掉落卡"
+description = "冒险随机材料与消耗品数量变为 2 倍；不影响首通、保底补发与任务物品。"
+slot = 2
+lifetime_days = 7
+icon = ExtResource("2")
+loot_multiplier = 2

@@ -116,6 +116,7 @@ func _setup_research_entry() -> void:
 	var button: TextureButton = $ArtCanvas/research_button # V8 研究棚牌匾。
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.pressed.connect(AdventureToolbar.open_research)
+	Global.quests_changed.connect(_sync_research_entry)
 	_sync_research_entry()
 
 ## 从当前档案的可用状态同步按钮贴图、点击反馈及牌面显示。

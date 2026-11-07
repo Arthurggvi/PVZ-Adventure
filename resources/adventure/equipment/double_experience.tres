@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EquipmentDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/player/equipment_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/icons/double_experience.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"double_experience"
+display_name = "双倍经验卡"
+description = "装备期间，任务经验奖励变为 2 倍。"
+slot = 1
+lifetime_days = 7
+icon = ExtResource("2")
+experience_multiplier = 2.0
