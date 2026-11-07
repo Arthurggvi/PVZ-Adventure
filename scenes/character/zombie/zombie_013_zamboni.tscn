@@ -1,4 +1,4 @@
-[gd_scene load_steps=98 format=3 uid="uid://doviyp7mjnmpi"]
+[gd_scene load_steps=99 format=3 uid="uid://doviyp7mjnmpi"]
 
 [ext_resource type="PackedScene" uid="uid://cktksmdbn2nmn" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_cvyhe"]
 [ext_resource type="Script" uid="uid://jl0nl4a234bc" path="res://scripts/resources/resource_body_change.gd" id="2_5r5rm"]
@@ -54,6 +54,8 @@
 [ext_resource type="Texture2D" uid="uid://b3afr3xa343ev" path="res://assets/reanim/Zombie_charred_zamboniblink2.png" id="41_n6krd"]
 [ext_resource type="Script" uid="uid://bxp5sveyysmek" path="res://scripts/character/components/attack_behavior_component/component_attack_zombie_zamboni.gd" id="46_5rl58"]
 [ext_resource type="Shader" uid="uid://cikju0ectkkms" path="res://shaders/Mypartical.gdshader" id="51_5rl58"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/zamboni/common/bumper_empty.png" id="99_zam_blank"]
 
 [sub_resource type="Curve" id="Curve_yuhtx"]
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.555556, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
@@ -1600,6 +1602,13 @@ lifetime = 3.0
 preprocess = 1.0
 draw_order = 2
 process_material = SubResource("ParticleProcessMaterial_5rl58")
+
+
+[node name="Zombie_zamboni_bumper_art" type="Sprite2D" parent="Body/BodyCorrect/Zombie_zamboni_1" index="1"]
+position = Vector2(-32.0, 0.0)
+z_index = 1
+texture = ExtResource("99_zam_blank")
+centered = false
 
 [node name="HpStageChangeComponent" parent="." index="4"]
 boundary_value_hp = Array[int]([900, 450, 199, 0])
