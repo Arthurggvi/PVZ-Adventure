@@ -11,6 +11,7 @@ const TACKLE_DAMAGE := 1000000
 
 @onready var _visual_animation: AnimationPlayer = $Body/AllStarVisual/AnimationPlayer
 @onready var _tackle_sound: AudioStreamPlayer2D = $TackleSound
+@onready var _entrance_whistle: AudioStreamPlayer = $EntranceWhistle
 
 var charge_state: ChargeState = ChargeState.CHARGING
 var _tackle_target: Plant000Base
@@ -26,6 +27,9 @@ func _ready() -> void:
 
 func ready_norm_signal_connect() -> void:
 	super.ready_norm_signal_connect()
+	# The entrance cue is played only for real battlefield spawns, not previews.
+	if character_init_type == E_CharacterInitType.IsNorm:
+		_entrance_whistle.play()
 	attack_component.update_is_attack_factors(false, AttackComponentBase.E_IsAttackFactors.Character)
 	attack_component.detect_component.signal_can_attack.connect(_on_charge_contact)
 	attack_component.signal_change_is_attack.connect(_on_attack_state_changed)

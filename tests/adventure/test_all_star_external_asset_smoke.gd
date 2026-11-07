@@ -12,6 +12,11 @@ func _run() -> void:
 	zombie.character_init_type = Character000Base.E_CharacterInitType.IsShow
 	add_child(zombie)
 	await get_tree().process_frame
+	var whistle: AudioStreamPlayer = zombie.get_node("EntranceWhistle")
+	assert(whistle.stream is AudioStreamOggVorbis)
+	assert(whistle.bus == &"SFX")
+	assert(whistle.stream.get_length() > 0.5 and whistle.stream.get_length() < 0.6)
+	assert(not whistle.playing, "Character preview must not sound the entrance whistle")
 	var visual: Node2D = zombie.get_node("Body/AllStarVisual")
 	var player: AnimationPlayer = visual.get_node("AnimationPlayer")
 	assert(player != null and not zombie.get_node("Body/BodyCorrect").visible)

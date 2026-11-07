@@ -51,5 +51,15 @@ third-party write-up https://www.9game.cn/zwdzjs2/1876834.html
 Project grass tile pitch is ~80px, component base speed ~20px/s, giving
 charge=2.0 and spent=0.64 speed multipliers.
 
+ENTRANCE WHISTLE (SUBSTITUTE, not the verified touchscreen VS original):
+Rosa-Orenes256, "Referee whistle sound.wav", Freesound #538422,
+https://freesound.org/people/Rosa-Orenes256/sounds/538422/ (CC0 1.0).
+Vorbis .ogg mirror in the public Godot Audio Node Wrangler demo:
+https://github.com/jhlothamer/audio_node_wrangler_addon/tree/main/demo/assets/sounds
+0.536 seconds, 48 kHz mono. Normal battlefield spawn only, once per
+All-Star instance; disabled in preview/garden, routed to the project SFX bus.
+The original whistle from touchscreen Versus has not been recovered; this
+sound is a functional, permissively licensed replacement.
+
 All original art is copyrighted by its respective rights holders.
 Local noncommercial game-dev use is not evidence of a license to distribute.
