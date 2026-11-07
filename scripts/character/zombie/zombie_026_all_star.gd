@@ -1,15 +1,12 @@
 extends "res://scripts/character/zombie/zombie_008_football.gd"
 class_name Zombie026AllStar
 
-## Authored 12 FPS Reanim keys, continuously interpolated by Godot AnimationPlayer.
-## Source parts are external and independent from the inherited (hidden) vanilla visuals.
+## Art and keyframes: PvZ2 5.8.1 original ZOMBIE_MODERN_ALLSTAR.PAM (30fps).
+## The black uniform is the requested palette adaptation of the original red art.
 enum ChargeState { CHARGING, TACKLING, SPENT, DEAD }
 
-## PvZ2 All-Star reference: ~0.5 tile/s charge, ~0.16 tile/s afterward.
-## Existing grass board tiles are ~80px and MoveComponent.ori_speed = 20px/s.
-## See assets/adventure/zombies/all_star/ART_SOURCE.txt for source and caveats.
-const CHARGE_SPEED := 2.0 # 40px/s / 20px/s
-const SPENT_SPEED := 0.64 # 12.8px/s / 20px/s
+const CHARGE_SPEED := 2.0
+const SPENT_SPEED := 0.64
 const TACKLE_DAMAGE := 1000000
 
 @onready var _visual_animation: AnimationPlayer = $Body/AllStarVisual/AnimationPlayer
@@ -43,9 +40,9 @@ func ready_norm_signal_connect() -> void:
 func _on_charge_contact() -> void:
 	if charge_state != ChargeState.CHARGING or is_death or is_hypno:
 		return
-	var candidate: Character000Base = attack_component.detect_component.enemy_can_be_attacked
-	if candidate is Plant000Base and not candidate.is_death:
-		_tackle_target = candidate as Plant000Base
+	var target: Character000Base = attack_component.detect_component.enemy_can_be_attacked
+	if target is Plant000Base and not target.is_death:
+		_tackle_target = target as Plant000Base
 		_tackle_hit_applied = false
 		charge_state = ChargeState.TACKLING
 		_set_move_speed(0.0)
@@ -54,14 +51,19 @@ func _on_charge_contact() -> void:
 		_retire_charge()
 
 
-## Called by the contact-time method key in the actual external source animation.
+## Original frame 474 of 5.8.1 PAM: FSCmd "use_action" (relative tackle frame 5).
 func _on_visual_tackle_hit() -> void:
 	if charge_state != ChargeState.TACKLING or _tackle_hit_applied or is_death:
 		return
 	_tackle_hit_applied = true
-	_tackle_sound.play()
 	if is_instance_valid(_tackle_target) and not _tackle_target.is_death:
 		_tackle_target.be_zombie_eat(TACKLE_DAMAGE, self)
+
+
+## Original frame 470: FSCmd "Play_Zomb_Modern_Allstar_Tackle".
+func _on_original_tackle_sound() -> void:
+	if charge_state == ChargeState.TACKLING:
+		_tackle_sound.play()
 
 
 func _on_visual_animation_finished(action: StringName) -> void:
@@ -94,20 +96,16 @@ func _on_death() -> void:
 	_tackle_target = null
 	charge_state = ChargeState.DEAD
 	_set_move_speed(0.0)
-	_play_action(&"death")
+	_play_action(&"die")
 
 
 func _play_action(action: StringName) -> void:
-	_visual_animation.speed_scale = _visual_speed_multiplier() * GlobalUtils.get_dic_product(influence_speed_factors)
+	_visual_animation.speed_scale = GlobalUtils.get_dic_product(influence_speed_factors)
 	_visual_animation.play(action)
 
 
-func _visual_speed_multiplier() -> float:
-	return 2.0 if charge_state == ChargeState.CHARGING else 1.0
-
-
 func _on_visual_speed_changed(speed_product: float) -> void:
-	_visual_animation.speed_scale = _visual_speed_multiplier() * speed_product
+	_visual_animation.speed_scale = speed_product
 
 
 func _set_move_speed(speed: float) -> void:

@@ -1,0 +1,166 @@
+[gd_scene format=3]
+
+[ext_resource type="AnimationLibrary" path="res://scenes/character/zombie/all_star_original_animations.tres" id="anims"]
+
+[node name="AllStarVisual" type="Node2D"]
+
+[node name="part_00" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_01" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_02" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_03" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_04" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_05" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_06" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_07" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_08" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_09" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_10" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_11" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_12" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_13" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_14" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_15" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_16" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_17" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_18" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_19" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_20" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_21" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_22" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_23" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_24" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_25" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_26" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_27" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_28" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_29" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_30" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_31" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_32" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_33" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_34" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_35" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_36" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_37" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_38" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": ExtResource("anims")
+}

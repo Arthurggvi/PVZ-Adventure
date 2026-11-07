@@ -1,31 +1,44 @@
-VISUAL IMPLEMENTATION (currently in project):
-PvZ Thyme third-party mod, https://gamebanana.com/mods/562527
-- External source: compiled/reanim/Zombie_football.reanim plus the mod's sprite PNGs.
-- This is NOT a native PvZ2 All-Star sprite rig, texture dump or canonical original animation.
-- Rebuilt as Godot AnimationPlayer part tracks and transforms. Existing football mesh/visuals are hidden.
-- Source timeline key step is 1/12 second. Godot provides continuous interpolation between keys like other characters in this project. This is an implementation choice, not an original PvZ2-PAM feature.
-- Native scene: res://scenes/character/zombie/all_star_visual.tscn
-- Animation library: res://scenes/character/zombie/all_star_source_animations.tres
-- Gameplay scene: res://scenes/character/zombie/zombie_026_all_star.tscn
-- Source archive and previews remain under C:/Dev/PvZ/_review/all_star/.
+Source provenance — Z026AllStar (original-version reconstruction)
 
-ORIGINAL PVZ2 ALL-STAR REFERENCE (SEPARATE FROM IMPLEMENTED ART):
-https://plantsvszombies.wiki.gg/wiki/All-Star_Zombie
-- PvZ2 internal codename: modern_allstar.
-- PvZ2 health: 1100 (current version in this reference).
-- Charges until first eligible plant is tackled; afterwards switches to slow movement/normal eating. Can kick Super-Fan Imps.
-https://www.9game.cn/zwdzjs2/1876834.html (2017 third-party game data summary, NOT extracted primary configuration)
-- Charge 0.5 tile/second; normal 0.16 tile/second (speed ratio 3.125).
-- In this project's grass board each column is about 80px, and MoveComponent's base speed is 20px/second; therefore project multipliers are CHARGE_SPEED=2.0 (40px/sec) and SPENT_SPEED=0.64 (12.8px/sec).
-- Calibration is approximate: global or random zombie speed factors still apply; no primary PvZ2 executable/config was extracted to confirm the two reported speeds.
-https://www.spriters-resource.com/mobile/plantsvszombies2/asset/215268/
-- External ripped PvZ2 International assembled actions: Death 55 PNGs, Running 20, Tackle 39, Walking 24, Kick 48, Idle 100. There is a separately named Eating sequence. PNG counts are NOT native action times or engine FPS. They also demonstrate that PvZ2 All-Star's walk and run are distinct animations.
-- The complete ripped pack has NOT been downloaded successfully from the site (HTTP 403). Thus these clips have NOT been installed. In this project walk still uses a retimed third-party mod run sequence and is not fully accepted as a match.
-https://github.com/apples1949/PvZ2ModdingGuide/blob/master/document/chinese.md
-- Original PvZ2 PAM animation format is frame-based and does NOT auto-interpolate. PAM supports frame action commands. Its original animation frame rate and All-Star event frame have NOT yet been verified from a primary PAM file.
+AUTHORITATIVE ORIGINAL SOURCE
+Plants vs. Zombies 2 International 5.8.1 (version 232); historical archive:
+https://archive.org/details/pv-z-2-android
+Original source archive (remote PC):
+C:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/pvz2_5_8_1_original.zip
+Original OBB:
+C:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/pvz2_main_5_8_1.obb
+Official PAM from Resource Group ZombieModernAllStarGroup_Common:
+C:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/original_allstar_source/ZOMBIE_MODERN_ALLSTAR.PAM
+Original textures from group ZombieModernAllStarGroup_1536, atlas ZOMBIE_MODERN_ALLSTAR_1536_BGRA.png;
+37 authored images/atlas rectangles read from original PROPERTIES/RESOURCES.RTON.
+Original audio from ZombieModernAllStarAudio, Wwise BNK: 21 audio clips;
+the 177168068 asset is used as a *candidate* tackle sound. Its Wwise event association
+has not yet been independently verified. All 21 isolated WAVs remain in the review source folder.
 
-AUDIO:
-Generic bonk.wav extracted from Android TV 1.1.5 archive, https://archive.org/details/pvz-android-tv. This is NOT the verified PvZ2 All-Star-specific scoring/tackle sound.
+NATIVE GODOT IMPLEMENTATION
+Original PAM data is 30 FPS, 612 frames; 7 source actions:
+idle 0-99 (100); walk 100-189 (90); eat 190-448 (259); run 449-468 (20);
+tackle 469-507 (39); kick 508-555 (48); die 556-610 (55).
+Source frame 470 triggers the named tackle SFX event; source frame 474 is use_action;
+animation event is attached to the frame corresponding to game damage.
+37 independently cropped original sprite textures, 39 reusable Sprite2D slots,
+native AnimationPlayer tracks with source-defined 30FPS authored transforms.
+Rendering can interpolate between source keyframes like native project zombies.
+Unused source visual status overlays (butter, ink, ground) are deliberately excluded.
+Only active source references that receive a transform are rendered, and
+sprite bitmap anchor offsets use the positive original PAM offset convention.
 
-LICENSING:
-PvZ Thyme mod reports CC BY-NC-ND 4.0: modifications/redistribution of derivatives need separate permission. Keep an external source record and do not represent third-party art as original/reusable without clearance.
+The source uniform was RED. The requested BLACK version changes only palette/appearance,
+and preserves original game component geometry, frame sequencing and choreography.
+The original red texture atlas and PAM evidence remain outside the game at
+C:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/original_allstar_source/.
+Only the black palette adaptation required at runtime ships in original/black.
+
+Gameplay speed reference (UNCONFIRMED in original executable):
+third-party write-up https://www.9game.cn/zwdzjs2/1876834.html
+~0.5 tiles/sec charge and ~0.16 tiles/sec after first hit.
+Project grass tile pitch is ~80px, component base speed ~20px/s, giving
+charge=2.0 and spent=0.64 speed multipliers.
+
+All original art is copyrighted by its respective rights holders.
+Local noncommercial game-dev use is not evidence of a license to distribute.

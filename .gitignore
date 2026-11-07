@@ -19,3 +19,17 @@ assets/adventure/ui/bottom_bar/*
 !assets/adventure/ui/bottom_bar/icons/
 assets/adventure/ui/bottom_bar/icons/*
 !assets/adventure/ui/bottom_bar/icons/icon_settings.png
+
+# All-Star original PAM-derived sprite assets are game resources.
+# Keep generated .import metadata and unused reference archives out of Git.
+!assets/adventure/zombies/
+assets/adventure/zombies/*
+!assets/adventure/zombies/all_star/
+assets/adventure/zombies/all_star/*
+!assets/adventure/zombies/all_star/original/
+assets/adventure/zombies/all_star/original/*
+!assets/adventure/zombies/all_star/original/black/
+assets/adventure/zombies/all_star/original/black/*
+!assets/adventure/zombies/all_star/original/black/*.png
+!assets/adventure/zombies/all_star/original/original_source_manifest.json
+!assets/adventure/zombies/all_star/original/all_star_sound_177168068.wav

@@ -1,0 +1,40 @@
+{
+  "source": "PvZ 2 international 5.8.1 (232) original archive via Internet Archive",
+  "original_pam": "ZOMBIE_MODERN_ALLSTAR.PAM",
+  "fps": 30,
+  "frame_count": 612,
+  "action_ranges": {
+    "idle": [
+      0,
+      99
+    ],
+    "walk": [
+      100,
+      189
+    ],
+    "eat": [
+      190,
+      448
+    ],
+    "run": [
+      449,
+      468
+    ],
+    "tackle": [
+      469,
+      507
+    ],
+    "kick": [
+      508,
+      555
+    ],
+    "die": [
+      556,
+      610
+    ]
+  },
+  "part_count": 37,
+  "max_slots": 39,
+  "atlas_sha256": "efa7a79dd135190b7f1ce2d5179a719bb0429a5d44492a15d3c1914b795e0444",
+  "notes": "Black image palette adaptation of original red All-Star; original red textures retained in the external review directory. Native 30FPS source values use AnimationPlayer transform interpolated at display frame rate."
+}
