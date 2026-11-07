@@ -945,7 +945,20 @@
       ]
     }
   },
-  "conversion": "Stable per-action PAM instance paths with source draw-order z_index; invisible transforms retain their last valid pose.",
+  "conversion": "Sparse PAM transforms retain the last pose until removal; stable instance paths, source painter z-order and verified stale-instance handover retirement.",
+  "superseded_handoffs": [
+    {
+      "clip": "walk",
+      "frame": 169,
+      "old_instance": [
+        63
+      ],
+      "new_instance": [
+        65
+      ],
+      "image_id": 6
+    }
+  ],
   "atlas_sha256": "efa7a79dd135190b7f1ce2d5179a719bb0429a5d44492a15d3c1914b795e0444",
   "notes": "Black image palette adaptation of original red All-Star; original red textures retained in the external review directory. Native 30FPS source values use AnimationPlayer transform interpolated at display frame rate."
 }

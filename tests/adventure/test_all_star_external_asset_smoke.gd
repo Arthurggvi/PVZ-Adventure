@@ -42,12 +42,25 @@ func _run() -> void:
 	var appeared_transform := walk_anim.find_track(NodePath("part_14:transform"), Animation.TYPE_VALUE)
 	assert(appeared_transform >= 0)
 	assert(walk_anim.track_get_key_value(appeared_transform, 68) == walk_anim.track_get_key_value(appeared_transform, 69))
-	# Ref63 stops drawing at original frame 164 without being erased from PAM.
+	# PAM retains ref63; it is intentionally retired only when ref65 takes over at frame 169.
 	var retired_foot := walk_anim.find_track(NodePath("part_06:visible"), Animation.TYPE_VALUE)
 	assert(retired_foot >= 0)
 	assert(walk_anim.track_get_key_value(retired_foot, 63))
-	assert(not walk_anim.track_get_key_value(retired_foot, 64))
+	assert(walk_anim.track_get_key_value(retired_foot, 64))
+	assert(walk_anim.track_get_key_value(retired_foot, 68))
+	assert(not walk_anim.track_get_key_value(retired_foot, 69))
 	assert(not walk_anim.track_get_key_value(retired_foot, 89))
+	var replacement_foot := walk_anim.find_track(NodePath("part_08:visible"), Animation.TYPE_VALUE)
+	assert(replacement_foot >= 0)
+	assert(walk_anim.track_get_key_value(replacement_foot, 69))
+	# Sparse PAM transforms must preserve feet across the entire 259-frame eat.
+	var eat_anim: Animation = player.get_animation(&"eat")
+	for shoe_slot in [6, 7]:
+		var shoe_visibility := eat_anim.find_track(
+			NodePath("part_%02d:visible" % shoe_slot), Animation.TYPE_VALUE)
+		assert(shoe_visibility >= 0)
+		for eat_frame in [0, 12, 85, 170, 258]:
+			assert(eat_anim.track_get_key_value(shoe_visibility, eat_frame))
 	assert(walk_anim.find_track(NodePath("part_09:z_index"), Animation.TYPE_VALUE) >= 0)
 	player.play(&"run")
 	player.seek(0.1, true)
@@ -56,10 +69,18 @@ func _run() -> void:
 	assert(visual.scale == Vector2(0.6, 0.6))
 	# Exercise the original PAM method key at tackle frame 5, without a full battle.
 	zombie.charge_state = Zombie026AllStar.ChargeState.TACKLING
+	zombie._set_move_speed(0.0)
 	player.play(&"tackle")
 	player.advance(0.21)
 	await get_tree().process_frame
 	assert(zombie._tackle_hit_applied, "Source tackle use_action key did not dispatch")
+	assert(is_equal_approx(zombie.move_component.curr_speed_move, Zombie026AllStar.SPENT_SPEED))
+	zombie._on_visual_animation_finished(&"tackle")
+	assert(zombie.charge_state == Zombie026AllStar.ChargeState.SPENT)
+	assert(player.current_animation == &"walk")
+	zombie.is_attack = true
+	zombie._sync_spent_action()
+	assert(player.current_animation == &"eat")
 	zombie.queue_free()
 	await get_tree().process_frame
 	print("ALL_STAR_ORIGINAL_30FPS_SOURCE_OK")

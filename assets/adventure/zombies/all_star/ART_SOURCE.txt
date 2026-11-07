@@ -23,16 +23,21 @@ Source frame 470 triggers the named tackle SFX event; source frame 474 is use_ac
 animation event is attached to the frame corresponding to game damage.
 37 independently cropped original sprite textures, 47 reusable Sprite2D slots,
 native AnimationPlayer tracks with source-defined 30FPS authored transforms.
-Every slot is bound to a stable PAM reference instance path per action; a
-frame's element list controls visibility; source draw order controls z_index.
-Invisible frames hold the corresponding reference's last valid transform.
-This prevents run-source frames 453/456 and walk-source frames 164/169 from
-interpolating a single Godot node between unrelated body parts. Empty final
-stop-marker frames hold the final visible pose until the clip ends.
+Every slot is bound to a stable PAM reference instance path per action.
+PAM frame element records encode *sparse transforms*, not a complete list of
+visible parts: an attached part keeps its last pose until removed/replaced.
+Source draw order controls z_index. Empty terminal stop markers keep the
+final visible pose. This preserves feet during eat (190-448), idle, and death.
+One stale duplicate shoe in walk is retired by the converter's general
+superseded-instance handoff rule when an identical moving shoe replaces it
+at original frame 169; see original_source_manifest.json.
+Tackle's hit event is from original frame 474 and simultaneously resumes
+spent locomotion (0.64 base speed), while the recovery clip keeps playing.
 Rendering can interpolate between source keyframes like native project zombies.
 Unused source visual status overlays (butter, ink, ground) are deliberately excluded.
-Only active source references that receive a transform are rendered, and
-sprite bitmap anchor offsets use the positive original PAM offset convention.
+Only source instances with an initialized pose are rendered; subsequent
+sparse frames carry their previous pose. Bitmap anchor offsets use the
+positive original PAM offset convention.
 
 The source uniform was RED. The requested BLACK version changes only palette/appearance,
 and preserves original game component geometry, frame sequencing and choreography.

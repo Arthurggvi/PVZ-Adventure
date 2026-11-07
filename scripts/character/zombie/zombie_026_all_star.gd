@@ -56,6 +56,9 @@ func _on_visual_tackle_hit() -> void:
 	if charge_state != ChargeState.TACKLING or _tackle_hit_applied or is_death:
 		return
 	_tackle_hit_applied = true
+	# Resume slow locomotion on PAM's original use_action frame (474).
+	# The tackle recovery clip continues while the zombie advances slowly.
+	_set_move_speed(SPENT_SPEED)
 	if is_instance_valid(_tackle_target) and not _tackle_target.is_death:
 		_tackle_target.be_zombie_eat(TACKLE_DAMAGE, self)
 
