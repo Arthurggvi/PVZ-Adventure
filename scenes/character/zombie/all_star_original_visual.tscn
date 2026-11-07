@@ -160,6 +160,38 @@ visible = false
 centered = false
 visible = false
 
+[node name="part_39" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_40" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_41" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_42" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_43" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_44" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_45" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="part_46" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {
 &"": ExtResource("anims")

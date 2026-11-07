@@ -21,8 +21,14 @@ idle 0-99 (100); walk 100-189 (90); eat 190-448 (259); run 449-468 (20);
 tackle 469-507 (39); kick 508-555 (48); die 556-610 (55).
 Source frame 470 triggers the named tackle SFX event; source frame 474 is use_action;
 animation event is attached to the frame corresponding to game damage.
-37 independently cropped original sprite textures, 39 reusable Sprite2D slots,
+37 independently cropped original sprite textures, 47 reusable Sprite2D slots,
 native AnimationPlayer tracks with source-defined 30FPS authored transforms.
+Every slot is bound to a stable PAM reference instance path per action; a
+frame's element list controls visibility; source draw order controls z_index.
+Invisible frames hold the corresponding reference's last valid transform.
+This prevents run-source frames 453/456 and walk-source frames 164/169 from
+interpolating a single Godot node between unrelated body parts. Empty final
+stop-marker frames hold the final visible pose until the clip ends.
 Rendering can interpolate between source keyframes like native project zombies.
 Unused source visual status overlays (butter, ink, ground) are deliberately excluded.
 Only active source references that receive a transform are rendered, and
