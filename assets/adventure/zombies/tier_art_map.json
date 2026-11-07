@@ -802,27 +802,6 @@
         "res://assets/reanim/Zombie_dolphinrider_outerleg_lower.png": "res://assets/adventure/zombies/dolphinrider/tier5/Zombie_dolphinrider_outerleg_lower.png",
         "res://assets/reanim/Zombie_dolphinrider_outerleg_upper.png": "res://assets/adventure/zombies/dolphinrider/tier5/Zombie_dolphinrider_outerleg_upper.png"
       }
-    },
-    "26": {
-      "all_star": {
-        "res://assets/reanim/Zombie_football_upperbody.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_upperbody.png",
-        "res://assets/reanim/Zombie_football_upperbody2.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_upperbody2.png",
-        "res://assets/reanim/Zombie_football_upperbody3.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_upperbody3.png",
-        "res://assets/reanim/Zombie_football_lowerbody.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_lowerbody.png",
-        "res://assets/reanim/Zombie_football_leftleg_upper.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_leftleg_upper.png",
-        "res://assets/reanim/Zombie_football_rightleg_upper.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_rightleg_upper.png",
-        "res://assets/reanim/Zombie_football_leftleg_lower.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_leftleg_lower.png",
-        "res://assets/reanim/Zombie_football_rightleg_lower.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_rightleg_lower.png",
-        "res://assets/reanim/Zombie_football_leftleg_foot.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_leftleg_foot.png",
-        "res://assets/reanim/Zombie_football_rightleg_foot.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_rightleg_foot.png",
-        "res://assets/reanim/Zombie_football_leftarm_hand.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_leftarm_hand.png",
-        "res://assets/reanim/zombie_football_rightarm_hand.png": "res://assets/adventure/zombies/football/tier3/zombie_football_rightarm_hand.png",
-        "res://assets/reanim/Zombie_football_helmet.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_helmet.png",
-        "res://assets/reanim/Zombie_football_helmet2.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_helmet2.png",
-        "res://assets/reanim/Zombie_football_helmet3.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_helmet3.png",
-        "res://assets/reanim/Zombie_football_leftarm_eatinghand.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_leftarm_eatinghand.png",
-        "res://assets/reanim/Zombie_football_outerarm_eatinghand.png": "res://assets/adventure/zombies/football/tier3/Zombie_football_outerarm_eatinghand.png"
-      }
     }
   }
 }

@@ -149,8 +149,7 @@ zombie_weights = Dictionary[int, int]({
 3: 3,
 4: 2,
 5: 2,
-8: 1,
-26: 1
+8: 1
 })
 tier_weights = Dictionary[StringName, int]({
 &"base": 1,

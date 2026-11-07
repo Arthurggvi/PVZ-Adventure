@@ -15,15 +15,6 @@ static func apply(zombie: Zombie000Base, tier_id: StringName) -> bool:
 		return false
 	return _apply_tree(zombie, textures)
 
-## Spawned species may have a permanent appearance separate from combat tier.
-## Called during _enter_tree so inherited animation resources are still pristine.
-static func apply_appearance(zombie: Zombie000Base, appearance: StringName) -> bool:
-	if zombie == null:
-		return false
-	var textures: Dictionary = AdventureZombieTierArtCatalog.textures_for(
-		int(zombie.zombie_type), appearance)
-	return not textures.is_empty() and _apply_tree(zombie, textures)
-
 ## 遍历当前实例所有可见部件及其原版动画组件。
 static func _apply_tree(node: Node, textures: Dictionary) -> bool:
 	var changed := false

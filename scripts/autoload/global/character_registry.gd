@@ -130,7 +130,6 @@ enum ZombieType {
 	Z023Catapult,
 	Z024Gargantuar,
 	Z025Imp,
-	Z026AllStar,
 
 	Z1001BobsledSingle=1001,	## 单个雪橇车僵尸
 	}
@@ -645,13 +644,6 @@ const ZombieInfo = {
 		ZombieInfoAttribute.ZombieScenes: preload("res://scenes/character/zombie/zombie_008_football.tscn"),
 		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
 	},
-	ZombieType.Z026AllStar:{
-		ZombieInfoAttribute.ZombieName: "ZombieAllStar",
-		ZombieInfoAttribute.CoolTime: 0.0,
-		ZombieInfoAttribute.SunCost: 250,
-		ZombieInfoAttribute.ZombieScenes: preload("res://scenes/character/zombie/zombie_026_all_star.tscn"),
-		ZombieInfoAttribute.ZombieRowType: CharacterRegistry.ZombieRowType.Land
-	},
 	ZombieType.Z009Jackson:{
 		ZombieInfoAttribute.ZombieName: "ZombieJackson",
 		ZombieInfoAttribute.CoolTime: 0.0,
@@ -812,7 +804,6 @@ const ZombieSpawnPower: Dictionary[ZombieType, int] = {
 	ZombieType.Z023Catapult: 5,		# 投篮
 	ZombieType.Z024Gargantuar: 10,	# 伽刚特尔
 	ZombieType.Z025Imp: 1,			# 小鬼
-	ZombieType.Z026AllStar: 12,		# 全明星冲锋
 }
 
 ## 僵尸初始出怪权重；各出怪系统复制后独立调整，不修改公共基础数据。[br]
