@@ -1,0 +1,5 @@
+Visual and tackle effect: PvZ Thyme fan mod, https://gamebanana.com/mods/562527
+Animation source: compiled/reanim/Zombie_football.reanim in that mod.
+Baked from that external source, not copied from this game repository. License noted by creator: CC BY-NC-ND 4.0; requires checking before redistribution.
+Generic tackle sound candidate: PvZ Android TV 1.1.5 external APK https://archive.org/details/pvz-android-tv
+External source images, original Reanim and full review manifest are retained at C:/Dev/PvZ/_review/all_star/thyme_allstar_external/
