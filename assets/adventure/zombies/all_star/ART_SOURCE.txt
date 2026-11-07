@@ -1,6 +1,31 @@
-Visual source: PvZ Thyme fan mod, https://gamebanana.com/mods/562527, derived from compiled/reanim/Zombie_football.reanim and its external black football sprite parts. This is NOT a native PvZ2/TV All-Star rip.
-Rebuilt original-source animation frames on 340x310 transparent canvas: idle 0..20 (21), run 21..46 (26), tackle 44..54 (11), walk 21..46 (26, retimed slower), eat 49..67 (19), death 79..102 (24).
-Tackle impact source frame 47 is animation frame index 3 (zero-based); sound and plant damage are triggered on that visual frame.
-Death reconstruction uses the source's black football head, jaw, and helmet parts from source frame 78, tumbling independently during the death sequence.
-Sound source: a generic original Android TV 1.1.5 bonk.wav, https://archive.org/details/pvz-android-tv; NOT a verified exclusive All-Star scoring sound.
-Source mod reports CC BY-NC-ND 4.0; derivative redistribution requires separate license clearance. Original PNG and Reanim, manifests and previews are retained outside the project at C:/Dev/PvZ/_review/all_star/.
+VISUAL IMPLEMENTATION (currently in project):
+PvZ Thyme third-party mod, https://gamebanana.com/mods/562527
+- External source: compiled/reanim/Zombie_football.reanim plus the mod's sprite PNGs.
+- This is NOT a native PvZ2 All-Star sprite rig, texture dump or canonical original animation.
+- Rebuilt as Godot AnimationPlayer part tracks and transforms. Existing football mesh/visuals are hidden.
+- Source timeline key step is 1/12 second. Godot provides continuous interpolation between keys like other characters in this project. This is an implementation choice, not an original PvZ2-PAM feature.
+- Native scene: res://scenes/character/zombie/all_star_visual.tscn
+- Animation library: res://scenes/character/zombie/all_star_source_animations.tres
+- Gameplay scene: res://scenes/character/zombie/zombie_026_all_star.tscn
+- Source archive and previews remain under C:/Dev/PvZ/_review/all_star/.
+
+ORIGINAL PVZ2 ALL-STAR REFERENCE (SEPARATE FROM IMPLEMENTED ART):
+https://plantsvszombies.wiki.gg/wiki/All-Star_Zombie
+- PvZ2 internal codename: modern_allstar.
+- PvZ2 health: 1100 (current version in this reference).
+- Charges until first eligible plant is tackled; afterwards switches to slow movement/normal eating. Can kick Super-Fan Imps.
+https://www.9game.cn/zwdzjs2/1876834.html (2017 third-party game data summary, NOT extracted primary configuration)
+- Charge 0.5 tile/second; normal 0.16 tile/second (speed ratio 3.125).
+- In this project's grass board each column is about 80px, and MoveComponent's base speed is 20px/second; therefore project multipliers are CHARGE_SPEED=2.0 (40px/sec) and SPENT_SPEED=0.64 (12.8px/sec).
+- Calibration is approximate: global or random zombie speed factors still apply; no primary PvZ2 executable/config was extracted to confirm the two reported speeds.
+https://www.spriters-resource.com/mobile/plantsvszombies2/asset/215268/
+- External ripped PvZ2 International assembled actions: Death 55 PNGs, Running 20, Tackle 39, Walking 24, Kick 48, Idle 100. There is a separately named Eating sequence. PNG counts are NOT native action times or engine FPS. They also demonstrate that PvZ2 All-Star's walk and run are distinct animations.
+- The complete ripped pack has NOT been downloaded successfully from the site (HTTP 403). Thus these clips have NOT been installed. In this project walk still uses a retimed third-party mod run sequence and is not fully accepted as a match.
+https://github.com/apples1949/PvZ2ModdingGuide/blob/master/document/chinese.md
+- Original PvZ2 PAM animation format is frame-based and does NOT auto-interpolate. PAM supports frame action commands. Its original animation frame rate and All-Star event frame have NOT yet been verified from a primary PAM file.
+
+AUDIO:
+Generic bonk.wav extracted from Android TV 1.1.5 archive, https://archive.org/details/pvz-android-tv. This is NOT the verified PvZ2 All-Star-specific scoring/tackle sound.
+
+LICENSING:
+PvZ Thyme mod reports CC BY-NC-ND 4.0: modifications/redistribution of derivatives need separate permission. Keep an external source record and do not represent third-party art as original/reusable without clearance.

@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_008_football.tscn" id="1_base"]
 [ext_resource type="Script" path="res://scripts/character/zombie/zombie_026_all_star.gd" id="2_script"]
-[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/all_star/black/all_star_frames.tres" id="3_frames"]
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/all_star_visual.tscn" id="3_visual"]
 [ext_resource type="AudioStreamWAV" path="res://assets/adventure/zombies/all_star/tackle_bonk.wav" id="4_tackle_sfx"]
 
 [node name="Zombie026AllStar" instance=ExtResource("1_base")]
@@ -15,12 +15,8 @@ visible = false
 [node name="NodeDrop" parent="Body" index="1"]
 visible = false
 
-[node name="AllStarVisual" type="AnimatedSprite2D" parent="Body" index="2"]
-position = Vector2(-153, -209)
-sprite_frames = ExtResource("3_frames")
-animation = &"run"
-autoplay = "run"
-centered = false
+[node name="AllStarVisual" parent="Body" index="2" instance=ExtResource("3_visual")]
+position = Vector2(-73, -129)
 
 [node name="TackleSound" type="AudioStreamPlayer2D" parent="." index="14"]
 stream = ExtResource("4_tackle_sfx")
