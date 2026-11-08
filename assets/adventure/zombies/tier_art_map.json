@@ -802,6 +802,65 @@
         "res://assets/reanim/Zombie_dolphinrider_outerleg_lower.png": "res://assets/adventure/zombies/dolphinrider/tier5/Zombie_dolphinrider_outerleg_lower.png",
         "res://assets/reanim/Zombie_dolphinrider_outerleg_upper.png": "res://assets/adventure/zombies/dolphinrider/tier5/Zombie_dolphinrider_outerleg_upper.png"
       }
+    },
+    "16": {
+      "veteran": {
+        "res://assets/reanim/Zombie_jackbox_box.png": "res://assets/adventure/zombies/jackbox/tier2/Zombie_jackbox_box.png",
+        "res://assets/reanim/Zombie_jackbox_box2.png": "res://assets/adventure/zombies/jackbox/tier2/Zombie_jackbox_box2.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_jackbox_box.png": "res://assets/adventure/zombies/jackbox/tier2/Zombie_jackbox_box.png",
+        "res://assets/reanim/Zombie_jackbox_box2.png": "res://assets/adventure/zombies/jackbox/tier2/Zombie_jackbox_box2.png",
+        "res://assets/reanim/Zombie_jackbox_body1.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_body1.png",
+        "res://assets/reanim/Zombie_jackbox_body2.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_body2.png",
+        "res://assets/reanim/Zombie_jackbox_innerarm_lower.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_innerarm_lower.png",
+        "res://assets/reanim/Zombie_jackbox_innerarm_upper.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_innerarm_upper.png",
+        "res://assets/reanim/Zombie_jackbox_innerleg_lower.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_innerleg_lower.png",
+        "res://assets/reanim/Zombie_jackbox_innerleg_upper.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_innerleg_upper.png",
+        "res://assets/reanim/Zombie_jackbox_outerarm_lower.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_outerarm_lower.png",
+        "res://assets/reanim/Zombie_jackbox_outerarm_lower2.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_outerarm_lower2.png",
+        "res://assets/reanim/Zombie_jackbox_outerarm_upper.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_outerarm_upper.png",
+        "res://assets/reanim/Zombie_jackbox_outerleg_lower.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_outerleg_lower.png",
+        "res://assets/reanim/Zombie_jackbox_outerleg_upper.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_outerleg_upper.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_jackbox_box.png": "res://assets/adventure/zombies/jackbox/tier4/Zombie_jackbox_box.png",
+        "res://assets/reanim/Zombie_jackbox_box2.png": "res://assets/adventure/zombies/jackbox/tier4/Zombie_jackbox_box2.png",
+        "res://assets/reanim/Zombie_jackbox_body1.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_body1.png",
+        "res://assets/reanim/Zombie_jackbox_body2.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_body2.png",
+        "res://assets/reanim/Zombie_jackbox_innerarm_lower.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_innerarm_lower.png",
+        "res://assets/reanim/Zombie_jackbox_innerarm_upper.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_innerarm_upper.png",
+        "res://assets/reanim/Zombie_jackbox_innerleg_lower.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_innerleg_lower.png",
+        "res://assets/reanim/Zombie_jackbox_innerleg_upper.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_innerleg_upper.png",
+        "res://assets/reanim/Zombie_jackbox_outerarm_lower.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_outerarm_lower.png",
+        "res://assets/reanim/Zombie_jackbox_outerarm_lower2.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_outerarm_lower2.png",
+        "res://assets/reanim/Zombie_jackbox_outerarm_upper.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_outerarm_upper.png",
+        "res://assets/reanim/Zombie_jackbox_outerleg_lower.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_outerleg_lower.png",
+        "res://assets/reanim/Zombie_jackbox_outerleg_upper.png": "res://assets/adventure/zombies/jackbox/tier3/Zombie_jackbox_outerleg_upper.png",
+        "res://assets/reanim/Zombie_jackbox_head.png": "res://assets/adventure/zombies/jackbox/tier4/Zombie_jackbox_head.png",
+        "res://assets/reanim/Zombie_jackbox_head2.png": "res://assets/adventure/zombies/jackbox/tier4/Zombie_jackbox_head2.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_jackbox_box.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_box.png",
+        "res://assets/reanim/Zombie_jackbox_box2.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_box2.png",
+        "res://assets/reanim/Zombie_jackbox_body1.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_body1.png",
+        "res://assets/reanim/Zombie_jackbox_body2.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_body2.png",
+        "res://assets/reanim/Zombie_jackbox_innerarm_lower.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_innerarm_lower.png",
+        "res://assets/reanim/Zombie_jackbox_innerarm_upper.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_innerarm_upper.png",
+        "res://assets/reanim/Zombie_jackbox_innerleg_lower.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_innerleg_lower.png",
+        "res://assets/reanim/Zombie_jackbox_innerleg_upper.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_innerleg_upper.png",
+        "res://assets/reanim/Zombie_jackbox_outerarm_lower.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_outerarm_lower.png",
+        "res://assets/reanim/Zombie_jackbox_outerarm_lower2.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_outerarm_lower2.png",
+        "res://assets/reanim/Zombie_jackbox_outerarm_upper.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_outerarm_upper.png",
+        "res://assets/reanim/Zombie_jackbox_outerleg_lower.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_outerleg_lower.png",
+        "res://assets/reanim/Zombie_jackbox_outerleg_upper.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_outerleg_upper.png",
+        "res://assets/reanim/Zombie_jackbox_head.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_head.png",
+        "res://assets/reanim/Zombie_jackbox_head2.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_head2.png",
+        "res://assets/reanim/Zombie_jackbox_jaw.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_jaw.png",
+        "res://assets/reanim/Zombie_jackbox_innerleg_foot.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_innerleg_foot.png",
+        "res://assets/reanim/Zombie_jackbox_outerleg_foot.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_outerleg_foot.png",
+        "res://assets/reanim/Zombie_jackbox_twitch.png": "res://assets/adventure/zombies/jackbox/tier5/Zombie_jackbox_twitch.png"
+      }
     }
   }
 }
