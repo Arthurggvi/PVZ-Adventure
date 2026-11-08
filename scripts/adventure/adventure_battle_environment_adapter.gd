@@ -12,6 +12,7 @@ static func build(stage: StageDefinition, phase: StagePhaseDefinition) -> Resour
 	var level := ResourceLevelData.new()
 	level.game_sences = env.scene
 	level.game_BG = env.background
+	level.battle_background_texture = env.background_texture
 	level.game_BGM = env.music
 	level.is_fog = env.fog
 	level.is_rain = env.rain

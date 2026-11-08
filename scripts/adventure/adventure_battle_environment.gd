@@ -5,6 +5,7 @@ class_name AdventureBattleEnvironment
 
 @export var scene: MainSceneRegistry.MainScenes = MainSceneRegistry.MainScenes.MainGameFront
 @export var background: ConstLevelData.GameBg = ConstLevelData.GameBg.FrontDay
+@export var background_texture: Texture2D
 @export var music: ConstLevelData.GameBGM = ConstLevelData.GameBGM.FrontDay
 @export var fog := false
 @export var rain := false

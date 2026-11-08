@@ -4,6 +4,8 @@ extends Resource
 class_name AdventureStageOverride
 
 @export var environment: AdventureBattleEnvironment
+## 单关美术差异，不覆盖地区默认环境玩法配置。
+@export var battle_background_texture: Texture2D
 @export var normal_wave_profile: WaveProfile
 @export var nightmare_wave_profile: WaveProfile
 @export var normal_drop_table: DropTable
@@ -31,6 +33,8 @@ func apply(stage: StageDefinition) -> bool:
 		return false
 	if environment != null:
 		stage.environment = environment.duplicate(true) as AdventureBattleEnvironment
+	if battle_background_texture != null and stage.environment != null:
+		stage.environment.background_texture = battle_background_texture
 	if normal_wave_profile != null:
 		normal.wave_profile = normal_wave_profile.duplicate(true) as WaveProfile
 	if nightmare_wave_profile != null:

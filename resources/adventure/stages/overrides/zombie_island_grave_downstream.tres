@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="AdventureStageOverride" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/adventure_stage_override.gd" id="1_override"]
+[ext_resource type="Texture2D" path="res://assets/adventure/environments/battle_backgrounds/04_graveyard_downstream_night.jpg" id="battlebg"]
+
+[resource]
+script = ExtResource("1_override")
+battle_background_texture = ExtResource("battlebg")

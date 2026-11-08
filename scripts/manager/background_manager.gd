@@ -25,7 +25,9 @@ func init_manager() -> void:
 
 ## 初始化背景
 func init_background():
-	var curr_bg_texture: Texture2D = ConstLevelData.GameBgTextureMap[game_para.game_BG]
+	var curr_bg_texture: Texture2D = game_para.battle_background_texture
+	if curr_bg_texture == null:
+		curr_bg_texture = ConstLevelData.GameBgTextureMap[game_para.game_BG]
 	background.texture = curr_bg_texture
 	home.init_home(game_para.game_BG)
 	if not game_para.is_zombie_can_home:

@@ -29,6 +29,8 @@ func set_choose_level(curr_game_mode: MainSceneRegistry.MainScenes, curr_level_p
 @export_group("关卡背景参数")
 ## 游戏背景
 @export var game_BG: ConstLevelData.GameBg = ConstLevelData.GameBg.FrontDay
+## 冒险背景，可为空以复用原版枚举背景。
+@export var battle_background_texture: Texture2D
 ## 游戏背景音乐
 @export var game_BGM: ConstLevelData.GameBGM = ConstLevelData.GameBGM.FrontDay
 ## 是否有雾
