@@ -36,7 +36,7 @@
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/flag/pole.png" id="T34"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/flag/spearhead.png" id="T35"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/flag/blood_skull_banner.png" id="T36"]
-[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/fx/portal.png" id="T39"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/black_general/parts/fx/generated/BlackGeneral_TeleportBlink.tres" id="BlinkFX"]
 [ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/black_general/parts/fx/generated/BlackSmoke_Back.tres" id="FXA"]
 [ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/idle.tres" id="A1"]
 [ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/run.tres" id="A3"]
@@ -317,11 +317,14 @@ scale = Vector2(0.798438, 0.798438)
 texture = ExtResource("T20")
 centered = false
 
-[node name="PortalEffect" type="Sprite2D" parent="."]
-position = Vector2(0, 8)
-scale = Vector2(0.45, 0.45)
+[node name="TeleportBlink" type="AnimatedSprite2D" parent="."]
+position = Vector2(19, -84)
+scale = Vector2(1.3, 1.3)
+z_index = 2
+modulate = Color(1, 1, 1, 0.88)
+sprite_frames = ExtResource("BlinkFX")
+animation = &"arrive"
 visible = false
-texture = ExtResource("T39")
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 libraries = {

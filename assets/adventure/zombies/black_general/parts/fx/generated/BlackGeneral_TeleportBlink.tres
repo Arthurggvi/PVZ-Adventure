@@ -1,0 +1,214 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/fx/generated/Blink_In_12f_RGBA.png" id="InAtlas"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/fx/generated/Blink_Out_12f_RGBA.png" id="OutAtlas"]
+
+[sub_resource type="AtlasTexture" id="arrive_00"]
+atlas = ExtResource("InAtlas")
+region = Rect2(0, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_01"]
+atlas = ExtResource("InAtlas")
+region = Rect2(256, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_02"]
+atlas = ExtResource("InAtlas")
+region = Rect2(512, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_03"]
+atlas = ExtResource("InAtlas")
+region = Rect2(768, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_04"]
+atlas = ExtResource("InAtlas")
+region = Rect2(0, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_05"]
+atlas = ExtResource("InAtlas")
+region = Rect2(256, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_06"]
+atlas = ExtResource("InAtlas")
+region = Rect2(512, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_07"]
+atlas = ExtResource("InAtlas")
+region = Rect2(768, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_08"]
+atlas = ExtResource("InAtlas")
+region = Rect2(0, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_09"]
+atlas = ExtResource("InAtlas")
+region = Rect2(256, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_10"]
+atlas = ExtResource("InAtlas")
+region = Rect2(512, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="arrive_11"]
+atlas = ExtResource("InAtlas")
+region = Rect2(768, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_00"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(0, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_01"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(256, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_02"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(512, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_03"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(768, 0, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_04"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(0, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_05"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(256, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_06"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(512, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_07"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(768, 256, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_08"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(0, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_09"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(256, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_10"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(512, 512, 256, 256)
+
+[sub_resource type="AtlasTexture" id="depart_11"]
+atlas = ExtResource("OutAtlas")
+region = Rect2(768, 512, 256, 256)
+
+[resource]
+animations = [
+{
+"frames": [
+{
+"duration": 1.0,
+"texture": SubResource("arrive_00")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_01")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_02")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_03")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_04")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_05")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_06")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_07")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_08")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_09")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_10")
+},
+{
+"duration": 1.0,
+"texture": SubResource("arrive_11")
+}
+],
+"loop": false,
+"name": &"arrive",
+"speed": 17.142857
+},
+{
+"frames": [
+{
+"duration": 1.0,
+"texture": SubResource("depart_00")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_01")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_02")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_03")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_04")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_05")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_06")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_07")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_08")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_09")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_10")
+},
+{
+"duration": 1.0,
+"texture": SubResource("depart_11")
+}
+],
+"loop": false,
+"name": &"depart",
+"speed": 17.142857
+}
+]
