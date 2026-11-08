@@ -1,0 +1,327 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_leftarm_upper.png" id="T1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_leftleg_foot.png" id="T2"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_leftleg_lower.png" id="T3"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_leftleg_upper.png" id="T4"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_lowerbody.png" id="T5"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_rightleg_lower.png" id="T6"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_rightleg_foot.png" id="T7"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_rightleg_upper.png" id="T8"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_upperbody2.png" id="T9"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_leftarm_lower.png" id="T10"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_upperbody.png" id="T11"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Anim_hair.png" id="T12"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Anim_head1.png" id="T13"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_rightarm_upper.png" id="T14"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_rightarm_lower.png" id="T15"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_upperbody3.png" id="T16"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Anim_head2.png" id="T17"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_helmet.png" id="T18"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_leftarm_hand.png" id="T19"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/generated_native/Zombie_football_rightarm_hand.png" id="T20"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/chest.png" id="T21"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/abdomen.png" id="T22"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/waist.png" id="T23"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/helmet.png" id="T24"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/head.png" id="T25"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/shoulder_l.png" id="T26"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/shoulder_r.png" id="T27"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/forearm_l.png" id="T28"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/forearm_r.png" id="T29"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/phase2/helmet_full.png" id="T30"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/cape/idle.png" id="T31"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/cape/collar.png" id="T32"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/cape/charge.png" id="T33"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/flag/pole.png" id="T34"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/flag/spearhead.png" id="T35"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/flag/blood_skull_banner.png" id="T36"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/fx/portal.png" id="T39"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/black_general/parts/fx/generated/BlackSmoke_Back.tres" id="FXA"]
+[ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/idle.tres" id="A1"]
+[ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/run.tres" id="A3"]
+[ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/raise.tres" id="A4"]
+[ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/windup.tres" id="A6"]
+[ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/charge.tres" id="A7"]
+[ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/teleport_in.tres" id="A8"]
+[ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/teleport_out.tres" id="A9"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/black_general_visual.gd" id="S1"]
+
+[sub_resource type="AnimationLibrary" id="BlackGeneralLibrary"]
+_data = {
+&"idle": ExtResource("A1"),
+&"run": ExtResource("A3"),
+&"raise": ExtResource("A4"),
+&"windup": ExtResource("A6"),
+&"charge": ExtResource("A7"),
+&"teleport_in": ExtResource("A8"),
+&"teleport_out": ExtResource("A9"),
+}
+
+[node name="BlackGeneralVisual" type="Node2D"]
+script = ExtResource("S1")
+
+[node name="Body" type="Node2D" parent="."]
+
+[node name="BodyCorrect" type="Node2D" parent="Body"]
+position = Vector2(-73, -129)
+
+[node name="Zombie_football_leftarm_upper" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(35.8, 62.837242)
+rotation = 6.248825
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T1")
+centered = false
+
+[node name="Zombie_football_leftleg_foot" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(36.543793, 112.2)
+rotation = 6.216215
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T2")
+centered = false
+
+[node name="Zombie_football_leftleg_lower" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(48.53138, 99.95621)
+rotation = 6.15273
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("T3")
+centered = false
+
+[node name="Zombie_football_leftleg_upper" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(49.912415, 79.975174)
+rotation = 0.168304
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("T4")
+centered = false
+
+[node name="Zombie_football_lowerbody" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(56.3, 76.06862)
+rotation = 0
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T5")
+centered = false
+
+[node name="Zombie_football_lowerbody_Art" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(38.3, 58.06862)
+rotation = 0
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T23")
+centered = false
+
+[node name="Zombie_football_rightleg_lower" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(80.506546, 109.168625)
+rotation = 6.038202
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("T6")
+centered = false
+
+[node name="Zombie_football_rightleg_foot" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(69.9, 125.656204)
+rotation = 6.192542
+scale = Vector2(0.708, 0.708)
+texture = ExtResource("T7")
+centered = false
+
+[node name="Zombie_football_rightleg_upper" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(73.71242, 81.2)
+rotation = 0.168304
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("T8")
+centered = false
+
+[node name="Cape" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(85.087585, 18.09345)
+rotation = 6.248825
+scale = Vector2(0.46, 0.46)
+texture = ExtResource("T31")
+centered = false
+
+[node name="CapeCollar" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(78.087585, 21.09345)
+rotation = 6.248825
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("T32")
+centered = false
+
+[node name="Zombie_football_upperbody2" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(15.087585, 22.09345)
+rotation = 6.248825
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T9")
+centered = false
+
+[node name="Zombie_football_upperbody2_Art" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(50.087585, 55.09345)
+rotation = 6.248825
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T22")
+centered = false
+
+[node name="Zombie_football_leftarm_lower" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(17.6, 70.71828)
+rotation = 6.163422
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("T10")
+centered = false
+
+[node name="Zombie_football_leftarm_lower_Art" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(11.6, 70.71828)
+rotation = 6.163422
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("T28")
+centered = false
+
+[node name="Zombie_football_upperbody" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(14.631378, 22.649658)
+rotation = 6.248825
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T11")
+centered = false
+
+[node name="BlackSmokeBack" type="AnimatedSprite2D" parent="Body/BodyCorrect/Zombie_football_upperbody"]
+position = Vector2(72, 70)
+scale = Vector2(1.04, 1.04)
+z_index = -1
+sprite_frames = ExtResource("FXA")
+animation = &"loop"
+visible = false
+
+[node name="Zombie_football_upperbody_Art" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(12.631378, 22.649658)
+rotation = 6.248825
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T21")
+centered = false
+
+[node name="Zombie_football_leftarm_upper_Art" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(6.8, 36.837242)
+rotation = 6.248825
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T26")
+centered = false
+
+[node name="Anim_hair" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(26.231379, 9.31828)
+rotation = 0
+scale = Vector2(0.8, 0.766196)
+texture = ExtResource("T12")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(29.418964, 12.186902)
+rotation = 6.221567
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("T13")
+centered = false
+
+[node name="Anim_head1_Art" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(26.418964, 15.186902)
+rotation = 6.221567
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("T25")
+centered = false
+
+[node name="Zombie_football_rightarm_upper" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(80.656204, 63.46862)
+rotation = 0
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T14")
+centered = false
+
+[node name="Zombie_football_rightarm_upper_Art" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(100.656204, 36.46862)
+rotation = 0
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T27")
+centered = false
+
+[node name="Zombie_football_rightarm_lower" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(63.943794, 68.993454)
+rotation = 6.158948
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("T15")
+centered = false
+
+[node name="Zombie_football_rightarm_lower_Art" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(57.943794, 68.993454)
+rotation = 6.158948
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("T29")
+centered = false
+
+[node name="Zombie_football_upperbody3" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(14.631378, 22.649658)
+rotation = 6.248825
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("T16")
+centered = false
+
+[node name="Anim_head2" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(37.943794, 47.099316)
+rotation = 6.112713
+scale = Vector2(0.798438, 0.798438)
+texture = ExtResource("T17")
+centered = false
+
+[node name="Zombie_football_helmet" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(24.237926, 4.886902)
+rotation = 6.193425
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("T18")
+centered = false
+
+[node name="Zombie_football_helmet_Art" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(24.237926, 1.886902)
+rotation = 6.193425
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("T24")
+centered = false
+
+[node name="Zombie_football_leftarm_hand" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(-1.912415, 55.980354)
+rotation = -0.009034
+scale = Vector2(0.798438, 0.798438)
+texture = ExtResource("T19")
+centered = false
+
+[node name="HeldFlagPole" type="Sprite2D" parent="Body/BodyCorrect/Zombie_football_leftarm_hand"]
+position = Vector2(11, -90)
+rotation = 0
+scale = Vector2(0.75, 1.05)
+texture = ExtResource("T34")
+centered = false
+show_behind_parent = true
+
+[node name="HeldFlagSpear" type="Sprite2D" parent="Body/BodyCorrect/Zombie_football_leftarm_hand"]
+position = Vector2(8, -118)
+rotation = 0
+scale = Vector2(0.58, 0.58)
+texture = ExtResource("T35")
+centered = false
+show_behind_parent = true
+
+[node name="HeldFlagCloth" type="Sprite2D" parent="Body/BodyCorrect/Zombie_football_leftarm_hand"]
+position = Vector2(-168, -110)
+rotation = 0
+scale = Vector2(0.9, 0.825)
+texture = ExtResource("T36")
+centered = false
+show_behind_parent = true
+
+[node name="Zombie_football_rightarm_hand" type="Sprite2D" parent="Body/BodyCorrect"]
+position = Vector2(44.556206, 70.862076)
+rotation = 0.068182
+scale = Vector2(0.798438, 0.798438)
+texture = ExtResource("T20")
+centered = false
+
+[node name="PortalEffect" type="Sprite2D" parent="."]
+position = Vector2(0, 8)
+scale = Vector2(0.45, 0.45)
+visible = false
+texture = ExtResource("T39")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("BlackGeneralLibrary")
+}
