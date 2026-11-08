@@ -1000,6 +1000,83 @@
         "res://assets/reanim/Zombie_digger_rise5.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_rise5.png",
         "res://assets/reanim/Zombie_digger_rise6.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_rise6.png"
       }
+    },
+    "19": {
+      "veteran": {
+        "res://assets/reanim/Zombie_pogo_stick.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick.png",
+        "res://assets/reanim/Zombie_pogo_stick2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2.png",
+        "res://assets/reanim/Zombie_pogo_stick2damage1.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2damage1.png",
+        "res://assets/reanim/Zombie_pogo_stick2damage2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2damage2.png",
+        "res://assets/reanim/Zombie_pogo_stick3.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick3.png",
+        "res://assets/reanim/Zombie_pogo_stickdamage1.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickdamage1.png",
+        "res://assets/reanim/Zombie_pogo_stickdamage2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickdamage2.png",
+        "res://assets/reanim/Zombie_pogo_stickhands2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickhands2.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_pogo_stick.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick.png",
+        "res://assets/reanim/Zombie_pogo_stick2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2.png",
+        "res://assets/reanim/Zombie_pogo_stick2damage1.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2damage1.png",
+        "res://assets/reanim/Zombie_pogo_stick2damage2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2damage2.png",
+        "res://assets/reanim/Zombie_pogo_stick3.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick3.png",
+        "res://assets/reanim/Zombie_pogo_stickdamage1.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickdamage1.png",
+        "res://assets/reanim/Zombie_pogo_stickdamage2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickdamage2.png",
+        "res://assets/reanim/Zombie_pogo_stickhands2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickhands2.png",
+        "res://assets/reanim/Zombie_pogo_body.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_body.png",
+        "res://assets/reanim/Zombie_pogo_innerarm_lower.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_innerarm_lower.png",
+        "res://assets/reanim/Zombie_pogo_innerarm_upper.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_innerarm_upper.png",
+        "res://assets/reanim/Zombie_pogo_innerleg_foot.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_innerleg_foot.png",
+        "res://assets/reanim/Zombie_pogo_innerleg_lower.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_innerleg_lower.png",
+        "res://assets/reanim/Zombie_pogo_innerleg_upper.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_innerleg_upper.png",
+        "res://assets/reanim/Zombie_pogo_outerarm_upper.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_outerarm_upper.png",
+        "res://assets/reanim/Zombie_pogo_outerarm_upper2.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_pogo_outerleg_foot.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_outerleg_foot.png",
+        "res://assets/reanim/Zombie_pogo_outerleg_lower.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_outerleg_lower.png",
+        "res://assets/reanim/Zombie_pogo_outerleg_upper.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_outerleg_upper.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_pogo_stick.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick.png",
+        "res://assets/reanim/Zombie_pogo_stick2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2.png",
+        "res://assets/reanim/Zombie_pogo_stick2damage1.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2damage1.png",
+        "res://assets/reanim/Zombie_pogo_stick2damage2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2damage2.png",
+        "res://assets/reanim/Zombie_pogo_stick3.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick3.png",
+        "res://assets/reanim/Zombie_pogo_stickdamage1.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickdamage1.png",
+        "res://assets/reanim/Zombie_pogo_stickdamage2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickdamage2.png",
+        "res://assets/reanim/Zombie_pogo_stickhands2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickhands2.png",
+        "res://assets/reanim/Zombie_pogo_body.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_body.png",
+        "res://assets/reanim/Zombie_pogo_innerarm_lower.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_innerarm_lower.png",
+        "res://assets/reanim/Zombie_pogo_innerarm_upper.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_innerarm_upper.png",
+        "res://assets/reanim/Zombie_pogo_innerleg_foot.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_innerleg_foot.png",
+        "res://assets/reanim/Zombie_pogo_innerleg_lower.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_innerleg_lower.png",
+        "res://assets/reanim/Zombie_pogo_innerleg_upper.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_innerleg_upper.png",
+        "res://assets/reanim/Zombie_pogo_outerarm_upper.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_outerarm_upper.png",
+        "res://assets/reanim/Zombie_pogo_outerarm_upper2.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_pogo_outerleg_foot.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_outerleg_foot.png",
+        "res://assets/reanim/Zombie_pogo_outerleg_lower.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_outerleg_lower.png",
+        "res://assets/reanim/Zombie_pogo_outerleg_upper.png": "res://assets/adventure/zombies/pogo/tier3/Zombie_pogo_outerleg_upper.png",
+        "res://assets/reanim/Zombie_pogo_head.png": "res://assets/adventure/zombies/pogo/tier4/Zombie_pogo_head.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_pogo_stick.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick.png",
+        "res://assets/reanim/Zombie_pogo_stick2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2.png",
+        "res://assets/reanim/Zombie_pogo_stick2damage1.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2damage1.png",
+        "res://assets/reanim/Zombie_pogo_stick2damage2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick2damage2.png",
+        "res://assets/reanim/Zombie_pogo_stick3.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stick3.png",
+        "res://assets/reanim/Zombie_pogo_stickdamage1.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickdamage1.png",
+        "res://assets/reanim/Zombie_pogo_stickdamage2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickdamage2.png",
+        "res://assets/reanim/Zombie_pogo_stickhands2.png": "res://assets/adventure/zombies/pogo/tier2/Zombie_pogo_stickhands2.png",
+        "res://assets/reanim/Zombie_pogo_body.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_body.png",
+        "res://assets/reanim/Zombie_pogo_innerarm_lower.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_innerarm_lower.png",
+        "res://assets/reanim/Zombie_pogo_innerarm_upper.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_innerarm_upper.png",
+        "res://assets/reanim/Zombie_pogo_innerleg_foot.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_innerleg_foot.png",
+        "res://assets/reanim/Zombie_pogo_innerleg_lower.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_innerleg_lower.png",
+        "res://assets/reanim/Zombie_pogo_innerleg_upper.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_innerleg_upper.png",
+        "res://assets/reanim/Zombie_pogo_outerarm_upper.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_outerarm_upper.png",
+        "res://assets/reanim/Zombie_pogo_outerarm_upper2.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_pogo_outerleg_foot.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_outerleg_foot.png",
+        "res://assets/reanim/Zombie_pogo_outerleg_lower.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_outerleg_lower.png",
+        "res://assets/reanim/Zombie_pogo_outerleg_upper.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_outerleg_upper.png",
+        "res://assets/reanim/Zombie_pogo_head.png": "res://assets/adventure/zombies/pogo/tier4/Zombie_pogo_head.png"
+      }
     }
   }
 }
