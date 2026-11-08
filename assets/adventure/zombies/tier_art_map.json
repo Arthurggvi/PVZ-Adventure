@@ -928,6 +928,78 @@
         "res://assets/reanim/Zombie_balloon_outerleg_FOOT.png": "res://assets/adventure/zombies/balloon/tier5/Zombie_balloon_outerleg_FOOT.png",
         "res://assets/reanim/Zombie_balloon_head.png": "res://assets/adventure/zombies/balloon/tier4/Zombie_balloon_head.png"
       }
+    },
+    "18": {
+      "veteran": {
+        "res://assets/reanim/Zombie_digger_hardhat.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_hardhat.png",
+        "res://assets/reanim/Zombie_digger_hardhat2.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_hardhat2.png",
+        "res://assets/reanim/Zombie_digger_hardhat3.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_hardhat3.png",
+        "res://assets/reanim/Zombie_digger_rise2.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_rise2.png",
+        "res://assets/reanim/Zombie_digger_rise4.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_rise4.png",
+        "res://assets/reanim/Zombie_digger_rise5.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_rise5.png",
+        "res://assets/reanim/Zombie_digger_rise6.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_rise6.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_digger_hardhat.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_hardhat.png",
+        "res://assets/reanim/Zombie_digger_hardhat2.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_hardhat2.png",
+        "res://assets/reanim/Zombie_digger_hardhat3.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_hardhat3.png",
+        "res://assets/reanim/Zombie_digger_body.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_body.png",
+        "res://assets/reanim/Zombie_digger_innerarm_upper.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_innerarm_upper.png",
+        "res://assets/reanim/Zombie_digger_outerarm_lower.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_outerarm_lower.png",
+        "res://assets/reanim/Zombie_digger_outerarm_upper.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_outerarm_upper.png",
+        "res://assets/reanim/Zombie_digger_outerarm_upper2.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_digger_innerleg_lower.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_innerleg_lower.png",
+        "res://assets/reanim/Zombie_digger_innerleg_upper.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_innerleg_upper.png",
+        "res://assets/reanim/Zombie_digger_outerleg_lower.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_outerleg_lower.png",
+        "res://assets/reanim/Zombie_digger_outerleg_upper.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_outerleg_upper.png",
+        "res://assets/reanim/Zombie_digger_innerleg_foot.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_innerleg_foot.png",
+        "res://assets/reanim/Zombie_digger_rise2.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_rise2.png",
+        "res://assets/reanim/Zombie_digger_rise3.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_rise3.png",
+        "res://assets/reanim/Zombie_digger_rise4.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_rise4.png",
+        "res://assets/reanim/Zombie_digger_rise5.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_rise5.png",
+        "res://assets/reanim/Zombie_digger_rise6.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_rise6.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_digger_hardhat.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_hardhat.png",
+        "res://assets/reanim/Zombie_digger_hardhat2.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_hardhat2.png",
+        "res://assets/reanim/Zombie_digger_hardhat3.png": "res://assets/adventure/zombies/digger/tier2/Zombie_digger_hardhat3.png",
+        "res://assets/reanim/Zombie_digger_body.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_body.png",
+        "res://assets/reanim/Zombie_digger_innerarm_upper.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_innerarm_upper.png",
+        "res://assets/reanim/Zombie_digger_outerarm_lower.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_outerarm_lower.png",
+        "res://assets/reanim/Zombie_digger_outerarm_upper.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_outerarm_upper.png",
+        "res://assets/reanim/Zombie_digger_outerarm_upper2.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_digger_innerleg_lower.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_innerleg_lower.png",
+        "res://assets/reanim/Zombie_digger_innerleg_upper.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_innerleg_upper.png",
+        "res://assets/reanim/Zombie_digger_outerleg_lower.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_outerleg_lower.png",
+        "res://assets/reanim/Zombie_digger_outerleg_upper.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_outerleg_upper.png",
+        "res://assets/reanim/Zombie_digger_innerleg_foot.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_innerleg_foot.png",
+        "res://assets/reanim/Zombie_digger_head.png": "res://assets/adventure/zombies/digger/tier4/Zombie_digger_head.png",
+        "res://assets/reanim/Zombie_digger_head2.png": "res://assets/adventure/zombies/digger/tier4/Zombie_digger_head2.png",
+        "res://assets/reanim/Zombie_digger_rise2.png": "res://assets/adventure/zombies/digger/tier4/Zombie_digger_rise2.png",
+        "res://assets/reanim/Zombie_digger_rise3.png": "res://assets/adventure/zombies/digger/tier4/Zombie_digger_rise3.png",
+        "res://assets/reanim/Zombie_digger_rise4.png": "res://assets/adventure/zombies/digger/tier4/Zombie_digger_rise4.png",
+        "res://assets/reanim/Zombie_digger_rise5.png": "res://assets/adventure/zombies/digger/tier3/Zombie_digger_rise5.png",
+        "res://assets/reanim/Zombie_digger_rise6.png": "res://assets/adventure/zombies/digger/tier4/Zombie_digger_rise6.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_digger_body.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_body.png",
+        "res://assets/reanim/Zombie_digger_innerarm_upper.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_innerarm_upper.png",
+        "res://assets/reanim/Zombie_digger_outerarm_lower.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_outerarm_lower.png",
+        "res://assets/reanim/Zombie_digger_outerarm_upper.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_outerarm_upper.png",
+        "res://assets/reanim/Zombie_digger_outerarm_upper2.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_digger_innerleg_lower.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_innerleg_lower.png",
+        "res://assets/reanim/Zombie_digger_innerleg_upper.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_innerleg_upper.png",
+        "res://assets/reanim/Zombie_digger_outerleg_lower.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_outerleg_lower.png",
+        "res://assets/reanim/Zombie_digger_outerleg_upper.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_outerleg_upper.png",
+        "res://assets/reanim/Zombie_digger_innerleg_foot.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_innerleg_foot.png",
+        "res://assets/reanim/Zombie_digger_head.png": "res://assets/adventure/zombies/digger/tier4/Zombie_digger_head.png",
+        "res://assets/reanim/Zombie_digger_head2.png": "res://assets/adventure/zombies/digger/tier4/Zombie_digger_head2.png",
+        "res://assets/reanim/Zombie_digger_rise2.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_rise2.png",
+        "res://assets/reanim/Zombie_digger_rise3.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_rise3.png",
+        "res://assets/reanim/Zombie_digger_rise4.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_rise4.png",
+        "res://assets/reanim/Zombie_digger_rise5.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_rise5.png",
+        "res://assets/reanim/Zombie_digger_rise6.png": "res://assets/adventure/zombies/digger/tier5/Zombie_digger_rise6.png"
+      }
     }
   }
 }
