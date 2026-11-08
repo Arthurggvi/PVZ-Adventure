@@ -4,6 +4,18 @@ class_name ZB002BlackGeneral
 ## The inherited ZB000Base owns health, damage, death, trophy requests, and registration.
 
 @onready var visual: BlackGeneralVisual = $Body/BlackGeneralVisual
+var _phase_switch_pending: bool = false
+
+
+func _apply_boss_visual_phase(phase: int, animated: bool) -> void:
+    if phase != 2 or not is_instance_valid(visual):
+        return
+    if not animated:
+        visual.set_phase2(true)
+        return
+    # Reuse the already approved teleport exit/enter for the visual phase swap.
+    _phase_switch_pending = true
+    visual.play_action(&"teleport_out")
 
 func ready_norm() -> void:
     super.ready_norm()
@@ -33,3 +45,7 @@ func _on_visual_animation_finished(action: StringName) -> void:
             if is_death:
                 request_trophy()
                 queue_free()
+            elif _phase_switch_pending:
+                _phase_switch_pending = false
+                visual.set_phase2(true)
+                visual.play_action(&"teleport_in")

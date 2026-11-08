@@ -278,8 +278,7 @@ func _create_boss_instance(boss_type: CharacterRegistry.ZombieBossType, spawn_po
 	zombie_boss_root.add_child(boss)
 	# 子节点已初始化，状态机尚未执行延迟启动；恢复血量不会重放上轮技能中间状态。
 	if restored_hp > 0:
-		boss_hp.Hp_loss(boss_hp.max_hp - mini(restored_hp, boss_hp.max_hp),
-			BulletRegistry.AttackMode.Norm, false, false, false)
+		boss.restore_boss_hp(restored_hp)
 	# 登记发生在入树前，音乐通知必须等入树完成，存活快照才能包含本次实例。
 	signal_living_bosses_changed.emit()
 	_refresh_boss_progress()
@@ -308,6 +307,7 @@ func register_boss(boss: ZB000Base, boss_type: CharacterRegistry.ZombieBossType,
 	if count_as_new:
 		_boss_spawn_total += 1
 	boss.signal_character_death.connect(_on_boss_dead.bind(instance_id))
+	boss.signal_boss_phase_changed.connect(_on_registered_boss_phase_changed.bind(instance_id))
 	boss.signal_trophy_requested.connect(_on_boss_trophy_requested.bind(instance_id))
 	boss.tree_exiting.connect(_on_boss_tree_exiting.bind(instance_id))
 	curr_zombie_num += 1
@@ -315,6 +315,15 @@ func register_boss(boss: ZB000Base, boss_type: CharacterRegistry.ZombieBossType,
 	if boss.is_inside_tree():
 		signal_living_bosses_changed.emit()
 	return true
+
+
+## Shared Boss phase audio is routed once through the already-registered Boss lifecycle.
+## The base class only emits the phase signal; SoundManager remains a service of the game manager.
+func _on_registered_boss_phase_changed(_phase: int, instance_id: int) -> void:
+	var boss: ZB000Base = _get_registered_boss(instance_id)
+	if boss == null or boss.is_death or not is_game_running():
+		return
+	SoundManager.play_character_SFX(&"boss_phase_transition")
 
 
 ## [param instance_id] 发出死亡通知的登记实例；重复通知不再次扣数或累计死亡。

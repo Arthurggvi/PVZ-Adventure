@@ -111,6 +111,8 @@ const SFXBulletMap := {
 
 ## 植物\僵尸音效字典
 const SFXCharacterMap := {
+	## Shared Boss phase-change roar (CC0 JoelAudio); existing pooled SFX bus.
+	&"boss_phase_transition": preload("res://assets/audio/SFX/zombie/black_general_phase_transition_roar.ogg"),
 	## -------------------------------植物-------------------------------
 	## 豌豆射手发射字典
 	&"Throw":[

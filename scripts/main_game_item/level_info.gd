@@ -31,8 +31,8 @@ func refresh_boss_progress(bosses: Array[ZB000Base], keep_depleted: bool, restor
 			continue
 		living_count += 1
 		latest_boss = boss
-	boss_hp_progress_bar.set_living_boss_count(living_count)
 	if latest_boss != null and boss_hp_progress_bar.bind_boss(latest_boss):
+		boss_hp_progress_bar.set_living_boss_count(living_count)
 		wave_progress_root.hide()
 		boss_hp_progress_bar.show()
 		return
@@ -54,7 +54,7 @@ func show_boss_progress(boss: ZB000Base) -> void:
 func finish_boss_progress(keep_depleted: bool, restore_wave: bool) -> void:
 	boss_hp_progress_bar.set_living_boss_count(0)
 	boss_hp_progress_bar.show_depleted()
-	boss_hp_progress_bar.visible = keep_depleted
+	boss_hp_progress_bar.fade_out()
 	wave_progress_root.visible = restore_wave and not keep_depleted
 
 
@@ -65,5 +65,5 @@ func clear_boss_progress(keep_depleted: bool, restore_wave: bool) -> void:
 	boss_hp_progress_bar.unbind_boss()
 	if keep_depleted:
 		boss_hp_progress_bar.show_depleted()
-	boss_hp_progress_bar.visible = keep_depleted
+	boss_hp_progress_bar.fade_out()
 	wave_progress_root.visible = restore_wave and not keep_depleted

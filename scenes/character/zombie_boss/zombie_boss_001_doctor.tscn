@@ -907,6 +907,8 @@ _data = {
 
 [node name="ZB001Doctor" unique_id=1135427569 instance=ExtResource("1_dhbdl")]
 script = ExtResource("2_3pwt0")
+boss_display_name = "僵王博士"
+boss_portrait_texture = ExtResource("41_rti0c")
 skill_scene_configs = Dictionary[int, ExtResource("doctor_scene_config_script")]({
 0: ExtResource("doctor_front_config"),
 1: ExtResource("doctor_back_config"),

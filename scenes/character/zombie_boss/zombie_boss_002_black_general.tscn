@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/character/zombie_boss/black_general_visual.tscn" id="visual"]
 [ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/z_b_002_black_general.gd" id="boss"]
 [ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/black_general_animation_component.gd" id="anim"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/helmet.png" id="portrait"]
 
 [sub_resource type="CapsuleShape2D" id="boss_hurt"]
 radius = 33.0
@@ -11,6 +12,8 @@ height = 145.0
 
 [node name="ZB002BlackGeneral" instance=ExtResource("base")]
 script = ExtResource("boss")
+boss_display_name = "黑将军"
+boss_portrait_texture = ExtResource("portrait")
 random_speed_range = Vector2(1, 1)
 
 [node name="Shadow" parent="." index="0"]

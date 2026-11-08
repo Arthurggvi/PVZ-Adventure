@@ -9,10 +9,57 @@ signal signal_trophy_requested(global_pos: Vector2)
 @warning_ignore("unused_signal")
 signal signal_status_update
 
+## Single Boss phase state; all Bosses share this threshold and transition event.
+## HUD listens to this signal; behavior trees and rewards remain independent.
+signal signal_boss_phase_changed(phase: int)
+
+@export_group("Boss HUD")
+@export var boss_display_name: String = "Boss"
+@export var boss_portrait_texture: Texture2D
+@export_range(0.05, 0.95, 0.05) var phase_two_threshold_ratio: float = 0.5
+@export_group("")
+
+var boss_phase: int = 1
+var _phase_restore_silent: bool = false
+
 ## 请求奖杯时使用的世界位置标记；缺失时回退到角色根节点位置。
 @onready var trophy_spawn_point: Marker2D = get_node_or_null("%TrophySpawnPoint") as Marker2D
 ## 是否已经启动死亡淡出，防止重复创建补间或重复安排释放。
 var _is_fading := false
+
+
+## Attach once to the existing HpComponent emission. No extra per-Boss health observer.
+func ready_norm_signal_connect() -> void:
+	super.ready_norm_signal_connect()
+	hp_component.signal_hp_loss.connect(_on_shared_boss_hp_loss)
+
+
+## Remaining HP crosses 50% once, including the exact threshold; visual phase is monotonic.
+func _on_shared_boss_hp_loss(remaining_hp: int, _is_drop: bool) -> void:
+	if boss_phase >= 2 or remaining_hp <= 0 or hp_component.max_hp <= 0:
+		return
+	if float(remaining_hp) / float(hp_component.max_hp) > phase_two_threshold_ratio:
+		return
+	boss_phase = 2
+	_apply_boss_visual_phase(2, not _phase_restore_silent)
+	# Snapshot restore initializes phase before HUD binds; never replay transition SFX.
+	if not _phase_restore_silent:
+		signal_boss_phase_changed.emit(2)
+
+
+## Game-save HP restoration must set visual phase without replaying SFX or phase animation.
+func restore_boss_hp(remaining_hp: int) -> void:
+	if not is_node_ready() or hp_component.max_hp <= 0:
+		return
+	_phase_restore_silent = true
+	hp_component.Hp_loss(hp_component.max_hp - clampi(remaining_hp, 1, hp_component.max_hp),
+		BulletRegistry.AttackMode.Norm, false, false, false)
+	_phase_restore_silent = false
+
+
+## Boss-specific art adapters may override this; Doctor retains its HP-damage pipeline.
+func _apply_boss_visual_phase(_phase: int, _animated: bool) -> void:
+	pass
 
 
 ## 只读检查普通伤害、冰冻和辣椒共用的受击资格，不扣血、不修改状态或发出信号。[br]
