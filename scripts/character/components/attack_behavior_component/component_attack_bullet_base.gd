@@ -29,6 +29,7 @@ var is_lane:=true
 @export var attack_sfx:StringName = &"Throw"
 
 ## 发射一次子弹信号
+signal signal_bullet_instantiated(bullet: Bullet000Base)
 signal signal_shoot_bullet
 
 ## 主游戏场景子弹父节点
@@ -82,6 +83,7 @@ func _shoot_bullet():
 	signal_shoot_bullet.emit()
 	for i in range(markers_2d_bullet.size()):
 		var bullet:Bullet000Base = Global.bullet_registry.get_bullet_scenes(attack_bullet_type).instantiate()
+		signal_bullet_instantiated.emit(bullet)
 		var bullet_paras = get_bullet_paras(markers_2d_bullet[i].global_position, detect_component.ray_area_direction[i])
 		#print(bullet_paras)
 		bullet.init_bullet(bullet_paras)

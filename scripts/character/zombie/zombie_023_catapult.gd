@@ -46,6 +46,16 @@ func ready_norm_signal_connect():
 	hp_stage_change_component.signal_hp_stage_change.connect(hp_stage_zamboni_change)
 	attack_component = attack_component as AttackComponentBulletPultBase
 	attack_component.signal_shoot_bullet.connect(update_bullet_data)
+	attack_component.signal_bullet_instantiated.connect(_apply_projectile_tier_art)
+
+## The battle instance already owns the tier-bound art: reuse its ball texture
+## for each projectile, without an extra lookup or any shared-resource mutation.
+func _apply_projectile_tier_art(bullet: Bullet000Base) -> void:
+	var stored_ball: Sprite2D = get_node_or_null(
+		"Body/BodyCorrect/Zombie_catapult_basketball") as Sprite2D
+	var shot_ball: Sprite2D = bullet.get_node_or_null("Body/BulletBody") as Sprite2D
+	if stored_ball != null and shot_ball != null:
+		shot_ball.texture = stored_ball.texture
 
 func _process(_delta: float) -> void:
 	## 每帧判断是否需要移动到攻击位置
