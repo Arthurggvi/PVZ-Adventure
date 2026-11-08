@@ -1512,6 +1512,41 @@
         "res://assets/reanim/Zombie_imp_outerleg_lower.png": "res://assets/adventure/zombies/gargantuar/tier5/Zombie_imp_outerleg_lower.png",
         "res://assets/reanim/Zombie_imp_outerleg_upper.png": "res://assets/adventure/zombies/gargantuar/tier5/Zombie_imp_outerleg_upper.png"
       }
+    },
+    "25": {
+      "veteran": {},
+      "elite": {
+        "res://assets/reanim/Zombie_imp_arm1.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_arm1.png",
+        "res://assets/reanim/Zombie_imp_body1.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_body1.png",
+        "res://assets/reanim/Zombie_imp_body2.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_body2.png",
+        "res://assets/reanim/Zombie_imp_innerleg_lower.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_innerleg_lower.png",
+        "res://assets/reanim/Zombie_imp_innerleg_upper.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_innerleg_upper.png",
+        "res://assets/reanim/Zombie_imp_outerleg_lower.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_outerleg_lower.png",
+        "res://assets/reanim/Zombie_imp_outerleg_upper.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_outerleg_upper.png",
+        "res://assets/reanim/Zombie_imp_arm1_bone.png": "res://assets/adventure/zombies/imp/tier3/Zombie_imp_arm1_bone.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_imp_arm1.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_arm1.png",
+        "res://assets/reanim/Zombie_imp_body1.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_body1.png",
+        "res://assets/reanim/Zombie_imp_body2.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_body2.png",
+        "res://assets/reanim/Zombie_imp_innerleg_lower.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_innerleg_lower.png",
+        "res://assets/reanim/Zombie_imp_innerleg_upper.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_innerleg_upper.png",
+        "res://assets/reanim/Zombie_imp_outerleg_lower.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_outerleg_lower.png",
+        "res://assets/reanim/Zombie_imp_outerleg_upper.png": "res://assets/adventure/zombies/gargantuar/tier3/Zombie_imp_outerleg_upper.png",
+        "res://assets/reanim/Zombie_imp_arm1_bone.png": "res://assets/adventure/zombies/imp/tier3/Zombie_imp_arm1_bone.png",
+        "res://assets/reanim/Zombie_imp_head.png": "res://assets/adventure/zombies/imp/tier4/Zombie_imp_head.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_imp_arm1.png": "res://assets/adventure/zombies/imp/tier5/Zombie_imp_arm1.png",
+        "res://assets/reanim/Zombie_imp_body1.png": "res://assets/adventure/zombies/imp/tier5/Zombie_imp_body1.png",
+        "res://assets/reanim/Zombie_imp_body2.png": "res://assets/adventure/zombies/imp/tier5/Zombie_imp_body2.png",
+        "res://assets/reanim/Zombie_imp_innerleg_lower.png": "res://assets/adventure/zombies/gargantuar/tier5/Zombie_imp_innerleg_lower.png",
+        "res://assets/reanim/Zombie_imp_innerleg_upper.png": "res://assets/adventure/zombies/gargantuar/tier5/Zombie_imp_innerleg_upper.png",
+        "res://assets/reanim/Zombie_imp_outerleg_lower.png": "res://assets/adventure/zombies/gargantuar/tier5/Zombie_imp_outerleg_lower.png",
+        "res://assets/reanim/Zombie_imp_outerleg_upper.png": "res://assets/adventure/zombies/imp/tier5/Zombie_imp_outerleg_upper.png",
+        "res://assets/reanim/Zombie_imp_arm1_bone.png": "res://assets/adventure/zombies/imp/tier5/Zombie_imp_arm1_bone.png",
+        "res://assets/reanim/Zombie_imp_head.png": "res://assets/adventure/zombies/imp/tier4/Zombie_imp_head.png"
+      }
     }
   }
 }
