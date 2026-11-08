@@ -43,6 +43,7 @@
 [ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/raise.tres" id="A4"]
 [ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/windup.tres" id="A6"]
 [ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/charge.tres" id="A7"]
+[ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/charge_stop.tres" id="A10"]
 [ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/teleport_in.tres" id="A8"]
 [ext_resource type="Animation" path="res://animation/character/zombie_boss/002_black_general/teleport_out.tres" id="A9"]
 [ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/black_general_visual.gd" id="S1"]
@@ -54,6 +55,7 @@ _data = {
 &"raise": ExtResource("A4"),
 &"windup": ExtResource("A6"),
 &"charge": ExtResource("A7"),
+&"charge_stop": ExtResource("A10"),
 &"teleport_in": ExtResource("A8"),
 &"teleport_out": ExtResource("A9"),
 }
