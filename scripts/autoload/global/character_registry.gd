@@ -862,6 +862,7 @@ func get_zombie_info(zombie_type:ZombieType, info_attribute:ZombieInfoAttribute)
 enum ZombieBossType {
 	Null = 0,
 	ZB001Doctor = 1,
+	ZB002BlackGeneral = 2,
 }
 
 ## 注册表只保存公共定义，血量和死亡状态由每局生成的僵王实例维护。
@@ -878,6 +879,12 @@ const ZombieBossInfo = {
 	ZombieBossType.ZB001Doctor: {
 		ZombieBossInfoAttribute.BossName: "ZB001Doctor",
 		ZombieBossInfoAttribute.BossScenes: preload("res://scenes/character/zombie_boss/zombie_boss_001_doctor.tscn"),
+		ZombieBossInfoAttribute.SunCost: 10000,
+		ZombieBossInfoAttribute.CoolTime: 0,
+	},
+	ZombieBossType.ZB002BlackGeneral: {
+		ZombieBossInfoAttribute.BossName: "黑将军",
+		ZombieBossInfoAttribute.BossScenes: preload("res://scenes/character/zombie_boss/zombie_boss_002_black_general.tscn"),
 		ZombieBossInfoAttribute.SunCost: 10000,
 		ZombieBossInfoAttribute.CoolTime: 0,
 	},
