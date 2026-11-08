@@ -8,3 +8,5 @@ class_name ResourceSaveGamePlantCell
 @export var plant_type_in_cell:Dictionary[CharacterRegistry.PlacePlantInCell, Dictionary] =  {}
 ## 是否有梯子
 @export var is_ladder:bool = false
+## Tier-specific planted ladder art; empty is the legacy/original texture.
+@export var ladder_tier_id: StringName = &""

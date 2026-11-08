@@ -653,9 +653,9 @@ func get_plant_place_from_mouse_pos():
 #region 梯子
 ## 被挂载梯子
 ## global_pos:挂载梯子精灵节点的全局位置
-func be_ladder():
+func be_ladder(tier_id: StringName = &""):
 	ladder = SceneRegistry.LADDER.instantiate()
-	ladder.init_ladder(self)
+	ladder.init_ladder(self, tier_id)
 	add_child(ladder)
 	for p in plant_in_cell:
 		if is_instance_valid(plant_in_cell[p]):
@@ -718,6 +718,7 @@ func get_save_game_data_plant_cell() -> ResourceSaveGamePlantCell:
 
 	if is_instance_valid(ladder):
 		save_game_data_plant_cell.is_ladder = true
+		save_game_data_plant_cell.ladder_tier_id = ladder.adventure_tier_id
 
 	return save_game_data_plant_cell
 
@@ -728,7 +729,7 @@ func load_game_data_plant_cell(save_game_data_plant_cell:ResourceSaveGamePlantCe
 		_load_game_data_create_plant(game_data_plant)
 
 	if save_game_data_plant_cell.is_ladder:
-		be_ladder()
+		be_ladder(save_game_data_plant_cell.ladder_tier_id)
 
 ## 清除当前植物格子数据
 func clear_data_plant_cell():
