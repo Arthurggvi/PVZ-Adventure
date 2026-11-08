@@ -1077,6 +1077,57 @@
         "res://assets/reanim/Zombie_pogo_outerleg_upper.png": "res://assets/adventure/zombies/pogo/tier5/Zombie_pogo_outerleg_upper.png",
         "res://assets/reanim/Zombie_pogo_head.png": "res://assets/adventure/zombies/pogo/tier4/Zombie_pogo_head.png"
       }
+    },
+    "20": {
+      "veteran": {
+        "res://assets/reanim/Zombie_yeti_head.png": "res://assets/adventure/zombies/yeti/tier2/Zombie_yeti_head.png"
+      },
+      "elite": {
+        "res://assets/reanim/Zombie_yeti_body.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_body.png",
+        "res://assets/reanim/Zombie_yeti_head.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_head.png",
+        "res://assets/reanim/Zombie_yeti_jaw.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_jaw.png",
+        "res://assets/reanim/Zombie_yeti_innerarm_lower.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_innerarm_lower.png",
+        "res://assets/reanim/Zombie_yeti_innerarm_upper.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_innerarm_upper.png",
+        "res://assets/reanim/Zombie_yeti_innerleg_lower.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_innerleg_lower.png",
+        "res://assets/reanim/Zombie_yeti_innerleg_upper.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_innerleg_upper.png",
+        "res://assets/reanim/Zombie_yeti_outerarm_lower.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_outerarm_lower.png",
+        "res://assets/reanim/Zombie_yeti_outerarm_upper.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_outerarm_upper.png",
+        "res://assets/reanim/Zombie_yeti_outerarm_upper2.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_yeti_outerleg_lower.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_outerleg_lower.png",
+        "res://assets/reanim/Zombie_yeti_outerleg_upper.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_outerleg_upper.png"
+      },
+      "tier4": {
+        "res://assets/reanim/Zombie_yeti_body.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_body.png",
+        "res://assets/reanim/Zombie_yeti_head.png": "res://assets/adventure/zombies/yeti/tier4/Zombie_yeti_head.png",
+        "res://assets/reanim/Zombie_yeti_jaw.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_jaw.png",
+        "res://assets/reanim/Zombie_yeti_innerarm_lower.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_innerarm_lower.png",
+        "res://assets/reanim/Zombie_yeti_innerarm_upper.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_innerarm_upper.png",
+        "res://assets/reanim/Zombie_yeti_innerleg_lower.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_innerleg_lower.png",
+        "res://assets/reanim/Zombie_yeti_innerleg_upper.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_innerleg_upper.png",
+        "res://assets/reanim/Zombie_yeti_outerarm_lower.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_outerarm_lower.png",
+        "res://assets/reanim/Zombie_yeti_outerarm_upper.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_outerarm_upper.png",
+        "res://assets/reanim/Zombie_yeti_outerarm_upper2.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_yeti_outerleg_lower.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_outerleg_lower.png",
+        "res://assets/reanim/Zombie_yeti_outerleg_upper.png": "res://assets/adventure/zombies/yeti/tier3/Zombie_yeti_outerleg_upper.png"
+      },
+      "tier5": {
+        "res://assets/reanim/Zombie_yeti_body.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_body.png",
+        "res://assets/reanim/Zombie_yeti_head.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_head.png",
+        "res://assets/reanim/Zombie_yeti_jaw.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_jaw.png",
+        "res://assets/reanim/Zombie_yeti_innerarm_lower.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_innerarm_lower.png",
+        "res://assets/reanim/Zombie_yeti_innerarm_upper.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_innerarm_upper.png",
+        "res://assets/reanim/Zombie_yeti_innerleg_lower.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_innerleg_lower.png",
+        "res://assets/reanim/Zombie_yeti_innerleg_upper.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_innerleg_upper.png",
+        "res://assets/reanim/Zombie_yeti_outerarm_lower.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_outerarm_lower.png",
+        "res://assets/reanim/Zombie_yeti_outerarm_upper.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_outerarm_upper.png",
+        "res://assets/reanim/Zombie_yeti_outerarm_upper2.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_outerarm_upper2.png",
+        "res://assets/reanim/Zombie_yeti_outerleg_lower.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_outerleg_lower.png",
+        "res://assets/reanim/Zombie_yeti_outerleg_upper.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_outerleg_upper.png",
+        "res://assets/reanim/Zombie_yeti_innerarm_hand.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_innerarm_hand.png",
+        "res://assets/reanim/Zombie_yeti_innerleg_foot.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_innerleg_foot.png",
+        "res://assets/reanim/Zombie_yeti_outerarm_hand.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_outerarm_hand.png",
+        "res://assets/reanim/Zombie_yeti_outerleg_foot.png": "res://assets/adventure/zombies/yeti/tier5/Zombie_yeti_outerleg_foot.png"
+      }
     }
   }
 }
