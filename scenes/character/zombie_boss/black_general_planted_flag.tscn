@@ -1,25 +1,25 @@
 [gd_scene format=3]
 
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/flag/blood_skull_banner.png" id="cloth"]
-[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/flag/pole.png" id="pole"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/flag/pole_planted_extended.png" id="pole"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/flag/spearhead.png" id="spear"]
 
 [node name="BlackGeneralPlantedFlag" type="Node2D"]
 
 [node name="FlagCloth" type="Sprite2D" parent="."]
-position = Vector2(-168, -143)
+position = Vector2(-168, -279)
 scale = Vector2(0.9, 0.825)
 texture = ExtResource("cloth")
 centered = false
 
 [node name="FlagPole" type="Sprite2D" parent="."]
-position = Vector2(11, -123)
+position = Vector2(11, -259.35)
 scale = Vector2(0.75, 1.05)
 texture = ExtResource("pole")
 centered = false
 
 [node name="FlagSpear" type="Sprite2D" parent="."]
-position = Vector2(8, -151)
+position = Vector2(8, -287)
 scale = Vector2(0.58, 0.58)
 texture = ExtResource("spear")
 centered = false
