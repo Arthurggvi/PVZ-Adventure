@@ -25,5 +25,5 @@ static func draw(parent: Node, item_id: String, bounds: Rect2) -> bool:
 	if plant_type > 0:
 		var position: Vector2 = bounds.position + bounds.size * MEDALLION_CENTER
 		var portrait_scale: float = bounds.size.x * PORTRAIT_SCALE_PER_PIXEL
-		ItemArt.add_recipe_portrait(parent, plant_type, position, portrait_scale)
+		ItemArt.add_recipe_portrait(parent, plant_type, position, portrait_scale, tier)
 	return true

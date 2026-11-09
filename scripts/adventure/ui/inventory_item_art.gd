@@ -71,11 +71,12 @@ static func recipe_overlay_uri(item_id: String) -> String:
 	return path if not file.is_empty() and ResourceLoader.exists(path) else ""
 
 ## Art receives an already-resolved plant type from the inventory data adapter.
-static func add_recipe_portrait(parent: Node, plant_type: int, center: Vector2, scale_value: float) -> Node2D:
+static func add_recipe_portrait(parent: Node, plant_type: int, center: Vector2,
+		scale_value: float, promotion_tier: int = 0) -> Node2D:
 	if plant_type <= 0:
 		return null
 	var ref := ResourceCardReference.create(ResourceCardReference.CardType.Plant, plant_type)
-	var sprite: Node2D = AllCards.create_static_preview(ref)
+	var sprite: Node2D = AllCards.create_static_preview(ref, promotion_tier)
 	if sprite == null:
 		return null
 	sprite.position = center

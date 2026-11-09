@@ -14,7 +14,7 @@ func _ready() -> void:
 	cost.text = str(card.sun_cost)
 	card_bg.texture = card.card_bg.texture
 	# 占位预览与卡片互不共享节点，移动卡片不会带走背景。
-	var static_preview: Node2D = AllCards.create_static_preview(card.card_reference)
+	var static_preview: Node2D = AllCards.create_static_preview(card.card_reference, card.promotion_tier())
 	if static_preview != null:
 		card_bg.add_child(static_preview)
 

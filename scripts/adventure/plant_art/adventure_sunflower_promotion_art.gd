@@ -1,116 +1,146 @@
-## Adventure-only sunflower promotion artwork.
-## Uses the ORIGINAL SunFlower_idle.tres animation tracks as the sole motion source.
-## Adds cutout sprites as children of the original animated pivots.
+## One authoritative, source-pivot-based sunflower promotion appearance for battle, cards and books.
+## Never edits the canonical Idle animation or the original sprite assets.
 extends RefCounted
 class_name AdventureSunflowerPromotionArt
 
 const ASSET_DIR := "res://assets/adventure/plants/sunflower/"
 const MANIFEST := ASSET_DIR + "manifest.json"
-const IDLE := "res://animation/character/plant/002_sun_flower/SunFlower_idle.tres"
-const PIVOTS: Array[String] = ["Anim_idle", "SunFlower_toppetals", "Frontleaf"]
-
+const ORIGINAL_DIR := "res://assets/reanim/"
+const SUNFLOWER_TYPE := 2
+const PETAL_LAYER := "PromotionPetal"
+const HEAD_LAYER := "PromotionFace"
+const STAR_LAYER := "PromotionStar"
 static var _manifest: Dictionary = {}
-static var _original_rest: Dictionary = {}
+static var _texture_cache: Dictionary = {}
 
-static func _load_manifest() -> Dictionary:
+static func _catalog() -> Dictionary:
 	if _manifest.is_empty():
-		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(MANIFEST))
-		if parsed is Dictionary:
-			_manifest = parsed
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(MANIFEST))
+		if data is Dictionary and data.has("parts") and data.has("tiers"):
+			_manifest = data
+		else:
+			push_error("Sunflower promotion art manifest missing or invalid")
 	return _manifest
 
-static func _load_original_rest() -> Dictionary:
-	if not _original_rest.is_empty():
-		return _original_rest
-	var idle: Animation = load(IDLE)
-	if idle == null:
-		return {}
-	var attrs: Dictionary = {}
-	for pivot: String in PIVOTS:
-		attrs[pivot] = {
-			"position": Vector2.ZERO, "rotation": 0.0,
-			"scale": Vector2.ONE, "skew": 0.0
-		}
-	for index: int in range(idle.get_track_count()):
-		if idle.track_get_type(index) != Animation.TYPE_VALUE or not idle.track_is_enabled(index):
-			continue
-		var path: String = str(idle.track_get_path(index))
-		var divider: int = path.rfind(":")
-		if divider < 0:
-			continue
-		var attr: String = path.substr(divider + 1)
-		if attr not in ["position", "rotation", "scale", "skew"]:
-			continue
-		for pivot: String in PIVOTS:
-			if path.begins_with("Body/BodyCorrect/%s:" % pivot):
-				attrs[pivot][attr] = idle.value_track_interpolate(index, 0.0)
-	for pivot: String in PIVOTS:
-		var values: Dictionary = attrs[pivot]
-		_original_rest[pivot] = Transform2D(
-			float(values.rotation), values.scale, float(values.skew), values.position)
-	return _original_rest
-
-static func apply(plant: Plant000Base) -> void:
-	if plant == null or plant.plant_spawn_profile == null or int(plant.plant_type) != 2:
-		return
-	var snapshot: Dictionary = plant.plant_spawn_profile.snapshot()
+## Promotion choices are authoritative, irrespective of current stars.
+static func tier_from_snapshot(snapshot: Dictionary) -> int:
 	var tier := 0
-	for level in range(1, 5):
-		if str(snapshot.get("promotion_%d" % level, "")) != "":
-			tier = level
+	for index: int in range(1, 5):
+		if not str(snapshot.get("promotion_%d" % index, "")).is_empty():
+			tier = index
+	return tier
+
+static func tier_from_profile(profile: PlantSpawnProfile) -> int:
+	return tier_from_snapshot(profile.snapshot()) if profile != null else 0
+
+static func _asset_set(tier: int) -> Dictionary:
+	if _texture_cache.has(tier):
+		return _texture_cache[tier]
+	var info: Dictionary = _catalog()
+	var subdir: String = str(info.get("tiers", {}).get(str(tier), ""))
+	if subdir.is_empty():
+		return {}
+	var assets: Dictionary = {}
+	for part_name: Variant in info["parts"]:
+		var part: String = str(part_name)
+		var path := ASSET_DIR + subdir + "/" + part + ".png"
+		var texture := load(path) as Texture2D
+		if texture == null:
+			push_error("Sunflower promotion texture missing: " + path)
+			return {}
+		assets[part] = texture
+	var star_path := ASSET_DIR + subdir + "/SunFlower_promotion_starburst.png"
+	var star := load(star_path) as Texture2D
+	if star == null:
+		push_error("Sunflower promotion star missing: " + star_path)
+		return {}
+	assets[STAR_LAYER] = star
+	if tier == int(info.get("wink_tier", 0)):
+		var wink := load(ORIGINAL_DIR + "SunFlower_head_wink.png") as Texture2D
+		if wink == null:
+			return {}
+		assets[HEAD_LAYER] = wink
+	_texture_cache[tier] = assets
+	return assets
+
+static func _ensure_layer(anchor: Sprite2D, layer_name: String) -> Sprite2D:
+	var layer := anchor.get_node_or_null(layer_name) as Sprite2D
+	if layer == null:
+		layer = Sprite2D.new()
+		layer.name = layer_name
+		layer.centered = anchor.centered
+		layer.offset = anchor.offset
+		layer.texture_filter = anchor.texture_filter
+		anchor.add_child(layer)
+	return layer
+
+static func _remove_layer(anchor: Sprite2D, layer_name: String) -> void:
+	var layer: Node = anchor.get_node_or_null(layer_name)
+	if layer != null:
+		anchor.remove_child(layer)
+		layer.free()
+
+## Uses the exact original animated Sprite2D pivots. Animated :texture tracks
+## still write to original nodes, so the replacement is drawn on a child layer.
+## self_modulate only hides the original sprite, never its replacement child.
+static func apply_to_body(body: Node2D, tier: int) -> bool:
+	if body == null or tier < 0 or tier > 4:
+		return false
+	var info: Dictionary = _catalog()
+	if info.is_empty():
+		return false
+	var prepared: Dictionary = _asset_set(tier) if tier > 0 else {}
+	if tier > 0 and prepared.is_empty():
+		return false
+	var anchors: Array[Sprite2D] = []
+	for part_name: Variant in info["parts"]:
+		var anchor := body.get_node_or_null(str(part_name)) as Sprite2D
+		if anchor == null:
+			push_error("Missing sunflower source pivot: " + str(part_name))
+			return false
+		anchors.append(anchor)
+	var head := body.get_node_or_null("Anim_idle") as Sprite2D
+	if head == null:
+		return false
+	for anchor: Sprite2D in anchors:
+		if tier == 0:
+			_remove_layer(anchor, PETAL_LAYER)
+			anchor.self_modulate.a = 1.0
+		else:
+			var layer := _ensure_layer(anchor, PETAL_LAYER)
+			layer.texture = prepared[anchor.name]
+			anchor.self_modulate.a = 0.0
+	if tier == 0 or not prepared.has(HEAD_LAYER):
+		_remove_layer(head, HEAD_LAYER)
+		head.self_modulate.a = 1.0
+	else:
+		var face := _ensure_layer(head, HEAD_LAYER)
+		face.texture = prepared[HEAD_LAYER]
+		head.self_modulate.a = 0.0
 	if tier == 0:
+		_remove_layer(head, STAR_LAYER)
+	else:
+		var star := _ensure_layer(head, STAR_LAYER)
+		star.texture = prepared[STAR_LAYER]
+		star.centered = false
+		var star_pos: Array = info.get("star_offset", [18.5, -13.0])
+		star.position = Vector2(float(star_pos[0]), float(star_pos[1]))
+	return true
+
+## All battle sunflower instances consume the same frozen profile as their cards.
+static func apply(plant: Plant000Base) -> void:
+	if plant == null or int(plant.plant_type) != SUNFLOWER_TYPE:
 		return
-	var manifest: Dictionary = _load_manifest()
-	var poses: Dictionary = _load_original_rest()
-	if manifest.is_empty() or poses.is_empty():
-		push_error("Sunflower promotion art manifest or canonical idle animation missing")
-		return
-	var tiles: Dictionary = manifest.get("tiers", {})
-	var specs: Array = tiles.get(str(tier), [])
-	if specs.is_empty():
-		push_error("Sunflower promotion art missing tier %d" % tier)
-		return
-	var mapping: Dictionary = manifest.get("mapping", {})
-	var source_scale := float(mapping.get("scale", 0.0))
-	var art_center: Array = mapping.get("image_center", [])
-	var body_center: Array = mapping.get("body_center", [])
-	if source_scale <= 0.0 or art_center.size() != 2 or body_center.size() != 2:
-		push_error("Invalid sunflower promotion art coordinate mapping")
-		return
-	var pixel_origin := Vector2(
-		float(body_center[0]) - source_scale * float(art_center[0]),
-		float(body_center[1]) - source_scale * float(art_center[1]))
 	var body: Node2D = plant.get_node_or_null("Body/BodyCorrect")
 	if body == null:
 		return
-	# Resolve everything before hiding a single original sprite.
-	var prepared: Array[Dictionary] = []
-	for spec: Variant in specs:
-		var entry: Dictionary = spec
-		var anchor_name: String = str(entry.get("anchor", ""))
-		var anchor: Sprite2D = body.get_node_or_null(anchor_name) as Sprite2D
-		var ref_transform: Transform2D = poses.get(anchor_name, Transform2D.IDENTITY)
-		var texture: Texture2D = load(ASSET_DIR + str(entry.get("file", ""))) as Texture2D
-		var crop: Array = entry.get("crop", [])
-		if anchor == null or texture == null or crop.size() != 4 or not poses.has(anchor_name):
-			push_error("Incomplete sunflower promotion asset %s" % str(entry))
-			return
-		var cropped_origin := pixel_origin + source_scale * Vector2(
-			float(crop[0]), float(crop[1]))
-		var art_transform := Transform2D(
-			Vector2(source_scale, 0.0), Vector2(0.0, source_scale), cropped_origin)
-		prepared.append({
-			"anchor": anchor, "texture": texture, "transform":
-			ref_transform.affine_inverse() * art_transform
-		})
-	for child in body.get_children():
-		if child is Sprite2D and child.name not in ["Stalk_bottom", "Stalk_top"]:
-			(child as Sprite2D).self_modulate.a = 0.0
-	for spec: Dictionary in prepared:
-		var layer := Sprite2D.new()
-		layer.name = "PromotionArt"
-		layer.texture = spec.texture
-		layer.centered = false
-		layer.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-		layer.transform = spec.transform
-		(spec.anchor as Sprite2D).add_child(layer)
+	var tier: int = tier_from_profile(plant.plant_spawn_profile)
+	if tier > 0 and not apply_to_body(body, tier):
+		push_error("Cannot apply sunflower promotion art to battle plant")
+
+## The catalog card and promotion book share this exact static tree adaptation.
+static func apply_to_preview(preview: Node2D, tier: int) -> bool:
+	if preview == null:
+		return false
+	var body := preview.get_node_or_null("Plant002SunFlower/Body/BodyCorrect") as Node2D
+	return apply_to_body(body, tier)

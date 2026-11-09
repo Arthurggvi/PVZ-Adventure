@@ -42,7 +42,7 @@ func click_card(card: Card) -> bool:
 	if curr_card != null:
 		_clear_curr_data()
 	# 目录复制静态节点，卡片模板不参与战斗场景生命周期。
-	var static_preview: Node2D = AllCards.create_static_preview(card.card_reference)
+	var static_preview: Node2D = AllCards.create_static_preview(card.card_reference, card.promotion_tier())
 	if static_preview == null:
 		return false
 	if static_preview.get_child_count() == 0:

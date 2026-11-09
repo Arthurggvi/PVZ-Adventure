@@ -28,6 +28,7 @@ var _flower_field_discount: int = 0
 var _resonance_next_free: bool = false
 var _star_badge: Control = null
 const StarBadge = preload("res://scripts/adventure/ui/star_badge_view.gd")
+const SunflowerArt = preload("res://scripts/adventure/plant_art/adventure_sunflower_promotion_art.gd")
 
 var battle_card_data: Dictionary:
 	get:
@@ -47,6 +48,20 @@ var plant_spawn_profile: PlantSpawnProfile:
 		if is_node_ready():
 			_apply_profile_card_stats()
 			_sync_star_badge()
+			_sync_promotion_appearance()
+
+## One rank resolver for this card, static previews and drag/hand previews.
+func promotion_tier() -> int:
+	return SunflowerArt.tier_from_profile(_plant_spawn_profile) if card_reference != null \
+		and card_reference.card_type == ResourceCardReference.CardType.Plant \
+		and card_reference.content_id == SunflowerArt.SUNFLOWER_TYPE else 0
+
+func _sync_promotion_appearance() -> void:
+	if card_reference == null or card_reference.card_type != ResourceCardReference.CardType.Plant \
+			or card_reference.content_id != SunflowerArt.SUNFLOWER_TYPE:
+		return
+	if not SunflowerArt.apply_to_preview(character_static, promotion_tier()):
+		push_error("Cannot update sunflower card appearance")
 
 ## One UI component for inventory, research and adventure battle cards.
 ## The active spawn profile is the sole star-level authority.
@@ -154,6 +169,7 @@ func _ready() -> void:
 		is_can_click = false
 		return
 	_sync_star_badge()
+	_sync_promotion_appearance()
 	if card_reference.card_type == ResourceCardReference.CardType.ZombieBoss:
 		# 源模板隐藏了费用，复制实例入树时必须按用途显式恢复可见性。
 		cost.visible = card_context == CardContext.Selection or card_context == CardContext.Battle
