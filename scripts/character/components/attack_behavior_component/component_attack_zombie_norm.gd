@@ -13,11 +13,15 @@ enum E_AttackValueFactor{
 	PaperDrop,		## 报纸掉落，攻击力翻倍
 	JacksonEnter,	## 舞王入场时,攻击值为0
 	AdventureBiteBoost, ## Temporary tier flag bite bonus
+	AdventureSpeciesBite, ## Permanent / accumulating species traits
+	AdventureSpeciesRage, ## Paper-loss multiplier independent of normal bite
 }
 
 var attack_value_factor:Dictionary[E_AttackValueFactor, float] = {}
 ## 间隔帧数
 var frame_counter := 0
+## Landed hit event, not merely target acquisition. Allows debuffs to be gated by bite.
+signal bite_landed(target: Node, amount: int)
 
 
 func _ready() -> void:
@@ -41,7 +45,12 @@ func _physics_process(delta: float) -> void:
 		if not is_instance_valid(detect_component.enemy_can_be_attacked):
 			return
 		if frame_counter==0 and is_instance_valid(detect_component.enemy_can_be_attacked):
-			detect_component.enemy_can_be_attacked.be_zombie_eat(int(curr_attack_value_per_min * delta * 8), owner)
+			var target: Node = detect_component.enemy_can_be_attacked
+			var damage: int = owner.hp_component.outgoing_damage(
+				int(curr_attack_value_per_min * delta * 8))
+			target.be_zombie_eat(damage, owner)
+			if damage > 0 and is_instance_valid(target):
+				bite_landed.emit(target, damage)
 
 
 ## 攻击一次发亮，动画调用

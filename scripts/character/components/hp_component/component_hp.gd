@@ -5,6 +5,21 @@ class_name HpComponent
 var damage_block := DamageBlockEffect.new()
 ## Applied after fixed block and before all armor/HP routing.
 var damage_reduction := DamageReductionEffect.new()
+## Strongest degradation wins; never add two sources by summation.
+var degradation_fraction: float = 0.0
+
+func apply_degradation(fraction: float) -> void:
+	var next_value: float = maxf(degradation_fraction, maxf(0.0, fraction))
+	if is_equal_approx(next_value, degradation_fraction):
+		return
+	degradation_fraction = next_value
+	if is_instance_valid(owner_character) and is_instance_valid(owner_character.body):
+		owner_character.body.set_other_color(BodyCharacter.E_ChangeColors.Degradation,
+			Color(0.55, 0.57, 0.58) if next_value > 0.0 else Color.WHITE)
+
+## Damage dealt by a degraded entity. At >=100% reduction, damage is zero.
+func outgoing_damage(amount: int) -> int:
+	return maxi(0, roundi(float(amount) * maxf(0.0, 1.0 - degradation_fraction)))
 ## Timed immunity sources coexist with existing scripted invulnerability.
 var _immunity_sources: Dictionary[int, bool] = {}
 ## 角色控制的无敌窗口；直接生命调整仍可通过专用旁路执行。
@@ -146,7 +161,7 @@ func resolve_damage(damage: int) -> int:
 		return maxi(0, damage)
 	if is_damage_immune():
 		return 0
-	return damage_reduction.reduce(damage_block.reduce(damage))
+	return damage_reduction.reduce(damage_block.reduce(maxi(0, roundi(float(damage) * (1.0 + degradation_fraction)))))
 
 func set_immunity_source(source_id: int, enabled: bool) -> void:
 	if enabled:

@@ -32,7 +32,7 @@ var spawn_attributes_applied: bool = false
 ## Single explicit attack contract for plant-owned direct damage.
 ## No card snapshot in vanilla means a factor of 1.0.
 func battle_damage(source_damage: int) -> int:
-	return maxi(0, roundi(float(source_damage) * battle_damage_multiplier))
+	return hp_component.outgoing_damage(maxi(0, roundi(float(source_damage) * battle_damage_multiplier)))
 
 ## The species represented by this spawn, independent of rendering/transform.
 func spawn_species_id() -> int:

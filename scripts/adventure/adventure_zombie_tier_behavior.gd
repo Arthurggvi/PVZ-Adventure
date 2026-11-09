@@ -31,7 +31,11 @@ func _ready() -> void:
             &"timed_speed_boost", &"grant_armor_on_drop":
                 pass
             _:
-                push_error("Unknown zombie trait effect: %s" % rule.get("effect"))
+                var effect: StringName = StringName(rule.get("effect", &""))
+                if AdventureZombieTierSpeciesInstaller.handles(effect):
+                    AdventureZombieTierSpeciesInstaller.install.call_deferred(_zombie, rule)
+                else:
+                    push_error("Unknown zombie trait effect: %s" % effect)
     if watch_armor:
         var hp: HpComponentZombie = _zombie.get_node_or_null("HpComponent") as HpComponentZombie
         if hp == null or hp.max_hp_armor1 <= 0:

@@ -25,6 +25,7 @@ enum E_ChangeColors{
 	LightAndDark,	## 明暗交替颜色变化(紫卡种植\咖啡豆)
 	CharredBlack,	## 被炸弹炸黑
 	DamageBlock,	## 固定格挡的淡青色滤镜。
+	Degradation,	## 铅灰色劣化；独立于冰冻、受击和格挡。
 	BossPhaseTwo,	## Boss 二阶段独立闪黑，保留冰冻与受击颜色。
 }
 

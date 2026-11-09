@@ -5,6 +5,35 @@ class_name HpComponentZombie
 var bonus_armor: int = 0
 signal bonus_armor_changed(remaining: int)
 var damage_transfer := DamageTransferEffect.new()
+## Armor-only DR is applied after shared block/DR, and never on body/bonus armor.
+var armor1_reduction := DamageReductionEffect.new()
+var armor2_reduction := DamageReductionEffect.new()
+
+## Returns unmitigated overflow after a specific gear pool is consumed.
+## The gear absorbs raw attack capacity according to its own reduction.
+func _hit_armor2(raw: int) -> int:
+	if raw <= 0 or curr_hp_armor2 <= 0:
+		return maxi(0, raw)
+	var before: int = curr_hp_armor2
+	var mitigated: int = raw if _bypass_damage_block else armor2_reduction.reduce(raw)
+	if mitigated < before:
+		curr_hp_armor2 = before - mitigated
+		return 0
+	curr_hp_armor2 = 0
+	var retained: float = 1.0 if _bypass_damage_block else 1.0 - armor2_reduction.effective_reduction()
+	return maxi(0, raw - ceili(float(before) / retained))
+
+func _hit_armor1(raw: int) -> int:
+	if raw <= 0 or curr_hp_armor1 <= 0:
+		return maxi(0, raw)
+	var before: int = curr_hp_armor1
+	var mitigated: int = raw if _bypass_damage_block else armor1_reduction.reduce(raw)
+	if mitigated < before:
+		curr_hp_armor1 = before - mitigated
+		return 0
+	curr_hp_armor1 = 0
+	var retained: float = 1.0 if _bypass_damage_block else 1.0 - armor1_reduction.effective_reduction()
+	return maxi(0, raw - ceili(float(before) / retained))
 var _handling_transferred_hit := false
 
 func grant_bonus_armor(amount: int) -> void:
@@ -140,74 +169,36 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 	match bullet_mode:
 		## 普通子弹
 		BulletRegistry.AttackMode.Norm:
-			# 如果有二类防具，先对二类防具掉血，若二类防具血量<0, 修改
-			if curr_hp_armor2 > 0:
-				var new_curr_hp_armor2 = curr_hp_armor2 - attack_value
-				curr_hp_armor2 = new_curr_hp_armor2
+			if curr_hp_armor2 > 0 and attack_value > 0:
+				attack_value = _hit_armor2(attack_value)
 				flag_loss |= 4
-				if new_curr_hp_armor2 < 0:
-					attack_value = -new_curr_hp_armor2
-				else:
-					attack_value = 0
-
-			# 如果有一类防具
 			if curr_hp_armor1 > 0 and attack_value > 0:
-				var new_curr_hp_armor1 = curr_hp_armor1 - attack_value
-				curr_hp_armor1 = new_curr_hp_armor1
+				attack_value = _hit_armor1(attack_value)
 				flag_loss |= 2
-				if new_curr_hp_armor1 < 0:
-					attack_value = -new_curr_hp_armor1
-				else:
-					attack_value = 0
-
-			# 血量>0
 			if curr_hp > 0 and attack_value > 0:
-				flag_loss |= 1
 				curr_hp -= attack_value
+				flag_loss |= 1
 
-
-		## 穿透子弹,爆炸
+		## Penetration hits outer armor separately and preserves its original
+		## inner-armor/body behavior; only the outer pool receives gear-specific DR.
 		BulletRegistry.AttackMode.Penetration:
-			# 如果有二类防具，先对二类防具掉血
-			if curr_hp_armor2 > 0:
-				var new_curr_hp_armor2 = curr_hp_armor2 - attack_value
-				curr_hp_armor2 = new_curr_hp_armor2
-
+			if curr_hp_armor2 > 0 and attack_value > 0:
+				_hit_armor2(attack_value)
 				flag_loss |= 4
-
-			# 如果有一类防具
 			if curr_hp_armor1 > 0 and attack_value > 0:
-				var new_curr_hp_armor1 = curr_hp_armor1 - attack_value
-				curr_hp_armor1 = new_curr_hp_armor1
+				attack_value = _hit_armor1(attack_value)
 				flag_loss |= 2
-				if new_curr_hp_armor1 < 0:
-					attack_value = -new_curr_hp_armor1
-				else:
-					attack_value = 0
-
-			# 血量>0
 			if curr_hp > 0 and attack_value > 0:
-
-				flag_loss |= 1
 				curr_hp -= attack_value
+				flag_loss |= 1
 
-		## 真实伤害子弹
 		BulletRegistry.AttackMode.Real:
-			# 如果有一类防具
 			if curr_hp_armor1 > 0 and attack_value > 0:
-				var new_curr_hp_armor1 = curr_hp_armor1 - attack_value
-				curr_hp_armor1 = new_curr_hp_armor1
+				attack_value = _hit_armor1(attack_value)
 				flag_loss |= 2
-				if new_curr_hp_armor1 < 0:
-					attack_value = -new_curr_hp_armor1
-				else:
-					attack_value = 0
-
-			# 血量>0
 			if curr_hp > 0 and attack_value > 0:
-
-				flag_loss |= 1
 				curr_hp -= attack_value
+				flag_loss |= 1
 
 		## Front/side bowling and hammer use one resolved payload per impact.
 		## This avoids double block/DR on a hit that crosses multiple pools.
@@ -220,10 +211,10 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 			var front_damage := _absorb_bonus_armor(resolve_damage(front_amount))
 			if front_damage > 0:
 				if curr_hp_armor2 > 0:
-					curr_hp_armor2 -= front_damage
+					_hit_armor2(front_damage)
 					flag_loss |= 4
 				elif curr_hp_armor1 > 0:
-					curr_hp_armor1 -= front_damage
+					_hit_armor1(front_damage)
 					flag_loss |= 2
 				else:
 					curr_hp -= front_damage
@@ -236,10 +227,10 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 			var side_damage := _absorb_bonus_armor(resolve_damage(side_amount))
 			if side_damage > 0:
 				if curr_hp_armor2 > 0:
-					curr_hp_armor2 -= side_damage
+					_hit_armor2(side_damage)
 					flag_loss |= 4
 				elif curr_hp_armor1 > 0:
-					curr_hp_armor1 -= side_damage
+					_hit_armor1(side_damage)
 					flag_loss |= 2
 				else:
 					curr_hp -= side_damage
@@ -250,7 +241,7 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 			var hammer_damage := _absorb_bonus_armor(resolve_damage(hammer_amount))
 			if hammer_damage > 0:
 				if curr_hp_armor1 > 0:
-					curr_hp_armor1 -= hammer_damage
+					_hit_armor1(hammer_damage)
 					flag_loss |= 2
 				elif curr_hp > 0:
 					curr_hp -= hammer_damage

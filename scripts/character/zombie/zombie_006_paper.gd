@@ -10,7 +10,7 @@ func ready_norm_signal_connect():
 	hp_component = hp_component as HpComponentZombie
 	hp_component.signal_armor2_death.connect(drop_paper)
 	## 连接修改每分钟攻击值
-	hp_component.signal_armor2_death.connect(attack_component.update_attack_value.bind(2, attack_component.E_AttackValueFactor.Speed))
+	hp_component.signal_armor2_death.connect(attack_component.update_attack_value.bind(2, attack_component.E_AttackValueFactor.PaperDrop))
 
 ## 报纸掉落
 func drop_paper():

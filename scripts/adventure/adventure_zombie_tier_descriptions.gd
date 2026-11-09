@@ -1,0 +1,66 @@
+## Single text catalog; no combat behavior lives here.
+extends RefCounted
+class_name AdventureZombieTierDescriptions
+
+const DESCRIPTIONS: Dictionary = {
+    CharacterRegistry.ZombieType.Z001Norm: {},
+    CharacterRegistry.ZombieType.Z002Flag: {
+        &"veteran": "在场时为全场友方僵尸提供可叠加的10点固定格挡。",
+        &"elite": "在场时提供可叠加的10点格挡；每2秒使全场友军啃咬伤害提高50%，持续0.5秒。",
+        &"tier4": "在场时提供可叠加的15点格挡；每2秒使全场友军啃咬伤害提高100%，持续1秒。",
+        &"tier5": "继承四阶能力；入场时额外使全场友军获得100%加速与无敌，持续1秒。",
+    },
+    CharacterRegistry.ZombieType.Z003Cone: {
+        &"elite": "路障脱落后自身速度提高20%，持续0.5秒。",
+        &"tier4": "路障脱落后自身速度提高50%，持续0.8秒。",
+        &"tier5": "路障脱落后自身及周围八向一格友军速度提高50%，持续0.8秒。",
+    },
+    CharacterRegistry.ZombieType.Z004PoleVaulter: {
+        &"veteran": "失去撑杆后永久提高10%移动速度。",
+        &"elite": "持杆时减少20%所受伤害并提高30%速度；失杆后速度提高10%。",
+        &"tier4": "持杆时减少40%所受伤害、提高50%速度，可连续跳跃两次；失杆后速度提高15%。",
+        &"tier5": "继承四阶持杆与失杆强化；可连续跳跃三次，每次跨越两格距离。",
+    },
+    CharacterRegistry.ZombieType.Z005Bucket: {
+        &"veteran": "自身获得10%伤害减免。",
+        &"elite": "自身及周围八向一格友军获得20%伤害减免。",
+        &"tier4": "自身及周围八向一格友军获得35%伤害减免；铁桶脱落时向该范围友军各授予200点额外护甲。",
+        &"tier5": "自身伤害减免提升至50%，周围一格友军仍获35%；铁桶存在期间代替附近友军承受来袭伤害，脱桶时授予200点额外护甲。",
+    },
+
+    CharacterRegistry.ZombieType.Z006Paper: {
+        &"veteran": "报纸脱落时获得1秒无敌。",
+        &"elite": "继承二阶脱报纸后1秒无敌；脱报纸后移动速度提高30%，额外啃咬伤害提高80%。",
+        &"tier4": "继承二阶脱报纸后1秒无敌；脱报纸后速度提高50%，额外啃咬伤害提高150%，立即获得500点额外护甲。",
+        &"tier5": "继承四阶全部脱报纸强化（包含1秒无敌）；持报纸时起即获得300%常态啃咬伤害加成。",
+    },
+    CharacterRegistry.ZombieType.Z007ScreenDoor: {
+        &"veteran": "铁栅门自身获得10%防具减伤，不影响僵尸本体。",
+        &"elite": "铁栅门自身防具减伤提高至30%，不影响本体。",
+        &"tier4": "铁栅门自身防具减伤提高至50%，不影响本体。",
+        &"tier5": "铁栅门自身防具减伤提高至80%，不影响本体。",
+    },
+    CharacterRegistry.ZombieType.Z008Football: {
+        &"veteran": "自身速度提高5%，受到的伤害减少5%。",
+        &"elite": "继承二阶；每次有效受击叠加1%速度。每啃食0.2秒额外啃咬伤害与劣化施加强度各增加1%；被啃食植物获得不叠加的铅灰色劣化。失去啃咬目标后重置计数。",
+        &"tier4": "继承三阶；受击叠速每次0.5%，每0.2秒啃咬和劣化增幅各提高2%；每秒获得20点额外护甲。",
+        &"tier5": "继承四阶；劣化强度每0.2秒提高4%，脱离啃咬目标后保留劣化施加强度计数；每秒获得60点护甲。",
+    },
+    CharacterRegistry.ZombieType.Z009Jackson: {
+        &"veteran": "首次召唤伴舞前获得50%伤害减免。",
+        &"elite": "继承二阶；出场获得200点额外护甲，每次召唤动作均召唤伴舞。",
+        &"tier4": "继承三阶；出场护甲提高至400点，每秒回复30点本体生命；死亡时在原地额外召唤一只同阶伴舞。",
+        &"tier5": "继承四阶；每次召唤改为四只四阶舞王，均为独立舞团，子代不得继承五阶替换能力。",
+    },
+    CharacterRegistry.ZombieType.Z010Dancer: {
+        &"veteran": "出场获得0.5秒无敌。",
+        &"elite": "继承二阶；死亡时触发一次1800点伤害的小丑盒爆炸。",
+        &"tier4": "继承二阶；死亡爆炸提高至3000点伤害。",
+        &"tier5": "与四阶相同：出场无敌0.5秒，死亡时爆炸造成3000点伤害。",
+    },
+}
+
+
+static func get_description(zombie_type: int, tier_id: StringName) -> String:
+    var species: Dictionary = DESCRIPTIONS.get(zombie_type, {})
+    return str(species.get(tier_id, ""))

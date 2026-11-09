@@ -35,6 +35,9 @@ var animation_curr_speed :float
 var time_need_call_zombie := 0
 ## 是否被魅惑，若被魅惑，舞王召唤魅惑伴舞
 var is_hypnotized := false
+## Triggered before the first actual summon; temporary pre-summon DR listens here.
+signal reinforcements_called()
+
 
 func _ready() -> void:
 	animation_player.set_blend_time('armraise', 'walk', 0.2)
@@ -123,6 +126,12 @@ func _on_animation_player_animation_finished(anim_name:StringName):
 
 ## 是否需要召唤伴舞
 func judge_need_call_dance():
+	var leader: Zombie009Jackson = zombie_dancers.get(-1) as Zombie009Jackson
+	if not is_instance_valid(leader) or leader.is_death:
+		return false
+	if leader.zombie_type == CharacterRegistry.ZombieType.Z009Jackson \
+			and leader.adventure_tier_id in [&"elite", &"tier4", &"tier5"]:
+		return true
 	for i in zombie_dancers:
 		if not zombie_dancers[i]:
 			return true
@@ -162,34 +171,47 @@ func get_current_animation_info():
 
 ## 召唤伴舞僵尸
 func call_zombie_dancer():
-	for i in zombie_dancers:
-		if not zombie_dancers[i]:
-			if i == -1:
-				print("舞王不存在？有问题")
-
-			var new_zombie_dancer_lane_and_pos = get_new_zombie_dancer_lane_and_glo_pos(i, zombie_dancers[-1].lane, zombie_dancers[-1].global_position)
-			## 如果当前位置可以生成伴舞
-			if new_zombie_dancer_lane_and_pos:
-				# 伴舞继承舞王的刷新归属，后续补召唤也不会把博士敌人计入自然波次。
-				var zombie_init_para:Dictionary = {
-					Zombie000Base.E_ZInitAttr.CharacterInitType:Character000Base.E_CharacterInitType.IsNorm,
-					Zombie000Base.E_ZInitAttr.Lane:new_zombie_dancer_lane_and_pos["lane"],
-					Zombie000Base.E_ZInitAttr.ParticipatesNaturalRefresh: zombie_dancers[-1].participates_natural_refresh,
-				}
-				var _new_zombie_dancer:Zombie010Dancer = Global.main_game.zombie_manager.create_norm_zombie(
-					CharacterRegistry.ZombieType.Z010Dancer,
-					Global.main_game.zombie_manager.all_zombie_rows[new_zombie_dancer_lane_and_pos["lane"]],
-					zombie_init_para,
-					new_zombie_dancer_lane_and_pos["pos"],
-					call_dancer_init.bind(i),
-					zombie_dancers[-1].inherited_child_modifier()
-				)
-
-			## 不能生成伴舞，用true填充
-			else:
+	var leader: Zombie009Jackson = zombie_dancers.get(-1) as Zombie009Jackson
+	if not is_instance_valid(leader) or leader.is_death:
+		return
+	var repeated: bool = leader.zombie_type == CharacterRegistry.ZombieType.Z009Jackson \
+		and leader.adventure_tier_id in [&"elite", &"tier4", &"tier5"]
+	var summon_kings: bool = leader.zombie_type == CharacterRegistry.ZombieType.Z009Jackson \
+		and leader.adventure_tier_id == &"tier5"
+	reinforcements_called.emit()
+	for i in range(4):
+		var slot_free: bool = not zombie_dancers[i]
+		if not repeated and not slot_free:
+			continue
+		var location = get_new_zombie_dancer_lane_and_glo_pos(i, leader.lane, leader.global_position)
+		if not location:
+			if slot_free:
 				zombie_dancers[i] = true
-
-	## 召唤伴舞完成后更新移动
+			continue
+		var kind: CharacterRegistry.ZombieType = (
+			CharacterRegistry.ZombieType.Z009Jackson if summon_kings
+			else CharacterRegistry.ZombieType.Z010Dancer)
+		# A fifth-tier king spawns independent fourth-tier kings; this is the
+		# explicit recursion boundary. Ordinary dancers inherit their parent's tier.
+		var modifier: ZombieSpawnModifier = (
+			AdventureZombieTierBinding.new(&"tier4") if summon_kings
+			else leader.inherited_child_modifier())
+		var callback: Callable = (
+			call_dancer_init.bind(i) if slot_free and not summon_kings
+			else Callable())
+		var attrs: Dictionary = {
+			Zombie000Base.E_ZInitAttr.CharacterInitType: Character000Base.E_CharacterInitType.IsNorm,
+			Zombie000Base.E_ZInitAttr.Lane: location["lane"],
+			Zombie000Base.E_ZInitAttr.ParticipatesNaturalRefresh: leader.participates_natural_refresh,
+		}
+		var child: Zombie000Base = Global.main_game.zombie_manager.create_norm_zombie(
+			kind, Global.main_game.zombie_manager.all_zombie_rows[location["lane"]],
+			attrs, location["pos"], callback, modifier)
+		if slot_free and summon_kings:
+			zombie_dancers[i] = true # Independent kings own their own managers.
+		if is_hypnotized and (summon_kings or not slot_free) \
+				and is_instance_valid(child) and not child.is_hypno:
+			child.be_hypno()
 	update_all_walk()
 
 func call_dancer_init(z:Zombie010Dancer, dancer_i:int):

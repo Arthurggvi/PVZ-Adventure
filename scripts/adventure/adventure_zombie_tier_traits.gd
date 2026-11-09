@@ -72,32 +72,54 @@ const DEFINITIONS: Dictionary = {
             {"effect": &"grant_armor_on_drop", "trigger": &"armor1_lost", "amount": 200},
         ],
     },
-}
 
-const DESCRIPTIONS: Dictionary = {
-    CharacterRegistry.ZombieType.Z001Norm: {},
-    CharacterRegistry.ZombieType.Z002Flag: {
-        &"veteran": "在场时为全场友方僵尸提供可叠加的10点固定格挡。",
-        &"elite": "在场时提供可叠加的10点格挡；每2秒使全场友军啃咬伤害提高50%，持续0.5秒。",
-        &"tier4": "在场时提供可叠加的15点格挡；每2秒使全场友军啃咬伤害提高100%，持续1秒。",
-        &"tier5": "继承四阶能力；入场时额外使全场友军获得100%加速与无敌，持续1秒。",
+    CharacterRegistry.ZombieType.Z006Paper: {
+        &"veteran": [{"effect": &"paper_rage", "immunity": 1.0}],
+        &"elite": [{"effect": &"paper_rage", "immunity": 1.0, "speed": 1.3, "bite": 1.8}],
+        &"tier4": [{"effect": &"paper_rage", "immunity": 1.0, "speed": 1.5, "bite": 2.5, "armor": 500}],
+        &"tier5": [{"effect": &"paper_rage", "immunity": 1.0, "speed": 1.5, "bite": 2.5,
+            "armor": 500, "normal_bite": 4.0}],
     },
-    CharacterRegistry.ZombieType.Z003Cone: {
-        &"elite": "路障脱落后自身速度提高20%，持续0.5秒。",
-        &"tier4": "路障脱落后自身速度提高50%，持续0.8秒。",
-        &"tier5": "路障脱落后自身及周围八向一格友军速度提高50%，持续0.8秒。",
+    CharacterRegistry.ZombieType.Z007ScreenDoor: {
+        &"veteran": [{"effect": &"armor2_reduction", "reduction": 0.1}],
+        &"elite": [{"effect": &"armor2_reduction", "reduction": 0.3}],
+        &"tier4": [{"effect": &"armor2_reduction", "reduction": 0.5}],
+        &"tier5": [{"effect": &"armor2_reduction", "reduction": 0.8}],
     },
-    CharacterRegistry.ZombieType.Z004PoleVaulter: {
-        &"veteran": "失去撑杆后永久提高10%移动速度。",
-        &"elite": "持杆时减少20%所受伤害并提高30%速度；失杆后速度提高10%。",
-        &"tier4": "持杆时减少40%所受伤害、提高50%速度，可连续跳跃两次；失杆后速度提高15%。",
-        &"tier5": "继承四阶持杆与失杆强化；可连续跳跃三次，每次跨越两格距离。",
+    CharacterRegistry.ZombieType.Z008Football: {
+        &"veteran": [{"effect": &"football_growth", "base_speed": 1.05, "reduction": 0.05}],
+        &"elite": [{"effect": &"football_growth", "base_speed": 1.05, "reduction": 0.05,
+            "hit_speed_step": 0.01, "bite_step": 0.01, "degradation_step": 0.01,
+            "bite_interval": 0.2, "initial_degradation": 0.01}],
+        &"tier4": [{"effect": &"football_growth", "base_speed": 1.05, "reduction": 0.05,
+            "hit_speed_step": 0.005, "bite_step": 0.02, "degradation_step": 0.02,
+            "bite_interval": 0.2, "initial_degradation": 0.01, "armor_per_second": 20}],
+        &"tier5": [{"effect": &"football_growth", "base_speed": 1.05, "reduction": 0.05,
+            "hit_speed_step": 0.005, "bite_step": 0.02, "degradation_step": 0.04,
+            "bite_interval": 0.2, "initial_degradation": 0.01, "armor_per_second": 60,
+            "keep_degradation_counter": true}],
     },
-    CharacterRegistry.ZombieType.Z005Bucket: {
-        &"veteran": "自身获得10%伤害减免。",
-        &"elite": "自身及周围八向一格友军获得20%伤害减免。",
-        &"tier4": "自身及周围八向一格友军获得35%伤害减免；铁桶脱落时向该范围友军各授予200点额外护甲。",
-        &"tier5": "自身伤害减免提升至50%，周围一格友军仍获35%；铁桶存在期间代替附近友军承受来袭伤害，脱桶时授予200点额外护甲。",
+    CharacterRegistry.ZombieType.Z009Jackson: {
+        &"veteran": [{"effect": &"jackson_command", "pre_summon_dr": 0.5}],
+        &"elite": [{"effect": &"jackson_command", "pre_summon_dr": 0.5,
+            "spawn_armor": 200, "repeat_summon": true}],
+        &"tier4": [{"effect": &"jackson_command", "pre_summon_dr": 0.5,
+            "spawn_armor": 400, "repeat_summon": true,
+            "heal_per_second": 30, "death_dancer": true}],
+        &"tier5": [{"effect": &"jackson_command", "pre_summon_dr": 0.5,
+            "spawn_armor": 400, "repeat_summon": true,
+            "heal_per_second": 30, "death_dancer": true,
+            "replacement_type": CharacterRegistry.ZombieType.Z009Jackson,
+            "replacement_tier": &"tier4"}],
+    },
+    CharacterRegistry.ZombieType.Z010Dancer: {
+        &"veteran": [{"effect": &"dancer_death_burst", "entry_immunity": 0.5}],
+        &"elite": [{"effect": &"dancer_death_burst",
+            "entry_immunity": 0.5, "death_explosion": 1800}],
+        &"tier4": [{"effect": &"dancer_death_burst",
+            "entry_immunity": 0.5, "death_explosion": 3000}],
+        &"tier5": [{"effect": &"dancer_death_burst",
+            "entry_immunity": 0.5, "death_explosion": 3000}],
     },
 }
 
@@ -109,6 +131,7 @@ static func for_spawn(zombie_type: int, tier_id: StringName) -> Array[Dictionary
     return result
 
 ## Public Almanac API: empty means no species-specific ability.
+const DescriptionCatalog = preload("res://scripts/adventure/adventure_zombie_tier_descriptions.gd")
+
 static func description_for(zombie_type: int, tier_id: StringName) -> String:
-    var species: Dictionary = DESCRIPTIONS.get(zombie_type, {})
-    return str(species.get(tier_id, ""))
+    return DescriptionCatalog.get_description(zombie_type, tier_id)
