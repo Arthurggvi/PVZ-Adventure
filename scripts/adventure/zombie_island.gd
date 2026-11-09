@@ -11,6 +11,8 @@ const StageButton = preload("res://scripts/adventure/island_stage_button.gd")
 const Intro = preload("res://scripts/adventure/island_intro.gd")
 ## UI 构造工具。
 const UI = preload("res://scripts/adventure/island_ui.gd")
+## 与主菜单共用左上角档案头像框。
+const ProfileHud = preload("res://scripts/adventure/ui/adventure_profile_hud.gd")
 ## 悬停预览面板，挂在画布上随地图一起缩放。
 const PreviewPanel = preload("res://scripts/adventure/ui/stage_preview_panel.gd")
 ## 预览视图模型，把已解析关卡投影成纯展示字典。
@@ -84,12 +86,16 @@ func _ready() -> void:
 			node.mouse_exited.connect(preview.cancel)
 	preview.name = "StagePreview"
 	canvas.add_child(preview)
-	UI.official_button(canvas, "返回主菜单", Rect2(40, 30, 270, 66), _return_menu)
+	var profile_hud := ProfileHud.new() # 直接贴在视口左上角，返回按钮随头像框定位。
+	add_child(profile_hud)
+	profile_hud.add_action("返回主菜单", _return_menu)
 	resized.connect(_fit_canvas)
 	_fit_canvas()
 	if AdventureSession.progress.started and not AdventureSession.progress.intro_completed:
 		var intro := Intro.new() # 首次未完成的引导覆盖层。
 		intro.name = "Intro"
+		profile_hud.hide()
+		intro.tree_exited.connect(profile_hud.show)
 		canvas.add_child(intro)
 
 ## 整个画布一起缩放并居中，非16:9窗口留边，不拉伸背景。

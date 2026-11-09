@@ -11,8 +11,8 @@ const Inventory = preload("res://scripts/adventure/ui/inventory_window.gd")
 const Research = preload("res://scripts/adventure/ui/research_lab_stage.gd")
 ## 角色窗口接入同一模态生命周期。
 const Player = preload("res://scripts/adventure/ui/player_window.gd")
-## 工具栏空位由可交互的音频设置接管，复用唯一模态生命周期。
-const Settings = preload("res://scripts/adventure/ui/adventure_settings_window.gd")
+## 主菜单与工具栏共用设置窗口，并参与工具栏模态互斥。
+const Settings = preload("res://scripts/ui/game_settings_window.gd")
 ## 任务面板复用工具栏模态窗口入口。
 const Quests = preload("res://scripts/adventure/ui/quest_window.gd")
 ## 首关后教学编排使用独立表现层，不占用任务或研究服务职责。
@@ -60,7 +60,7 @@ func _ready() -> void:
 	register_feature("research", Callable(self, "can_open_research"), Callable(self, "_open_research"))
 	register_feature("quests", Callable(self, "_can_open_quests"), Callable(self, "_open_quests"))
 	register_feature("player", Callable(self, "_can_open_player"), Callable(self, "_open_player"))
-	register_feature("settings", Callable(self, "_can_open_settings"), Callable(self, "_open_settings"))
+	register_feature("settings", Callable(self, "_can_open_settings"), toggle_settings)
 	_onboarding = Onboarding.new()
 	_onboarding.toolbar = self
 	add_child(_onboarding)
@@ -152,11 +152,12 @@ func _can_open_player() -> bool:
 func _open_player() -> void:
 	_toggle_modal("player", Player)
 
-## 设置只修改既有配置服务的音量，不新增档案字段。
+## 支持工具栏的宿主均可打开设置，无需加载档案。
 func _can_open_settings() -> bool:
 	return _host_allowed
 
-func _open_settings() -> void:
+## 主菜单按钮和工具栏齿轮共用入口、互斥与关闭行为。
+func toggle_settings() -> void:
 	_toggle_modal("settings", Settings)
 
 ## 查询 [param feature_id] 的当前窗口；返回 null 表示未打开，不暴露额外生命周期状态。

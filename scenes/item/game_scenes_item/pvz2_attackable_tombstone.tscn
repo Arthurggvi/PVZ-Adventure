@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/item/game_scenes_item/tombstone.tscn" id="base"]
+[ext_resource type="Script" path="res://scripts/main_game_item/pvz2_attackable_tombstone.gd" id="tomb"]
+[ext_resource type="PackedScene" path="res://scenes/item/game_scenes_item/pvz2_tombstone_target.tscn" id="target"]
+
+[node name="Tombstone" instance=ExtResource("base")]
+script = ExtResource("tomb")
+
+[node name="TombstoneMask" parent="." index="0"]
+offset_left = -48.0
+offset_top = -114.0
+offset_right = 48.0
+offset_bottom = 0.0
+
+[node name="tombstone" parent="TombstoneMask" index="0"]
+position = Vector2(48, 55)
+hframes = 1
+vframes = 1
+
+[node name="DamageReceiver" parent="." index="3" instance=ExtResource("target")]

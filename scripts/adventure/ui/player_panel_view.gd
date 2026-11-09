@@ -16,8 +16,8 @@ const EquipmentArt = preload("res://scripts/adventure/ui/player_equipment_art.gd
 const GRID_COLUMNS: int = 8
 ## 保留四排空槽，装备增多后完整行继续滚动。
 const MIN_GRID_ROWS: int = 4
-## 未装备时装时的基础立绘。
-const DEFAULT_PORTRAIT = preload("res://assets/adventure/ui/player/portraits/default_farmer.png")
+## 与战外头像共享时装立绘选择。
+const PortraitArt = preload("res://scripts/adventure/ui/player_portrait_art.gd")
 ## 设计坐标，外层窗口负责按视口等比缩放。
 const DESIGN := Vector2(1520, 860)
 ## 玩家名称文字。
@@ -70,6 +70,22 @@ func _ready() -> void:
 	_badge.size = Vector2(104, 68)
 	add_child(_badge)
 	_name_label = Art.label(self, "", Vector2(171, 140), Vector2(282, 50), 27)
+	var portrait_shading := Gradient.new() # 暖棕色从人物身后向外淡出，保留底下的羊皮纸纹理。
+	portrait_shading.offsets = PackedFloat32Array([0.0, 0.45, 0.75, 1.0])
+	portrait_shading.colors = PackedColorArray([
+		Color(0.34, 0.21, 0.12, 0.58),
+		Color(0.34, 0.21, 0.12, 0.52),
+		Color(0.34, 0.21, 0.12, 0.30),
+		Color(0.34, 0.21, 0.12, 0.0),
+	])
+	var portrait_texture := GradientTexture2D.new() # 让深色延伸到人物两侧，再向四边渐隐。
+	portrait_texture.gradient = portrait_shading
+	portrait_texture.fill = GradientTexture2D.FILL_SQUARE
+	portrait_texture.fill_from = Vector2(0.5, 0.5)
+	portrait_texture.fill_to = Vector2(1.0, 0.5)
+	var portrait_backdrop: TextureRect = Art.image(self, "", Vector2(55, 190), Vector2(404, 510)) # 背景边缘留出渐隐空间。
+	portrait_backdrop.texture = portrait_texture
+	portrait_backdrop.stretch_mode = TextureRect.STRETCH_SCALE
 	_portrait = TextureRect.new()
 	_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -147,11 +163,7 @@ func present(player_name: String, progression: Dictionary, rows: Array[Dictionar
 	_experience_bar.max_value = maxi(1, int(progression.required))
 	_experience_bar.value = _experience_bar.max_value if progression.capped else int(progression.current)
 	_experience_label.text = "已达到经验存储上限" if progression.capped else "经验  %d / %d" % [progression.current, progression.required]
-	_portrait.texture = DEFAULT_PORTRAIT
-	for row: Dictionary in _rows: # 时装仅选择表现资源，不附加节点行为。
-		var item: EquipmentDefinition = row.definition # 服务提供的独立定义。
-		if row.equipped and item.slot == EquipmentDefinition.Slot.OUTFIT:
-			_portrait.texture = item.portrait
+	_portrait.texture = PortraitArt.resolve(_rows)
 	_effects_hint.set_text("角色加成\n经验 ×[color=#8ecaff]%s[/color]\n掉落数量 ×[color=#8ecaff]%d[/color]\n掉落概率 ×[color=#8ecaff]%s[/color]\n战场金币 ×[color=#8ecaff]%s[/color]" % [str(effects.experience_multiplier),
 		effects.loot_multiplier, str(effects.drop_chance_multiplier), str(effects.coin_multiplier)])
 	_render_items()
@@ -226,15 +238,11 @@ func _cell(row: Dictionary, in_slot: bool) -> Control:
 	if not row.is_empty():
 		var item: EquipmentDefinition = row.definition # 只投影图标与文本，不让格子了解装备规则。
 		projection = {"kind": "icon", "uid": str(row.uid), "title": item.display_name, "icon": item.icon,
+			"backing": EquipmentArt.backing_texture(item.slot),
 			"badge": "已装备" if row.equipped and not in_slot else ""}
 		if row.get("expired", false):
 			projection["badge"] = "已过期"
 	tile.setup(projection, -1, false, false, not row.is_empty() and row.uid == _selected)
-	if not row.is_empty():
-		var backing_uri: String = EquipmentArt.backing_uri(row.definition.slot)
-		if not backing_uri.is_empty():
-			var backing: TextureRect = Art.image(tile, backing_uri, Vector2(-5, 0), Vector2(96, 96))
-			tile.move_child(backing, 1) # 原生格底层之上，前景图标与状态标记之下。
 	tile.custom_minimum_size = Vector2(86, 96)
 	tile.chosen.connect(_choose_tile, CONNECT_DEFERRED)
 	return tile

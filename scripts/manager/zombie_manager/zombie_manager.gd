@@ -4,6 +4,8 @@ class_name ZombieManager
 
 ## 出战僵王成功入树、死亡或移除后发出，供所属关卡按当前存活实例选择战斗音乐。
 signal signal_living_bosses_changed()
+## 正常僵尸完成初始化与登记后发送，供光环等通用效果覆盖新实例。
+signal signal_zombie_created(zombie: Zombie000Base)
 
 ## 无出怪模式或最后一波启用的场外清理计时器，每秒清理离开视野的普通僵尸。
 @onready var check_zombie_end_wave_timer: Timer = $CheckZombieEndWaveTimer
@@ -320,10 +322,10 @@ func register_boss(boss: ZB000Base, boss_type: CharacterRegistry.ZombieBossType,
 ## Shared Boss phase audio is routed once through the already-registered Boss lifecycle.
 ## The base class only emits the phase signal; SoundManager remains a service of the game manager.
 func _on_registered_boss_phase_changed(_phase: int, instance_id: int) -> void:
-	var boss: ZB000Base = _get_registered_boss(instance_id)
-	if boss == null or boss.is_death or not is_game_running():
+	var boss: ZB000Base = _get_registered_boss(instance_id) # 发出阶段信号的登记实例。
+	if boss == null or boss.is_death or not boss.play_phase_roar_on_threshold or not is_game_running():
 		return
-	SoundManager.play_character_SFX(&"boss_phase_transition")
+	SoundManager.play_boss_phase_roar()
 
 
 ## [param instance_id] 发出死亡通知的登记实例；重复通知不再次扣数或累计死亡。
@@ -641,6 +643,7 @@ func create_norm_zombie(
 
 	curr_zombie_num += 1
 	_register_natural_refresh_zombie(zombie)
+	signal_zombie_created.emit(zombie)
 
 	return zombie
 
@@ -883,6 +886,9 @@ func delete_prepare_show_zombies():
 ## [param time_ice] 完全冻结时长，单位为游戏秒。[br]
 ## [param time_decelerate] 解冻后的减速时长，单位为游戏秒。
 func ice_all_zombie(time_ice:float, time_decelerate: float):
+	for structure: Node in get_tree().get_nodes_in_group(EnemyStructureBase.GROUP): # 当前战场内的敌方设施。
+		if main_game.is_ancestor_of(structure):
+			structure.be_attacked_bullet(20, BulletRegistry.AttackMode.Real, false, false)
 	# 保留寒冰菇对珊瑚出怪的抑制计时。
 	is_ice = true
 	start_ice_timer(time_ice)
@@ -925,6 +931,9 @@ func jalapeno_bomb_item_lane(lane:int):
 ## [param lane] 辣椒所在的零起始行号，仅用于选择受影响的普通僵尸。
 ## [param damage] 由爆炸组件计算的实际伤害；本管理器不解释植物星级。
 func jalapeno_bomb_lane_zombie(lane:int, damage:int):
+	for structure: Node in get_tree().get_nodes_in_group(EnemyStructureBase.GROUP): # 同行设施不纳入僵尸计数。
+		if main_game.is_ancestor_of(structure) and structure.lane == lane:
+			structure.be_attacked_bullet(damage, BulletRegistry.AttackMode.Penetration, false, false)
 	# 倒序遍历当前行，普通僵尸被炸死时可能立即从列表移除。
 	for i in range(all_zombies_2d[lane].size()-1,-1,-1) :
 		if is_instance_valid(all_zombies_2d[lane][i]):

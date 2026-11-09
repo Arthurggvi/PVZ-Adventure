@@ -17,7 +17,11 @@ signal signal_boss_phase_changed(phase: int)
 @export var boss_display_name: String = "Boss"
 @export var boss_portrait_texture: Texture2D
 @export_range(0.05, 0.95, 0.05) var phase_two_threshold_ratio: float = 0.5
+## 默认包含阈值；严格低于半血的 Boss 可在场景中关闭。
+@export var phase_two_threshold_inclusive: bool = true
 @export_group("")
+## 默认在血量触发转阶段时播放；有独立现身演出的 Boss 可绑定自己的动画关键帧。
+@export var play_phase_roar_on_threshold: bool = true
 
 var boss_phase: int = 1
 var _phase_restore_silent: bool = false
@@ -40,7 +44,10 @@ func _on_shared_boss_hp_loss(remaining_hp: int, _is_drop: bool) -> void:
 		return
 	if float(remaining_hp) / float(hp_component.max_hp) > phase_two_threshold_ratio:
 		return
+	if not phase_two_threshold_inclusive and float(remaining_hp) / float(hp_component.max_hp) >= phase_two_threshold_ratio:
+		return
 	boss_phase = 2
+	body.set_boss_phase_pulse(true)
 	_apply_boss_visual_phase(2, not _phase_restore_silent)
 	# Snapshot restore initializes phase before HUD binds; never replay transition SFX.
 	if not _phase_restore_silent:
@@ -52,7 +59,7 @@ func restore_boss_hp(remaining_hp: int) -> void:
 	if not is_node_ready() or hp_component.max_hp <= 0:
 		return
 	_phase_restore_silent = true
-	hp_component.Hp_loss(hp_component.max_hp - clampi(remaining_hp, 1, hp_component.max_hp),
+	hp_component.apply_unblocked_loss(hp_component.max_hp - clampi(remaining_hp, 1, hp_component.max_hp),
 		BulletRegistry.AttackMode.Norm, false, false, false)
 	_phase_restore_silent = false
 
@@ -88,6 +95,7 @@ func character_death() -> void:
 	if is_death:
 		return
 	super.character_death()
+	body.set_boss_phase_pulse(false)
 	hurt_box_component.disable_component(ComponentNormBase.E_IsEnableFactor.Death)
 	prepare_death_animation()
 
@@ -108,6 +116,11 @@ func character_death_disappear() -> void:
 ## 死亡演出只保留初始随机速度，解除停滞并停止旧计时器，防止结束回调覆盖演出速度。
 ## 可在 Dying 再调用一次，处理致死伤害调用返回后才生成的控制特效。
 func prepare_death_animation() -> void:
+	reset_control_effects()
+
+
+## 清除冰冻/黄油等临时控制，恢复初始速度；死亡演出与不可打断的阶段演出共用。
+func reset_control_effects() -> void:
 	# 当前控制效果计时器；可能尚未创建，死亡清理时只停止有效实例。
 	for timer: Timer in all_timer.values():
 		if is_instance_valid(timer):

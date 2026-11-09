@@ -45,6 +45,8 @@ var progress_bar_segment_every_wave:float
 var progress_bar_segment_mini_every_sec:float
 ## 每次停止或切轮递增；等待中的旧波流程不能在下一轮重新进入战斗后恢复。
 var _refresh_generation: int = 0
+## 同一战斗最多显示一个援军旗帜波提示，防止重复请求叠加红字。
+var _support_flag_wave_pending: bool = false
 var is_advancement_suspended := false
 var _pending_advancement := false
 var _before_wave_signalled: int = -1
@@ -239,6 +241,22 @@ func start_next_wave() -> void:
 	signal_wave_refresh.emit(is_final)
 	if profile != null:
 		adventure_wave_started.emit(wave_number)
+
+## [param source] 发起号令的存活 Boss；[param zombie_types] 本批额外援军；[param tier_id] 整波等阶。
+## 复用正式旗帜波的红字及警报，从常规出生点刷出旗帜僵尸和援军，不推进自然波次。
+func spawn_support_flag_wave(source: ZB000Base, zombie_types: Array[CharacterRegistry.ZombieType], tier_id: StringName) -> void:
+	if _support_flag_wave_pending or not zombie_manager.is_game_running() or source.is_death:
+		return
+	_support_flag_wave_pending = true
+	var generation: int = _refresh_generation # 战斗结束或切轮后取消尚未刷出的援军。
+	await ui_remind_word.zombie_approach(false)
+	_support_flag_wave_pending = false
+	if not _is_wave_refresh_current(generation) or not is_instance_valid(source) \
+		or source.is_death or source.is_queued_for_deletion():
+		return
+	zombie_wave_create_manager.spawn_stage_support(CharacterRegistry.ZombieType.Z002Flag, tier_id)
+	for zombie_type: CharacterRegistry.ZombieType in zombie_types: # 按正常选行及出生点生成本批援军。
+		zombie_wave_create_manager.spawn_stage_support(zombie_type, tier_id)
 
 ## 请求生成墓碑后等待 1 个游戏秒，再从本关卡墓碑生成僵尸；停止、切轮或结束战斗时取消。
 func call_tombstone_create_zombie():

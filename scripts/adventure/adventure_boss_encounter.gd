@@ -1,5 +1,5 @@
-## 独立 Boss 遭遇：挂起自然波次，但使用自己的 Timer 持续生成小怪。
-## 不调用原版 win_on_boss_death，Boss 死亡/明确撤退时停止援军并恢复自然波次。
+## 独立 Boss 遭遇：挂起自然波次，可选独立周期援军或仅由 Boss 技能召唤。
+## 不调用原版 win_on_boss_death；可配置等待死亡演出完成，再恢复自然波次。
 extends Node
 class_name AdventureBossEncounter
 
@@ -33,6 +33,9 @@ func begin(encounter: BossEncounterDefinition, waves: ZombieWaveManager,
 	active = true
 	boss.signal_character_death.connect(_on_boss_defeated)
 	boss.tree_exiting.connect(_on_boss_tree_exiting)
+	boss.signal_trophy_requested.connect(_on_death_presentation_finished)
+	if config.summon_rule == BossEncounterDefinition.SummonRule.NONE:
+		return true
 	summon_timer = Timer.new()
 	summon_timer.wait_time = config.summon_interval_seconds
 	summon_timer.one_shot = false
@@ -52,14 +55,23 @@ func notify_escaped() -> void:
 		escaping.queue_free()
 
 func _on_boss_defeated() -> void:
+	if summon_timer != null:
+		summon_timer.stop()
+	if config.wait_for_death_presentation:
+		return
 	_finish(StageEventDefinition.BossExitReason.DEFEATED)
 
+## [param _position] 原有 Boss 死亡演出完成通知；本遭遇只结束生命周期，不自行发奖。
+func _on_death_presentation_finished(_position: Vector2) -> void:
+	if active and is_instance_valid(boss) and boss.is_death:
+		_finish(StageEventDefinition.BossExitReason.DEFEATED)
+
 func _on_boss_tree_exiting() -> void:
-	# 仍在正式战斗且 Boss 未死亡时离树，统一按撤退处理；场景卸载不能触发。
+	# 正式战斗中离树按死亡/撤退区分；场景卸载不能触发结算。
 	if active and is_instance_valid(zombie_manager) and zombie_manager.is_game_running() \
 		and zombie_manager.main_game == get_tree().current_scene \
 		and not zombie_manager.main_game.is_queued_for_deletion():
-		_finish(StageEventDefinition.BossExitReason.ESCAPED)
+		_finish(StageEventDefinition.BossExitReason.DEFEATED if boss.is_death else StageEventDefinition.BossExitReason.ESCAPED)
 
 func _on_summon_tick() -> void:
 	if not active or not zombie_manager.is_game_running():

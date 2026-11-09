@@ -37,7 +37,7 @@ func _bomb_all_enemy():
 		var target := target_reference as Character000Base
 		if not _can_bomb_character(target):
 			continue
-		if target is ZB000Base:
+		if target is ZB000Base or target is EnemyStructureBase:
 			target.be_attacked_bullet(damage, BulletRegistry.AttackMode.Penetration, false, false)
 		elif target is Zombie000Base:
 			target.be_bomb(damage, is_cherry_bomb)
@@ -48,6 +48,9 @@ func _can_bomb_character(enemy: Character000Base) -> bool:
 	if not is_instance_valid(enemy) or enemy.is_death or enemy.is_queued_for_deletion() \
 		or not enemy.is_inside_tree():
 		return false
+	if enemy is EnemyStructureBase:
+		return enemy.hurt_box_component.is_enabling and judge_lane(enemy) \
+			and (can_attack_zombie_status & Zombie000Base.E_BeAttackStatusZombie.IsNorm) != 0
 	if enemy is ZB000Base:
 		return enemy.character_init_type == Character000Base.E_CharacterInitType.IsNorm \
 			and is_instance_valid(enemy.hurt_box_component) and enemy.hurt_box_component.is_enabling \

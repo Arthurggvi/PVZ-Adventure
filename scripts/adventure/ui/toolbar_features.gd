@@ -3,13 +3,13 @@ extends RefCounted
 class_name AdventureToolbarFeatures
 
 const ENTRIES: Array[Dictionary] = [
+	{"id": "player", "label": "玩家", "asset": "icon_player.png"},
 	{"id": "map", "label": "地图", "asset": "icon_map.png"},
-	{"id": "settings", "label": "设置", "asset": "icon_settings.png"},
-	{"id": "quests", "label": "任务", "asset": "icon_quests.png"},
 	{"id": "inventory", "label": "背包", "asset": "icon_inventory.png"},
+	{"id": "quests", "label": "任务", "asset": "icon_quests.png"},
 	{"id": "research", "label": "研究室", "asset": "icon_research.png"},
 	{"id": "deck", "label": "卡组", "asset": "icon_deck.png"},
-	{"id": "player", "label": "玩家", "asset": "icon_player.png"},
+	{"id": "settings", "label": "设置", "asset": "icon_settings.png"},
 ]
 
 ## Only existing, selected user profiles may open the canonical adventure entrance.

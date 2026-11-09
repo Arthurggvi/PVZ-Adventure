@@ -251,7 +251,7 @@ func _on_detect_character(enemy:Character000Base) -> bool:
 	if _judge_enemy_is_can_be_attack(enemy):
 		if enemy is Plant000Base:
 			enemy_can_be_attacked = get_first_be_hit_plant_in_cell(enemy)
-		elif enemy is Zombie000Base or enemy is ZB000Base:
+		elif enemy is Zombie000Base or enemy is ZB000Base or enemy is EnemyStructureBase:
 			enemy_can_be_attacked = enemy
 		if not is_instance_valid(enemy_can_be_attacked):
 			return false
@@ -295,6 +295,9 @@ func _judge_enemy_is_can_be_attack(enemy:Character000Base)->bool:
 	## 先判断行属性
 	if is_lane and owner.lane != enemy.lane:
 		return false
+	if enemy is EnemyStructureBase:
+		return enemy.hurt_box_component.is_enabling \
+			and (can_attack_zombie_status & Zombie000Base.E_BeAttackStatusZombie.IsNorm) != 0
 	## 如果敌人为植物
 	if enemy is Plant000Base:
 		## 如果当前植物可以被攻击到
@@ -402,7 +405,7 @@ func update_enemy_track_bullet() -> Character000Base:
 	## 是否有空中敌人
 	var is_have_sky_enemy:= false
 	for enemy:Character000Base in all_enemy_can_be_attacked:
-		if not (enemy is Zombie000Base or enemy is ZB000Base):
+		if not (enemy is Zombie000Base or enemy is ZB000Base or enemy is EnemyStructureBase):
 			continue
 		# 仅普通僵尸具有空中状态字段；僵王按地面目标参与排序。
 		var is_sky: bool = enemy is Zombie000Base and enemy.curr_be_attack_status == Zombie000Base.E_BeAttackStatusZombie.IsSky

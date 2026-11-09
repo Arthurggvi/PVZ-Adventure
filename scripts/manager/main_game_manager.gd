@@ -1,6 +1,9 @@
 extends Node2D
 class_name MainGameManager
 
+## 正式战斗内复用的战外档案头像框。
+const ProfileHud = preload("res://scripts/adventure/ui/adventure_profile_hud.gd")
+
 #region 游戏测试
 @export_group("测试相关")
 ## 游戏时测试方便修改阳光数
@@ -79,7 +82,7 @@ var is_mouse_visibel_on_hammer:bool = false
 	## 卡槽
 	%CardSlotRoot,
 	## 菜单
-	%MainGameMenuButton, %MainGameMenuOptionDialog, %Dialog
+	%MainGameMenuButton, %BattlePauseMenu, %Dialog
 ]
 
 #endregion
@@ -117,10 +120,13 @@ var _round_end_by_boss: bool = false
 var adventure_runtime: AdventureBattleRuntime
 ## 仅冒险模式拥有的连续阶段调度器。
 var adventure_continuation: AdventureContinuationController
+## 正式战斗内左下角的档案头像框；选卡、准备和结算阶段隐藏。
+var battle_profile_hud
 ## 当前关卡流程阶段；更新时同步通知卡槽与角色行为。
 var main_game_progress := E_MainGameProgress.NONE:
 	set(value):
 		main_game_progress = value
+		_refresh_battle_profile_hud_visibility()
 		EventBus.push_event("main_game_progress_update", [value])
 
 #endregion
@@ -190,6 +196,8 @@ func _ready() -> void:
 	event_bus_subscribe()
 	## 默认禁用全局敌人检测组件(追踪子弹调用, 放置追踪植物时启用,追踪植物死亡时,检测是否关闭)
 	detect_component_global.disable_component(ComponentNormBase.E_IsEnableFactor.Global)
+	## 正式战斗 HUD：复用战外头像框，选卡阶段不显示。
+	_setup_battle_profile_hud()
 	## 主游戏进程
 	main_game_progress = E_MainGameProgress.CHOOSE_CARD
 	## 播放选卡bgm
@@ -231,6 +239,25 @@ func _ready() -> void:
 				no_choosed_card_start_game()
 		else:
 			main_game_start()
+
+## 创建复用战外头像框的战斗档案 HUD，缩到阳光槽左侧以避开卡槽和草坪操作区。
+func _setup_battle_profile_hud() -> void:
+	battle_profile_hud = ProfileHud.new()
+	battle_profile_hud.name = "BattleProfileHud"
+	var all_ui := canvas_layer_ui.get_node_or_null("All_UI") as Control
+	if all_ui != null:
+		battle_profile_hud.theme = all_ui.theme # 复用战斗 UI 的中文字体。
+	canvas_layer_ui.add_child(battle_profile_hud)
+	canvas_layer_ui.move_child(battle_profile_hud, 0) # 位于菜单、对话和红字提示之后。
+	# 卡槽根节点贴着阳光槽左缘；留出左右各一段空隙后即为头像框可用宽度。
+	var sun_bank_left: float = card_slot_root.position.x
+	battle_profile_hud.dock_top_left(maxf(96.0, sun_bank_left - 20.0), 12.0)
+	battle_profile_hud.visible = false
+
+## 头像框只在正式战斗阶段显示；选卡、准备和结算阶段保持隐藏。
+func _refresh_battle_profile_hud_visibility() -> void:
+	if is_instance_valid(battle_profile_hud):
+		battle_profile_hud.visible = main_game_progress == E_MainGameProgress.MAIN_GAME
 
 ## 主游戏管理器事件总线订阅
 func event_bus_subscribe():

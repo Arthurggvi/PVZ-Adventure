@@ -142,6 +142,10 @@ func _can_attack_character(enemy: Character000Base, check_lane: bool = true) -> 
 		if not enemy.curr_be_attack_status & can_attack_zombie_status:
 			#print("敌人状态：", enemy.curr_be_attack_status, "可以攻击敌人状态：", can_attack_zombie_status)
 			return false
+	elif enemy is EnemyStructureBase:
+		if bullet_camp != CharacterRegistry.CharacterType.Plant \
+			or (can_attack_zombie_status & Zombie000Base.E_BeAttackStatusZombie.IsNorm) == 0:
+			return false
 	else:
 		return false
 	return not check_lane or not is_activate_lane or lane == enemy.lane
@@ -149,7 +153,7 @@ func _can_attack_character(enemy: Character000Base, check_lane: bool = true) -> 
 
 ## 对敌人造成伤害
 func _attack_enemy(enemy:Character000Base):
-	if enemy is ZB000Base:
+	if enemy is ZB000Base or enemy is EnemyStructureBase:
 		# 僵王直接使用角色伤害入口，不转换成普通僵尸或套用其防具规则。
 		enemy.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx)
 	elif enemy is Zombie000Base:

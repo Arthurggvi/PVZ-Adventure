@@ -72,6 +72,9 @@ func _can_spatter_character(enemy: Character000Base, lane: int) -> bool:
 	elif enemy is Zombie000Base:
 		if (enemy.curr_be_attack_status & can_attack_zombie_status) == 0:
 			return false
+	elif enemy is EnemyStructureBase:
+		if (can_attack_zombie_status & Zombie000Base.E_BeAttackStatusZombie.IsNorm) == 0:
+			return false
 	else:
 		return false
 	return spatter_lane_up_down == -1 or lane == -1 or absi(lane - enemy.lane) <= spatter_lane_up_down

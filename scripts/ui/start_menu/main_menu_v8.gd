@@ -7,8 +7,6 @@ const PLAQUE_TEXT_OFFSET_Y := 10.0
 const PLAQUE_UNLOCKED_COLOR := Color(0.95, 0.78, 0.45, 1.0)
 ## 锁定文字颜色，和禁用贴图及锁图标一起应用。
 const PLAQUE_LOCKED_COLOR := Color(0.58, 0.58, 0.58, 1.0)
-## 存档名牌沿用原按钮交互，只追加可复用的悬停反馈组件。
-const PLAQUE_HOVER = preload("res://scripts/ui/start_menu/plaque_hover_feedback.gd")
 ## 总环境动效开关，不控制既有乌鸦、按钮和音乐。
 @export var environment_fx_enabled := true:
 	set(value):
@@ -27,10 +25,8 @@ func _ready() -> void:
 	super._ready()
 	SoundManager.play_town_bgm()
 	$ArtCanvas/Option.hide()
-	Global.user_manager.signal_users_update.connect(_fit_profile_name)
 	# 用户索引先发布更新，存档随后在同一调用内加载。延后读取完整的可用状态。
 	Global.user_manager.signal_users_update.connect(_sync_research_entry, Object.CONNECT_DEFERRED)
-	_fit_profile_name()
 	_align_plaque_titles()
 	# Background ownership remains reversible; only interior foliage is distorted.
 	$ArtCanvas/EnvironmentFX/FoliageFX.bind_background($ArtCanvas/coastal_yard)
@@ -46,48 +42,10 @@ func _apply_environment() -> void:
 	$ArtCanvas/EnvironmentFX/FoliageFX.set_environment_state(environment_fx_enabled, use_clean_sky)
 	$ArtCanvas/ForegroundLeaves.set_active(environment_fx_enabled)
 
-## 仅替换原生名牌外观，保留玩家名 Label、档案按钮及事件连接。
-func _layout_native_profile() -> void:
-	var profile: Control = $ArtCanvas/WoodSign # 原生玩家名牌控制器。
-	var name_label: Label = profile.label # 原控制器负责更新当前玩家名。
-	var button: TextureButton = profile.get_node("ButtonUserUpdate") # 原生档案入口。
-	for child: CanvasItem in profile.get_children(): # 隐藏旧灰条和旧装饰。
-		child.hide()
-	profile.position = Vector2(48, 4)
-	button.position = Vector2.ZERO
-	button.size = Vector2(358, 166)
-	button.ignore_texture_size = true
-	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	button.texture_normal = load("res://assets/adventure/main_menu/v8/art/ui/profile_tree_sign.png")
-	button.texture_hover = button.texture_normal
-	button.texture_pressed = button.texture_normal
-	button.texture_click_mask = null
-	button.tooltip_text = ""
-	button.add_child(PLAQUE_HOVER.new())
-	button.show()
-	name_label.reparent(button)
-	name_label.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	name_label.position = Vector2(62, 72)
-	name_label.size = Vector2(236, 74)
-	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	name_label.label_settings = name_label.label_settings.duplicate()
-	name_label.label_settings.font_color = Color("efd5a2")
-	name_label.label_settings.outline_color = Color("322012")
-	name_label.label_settings.outline_size = 4
-	name_label.add_to_group("v8_plaque_title")
-
-## 统一微调玩家名、主入口与功能台文字，保持原有水平/垂直居中及长姓名换行。
+## 统一微调主入口与功能台文字的垂直居中。
 func _align_plaque_titles() -> void:
 	for title: Label in get_tree().get_nodes_in_group("v8_plaque_title"): # 仅调整本菜单的木牌文字。
 		title.position.y += PLAQUE_TEXT_OFFSET_Y
-
-## 在原生姓名更新后调整字号，较长中文名允许换行。
-func _fit_profile_name() -> void:
-	var name_label: Label = $ArtCanvas/WoodSign.label # 不另存身份与姓名。
-	name_label.label_settings.font_size = 24 if name_label.text.length() > 10 else 32
-	_refresh_plaque_states()
 
 ## 用同一按钮状态更新牌名、字体颜色和锁图标；保留原题名供解锁时恢复。
 func _refresh_plaque_states() -> void:

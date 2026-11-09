@@ -1,8 +1,18 @@
-[gd_resource type="Resource" script_class="AdventureStageOverride" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="AdventureStageOverride" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/adventure_stage_override.gd" id="1_override"]
 [ext_resource type="Texture2D" path="res://assets/adventure/environments/battle_backgrounds/04_graveyard_downstream_night.jpg" id="battlebg"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/gravestone_wave_rules.gd" id="2_graves"]
+
+[sub_resource type="Resource" id="NaturalGravestones"]
+script = ExtResource("2_graves")
+regular_interval = 3
+regular_count = Vector2i(1, 2)
 
 [resource]
 script = ExtResource("1_override")
 battle_background_texture = ExtResource("battlebg")
+daytime_override = 0
+daytime_sun_override = 0
+normal_gravestone_rules = SubResource("NaturalGravestones")
+nightmare_gravestone_rules = SubResource("NaturalGravestones")

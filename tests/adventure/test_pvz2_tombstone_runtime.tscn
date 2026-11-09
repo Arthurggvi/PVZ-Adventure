@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/adventure/test_pvz2_tombstone_runtime.gd" id="script"]
+
+[node name="PvZ2TombstoneSmoke" type="Node"]
+script = ExtResource("script")

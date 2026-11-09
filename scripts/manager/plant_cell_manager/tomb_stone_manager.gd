@@ -1,6 +1,8 @@
 extends Node
 class_name TombStoneManager
 
+const PVZ2_TOMBSTONE_PATH := "res://scenes/item/game_scenes_item/pvz2_attackable_tombstone.tscn"
+
 @onready var plant_cell_manager: PlantCellManager = %PlantCellManager
 
 ## 是否有墓碑(二维)
@@ -11,6 +13,7 @@ var tombstone_num := 0
 func _ready() -> void:
 	## 注册创建墓碑全局事件
 	EventBus.subscribe("create_tombstone", create_tombstone)
+	EventBus.subscribe("create_pvz2_tombstone", create_pvz2_tombstone)
 
 ## 初始化墓碑管理器
 func init_tomb_stone_manager(_game_para:ResourceLevelData):
@@ -76,12 +79,20 @@ func _reandom_tombstone_pos(new_num:int) ->  Array[Vector2i]:
 	return selected_positions
 
 ## 创建一个墓碑
-func _create_one_tombstone(plant_cell: PlantCell, pos:Vector2i):
+func _create_one_tombstone(plant_cell: PlantCell, pos:Vector2i, kind: StringName = &"legacy"):
 	assert(not is_instance_valid(plant_cell.tombstone))
 	assert(not all_is_tombstone[pos.x][pos.y], "第"+str(pos)+"墓碑有问题")
 
 	## plant_cell生成墓碑并连接信号
-	plant_cell.create_tombstone()
+	var source: PackedScene = null
+	if kind == &"pvz2":
+		source = load(PVZ2_TOMBSTONE_PATH) as PackedScene
+		if source == null:
+			push_error("PVZ2 tombstone scene failed to load")
+			return
+	plant_cell.create_tombstone(source)
+	if not is_instance_valid(plant_cell.tombstone):
+		return
 	plant_cell.signal_cell_delete_tombstone.connect(_delete_tombstone)
 
 	# 创建墓碑相关参数变化
@@ -98,7 +109,7 @@ func _delete_tombstone(plant_cell:PlantCell, _tombstone:TombStone):
 
 
 ## 黑夜关卡生成墓碑（生成数量）
-func create_tombstone(new_num:int):
+func create_tombstone(new_num:int, kind: StringName = &"legacy"):
 	await get_tree().process_frame
 	## 最大数量： 最大可生成列数 * 行数
 	## 生成随机位置
@@ -109,26 +120,78 @@ func create_tombstone(new_num:int):
 	for pos in selected_positions:
 		var plant_cell:PlantCell = plant_cell_manager.all_plant_cells[pos.x][pos.y]
 
-		_create_one_tombstone(plant_cell, pos)
+		_create_one_tombstone(plant_cell, pos, kind)
 
+## Pure occupancy filter, shared by all phase/flag spawn sources.
+func available_pvz2_positions() -> Array[Vector2i]:
+	var candidates: Array[Vector2i] = []
+	if not is_instance_valid(plant_cell_manager):
+		return candidates
+	var cols: int = plant_cell_manager.row_col.y
+	for r in range(all_is_tombstone.size()):
+		for c in range(maxi(0, cols / 3), cols):
+			if c >= all_is_tombstone[r].size() or all_is_tombstone[r][c]:
+				continue
+			var cell: PlantCell = plant_cell_manager.all_plant_cells[r][c]
+			if not cell.can_common_plant or cell.get_curr_plant_num() != 0:
+				continue
+			candidates.append(Vector2i(r, c))
+	return candidates
+
+## 可攻击墓碑仅在空格生成，优先中右侧，避免抢占已种植的格子。
+func create_pvz2_tombstone(new_num: int) -> int:
+	if new_num <= 0:
+		return 0
+	var previous_total := tombstone_num
+	var candidates := available_pvz2_positions()
+	candidates.shuffle()
+	for i in range(mini(new_num, candidates.size())):
+		var pos := candidates[i]
+		_create_one_tombstone(plant_cell_manager.all_plant_cells[pos.x][pos.y], pos, &"pvz2")
+	return tombstone_num - previous_total
 
 #endregion
 
 #region 存档
 
-func get_save_game_data_tomb_stone_manager()->Dictionary:
-	var save_game_data_tomb_stome_manager:Dictionary = {}
-	save_game_data_tomb_stome_manager["all_is_tombstone"] = all_is_tombstone
+## 保存墓碑种类及剩余生命；保留旧二维布尔字段兼容既有存档。
+func get_save_game_data_tomb_stone_manager() -> Dictionary:
+	var records: Array[Dictionary] = []
+	for r in range(plant_cell_manager.all_plant_cells.size()):
+		for c in range(plant_cell_manager.all_plant_cells[r].size()):
+			var stone: TombStone = plant_cell_manager.all_plant_cells[r][c].tombstone
+			if not is_instance_valid(stone) or stone.is_queued_for_deletion():
+				continue
+			records.append({
+				"row": r, "col": c,
+				"kind": str(stone.get_tombstone_kind()),
+				"hp": stone.get_current_hp(),
+			})
+	return {"all_is_tombstone": all_is_tombstone, "tombstones": records}
 
-	return save_game_data_tomb_stome_manager
-
-func load_game_data_tomb_stone_manager(save_game_data_tomb_stome_manager:Dictionary):
-	var new_all_is_tombstone:Array[Array] = save_game_data_tomb_stome_manager.get("all_is_tombstone", all_is_tombstone)
-	for i in range(new_all_is_tombstone.size()):
-		for j in range(new_all_is_tombstone[i].size()):
-			var pos:Vector2i = Vector2i(i,j)
-			if new_all_is_tombstone[i][j]:
-				var plant_cell:PlantCell = plant_cell_manager.all_plant_cells[pos.x][pos.y]
-				_create_one_tombstone(plant_cell, pos)
+func load_game_data_tomb_stone_manager(save_data: Dictionary):
+	if save_data.has("tombstones") and save_data["tombstones"] is Array:
+		for record in save_data["tombstones"]:
+			if not record is Dictionary:
+				continue
+			var r := int(record.get("row", -1))
+			var c := int(record.get("col", -1))
+			if r < 0 or r >= all_is_tombstone.size():
+				continue
+			if c < 0 or c >= all_is_tombstone[r].size() or all_is_tombstone[r][c]:
+				continue
+			var pos := Vector2i(r, c)
+			var cell: PlantCell = plant_cell_manager.all_plant_cells[r][c]
+			var kind: StringName = &"pvz2" if record.get("kind", "") == "pvz2" else &"legacy"
+			_create_one_tombstone(cell, pos, kind)
+			if kind == &"pvz2" and is_instance_valid(cell.tombstone):
+				cell.tombstone.restore_hp(int(record.get("hp", 700)))
+		return
+	var old_cells: Array[Array] = save_data.get("all_is_tombstone", all_is_tombstone)
+	for i in range(mini(old_cells.size(), all_is_tombstone.size())):
+		for j in range(mini(old_cells[i].size(), all_is_tombstone[i].size())):
+			if old_cells[i][j] and not all_is_tombstone[i][j]:
+				var pos := Vector2i(i, j)
+				_create_one_tombstone(plant_cell_manager.all_plant_cells[i][j], pos)
 
 #endregion

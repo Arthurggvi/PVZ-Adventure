@@ -218,7 +218,7 @@ func character_death():
 ## 被攻击至死亡(大保龄球)
 ## [param trigger_be_attack_SFX] 是否播放本次受击音效，false 时只处理扣血及相关信号。
 func be_attack_to_death(trigger_be_attack_SFX:=true):
-	hp_component.Hp_loss(hp_component.get_all_hp(),BulletRegistry.AttackMode.Norm, true, trigger_be_attack_SFX)
+	hp_component.apply_unblocked_loss(hp_component.get_all_hp(), BulletRegistry.AttackMode.Norm, true, trigger_be_attack_SFX)
 
 ## 死亡不消失(海草\被碾压)
 func character_death_not_disappear():

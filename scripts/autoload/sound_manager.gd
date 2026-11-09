@@ -7,6 +7,8 @@ enum Bus {MASTER, BGM, SFX}
 @onready var sfx_all: Node = $SFXAll
 @onready var crazy_dave_player: AudioStreamPlayer = $SFXAll/CrazyDavePlayer
 @onready var rain_player: AudioStreamPlayer = $SFXAll/RainPlayer
+## Boss 阶段咆哮播放器，独立于短音效的重复播放过滤。
+@onready var boss_phase_roar_player: AudioStreamPlayer = $SFXAll/BossPhaseRoar
 
 ## 当前帧播放的音效(每隔25物理帧清除一次)
 ## 音效每25物理帧内不可以重复播放
@@ -111,8 +113,6 @@ const SFXBulletMap := {
 
 ## 植物\僵尸音效字典
 const SFXCharacterMap := {
-	## Shared Boss phase-change roar (CC0 JoelAudio); existing pooled SFX bus.
-	&"boss_phase_transition": preload("res://assets/audio/SFX/zombie/black_general_phase_transition_roar.ogg"),
 	## -------------------------------植物-------------------------------
 	## 豌豆射手发射字典
 	&"Throw":[
@@ -331,6 +331,11 @@ func play_character_SFX(option:StringName):
 		sfx_resource = SFXCharacterMap[option]
 	var player: AudioStreamPlayer = play_sfx_with_pool(sfx_resource)
 	return player
+
+
+## 播放阶段龙咆哮，沿用战斗 SFX 总线与音量设置。
+func play_boss_phase_roar() -> void:
+	boss_phase_roar_player.play()
 
 
 ## 播放戴夫音效

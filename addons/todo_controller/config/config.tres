@@ -373,10 +373,8 @@ script_list_meta = {
 "res://scripts/ui/main_game_ui/ui_flag_progress_bar_flag.gd": [-1, -1],
 "res://scripts/ui/main_game_ui/ui_remind_word.gd": [-1, -1],
 "res://scripts/ui/reminder_information.gd": [-1, -1],
-"res://scripts/ui/start_menu/start_menu_option_dialog.gd": [-1, -1],
 "res://scripts/ui/start_menu/start_menu_root.gd": [-1, -1],
-"res://scripts/ui/ui_main_game_menu/canvas_layer_control.gd": [-1, -1],
-"res://scripts/ui/ui_main_game_menu/main_game_menu_option_dialog.gd": [-1, -1],
+"res://scripts/ui/ui_main_game_menu/battle_pause_menu.gd": [-1, -1],
 "res://scripts/util/image_combiner.gd": [-1, -1],
 "res://scripts/util/speed_timer.gd": [-1, -1]
 }

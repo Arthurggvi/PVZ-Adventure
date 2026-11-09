@@ -52,14 +52,18 @@ func _run() -> void:
 		down.pressed = false
 		Input.parse_input_event(down)
 		await get_tree().create_timer(0.3).timeout
-		var panel: Control = menu.get_node("StartMenuOptionDialog" if name == "options" else "Dialog_Help") # 原设置或帮助面板。
-		assert(panel.visible)
 		if name == "options":
-			panel.return_button_pressed()
+			var settings: GameSettingsWindow = AdventureToolbar.modal_for("settings") # 主菜单和工具栏共用的设置窗口。
+			assert(is_instance_valid(settings) and settings.visible)
+			settings.request_close()
+			await get_tree().create_timer(0.2).timeout
+			assert(AdventureToolbar.modal_for("settings") == null)
 		else:
+			var panel: Control = menu.get_node("Dialog_Help") # 原帮助面板仍由菜单宿主管理。
+			assert(panel.visible)
 			panel._on_button_pressed()
-		await get_tree().create_timer(0.2).timeout
-		assert(not panel.visible)
+			await get_tree().create_timer(0.2).timeout
+			assert(not panel.visible)
 	# 精简自检仅核对单实例、正式时序与四帧资源，不等待或录制动画。
 	var bird: Node2D = menu.art_canvas.get_node("CrowFlyby") # 唯一装饰实例。
 	assert(bird.interval_min_seconds == 14.0 and bird.interval_max_seconds == 26.0 and bird.flap_fps == 7.0)
@@ -89,7 +93,11 @@ func _run() -> void:
 	# 原生设置滑块继续控制原 BGM 总线，静音与总音量不会被切场景重置。
 	var bus := AudioServer.get_bus_index("BGM") # 既有音乐总线。
 	var master := AudioServer.get_bus_index("Master") # 既有总音量总线。
-	get_tree().current_scene.get_node("StartMenuOptionDialog/Option/Music/HSlider").value = 0.3
+	get_tree().current_scene._on_option_button_1_pressed()
+	var audio_settings := AdventureToolbar.modal_for("settings") as GameSettingsWindow # 通过共用窗口调节音量。
+	audio_settings.get_node("Panel/General/BGM").value = 0.3
+	audio_settings.request_close()
+	await audio_settings.closed
 	var volume := AudioServer.get_bus_volume_db(bus) # 滑块设置后的实际音量。
 	AudioServer.set_bus_mute(bus, true)
 	AudioServer.set_bus_volume_db(master, -8.0)

@@ -883,7 +883,7 @@ const ZombieBossInfo = {
 		ZombieBossInfoAttribute.CoolTime: 0,
 	},
 	ZombieBossType.ZB002BlackGeneral: {
-		ZombieBossInfoAttribute.BossName: "黑将军",
+		ZombieBossInfoAttribute.BossName: "ZB002BlackGeneral",
 		ZombieBossInfoAttribute.BossScenes: preload("res://scenes/character/zombie_boss/zombie_boss_002_black_general.tscn"),
 		ZombieBossInfoAttribute.SunCost: 10000,
 		ZombieBossInfoAttribute.CoolTime: 0,

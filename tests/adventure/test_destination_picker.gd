@@ -100,7 +100,7 @@ func _run() -> void:
 		get_tree().root.size = Vector2i(1066, 600)
 		await _frames()
 		await _mouse_click(menu.get_node("ArtCanvas/options_button"))
-		assert(not menu.get_node("StartMenuOptionDialog").visible)
+		assert(AdventureToolbar.modal_for("settings") == null)
 		await _mouse_click(locked)
 		get_viewport().gui_release_focus()
 		locked.grab_focus()

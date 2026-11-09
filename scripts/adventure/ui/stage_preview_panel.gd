@@ -32,6 +32,8 @@ const DROP_GAP := 8.0
 const ENEMY_ROW := 84.0
 const BLOCK_GAP := 20.0
 const ALMANAC_WINDOW := "res://assets/image/Almanac/Almanac_ZombieWindow.png"
+## 黑将军还没有卡牌静态模板，直接复用他的纯视觉场景做悬停头像。
+const BLACK_GENERAL_VISUAL := "res://scenes/character/zombie_boss/black_general_visual.tscn"
 ## 面板底色与滚动边界渐隐高度。
 const PANEL_COLOR := Color("12211cee")
 const EDGE_FADE := 24.0
@@ -313,6 +315,9 @@ func _portrait(parent: Control, pos: Vector2, entry: Dictionary) -> void:
 	var role: int = int(entry.get("type", 0))
 	if role <= 0:
 		return
+	if boss and role == CharacterRegistry.ZombieBossType.ZB002BlackGeneral:
+		_black_general_portrait(holder)
+		return
 	var reference := ResourceCardReference.create(
 		ResourceCardReference.CardType.ZombieBoss if boss else ResourceCardReference.CardType.Zombie, role)
 	if AllCards.get_template(reference) == null: # 未注册卡牌模板的物种不打印错误，只留空窗口。
@@ -323,6 +328,28 @@ func _portrait(parent: Control, pos: Vector2, entry: Dictionary) -> void:
 	holder.add_child(preview)
 	preview.position = Vector2(35, 41) if boss else Vector2(40, 46)
 	preview.scale = Vector2.ONE * (1.0 if boss else 1.6)
+
+## 黑将军的纯视觉场景按缩略图尺寸摆好，并停在 idle 第一帧。
+func _black_general_portrait(holder: Control) -> void:
+	var packed := load(BLACK_GENERAL_VISUAL) as PackedScene
+	if packed == null:
+		return
+	var preview := packed.instantiate() as BlackGeneralVisual
+	if preview == null:
+		return
+	preview.position = Vector2(38, 69)
+	preview.scale = Vector2.ONE * 0.48
+	preview.ready.connect(_pose_black_general.bind(preview), CONNECT_ONE_SHOT)
+	holder.add_child(preview)
+
+func _pose_black_general(preview: BlackGeneralVisual) -> void:
+	if not is_instance_valid(preview):
+		return
+	preview.play_action(&"idle")
+	var player: AnimationPlayer = preview.get_node_or_null("AnimationPlayer") as AnimationPlayer
+	if player != null:
+		player.seek(0.0, true)
+		player.pause()
 
 ## 等阶徽章：底色与文字都取等阶目录的配色，1 阶为白色。
 func _chip(badge: Dictionary) -> Label:

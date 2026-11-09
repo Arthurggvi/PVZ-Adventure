@@ -168,8 +168,8 @@ func _run() -> void:
 	# 未判胜时主动退出，不能解锁；菜单按钮文字与真实目的地一致。
 	AdventureSession.enter_lawn()
 	await _wait_battle()
-	var battle_menu := Global.main_game.get_node("CanvasLayerUI/All_UI/MainGameMenuOptionDialog") # 原战斗菜单。
-	assert(battle_menu.get_node("Option/Button3/Label").text == "返回地图")
+	var battle_menu := Global.main_game.get_node("%BattlePauseMenu") # 独立的战斗暂停菜单。
+	assert(battle_menu.get_node("Actions/ExitButton/Label").text == "返回地图")
 	battle_menu.return_main_menu()
 	await _frames()
 	assert(not AdventureSession.progress.stage_1_cleared)

@@ -29,7 +29,7 @@
 - `project.godot`：注册 AdventureSession。
 - `scripts/ui/start_menu/start_menu_root.gd`：原冒险按钮打开新游戏/继续选择。
 - `scripts/manager/main_game_manager.gd`：独立胜负结算、失败后返回地图、跳过冒险的原版关卡保存。
-- `scripts/ui/ui_main_game_menu/main_game_menu_option_dialog.gd`：冒险重试和返回地图。
+- `scripts/ui/ui_main_game_menu/battle_pause_menu.gd`：冒险重试和返回地图。
 - `scripts/ui/main_game_ui/trophy.gd`：冒险奖杯不触发原版进度保存。
 
 新增业务文件（每个 GDScript 均少于 200 行，附 Godot 自动生成的 `.gd.uid`）：

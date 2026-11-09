@@ -21,7 +21,7 @@ func start_grap_zombie():
 		return
 	# 同步检查范围和受击窗口，避免对已抬头的僵王开始攻击。
 	var enemy: Character000Base = detect_component.update_first_enemy()
-	if not (enemy is Zombie000Base or enemy is ZB000Base):
+	if not (enemy is Zombie000Base or enemy is ZB000Base or enemy is EnemyStructureBase):
 		return
 	_is_attacking = true
 	detect_component.disable_component(ComponentNormBase.E_IsEnableFactor.Attack)
@@ -30,7 +30,7 @@ func start_grap_zombie():
 
 ## [param target_zombie] 已确认的本次目标。普通僵尸拖入水中，僵王只扣血，两者都会消耗海草。
 func grap_in_pool(target_zombie:Character000Base):
-	if target_zombie is ZB000Base:
+	if target_zombie is ZB000Base or target_zombie is EnemyStructureBase:
 		target_zombie.be_attacked_bullet(battle_damage(boss_attack_value), BulletRegistry.AttackMode.Penetration, false, false)
 	elif target_zombie is Zombie000Base:
 		grap_component.activate_it_to_grap_zombie(target_zombie)

@@ -16,6 +16,8 @@ const BACKING_POSITION := (Vector2(86, 96) - BACKING_SIZE) * 0.5
 const ICON_SIZE := BACKING_SIZE * (58.0 / 68.0)
 ## 前景与底图共用格子中心。
 const ICON_POSITION := (Vector2(86, 96) - ICON_SIZE) * 0.5
+## 方形装备槽居中于 86 × 96 的格子，底图边缘略压在槽框内沿下方。
+const EQUIPMENT_BACKING_BOUNDS := Rect2(6, 11, 74, 74)
 var record: Dictionary = {}
 var index := -1
 var drag_allowed := false
@@ -59,6 +61,11 @@ func setup(value: Dictionary, target: int, may_drag: bool, plants_tab: bool = fa
 			card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	elif str(record.get("kind", "")) == "icon":
 		# 独立图标投影仅包含表现数据，装备等新领域无需进入普通道具目录。
+		var backing_texture: Texture2D = record.get("backing") as Texture2D # 装备底图可选，普通格子仍用原底色。
+		if backing_texture != null:
+			var backing: TextureRect = Art.image(self, "", EQUIPMENT_BACKING_BOUNDS.position, EQUIPMENT_BACKING_BOUNDS.size) # 先画底图，槽框在最上层收边。
+			backing.texture = backing_texture
+			backing.stretch_mode = TextureRect.STRETCH_SCALE
 		var icon: TextureRect = Art.image(self, "", ICON_POSITION, ICON_SIZE) # 复用背包原生图标比例和边框。
 		icon.texture = record.get("icon") as Texture2D
 		var badge: String = str(record.get("badge", "")) # 可选状态角标，不等同于道具数量。

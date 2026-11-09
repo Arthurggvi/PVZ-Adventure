@@ -13,7 +13,7 @@ enum PlantFilter { UNSET, ANY, SPECIFIC }
 ## Boss 离场原因过滤，不隐式把所有离场当死亡。
 enum BossExitReason { UNSET, ANY, DEFEATED, ESCAPED }
 ## 动作仅是枚举与参数，P1-A 不提供任何执行器。
-enum Action { UNSET = 0, SPAWN_ZOMBIES = 3, BEGIN_BOSS_ENCOUNTER = 4, REQUEST_DROP = 5, SET_REGION_FLAG = 6, FINISH_BATTLE = 7, MODIFY_CARD_COOLDOWN = 8 }
+enum Action { UNSET = 0, SPAWN_ZOMBIES = 3, BEGIN_BOSS_ENCOUNTER = 4, REQUEST_DROP = 5, SET_REGION_FLAG = 6, FINISH_BATTLE = 7, MODIFY_CARD_COOLDOWN = 8, SPAWN_TOMBSTONES = 9 }
 enum CooldownScope { UNSET, ALL_SELECTED, PLANT_TYPE }
 enum CooldownOperation { UNSET, NEXT_USE_MULTIPLIER, ADJUST_REMAINING_SECONDS }
 ## 标记动作的布尔目标值必须显式选择。
@@ -138,6 +138,9 @@ func _validate_action(known_tier_ids: Array[StringName], encounter_ids: Array[St
 		if action_zombie_type == CharacterRegistry.ZombieType.Null or not CharacterRegistry.ZombieType.values().has(action_zombie_type) \
 			or str(action_tier_id).strip_edges().is_empty() or not known_tier_ids.has(action_tier_id) or action_count < 1:
 			errors.append("生成动作的普通僵尸、等阶或数量参数无效。")
+	elif action == Action.SPAWN_TOMBSTONES:
+		if action_count < 1 or action_zombie_type != CharacterRegistry.ZombieType.Null or action_tier_id != &"":
+			errors.append("墓碑生成事件只能配置正数量，不能设置僵尸物种或等阶")
 	elif action_zombie_type != CharacterRegistry.ZombieType.Null or action_tier_id != &"" or action_count != 0:
 		errors.append("非生成动作不能残留僵尸生成参数。")
 	if action == Action.BEGIN_BOSS_ENCOUNTER:

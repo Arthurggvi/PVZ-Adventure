@@ -1,0 +1,79 @@
+## 冲锋的移动及扫掠伤害；不控制动画、阶段、召唤或动作调度。
+extends RefCounted
+class_name BlackGeneralCharge
+
+## 本次冲锋已命中的植物 ID，防止一株高血植物每帧重复受伤。
+var _hit: Dictionary[int, bool] = {}
+## 本次累计撞死植物数。
+var _kills: int = 0
+## 零表示不限制撞死数，只在第二列停止。
+var _kill_limit: int = 0
+## 执行中的冲锋开关。
+var active: bool = false
+
+## [param kill_limit] 一阶段为 2；二阶段/转阶段为 0。
+func begin(kill_limit: int) -> void:
+	_hit.clear()
+	_kills = 0
+	_kill_limit = kill_limit
+	active = true
+
+## 取消后不会保留命中历史或继续移动。
+func cancel() -> void:
+	active = false
+	_hit.clear()
+
+## [param cells] 当前行格子。返回第二列右侧的停止线，用于判断转阶段是否还有冲锋距离。
+func stop_line(cells: Array) -> float:
+	var row: Array = _ordered_row(cells) # 从左到右的场地行副本。
+	return _second_column_edge(row) if row.size() >= 2 else INF
+
+## [param cells] 当前行格子。返回按画面坐标排序的副本，不改变关卡布局。
+func _ordered_row(cells: Array) -> Array:
+	var row: Array = cells.duplicate() # 只排序副本，不改变场地原始布局。
+	row.sort_custom(func(a: PlantCell, b: PlantCell) -> bool: return a.global_position.x < b.global_position.x)
+	return row
+
+## [param row] 至少两格且已按 X 排序的行。返回受保护第二列的右边界。
+func _second_column_edge(row: Array) -> float:
+	var second: PlantCell = row[1] # 画面第二列。
+	return second.get_global_rect().end.x
+
+## [param boss] 本次冲锋角色；[param cells] 所在行格子；[param delta] 已乘角色速度的秒数。
+## 返回是否完成；扫描整个移动区间，低帧率也不会跳过植物或碰到第二列植物。
+func advance(boss: ZB002BlackGeneral, cells: Array, delta: float) -> bool:
+	if not active or cells.size() < 2:
+		active = false
+		return true
+	var row: Array = _ordered_row(cells) # 从右向左遍历这一份有序副本。
+	var stop_x: float = _second_column_edge(row) # 第二列右边界，禁止进入受保护格。
+	var from_x: float = boss.global_position.x # 本帧移动起点。
+	var to_x: float = maxf(stop_x, from_x - boss.config.charge_speed * delta) # 裁剪后的移动终点。
+	for column: int in range(row.size() - 1, 1, -1): # 第三列至最右列，从右向左结算。
+		var cell: PlantCell = row[column] # 本次扫过的格子。
+		var bounds: Rect2 = cell.get_global_rect() # 格子世界范围；从格内开始冲锋也能命中。
+		if bounds.position.x >= from_x or bounds.end.x <= to_x:
+			continue
+		for reference: Variant in cell.plant_in_cell.values(): # 可在伤害回调中被删除的植物快照。
+			if not is_instance_valid(reference) or not reference is Plant000Base:
+				continue
+			var plant: Plant000Base = reference # 已检查类型的活体引用。
+			if plant.is_death or plant.is_queued_for_deletion() or not plant.hurt_box_component.is_enabling \
+				or _hit.has(plant.get_instance_id()):
+				continue
+			_hit[plant.get_instance_id()] = true
+			# 致死前复制压扁表现，扣血仍只经过一次生命组件，不对高血植物执行处决。
+			if plant.hp_component.resolve_damage(boss.config.charge_damage) >= plant.hp_component.curr_hp:
+				plant.body.be_flattened_body()
+			plant.be_attacked_bullet(boss.config.charge_damage, BulletRegistry.AttackMode.Penetration, false, false)
+			if plant.is_death:
+				_kills += 1
+			if boss.is_death or not active:
+				return true
+			if _kill_limit > 0 and _kills >= _kill_limit:
+				boss.global_position.x = minf(from_x, bounds.end.x)
+				active = false
+				return true
+	boss.global_position.x = to_x
+	active = to_x > stop_x
+	return not active

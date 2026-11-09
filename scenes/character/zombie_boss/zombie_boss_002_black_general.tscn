@@ -7,20 +7,23 @@
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/helmet.png" id="portrait"]
 
 [sub_resource type="CapsuleShape2D" id="boss_hurt"]
-radius = 33.0
-height = 145.0
+radius = 41.25
+height = 181.25
 
 [node name="ZB002BlackGeneral" instance=ExtResource("base")]
 script = ExtResource("boss")
 boss_display_name = "黑将军"
+phase_two_threshold_inclusive = false
+play_phase_roar_on_threshold = false
 boss_portrait_texture = ExtResource("portrait")
 random_speed_range = Vector2(1, 1)
 
 [node name="Shadow" parent="." index="0"]
-scale = Vector2(1.65, 0.7)
+scale = Vector2(2.0625, 0.875)
 
 [node name="BlackGeneralVisual" parent="Body" index="0" instance=ExtResource("visual")]
-position = Vector2(0, -70)
+position = Vector2(0, -11.5)
+scale = Vector2(1.25, 1.25)
 
 [node name="AnimComponent" parent="." index="3"]
 script = ExtResource("anim")
@@ -30,10 +33,8 @@ max_hp = 120000
 
 [node name="HpControl" type="Control" parent="HpComponent"]
 unique_name_in_owner = true
-offset_left = 30.0
-offset_top = -190.0
-offset_right = 30.0
-offset_bottom = -190.0
+offset_top = -205.0
+offset_bottom = -205.0
 mouse_filter = 2
 
 [node name="ProgressBarHp" type="ProgressBar" parent="HpComponent/HpControl"]
@@ -64,11 +65,11 @@ vertical_alignment = 1
 position = Vector2(0, 0)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection"]
-position = Vector2(30, -88)
+position = Vector2(0, -92)
 shape = SubResource("boss_hurt")
 
 [node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal"]
-position = Vector2(30, -88)
+position = Vector2(0, -92)
 shape = SubResource("boss_hurt")
 
 [node name="TrophySpawnPoint" type="Marker2D" parent="."]

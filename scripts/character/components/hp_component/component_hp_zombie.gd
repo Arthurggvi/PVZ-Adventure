@@ -91,6 +91,9 @@ func get_all_hp():
 ## [is_drop_2:bool] 是否有掉落额外条件
 ## return bool: 返回是否死亡
 func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm, is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true):
+	# 固定伤害类型在各自确定实际伤害后减格挡；普通伤害在护甲分流前减一次。
+	if bullet_mode not in [BulletRegistry.AttackMode.BowlingFront, BulletRegistry.AttackMode.BowlingSide, BulletRegistry.AttackMode.Hammer]:
+		attack_value = resolve_damage(attack_value)
 	var ori_hp = get_all_hp()
 	## 掉血标志, 1:本体 2:一类防具 4:二类防具
 	var flag_loss:int = 0
@@ -173,21 +176,21 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 			if curr_hp_armor2 > 0:
 
 				# 如果为正面,无溢出伤害对二类防具造成400血量
-				curr_hp_armor2 -= 400
+				curr_hp_armor2 -= resolve_damage(400)
 				attack_value = 0
 				flag_loss |= 4
 
 			# 如果有一类防具
 			if curr_hp_armor1 > 0 and attack_value > 0:
 				## 对一类防具造成无溢出伤害800
-				curr_hp_armor1 -= 800
+				curr_hp_armor1 -= resolve_damage(800)
 				attack_value = 0
 				flag_loss |= 2
 
 			# 血量>0
 			if curr_hp > 0 and attack_value > 0:
 				#若有溢出伤害或没有防具 对僵尸本体造成1800伤害
-				curr_hp -= 1800
+				curr_hp -= resolve_damage(1800)
 				flag_loss |= 1
 
 		## 保龄球侧面子弹
@@ -197,20 +200,20 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 			# 如果有二类防具，先对二类防具掉血，若二类防具血量<0, 修改
 			if curr_hp_armor2 > 0:
 				#如果为侧面,二类防具造成1800血量， 溢出伤害1800
-				curr_hp_armor2 -= 1800
+				curr_hp_armor2 -= resolve_damage(1800)
 				attack_value = 1800
 				flag_loss |= 4
 			# 如果有一类防具
 			if curr_hp_armor1 > 0 and attack_value > 0:
 				## 对一类防具造成无溢出伤害800
-				curr_hp_armor1 -= 800
+				curr_hp_armor1 -= resolve_damage(800)
 				attack_value = 0
 				flag_loss |= 2
 
 			# 血量>0
 			if curr_hp > 0 and attack_value > 0:
 				#若有溢出伤害或没有防具 对僵尸本体造成1800伤害
-				curr_hp -= 1800
+				curr_hp -= resolve_damage(1800)
 				flag_loss |= 1
 
 		## 锤子
@@ -221,7 +224,7 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 			# 如果有一类防具
 			if curr_hp_armor1 > 0 and attack_value > 0:
 				## 对一类防具造成无溢出伤害800
-				curr_hp_armor1 -= 900
+				curr_hp_armor1 -= resolve_damage(900)
 				attack_value = 0
 				flag_loss |= 2
 

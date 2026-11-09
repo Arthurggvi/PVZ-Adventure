@@ -49,7 +49,7 @@
 [ext_resource type="Script" uid="uid://3j46ottso760" path="res://scripts/ui/main_game_ui/main_game_menu_button.gd" id="26_84h1o"]
 [ext_resource type="Texture2D" uid="uid://toxyk2jadqam" path="res://assets/image/ui/ui_main_game_menu/option_dialog.png" id="27_w5iw5"]
 [ext_resource type="Texture2D" uid="uid://dfjdwrmbaotyx" path="res://assets/image/background/background5_gameover_mask.png" id="28_71hfq"]
-[ext_resource type="Script" uid="uid://djkmy1xylm8hs" path="res://scripts/ui/ui_main_game_menu/main_game_menu_option_dialog.gd" id="28_mddbc"]
+[ext_resource type="Script" uid="uid://djkmy1xylm8hs" path="res://scripts/ui/ui_main_game_menu/battle_pause_menu.gd" id="28_mddbc"]
 [ext_resource type="Script" uid="uid://parybxg7tb1k" path="res://scripts/ui/PVZ_button_base.gd" id="29_8fvtd"]
 [ext_resource type="Script" uid="uid://lu0twrv0u1t0" path="res://scripts/main_game_canvas_layer/canvas_layer_card_slot.gd" id="30_b6ai2"]
 [ext_resource type="PackedScene" uid="uid://b2xxhep8oyipk" path="res://scenes/item/coin_bank_label.tscn" id="30_xh73d"]
@@ -57,7 +57,6 @@
 [ext_resource type="Texture2D" uid="uid://blge6mwmus5fv" path="res://assets/image/ui/ui_main_game_menu/btn_dialog_back_2.png" id="33_w0404"]
 [ext_resource type="Script" uid="uid://c5llwle352r6f" path="res://scripts/manager/card_manager.gd" id="34_5pjpf"]
 [ext_resource type="PackedScene" uid="uid://cp0kgnsx20pyh" path="res://scenes/ui/dialog.tscn" id="34_8fvtd"]
-[ext_resource type="PackedScene" uid="uid://5v0fdtao52jl" path="res://scenes/main/control_canvas_layer.tscn" id="34_ifnc6"]
 [ext_resource type="Script" uid="uid://2kldvd28hidq" path="res://scripts/ui/card/card_slot/card_slot_root.gd" id="35_ee3wa"]
 [ext_resource type="Script" uid="uid://bw0stsbito4w" path="res://scripts/main_game_item/real_shovel.gd" id="35_mjx71"]
 [ext_resource type="Texture2D" uid="uid://deo4mo3s7clx4" path="res://assets/image/background/background6_gameover_mask.png" id="36_8dwa7"]
@@ -769,7 +768,7 @@ text = "菜单"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MainGameMenuOptionDialog" type="TextureRect" parent="CanvasLayerUI/All_UI" unique_id=575921648]
+[node name="BattlePauseMenu" type="TextureRect" parent="CanvasLayerUI/All_UI" unique_id=575921648]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(412, 483)
@@ -790,7 +789,7 @@ expand_mode = 1
 stretch_mode = 3
 script = ExtResource("28_mddbc")
 
-[node name="Option" type="Control" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog" unique_id=527623709]
+[node name="Actions" type="Control" parent="CanvasLayerUI/All_UI/BattlePauseMenu" unique_id=527623709]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -805,68 +804,14 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option" unique_id=2140354086]
+[node name="TimeScale" type="Control" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions" unique_id=1870653596]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-theme_override_constants/separation = 10
-
-[node name="Music" type="Control" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/VBoxContainer" unique_id=1178401887]
-custom_minimum_size = Vector2(220, 30)
-layout_mode = 2
-mouse_filter = 1
-
-[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/VBoxContainer/Music" unique_id=552360551]
-layout_mode = 0
-offset_left = 7.71088
-offset_top = 4.20592
-offset_right = 47.7109
-offset_bottom = 27.2059
-theme_type_variation = &"Label2"
-text = "音乐"
-
-[node name="HSlider" type="HSlider" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/VBoxContainer/Music" unique_id=316759424]
-layout_mode = 0
-offset_left = 62.0
-offset_top = 1.0
-offset_right = 212.0
-offset_bottom = 31.0
-mouse_filter = 1
-max_value = 1.0
-step = 0.01
-value = 0.5
-
-[node name="SoundEffect" type="Control" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/VBoxContainer" unique_id=1308272446]
-custom_minimum_size = Vector2(220, 30)
-layout_mode = 2
+offset_top = 74.0
+offset_right = 220.0
+offset_bottom = 104.0
 mouse_filter = 2
 
-[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/VBoxContainer/SoundEffect" unique_id=1927189430]
-layout_mode = 0
-offset_left = 7.71088
-offset_top = 4.20592
-offset_right = 47.7109
-offset_bottom = 27.2059
-theme_type_variation = &"Label2"
-text = "音效"
-
-[node name="HSlider" type="HSlider" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/VBoxContainer/SoundEffect" unique_id=1837129687]
-layout_mode = 0
-offset_left = 62.0
-offset_top = 1.0
-offset_right = 212.0
-offset_bottom = 30.0
-mouse_filter = 1
-max_value = 1.0
-step = 0.01
-value = 0.5
-
-[node name="TimeScale" type="Control" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/VBoxContainer" unique_id=1870653596]
-custom_minimum_size = Vector2(220, 30)
-layout_mode = 2
-mouse_filter = 2
-
-[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/VBoxContainer/TimeScale" unique_id=1176064521]
+[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/TimeScale" unique_id=1176064521]
 layout_mode = 0
 offset_left = 7.71088
 offset_top = 4.20592
@@ -875,7 +820,7 @@ offset_bottom = 27.2059
 theme_type_variation = &"Label2"
 text = "倍速 1.0 倍"
 
-[node name="HSlider" type="HSlider" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/VBoxContainer/TimeScale" unique_id=2133815127]
+[node name="HSlider" type="HSlider" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/TimeScale" unique_id=2133815127]
 layout_mode = 0
 offset_left = 115.0
 offset_top = 1.0
@@ -887,7 +832,7 @@ max_value = 3.0
 step = 0.5
 value = 1.0
 
-[node name="Button1" type="BaseButton" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option" unique_id=1310873908]
+[node name="AlmanacButton" type="BaseButton" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions" unique_id=1310873908]
 unique_name_in_owner = false
 process_mode = 0
 process_priority = 0
@@ -982,7 +927,7 @@ shortcut_in_tooltip = true
 script = ExtResource("29_8fvtd")
 metadata/_custom_type_script = "uid://parybxg7tb1k"
 
-[node name="Panel" type="Panel" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button1" unique_id=1084059827]
+[node name="Panel" type="Panel" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/AlmanacButton" unique_id=1084059827]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -992,7 +937,7 @@ grow_vertical = 2
 mouse_filter = 2
 theme_type_variation = &"PanelButtonBG"
 
-[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button1" unique_id=1842834649]
+[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/AlmanacButton" unique_id=1842834649]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1003,11 +948,11 @@ text = "查看图鉴"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CanvasLayerAlmanac" type="CanvasLayer" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button1" unique_id=1108166322]
+[node name="CanvasLayerAlmanac" type="CanvasLayer" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/AlmanacButton" unique_id=1108166322]
 unique_name_in_owner = true
 layer = 60
 
-[node name="Button4" type="BaseButton" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option" unique_id=757392984]
+[node name="SettingsButton" type="BaseButton" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions" unique_id=757392984]
 unique_name_in_owner = false
 process_mode = 0
 process_priority = 0
@@ -1102,7 +1047,7 @@ shortcut_in_tooltip = true
 script = ExtResource("29_8fvtd")
 metadata/_custom_type_script = "uid://parybxg7tb1k"
 
-[node name="Panel" type="Panel" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button4" unique_id=834266373]
+[node name="Panel" type="Panel" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/SettingsButton" unique_id=834266373]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1112,23 +1057,18 @@ grow_vertical = 2
 mouse_filter = 2
 theme_type_variation = &"PanelButtonBG"
 
-[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button4" unique_id=1525558884]
+[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/SettingsButton" unique_id=1525558884]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "选项设置"
+text = "设置"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="CanvasLayerConsole" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button4" unique_id=1652481692 instance=ExtResource("34_ifnc6")]
-unique_name_in_owner = true
-layer = 60
-visible = false
-
-[node name="Button2" type="BaseButton" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option" unique_id=736466409]
+[node name="RestartButton" type="BaseButton" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions" unique_id=736466409]
 unique_name_in_owner = false
 process_mode = 0
 process_priority = 0
@@ -1223,7 +1163,7 @@ shortcut_in_tooltip = true
 script = ExtResource("29_8fvtd")
 metadata/_custom_type_script = "uid://parybxg7tb1k"
 
-[node name="Panel" type="Panel" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button2" unique_id=1765823235]
+[node name="Panel" type="Panel" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/RestartButton" unique_id=1765823235]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1233,7 +1173,7 @@ grow_vertical = 2
 mouse_filter = 2
 theme_type_variation = &"PanelButtonBG"
 
-[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button2" unique_id=497133026]
+[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/RestartButton" unique_id=497133026]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1244,7 +1184,7 @@ text = "重新开始"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Button3" type="BaseButton" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option" unique_id=90427717]
+[node name="ExitButton" type="BaseButton" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions" unique_id=90427717]
 unique_name_in_owner = false
 process_mode = 0
 process_priority = 0
@@ -1339,7 +1279,7 @@ shortcut_in_tooltip = true
 script = ExtResource("29_8fvtd")
 metadata/_custom_type_script = "uid://parybxg7tb1k"
 
-[node name="Panel" type="Panel" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button3" unique_id=517870225]
+[node name="Panel" type="Panel" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/ExitButton" unique_id=517870225]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1349,7 +1289,7 @@ grow_vertical = 2
 mouse_filter = 2
 theme_type_variation = &"PanelButtonBG"
 
-[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button3" unique_id=132854706]
+[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/ExitButton" unique_id=132854706]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -1360,7 +1300,7 @@ text = "主菜单"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Return" type="TextureButton" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog" unique_id=1827321088]
+[node name="Return" type="TextureButton" parent="CanvasLayerUI/All_UI/BattlePauseMenu" unique_id=1827321088]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -1378,7 +1318,7 @@ texture_pressed = ExtResource("33_w0404")
 texture_click_mask = ExtResource("30_xvvqk")
 script = ExtResource("29_8fvtd")
 
-[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Return" unique_id=64473678]
+[node name="Label" type="Label" parent="CanvasLayerUI/All_UI/BattlePauseMenu/Return" unique_id=64473678]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -1476,9 +1416,9 @@ debug_color = Color(0, 0.6, 0.69803923, 0.20392157)
 [connection signal="timeout" from="Manager/ZombieManager/CheckZombieEndWaveTimer" to="Manager/ZombieManager" method="_on_check_zombie_end_wave_timer_timeout"]
 [connection signal="area_entered" from="CanvasLayerBG/Background/Home/Area2DHome" to="CanvasLayerBG/Background/Home" method="_on_area_2d_home_area_entered"]
 [connection signal="pressed" from="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/UIShovel/Button" to="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/UIShovel" method="_on_button_pressed"]
-[connection signal="pressed" from="CanvasLayerUI/All_UI/MainGameMenuButton" to="CanvasLayerUI/All_UI/MainGameMenuOptionDialog" method="appear_menu"]
-[connection signal="pressed" from="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button1" to="CanvasLayerUI/All_UI/MainGameMenuOptionDialog" method="encyclopedia"]
-[connection signal="pressed" from="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button4" to="CanvasLayerUI/All_UI/MainGameMenuOptionDialog" method="_on_button_console_pressed"]
-[connection signal="pressed" from="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button2" to="CanvasLayerUI/All_UI/MainGameMenuOptionDialog" method="resume_game"]
-[connection signal="pressed" from="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Option/Button3" to="CanvasLayerUI/All_UI/MainGameMenuOptionDialog" method="return_main_menu"]
-[connection signal="pressed" from="CanvasLayerUI/All_UI/MainGameMenuOptionDialog/Return" to="CanvasLayerUI/All_UI/MainGameMenuOptionDialog" method="return_button_pressed"]
+[connection signal="pressed" from="CanvasLayerUI/All_UI/MainGameMenuButton" to="CanvasLayerUI/All_UI/BattlePauseMenu" method="appear_menu"]
+[connection signal="pressed" from="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/AlmanacButton" to="CanvasLayerUI/All_UI/BattlePauseMenu" method="encyclopedia"]
+[connection signal="pressed" from="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/SettingsButton" to="CanvasLayerUI/All_UI/BattlePauseMenu" method="_open_settings"]
+[connection signal="pressed" from="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/RestartButton" to="CanvasLayerUI/All_UI/BattlePauseMenu" method="restart_battle"]
+[connection signal="pressed" from="CanvasLayerUI/All_UI/BattlePauseMenu/Actions/ExitButton" to="CanvasLayerUI/All_UI/BattlePauseMenu" method="return_main_menu"]
+[connection signal="pressed" from="CanvasLayerUI/All_UI/BattlePauseMenu/Return" to="CanvasLayerUI/All_UI/BattlePauseMenu" method="return_button_pressed"]

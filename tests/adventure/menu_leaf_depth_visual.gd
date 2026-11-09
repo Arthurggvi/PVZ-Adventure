@@ -14,12 +14,12 @@ func _run() -> void:
     var boat: CanvasItem = menu.get_node("ArtCanvas/ship")
     var btn: CanvasItem = menu.get_node("ArtCanvas/ship_button")
     var title: CanvasItem = menu.get_node("ArtCanvas/ship_button_title")
-    var profile: CanvasItem = menu.get_node("ArtCanvas/WoodSign")
+    var profile: CanvasItem = menu.get_node("AdventureProfileHud") # 头像框直接锚定视口，由场景根节点绘制。
     print("DEPTH_VALUES fall=",falling.z_index," boat=",boat.z_index," button=",btn.z_index," profile=",profile.z_index," panel=",panel.z_index)
     _expect(falling.z_index == 0 and boat.z_index == 0 and boat.get_index() < falling.get_index(), "world under overlay by sibling order")
     _expect(btn.z_index == 0 and title.z_index == 0 and profile.z_index == 0 and panel.z_index == 0, "no UI z-index overrides")
     _expect(btn.get_index() > falling.get_index() and title.get_index() > falling.get_index()
-        and profile.get_index() > falling.get_index() and panel.get_index() > falling.get_index(), "UI order above overlay")
+        and profile.get_index() > falling.get_parent().get_index() and panel.get_index() > falling.get_index(), "UI order above overlay")
     falling.set_process(false)
     for particle in falling.particles:
         particle.alive = false

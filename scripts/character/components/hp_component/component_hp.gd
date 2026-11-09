@@ -1,6 +1,13 @@
 extends Node2D
 class_name HpComponent
 
+## 单次伤害的通用固定格挡，普通生命与僵尸护甲共用同一入口。
+var damage_block := DamageBlockEffect.new()
+## 角色控制的无敌窗口；直接生命调整仍可通过专用旁路执行。
+var damage_immune: bool = false
+## 直接处决/存档恢复等非战斗扣血绕过格挡，避免改变原有语义。
+var _bypass_damage_block: bool = false
+
 ## 所属角色引用，用于按角色类型和初始化模式决定血条显示规则。
 @onready var owner_character: Character000Base = owner
 
@@ -43,6 +50,7 @@ signal signal_hp_loss(curr_hp:int, is_drop:bool)
 signal signal_hp_component_death
 
 func _ready() -> void:
+	damage_block.changed.connect(_on_damage_block_changed)
 	curr_hp = max_hp
 	## 出战角色连接信号，显示血量
 	if owner_character.character_init_type == Character000Base.E_CharacterInitType.IsNorm:
@@ -99,6 +107,7 @@ func get_all_hp():
 ## [param trigger_be_attack_SFX] 是否播放本次受击音效，false 时只处理扣血及相关信号。
 ## [param is_drop_2] 掉落的额外允许条件，需与死亡掉落选项同时满足。
 func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm, is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true):
+	attack_value = resolve_damage(attack_value)
 	curr_hp -= attack_value
 	# 本次血量变化是否允许触发掉落表现，由死亡掉落选项和额外条件共同决定。
 	var is_drop = not (owner.is_death and not is_drop_on_death) and is_drop_2
@@ -114,4 +123,28 @@ func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletReg
 ##[is_drop:bool]是否有掉落body
 ## [param is_drop] 是否允许本次伤害触发掉落表现。
 func Hp_loss_death(is_drop:=true):
-	Hp_loss(get_all_hp(),BulletRegistry.AttackMode.Norm, is_drop, false)
+	apply_unblocked_loss(get_all_hp(), BulletRegistry.AttackMode.Norm, is_drop, false)
+
+
+## 非战斗生命调整，供卸甲、处决和存档恢复使用；保留护甲分流及原有死亡/掉落信号。
+## [param amount] 调整量；[param mode] 分流类型；[param drop] 致死掉落；[param sfx] 音效；[param extra_drop] 额外掉落开关。
+func apply_unblocked_loss(amount: int, mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm,
+		drop: bool = true, sfx: bool = true, extra_drop: bool = true) -> void:
+	var previous: bool = _bypass_damage_block # 保存嵌套调用前的状态，避免回调覆盖外层上下文。
+	_bypass_damage_block = true
+	Hp_loss(amount, mode, drop, sfx, extra_drop)
+	_bypass_damage_block = previous
+
+
+## [param damage] 原始伤害；普通生命与护甲子类分别在各自分流前调用一次。
+func resolve_damage(damage: int) -> int:
+	if _bypass_damage_block:
+		return maxi(0, damage)
+	return 0 if damage_immune else damage_block.reduce(damage)
+
+
+## [param amount] 有效格挡；独立染色通道避免与冰冻、受击和阶段颜色互相覆盖。
+func _on_damage_block_changed(amount: int) -> void:
+	if is_instance_valid(owner_character) and is_instance_valid(owner_character.body):
+		owner_character.body.set_other_color(BodyCharacter.E_ChangeColors.DamageBlock,
+			Color(0.72, 1.0, 0.96) if amount > 0 else Color.WHITE)

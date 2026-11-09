@@ -72,8 +72,9 @@ func _on_custom_button_pressed() -> void:
 	get_tree().change_scene_to_file(Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.ChooseLevelCustom])
 
 #region 选项
+## 与工具栏齿轮共用同一个设置入口。
 func _on_option_button_1_pressed() -> void:
-	$StartMenuOptionDialog.appear_menu()
+	AdventureToolbar.toggle_settings()
 
 
 func _on_option_button_2_pressed() -> void:
@@ -84,11 +85,6 @@ func _on_option_button_3_pressed() -> void:
 	get_tree().quit()
 
 
-func _on_full_screen_button_toggled(toggled_on: bool) -> void:
-	if toggled_on:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-	else:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 #endregion
 
 

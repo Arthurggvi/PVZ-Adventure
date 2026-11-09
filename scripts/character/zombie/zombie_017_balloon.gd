@@ -15,7 +15,7 @@ func _process(_delta: float) -> void:
 	if is_zombie_mode:
 		if not is_pop and global_position.x < balloon_pop_glo_pos_x_in_zombie_mode:
 			hp_component = hp_component as HpComponentZombie
-			hp_component.Hp_loss(hp_component.curr_hp_armor1)
+			hp_component.apply_unblocked_loss(hp_component.curr_hp_armor1)
 
 ## 初始化正常出战角色信号连接
 func ready_norm_signal_connect():

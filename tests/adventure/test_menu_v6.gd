@@ -57,7 +57,11 @@ func _run() -> void:
 	# 原生设置滑块继续控制原 BGM 总线，静音与总音量不会被切场景重置。
 	var bus := AudioServer.get_bus_index("BGM") # 既有音乐总线。
 	var master := AudioServer.get_bus_index("Master") # 既有总音量总线。
-	get_tree().current_scene.get_node("StartMenuOptionDialog/Option/Music/HSlider").value = 0.3
+	get_tree().current_scene._on_option_button_1_pressed()
+	var audio_settings := AdventureToolbar.modal_for("settings") as GameSettingsWindow # 通过共用窗口调节音量。
+	audio_settings.get_node("Panel/General/BGM").value = 0.3
+	audio_settings.request_close()
+	await audio_settings.closed
 	var volume := AudioServer.get_bus_volume_db(bus) # 滑块设置后的实际音量。
 	AudioServer.set_bus_mute(bus, true)
 	AudioServer.set_bus_volume_db(master, -8.0)

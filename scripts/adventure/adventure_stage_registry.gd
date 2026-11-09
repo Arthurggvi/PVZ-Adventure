@@ -43,7 +43,9 @@ static func resolve(index: int) -> StageDefinition:
 		else:
 			override_path = ""
 	if not override_path.is_empty():
-		var override: StageDefinition = load(override_path) as StageDefinition
+		# 覆盖资源改完后重进地图即可生效，不因 ResourceCache 继续读旧值。
+		var override: StageDefinition = ResourceLoader.load(
+			override_path, "", ResourceLoader.CACHE_MODE_IGNORE) as StageDefinition
 		if override == null or override.stage_id != id:
 			push_error("关卡覆盖资源 ID 错误：" + override_path)
 			return null
@@ -65,7 +67,9 @@ static func resolve(index: int) -> StageDefinition:
 			band.band_id = StringName(str(phase.phase_id) + ".wave_" + str(band.first_wave))
 	var partial_path: String = PARTIAL_OVERRIDES + REGION_ID + "_" + SLUGS[index - 1] + ".tres"
 	if ResourceLoader.exists(partial_path):
-		var partial: AdventureStageOverride = load(partial_path) as AdventureStageOverride
+		# 同上：单关覆盖是最常改的配置，强制从磁盘重读，避免旧 Boss 残留。
+		var partial: AdventureStageOverride = ResourceLoader.load(
+			partial_path, "", ResourceLoader.CACHE_MODE_IGNORE) as AdventureStageOverride
 		if partial == null or not partial.apply(stage):
 			push_error("关卡覆盖资源无效：" + partial_path)
 			return null

@@ -10,6 +10,10 @@ class_name BossHpProgressBar
 @export_range(0.05, 1.0, 0.05) var mouse_near_opacity: float = 0.13
 
 const DISPLAY_SIZE := Vector2(615, 180)
+## 整组 HUD 的显示倍率，覆盖两阶段血条、头像、头像框与名称。
+const DISPLAY_SCALE := 0.5
+## HUD 底边与视口底边的距离，单位为界面像素。
+const BOTTOM_MARGIN := 6.0
 const HEALTH_FILL_WIDTH := 370.0
 const MOUSE_MARGIN := 40.0
 
@@ -35,6 +39,7 @@ var _phase_two: bool = false
 func _ready() -> void:
     top_level = true
     size = DISPLAY_SIZE
+    scale = Vector2.ONE * DISPLAY_SCALE
     mouse_filter = Control.MOUSE_FILTER_IGNORE
     visible = false
     modulate.a = 0.0
@@ -45,15 +50,16 @@ func _ready() -> void:
     _place_at_screen_bottom()
 
 func _place_at_screen_bottom() -> void:
-    var size_v: Vector2 = get_viewport_rect().size
-    position = Vector2((size_v.x - DISPLAY_SIZE.x) * 0.5,
-        maxf(6.0, size_v.y - DISPLAY_SIZE.y - 12.0))
+    var viewport_size: Vector2 = get_viewport_rect().size # 当前视口的界面尺寸。
+    var scaled_size: Vector2 = DISPLAY_SIZE * DISPLAY_SCALE # 缩放后实际占用的尺寸。
+    position = Vector2((viewport_size.x - scaled_size.x) * 0.5,
+        maxf(BOTTOM_MARGIN, viewport_size.y - scaled_size.y - BOTTOM_MARGIN))
 
 func _process(delta: float) -> void:
     if not visible:
         return
-    var mouse: Vector2 = get_global_mouse_position()
-    var near: bool = get_global_rect().grow(MOUSE_MARGIN).has_point(mouse)
+    var mouse: Vector2 = get_local_mouse_position() # 转为缩放前的 HUD 局部坐标。
+    var near: bool = Rect2(Vector2.ZERO, size).grow(MOUSE_MARGIN).has_point(mouse) # 与局部矩形使用同一坐标系。
     var target: float = mouse_near_opacity if near else 1.0
     _mouse_alpha = move_toward(_mouse_alpha, target, delta * 5.0)
     modulate.a = _life_alpha * _mouse_alpha

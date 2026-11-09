@@ -72,6 +72,16 @@ func create_new_zombie(new_zombie_type:CharacterRegistry.ZombieType, anim_multip
 	else:
 		print("当前墓碑正在生产僵尸")
 
+## 墓碑存档协议。派生类覆盖种类、血量和恢复，旧墓碑保持无血量语义。
+func get_tombstone_kind() -> StringName:
+	return &"legacy"
+
+func get_current_hp() -> int:
+	return 0
+
+func restore_hp(_hp: int) -> void:
+	pass
+
 ## 墓碑死亡
 func tombstone_death():
 	plant_cell.tombstone.plant_cell.tombstone_death_update_plant_cell_data()

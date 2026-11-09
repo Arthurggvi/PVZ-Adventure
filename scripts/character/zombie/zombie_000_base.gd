@@ -489,9 +489,9 @@ func be_squash(attack_value:int=1800):
 func be_magnet_iron():
 	match iron_type:
 		IronType.IronArmor1:
-			hp_component.Hp_loss(hp_component.curr_hp_armor1,BulletRegistry.AttackMode.Norm, false, false)
+			hp_component.apply_unblocked_loss(hp_component.curr_hp_armor1, BulletRegistry.AttackMode.Norm, false, false)
 		IronType.IronArmor2:
-			hp_component.Hp_loss(hp_component.curr_hp_armor2,BulletRegistry.AttackMode.Norm, false, false)
+			hp_component.apply_unblocked_loss(hp_component.curr_hp_armor2, BulletRegistry.AttackMode.Norm, false, false)
 		IronType.IronItem:
 			loss_iron_item()
 

@@ -24,6 +24,8 @@ enum SummonEnd { UNSET, BOSS_EXIT, PHASE_END }
 @export var natural_waves: NaturalWaves = NaturalWaves.UNSET
 ## 周期召唤规则，不沿用 Boss AI 内部默认值。
 @export var summon_rule: SummonRule = SummonRule.UNSET
+## 是否等死亡演出结束后才结束遭遇；默认保持旧 Boss 的死亡即结束行为。
+@export var wait_for_death_presentation: bool = false
 ## 自然波次暂停期间是否继续召唤。
 @export var summon_while_paused: SummonWhilePaused = SummonWhilePaused.UNSET
 ## 召唤终止边界。
@@ -55,8 +57,8 @@ func validate(wave_count: int = 0, known_tier_ids: Array[StringName] = []) -> Pa
 		errors.append("非波次 Boss 遭遇不能填写 wave。")
 	if natural_waves != NaturalWaves.PAUSE_UNTIL_BOSS_EXIT:
 		errors.append("冒险 Boss 出现后必须挂起自然波次，离场后恢复。")
-	if summon_rule != SummonRule.PERIODIC:
-		errors.append("冒险 Boss 必须周期生成援军。")
+	if summon_rule not in [SummonRule.PERIODIC, SummonRule.NONE]:
+		errors.append("Boss 必须显式配置周期援军或仅由自身技能召唤。")
 	if summon_rule == SummonRule.PERIODIC:
 		if not is_finite(summon_interval_seconds) or summon_interval_seconds <= 0.0 or summon_count < 1 or max_alive_periodic_summons < summon_count:
 			errors.append("周期召唤的间隔、批量或存活上限无效。")

@@ -104,7 +104,7 @@ func _hit_and_bounce(enemy: Character000Base) -> void:
 
 ## [param enemy] 基类确认的命中目标；僵王使用独立伤害，普通僵尸仍使用原有正面与侧面保龄球规则。
 func _attack_enemy(enemy: Character000Base):
-	if enemy is ZB000Base:
+	if enemy is ZB000Base or enemy is EnemyStructureBase:
 		enemy.be_attacked_bullet(boss_attack_value, BulletRegistry.AttackMode.Penetration, true, trigger_be_attack_sfx)
 	else:
 		super(enemy)

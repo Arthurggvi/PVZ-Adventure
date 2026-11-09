@@ -24,7 +24,28 @@ enum E_ChangeColors{
 	CreateSunColor,	## 生产阳光时的表现颜色。
 	LightAndDark,	## 明暗交替颜色变化(紫卡种植\咖啡豆)
 	CharredBlack,	## 被炸弹炸黑
+	DamageBlock,	## 固定格挡的淡青色滤镜。
+	BossPhaseTwo,	## Boss 二阶段独立闪黑，保留冰冻与受击颜色。
 }
+
+## 二阶段循环补间，与普通明暗交替互不占用。
+var boss_phase_tween: Tween
+
+## [param enabled] 是否开启二阶段缓慢闪黑；停用时恢复本通道白色。
+func set_boss_phase_pulse(enabled: bool) -> void:
+	if is_instance_valid(boss_phase_tween):
+		boss_phase_tween.kill()
+	set_other_color(E_ChangeColors.BossPhaseTwo, Color.WHITE)
+	if not enabled:
+		return
+	boss_phase_tween = create_tween().set_loops()
+	boss_phase_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	boss_phase_tween.tween_method(_set_boss_phase_color, 1.0, 0.22, 1.25)
+	boss_phase_tween.tween_method(_set_boss_phase_color, 0.22, 1.0, 1.25)
+
+## [param brightness] 身体颜色乘数，透明度保持为 1。
+func _set_boss_phase_color(brightness: float) -> void:
+	set_other_color(E_ChangeColors.BossPhaseTwo, Color(brightness, brightness, brightness))
 
 
 func owner_be_hypno():

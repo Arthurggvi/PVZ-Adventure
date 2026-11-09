@@ -411,10 +411,18 @@ func be_bungi() -> Node2D:
 
 #region 特殊状态
 #region 墓碑相关
-## 创建墓碑
-func create_tombstone():
+## 创建墓碑：默认保留一代版本，显式传入场景时使用新墓碑实体。
+func create_tombstone(tombstone_scene: PackedScene = null):
 	if is_instance_valid(tombstone):
 		print("当前植物格子", row_col, "已经有墓碑， 创建墓碑失败")
+		return
+	var source_scene: PackedScene = tombstone_scene if tombstone_scene != null else SceneRegistry.TOMBSTONE
+	var spawned := source_scene.instantiate()
+	var new_tombstone := spawned as TombStone
+	if new_tombstone == null:
+		if spawned != null:
+			spawned.free()
+		push_error("Invalid tombstone scene: expected TombStone root")
 		return
 	## 被墓碑顶掉的植物
 	var all_place_plant_in_cell_be_tombstone = [
@@ -428,7 +436,7 @@ func create_tombstone():
 		if is_instance_valid(plant_in_cell[place_plant_in_cell]):
 			plant_in_cell[place_plant_in_cell].character_death()
 
-	tombstone = SceneRegistry.TOMBSTONE.instantiate()
+	tombstone = new_tombstone
 	tombstone.init_tombstone(self)
 	add_child(tombstone)
 	tombstone.position = Vector2(size.x / 2, size.y)

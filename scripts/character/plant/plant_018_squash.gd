@@ -86,7 +86,7 @@ func squash_all_area_zombie():
 		if seen_ids.has(instance_id):
 			continue
 		seen_ids[instance_id] = true
-		if enemy is ZB000Base:
+		if enemy is ZB000Base or (enemy is EnemyStructureBase and enemy.lane == row_col.x):
 			if (can_attack_zombie_status & Zombie000Base.E_BeAttackStatusZombie.IsNorm) != 0:
 				# 僵王伤害入口再次检查受击窗口，致死时保留状态机死亡演出。
 				enemy.be_attacked_bullet(battle_damage(attack_value), BulletRegistry.AttackMode.Penetration, false, false)

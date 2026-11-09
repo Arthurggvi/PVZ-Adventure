@@ -15,6 +15,7 @@ var _fired: Dictionary[StringName, bool] = {}
 var _threshold_states: Dictionary[StringName, bool] = {}
 var _cleared_waves: Dictionary[int, bool] = {}
 var _ordered_events: Array[StageEventDefinition] = []
+var _gravestones: AdventureGravestoneDirector
 var _cooldown: AdventureCardCooldownRuntime
 var requested_items: Dictionary[String, int] = {}
 var pending_region_flags: Dictionary[StringName, bool] = {}
@@ -33,6 +34,8 @@ func finish_battle(victory: bool = false) -> void:
 	_fire(StageEventDefinition.Trigger.BATTLE_END)
 	if is_instance_valid(_cooldown):
 		_cooldown.clear()
+	if is_instance_valid(_gravestones):
+		_gravestones.clear()
 
 func setup(wave_manager: ZombieWaveManager, zombie_manager: ZombieManager,
 		stage_phase: StagePhaseDefinition) -> void:
@@ -55,6 +58,10 @@ func _ready() -> void:
 	waves.adventure_battle_started.connect(_on_battle_start)
 	waves.adventure_wave_before.connect(_on_wave_before)
 	waves.adventure_wave_started.connect(_on_wave_started)
+	_gravestones = AdventureGravestoneDirector.new()
+	_gravestones.configure(phase.gravestone_rules,
+		zombies.main_game.plant_cell_manager.tomb_stone_manager, waves)
+	add_child(_gravestones)
 	_cooldown = AdventureCardCooldownRuntime.new()
 	_cooldown.setup(zombies)
 	add_child(_cooldown)
@@ -81,6 +88,8 @@ func _on_wave_before(wave_number: int) -> void:
 
 func _on_wave_started(wave_number: int) -> void:
 	_fire(StageEventDefinition.Trigger.WAVE_STARTED, wave_number)
+	if is_instance_valid(_gravestones):
+		_gravestones.on_wave_started(wave_number, phase.wave_profile.flag_wave_numbers().has(wave_number))
 	_begin_matching_boss(BossEncounterDefinition.Timing.WAVE_STARTED, wave_number)
 	if zombies.get_natural_wave_count(wave_number - 1) == 0:
 		_on_natural_count(wave_number, 0)
@@ -144,6 +153,8 @@ func _apply_action(event: StageEventDefinition) -> void:
 		StageEventDefinition.Action.SPAWN_ZOMBIES:
 			for i: int in range(event.action_count):
 				waves.zombie_wave_create_manager.spawn_stage_support(event.action_zombie_type, event.action_tier_id)
+		StageEventDefinition.Action.SPAWN_TOMBSTONES:
+			zombies.main_game.plant_cell_manager.tomb_stone_manager.create_pvz2_tombstone(event.action_count)
 		StageEventDefinition.Action.BEGIN_BOSS_ENCOUNTER:
 			for candidate: BossEncounterDefinition in phase.boss_encounters:
 				if candidate.encounter_id == event.action_target_id:
