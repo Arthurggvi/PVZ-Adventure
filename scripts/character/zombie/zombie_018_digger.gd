@@ -18,6 +18,7 @@ class_name Zombie018Digger
 
 ## 是否可以触发小推车 只有掘土状态下失去铁器道具的矿工可以触发
 var is_can_trigger_mower:=false
+signal signal_digger_surfaced()
 ## 掘土状态失去铁器信号，小推车检测到掘地矿工时订阅
 signal signal_can_trigger_mower
 
@@ -49,7 +50,10 @@ func dig_end():
 		is_dig = false
 		move_component.update_move_mode(MoveComponent.E_MoveMode.Ground)
 		await zombie_up_from_ground()
+		if is_death or not is_inside_tree():
+			return
 		is_up_end = true
+		signal_digger_surfaced.emit()
 
 
 ## 失去铁器道具

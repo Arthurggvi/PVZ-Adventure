@@ -15,6 +15,8 @@ class_name BombComponentJackbox
 @export var late_time_range:Vector2 = Vector2(13.22, 22.68)
 ## 小丑出生后爆炸时间
 var wait_time_bomb :float= 0.0
+## Tiered numeric blasts preserve native instant elimination for unmodified boxes.
+var use_numeric_blast := false
 
 
 ## 小丑触发爆炸信号
@@ -50,7 +52,8 @@ func _start_bomb_fx():
 func _bomb_all_enemy():
 	CombatExplosion.resolve_targets(
 		area_2d_bomb.get_overlapping_areas(), owner.get_instance_id(),
-		owner.lane, bomb_lane, owner.is_hypno, 0, true, true)
+		owner.lane, bomb_lane, owner.is_hypno, bomb_value if use_numeric_blast else 0,
+		not use_numeric_blast, true)
 
 
 ## 禁用组件

@@ -7,6 +7,17 @@ signal bonus_armor_changed(remaining: int)
 var damage_transfer := DamageTransferEffect.new()
 ## Armor-only DR is applied after shared block/DR, and never on body/bonus armor.
 var armor1_reduction := DamageReductionEffect.new()
+## Fragile equipment (balloons) takes exactly one hit per received attack,
+## regardless of attack power. Forced scripted removal retains native behavior.
+var armor1_fixed_damage_per_hit := 0
+
+func configure_fragile_armor1(hit_count: int) -> void:
+	if hit_count <= 0:
+		push_error("Fragile armor needs a positive hit count")
+		return
+	max_hp_armor1 = hit_count
+	curr_hp_armor1 = hit_count
+	armor1_fixed_damage_per_hit = 1
 var armor2_reduction := DamageReductionEffect.new()
 
 ## Returns unmitigated overflow after a specific gear pool is consumed.
@@ -26,6 +37,9 @@ func _hit_armor2(raw: int) -> int:
 func _hit_armor1(raw: int) -> int:
 	if raw <= 0 or curr_hp_armor1 <= 0:
 		return maxi(0, raw)
+	if armor1_fixed_damage_per_hit > 0 and not _bypass_damage_block:
+		curr_hp_armor1 = maxi(0, curr_hp_armor1 - armor1_fixed_damage_per_hit)
+		return 0 # The balloon absorbs the entire projectile even when it pops.
 	var before: int = curr_hp_armor1
 	var mitigated: int = raw if _bypass_damage_block else armor1_reduction.reduce_gear(raw)
 	if mitigated < before:
@@ -177,9 +191,18 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 	var ori_hp = get_all_hp()
 	_resolving_hit = true
 	_armor_granted_in_hit = 0
+	# Balloons count actual projectile impacts, even when ordinary flat
+	# block or damage reduction would round a positive impact to zero.
+	# Immunity and a separate temporary shield still take precedence.
+	var fragile_hit: bool = armor1_fixed_damage_per_hit > 0 \
+			and curr_hp_armor1 > 0 and attack_value > 0 \
+			and not is_damage_immune() and not _bypass_damage_block
 	if bullet_mode not in [BulletRegistry.AttackMode.BowlingFront,
 			BulletRegistry.AttackMode.BowlingSide, BulletRegistry.AttackMode.Hammer]:
-		attack_value = _absorb_bonus_armor(resolve_damage(attack_value))
+		var resolved: int = resolve_damage(attack_value)
+		if fragile_hit:
+			resolved = maxi(1, resolved)
+		attack_value = _absorb_bonus_armor(resolved)
 	## 掉血标志, 1:本体 2:一类防具 4:二类防具
 	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value)
 

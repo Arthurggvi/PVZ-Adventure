@@ -1,0 +1,80 @@
+## All-unit Blover displacement. Only airborne units crossing the world-view
+## right edge are eliminated; ground units always survive the wind itself.
+extends RefCounted
+class_name AdventureZombieWindGust
+
+static func displacement_cells(flying: bool) -> int:
+    return 4 if flying else 2
+
+static func is_wind_elimination(flying: bool, dest_x: float, right_x: float) -> bool:
+    return flying and dest_x > right_x
+
+static func blow_all(manager: ZombieManager) -> void:
+    var seen: Dictionary[int, bool] = {}
+    var zombies: Array[Zombie000Base] = []
+    for zombie: Zombie000Base in manager.all_zombies_1d:
+        if is_instance_valid(zombie):
+            zombies.append(zombie)
+    for zombie: Zombie000Base in manager.all_zombies_be_hypno:
+        if is_instance_valid(zombie):
+            zombies.append(zombie)
+    for zombie: Zombie000Base in zombies:
+        if zombie.is_death or zombie.is_queued_for_deletion():
+            continue
+        var id: int = zombie.get_instance_id()
+        if seen.has(id):
+            continue
+        seen[id] = true
+        var flying: bool = zombie.curr_be_attack_status == Zombie000Base.E_BeAttackStatusZombie.IsSky
+        blow_target(zombie, displacement_cells(flying), flying)
+    for boss: ZB000Base in manager.get_living_bosses():
+        if is_instance_valid(boss) and not boss.is_death:
+            blow_target(boss, 2, false)
+
+static func _cell_width(target: Character000Base) -> float:
+    var game: MainGameManager = Global.main_game
+    if not is_instance_valid(game) or not is_instance_valid(game.plant_cell_manager):
+        return 0.0
+    var grid: Array[Array] = game.plant_cell_manager.all_plant_cells
+    var lane: int = target.lane
+    if lane < 0 or lane >= grid.size() or grid[lane].is_empty():
+        return 0.0
+    return (grid[lane][0] as PlantCell).size.x
+
+static func _visible_right(target: Character000Base) -> float:
+    var viewport: Viewport = target.get_viewport()
+    var edge: Vector2 = Vector2(viewport.get_visible_rect().size.x, 0.0)
+    return (viewport.get_canvas_transform().affine_inverse() * edge).x
+
+static func blow_target(target: Character000Base, cells: int, flying: bool) -> void:
+    if not is_instance_valid(target) or target.is_death or target.is_queued_for_deletion():
+        return
+    var width: float = _cell_width(target)
+    if width <= 0.0 or cells <= 0:
+        return
+    var move: MoveComponent
+    if target is Zombie000Base:
+        move = (target as Zombie000Base).move_component
+        if is_instance_valid(move):
+            move.update_move_factor(true, MoveComponent.E_MoveFactor.IsBlover)
+    var previous: Variant = target.get_meta(&"blover_tween", null)
+    if previous is Tween and previous.is_running():
+        (previous as Tween).kill()
+    var dest: float = target.global_position.x + width * float(cells)
+    var visible_right: float = _visible_right(target)
+    if target is Zombie000Base and not flying and is_instance_valid(Global.main_game):
+        var manager: ZombieManager = Global.main_game.zombie_manager as ZombieManager
+        if is_instance_valid(manager):
+            (target as Zombie000Base).nonlethal_displacement_exile = (
+                    dest > manager.zombie_range_pos_x.y)
+    var tween: Tween = target.create_tween()
+    target.set_meta(&"blover_tween", tween)
+    tween.tween_property(target, ^"global_position:x", dest, 0.35)
+    tween.finished.connect(func() -> void:
+        if not is_instance_valid(target) or target.is_death:
+            return
+        target.remove_meta(&"blover_tween")
+        if is_instance_valid(move):
+            move.update_move_factor(false, MoveComponent.E_MoveFactor.IsBlover)
+        if is_wind_elimination(flying, dest, visible_right):
+            target.character_death_disappear())

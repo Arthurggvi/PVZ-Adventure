@@ -7,6 +7,7 @@ const EFFECTS: Array[StringName] = [
     &"jackson_command", &"dancer_death_burst",
     &"snorkel_dive", &"zamboni_pressure", &"bobsled_upgrade",
     &"dolphin_leap", &"permanent_species_speed",
+    &"jackbox_tier", &"balloon_tier", &"digger_tier",
 ]
 
 static func handles(effect: StringName) -> bool:
@@ -85,3 +86,27 @@ static func install(zombie: Zombie000Base, rule: Dictionary) -> void:
         &"permanent_species_speed":
             zombie.update_speed_factor(float(rule.get("multiplier", 1.0)),
                     Character000Base.E_Influence_Speed_Factor.AdventureTierStance)
+        &"jackbox_tier":
+            var jackbox: Zombie016Jackbox = zombie as Zombie016Jackbox
+            if jackbox == null:
+                push_error("Jackbox tier installed on wrong species")
+                return
+            var ability := AdventureZombieJackboxTier.new()
+            jackbox.add_child(ability)
+            ability.setup(jackbox, rule)
+        &"balloon_tier":
+            var balloon: Zombie017Balloon = zombie as Zombie017Balloon
+            if balloon == null:
+                push_error("Balloon tier installed on wrong species")
+                return
+            var ability := AdventureZombieBalloonTier.new()
+            balloon.add_child(ability)
+            ability.setup(balloon, rule)
+        &"digger_tier":
+            var digger: Zombie018Digger = zombie as Zombie018Digger
+            if digger == null:
+                push_error("Digger tier installed on wrong species")
+                return
+            var ability := AdventureZombieDiggerTier.new()
+            digger.add_child(ability)
+            ability.setup(digger, rule)

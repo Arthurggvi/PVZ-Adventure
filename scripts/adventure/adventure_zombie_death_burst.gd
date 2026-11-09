@@ -6,15 +6,29 @@ var _zombie: Zombie000Base
 var _damage := 0
 var _exploded := false
 var _profile: CombatExplosionProfile
+var _hit_all_characters := false
+var _armed := true
 
-func setup(zombie: Zombie000Base, damage: int, profile: CombatExplosionProfile) -> void:
+func disarm() -> void:
+    _armed = false
+
+func arm() -> void:
+    _armed = true
+
+func setup(zombie: Zombie000Base, damage: int, profile: CombatExplosionProfile,
+        on_death: bool = true, hit_all_characters: bool = false) -> void:
     _zombie = zombie
     _damage = damage
     _profile = profile
-    zombie.signal_character_death.connect(_on_death)
+    _hit_all_characters = hit_all_characters
+    if on_death:
+        zombie.signal_character_death.connect(_on_death)
+
+func trigger_once() -> void:
+    _on_death()
 
 func _on_death() -> void:
-    if _exploded or _damage <= 0 or not is_instance_valid(_zombie):
+    if _exploded or not _armed or _damage <= 0 or not is_instance_valid(_zombie):
         return
     _exploded = true
     var game: MainGameManager = Global.main_game
@@ -35,7 +49,8 @@ func _detonate(game: MainGameManager, origin: Vector2,
     var areas: Array[Area2D] = CombatExplosion.query_areas(
             game.get_world_2d().direct_space_state, _profile, origin)
     CombatExplosion.resolve_targets(
-            areas, source_id, lane, _profile.lane_radius, charmed, _damage)
+            areas, source_id, lane, _profile.lane_radius, charmed, _damage,
+            false, _hit_all_characters)
     CombatExplosion.emit_visuals(
             game.bombs if is_instance_valid(game.bombs) else game, _profile, origin)
     queue_free()

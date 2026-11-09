@@ -42,6 +42,9 @@ enum IronType{
 var curr_wave:=-1
 ## 本局冒险自然波次分配的独立等阶标识；原版/技能僵尸为空。
 var adventure_tier_id: StringName = &""
+## Out-of-view cleanup must not convert a nonlethal gust into a kill.
+## Reset when this zombie walks back into the active battle range.
+var nonlethal_displacement_exile := false
 ## Original combat spawn modifier; used to derive explicit child-spawn policy.
 var combat_spawn_modifier: ZombieSpawnModifier = null
 

@@ -5,6 +5,11 @@ class_name Zombie017Balloon
 @export var balloon_pop_glo_pos_x_in_zombie_mode:float = 50
 @export_group("动画状态")
 @export var is_pop:=false
+signal balloon_landed()
+
+func _ready() -> void:
+	super()
+	(hp_component as HpComponentZombie).configure_fragile_armor1(1)
 
 func ready_norm():
 	super()
@@ -33,20 +38,26 @@ func balloon_pop():
 		curr_be_attack_status = E_BeAttackStatusZombie.IsNorm
 		SoundManager.play_character_SFX(&"balloon_pop")
 		if curr_zombie_row_type == CharacterRegistry.ZombieRowType.Pool:
-			character_death_disappear()
+			# Death must not run inside the armor setter's death-signal emission;
+			# defer landing/crash until the original received hit is fully settled.
+			_finish_balloon_pop_in_pool.call_deferred()
+
+func _finish_balloon_pop_in_pool() -> void:
+	if is_death or is_queued_for_deletion():
+		return
+	balloon_landed.emit()
+	if not is_death:
+		character_death_disappear()
 
 ## 动画调用 气球破裂结束落地,可以移动
 func balloon_pop_end():
 	move_component.update_move_factor(false, MoveComponent.E_MoveFactor.IsAnimGap)
 	attack_component.enable_component(ComponentNormBase.E_IsEnableFactor.Balloon)
+	balloon_landed.emit()
 
 ## 被三叶草吹走
 func be_blow_away():
-	move_component.update_move_factor(true, MoveComponent.E_MoveFactor.IsBlover)
-
-	var tween:Tween = create_tween()
-	tween.tween_property(self, ^"position:x", position.x+1000, 1)
-	tween.tween_callback(character_death_disappear)
+	AdventureZombieWindGust.blow_target(self, 4, true)
 
 
 ## 被冰冻控制

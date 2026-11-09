@@ -762,6 +762,12 @@ func wave_refresh(curr_is_end_wave:bool):
 ### 删除移动超出视野的僵尸,每次刷新僵尸调用
 func set_zombie_death_over_view():
 	for z:Zombie000Base in all_zombies_1d:
+		if not is_instance_valid(z) or z.is_death:
+			continue
+		if z.nonlethal_displacement_exile:
+			if z.global_position.x > zombie_range_pos_x.y:
+				continue
+			z.nonlethal_displacement_exile = false
 		# 检查是否在屏幕外
 		if z.global_position.x > zombie_range_pos_x.y or z.global_position.x < zombie_range_pos_x.x:
 			#all_zombies_be_hypno.erase(z)
@@ -948,13 +954,7 @@ func jalapeno_bomb_lane_zombie(lane:int, damage:int):
 
 ## 三叶草吹走空中僵尸
 func blover_blow_away_in_sky_zombie():
-	for zombie_row:Array in all_zombies_2d:
-		if zombie_row.is_empty():
-			continue
-		for i in range(zombie_row.size()-1, -1, -1):
-			var zombie:Zombie000Base = zombie_row[i]
-			if zombie.curr_be_attack_status == Zombie000Base.E_BeAttackStatusZombie.IsSky:
-				zombie.be_blow_away()
+	AdventureZombieWindGust.blow_all(self)
 
 #endregion
 

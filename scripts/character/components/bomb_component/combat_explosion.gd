@@ -34,7 +34,7 @@ static func resolve_targets(areas: Array[Area2D], source_id: int,
         if not is_instance_valid(area) or not is_instance_valid(area.owner):
             continue
         var entity: Node = area.owner
-        if entity is ScaryPot and lethal and (hit_all_characters or not charmed):
+        if entity is ScaryPot and (lethal or hit_all_characters) and (hit_all_characters or not charmed):
             var pot: ScaryPot = entity as ScaryPot
             if radius == -1 or absi(pot.lane - lane) <= radius:
                 var pot_id: int = pot.get_instance_id()
@@ -80,4 +80,5 @@ static func emit_visuals(parent: Node, profile: CombatExplosionProfile,
         return
     parent.add_child(fx)
     fx.global_position = origin + profile.visuals_offset
+    fx.scale = Vector2.ONE * profile.visuals_scale
     fx.activate_bomb_effect()
