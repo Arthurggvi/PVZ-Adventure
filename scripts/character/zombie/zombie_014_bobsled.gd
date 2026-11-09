@@ -4,6 +4,10 @@ class_name Zombie014Bobsled
 @onready var zombie_bobsled_1: Sprite2D = $ZombieBobsled1
 @onready var judge_is_in_ice_road_timer: Timer = $JudgeIsInIceRoadTimer
 
+## 1x normal; 2x/3x lifespan without ice; 0 means no ice-surface decay.
+var ice_absence_lifespan_multiplier := 1.0
+var _ice_absence_elapsed := 0.0
+
 @onready var all_zombie_bobsled_single_body :Array[BodyCharacter]= [
 	$Body,
 	$Body2,
@@ -37,14 +41,22 @@ func _play_anim(anim_name:StringName):
 
 ## 判断冰道是否在冰道上(0.3秒检测一次,不在冰道上掉100血)
 func judge_is_in_ice_road():
-	var is_in_road = false
-	for ice_road:IceRoad in Global.main_game.zombie_manager.all_ice_roads[lane]:
-		## 如果冰道最左边 < 当前位置+偏移
-		if ice_road.left_x < global_position.x - 50:
-			is_in_road = true
-			break
-	if not is_in_road:
-		hp_component.Hp_loss(100,BulletRegistry.AttackMode.Real, true, false)
+	if is_death or not is_instance_valid(Global.main_game) or lane < 0:
+		return
+	var roads: Array = Global.main_game.zombie_manager.all_ice_roads
+	if lane >= roads.size():
+		return
+	for ice_road: IceRoad in roads[lane]:
+		if is_instance_valid(ice_road) and ice_road.left_x < global_position.x - 50:
+			_ice_absence_elapsed = 0.0
+			return
+	if ice_absence_lifespan_multiplier <= 0.0:
+		return
+	_ice_absence_elapsed += judge_is_in_ice_road_timer.wait_time
+	var period: float = judge_is_in_ice_road_timer.wait_time * ice_absence_lifespan_multiplier
+	if _ice_absence_elapsed + 0.0001 >= period:
+		_ice_absence_elapsed -= period
+		hp_component.Hp_loss(100, BulletRegistry.AttackMode.Real, true, false)
 
 
 ## 角色死亡
@@ -74,7 +86,10 @@ func death_language():
 				CharacterRegistry.ZombieType.Z1001BobsledSingle,
 				zombie_row,
 				zombie_init_para,
-				Vector2(sub_zombie_body.global_position.x, Global.main_game.zombie_manager.all_zombie_rows[lane].zombie_create_position.global_position.y)
+				Vector2(sub_zombie_body.global_position.x,
+					Global.main_game.zombie_manager.all_zombie_rows[lane].zombie_create_position.global_position.y),
+				Callable(),
+				inherited_child_modifier()
 			)
 
 ## 调整雪橇车和僵尸的显示顺序

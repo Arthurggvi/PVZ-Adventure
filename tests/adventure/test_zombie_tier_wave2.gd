@@ -131,9 +131,9 @@ func _run() -> void:
 
     var dancer_hp: HpComponentZombie = dancer.hp_component as HpComponentZombie
     check(dancer_hp.is_damage_immune(), "third dancer entry invulnerability")
-    var explosion: AdventureZombieDancerBurst
+    var explosion: AdventureZombieDeathBurst
     for child: Node in dancer.get_children():
-        if child is AdventureZombieDancerBurst:
+        if child is AdventureZombieDeathBurst:
             explosion = child
     check(explosion != null and explosion._damage == 1800,
         "third dancer configured for death explosion")

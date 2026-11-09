@@ -121,6 +121,46 @@ const DEFINITIONS: Dictionary = {
         &"tier5": [{"effect": &"dancer_death_burst",
             "entry_immunity": 0.5, "death_explosion": 3000}],
     },
+
+    CharacterRegistry.ZombieType.Z012Snorkle: {
+        &"veteran": [{"effect": &"snorkel_dive", "dive_speed": 1.3}],
+        &"elite": [{"effect": &"snorkel_dive", "dive_speed": 1.5, "armor_per_second": 50}],
+        &"tier4": [{"effect": &"snorkel_dive", "dive_speed": 1.5, "armor_per_second": 100}],
+        &"tier5": [{"effect": &"snorkel_dive", "dive_speed": 1.5, "armor_per_second": 200}],
+    },
+    CharacterRegistry.ZombieType.Z013Zamboni: {
+        &"veteran": [{"effect": &"zamboni_pressure", "speed_bonus": 0.2, "hit_decay": 0.01}],
+        &"elite": [{"effect": &"zamboni_pressure", "speed_bonus": 0.3, "hit_decay": 0.01,
+            "reduction": 0.2}],
+        &"tier4": [{"effect": &"zamboni_pressure", "speed_bonus": 0.5, "hit_decay": 0.01,
+            "reduction": 0.5}],
+        &"tier5": [{"effect": &"zamboni_pressure", "speed_bonus": 1.0, "hit_decay": 0.01,
+            "reduction": 0.5, "death_blast": 1800}],
+    },
+    CharacterRegistry.ZombieType.Z014Bobsled: {
+        &"veteran": [{"effect": &"bobsled_upgrade", "speed": 1.1}],
+        &"elite": [{"effect": &"bobsled_upgrade", "speed": 1.1,
+            "degrade_time_scale": 2.0, "crush": true}],
+        &"tier4": [{"effect": &"bobsled_upgrade", "speed": 1.1,
+            "degrade_time_scale": 3.0, "crush": true}],
+        &"tier5": [{"effect": &"bobsled_upgrade", "speed": 1.1,
+            "degrade_time_scale": 0.0, "crush": true}],
+    },
+    CharacterRegistry.ZombieType.Z015Dolphinrider: {
+        &"veteran": [{"effect": &"dolphin_leap", "ride_reduction": 0.2}],
+        &"elite": [{"effect": &"dolphin_leap", "ride_reduction": 0.3,
+            "jump_distance_cells": 2}],
+        &"tier4": [{"effect": &"dolphin_leap", "ride_reduction": 0.5,
+            "jump_distance_cells": 2, "crush_damage": 300, "ride_speed": 1.1}],
+        &"tier5": [{"effect": &"dolphin_leap", "ride_reduction": 0.5,
+            "jump_distance_cells": 3, "crush_damage": 1800, "ride_speed": 1.1}],
+    },
+    CharacterRegistry.ZombieType.Z1001BobsledSingle: {
+        &"veteran": [{"effect": &"permanent_species_speed", "multiplier": 1.1}],
+        &"elite": [{"effect": &"permanent_species_speed", "multiplier": 1.1}],
+        &"tier4": [{"effect": &"permanent_species_speed", "multiplier": 1.1}],
+        &"tier5": [{"effect": &"permanent_species_speed", "multiplier": 1.1}],
+    },
 }
 
 static func for_spawn(zombie_type: int, tier_id: StringName) -> Array[Dictionary]:

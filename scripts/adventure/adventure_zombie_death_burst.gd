@@ -1,18 +1,17 @@
-## Dancer death trigger. CombatExplosion owns the reusable area and damage logic.
+## Reusable death explosion trigger; targeting and damage belong to CombatExplosion.
 extends Node
-class_name AdventureZombieDancerBurst
+class_name AdventureZombieDeathBurst
 
-const PROFILE := preload("res://resources/combat/jackbox_explosion_profile.tres")
-var _zombie: Zombie010Dancer
+var _zombie: Zombie000Base
 var _damage := 0
 var _exploded := false
+var _profile: CombatExplosionProfile
 
-func setup(zombie: Zombie010Dancer, damage: int, immunity: float) -> void:
+func setup(zombie: Zombie000Base, damage: int, profile: CombatExplosionProfile) -> void:
     _zombie = zombie
     _damage = damage
+    _profile = profile
     zombie.signal_character_death.connect(_on_death)
-    if immunity > 0.0:
-        AdventureZombieTimedCombatBuff.grant_immunity(zombie, immunity, true)
 
 func _on_death() -> void:
     if _exploded or _damage <= 0 or not is_instance_valid(_zombie):
@@ -34,9 +33,9 @@ func _detonate(game: MainGameManager, origin: Vector2,
         queue_free()
         return
     var areas: Array[Area2D] = CombatExplosion.query_areas(
-            game.get_world_2d().direct_space_state, PROFILE, origin)
+            game.get_world_2d().direct_space_state, _profile, origin)
     CombatExplosion.resolve_targets(
-            areas, source_id, lane, PROFILE.lane_radius, charmed, _damage)
+            areas, source_id, lane, _profile.lane_radius, charmed, _damage)
     CombatExplosion.emit_visuals(
-            game.bombs if is_instance_valid(game.bombs) else game, PROFILE, origin)
+            game.bombs if is_instance_valid(game.bombs) else game, _profile, origin)
     queue_free()
