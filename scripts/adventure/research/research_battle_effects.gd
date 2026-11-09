@@ -44,7 +44,7 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 		return false
 	var modifiers: Dictionary = _stats(record)
 	if modifiers.has("damage"):
-		plant.battle_damage_multiplier = maxf(0.0, 1.0 + float(modifiers.damage.get("percent", 0.0)))
+		plant.set_battle_card_damage_multiplier(maxf(0.0, 1.0 + float(modifiers.damage.get("percent", 0.0))))
 	if modifiers.has("max_health"):
 		var health: HpComponent = plant.get_node_or_null("HpComponent") as HpComponent
 		if health == null:
@@ -76,6 +76,9 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 			"sun_production":
 				component.extra_small_sun_min += int(event.get("extra_small_sun_min", 0))
 				component.extra_small_sun_max += int(event.get("extra_small_sun_max", 0))
+			"sun_growth":
+				component.production_growth_step = maxi(0, int(event.get("step", 0)))
+				component.production_growth_cap = maxi(0, int(event.get("cap", 0)))
 			"on_death":
 				var reward: int = int(event.get("drop_sun", 0))
 				if reward > 0:

@@ -27,7 +27,20 @@ var plant_cell:PlantCell
 var plant_spawn_profile: PlantSpawnProfile = null
 ## Transient attack scaling from the frozen adventure card; never saved to the card.
 var battle_damage_multiplier: float = 1.0
+var _battle_card_damage_multiplier: float = 1.0
+var _battle_aura_damage_bonus: float = 0.0
 var spawn_attributes_applied: bool = false
+
+func set_battle_card_damage_multiplier(value: float) -> void:
+	_battle_card_damage_multiplier = maxf(0.0, value)
+	_refresh_battle_damage_multiplier()
+
+func set_battle_aura_damage_bonus(value: float) -> void:
+	_battle_aura_damage_bonus = maxf(0.0, value)
+	_refresh_battle_damage_multiplier()
+
+func _refresh_battle_damage_multiplier() -> void:
+	battle_damage_multiplier = _battle_card_damage_multiplier * (1.0 + _battle_aura_damage_bonus)
 
 ## Single explicit attack contract for plant-owned direct damage.
 ## No card snapshot in vanilla means a factor of 1.0.

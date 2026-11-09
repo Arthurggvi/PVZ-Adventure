@@ -24,7 +24,19 @@ const BOOKS: Dictionary = {
 			{"kind": "stat", "stat": "cooldown", "percent": -0.3},
 			{"kind": "stat", "stat": "max_health", "percent": 3.0},
 			{"kind": "on_death", "drop_sun": 50}
-		]}
+		]},
+	"promotion_sunflower_stellar": {
+		"title": "恒星", "summary": "每次产阳光后，下次额外产量+15，累计最多+100", "plant_type": 2, "tier": 3,
+		"effects": [{"kind": "sun_growth", "step": 15, "cap": 100}]},
+	"promotion_sunflower_resonance": {
+		"title": "共鸣", "summary": "付费种植后立刻恢复本卡冷却、下次种植免费；免费种植不再触发", "plant_type": 2, "tier": 3,
+		"effects": [{"kind": "card_resonance"}]},
+	"promotion_sunflower_holy_war": {
+		"title": "圣战", "summary": "自身同排前后相邻一格的植物伤害+100%、受到伤害−50%", "plant_type": 2, "tier": 4,
+		"effects": [{"kind": "adjacent_aura", "damage_bonus": 1.0, "damage_reduction": 0.5}]},
+	"promotion_sunflower_flower_field": {
+		"title": "花田", "summary": "每次种植本向日葵，使其他植物卡费用−25（可叠加，最低0）；使用各卡后重置该卡折扣", "plant_type": 2, "tier": 4,
+		"effects": [{"kind": "deck_cost_discount", "step": 25}]}
 }
 
 static func definition(id: String) -> Dictionary:

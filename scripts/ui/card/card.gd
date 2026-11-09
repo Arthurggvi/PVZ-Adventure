@@ -23,6 +23,9 @@ var _registry_sun_cost: int = -1
 var _registry_cooldown: float = 0.0
 ## Runtime field additions are separate from permanent star/promotion modifiers.
 var _sun_surcharge: int = 0
+## Battlefield-only, per-card temporary costs; never enter persistent card data.
+var _flower_field_discount: int = 0
+var _resonance_next_free: bool = false
 var _star_badge: Control = null
 const StarBadge = preload("res://scripts/adventure/ui/star_badge_view.gd")
 
@@ -73,15 +76,39 @@ func _apply_profile_card_stats() -> void:
 	if stats.is_empty():
 		push_error("Invalid combat card stat resolution")
 		return
-	sun_cost = maxi(0, int(stats.sun_cost) + _sun_surcharge)
+	_refresh_battle_sun_cost()
 	cool_time = maxf(0.0, float(stats.cooldown))
 
 ## Dynamic board costs are added after permanent card modifiers.
 func set_sun_surcharge(amount: int) -> void:
 	_sun_surcharge = maxi(0, amount)
+	_refresh_battle_sun_cost()
+
+func _refresh_battle_sun_cost() -> void:
 	var stats: Dictionary = _resolved_card_stats()
-	if not stats.is_empty():
-		sun_cost = maxi(0, int(stats.sun_cost) + _sun_surcharge)
+	if stats.is_empty():
+		return
+	sun_cost = 0 if _resonance_next_free else maxi(0,
+		int(stats.sun_cost) + _sun_surcharge - _flower_field_discount)
+
+func add_flower_field_discount(amount: int) -> void:
+	if amount <= 0:
+		return
+	_flower_field_discount += amount
+	_refresh_battle_sun_cost()
+
+func arm_resonance_next_free() -> void:
+	_resonance_next_free = true
+	_refresh_battle_sun_cost()
+
+## Called exactly once AFTER the slot deducts the successfully used card's current cost.
+## Returns whether this placement consumed the one-shot free resonance.
+func consume_adventure_cost_effects() -> bool:
+	var was_free := _resonance_next_free
+	_resonance_next_free = false
+	_flower_field_discount = 0
+	_refresh_battle_sun_cost()
+	return was_free
 ## 是否处于冷却中。
 var _is_cooling: bool = false
 ## 当前费用是否已被卡槽判定为足够。

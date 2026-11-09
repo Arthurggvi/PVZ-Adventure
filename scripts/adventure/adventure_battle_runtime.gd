@@ -17,6 +17,7 @@ var _cleared_waves: Dictionary[int, bool] = {}
 var _ordered_events: Array[StageEventDefinition] = []
 var _gravestones: AdventureGravestoneDirector
 var _cooldown: AdventureCardCooldownRuntime
+var _sunflower_skills: AdventureSunflowerPromotionRuntime
 var requested_items: Dictionary[String, int] = {}
 var pending_region_flags: Dictionary[StringName, bool] = {}
 var _reward_rng := RandomNumberGenerator.new()
@@ -65,6 +66,9 @@ func _ready() -> void:
 	_cooldown = AdventureCardCooldownRuntime.new()
 	_cooldown.setup(zombies)
 	add_child(_cooldown)
+	_sunflower_skills = AdventureSunflowerPromotionRuntime.new()
+	_sunflower_skills.setup(zombies.main_game)
+	add_child(_sunflower_skills)
 	_boss_director = AdventureBossDirector.new()
 	_boss_director.setup(waves, zombies)
 	add_child(_boss_director)

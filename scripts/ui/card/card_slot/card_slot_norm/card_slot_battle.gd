@@ -2,6 +2,9 @@ extends FixedBattleCardSlots
 ## 出战卡槽
 class_name CardSlotBattle
 
+## Fired once after a successful normal battle-card placement has paid its cost.
+signal signal_card_committed(card: Card, consumed_resonance_free: bool)
+
 @onready var curr_sun_value: Label = $SunLabelControl/CurrSunValue
 @onready var marker_2d_sun_target: Marker2D = %Marker2DSunTarget
 
@@ -58,6 +61,10 @@ func card_use_end(card:Card):
 	## 减少阳光，卡片冷却
 	sun_value = sun_value - card.sun_cost
 	card.card_cool()
+	if AdventureSession.owns_battle(Global.game_para):
+		var consumed_free: bool = card.consume_adventure_cost_effects()
+		card.judge_sun_enough(sun_value)
+		signal_card_committed.emit(card, consumed_free)
 
 #region 控制台相关
 ## 是否显示多余卡槽

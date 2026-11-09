@@ -16,6 +16,10 @@ class_name CreateSunComponent
 ## Extra small suns per production, set only from frozen adventure promotion effects.
 var extra_small_sun_min: int = 0
 var extra_small_sun_max: int = 0
+## Optional per-production growth; only configured from a frozen adventure skill.
+var production_growth_step: int = 0
+var production_growth_cap: int = 0
+var _production_growth_bonus: int = 0
 @export_group("生产间隔时间")
 ## 第一个阳光生产时间范围
 @export var create_time_range_first:Vector2 = Vector2(3, 12.5)
@@ -89,11 +93,20 @@ func change_production_interval():
 ## 创建阳光
 func _spawn_sun() -> void:
 	SoundManager.play_character_SFX(&"Throw1")
+	# The bonus increases the VALUE of this production, not the number of suns.
 	for i in range(num_create_sun):
-		_spawn_sun_value(sun_value)
+		_spawn_sun_value(sun_value + _production_growth_bonus)
 	var extra := randi_range(extra_small_sun_min, extra_small_sun_max)
 	for i in range(extra):
 		_spawn_sun_value(15)
+	advance_production_growth_bonus()
+
+## Advance after the current production. A 25-sun base can grow to 125.
+func advance_production_growth_bonus() -> int:
+	if production_growth_step > 0 and production_growth_cap > 0:
+		_production_growth_bonus = mini(production_growth_cap,
+			_production_growth_bonus + production_growth_step)
+	return _production_growth_bonus
 
 ## A separate drop value shares the same Sun animation and scene ownership.
 func spawn_specific_sun(value: int) -> void:
