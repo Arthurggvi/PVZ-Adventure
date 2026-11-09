@@ -11,6 +11,25 @@ class_name JumpComponent
 
 ## 跳跃距离，跳跃完成后移动本体节点的距离
 @export var jump_x :float= 150
+## Species may configure multiple jumps and an actual-grid-cell displacement.
+var max_jumps: int = 1
+var completed_jumps: int = 0
+var jump_distance_cells: int = 0
+
+func has_remaining_jumps() -> bool:
+	return completed_jumps < max_jumps
+
+func _configured_distance() -> float:
+	if jump_distance_cells <= 0:
+		return jump_x
+	var game = Global.main_game
+	if not is_instance_valid(game) or not is_instance_valid(game.plant_cell_manager):
+		return jump_x
+	var grid: Array[Array] = game.plant_cell_manager.all_plant_cells
+	if owner_zombie.lane < 0 or owner_zombie.lane >= grid.size() \
+			or grid[owner_zombie.lane].is_empty():
+		return jump_x
+	return (grid[owner_zombie.lane][0] as PlantCell).size.x * float(jump_distance_cells)
 ## 可以跳跃的敌人状态
 @export_flags("1 正常", "2 悬浮", "4 地刺", "8 低矮") var can_attack_plant_status:int = 9
 @export_flags("1 正常", "2 跳跃", "4 水下", "8 空中", "16 地下")var can_attack_zombie_status:int = 1
@@ -72,6 +91,8 @@ func disable_component(is_enable_factor:E_IsEnableFactor):
 ## [is_jump_compensate:bool]是否有跳跃补偿
 ## [global_pos_x:float]跳跃补偿对应植物位置
 func jump_start(curr_is_jump_compensate:bool, global_pos_x:float=0):
+	if not has_remaining_jumps() or is_jumping or not is_enabling:
+		return
 	self.is_jump_compensate = curr_is_jump_compensate
 	is_jumping = true
 	signal_jump_start.emit()
@@ -80,18 +101,22 @@ func jump_start(curr_is_jump_compensate:bool, global_pos_x:float=0):
 
 ## 结束跳跃，动画调用
 func jump_end():
+	if not is_jumping:
+		return
 	is_jumping = false
+	completed_jumps += 1
 	signal_jump_end.emit()
 	await get_tree().process_frame
 	await get_tree().process_frame
-	if owner_zombie.is_mini_zombie:
-		jump_x /= 2
-	owner.global_position.x -= jump_x
+	var distance: float = _configured_distance()
+	owner.global_position.x -= distance * (0.5 if owner_zombie.is_mini_zombie else 1.0)
 	signal_jump_end_end.emit()
 	#print("跳跃结束修改完成位置")
 
 ## 跳跃被高坚果强行停止
 func jump_be_stop(plant:Plant000Base):
+	# A tall-nut interruption spends the remaining jumps.
+	max_jumps = completed_jumps + 1
 	is_jump_stop = true
 	jump_stop_postion = plant.global_position
 

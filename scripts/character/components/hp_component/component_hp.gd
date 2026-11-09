@@ -3,6 +3,10 @@ class_name HpComponent
 
 ## 单次伤害的通用固定格挡，普通生命与僵尸护甲共用同一入口。
 var damage_block := DamageBlockEffect.new()
+## Applied after fixed block and before all armor/HP routing.
+var damage_reduction := DamageReductionEffect.new()
+## Timed immunity sources coexist with existing scripted invulnerability.
+var _immunity_sources: Dictionary[int, bool] = {}
 ## 角色控制的无敌窗口；直接生命调整仍可通过专用旁路执行。
 var damage_immune: bool = false
 ## 直接处决/存档恢复等非战斗扣血绕过格挡，避免改变原有语义。
@@ -140,7 +144,18 @@ func apply_unblocked_loss(amount: int, mode: BulletRegistry.AttackMode = BulletR
 func resolve_damage(damage: int) -> int:
 	if _bypass_damage_block:
 		return maxi(0, damage)
-	return 0 if damage_immune else damage_block.reduce(damage)
+	if is_damage_immune():
+		return 0
+	return damage_reduction.reduce(damage_block.reduce(damage))
+
+func set_immunity_source(source_id: int, enabled: bool) -> void:
+	if enabled:
+		_immunity_sources[source_id] = true
+	else:
+		_immunity_sources.erase(source_id)
+
+func is_damage_immune() -> bool:
+	return damage_immune or not _immunity_sources.is_empty()
 
 
 ## [param amount] 有效格挡；独立染色通道避免与冰冻、受击和阶段颜色互相覆盖。

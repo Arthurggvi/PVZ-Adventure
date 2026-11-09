@@ -1,6 +1,35 @@
 extends HpComponent
 class_name HpComponentZombie
 ## 僵尸血量组件
+## Extra hit points from abilities are an independent pool, not a helmet.
+var bonus_armor: int = 0
+signal bonus_armor_changed(remaining: int)
+var damage_transfer := DamageTransferEffect.new()
+var _handling_transferred_hit := false
+
+func grant_bonus_armor(amount: int) -> void:
+	if amount <= 0 or is_death:
+		return
+	bonus_armor += amount
+	bonus_armor_changed.emit(bonus_armor)
+
+func _absorb_bonus_armor(amount: int) -> int:
+	# Direct gear removal and forced HP loss must bypass temporary shields.
+	if _bypass_damage_block:
+		return maxi(0, amount)
+	var absorbed: int = mini(bonus_armor, maxi(0, amount))
+	if absorbed > 0:
+		bonus_armor -= absorbed
+		bonus_armor_changed.emit(bonus_armor)
+	return maxi(0, amount - absorbed)
+
+## A redirected hit goes through the protector's complete mitigation and armor routing.
+func accept_transferred_hit(amount: int, mode: BulletRegistry.AttackMode,
+		drop: bool, sfx: bool, extra_drop: bool) -> void:
+	_handling_transferred_hit = true
+	Hp_loss(amount, mode, drop, sfx, extra_drop)
+	_handling_transferred_hit = false
+
 @onready var progress_bar_hp_armor_2: ProgressBar = %ProgressBarHpArmor2
 @onready var label_hp_armor_2: Label = %LabelHpArmor2
 @onready var progress_bar_hp_armor_1: ProgressBar = %ProgressBarHpArmor1
@@ -81,7 +110,7 @@ func _physics_process(delta: float) -> void:
 
 
 func get_all_hp():
-	return curr_hp_armor1 + curr_hp_armor2 + curr_hp
+	return bonus_armor + curr_hp_armor1 + curr_hp_armor2 + curr_hp
 
 
 ## [attack_value:int] 掉血的值
@@ -91,10 +120,21 @@ func get_all_hp():
 ## [is_drop_2:bool] 是否有掉落额外条件
 ## return bool: 返回是否死亡
 func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm, is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true):
-	# 固定伤害类型在各自确定实际伤害后减格挡；普通伤害在护甲分流前减一次。
-	if bullet_mode not in [BulletRegistry.AttackMode.BowlingFront, BulletRegistry.AttackMode.BowlingSide, BulletRegistry.AttackMode.Hammer]:
-		attack_value = resolve_damage(attack_value)
+	# A protector receives the raw hit and re-runs its own block -> DR -> armor.
+	# Scripted forced loss and nested transfers never redirect.
+	if not _bypass_damage_block and not _handling_transferred_hit and not is_damage_immune() \
+			and owner_character is Zombie000Base:
+		var protector: Zombie000Base = damage_transfer.select_protector(owner_character)
+		if protector != null:
+			var protector_hp: HpComponentZombie = protector.hp_component as HpComponentZombie
+			protector_hp.accept_transferred_hit(attack_value, bullet_mode,
+					is_drop_on_death, trigger_be_attack_SFX, is_drop_2)
+			return
+	# Ordinary hits are mitigated once before any health-pool routing.
 	var ori_hp = get_all_hp()
+	if bullet_mode not in [BulletRegistry.AttackMode.BowlingFront,
+			BulletRegistry.AttackMode.BowlingSide, BulletRegistry.AttackMode.Hammer]:
+		attack_value = _absorb_bonus_armor(resolve_damage(attack_value))
 	## 掉血标志, 1:本体 2:一类防具 4:二类防具
 	var flag_loss:int = 0
 	match bullet_mode:
@@ -169,70 +209,52 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 				flag_loss |= 1
 				curr_hp -= attack_value
 
-		## 保龄球子弹
+		## Front/side bowling and hammer use one resolved payload per impact.
+		## This avoids double block/DR on a hit that crosses multiple pools.
 		BulletRegistry.AttackMode.BowlingFront:
-			# 如果是正面
-			# 如果有二类防具，先对二类防具掉血
+			var front_amount := 1800
 			if curr_hp_armor2 > 0:
+				front_amount = 400
+			elif curr_hp_armor1 > 0:
+				front_amount = 800
+			var front_damage := _absorb_bonus_armor(resolve_damage(front_amount))
+			if front_damage > 0:
+				if curr_hp_armor2 > 0:
+					curr_hp_armor2 -= front_damage
+					flag_loss |= 4
+				elif curr_hp_armor1 > 0:
+					curr_hp_armor1 -= front_damage
+					flag_loss |= 2
+				else:
+					curr_hp -= front_damage
+					flag_loss |= 1
 
-				# 如果为正面,无溢出伤害对二类防具造成400血量
-				curr_hp_armor2 -= resolve_damage(400)
-				attack_value = 0
-				flag_loss |= 4
-
-			# 如果有一类防具
-			if curr_hp_armor1 > 0 and attack_value > 0:
-				## 对一类防具造成无溢出伤害800
-				curr_hp_armor1 -= resolve_damage(800)
-				attack_value = 0
-				flag_loss |= 2
-
-			# 血量>0
-			if curr_hp > 0 and attack_value > 0:
-				#若有溢出伤害或没有防具 对僵尸本体造成1800伤害
-				curr_hp -= resolve_damage(1800)
-				flag_loss |= 1
-
-		## 保龄球侧面子弹
 		BulletRegistry.AttackMode.BowlingSide:
+			var side_amount := 1800
+			if curr_hp_armor2 <= 0 and curr_hp_armor1 > 0:
+				side_amount = 800
+			var side_damage := _absorb_bonus_armor(resolve_damage(side_amount))
+			if side_damage > 0:
+				if curr_hp_armor2 > 0:
+					curr_hp_armor2 -= side_damage
+					flag_loss |= 4
+				elif curr_hp_armor1 > 0:
+					curr_hp_armor1 -= side_damage
+					flag_loss |= 2
+				else:
+					curr_hp -= side_damage
+					flag_loss |= 1
 
-			#如果是正面
-			# 如果有二类防具，先对二类防具掉血，若二类防具血量<0, 修改
-			if curr_hp_armor2 > 0:
-				#如果为侧面,二类防具造成1800血量， 溢出伤害1800
-				curr_hp_armor2 -= resolve_damage(1800)
-				attack_value = 1800
-				flag_loss |= 4
-			# 如果有一类防具
-			if curr_hp_armor1 > 0 and attack_value > 0:
-				## 对一类防具造成无溢出伤害800
-				curr_hp_armor1 -= resolve_damage(800)
-				attack_value = 0
-				flag_loss |= 2
-
-			# 血量>0
-			if curr_hp > 0 and attack_value > 0:
-				#若有溢出伤害或没有防具 对僵尸本体造成1800伤害
-				curr_hp -= resolve_damage(1800)
-				flag_loss |= 1
-
-		## 锤子
 		BulletRegistry.AttackMode.Hammer:
-			# 如果有二类防具，无视二类防具,
-			if curr_hp_armor2 > 0:
-				pass
-			# 如果有一类防具
-			if curr_hp_armor1 > 0 and attack_value > 0:
-				## 对一类防具造成无溢出伤害800
-				curr_hp_armor1 -= resolve_damage(900)
-				attack_value = 0
-				flag_loss |= 2
-
-			# 血量>0 本体代码杀
-			if curr_hp > 0 and attack_value > 0:
-				#若有溢出伤害或没有防具 对僵尸本体造成伤害
-				curr_hp -= curr_hp
-				flag_loss |= 1
+			var hammer_amount := 900 if curr_hp_armor1 > 0 else curr_hp
+			var hammer_damage := _absorb_bonus_armor(resolve_damage(hammer_amount))
+			if hammer_damage > 0:
+				if curr_hp_armor1 > 0:
+					curr_hp_armor1 -= hammer_damage
+					flag_loss |= 2
+				elif curr_hp > 0:
+					curr_hp -= hammer_damage
+					flag_loss |= 1
 
 
 	var res_hp = get_all_hp()

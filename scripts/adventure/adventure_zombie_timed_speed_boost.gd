@@ -4,12 +4,12 @@ extends Node
 class_name AdventureZombieTimedSpeedBoost
 
 const NODE_NAME: StringName = &"AdventureTimedSpeedBoost"
-var _zombie: Zombie000Base
+var _zombie: Character000Base
 var _active: Array[Dictionary] = []
 var _applied_multiplier := 1.0
 
-static func apply_to(target: Zombie000Base, multiplier: float, duration: float) -> void:
-	if not is_instance_valid(target) or target.is_death 			or target.is_queued_for_deletion() or multiplier <= 1.0 or duration <= 0.0:
+static func apply_to(target: Character000Base, multiplier: float, duration: float) -> void:
+	if not is_instance_valid(target) or target.is_death or target.is_hypno 			or target.is_queued_for_deletion() or multiplier <= 1.0 or duration <= 0.0:
 		return
 	var boost: AdventureZombieTimedSpeedBoost = target.get_node_or_null(
 			NodePath(NODE_NAME)) as AdventureZombieTimedSpeedBoost
@@ -20,10 +20,11 @@ static func apply_to(target: Zombie000Base, multiplier: float, duration: float) 
 	boost.grant(multiplier, duration)
 
 func _ready() -> void:
-	_zombie = get_parent() as Zombie000Base
+	_zombie = get_parent() as Character000Base
 	set_process(false)
 	if _zombie != null:
 		_zombie.signal_character_death.connect(_on_character_death)
+		_zombie.signal_character_be_hypno.connect(_on_character_death)
 
 func grant(multiplier: float, duration: float) -> void:
 	if _zombie == null or _zombie.is_death or multiplier <= 1.0 or duration <= 0.0:

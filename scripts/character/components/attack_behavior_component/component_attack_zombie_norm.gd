@@ -12,6 +12,7 @@ enum E_AttackValueFactor{
 	Speed,			## 攻击速度，
 	PaperDrop,		## 报纸掉落，攻击力翻倍
 	JacksonEnter,	## 舞王入场时,攻击值为0
+	AdventureBiteBoost, ## Temporary tier flag bite bonus
 }
 
 var attack_value_factor:Dictionary[E_AttackValueFactor, float] = {}
