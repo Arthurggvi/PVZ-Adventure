@@ -14,7 +14,7 @@ func setup(zombie: Zombie013Zamboni, rule: Dictionary) -> void:
     _decay = maxf(0.0, float(rule.get("hit_decay", 0.0)))
     var hp: HpComponentZombie = zombie.hp_component as HpComponentZombie
     hp.damage_reduction.set_source(get_instance_id(), float(rule.get("reduction", 0.0)))
-    hp.signal_zombie_hp_loss.connect(_on_hit)
+    hp.received_attack.connect(_on_hit)
     _sync_speed()
     var death_blast: int = int(rule.get("death_blast", 0))
     if death_blast > 0:

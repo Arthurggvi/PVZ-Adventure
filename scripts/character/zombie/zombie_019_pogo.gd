@@ -26,6 +26,9 @@ var is_jump_stop:=false
 @export var is_pogo := true
 ## 是否为大跳状态
 var is_big_pogo := false
+var big_jump_cells := 0
+signal signal_big_jump_landed(before_x: float, after_x: float)
+var _big_x_tween: Tween
 
 func ready_norm():
 	super()
@@ -76,7 +79,7 @@ func pogo_start():
 				return
 			else:
 				is_big_pogo = true
-				move_component.update_only_move_speed(4)
+				move_component.update_only_move_speed(0 if big_jump_cells > 0 else 4)
 				pogo_y = pogo_y_defalut * 2
 		else:
 			move_component.update_only_move_speed(0)
@@ -95,6 +98,31 @@ func pogo_start():
 	#tween_pogo.set_parallel()
 	tween_pogo.tween_property(body_correct, ^"position:y", body_correct.position.y-pogo_y, time_pogo_once*2/5).set_ease(Tween.EASE_OUT)
 	tween_pogo.tween_property(body_correct, ^"position:y", body_correct.position.y, time_pogo_once*3/5).set_ease(Tween.EASE_IN)
+	if is_big_pogo:
+		var from_x: float = global_position.x
+		if big_jump_cells > 0:
+			var game: MainGameManager = Global.main_game
+			if is_instance_valid(game) and lane >= 0:
+				var grid: Array[Array] = game.plant_cell_manager.all_plant_cells
+				if lane < grid.size() and not grid[lane].is_empty():
+					var pitch: float = (grid[lane][0] as PlantCell).size.x
+					if grid[lane].size() > 1:
+						pitch = absf((grid[lane][1] as PlantCell).global_position.x
+								- (grid[lane][0] as PlantCell).global_position.x)
+					if _big_x_tween != null and _big_x_tween.is_running():
+						_big_x_tween.kill()
+					_big_x_tween = create_tween()
+					_big_x_tween.set_speed_scale(speed_scale_pogo)
+					_big_x_tween.tween_property(self, ^"global_position:x",
+							from_x - pitch * float(big_jump_cells), time_pogo_once)
+					_big_x_tween.finished.connect(_emit_jump_landed.bind(from_x))
+		if big_jump_cells <= 0:
+			tween_pogo.finished.connect(_emit_jump_landed.bind(from_x))
+
+func _emit_jump_landed(from_x: float) -> void:
+	if is_death or is_jump_stop or not is_big_pogo:
+		return
+	signal_big_jump_landed.emit(from_x, global_position.x)
 
 ## 更新速度时同时修改弹跳的tween
 func _on_update_speed(speed_factor_product:float):

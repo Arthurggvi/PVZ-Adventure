@@ -66,6 +66,20 @@ static func resolve_targets(areas: Array[Area2D], source_id: int,
 
 ## Each FX subclass owns its particle lifetime; the resolver never duplicates
 ## emitter, tween, or cleanup logic from the established BombEffect pipeline.
+## Common runtime entry for non-death explosions: impact, smash, steal, etc.
+static func detonate(game: MainGameManager, origin: Vector2, lane: int,
+        source_id: int, charmed: bool, damage: int,
+        profile: CombatExplosionProfile, all_characters: bool = false) -> int:
+    if not is_instance_valid(game) or profile == null or damage <= 0:
+        return 0
+    var hits: Array[Area2D] = query_areas(
+            game.get_world_2d().direct_space_state, profile, origin)
+    var affected: int = resolve_targets(hits, source_id, lane,
+            profile.lane_radius, charmed, damage, false, all_characters)
+    emit_visuals(game.bombs if is_instance_valid(game.bombs) else game,
+            profile, origin)
+    return affected
+
 static func emit_visuals(parent: Node, profile: CombatExplosionProfile,
         origin: Vector2) -> void:
     if profile == null:

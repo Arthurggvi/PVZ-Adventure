@@ -102,6 +102,48 @@ const DESCRIPTIONS: Dictionary = {
         &"tier4": "继承三阶；地面行走速度提高50%。",
         &"tier5": "继承四阶；死亡时对周围一格内的敌方植物造成1800点爆炸伤害。",
     },
+    CharacterRegistry.ZombieType.Z019Pogo: {
+        &"veteran": "每次越过植物时造成300点伤害。",
+        &"elite": "跃过的植物受到600点伤害，一次可跨越两格植物。",
+        &"tier4": "继承前阶能力；登场获得300点额外护甲。",
+        &"tier5": "继承前阶能力；移动速度提高30%。",
+    },
+    CharacterRegistry.ZombieType.Z020Yeti: {
+        &"veteran": "每次受击，移速增幅提高2%。",
+        &"elite": "每次受击移速增幅提高4%；啃咬伤害提高300%，每秒恢复40生命。",
+        &"tier4": "每秒回复80生命；保留之前的全部能力。",
+        &"tier5": "每秒回复120生命，入场获得500护甲；保留之前的全部能力。",
+    },
+    CharacterRegistry.ZombieType.Z021Bungi: {
+        &"veteran": "停留时间从2秒缩短为1秒。",
+        &"elite": "停留时间缩短至0.5秒，获得20点格挡。",
+        &"tier4": "取消停留等待；偷取成功后造成1800点范围爆炸。",
+        &"tier5": "跳下后立即自爆，伤害3000点，不再偷取植物。",
+    },
+    CharacterRegistry.ZombieType.Z022Ladder: {
+        &"veteran": "护甲减伤20%；梯子生命2000。",
+        &"elite": "护甲减伤50%，可对任意植物搭梯，梯子使植物停止活动并变黑。",
+        &"tier4": "梯子生命4000；成功搭梯时周围一格友军获得1秒50%加速。",
+        &"tier5": "护甲减伤80%；梯子死亡后植物仍保持无效化。",
+    },
+    CharacterRegistry.ZombieType.Z023Catapult: {
+        &"veteran": "周围一格友军减伤10%，篮球伤害×2。",
+        &"elite": "可边行进边投篮；篮球伤害累计×4。",
+        &"tier4": "篮球命中造成3×3范围1800点爆炸。",
+        &"tier5": "开车速度提高50%；同时向上中下三行投篮，爆炸伤害翻倍至3600。",
+    },
+    CharacterRegistry.ZombieType.Z024Gargantuar: {
+        &"veteran": "移速提高20%。",
+        &"elite": "登场获得1000护甲；每次下砸扔出小鬼，过近时投往第三列。",
+        &"tier4": "下砸速度翻倍，且每次下砸造成3×3范围1800点爆炸。",
+        &"tier5": "保留双倍下砸速度；死亡时压扁身下及前方植物，每次投掷三只小鬼。",
+    },
+    CharacterRegistry.ZombieType.Z025Imp: {
+        &"veteran": "啃咬的植物获得50%劣化。",
+        &"elite": "死亡时发生一格半径600点爆炸。",
+        &"tier4": "死亡爆炸伤害提高至1800。",
+        &"tier5": "死亡后额外生成两只四阶小鬼。",
+    },
     CharacterRegistry.ZombieType.Z1001BobsledSingle: {
         &"veteran": "从二阶以上雪橇车脱离后继续继承10%移动速度提升。",
         &"elite": "继承二阶雪橇队员移速提升。",

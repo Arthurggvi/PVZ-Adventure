@@ -8,6 +8,8 @@ const EFFECTS: Array[StringName] = [
     &"snorkel_dive", &"zamboni_pressure", &"bobsled_upgrade",
     &"dolphin_leap", &"permanent_species_speed",
     &"jackbox_tier", &"balloon_tier", &"digger_tier",
+    &"pogo_tier", &"yeti_tier", &"bungee_tier", &"ladder_tier",
+    &"catapult_tier", &"gargantuar_tier", &"imp_tier",
 ]
 
 static func handles(effect: StringName) -> bool:
@@ -110,3 +112,59 @@ static func install(zombie: Zombie000Base, rule: Dictionary) -> void:
             var ability := AdventureZombieDiggerTier.new()
             digger.add_child(ability)
             ability.setup(digger, rule)
+        &"pogo_tier":
+            var pogo: Zombie019Pogo = zombie as Zombie019Pogo
+            if pogo == null:
+                push_error("Pogo tier installed on wrong species")
+                return
+            var ability := AdventureZombiePogoTier.new()
+            pogo.add_child(ability)
+            ability.setup(pogo, rule)
+        &"yeti_tier":
+            var yeti: Zombie020Yeti = zombie as Zombie020Yeti
+            if yeti == null:
+                push_error("Yeti tier installed on wrong species")
+                return
+            var ability := AdventureZombieYetiTier.new()
+            yeti.add_child(ability)
+            ability.setup(yeti, rule)
+        &"bungee_tier":
+            var bungee: Zombie021Bungi = zombie as Zombie021Bungi
+            if bungee == null:
+                push_error("Bungee tier installed on wrong species")
+                return
+            var ability := AdventureZombieBungeeTier.new()
+            bungee.add_child(ability)
+            ability.setup(bungee, rule)
+        &"ladder_tier":
+            var ladder: Zombie022Ladder = zombie as Zombie022Ladder
+            if ladder == null:
+                push_error("Ladder tier installed on wrong species")
+                return
+            var ability := AdventureZombieLadderTier.new()
+            ladder.add_child(ability)
+            ability.setup(ladder, rule)
+        &"catapult_tier":
+            var catapult: Zombie023Catapult = zombie as Zombie023Catapult
+            if catapult == null:
+                push_error("Catapult tier installed on wrong species")
+                return
+            var ability := AdventureZombieCatapultTier.new()
+            catapult.add_child(ability)
+            ability.setup(catapult, rule)
+        &"gargantuar_tier":
+            var giant: Zombie024Gargantuar = zombie as Zombie024Gargantuar
+            if giant == null:
+                push_error("Gargantuar tier installed on wrong species")
+                return
+            var ability := AdventureZombieGargantuarTier.new()
+            giant.add_child(ability)
+            ability.setup(giant, rule)
+        &"imp_tier":
+            var imp: Zombie025Imp = zombie as Zombie025Imp
+            if imp == null:
+                push_error("Imp tier installed on wrong species")
+                return
+            var ability := AdventureZombieImpTier.new()
+            imp.add_child(ability)
+            ability.setup(imp, rule)

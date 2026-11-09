@@ -31,6 +31,8 @@ var is_lane:=true
 ## 发射一次子弹信号
 signal signal_bullet_instantiated(bullet: Bullet000Base)
 signal signal_shoot_bullet
+## Species may supply a volley without replacing the entire projectile pipeline.
+var shoot_override: Callable
 
 ## 主游戏场景子弹父节点
 var bullets: Node2D
@@ -80,6 +82,9 @@ func set_cancel_attack():
 
 ## 发射子弹（动画调用）
 func _shoot_bullet():
+	if shoot_override.is_valid():
+		shoot_override.call()
+		return
 	signal_shoot_bullet.emit()
 	for i in range(markers_2d_bullet.size()):
 		var bullet:Bullet000Base = Global.bullet_registry.get_bullet_scenes(attack_bullet_type).instantiate()

@@ -23,6 +23,10 @@ class_name Zombie024Gargantuar
 @export var RangeRandomXThrow:Vector2 = Vector2(-50, 50)
 ## 小鬼投掷的全局位置
 var glo_pos_imp_be_thrown :Vector2
+## Tier upgrades preserve native imp creation and modifier inheritance.
+var throw_imp_count := 1
+var fallback_throw_column := -1
+var preserve_death_animation_after_blast := false
 
 @export_group("动画状态")
 ## 是否扔小鬼
@@ -51,7 +55,8 @@ func throw_out_imp():
 	is_throw = false
 
 	if not is_death:
-		create_imp()
+		for i in range(throw_imp_count):
+			create_imp()
 
 ## 创建投掷小鬼并继承刷新统计来源，避免博士放置的巨人间接影响自然波次。
 func create_imp():
@@ -74,6 +79,14 @@ func create_imp():
 
 ## 获取投掷小鬼的目标位置
 func _get_imp_throw_glo_pos()->Vector2:
+	if fallback_throw_column >= 0 and global_position.x <= MinXThrowGargantuar:
+		var grid: Array[Array] = Global.main_game.plant_cell_manager.all_plant_cells
+		if lane >= 0 and lane < grid.size() and fallback_throw_column < grid[lane].size():
+			var target_cell: PlantCell = grid[lane][fallback_throw_column] as PlantCell
+			glo_pos_imp_be_thrown = Vector2(
+				target_cell.global_position.x + target_cell.size.x * 0.5,
+				Global.main_game.zombie_manager.all_zombie_rows[lane].zombie_create_position.global_position.y)
+			return glo_pos_imp_be_thrown
 	var target_x_imp_throw = clamp(global_position.x - XThrow, RangeXImpThrow.x, RangeXImpThrow.y)
 	var target_x_imp_throw_res = target_x_imp_throw + randf_range(RangeRandomXThrow.x, RangeRandomXThrow.y)
 	#prints("全局位置:", global_position.x, "投掷位置:", target_x_imp_throw, "随机位置:", target_x_imp_throw_res)
@@ -88,6 +101,16 @@ func update_imp_throw_pos(zombie_imp:Zombie025Imp):
 	zombie_imp.target_pos_anim_head_to_body = zombie_imp_head.global_position - glo_pos_imp_be_thrown
 	print("位置:", zombie_imp.target_pos_anim_head_to_body)
 
+
+## Tier-five explosions still use the ordinary collapse animation and death
+## signal. Avoid the base character's queue_free() special case.
+func be_bomb(attack_value: int, is_cherry_bomb: bool = false) -> void:
+	if not preserve_death_animation_after_blast:
+		super.be_bomb(attack_value, is_cherry_bomb)
+		return
+	is_can_death_language = false
+	hp_component.Hp_loss(attack_value, BulletRegistry.AttackMode.Penetration,
+			false, false)
 
 ## 压扁地刺时被地刺反击无效果
 func be_caltrop():

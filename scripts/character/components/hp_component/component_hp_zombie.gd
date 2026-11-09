@@ -51,6 +51,8 @@ func _hit_armor1(raw: int) -> int:
 var _handling_transferred_hit := false
 var _resolving_hit := false
 var _armor_granted_in_hit := 0
+## One positive attack attempt; emitted before reductions/shield routing.
+signal received_attack(raw_damage: int)
 
 func grant_bonus_armor(amount: int) -> void:
 	if amount <= 0 or is_death:
@@ -188,6 +190,8 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 					is_drop_on_death, trigger_be_attack_SFX, is_drop_2)
 			return
 	# Ordinary hits are mitigated once before any health-pool routing.
+	if attack_value > 0 and not is_death and not _bypass_damage_block:
+		received_attack.emit(attack_value)
 	var ori_hp = get_all_hp()
 	_resolving_hit = true
 	_armor_granted_in_hit = 0

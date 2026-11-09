@@ -1387,8 +1387,8 @@ libraries = {
 }
 
 [node name="DropItemComponent" parent="." index="9"]
-drop_coin_rate = 1.0
-drop_coin_silver_glod_diamond_rate = [0.0, 0.0, 1.0]
+drop_coin_rate = 0.3
+drop_coin_silver_glod_diamond_rate = [0.5, 0.4, 0.1]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." index="11"]
 libraries = {

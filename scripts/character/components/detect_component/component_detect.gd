@@ -300,18 +300,10 @@ func _judge_enemy_is_can_be_attack(enemy:Character000Base)->bool:
 			and (can_attack_zombie_status & Zombie000Base.E_BeAttackStatusZombie.IsNorm) != 0
 	## 如果敌人为植物
 	if enemy is Plant000Base:
-		## 如果当前植物可以被攻击到
-		if enemy.curr_be_attack_status & can_attack_plant_status:
-			## 梯子
-			if is_attack_ladder_plant:
-				return true
-			else:
-				## 判断格子是否有梯子
-				return not is_instance_valid(enemy.plant_cell.ladder)
-		else:
-			return false
+		# Placed ladders no longer make the covered plant untargetable.
+		# Existing attack-status and lane rules still apply.
+		return (enemy.curr_be_attack_status & can_attack_plant_status) != 0
 
-	## 检测到僵尸
 	elif enemy is Zombie000Base:
 		if enemy.curr_be_attack_status & can_attack_zombie_status:
 			return true

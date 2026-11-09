@@ -25,7 +25,8 @@ position = Vector2(50, 50)
 shape = SubResource("RectangleShape2D_7imw8")
 
 [node name="Area2DReal" type="Area2D" parent="."]
-collision_layer = 4096
+## Existing item layer plus zombie-real layer lets plant bullets damage it.
+collision_layer = 0
 collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2DReal"]

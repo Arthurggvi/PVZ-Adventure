@@ -15,6 +15,8 @@ class_name Bullet000NormBase
 var curr_attack_num:=0
 ## 一颗子弹对同一僵王只结算一次，避免多个受击区域或追踪补判重复命中。
 var _hit_boss_ids: Dictionary[int, bool] = {}
+## One post-impact hook for projectile perks, after normal hit/umbrella routing.
+signal impact_resolved(target: Character000Base, impact_position: Vector2)
 ## 子弹伤害
 @export var attack_value := 20
 ## Immutable attack origin passed across projectile transformations (e.g. Torchwood).
@@ -109,6 +111,17 @@ func get_bullet_paras()->Dictionary[E_InitParasAttr,Variant]:
 
 ## 子弹与敌人碰撞
 func _on_area_2d_attack_area_entered(area: Area2D) -> void:
+	var ladder_entity: Ladder = area.owner as Ladder
+	if is_instance_valid(ladder_entity):
+		if bullet_camp == CharacterRegistry.CharacterType.Plant \
+				and not ladder_entity.is_queued_for_deletion() \
+				and (not is_activate_lane or lane == ladder_entity.lane) \
+				and (max_attack_num < 0 or curr_attack_num < max_attack_num):
+			ladder_entity.take_damage(attack_value)
+			curr_attack_num += 1
+			if max_attack_num >= 0 and curr_attack_num >= max_attack_num:
+				queue_free()
+		return
 	var enemy := area.owner as Character000Base
 	if not _can_attack_character(enemy):
 		return
@@ -211,5 +224,6 @@ func attack_once(enemy:Character000Base):
 		bullet_effect.activate_bullet_effect(is_boss_hit)
 
 	## 判断是否进入删除队列
+	impact_resolved.emit(enemy, global_position)
 	if max_attack_num != -1 and curr_attack_num >= max_attack_num:
 		queue_free()

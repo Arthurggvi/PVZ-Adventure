@@ -661,16 +661,21 @@ func get_plant_place_from_mouse_pos():
 #region 梯子
 ## 被挂载梯子
 ## global_pos:挂载梯子精灵节点的全局位置
-func be_ladder(tier_id: StringName = &""):
-	ladder = SceneRegistry.LADDER.instantiate()
-	ladder.init_ladder(self, tier_id)
+func be_ladder(tier_id: StringName = &"", target: Plant000Base = null) -> Ladder:
+	if is_instance_valid(ladder):
+		return null
+	ladder = SceneRegistry.LADDER.instantiate() as Ladder
+	ladder.init_ladder(self, tier_id, target)
 	add_child(ladder)
 	for p in plant_in_cell:
 		if is_instance_valid(plant_in_cell[p]):
 			plant_in_cell[p].signal_ladder_update.emit()
+	return ladder
 
 ## 梯子消失
-func ladder_loss():
+func ladder_loss(source: Ladder = null):
+	if source == null or ladder == source:
+		ladder = null
 	for p in plant_in_cell:
 		if is_instance_valid(plant_in_cell[p]):
 			plant_in_cell[p].signal_ladder_update.emit()

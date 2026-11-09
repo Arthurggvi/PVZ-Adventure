@@ -5,6 +5,8 @@ class_name AttackComponentBulletPultBase
 ## 最后一个目标敌人位置
 var last_target_enemy_global_pos :Vector2
 var last_target_enemy:Character000Base
+## Optional cross-lane targeting strategy; default retains native detection.
+var target_override: Callable
 ## 每次攻击时,先更新最前面敌人
 ## 攻击间隔后触发执行攻击
 func _on_bullet_attack_cd_timer_timeout() -> void:
@@ -18,6 +20,8 @@ func _on_bullet_attack_cd_timer_timeout() -> void:
 
 ## 投手优先越过普通障碍攻击有效敌人；只有无其他目标时才清理墓碑。
 func _choose_pult_target() -> Character000Base:
+	if target_override.is_valid():
+		return target_override.call() as Character000Base
 	var best: Character000Base = null
 	for target in detect_component.get_all_enemy_can_be_attacked():
 		if target.is_in_group(&"lobber_secondary_targets"):

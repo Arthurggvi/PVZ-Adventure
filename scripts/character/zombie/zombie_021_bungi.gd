@@ -4,6 +4,9 @@ class_name Zombie021Bungi
 
 ## 成功偷取或确定放弃目标时只发出一次，不等待上升离场；死亡由角色死亡信号通知。
 signal signal_steal_finished()
+signal signal_bungee_landed()
+signal signal_plant_stolen(target_cell: PlantCell)
+var linger_seconds := 2.0
 
 ## 与身体遮罩共用的材质模板；每只蹦极复制一份，避免不同绳子的裁切高度互相覆盖。
 const ROPE_MASK: ShaderMaterial = preload("res://shader_material/body_mask.tres")
@@ -81,9 +84,13 @@ func ready_norm() -> void:
 	await _drop_tween.finished
 	if not _can_continue_descent():
 		return
-	await get_tree().create_timer(2.0, false).timeout
+	signal_bungee_landed.emit()
 	if not _can_continue_descent():
 		return
+	if linger_seconds > 0.0:
+		await get_tree().create_timer(linger_seconds, false).timeout
+		if not _can_continue_descent():
+			return
 	is_grab = true
 	body.z_index -= 50
 
@@ -184,6 +191,7 @@ func bungi_plant_cell(target_cell: PlantCell) -> void:
 		plant_body_copy.queue_free()
 		return
 	plant_body_copy.reparent(bungi_container)
+	signal_plant_stolen.emit(target_cell)
 
 
 ## 标记本次偷取已结束；空手和被弹开同样属于结束，信号绝不重复发送。

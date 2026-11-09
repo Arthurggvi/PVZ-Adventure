@@ -13,6 +13,7 @@ var enemy:Character000Base
 var pot:ScaryPot
 ## 攻击脑子
 var brain:BrainOnZombieMode
+signal signal_smash_completed(hit_target: Character000Base)
 
 ## 动画开始时,获取攻击对象
 func anim_start():
@@ -25,6 +26,10 @@ func anim_start():
 
 ## 攻击一次，动画调用
 func attack_once():
+	_attack_once_native()
+	signal_smash_completed.emit(enemy)
+
+func _attack_once_native() -> void:
 	if is_instance_valid(pot):
 		pot.open_pot_be_gargantuar()
 		SoundManager.play_character_SFX("gargantuar_thump")

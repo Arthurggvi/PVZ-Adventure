@@ -3,6 +3,8 @@ class_name Zombie022Ladder
 
 ## 当前可以被搭梯子的植物
 var plant_ladder:Plant000Base
+var allow_any_ladder_target := false
+signal ladder_placed(plant: Plant000Base, ladder_entity: Ladder)
 @onready var zombie_ladder_1: Sprite2D = $Body/BodyCorrect/Ladder/Zombie_ladder_1
 
 @export_group("动画")
@@ -41,7 +43,10 @@ func start_ladder(plant:Plant000Base):
 ## 搭梯子,同时搭梯子动画结束
 func ladder_once():
 	if is_instance_valid(plant_ladder) and not plant_ladder.plant_cell.ladder and not is_drop_ladder:
-		plant_ladder.plant_cell.be_ladder(adventure_tier_id)
+		var placed: Ladder = plant_ladder.plant_cell.be_ladder(
+				adventure_tier_id, plant_ladder)
+		if is_instance_valid(placed):
+			ladder_placed.emit(plant_ladder, placed)
 		hp_component.apply_unblocked_loss(hp_component.curr_hp_armor2, BulletRegistry.AttackMode.Norm, false, false, false)
 	else:
 		is_fail_ladder = true
