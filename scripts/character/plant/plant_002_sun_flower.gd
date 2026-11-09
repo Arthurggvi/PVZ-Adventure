@@ -2,7 +2,11 @@ extends Plant000Base
 class_name Plant002SunFlower
 
 @onready var create_sun_component: CreateSunComponent = $CreateSunComponent
+const PromotionArt = preload("res://scripts/adventure/plant_art/adventure_sunflower_promotion_art.gd")
 
+func _ready() -> void:
+	super()
+	PromotionArt.apply(self)
 
 func ready_norm() -> void:
 	super()
