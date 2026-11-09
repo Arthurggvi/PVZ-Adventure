@@ -40,4 +40,10 @@ func apply(zombie: Zombie000Base) -> bool:
 	var art_loaded: bool = AdventureZombieTierArt.apply(zombie, id)
 	zombie.adventure_tier_id = id
 	zombie.modulate = Color.WHITE if art_loaded else tier.tint
+	var rules: Array[Dictionary] = AdventureZombieTierTraits.for_spawn(int(zombie.zombie_type), id)
+	if not rules.is_empty():
+		var behavior := AdventureZombieTierBehavior.new()
+		behavior.name = "AdventureTierBehavior"
+		behavior.configure(rules)
+		zombie.add_child(behavior)
 	return true
