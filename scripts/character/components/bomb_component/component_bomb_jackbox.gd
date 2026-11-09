@@ -48,17 +48,9 @@ func _start_bomb_fx():
 
 ## 炸死所有敌人
 func _bomb_all_enemy():
-	var areas = area_2d_bomb.get_overlapping_areas()
-	for area in areas:
-		if area.owner is Character000Base:
-			var character:Character000Base = area.owner
-			if character.lane >= owner.lane -1 and character.lane <= owner.lane + 1:
-				## 角色死亡直接消失
-				character.character_death_disappear()
-		elif area.owner is ScaryPot:
-			var pot:ScaryPot = area.owner
-			if pot.lane >= owner.lane -1 and pot.lane <= owner.lane + 1:
-				pot.open_pot_be_bomb()
+	CombatExplosion.resolve_targets(
+		area_2d_bomb.get_overlapping_areas(), owner.get_instance_id(),
+		owner.lane, bomb_lane, owner.is_hypno, 0, true, true)
 
 
 ## 禁用组件

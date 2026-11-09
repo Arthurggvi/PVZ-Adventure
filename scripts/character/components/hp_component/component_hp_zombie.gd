@@ -15,31 +15,35 @@ func _hit_armor2(raw: int) -> int:
 	if raw <= 0 or curr_hp_armor2 <= 0:
 		return maxi(0, raw)
 	var before: int = curr_hp_armor2
-	var mitigated: int = raw if _bypass_damage_block else armor2_reduction.reduce(raw)
+	var mitigated: int = raw if _bypass_damage_block else armor2_reduction.reduce_gear(raw)
 	if mitigated < before:
 		curr_hp_armor2 = before - mitigated
 		return 0
 	curr_hp_armor2 = 0
-	var retained: float = 1.0 if _bypass_damage_block else 1.0 - armor2_reduction.effective_reduction()
-	return maxi(0, raw - ceili(float(before) / retained))
+	var retained: float = 1.0 if _bypass_damage_block else 1.0 - armor2_reduction.raw_reduction()
+	return 0 if retained <= 0.0 else maxi(0, raw - ceili(float(before) / retained))
 
 func _hit_armor1(raw: int) -> int:
 	if raw <= 0 or curr_hp_armor1 <= 0:
 		return maxi(0, raw)
 	var before: int = curr_hp_armor1
-	var mitigated: int = raw if _bypass_damage_block else armor1_reduction.reduce(raw)
+	var mitigated: int = raw if _bypass_damage_block else armor1_reduction.reduce_gear(raw)
 	if mitigated < before:
 		curr_hp_armor1 = before - mitigated
 		return 0
 	curr_hp_armor1 = 0
-	var retained: float = 1.0 if _bypass_damage_block else 1.0 - armor1_reduction.effective_reduction()
-	return maxi(0, raw - ceili(float(before) / retained))
+	var retained: float = 1.0 if _bypass_damage_block else 1.0 - armor1_reduction.raw_reduction()
+	return 0 if retained <= 0.0 else maxi(0, raw - ceili(float(before) / retained))
 var _handling_transferred_hit := false
+var _resolving_hit := false
+var _armor_granted_in_hit := 0
 
 func grant_bonus_armor(amount: int) -> void:
 	if amount <= 0 or is_death:
 		return
 	bonus_armor += amount
+	if _resolving_hit:
+		_armor_granted_in_hit += amount
 	bonus_armor_changed.emit(bonus_armor)
 
 func _absorb_bonus_armor(amount: int) -> int:
@@ -141,6 +145,16 @@ func _physics_process(delta: float) -> void:
 func get_all_hp():
 	return bonus_armor + curr_hp_armor1 + curr_hp_armor2 + curr_hp
 
+## Forced elimination bypasses bonuses but must not leave a dead entity with
+## phantom HP. Partial scripted gear removal still preserves the bonus pool.
+func apply_unblocked_loss(amount: int,
+		mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm,
+		drop: bool = true, sfx: bool = true, extra_drop: bool = true) -> void:
+	if amount >= get_all_hp() and bonus_armor > 0:
+		bonus_armor = 0
+		bonus_armor_changed.emit(0)
+	super.apply_unblocked_loss(amount, mode, drop, sfx, extra_drop)
+
 
 ## [attack_value:int] 掉血的值
 ## [bullet_mode:AttackMode]: 伤害类型
@@ -161,95 +175,20 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 			return
 	# Ordinary hits are mitigated once before any health-pool routing.
 	var ori_hp = get_all_hp()
+	_resolving_hit = true
+	_armor_granted_in_hit = 0
 	if bullet_mode not in [BulletRegistry.AttackMode.BowlingFront,
 			BulletRegistry.AttackMode.BowlingSide, BulletRegistry.AttackMode.Hammer]:
 		attack_value = _absorb_bonus_armor(resolve_damage(attack_value))
 	## 掉血标志, 1:本体 2:一类防具 4:二类防具
-	var flag_loss:int = 0
-	match bullet_mode:
-		## 普通子弹
-		BulletRegistry.AttackMode.Norm:
-			if curr_hp_armor2 > 0 and attack_value > 0:
-				attack_value = _hit_armor2(attack_value)
-				flag_loss |= 4
-			if curr_hp_armor1 > 0 and attack_value > 0:
-				attack_value = _hit_armor1(attack_value)
-				flag_loss |= 2
-			if curr_hp > 0 and attack_value > 0:
-				curr_hp -= attack_value
-				flag_loss |= 1
-
-		## Penetration hits outer armor separately and preserves its original
-		## inner-armor/body behavior; only the outer pool receives gear-specific DR.
-		BulletRegistry.AttackMode.Penetration:
-			if curr_hp_armor2 > 0 and attack_value > 0:
-				_hit_armor2(attack_value)
-				flag_loss |= 4
-			if curr_hp_armor1 > 0 and attack_value > 0:
-				attack_value = _hit_armor1(attack_value)
-				flag_loss |= 2
-			if curr_hp > 0 and attack_value > 0:
-				curr_hp -= attack_value
-				flag_loss |= 1
-
-		BulletRegistry.AttackMode.Real:
-			if curr_hp_armor1 > 0 and attack_value > 0:
-				attack_value = _hit_armor1(attack_value)
-				flag_loss |= 2
-			if curr_hp > 0 and attack_value > 0:
-				curr_hp -= attack_value
-				flag_loss |= 1
-
-		## Front/side bowling and hammer use one resolved payload per impact.
-		## This avoids double block/DR on a hit that crosses multiple pools.
-		BulletRegistry.AttackMode.BowlingFront:
-			var front_amount := 1800
-			if curr_hp_armor2 > 0:
-				front_amount = 400
-			elif curr_hp_armor1 > 0:
-				front_amount = 800
-			var front_damage := _absorb_bonus_armor(resolve_damage(front_amount))
-			if front_damage > 0:
-				if curr_hp_armor2 > 0:
-					_hit_armor2(front_damage)
-					flag_loss |= 4
-				elif curr_hp_armor1 > 0:
-					_hit_armor1(front_damage)
-					flag_loss |= 2
-				else:
-					curr_hp -= front_damage
-					flag_loss |= 1
-
-		BulletRegistry.AttackMode.BowlingSide:
-			var side_amount := 1800
-			if curr_hp_armor2 <= 0 and curr_hp_armor1 > 0:
-				side_amount = 800
-			var side_damage := _absorb_bonus_armor(resolve_damage(side_amount))
-			if side_damage > 0:
-				if curr_hp_armor2 > 0:
-					_hit_armor2(side_damage)
-					flag_loss |= 4
-				elif curr_hp_armor1 > 0:
-					_hit_armor1(side_damage)
-					flag_loss |= 2
-				else:
-					curr_hp -= side_damage
-					flag_loss |= 1
-
-		BulletRegistry.AttackMode.Hammer:
-			var hammer_amount := 900 if curr_hp_armor1 > 0 else curr_hp
-			var hammer_damage := _absorb_bonus_armor(resolve_damage(hammer_amount))
-			if hammer_damage > 0:
-				if curr_hp_armor1 > 0:
-					_hit_armor1(hammer_damage)
-					flag_loss |= 2
-				elif curr_hp > 0:
-					curr_hp -= hammer_damage
-					flag_loss |= 1
-
+	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value)
 
 	var res_hp = get_all_hp()
-	var loss_hp = ori_hp - res_hp
+	# A gear-loss trigger can award armor in this impact. The received-hit
+	# signal reports damage suffered, not net resource gain.
+	var loss_hp: int = maxi(0, ori_hp - res_hp + _armor_granted_in_hit)
+	_resolving_hit = false
+	_armor_granted_in_hit = 0
 
 	var is_drop = not (owner.is_death and not is_drop_on_death) and is_drop_2
 

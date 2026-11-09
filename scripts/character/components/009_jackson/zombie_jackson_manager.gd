@@ -37,6 +37,11 @@ var time_need_call_zombie := 0
 var is_hypnotized := false
 ## Triggered before the first actual summon; temporary pre-summon DR listens here.
 signal reinforcements_called()
+## Ability-specific spawn policy; no tier identifiers or species rules in manager.
+var summon_policy: Dictionary = {}
+
+func configure_summon_policy(rule: Dictionary) -> void:
+	summon_policy = rule.duplicate(true)
 
 
 func _ready() -> void:
@@ -129,8 +134,7 @@ func judge_need_call_dance():
 	var leader: Zombie009Jackson = zombie_dancers.get(-1) as Zombie009Jackson
 	if not is_instance_valid(leader) or leader.is_death:
 		return false
-	if leader.zombie_type == CharacterRegistry.ZombieType.Z009Jackson \
-			and leader.adventure_tier_id in [&"elite", &"tier4", &"tier5"]:
+	if bool(summon_policy.get("repeat_summon", false)):
 		return true
 	for i in zombie_dancers:
 		if not zombie_dancers[i]:
@@ -174,11 +178,12 @@ func call_zombie_dancer():
 	var leader: Zombie009Jackson = zombie_dancers.get(-1) as Zombie009Jackson
 	if not is_instance_valid(leader) or leader.is_death:
 		return
-	var repeated: bool = leader.zombie_type == CharacterRegistry.ZombieType.Z009Jackson \
-		and leader.adventure_tier_id in [&"elite", &"tier4", &"tier5"]
-	var summon_kings: bool = leader.zombie_type == CharacterRegistry.ZombieType.Z009Jackson \
-		and leader.adventure_tier_id == &"tier5"
-	reinforcements_called.emit()
+	var repeated: bool = bool(summon_policy.get("repeat_summon", false))
+	var replacement_tier: StringName = summon_policy.get("replacement_tier", &"")
+	var kind: CharacterRegistry.ZombieType = CharacterRegistry.ZombieType.Z010Dancer
+	if summon_policy.has("replacement_type"):
+		kind = int(summon_policy["replacement_type"])
+	var summoned_any := false
 	for i in range(4):
 		var slot_free: bool = not zombie_dancers[i]
 		if not repeated and not slot_free:
@@ -188,17 +193,13 @@ func call_zombie_dancer():
 			if slot_free:
 				zombie_dancers[i] = true
 			continue
-		var kind: CharacterRegistry.ZombieType = (
-			CharacterRegistry.ZombieType.Z009Jackson if summon_kings
-			else CharacterRegistry.ZombieType.Z010Dancer)
-		# A fifth-tier king spawns independent fourth-tier kings; this is the
-		# explicit recursion boundary. Ordinary dancers inherit their parent's tier.
+		# Explicit replacement tier is the nonrecursive child policy.
 		var modifier: ZombieSpawnModifier = (
-			AdventureZombieTierBinding.new(&"tier4") if summon_kings
-			else leader.inherited_child_modifier())
-		var callback: Callable = (
-			call_dancer_init.bind(i) if slot_free and not summon_kings
-			else Callable())
+			AdventureZombieTierBinding.new(replacement_tier)
+			if replacement_tier != &"" else leader.inherited_child_modifier())
+		var callback := Callable()
+		if kind == CharacterRegistry.ZombieType.Z010Dancer:
+			callback = call_dancer_init.bind(i) if slot_free else mark_independent_dancer
 		var attrs: Dictionary = {
 			Zombie000Base.E_ZInitAttr.CharacterInitType: Character000Base.E_CharacterInitType.IsNorm,
 			Zombie000Base.E_ZInitAttr.Lane: location["lane"],
@@ -207,12 +208,20 @@ func call_zombie_dancer():
 		var child: Zombie000Base = Global.main_game.zombie_manager.create_norm_zombie(
 			kind, Global.main_game.zombie_manager.all_zombie_rows[location["lane"]],
 			attrs, location["pos"], callback, modifier)
-		if slot_free and summon_kings:
-			zombie_dancers[i] = true # Independent kings own their own managers.
-		if is_hypnotized and (summon_kings or not slot_free) \
-				and is_instance_valid(child) and not child.is_hypno:
+		if not is_instance_valid(child):
+			continue
+		summoned_any = true
+		if slot_free and kind != CharacterRegistry.ZombieType.Z010Dancer:
+			zombie_dancers[i] = true # Replacements manage their own groups.
+		if is_hypnotized and (kind != CharacterRegistry.ZombieType.Z010Dancer or not slot_free) \
+				and not child.is_hypno:
 			child.be_hypno()
+	if summoned_any:
+		reinforcements_called.emit()
 	update_all_walk()
+
+func mark_independent_dancer(z: Zombie010Dancer) -> void:
+	z.init_independent_reinforcement()
 
 func call_dancer_init(z:Zombie010Dancer, dancer_i:int):
 	z.init_dancer_be_call(

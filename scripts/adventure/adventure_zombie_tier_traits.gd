@@ -1,5 +1,5 @@
-## Authoritative species-tier rules and future Almanac prose.
-## Behavior dispatch reads rule data; UI must read description_for(), not parse scripts.
+## Authoritative species-tier combat rules; no UI prose is stored here.
+## UI reads description_for(), backed by a separate Almanac description catalog.
 extends RefCounted
 class_name AdventureZombieTierTraits
 

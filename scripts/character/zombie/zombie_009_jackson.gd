@@ -5,6 +5,7 @@ class_name Zombie009Jackson
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
 
 var jackson_manager: JacksonManager
+signal dance_manager_replaced(manager: JacksonManager)
 @onready var state_machine: JacksonStateMachine = $StateMachine
 ## 动画初始速度
 var animation_origin_speed:float
@@ -39,6 +40,7 @@ func _init_dance():
 	jackson_manager = SceneRegistry.JACKSON_MANAGER.instantiate()
 	add_child(jackson_manager)
 	jackson_manager.zombie_dancers[-1] = self
+	dance_manager_replaced.emit(jackson_manager)
 	state_machine.jackson_manager = jackson_manager
 	var anim = animation_player.get_animation("moonwalk")
 	if anim:
@@ -152,6 +154,7 @@ func jackson_be_hypno():
 	state_machine.jackson_manager = jackson_manager
 	add_child(jackson_manager)
 	jackson_manager.zombie_dancers[-1] = self
+	dance_manager_replaced.emit(jackson_manager)
 	jackson_manager.init_anim_speed(animation_origin_speed, influence_speed_factors.get(E_Influence_Speed_Factor.InitRandomSpeed, randf_range(random_speed_range.x, random_speed_range.y)))
 	jackson_manager.start_anim()
 	jackson_manager.is_hypnotized = true

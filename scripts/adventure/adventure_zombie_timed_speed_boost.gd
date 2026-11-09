@@ -34,7 +34,7 @@ func grant(multiplier: float, duration: float) -> void:
 	set_process(true)
 
 func _process(delta: float) -> void:
-	if not is_instance_valid(_zombie) or _zombie.is_death:
+	if not is_instance_valid(_zombie) or _zombie.is_death or _zombie.is_hypno:
 		_on_character_death()
 		return
 	for index: int in range(_active.size() - 1, -1, -1):
@@ -60,3 +60,10 @@ func _sync_speed() -> void:
 func _on_character_death() -> void:
 	_active.clear()
 	set_process(false)
+	if is_instance_valid(_zombie) and not _zombie.is_death:
+		_applied_multiplier = 1.0
+		_zombie.update_speed_factor(1.0,
+				Character000Base.E_Influence_Speed_Factor.AdventureTierBoost)
+
+func _exit_tree() -> void:
+	_on_character_death()

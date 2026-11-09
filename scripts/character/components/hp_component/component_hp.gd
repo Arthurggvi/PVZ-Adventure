@@ -114,6 +114,18 @@ func set_spawn_max_health(new_max: int) -> void:
 func get_all_hp():
 	return curr_hp
 
+## Reusable HP restoration: clamp to the active combat maximum and notify
+## observers without inventing damage or allowing resurrection.
+func heal(amount: int) -> int:
+	if amount <= 0 or is_death or owner_character.is_death:
+		return 0
+	var before: int = curr_hp
+	curr_hp = mini(max_hp, curr_hp + amount)
+	var restored: int = curr_hp - before
+	if restored > 0:
+		signal_hp_loss.emit(curr_hp, false)
+	return restored
+
 ## attack_value(int): 掉血的值
 ## bullet_mode(AttackMode): 伤害类型
 ## trigger_be_attack_SFX:=true:是否触发受击音效

@@ -19,7 +19,9 @@ func _on_paper_lost() -> void:
     if _used:
         return
     _used = true
-    _settle_loss.call_deferred()
+    # The break itself is an event boundary: immunity and armor must be
+    # effective before this same hit continues into the unprotected body.
+    _settle_loss()
 
 func _settle_loss() -> void:
     if not is_instance_valid(_zombie) or _zombie.is_death \
@@ -27,7 +29,7 @@ func _settle_loss() -> void:
         return
     var immunity: float = float(_rule.get("immunity", 0.0))
     if immunity > 0.0:
-        AdventureZombieTimedCombatBuff.grant_immunity(_zombie, immunity)
+        AdventureZombieTimedCombatBuff.grant_immunity(_zombie, immunity, true)
     _zombie.update_speed_factor(float(_rule.get("speed", 1.0)),
             Character000Base.E_Influence_Speed_Factor.AdventureTierStance)
     var attack: AttackComponentZombieNorm = _zombie.attack_component as AttackComponentZombieNorm

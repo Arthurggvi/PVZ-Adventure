@@ -55,6 +55,9 @@ func _run() -> void:
     health.apply_unblocked_loss(before_hp, BulletRegistry.AttackMode.Norm, false, false)
     _expect(health.curr_hp_armor1 == 0 and health.bonus_armor == shield_before,
         "forced helmet removal bypasses temporary shield")
+    health.Hp_loss_death(false)
+    _expect(health.get_all_hp() == 0 and health.bonus_armor == 0,
+        "forced death clears every remaining HP pool including temporary armor")
 
     var victim := _spawn(FLAG)
     var protector := _spawn(BUCKET)
@@ -93,6 +96,21 @@ func _run() -> void:
     _expect(v_hp.get_all_hp() == v_no_hit, "pulse immunity blocks damage")
     buff._process(1.01)
     _expect(not v_hp.is_damage_immune(), "pulse immunity expires cleanly")
+
+    AdventureZombieTimedCombatBuff.grant_immunity(victim, 0.5, true)
+    AdventureZombieTimedCombatBuff.grant_bite(victim, 2.0, 0.5)
+    AdventureZombieTimedSpeedBoost.apply_to(victim, 2.0, 0.5)
+    victim.is_hypno = true
+    victim.signal_character_be_hypno.emit()
+    _expect(v_hp.is_damage_immune(), "innate immunity survives allegiance change")
+    _expect(attacker.curr_attack_value_per_min == base_bite,
+        "external bite pulse is cleared on allegiance change")
+    _expect(is_equal_approx(float(victim.influence_speed_factors.get(
+        Character000Base.E_Influence_Speed_Factor.AdventureTierBoost, 1.0)), 1.0),
+        "transient movement buff resets on allegiance change")
+    buff._process(0.6)
+    _expect(not v_hp.is_damage_immune(), "retained innate immunity expires normally")
+    victim.is_hypno = false
 
     var pole4 := _spawn(POLE, &"tier4") as Zombie004PoleVaulter
     await get_tree().process_frame

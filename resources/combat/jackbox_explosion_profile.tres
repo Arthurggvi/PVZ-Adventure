@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CombatExplosionProfile" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/character/components/bomb_component/combat_explosion_profile.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/character/components/jackbox_explosion_fx.tscn" id="2"]
+
+[sub_resource type="RectangleShape2D" id="ExplosionShape"]
+size = Vector2(250, 200)
+
+[resource]
+script = ExtResource("1")
+shape = SubResource("ExplosionShape")
+hit_offset = Vector2(0, -45)
+collision_mask = 2050
+lane_radius = 1
+visuals = ExtResource("2")
+visuals_offset = Vector2(0, -28)
+sound = &"explosion"

@@ -92,16 +92,12 @@ func _on_pole_jump_finished() -> void:
     _zombie.update_speed_factor(float(_pole_rule.get("after_speed", 1.0)),
             Character000Base.E_Influence_Speed_Factor.AdventureTierStance)
 
+## Fire gear-loss effects synchronously: a lethal overflow may queue_free the
+## source before a deferred callback, skipping one-shot neighboring benefits.
 func _on_armor1_lost() -> void:
     if _armor1_consumed:
         return
     _armor1_consumed = true
-    # Defer until the impact completes; no second application from repeated 0 HP.
-    _resolve_armor_lost.call_deferred()
-
-func _resolve_armor_lost() -> void:
-    if not is_instance_valid(_zombie) or _zombie.is_queued_for_deletion():
-        return
     for rule: Dictionary in _rules:
         if rule.get("trigger", &"") != &"armor1_lost":
             continue
@@ -110,7 +106,8 @@ func _resolve_armor_lost() -> void:
                 if _can_act():
                     _apply_speed_boost(rule)
             &"grant_armor_on_drop":
-                _grant_nearby_armor(int(rule.get("amount", 0)))
+                if _can_act():
+                    _grant_nearby_armor(int(rule.get("amount", 0)))
 
 func _apply_speed_boost(rule: Dictionary) -> void:
     var multiplier: float = float(rule.get("multiplier", 1.0))
@@ -131,22 +128,15 @@ func _grant_nearby_armor(amount: int) -> void:
         (ally.hp_component as HpComponentZombie).grant_bonus_armor(amount)
 
 func _nearby(radius: int) -> Array[Zombie000Base]:
-    var result: Array[Zombie000Base] = []
     var manager := _manager()
     if manager == null or _zombie.lane < 0:
-        return result
+        return []
     var grid: Array[Array] = manager.main_game.plant_cell_manager.all_plant_cells
     if _zombie.lane >= grid.size() or grid[_zombie.lane].is_empty():
-        return result
+        return []
     var width: float = (grid[_zombie.lane][0] as PlantCell).size.x
-    for ally: Zombie000Base in manager.all_zombies_1d:
-        if not is_instance_valid(ally) or ally == _zombie or ally.is_death \
-                or ally.is_hypno or ally.is_queued_for_deletion():
-            continue
-        if absi(ally.lane - _zombie.lane) <= radius \
-                and absf(ally.global_position.x - _zombie.global_position.x) <= width * radius:
-            result.append(ally)
-    return result
+    return AdventureZombieTierNeighbors.allied_in_range(
+            _zombie, manager.all_zombies_1d, width, radius)
 
 func _can_act() -> bool:
     return is_instance_valid(_zombie) and not _zombie.is_death \

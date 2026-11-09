@@ -5,6 +5,11 @@ class_name Zombie010Dancer
 var is_call := false
 ## 是否被魅惑舞王召唤
 var is_call_be_hypno:bool = false
+## A replacement summon occupies no fixed slot in the original dance group.
+var is_independent_reinforcement := false
+
+func init_independent_reinforcement() -> void:
+	is_independent_reinforcement = true
 
 ## 初始化伴舞赋值，被召唤的伴舞，舞王管理器调用
 func init_dancer_be_call(curr_dancer_id, curr_animation_origin_speed, animation_curr_speed, jackson_init_random_speed, curr_jackson_manager, is_hypnotized):
@@ -23,7 +28,15 @@ func _init_dance():
 		dancer_id = 0
 		jackson_manager.zombie_dancers[0] = self
 		state_machine.jackson_manager = jackson_manager
-		state_machine.init_state(JacksonStateMachine.E_JacksonStatus.Norm)
+		if is_independent_reinforcement:
+			state_machine.init_state(JacksonStateMachine.E_JacksonStatus.Enter)
+			await zombie_appear_from_ground()
+			if is_inside_tree() and not is_death:
+				jackson_manager.start_anim()
+				state_machine.change_jackson_anim_status(
+						state_machine.curr_jackson_status, state_machine.judge_curr_status())
+		else:
+			state_machine.init_state(JacksonStateMachine.E_JacksonStatus.Norm)
 
 	else:
 		state_machine.jackson_manager = jackson_manager

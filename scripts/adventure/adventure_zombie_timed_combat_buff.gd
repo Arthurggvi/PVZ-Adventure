@@ -5,7 +5,7 @@ class_name AdventureZombieTimedCombatBuff
 const NODE_NAME := "AdventureTimedCombatBuff"
 var _zombie: Character000Base
 var _bite: Array[Dictionary] = []
-var _immunity: Array[float] = []
+var _immunity: Array[Dictionary] = []
 var _last_bite := 1.0
 var _last_immunity := false
 
@@ -23,30 +23,33 @@ static func grant_bite(target: Character000Base, multiplier: float, duration: fl
         return
     _for(target)._add_bite(multiplier, duration)
 
-static func grant_immunity(target: Character000Base, duration: float) -> void:
-    if not is_instance_valid(target) or target.is_death or target.is_hypno or duration <= 0.0:
+## Source buffs end on allegiance change; innate species immunity can persist.
+static func grant_immunity(target: Character000Base, duration: float,
+        retain_on_hypno: bool = false) -> void:
+    if not is_instance_valid(target) or target.is_death or duration <= 0.0 \
+            or (target.is_hypno and not retain_on_hypno):
         return
-    _for(target)._add_immunity(duration)
+    _for(target)._add_immunity(duration, retain_on_hypno)
 
 func _ready() -> void:
     _zombie = get_parent() as Character000Base
     set_process(false)
     if _zombie != null:
         _zombie.signal_character_death.connect(clear)
-        _zombie.signal_character_be_hypno.connect(clear)
+        _zombie.signal_character_be_hypno.connect(_on_hypno)
 
 func _add_bite(multiplier: float, duration: float) -> void:
     _bite.append({"value": multiplier, "time": duration})
     _sync()
     set_process(true)
 
-func _add_immunity(duration: float) -> void:
-    _immunity.append(duration)
+func _add_immunity(duration: float, retain_on_hypno: bool) -> void:
+    _immunity.append({"time": duration, "retain": retain_on_hypno})
     _sync()
     set_process(true)
 
 func _process(delta: float) -> void:
-    if not is_instance_valid(_zombie) or _zombie.is_death or _zombie.is_hypno:
+    if not is_instance_valid(_zombie) or _zombie.is_death:
         clear()
         return
     for i in range(_bite.size() - 1, -1, -1):
@@ -54,9 +57,12 @@ func _process(delta: float) -> void:
         if float(_bite[i]["time"]) <= 0:
             _bite.remove_at(i)
     for i in range(_immunity.size() - 1, -1, -1):
-        _immunity[i] -= delta
-        if _immunity[i] <= 0.0:
+        var effect: Dictionary = _immunity[i]
+        effect["time"] = float(effect["time"]) - delta
+        if float(effect["time"]) <= 0.0:
             _immunity.remove_at(i)
+        else:
+            _immunity[i] = effect
     _sync()
     set_process(not _bite.is_empty() or not _immunity.is_empty())
 
@@ -75,6 +81,14 @@ func _sync() -> void:
     if immune != _last_immunity:
         _last_immunity = immune
         _zombie.hp_component.set_immunity_source(get_instance_id(), immune)
+
+func _on_hypno() -> void:
+    _bite.clear()
+    for i in range(_immunity.size() - 1, -1, -1):
+        if not bool(_immunity[i].get("retain", false)):
+            _immunity.remove_at(i)
+    _sync()
+    set_process(not _immunity.is_empty())
 
 func clear() -> void:
     _bite.clear()
