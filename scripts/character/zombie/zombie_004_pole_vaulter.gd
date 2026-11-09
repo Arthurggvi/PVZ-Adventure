@@ -65,6 +65,12 @@ func _resume_pole_run() -> void:
 			"parameters/StateMachine/playback") as AnimationNodeStateMachinePlayback
 	if playback != null:
 		playback.start(&"run")
+		# A long jump may land inside another plant's detection area.
+		# Recheck overlaps only after returning to the existing run state.
+		await get_tree().physics_frame
+		if is_inside_tree() and not is_death and not is_jumping \
+				and jump_component.has_remaining_jumps():
+			jump_component.enable_component(ComponentNormBase.E_IsEnableFactor.Jump)
 
 ## 跳跃被强行停止,高坚果调用
 func jump_be_stop(plant:Plant000Base):

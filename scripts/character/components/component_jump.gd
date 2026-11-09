@@ -46,6 +46,8 @@ var is_jump_stop := false
 var jump_stop_postion :Vector2
 ## 跳跃中
 var is_jumping := false
+## Landing spans two physics frames; a second collision cannot start another jump meanwhile.
+var is_landing := false
 @export_group("跳跃音效")
 @export var jump_sfx:StringName
 
@@ -91,7 +93,7 @@ func disable_component(is_enable_factor:E_IsEnableFactor):
 ## [is_jump_compensate:bool]是否有跳跃补偿
 ## [global_pos_x:float]跳跃补偿对应植物位置
 func jump_start(curr_is_jump_compensate:bool, global_pos_x:float=0):
-	if not has_remaining_jumps() or is_jumping or not is_enabling:
+	if not has_remaining_jumps() or is_jumping or is_landing or not is_enabling:
 		return
 	self.is_jump_compensate = curr_is_jump_compensate
 	is_jumping = true
@@ -101,15 +103,21 @@ func jump_start(curr_is_jump_compensate:bool, global_pos_x:float=0):
 
 ## 结束跳跃，动画调用
 func jump_end():
-	if not is_jumping:
+	if not is_jumping or is_landing:
 		return
+	is_landing = true
 	is_jumping = false
 	completed_jumps += 1
 	signal_jump_end.emit()
 	await get_tree().process_frame
 	await get_tree().process_frame
+	# A zombie dying during the landing delay must never teleport afterward.
+	if not is_instance_valid(owner_zombie) or owner_zombie.is_death or not is_inside_tree():
+		is_landing = false
+		return
 	var distance: float = _configured_distance()
 	owner.global_position.x -= distance * (0.5 if owner_zombie.is_mini_zombie else 1.0)
+	is_landing = false
 	signal_jump_end_end.emit()
 	#print("跳跃结束修改完成位置")
 

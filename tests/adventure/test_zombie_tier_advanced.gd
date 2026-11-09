@@ -104,6 +104,10 @@ func _run() -> void:
         "pole carrying speed 150%")
     jump4.is_jumping = true
     jump4.jump_end()
+    _expect(jump4.is_landing, "jump enters landing lock")
+    jump4.jump_start(false)
+    _expect(not jump4.is_jumping and jump4.completed_jumps == 1,
+        "landing lock prevents overlapping jump start")
     await get_tree().process_frame
     await get_tree().process_frame
     await get_tree().process_frame
