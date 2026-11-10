@@ -23,6 +23,8 @@ var _elapsed: float = 0.0
 var _strength: Vector2 = Vector2.ZERO
 ## 最高雨强的粒子密度，0 沿用原雨景场景的默认密度。
 var _peak_particle_ratio: float = 0.0
+## 上次天气过渡选用的分层雨幕表现配置。
+var _rain_visual_profile: RainVisualProfile
 ## 按需实例化的原版雨景。
 var _rain: MainGameRain
 ## 按需实例化的湿镜头。
@@ -58,8 +60,10 @@ func play_sequence(timeline: WeatherSequence) -> void:
         return
     _sequence = timeline
     _peak_particle_ratio = timeline.rain_particle_ratio_at_full
+    _rain_visual_profile = timeline.rain_visual_profile
     if is_instance_valid(_rain):
         _rain.set_peak_particle_ratio(_peak_particle_ratio)
+        _rain.set_visual_profile(_rain_visual_profile)
     _elapsed = 0.0
     _apply_strength(timeline.sample(0.0))
     set_process(timeline.get_duration() > 0.0)
@@ -96,6 +100,7 @@ func _apply_strength(values: Vector2) -> void:
     if _strength.x > 0.001 and _rain == null:
         _rain = RAIN_SCENE.instantiate() as MainGameRain
         _rain.peak_particle_ratio = _peak_particle_ratio
+        _rain.visual_profile = _rain_visual_profile
         _rain.initial_intensity = _strength.x
         _rain_parent.add_child(_rain)
     if is_instance_valid(_rain):

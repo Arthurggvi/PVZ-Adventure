@@ -6,12 +6,16 @@ class_name MainGameRain
 @export_range(0.0, 1.0, 0.01) var initial_intensity: float = 1.0
 ## 最高强度下粒子比例；0 沿用原版场景自身值，以兼容其它雨关。
 @export_range(0.0, 1.0, 0.01) var peak_particle_ratio: float = 0.0
+## 可复用的多层雨幕参数；未指定时继续使用默认中雨参数。
+@export var visual_profile: RainVisualProfile
 ## 原有 GPU 雨滴节点。
 @onready var rain_particles: GPUParticles2D = $rainParticles
 ## 原有第一层空间雾。
 @onready var rain_fog: ColorRect = $Fog
 ## 原有第二层体积感雾。
 @onready var rain_fog_detail: ColorRect = $Fog3
+## 新雨幕只负责视觉，原雨粒子和雨声仍使用其权威节点。
+@onready var storm_renderer: RainStormRenderer = $StormRenderer
 
 ## 雨粒子场景配置的基准发射比例。
 var _original_particle_ratio: float = 0.162
@@ -25,6 +29,7 @@ var _initialized: bool = false
 func _ready() -> void:
     _original_particle_ratio = rain_particles.amount_ratio
     _initialized = true
+    storm_renderer.configure(visual_profile)
     set_intensity(initial_intensity)
 
 
@@ -40,8 +45,17 @@ func set_intensity(value: float) -> void:
     rain_particles.amount_ratio = peak * _intensity
     rain_fog.modulate.a = _intensity
     rain_fog_detail.modulate.a = _intensity
+    storm_renderer.set_intensity(_intensity)
     if is_instance_valid(Global.main_game):
         SoundManager.set_rain_intensity(_intensity)
+
+
+## 切换分层雨幕材质的视觉参数，不影响关卡难度或天气阶段。
+## [param next_profile] 新的暴雨表现配置。
+func set_visual_profile(next_profile: RainVisualProfile) -> void:
+    visual_profile = next_profile
+    if _initialized:
+        storm_renderer.configure(next_profile)
 
 
 ## 更新满雨势粒子预算而不改变当前雨强度；用于不同场景的天气时间轴。

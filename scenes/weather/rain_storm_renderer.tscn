@@ -1,0 +1,84 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/weather/rain_storm_renderer.gd" id="1"]
+[ext_resource type="Shader" path="res://shaders/weather/rain_curtain.gdshader" id="2"]
+[ext_resource type="Shader" path="res://shaders/weather/rain_splashes.gdshader" id="3"]
+[ext_resource type="Shader" path="res://shaders/weather/rain_storm_clouds.gdshader" id="4"]
+
+[sub_resource type="ShaderMaterial" id="Clouds"]
+shader = ExtResource("4")
+
+[sub_resource type="ShaderMaterial" id="Far"]
+shader = ExtResource("2")
+
+[sub_resource type="ShaderMaterial" id="Middle"]
+shader = ExtResource("2")
+
+[sub_resource type="ShaderMaterial" id="Splash"]
+shader = ExtResource("3")
+
+[sub_resource type="ShaderMaterial" id="Near"]
+shader = ExtResource("2")
+
+[node name="StormRenderer" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.06, 0.09, 0.17, 0)
+
+[node name="StormClouds" type="ColorRect" parent="."]
+material = SubResource("Clouds")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="FarRain" type="ColorRect" parent="."]
+material = SubResource("Far")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MiddleRain" type="ColorRect" parent="."]
+material = SubResource("Middle")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Splashes" type="ColorRect" parent="."]
+material = SubResource("Splash")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="NearRain" type="ColorRect" parent="."]
+material = SubResource("Near")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

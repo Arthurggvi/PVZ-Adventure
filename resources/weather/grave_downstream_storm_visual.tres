@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="RainVisualProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weather/rain_visual_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+far_density = 0.90
+middle_density = 0.82
+near_density = 0.57
+far_opacity = 0.19
+middle_opacity = 0.36
+near_opacity = 0.42
+speed = 1.55
+gust_strength = 1.25
+splash_strength = 1.32
+rain_color = Color(0.74, 0.83, 0.94, 1)
+ground_bounds = Rect2(0.27, 0.17, 0.47, 0.81)
+storm_dim = 0.15

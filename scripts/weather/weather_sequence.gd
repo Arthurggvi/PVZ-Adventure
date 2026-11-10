@@ -6,6 +6,8 @@ class_name WeatherSequence
 @export var frames: Array[WeatherKeyframe] = []
 ## 满雨势时的实际 GPU 雨粒子发射比例；旧雨场景原值约 0.162。
 @export_range(0.01, 1.0, 0.01) var rain_particle_ratio_at_full: float = 0.162
+## 可选分层雨幕配置。其它雨关未配置时继续沿用中雨预设。
+@export var rain_visual_profile: RainVisualProfile
 
 ## 校验持续时间、顺序及数值是否合法，不依赖具体关卡。
 func validate() -> PackedStringArray:

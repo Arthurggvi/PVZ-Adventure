@@ -147,6 +147,8 @@ func _capture_nightmare(timeline: WeatherSequence) -> void:
                 " weather=", _director.current_strength(),
                 " rain_node=", is_instance_valid(rain_node),
                 " rain_emitting=", rain_node.rain_particles.emitting if is_instance_valid(rain_node) else false,
-                " particle_ratio=", rain_node.rain_particles.amount_ratio if is_instance_valid(rain_node) else 0.0)
+                " particle_ratio=", rain_node.rain_particles.amount_ratio if is_instance_valid(rain_node) else 0.0,
+                " curtain_visible=", rain_node.storm_renderer.visible if is_instance_valid(rain_node) else false,
+                " splash_strength=", rain_node.storm_renderer.profile.splash_strength if is_instance_valid(rain_node) else 0.0)
     print("BATTLE_PREVIEW_COMPLETE ", _output_path)
     get_tree().quit(0)
