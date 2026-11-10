@@ -11,14 +11,13 @@ var pool:Pool
 ## 浓雾
 var fog:Fog
 
-## 雨
-var rain:MainGameRain
+## 单一战斗天气导演：负责原版雨幕、湿镜头和可持续过渡。
+var weather: BattleWeatherDirector
 
 ## 雾
 const FOG = preload("uid://bs55ei6xiuugg")
-const RAIN = preload("uid://cv3iw5srgpusv")
-## 可复用的镜头后处理场景，与旧雨幕和其音效互相独立。
-const WEATHER_LENS = preload("res://scenes/weather/weather_lens.tscn")
+## 阶段无天气配置时，导演保留原版关卡自带雨势；有配置则按时间轴过渡。
+const WEATHER_DIRECTOR = preload("res://scripts/weather/battle_weather_director.gd")
 
 
 func init_manager() -> void:
@@ -41,18 +40,28 @@ func init_background():
 			pool.init_pool(game_para)
 
 ## 初始化前景
-func init_frontground():
+## 建立固定的天气生命周期；天气由数据与阶段事件触发，而非关卡 ID 分支。
+func init_frontground() -> void:
 	if game_para.is_fog:
 		fog = FOG.instantiate()
 		frontground.add_child(fog)
-	if game_para.is_rain:
-		rain = RAIN.instantiate()
-		frontground.add_child(rain)
-	# 镜头效果处于固定屏幕层；不会随滚动战场移动，也不修改卡槽 UI。
-	if game_para.weather_lens_profile != null:
-		var lens: WeatherLensController = WEATHER_LENS.instantiate() as WeatherLensController
-		lens.profile = game_para.weather_lens_profile
-		get_parent().get_parent().add_child(lens)
+	weather = WEATHER_DIRECTOR.new() as BattleWeatherDirector
+	weather.setup(frontground, get_parent().get_parent(), game_para.weather_lens_profile, game_para.is_rain)
+	add_child(weather)
+	if AdventureSession.owns_battle(game_para):
+		apply_phase_weather(AdventureSession.get_active_phase(game_para))
+
+## 任意环境事件、阶段或演出可请求天气变化；null 表示保持已存在的天气。
+## [param timeline] 表现强度关键帧构成的通用过渡。
+func transition_weather(timeline: WeatherSequence) -> void:
+	if is_instance_valid(weather):
+		weather.play_sequence(timeline)
+
+## 阶段系统只负责提供数据，不处理雨声、粒子或镜头实现。
+## [param phase] 当前权威阶段，空值保持天气。
+func apply_phase_weather(phase: StagePhaseDefinition) -> void:
+	if phase != null:
+		transition_weather(phase.weather_sequence)
 
 ## 展示下一轮僵尸前退雾；直接进入下一轮时保留当前三叶草效果和移动。
 func start_next_game_background_manager_update():

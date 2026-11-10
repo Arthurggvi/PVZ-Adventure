@@ -30,6 +30,8 @@ var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _next_lightning: float = 9.0
 ## 上次闪电经过的游戏时间，负值表示无闪电。
 var _flash_age: float = -1.0
+## 当前天气镜头强度，允许同一组件从晴天连续淡入或淡出。
+var _strength: float = 1.0
 
 
 ## 场景创建后克隆材质，并根据可选预设启停后处理。
@@ -63,8 +65,22 @@ func _apply_profile() -> void:
     _material.set_shader_parameter("refraction_strength", profile.refraction_strength)
     _material.set_shader_parameter("wipe_radius", profile.wipe_radius)
     _material.set_shader_parameter("wipe_recovery_seconds", profile.wipe_recovery_seconds)
+    set_weather_strength(_strength)
     _sync_viewport()
     _upload_gpu_state()
+
+
+## 设置当前天气的渐进镜头强度；调用方无需知道 Shader 的参数细节。
+## [param intensity] 0 完全透明，1 使用完整的镜头配置。
+func set_weather_strength(intensity: float) -> void:
+    _strength = clampf(intensity, 0.0, 1.0)
+    if _material == null or profile == null:
+        return
+    lens_rect.visible = _strength > 0.001
+    _material.set_shader_parameter("soft_focus", profile.soft_focus * _strength)
+    _material.set_shader_parameter("bloom_strength", profile.bloom_strength * _strength)
+    _material.set_shader_parameter("haze_strength", profile.haze_strength * _strength)
+    _material.set_shader_parameter("droplet_strength", profile.droplet_strength * _strength)
 
 
 ## 视口缩放时更新屏幕像素比例。
@@ -97,7 +113,8 @@ func advance_effect(delta: float, mouse_position: Vector2) -> void:
         return _clock - point.z < profile.wipe_recovery_seconds * 5.0
     )
     if _clock >= _next_lightning:
-        trigger_lightning()
+        if _strength >= 0.7:
+            trigger_lightning()
         _next_lightning = _clock + _rng.randf_range(8.0, 14.0)
     if _flash_age >= 0.0:
         _flash_age += dt
@@ -106,7 +123,7 @@ func advance_effect(delta: float, mouse_position: Vector2) -> void:
         flash = exp(-_flash_age * 17.0)
         if _flash_age > 0.17:
             flash += 0.47 * exp(-(_flash_age - 0.17) * 14.0)
-    _material.set_shader_parameter("lightning", flash * profile.lightning_strength)
+    _material.set_shader_parameter("lightning", flash * profile.lightning_strength * _strength)
     _material.set_shader_parameter("clock_seconds", _clock)
     _upload_gpu_state()
 

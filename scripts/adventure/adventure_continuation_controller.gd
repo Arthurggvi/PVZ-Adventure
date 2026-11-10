@@ -91,6 +91,7 @@ func _continue(_quantity: int, glo_pos: Vector2) -> void:
 	game._round_end_by_boss = false
 	TreePauseManager.end_tree_pause(TreePauseManager.E_PauseFactor.AdventureContinue)
 	game.refresh_battle_bgm()
+	game.background_manager.apply_phase_weather(AdventureSession.active_phase)
 	game.zombie_manager.zombie_wave_manager.start_first_wave()
 
 func _dispose_dialog() -> void:

@@ -351,8 +351,17 @@ func play_rain_SFX():
 	rain_player.stream = RAIN
 	rain_player.play()
 
+## 为已有雨声设置渐变强度，避免重复启动或播放其它音效。
+## [param intensity] 雨势 0-1；0 仅静音，雨场景释放时停止。
+func set_rain_intensity(intensity: float) -> void:
+	var level: float = clampf(intensity, 0.0, 1.0)
+	if level > 0.001 and not rain_player.playing:
+		play_rain_SFX()
+	rain_player.volume_db = linear_to_db(maxf(level, 0.0001))
+
 func stop_rain_SFX():
 	rain_player.stop()
+	rain_player.volume_db = 0.0
 #endregion
 
 #region 其余音效

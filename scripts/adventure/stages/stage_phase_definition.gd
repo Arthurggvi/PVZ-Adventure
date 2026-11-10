@@ -26,6 +26,8 @@ enum Kind { UNSET, NORMAL, NIGHTMARE }
 @export var events: Array[StageEventDefinition] = []
 ## Optional phase-scoped natural gravestone behavior.
 @export var gravestone_rules: GravestoneWaveRules
+## 可选、仅此阶段触发的天气变化；未指定时保持上个阶段的天气。
+@export var weather_sequence: WeatherSequence
 
 ## 静态阶段校验只关心自身战斗资源，不查询玩家入口条件。
 func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
@@ -53,6 +55,8 @@ func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 		errors.append("首通击杀奖励需要噩梦 Boss。")
 	if gravestone_rules != null:
 		errors.append_array(gravestone_rules.validate())
+	if weather_sequence != null:
+		errors.append_array(weather_sequence.validate())
 	var encounter_ids: Array[StringName] = [] # 先建立完整目录，允许事件引用列表中稍后的遭遇。
 	for encounter: BossEncounterDefinition in boss_encounters: # 不实例化遭遇资源所描述的角色。
 		if encounter == null:

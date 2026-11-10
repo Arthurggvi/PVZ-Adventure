@@ -8,6 +8,7 @@ class_name AdventureBattleEnvironment
 @export var background_texture: Texture2D
 @export var music: ConstLevelData.GameBGM = ConstLevelData.GameBGM.FrontDay
 @export var fog := false
+## 进入战斗时的静态默认天气；阶段关键帧可以在战斗中改变雨势。
 @export var rain := false
 ## 可选镜头后处理预设；空值代表无需镜头湿润特效。
 @export var weather_lens_profile: WeatherLensProfile

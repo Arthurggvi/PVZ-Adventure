@@ -1,8 +1,10 @@
-[gd_resource type="Resource" script_class="AdventureStageOverride" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="AdventureStageOverride" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/adventure_stage_override.gd" id="1_override"]
 [ext_resource type="Texture2D" path="res://assets/adventure/environments/battle_backgrounds/04_graveyard_downstream_night.jpg" id="battlebg"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/gravestone_wave_rules.gd" id="2_graves"]
+[ext_resource type="Resource" path="res://resources/weather/grave_downstream_nightmare_weather.tres" id="weather_storm"]
+[ext_resource type="Resource" path="res://resources/weather/rainstorm_wet_lens.tres" id="lens_profile"]
 
 [sub_resource type="Resource" id="NaturalGravestones"]
 script = ExtResource("2_graves")
@@ -16,3 +18,5 @@ daytime_override = 0
 daytime_sun_override = 0
 normal_gravestone_rules = SubResource("NaturalGravestones")
 nightmare_gravestone_rules = SubResource("NaturalGravestones")
+weather_lens_profile = ExtResource("lens_profile")
+nightmare_weather_sequence = ExtResource("weather_storm")

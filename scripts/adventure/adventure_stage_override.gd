@@ -6,7 +6,7 @@ class_name AdventureStageOverride
 @export var environment: AdventureBattleEnvironment
 ## 单关美术差异，不覆盖地区默认环境玩法配置。
 @export var battle_background_texture: Texture2D
-## -1 继承、0 关闭、1 开启降雨；避免影响地区共享默认配置。
+## 仅覆盖进入战斗时的静态默认雨势：-1 继承、0 关闭、1 开启；动态强度由阶段时间轴控制。
 @export var rain_override: int = -1
 ## 当前关卡专用镜头预设；空值沿用地区默认值。
 @export var weather_lens_profile: WeatherLensProfile
@@ -15,6 +15,10 @@ class_name AdventureStageOverride
 @export var daytime_sun_override: int = -1
 @export var normal_gravestone_rules: GravestoneWaveRules
 @export var nightmare_gravestone_rules: GravestoneWaveRules
+## 普通阶段可选的天气时间轴，空值沿用当前天气。
+@export var normal_weather_sequence: WeatherSequence
+## 噩梦阶段可选的天气时间轴，空值沿用当前天气。
+@export var nightmare_weather_sequence: WeatherSequence
 @export var normal_wave_profile: WaveProfile
 @export var nightmare_wave_profile: WaveProfile
 @export var normal_drop_table: DropTable
@@ -61,6 +65,10 @@ func apply(stage: StageDefinition) -> bool:
 			stage.environment.daytime = daytime_override == 1
 		if daytime_sun_override != -1:
 			stage.environment.daytime_sun = daytime_sun_override == 1
+	if normal_weather_sequence != null:
+		normal.weather_sequence = normal_weather_sequence.duplicate(true) as WeatherSequence
+	if nightmare_weather_sequence != null:
+		nightmare.weather_sequence = nightmare_weather_sequence.duplicate(true) as WeatherSequence
 	if normal_gravestone_rules != null:
 		normal.gravestone_rules = normal_gravestone_rules.duplicate(true) as GravestoneWaveRules
 	if nightmare_gravestone_rules != null:

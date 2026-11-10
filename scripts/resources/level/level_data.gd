@@ -35,7 +35,7 @@ func set_choose_level(curr_game_mode: MainSceneRegistry.MainScenes, curr_level_p
 @export var game_BGM: ConstLevelData.GameBGM = ConstLevelData.GameBGM.FrontDay
 ## 是否有雾
 @export var is_fog: bool = false
-## 是否有雨
+## 仅用于关卡刚进入时的静态雨势；动态阶段天气以 BattleWeatherDirector.current_strength 为权威。
 @export var is_rain: bool = false
 ## 冒险环境镜头预设；由关卡适配器传入，空值不加载镜头层。
 @export var weather_lens_profile: WeatherLensProfile
