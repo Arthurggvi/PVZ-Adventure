@@ -6,6 +6,7 @@ const ART := "res://assets/adventure/zombies/white_duke/"
 const ACCESSORY := ART + "accessories/"
 @onready var player: AnimationPlayer = $AnimationPlayer
 @onready var _parts: Node2D = $Body/BodyCorrect
+@onready var _phase_fx: WhiteFlameSpotlightEffect = $Phase2FX
 var _records: Dictionary = {}
 var _coat: Dictionary = {}
 var _hand_tracks: Array[Dictionary] = []
@@ -123,6 +124,7 @@ func set_phase2(enabled: bool) -> void:
 			(part as Sprite2D).texture = load(path)
 	_glasses.texture = load(ACCESSORY + "glasses_p" + str(phase) + ".png")
 	_hat.visible = not enabled
+	_phase_fx.set_active(enabled)
 	for binding: Dictionary in _hand_tracks:
 		var clip: Animation = binding["clip"]
 		clip.track_set_key_value(int(binding["track"]),int(binding["key"]),_hand_texture(binding["source"],enabled))
