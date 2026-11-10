@@ -13,6 +13,8 @@ var _rain_parent: Node2D
 var _overlay_parent: Node
 ## 本局可以复用的湿镜头参数预设，允许为空。
 var _lens_profile: WeatherLensProfile
+## 光源位置所依附的地图背景 Sprite2D。
+var _background_sprite: Sprite2D
 ## 关卡开始时的雨势及镜头强度。
 var _initial: Vector2 = Vector2.ZERO
 ## 当前过渡时间轴；空值表示保持上次天气不再驱动。
@@ -37,7 +39,8 @@ var _lens: WeatherLensController
 ## [param lens_profile] 当前关卡可用的镜头光学参数。
 ## [param initial_rain] 静态环境是否持续下雨，适配原版雨关。
 func setup(rain_parent: Node2D, overlay_parent: Node, lens_profile: WeatherLensProfile,
-        initial_rain: bool) -> void:
+        initial_rain: bool, background_sprite: Sprite2D = null) -> void:
+    _background_sprite = background_sprite
     _rain_parent = rain_parent
     _overlay_parent = overlay_parent
     _lens_profile = lens_profile
@@ -109,7 +112,11 @@ func _apply_strength(values: Vector2) -> void:
     if _strength.y > 0.001 and _lens == null and _lens_profile != null:
         _lens = LENS_SCENE.instantiate() as WeatherLensController
         _lens.profile = _lens_profile
+        _lens.background_sprite = _background_sprite
         _lens.set_weather_strength(_strength.y)
         _overlay_parent.add_child(_lens)
     if is_instance_valid(_lens):
         _lens.set_weather_strength(_strength.y)
+        if is_instance_valid(_rain) and _lens.get_light_field_texture() != null:
+            var response: float = _lens_profile.light_profile.rain_response
+            _rain.set_light_field(_lens.get_light_field_texture(), response)

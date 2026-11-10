@@ -2,10 +2,6 @@
 extends CanvasLayer
 class_name WeatherLensController
 
-## GPU 允许的擦拭轨迹容量。
-const WIPE_CAPACITY: int = 24
-## 连续擦拭轨迹采样间距（像素）。
-const WIPE_SPACING: float = 17.0
 
 ## 由关卡环境配置提供的镜头参数。
 @export var profile: WeatherLensProfile
@@ -14,16 +10,22 @@ const WIPE_SPACING: float = 17.0
 
 ## 每场战斗的独立 ShaderMaterial 实例。
 var _material: ShaderMaterial
+## 光源锚点所依附的正式场景背景节点，由天气导演注入。
+var background_sprite: Sprite2D
+## 同一场天气唯一的离屏光场实例。
+var _light_field: WeatherLightField
 ## 独立水珠模拟器脚本的权威资源路径，避免依赖编辑器类名缓存。
 const DROPLET_SIMULATION = preload("res://scripts/weather/weather_lens_droplets.gd")
+## 分辨率独立的地图光场组件，只有设置地图光源时才创建。
+const LIGHT_FIELD_CLASS = preload("res://scripts/weather/weather_light_field.gd")
+## 鼠标湿镜头轨迹由独立状态模拟器管理。
+const WIPE_SIMULATION = preload("res://scripts/weather/weather_lens_wipe.gd")
 ## 可复用的镜头水珠状态模拟器。
 var _droplets = DROPLET_SIMULATION.new()
 ## 擦拭路径点记录，xy 为 UV，z 为创建时间。
-var _history: Array[Vector4] = []
+var _wipe = WIPE_SIMULATION.new()
 ## 逻辑游戏时间，暂停时不推进。
 var _clock: float = 0.0
-## 上一次有效的鼠标视口位置。
-var _previous_mouse: Vector2 = Vector2.INF
 ## 闪电随机时间的发生器。
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 ## 下一次随机闪电的游戏时间。
@@ -39,6 +41,15 @@ func _ready() -> void:
     _material = lens_rect.material.duplicate() as ShaderMaterial
     lens_rect.material = _material
     _rng.seed = 20261110
+    if profile != null and profile.light_profile != null and is_instance_valid(background_sprite):
+        _light_field = LIGHT_FIELD_CLASS.new() as WeatherLightField
+        _light_field.profile = profile.light_profile
+        _light_field.background_sprite = background_sprite
+        add_child(_light_field)
+        _material.set_shader_parameter("light_field", _light_field.get_light_texture())
+        _material.set_shader_parameter("bloom_tight", _light_field.get_tight_texture())
+        _material.set_shader_parameter("bloom_wide", _light_field.get_wide_texture())
+        _material.set_shader_parameter("has_light_field", true)
     get_viewport().size_changed.connect(_sync_viewport)
     configure(profile)
 
@@ -61,6 +72,11 @@ func _apply_profile() -> void:
     _material.set_shader_parameter("bloom_strength", profile.bloom_strength)
     _material.set_shader_parameter("haze_strength", profile.haze_strength)
     _material.set_shader_parameter("haze_color", profile.haze_color)
+    if profile.light_profile != null and _light_field != null:
+        _material.set_shader_parameter("bloom_tight_gain", profile.light_profile.bloom_tight)
+        _material.set_shader_parameter("bloom_wide_gain", profile.light_profile.bloom_wide)
+        _material.set_shader_parameter("air_scatter_gain", profile.light_profile.air_scatter)
+        _material.set_shader_parameter("droplet_light_gain", profile.light_profile.droplet_response)
     _material.set_shader_parameter("droplet_strength", profile.droplet_strength)
     _material.set_shader_parameter("refraction_strength", profile.refraction_strength)
     _material.set_shader_parameter("wipe_radius", profile.wipe_radius)
@@ -74,6 +90,8 @@ func _apply_profile() -> void:
 ## [param intensity] 0 完全透明，1 使用完整的镜头配置。
 func set_weather_strength(intensity: float) -> void:
     _strength = clampf(intensity, 0.0, 1.0)
+    if _light_field != null:
+        _light_field.set_strength(_strength)
     if _material == null or profile == null:
         return
     lens_rect.visible = _strength > 0.001
@@ -81,6 +99,23 @@ func set_weather_strength(intensity: float) -> void:
     _material.set_shader_parameter("bloom_strength", profile.bloom_strength * _strength)
     _material.set_shader_parameter("haze_strength", profile.haze_strength * _strength)
     _material.set_shader_parameter("droplet_strength", profile.droplet_strength * _strength)
+
+
+## 暴露共享环境光场给雨幕和其它天气效果。
+func get_light_field_texture() -> Texture2D:
+    return _light_field.get_light_texture() if _light_field != null else null
+
+
+## 注册运行时动态发光实体的统一接口，不修改战斗系统。
+func register_light_emitter(emitter: CanvasItem, source: WeatherLightSource) -> void:
+    if _light_field != null:
+        _light_field.register_emitter(emitter, source)
+
+
+## 移除运行时已注册的发光实体。
+func unregister_light_emitter(emitter: CanvasItem) -> void:
+    if _light_field != null:
+        _light_field.unregister_emitter(emitter)
 
 
 ## 视口缩放时更新屏幕像素比例。
@@ -105,13 +140,8 @@ func advance_effect(delta: float, mouse_position: Vector2) -> void:
     _clock += dt
     _droplets.advance(dt, profile.droplet_speed, mouse_position, profile.wipe_radius,
         get_viewport().get_visible_rect().size)
-    if mouse_position.is_finite():
-        _record_mouse(mouse_position)
-    else:
-        _previous_mouse = Vector2.INF
-    _history = _history.filter(func(point: Vector4) -> bool:
-        return _clock - point.z < profile.wipe_recovery_seconds * 5.0
-    )
+    _wipe.advance(mouse_position, _clock, get_viewport().get_visible_rect().size,
+        profile.wipe_recovery_seconds)
     if _clock >= _next_lightning:
         if _strength >= 0.7:
             trigger_lightning()
@@ -133,49 +163,18 @@ func trigger_lightning() -> void:
     _flash_age = 0.0
 
 
-## 鼠标擦拭记录为固定容量的屏幕空间采样点。
-## [param position] 当前鼠标在视口中的像素位置。
-func _record_mouse(position: Vector2) -> void:
-    var size: Vector2 = get_viewport().get_visible_rect().size # 当前视口尺寸。
-    if position.x < 0.0 or position.y < 0.0 or position.x >= size.x or position.y >= size.y:
-        _previous_mouse = Vector2.INF
-        return
-    if not _previous_mouse.is_finite():
-        _add_brush(position / size)
-    else:
-        var distance_px: float = position.distance_to(_previous_mouse) # 鼠标位移。
-        if distance_px >= WIPE_SPACING:
-            var count: int = mini(WIPE_CAPACITY, ceili(distance_px / WIPE_SPACING))
-            for index: int in range(1, count + 1):
-                var sample: Vector2 = _previous_mouse.lerp(position, float(index) / float(count))
-                _add_brush(sample / size)
-    _previous_mouse = position
-
-
-## 向擦拭记录中写入一处带出生时间的归一化笔刷位置。
-## [param uv] 0-1 范围内的屏幕位置。
-func _add_brush(uv: Vector2) -> void:
-    _history.append(Vector4(uv.x, uv.y, _clock, 1.0))
-    if _history.size() > WIPE_CAPACITY:
-        _history.pop_front()
-
-
 ## 将擦拭历史和水珠位置统一同步给 GPU Shader。
 func _upload_gpu_state() -> void:
-    var brush_data: PackedVector4Array = PackedVector4Array() # 固定容量笔刷缓冲区。
-    for index: int in range(WIPE_CAPACITY):
-        brush_data.append(_history[index] if index < _history.size() else Vector4.ZERO)
-    _material.set_shader_parameter("wipe_points", brush_data)
+    _material.set_shader_parameter("wipe_points", _wipe.get_uniform_data())
     _material.set_shader_parameter("drops", _droplets.get_uniform_data())
 
 
 ## 用于重开关卡或演示的明确状态清理。
 func reset_effect() -> void:
     _clock = 0.0
-    _previous_mouse = Vector2.INF
+    _wipe.reset()
     _flash_age = -1.0
     _next_lightning = _rng.randf_range(8.0, 14.0)
-    _history.clear()
     _droplets.reset()
     if _material != null:
         _material.set_shader_parameter("clock_seconds", 0.0)

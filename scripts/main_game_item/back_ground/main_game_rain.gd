@@ -50,6 +50,14 @@ func set_intensity(value: float) -> void:
         SoundManager.set_rain_intensity(_intensity)
 
 
+## 绑定当前战场唯一的离屏光场，雨线和水花采用同样的受光数据。
+## [param texture] 光场纹理，未配置光源则为 null。
+## [param response] 雨幕接受的局部光照强度系数。
+func set_light_field(texture: Texture2D, response: float) -> void:
+    if _initialized:
+        storm_renderer.set_light_field(texture, response)
+
+
 ## 切换分层雨幕材质的视觉参数，不影响关卡难度或天气阶段。
 ## [param next_profile] 新的暴雨表现配置。
 func set_visual_profile(next_profile: RainVisualProfile) -> void:

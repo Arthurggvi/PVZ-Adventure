@@ -16,6 +16,10 @@ class_name RainStormRenderer
 var _materials: Array[ShaderMaterial] = []
 ## 月光与天空上缘的流动云层使用另一份独立材质。
 var _cloud_material: ShaderMaterial
+## 光场状态与已缓存纹理，用于禁用无意义的逐帧重复绑定。
+var _light_texture: Texture2D
+## 避免天气导演逐帧重复设置相同光场参数。
+var _light_response: float = -1.0
 ## 连续阵风时间场，仅计算当前战场的动态风。
 var _wind: RainWindField = RainWindField.new()
 ## 模拟时钟，战斗暂停自动停止。
@@ -69,6 +73,25 @@ func _set_layer(index: int, density: float, opacity: float, speed: float,
     material.set_shader_parameter("cell_height", row_px)
     material.set_shader_parameter("slant", slant)
     material.set_shader_parameter("canvas_size", size)
+
+
+## 所有雨层共享同一环境光场，实现月光、烛火附近的局部雨线变色。
+## [param texture] 低分辨率光场纹理；null 保留原雨色。
+## [param response] 本关卡预设的受光倍率。
+func set_light_field(texture: Texture2D, response: float) -> void:
+    if texture == null or _materials.is_empty():
+        return
+    if _light_texture == texture and is_equal_approx(_light_response, response):
+        return
+    _light_response = response
+    if _light_texture != texture:
+        _light_texture = texture
+        for material: ShaderMaterial in _materials:
+            material.set_shader_parameter("light_field", texture)
+            material.set_shader_parameter("has_light_field", true)
+    for index: int in [0, 1, 3]:
+        _materials[index].set_shader_parameter("light_response", response)
+    _materials[2].set_shader_parameter("light_response", response * 0.6)
 
 
 ## 修改阶段雨势；不重建粒子系统，也不改其它天气层。

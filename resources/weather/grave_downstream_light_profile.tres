@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="WeatherLightProfile" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/weather/weather_light_profile.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/weather/weather_light_source.gd" id="2"]
+
+[sub_resource type="Resource" id="Moon"]
+script = ExtResource("2")
+background_uv = Vector2(0.678, 0.052)
+color = Color(0.53, 0.69, 1.0, 1)
+radius_px = 142.0
+intensity = 0.72
+flicker = 0.0
+
+[sub_resource type="Resource" id="Window"]
+script = ExtResource("2")
+background_uv = Vector2(0.059, 0.197)
+color = Color(1.0, 0.55, 0.28, 1)
+radius_px = 52.0
+intensity = 0.78
+flicker = 0.06
+
+[sub_resource type="Resource" id="Lantern"]
+script = ExtResource("2")
+background_uv = Vector2(0.145, 0.397)
+color = Color(1.0, 0.62, 0.32, 1)
+radius_px = 56.0
+intensity = 0.72
+flicker = 0.08
+
+[sub_resource type="Resource" id="CandlesLeft"]
+script = ExtResource("2")
+background_uv = Vector2(0.080, 0.813)
+color = Color(1.0, 0.62, 0.35, 1)
+radius_px = 56.0
+intensity = 0.65
+flicker = 0.10
+
+[sub_resource type="Resource" id="CandlesRight"]
+script = ExtResource("2")
+background_uv = Vector2(0.826, 0.835)
+color = Color(1.0, 0.62, 0.34, 1)
+radius_px = 54.0
+intensity = 0.67
+flicker = 0.09
+
+[resource]
+script = ExtResource("1")
+sources = Array[ExtResource("2")]([SubResource("Moon"), SubResource("Window"), SubResource("Lantern"), SubResource("CandlesLeft"), SubResource("CandlesRight")])
+bloom_wide = 0.52
+bloom_tight = 0.35
+air_scatter = 0.43
+rain_response = 0.72
+droplet_response = 0.66

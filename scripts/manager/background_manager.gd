@@ -46,7 +46,7 @@ func init_frontground() -> void:
 		fog = FOG.instantiate()
 		frontground.add_child(fog)
 	weather = WEATHER_DIRECTOR.new() as BattleWeatherDirector
-	weather.setup(frontground, get_parent().get_parent(), game_para.weather_lens_profile, game_para.is_rain)
+	weather.setup(frontground, get_parent().get_parent(), game_para.weather_lens_profile, game_para.is_rain, background)
 	add_child(weather)
 	if AdventureSession.owns_battle(game_para):
 		apply_phase_weather(AdventureSession.get_active_phase(game_para))

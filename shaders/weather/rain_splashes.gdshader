@@ -9,6 +9,9 @@ uniform float intensity = 0.0;
 uniform float splash_strength = 1.0;
 uniform float wind = 0.0;
 uniform vec4 splash_color : source_color = vec4(0.72, 0.87, 0.98, 1.0);
+uniform sampler2D light_field : source_color, filter_linear;
+uniform bool has_light_field = false;
+uniform float light_response = 0.48;
 
 float hash21(vec2 p) {
     return fract(sin(dot(p, vec2(17.3, 93.9))) * 39571.29);
@@ -40,5 +43,6 @@ void fragment() {
     vec2 px = uv * canvas_size;
     float splash = max(splash_at(px, vec2(0.0)), 0.7 * splash_at(px, vec2(0.46, 0.41)));
     float alpha = clamp(splash * intensity * splash_strength * 0.72 * field, 0.0, 0.58);
-    COLOR = vec4(splash_color.rgb, alpha);
+    vec3 light = has_light_field ? texture(light_field, SCREEN_UV).rgb : vec3(0.0);
+    COLOR = vec4(clamp(splash_color.rgb * 0.85 + light * light_response, vec3(0.0), vec3(1.0)), alpha);
 }

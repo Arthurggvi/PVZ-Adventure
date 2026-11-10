@@ -16,6 +16,9 @@ uniform float slant = 0.14;
 uniform float gust = 0.0;
 uniform float wind_density = 0.0;
 uniform vec4 rain_color : source_color = vec4(0.74, 0.83, 0.92, 1.0);
+uniform sampler2D light_field : source_color, filter_linear;
+uniform bool has_light_field = false;
+uniform float light_response = 0.78;
 
 float hash21(vec2 p) {
     return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
@@ -46,5 +49,8 @@ void fragment() {
     float streaks = rain_streak(px, vec2(0.0), 1.0);
     streaks = max(streaks, rain_streak(px, vec2(0.47, 0.29), 0.87) * 0.72);
     float alpha = clamp(streaks * layer_opacity * pow(intensity, 0.88), 0.0, 0.72);
-    COLOR = vec4(rain_color.rgb, alpha);
+    vec3 light = has_light_field ? texture(light_field, SCREEN_UV).rgb : vec3(0.0);
+    vec3 rain_lit = clamp(rain_color.rgb * (0.84 + dot(light, vec3(0.2, 0.65, 0.15)) * 0.19)
+        + light * light_response * 0.44, vec3(0.0), vec3(1.0));
+    COLOR = vec4(rain_lit, alpha);
 }

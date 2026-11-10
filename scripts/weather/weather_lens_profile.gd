@@ -10,6 +10,8 @@ class_name WeatherLensProfile
 @export_range(0.0, 0.5, 0.005) var haze_strength: float = 0.19
 ## 镜头水汽的偏冷散射颜色。
 @export var haze_color: Color = Color(0.67, 0.76, 0.85)
+## 可选光学环境数据；没有光源地图继续使用兼容旧渲染。
+@export var light_profile: WeatherLightProfile
 ## 近景水珠存在感。
 @export_range(0.0, 1.0, 0.01) var droplet_strength: float = 0.95
 ## 镜头水珠的下滑速度倍率。
