@@ -4,10 +4,14 @@ class_name WeatherSequence
 
 ## 按 time_seconds 升序排列的天气关键帧。
 @export var frames: Array[WeatherKeyframe] = []
+## 满雨势时的实际 GPU 雨粒子发射比例；旧雨场景原值约 0.162。
+@export_range(0.01, 1.0, 0.01) var rain_particle_ratio_at_full: float = 0.162
 
 ## 校验持续时间、顺序及数值是否合法，不依赖具体关卡。
 func validate() -> PackedStringArray:
     var errors: PackedStringArray = PackedStringArray() # 全部关键帧错误。
+    if not is_finite(rain_particle_ratio_at_full) or rain_particle_ratio_at_full <= 0.0 or rain_particle_ratio_at_full > 1.0:
+        errors.append("满雨势粒子发射比例必须处于 (0, 1]。")
     if frames.is_empty():
         errors.append("天气过渡至少需要一个关键帧。")
         return errors

@@ -35,4 +35,5 @@ lens = 1.0
 
 [resource]
 script = ExtResource("1")
+rain_particle_ratio_at_full = 0.68
 frames = Array[ExtResource("2")]([SubResource("MistStart"), SubResource("Drizzle"), SubResource("SteadyRain"), SubResource("HeavyRain"), SubResource("StormHold")])

@@ -4,6 +4,8 @@ class_name MainGameRain
 
 ## 场景第一次进入树时的雨强度；沿用原场景时默认是 1。
 @export_range(0.0, 1.0, 0.01) var initial_intensity: float = 1.0
+## 最高强度下粒子比例；0 沿用原版场景自身值，以兼容其它雨关。
+@export_range(0.0, 1.0, 0.01) var peak_particle_ratio: float = 0.0
 ## 原有 GPU 雨滴节点。
 @onready var rain_particles: GPUParticles2D = $rainParticles
 ## 原有第一层空间雾。
@@ -34,11 +36,19 @@ func set_intensity(value: float) -> void:
         initial_intensity = _intensity
         return
     rain_particles.emitting = _intensity > 0.001
-    rain_particles.amount_ratio = _original_particle_ratio * _intensity
+    var peak: float = peak_particle_ratio if peak_particle_ratio > 0.0 else _original_particle_ratio
+    rain_particles.amount_ratio = peak * _intensity
     rain_fog.modulate.a = _intensity
     rain_fog_detail.modulate.a = _intensity
     if is_instance_valid(Global.main_game):
         SoundManager.set_rain_intensity(_intensity)
+
+
+## 更新满雨势粒子预算而不改变当前雨强度；用于不同场景的天气时间轴。
+## [param value] 0 为沿用原雨场景发射比例，非零值是满雨势的粒子比例。
+func set_peak_particle_ratio(value: float) -> void:
+    peak_particle_ratio = clampf(value, 0.0, 1.0)
+    set_intensity(_intensity)
 
 
 ## 返回当前雨幕强度供调试预览读取。
