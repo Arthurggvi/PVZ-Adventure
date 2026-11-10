@@ -1,0 +1,161 @@
+{
+  "source_animation": "res://scenes/character/zombie/zombie_009_jackson.tscn",
+  "phase_slots": [
+    {
+      "name": "far_upper",
+      "phase": 1,
+      "anchor": "Zombie_Jackson_innerarm_upper",
+      "z": -6,
+      "origin": [
+        14,
+        14
+      ],
+      "scale": 1.05,
+      "file": "far_upper_p1.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_1/far_upper_p1.png"
+    },
+    {
+      "name": "far_lower",
+      "phase": 1,
+      "anchor": "Zombie_Jackson_innerarm_lower",
+      "z": -6,
+      "origin": [
+        14,
+        37
+      ],
+      "scale": 1.16,
+      "file": "far_lower_p1.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_1/far_lower_p1.png"
+    },
+    {
+      "name": "near_upper",
+      "phase": 1,
+      "anchor": "Zombie_Jackson_outerarm_upper",
+      "z": 3,
+      "origin": [
+        36,
+        8
+      ],
+      "scale": 1.03,
+      "file": "near_upper_p1.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_1/near_upper_p1.png"
+    },
+    {
+      "name": "near_lower",
+      "phase": 1,
+      "anchor": "Zombie_outerarm_lower",
+      "z": 3,
+      "origin": [
+        36,
+        34
+      ],
+      "scale": 1.13,
+      "file": "near_lower_p1.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_1/near_lower_p1.png"
+    },
+    {
+      "name": "far_upper",
+      "phase": 2,
+      "anchor": "Zombie_Jackson_innerarm_upper",
+      "z": -6,
+      "origin": [
+        14,
+        14
+      ],
+      "scale": 1.05,
+      "file": "far_upper_p2.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_2/far_upper_p2.png"
+    },
+    {
+      "name": "far_lower",
+      "phase": 2,
+      "anchor": "Zombie_Jackson_innerarm_lower",
+      "z": -6,
+      "origin": [
+        14,
+        37
+      ],
+      "scale": 1.16,
+      "file": "far_lower_p2.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_2/far_lower_p2.png"
+    },
+    {
+      "name": "near_upper",
+      "phase": 2,
+      "anchor": "Zombie_Jackson_outerarm_upper",
+      "z": 3,
+      "origin": [
+        36,
+        8
+      ],
+      "scale": 1.03,
+      "file": "near_upper_p2.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_2/near_upper_p2.png"
+    },
+    {
+      "name": "near_lower",
+      "phase": 2,
+      "anchor": "Zombie_outerarm_lower",
+      "z": 3,
+      "origin": [
+        36,
+        34
+      ],
+      "scale": 1.13,
+      "file": "near_lower_p2.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_2/near_lower_p2.png"
+    },
+    {
+      "name": "undercoat",
+      "phase": 1,
+      "anchor": "Zombie_Jackson_body1",
+      "z": 0,
+      "origin": [
+        35,
+        12
+      ],
+      "scale": 1.0,
+      "file": "undercoat_p1.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_1/undercoat_p1.png"
+    },
+    {
+      "name": "undercoat",
+      "phase": 2,
+      "anchor": "Zombie_Jackson_body1",
+      "z": 0,
+      "origin": [
+        35,
+        12
+      ],
+      "scale": 1.0,
+      "file": "undercoat_p2.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_2/undercoat_p2.png"
+    },
+    {
+      "name": "back_continuous",
+      "phase": 1,
+      "anchor": "Zombie_Jackson_body1",
+      "z": 1,
+      "origin": [
+        35,
+        12
+      ],
+      "scale": 1.0,
+      "file": "back_swept_p1.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_1/back_swept_p1.png"
+    },
+    {
+      "name": "back_continuous",
+      "phase": 2,
+      "anchor": "Zombie_Jackson_body1",
+      "z": 1,
+      "origin": [
+        35,
+        12
+      ],
+      "scale": 1.0,
+      "file": "back_swept_p2.png",
+      "resource": "res://assets/adventure/zombies/white_duke/coat/phase_2/back_swept_p2.png"
+    }
+  ]
+}

@@ -863,6 +863,7 @@ enum ZombieBossType {
 	Null = 0,
 	ZB001Doctor = 1,
 	ZB002BlackGeneral = 2,
+	ZB003WhiteDuke = 3,
 }
 
 ## 注册表只保存公共定义，血量和死亡状态由每局生成的僵王实例维护。
@@ -885,6 +886,12 @@ const ZombieBossInfo = {
 	ZombieBossType.ZB002BlackGeneral: {
 		ZombieBossInfoAttribute.BossName: "ZB002BlackGeneral",
 		ZombieBossInfoAttribute.BossScenes: preload("res://scenes/character/zombie_boss/zombie_boss_002_black_general.tscn"),
+		ZombieBossInfoAttribute.SunCost: 10000,
+		ZombieBossInfoAttribute.CoolTime: 0,
+	},
+	ZombieBossType.ZB003WhiteDuke: {
+		ZombieBossInfoAttribute.BossName: "ZB003WhiteDuke",
+		ZombieBossInfoAttribute.BossScenes: preload("res://scenes/character/zombie_boss/zombie_boss_003_white_duke.tscn"),
 		ZombieBossInfoAttribute.SunCost: 10000,
 		ZombieBossInfoAttribute.CoolTime: 0,
 	},
