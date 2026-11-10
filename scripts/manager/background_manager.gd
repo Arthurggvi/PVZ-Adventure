@@ -17,6 +17,8 @@ var rain:MainGameRain
 ## 雾
 const FOG = preload("uid://bs55ei6xiuugg")
 const RAIN = preload("uid://cv3iw5srgpusv")
+## 可复用的镜头后处理场景，与旧雨幕和其音效互相独立。
+const WEATHER_LENS = preload("res://scenes/weather/weather_lens.tscn")
 
 
 func init_manager() -> void:
@@ -46,6 +48,11 @@ func init_frontground():
 	if game_para.is_rain:
 		rain = RAIN.instantiate()
 		frontground.add_child(rain)
+	# 镜头效果处于固定屏幕层；不会随滚动战场移动，也不修改卡槽 UI。
+	if game_para.weather_lens_profile != null:
+		var lens: WeatherLensController = WEATHER_LENS.instantiate() as WeatherLensController
+		lens.profile = game_para.weather_lens_profile
+		get_parent().get_parent().add_child(lens)
 
 ## 展示下一轮僵尸前退雾；直接进入下一轮时保留当前三叶草效果和移动。
 func start_next_game_background_manager_update():

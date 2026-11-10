@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeatherLensProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/weather/weather_lens_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+soft_focus = 0.47
+bloom_strength = 0.70
+haze_strength = 0.23
+haze_color = Color(0.67, 0.76, 0.85, 1)
+droplet_strength = 0.89
+droplet_speed = 0.86
+refraction_strength = 1.0
+wipe_radius = 65.0
+wipe_recovery_seconds = 2.6
+lightning_strength = 0.72

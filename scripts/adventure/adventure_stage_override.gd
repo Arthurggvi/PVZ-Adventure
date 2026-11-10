@@ -6,6 +6,10 @@ class_name AdventureStageOverride
 @export var environment: AdventureBattleEnvironment
 ## 单关美术差异，不覆盖地区默认环境玩法配置。
 @export var battle_background_texture: Texture2D
+## -1 继承、0 关闭、1 开启降雨；避免影响地区共享默认配置。
+@export var rain_override: int = -1
+## 当前关卡专用镜头预设；空值沿用地区默认值。
+@export var weather_lens_profile: WeatherLensProfile
 ## -1 inherit, 0 false, 1 true; independent sky sun and mushroom sleep.
 @export var daytime_override: int = -1
 @export var daytime_sun_override: int = -1
@@ -32,7 +36,8 @@ class_name AdventureStageOverride
 
 func apply(stage: StageDefinition) -> bool:
 	if stage == null or normal_first_clear_coin < -1 or nightmare_first_clear_coin < -1 \
-			or daytime_override not in [-1, 0, 1] or daytime_sun_override not in [-1, 0, 1]:
+			or daytime_override not in [-1, 0, 1] or daytime_sun_override not in [-1, 0, 1] \
+			or rain_override not in [-1, 0, 1]:
 		return false
 	var normal: StagePhaseDefinition
 	var nightmare: StagePhaseDefinition
@@ -48,6 +53,10 @@ func apply(stage: StageDefinition) -> bool:
 	if battle_background_texture != null and stage.environment != null:
 		stage.environment.background_texture = battle_background_texture
 	if stage.environment != null:
+		if rain_override != -1:
+			stage.environment.rain = rain_override == 1
+		if weather_lens_profile != null:
+			stage.environment.weather_lens_profile = weather_lens_profile
 		if daytime_override != -1:
 			stage.environment.daytime = daytime_override == 1
 		if daytime_sun_override != -1:

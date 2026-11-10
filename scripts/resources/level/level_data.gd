@@ -37,6 +37,8 @@ func set_choose_level(curr_game_mode: MainSceneRegistry.MainScenes, curr_level_p
 @export var is_fog: bool = false
 ## 是否有雨
 @export var is_rain: bool = false
+## 冒险环境镜头预设；由关卡适配器传入，空值不加载镜头层。
+@export var weather_lens_profile: WeatherLensProfile
 ## 是否为白天,控制蘑菇睡觉
 @export var is_day: bool = true
 ## 是否天降阳光,传送带没有

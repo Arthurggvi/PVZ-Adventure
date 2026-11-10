@@ -16,6 +16,7 @@ static func build(stage: StageDefinition, phase: StagePhaseDefinition) -> Resour
 	level.game_BGM = env.music
 	level.is_fog = env.fog
 	level.is_rain = env.rain
+	level.weather_lens_profile = env.weather_lens_profile
 	level.is_day = env.daytime
 	level.is_day_sun = env.daytime_sun
 	level.is_lawn_mover = env.lawn_mowers

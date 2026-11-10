@@ -9,6 +9,8 @@ class_name AdventureBattleEnvironment
 @export var music: ConstLevelData.GameBGM = ConstLevelData.GameBGM.FrontDay
 @export var fog := false
 @export var rain := false
+## 可选镜头后处理预设；空值代表无需镜头湿润特效。
+@export var weather_lens_profile: WeatherLensProfile
 @export var daytime := true
 @export var daytime_sun := true
 @export var lawn_mowers := true
