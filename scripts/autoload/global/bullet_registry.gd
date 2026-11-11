@@ -27,6 +27,9 @@ enum BulletType{
 	Bullet016CobCannon,		## 玉米加农炮子弹
 
 
+	## 回旋镖射手的往返花瓣。
+	Bullet017Boomerang = 17,
+
 	Bullet1001Bowling = 1001,		## 保龄球
 	Bullet1002BowlingBomb,	## 爆炸保龄球
 	Bullet1003BowlingBig,	## 大保龄球
@@ -67,6 +70,7 @@ enum AttackMode {
 	BulletType.Bullet015WinterMelon :preload("res://scenes/bullet/bullet_015_winter_melon.tscn"),
 
 	BulletType.Bullet016CobCannon :preload("res://scenes/bullet/bullet_016_cob_cannon.tscn"),
+	BulletType.Bullet017Boomerang : preload("res://scenes/bullet/bullet_017_boomerang.tscn"),
 }
 
 ## 获取子弹场景方法

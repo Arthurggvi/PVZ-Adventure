@@ -64,6 +64,7 @@ const PLANT_DESCRIPTIONS: Dictionary[int, String] = {
 	CharacterRegistry.PlantType.P047SpikeRock: "用坚硬尖刺持续扎伤踩过的僵尸，并抵御车辆碾压",
 	CharacterRegistry.PlantType.P048CobCannon: "点击选定目标区域，发射玉米炮弹造成大范围爆炸",
 	CharacterRegistry.PlantType.P049PeaShooterDoubleReverse: "每次向后方连续发射两颗豌豆，攻击身后的僵尸",
+	CharacterRegistry.PlantType.P051Bloomerang: "向同行投出回旋镖，飞出和返回时各可命中最多三个目标",
 	CharacterRegistry.PlantType.P999Imitater: "种下后变成选定的植物，模仿其能力",
 	CharacterRegistry.PlantType.P1000Sprout: "尚未长成的幼苗，可在花园中继续培育",
 	CharacterRegistry.PlantType.P1001WallNutBowling: "沿路线滚动撞击僵尸，碰撞后弹向其他路线",

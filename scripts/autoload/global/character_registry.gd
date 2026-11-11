@@ -74,6 +74,9 @@ enum PlantType {
 
 	P049PeaShooterDoubleReverse,
 
+	## 回旋镖射手的存档编号。
+	P051Bloomerang = 51,
+
 	## 模仿者
 	P999Imitater = 999,
 	## 发芽
@@ -523,6 +526,14 @@ const PlantInfo = {
 		PlantInfoAttribute.SunCost: 200,
 		PlantInfoAttribute.PlantConditionResource : preload("res://resources/character_resource/plant_condition/000_common_plant_land.tres"),
 		PlantInfoAttribute.PlantScenes : preload("res://scenes/character/plant/plant_049_pea_shooter_double_reverse.tscn")
+		},
+
+	PlantType.P051Bloomerang: {
+		PlantInfoAttribute.PlantName: "Bloomerang",
+		PlantInfoAttribute.CoolTime: 5.0,
+		PlantInfoAttribute.SunCost: 175,
+		PlantInfoAttribute.PlantConditionResource: preload("res://resources/character_resource/plant_condition/000_common_plant_land.tres"),
+		PlantInfoAttribute.PlantScenes: preload("res://scenes/character/plant/plant_051_bloomerang.tscn"),
 		},
 
 	## 模仿者

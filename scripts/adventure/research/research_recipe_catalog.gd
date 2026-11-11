@@ -54,6 +54,7 @@ const INGREDIENTS: Dictionary = {
 	47: ["nut_fragments", "rusted_scrap", "zombie_thread"],
 	48: ["explosive_seed", "rusted_scrap", "rotten_wood_core"],
 	49: ["pea_stem", "pea_pod", "leaf_membrane"],
+	51: ["plant_fiber", "flower_pollen"],
 }
 
 static func recipe_id(plant_type: int) -> String:

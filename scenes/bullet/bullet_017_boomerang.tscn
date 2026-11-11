@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/bullet/bullet_000_norm_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/bullet/bullet_017_boomerang.gd" id="2_boomerang"]
+[ext_resource type="Texture2D" path="res://assets/adventure/plants/bloomerang/boomerang.png" id="3_art"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hit"]
+size = Vector2(10, 10)
+
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0"]
+atlas = ExtResource("3_art")
+region = Rect2(0, 0, 180, 100)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1"]
+atlas = ExtResource("3_art")
+region = Rect2(180, 0, 180, 100)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2"]
+atlas = ExtResource("3_art")
+region = Rect2(360, 0, 180, 100)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3"]
+atlas = ExtResource("3_art")
+region = Rect2(540, 0, 180, 100)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4"]
+atlas = ExtResource("3_art")
+region = Rect2(720, 0, 180, 100)
+filter_clip = true
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_spin"]
+animations = [{
+"frames": [{ "duration": 1.0, "texture": SubResource("AtlasTexture_0") }, { "duration": 1.0, "texture": SubResource("AtlasTexture_1") }, { "duration": 1.0, "texture": SubResource("AtlasTexture_2") }, { "duration": 1.0, "texture": SubResource("AtlasTexture_3") }, { "duration": 1.0, "texture": SubResource("AtlasTexture_4") }],
+"loop": true,
+"name": &"spin",
+"speed": 24.0
+}]
+
+[node name="Bullet017Boomerang" instance=ExtResource("1_base")]
+script = ExtResource("2_boomerang")
+bullet_type = 17
+max_attack_num = -1
+bullet_mode = 2
+
+[node name="BulletShadow" parent="." index="0"]
+position = Vector2(0, 40)
+
+[node name="Spin" type="AnimatedSprite2D" parent="Body" index="1"]
+scale = Vector2(0.55, 0.55)
+sprite_frames = SubResource("SpriteFrames_spin")
+animation = &"spin"
+autoplay = "spin"
+
+[node name="Area2DAttack" parent="." index="3"]
+collision_mask = 512
+
+[node name="CollisionShape2D" parent="Area2DAttack" index="0"]
+shape = SubResource("RectangleShape2D_hit")

@@ -104,10 +104,20 @@ quantity_min = 1
 quantity_max = 1
 weight = 1
 
+[sub_resource type="Resource" id="Resource_recipe_bloomerang"]
+script = ExtResource("4_g1pq0")
+entry_id = &"lawn.drop.recipe_bloomerang"
+rule = 1
+asset_kind = 1
+asset_id = &"recipe_p051"
+quantity_min = 1
+quantity_max = 1
+chance = 0.3
+
 [sub_resource type="Resource" id="Resource_4ulqo"]
 script = ExtResource("5_dgljq")
 table_id = &"zombie_island.lawn.normal"
-entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_recipe_p001"), SubResource("Resource_recipe_p002"), SubResource("Resource_dgljq"), SubResource("Resource_6xuwk"), SubResource("Resource_rehtx"), SubResource("Resource_rx0cf"), SubResource("Resource_g3gx0"), SubResource("Resource_g1pq0"), ExtResource("Material_pea_stem"), ExtResource("Material_pea_pod"), ExtResource("Material_sun_nectar"), ExtResource("Material_flower_pollen"), ExtResource("Material_plant_fiber")])
+entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_recipe_p001"), SubResource("Resource_recipe_p002"), SubResource("Resource_recipe_bloomerang"), SubResource("Resource_dgljq"), SubResource("Resource_6xuwk"), SubResource("Resource_rehtx"), SubResource("Resource_rx0cf"), SubResource("Resource_g3gx0"), SubResource("Resource_g1pq0"), ExtResource("Material_pea_stem"), ExtResource("Material_pea_pod"), ExtResource("Material_sun_nectar"), ExtResource("Material_flower_pollen"), ExtResource("Material_plant_fiber")])
 min_material_count = 6
 min_recipe_count = 1
 weighted_draw_count = 1
@@ -207,7 +217,7 @@ chance = 0.05
 [sub_resource type="Resource" id="Resource_elkku"]
 script = ExtResource("5_dgljq")
 table_id = &"zombie_island.lawn.nightmare"
-entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_recipe_p001"), SubResource("Resource_recipe_p002"), SubResource("Resource_dgljq"), SubResource("Resource_6xuwk"), SubResource("Resource_rehtx"), SubResource("Resource_rx0cf"), SubResource("Resource_g3gx0"), SubResource("Resource_g1pq0"), ExtResource("Material_pea_stem"), ExtResource("Material_pea_pod"), ExtResource("Material_sun_nectar"), ExtResource("Material_flower_pollen"), ExtResource("Material_plant_fiber"), SubResource("Resource_fert_lv1"), SubResource("Resource_fert_lv2")])
+entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_recipe_p001"), SubResource("Resource_recipe_p002"), SubResource("Resource_recipe_bloomerang"), SubResource("Resource_dgljq"), SubResource("Resource_6xuwk"), SubResource("Resource_rehtx"), SubResource("Resource_rx0cf"), SubResource("Resource_g3gx0"), SubResource("Resource_g1pq0"), ExtResource("Material_pea_stem"), ExtResource("Material_pea_pod"), ExtResource("Material_sun_nectar"), ExtResource("Material_flower_pollen"), ExtResource("Material_plant_fiber"), SubResource("Resource_fert_lv1"), SubResource("Resource_fert_lv2")])
 min_material_count = 8
 min_recipe_count = 2
 min_distinct_materials = 8

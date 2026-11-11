@@ -99,6 +99,7 @@ const ITEMS: Dictionary = {
 	"recipe_p047": {"subject": "地刺王", "category": "recipe"},
 	"recipe_p048": {"subject": "玉米加农炮", "category": "recipe"},
 	"recipe_p049": {"subject": "反向双发射手", "category": "recipe"},
+	"recipe_p051": {"subject": "回旋镖射手", "category": "recipe"},
 	"promotion_peashooter_tempering": {"category": "promotion_book"},
 	"promotion_peashooter_photosynthesis": {"category": "promotion_book"},
 	"promotion_peashooter_piercing": {"category": "promotion_book"},
