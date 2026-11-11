@@ -6,6 +6,11 @@ const ART := "res://assets/adventure/zombies/white_duke/"
 const ACCESSORY := ART + "accessories/"
 ## 原版 [code]point[/code] 动画中手指首次举到最高处的关键帧时间，单位为秒。
 const SUMMON_POSE_PEAK := 0.666667
+## 二阶段召唤音效，按顺序轮换，每次只播放一个和弦。
+const PHASE_TWO_SUMMON_SOUNDS: Array[AudioStream] = [
+	preload("res://resources/audio/sfx/white_duke_summon_01.wav"),
+	preload("res://resources/audio/sfx/white_duke_summon_02.wav"),
+]
 @onready var player: AnimationPlayer = $AnimationPlayer
 @onready var _parts: Node2D = $Body/BodyCorrect
 @onready var _phase_fx: WhiteFlameSpotlightEffect = $Phase2FX
@@ -17,6 +22,8 @@ var _hand_cache: Dictionary = {}
 var _hat: Sprite2D
 var _glasses: Sprite2D
 var _phase_two := false
+## 本实例下次召唤要播放的和弦索引。
+var _next_summon_sound := 0
 
 func _ready() -> void:
 	var file := FileAccess.open(ART + "coat_binding.json", FileAccess.READ)
@@ -157,9 +164,13 @@ func get_idle_duration() -> float:
 func play_summon() -> void:
 	player.play(&"point")
 
-## 在抬手最高帧播放召唤聚光灯；二阶段同时触发变色、泛光和全屏心跳。
+## 在抬手最高帧播放召唤聚光灯，二阶段同时触发变色、泛光、全屏心跳和召唤音效。
 func _play_summon_spotlight() -> void:
 	_phase_fx.summon_spotlight(_phase_two)
+	if _phase_two:
+		# 每次心跳都要有对应的声音，跳过音效池的重复播放过滤。
+		SoundManager.play_sfx_with_pool(PHASE_TWO_SUMMON_SOUNDS[_next_summon_sound], 0.0, 1.0, false)
+		_next_summon_sound = (_next_summon_sound + 1) % PHASE_TWO_SUMMON_SOUNDS.size()
 
 func play_teleport_in() -> void:
 	_set_boss_shadow_visible(false)
