@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="band"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_spawn_group.gd" id="spawn"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="profile"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/mus_delicious_island_night_pre.mp3" id="normal_music"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/mus_delicious_island_night_elite.mp3" id="nightmare_music"]
 
 [sub_resource type="Resource" id="NormalOpening"]
 script = ExtResource("band")
@@ -485,3 +487,5 @@ daytime_sun_override = 0
 normal_wave_profile = SubResource("NormalProfile")
 nightmare_wave_profile = SubResource("NightmareProfile")
 replace_nightmare_bosses = true
+normal_battle_music = ExtResource("normal_music")
+nightmare_battle_music = ExtResource("nightmare_music")
