@@ -1,6 +1,18 @@
 ## One page factory per cheat module. The UI never owns inventory or progress data.
 extends RefCounted
 
+## 与背包共用植物中文名，包括图鉴之外的特殊植物。
+const InventoryData = preload("res://scripts/adventure/ui/inventory_data.gd")
+## 按物品目录的类别组织选择菜单；未定义的类别放入“其他”。
+const ITEM_CATEGORIES := {
+	"material": "材料",
+	"recipe": "配方",
+	"promotion_book": "转职书",
+	"key": "钥匙",
+	"consumable": "消耗品",
+	"other": "其他",
+}
+
 static func _title(parent: Node, value: String) -> void:
 	var label := Label.new()
 	label.text = value
@@ -46,19 +58,23 @@ static func _select(parent: Node, width: int = 300) -> OptionButton:
 	parent.add_child(choice)
 	return choice
 
+## 按 [param query] 筛选 [param choice] 的植物。仅显示中文名，仍可用图鉴键或枚举 ID 搜索。
 static func _plants(choice: OptionButton, query: String) -> void:
 	choice.clear()
-	var values: Array = CharacterRegistry.PlantType.keys()
+	var needle: String = query.strip_edges().to_lower() # 中文名称和内部 ID 使用同一搜索词。
+	var values: Array = CharacterRegistry.PlantType.keys() # 保留注册表编号对应的显示顺序。
 	values.sort()
-	for key: String in values:
-		var id: int = int(CharacterRegistry.PlantType[key])
+	for key: String in values: # 枚举键只参与搜索，发放仍使用数值 ID。
+		var id: int = int(CharacterRegistry.PlantType[key]) # 对应存档中的植物类型。
 		if not PlantCardInstance.is_plant_type(id):
 			continue
-		var name: String = str(Global.character_registry.get_plant_info(id as CharacterRegistry.PlantType,
-			CharacterRegistry.PlantInfoAttribute.PlantName))
-		var caption: String = "%s · %s" % [name, key]
-		if query.is_empty() or caption.to_lower().contains(query.to_lower()):
-			choice.add_item(caption, id)
+		var caption: String = InventoryData.plant_name(id) # 与游戏背包显示一致。
+		if not needle.is_empty() and not caption.to_lower().contains(needle) and not key.to_lower().contains(needle):
+			var almanac_key: String = str(Global.character_registry.get_plant_info(
+				id as CharacterRegistry.PlantType, CharacterRegistry.PlantInfoAttribute.PlantName)) # 兼容原图鉴英文键。
+			if not almanac_key.to_lower().contains(needle):
+				continue
+		choice.add_item(caption, id)
 	if choice.item_count > 0:
 		choice.select(0)
 
@@ -94,41 +110,73 @@ static func _cards(root: VBoxContainer, service: RefCounted, report: Callable) -
 		else:
 			report.call(service.add_cards(choice.get_selected_id(), int(stars.value), int(count.value))))
 
+## 更新 [param choice] 的当前显示和库存操作所用的 [param id]；[param caption] 为对应的物品标签。
+static func _set_item_choice(choice: MenuButton, id: String, caption: String) -> void:
+	choice.set_meta(&"item_id", id)
+	choice.text = caption + "  ▾"
+	choice.tooltip_text = caption
+
+## 按 [param query] 重建 [param choice] 的分类子菜单，并默认选中第一项匹配的物品。
+static func _refill_item_choice(choice: MenuButton, query: String) -> void:
+	var popup: PopupMenu = choice.get_popup() # 顶层菜单只列有匹配项的类别。
+	popup.clear(true)
+	_set_item_choice(choice, "", "没有匹配的物品")
+	var needle: String = query.strip_edges().to_lower() # 名称和 ID 都可筛选。
+	var ids: Array = ItemRegistry.ITEMS.keys() # 使用稳定的 ID 排序，便于查找。
+	ids.sort()
+	var groups: Dictionary[String, PopupMenu] = {} # 各类别的子菜单按需创建。
+	for id: String in ids: # 每条目录记录仅在其所属类别中出现一次。
+		var definition: Dictionary = ItemRegistry.get_item_definition(id) # 复用正式物品名及分类。
+		var caption: String = "%s · %s" % [definition.get("name", id), id] # 保留物品 ID 以便区分同名道具。
+		if not needle.is_empty() and not caption.to_lower().contains(needle):
+			continue
+		var category: String = str(definition.get("category", "")) # 与背包使用相同的目录分类。
+		if not ITEM_CATEGORIES.has(category):
+			category = "other"
+		var submenu: PopupMenu = groups.get(category) # 每个类别共用一个可展开的子菜单。
+		if submenu == null:
+			submenu = PopupMenu.new()
+			groups[category] = submenu
+			submenu.index_pressed.connect(func(index: int) -> void:
+				_set_item_choice(choice, str(submenu.get_item_metadata(index)), submenu.get_item_text(index)))
+		submenu.add_item(caption)
+		submenu.set_item_metadata(submenu.item_count - 1, id)
+		if choice.get_meta(&"item_id") == "":
+			_set_item_choice(choice, id, caption)
+	for category: String in ITEM_CATEGORIES: # 按目录类别的显示顺序注册子菜单。
+		if groups.has(category):
+			popup.add_submenu_node_item(ITEM_CATEGORIES[category], groups[category])
+	choice.disabled = popup.item_count == 0
+
+## 在 [param root] 创建物品页；[param service] 负责库存事务，[param report] 显示操作结果。
 static func _items(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
 	_title(root, "获得 / 扣除物品")
-	_note(root, "物品 ID 直接读取 ItemRegistry；材料、配方、钥匙与消耗品使用同一库存。")
-	var search := LineEdit.new()
+	var search := LineEdit.new() # 同时筛选所有物品类别。
 	search.placeholder_text = "筛选物品名称或 ID"
 	root.add_child(search)
-	var choice := _select(root)
-	var ids: Array = ItemRegistry.ITEMS.keys()
-	ids.sort()
-	var refill := func(query: String):
-		choice.clear()
-		for id: String in ids:
-			var def: Dictionary = ItemRegistry.get_item_definition(id)
-			var caption: String = "%s · %s" % [def.get("name", id), id]
-			if query.is_empty() or caption.to_lower().contains(query.to_lower()):
-				choice.add_item(caption)
-				choice.set_item_metadata(choice.item_count - 1, id)
-		if choice.item_count > 0:
-			choice.select(0)
-	refill.call("")
-	search.text_changed.connect(refill)
-	var row := _row(root)
+	var choice := MenuButton.new() # 原生下拉菜单处理分类的展开、收起及键盘导航。
+	choice.flat = false
+	choice.focus_mode = Control.FOCUS_ALL
+	choice.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	choice.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	choice.custom_minimum_size = Vector2(300, 43)
+	root.add_child(choice)
+	_refill_item_choice(choice, "")
+	search.text_changed.connect(func(query: String) -> void: _refill_item_choice(choice, query))
+	var row := _row(root) # 数量供获得和扣除共用。
 	_note(row, "数量")
-	var count := _count(row, 1, 1000000)
-	var actions := _row(root)
+	var count := _count(row, 1, 1000000) # 单次操作的数量范围由库存命令限制。
+	var actions := _row(root) # 对当前选中的同一物品执行增减操作。
 	_button(actions, "获得物品", func():
-		if choice.item_count == 0:
+		if choice.disabled:
 			report.call({"ok": false, "message": "请先选择物品。"})
 		else:
-			report.call(service.change_item(str(choice.get_selected_metadata()), int(count.value))))
+			report.call(service.change_item(str(choice.get_meta(&"item_id")), int(count.value))))
 	_button(actions, "扣除物品", func():
-		if choice.item_count == 0:
+		if choice.disabled:
 			report.call({"ok": false, "message": "请先选择物品。"})
 		else:
-			report.call(service.change_item(str(choice.get_selected_metadata()), -int(count.value))))
+			report.call(service.change_item(str(choice.get_meta(&"item_id")), -int(count.value))))
 	_note(root, "一键资源（统一进入真实库存）")
 	var quick := _row(root)
 	for entry: Dictionary in [{"label": "全部材料×10", "category": "material", "count": 10},
