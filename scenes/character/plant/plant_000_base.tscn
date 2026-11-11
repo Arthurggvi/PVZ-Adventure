@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://c5cke4cm02um7"]
+[gd_scene load_steps=15 format=3 uid="uid://c5cke4cm02um7"]
 
 [ext_resource type="PackedScene" uid="uid://bkx25sp71flk5" path="res://scenes/character/character_000_base.tscn" id="1_e772o"]
 [ext_resource type="Script" uid="uid://bawv4f7mswb7k" path="res://scripts/character/plant/plant_000_base.gd" id="2_4jr4d"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://c2r327riinrkk" path="res://scripts/character/components/component_blink.gd" id="6_813jy"]
 [ext_resource type="Texture2D" uid="uid://ewujfngualde" path="res://assets/image/plant/zzz.png" id="6_at3ho"]
 [ext_resource type="Script" uid="uid://bv8m5ldv6i00l" path="res://scripts/character/components/garden/component_garden.gd" id="7_at3ho"]
+[ext_resource type="Script" path="res://scripts/character/components/hp_component/component_hp_plant.gd" id="8_plant_hp"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x2lon"]
 bg_color = Color(0.137255, 0.0196078, 0.027451, 1)
@@ -163,6 +164,7 @@ is_garden_aquarium = false
 node_no_change_direction = [NodePath("HpComponent"), NodePath("SleepComponent"), NodePath("GardenComponent")]
 
 [node name="HpComponent" parent="." index="3"]
+script = ExtResource("8_plant_hp")
 max_hp = 300
 
 [node name="HpControl" type="Control" parent="HpComponent" index="0"]

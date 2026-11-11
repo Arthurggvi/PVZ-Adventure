@@ -46,7 +46,7 @@ func init_ladder(curr_plant_cell:PlantCell, tier_id: StringName = &"",
 		nullified_plant = target if is_instance_valid(target) else plant_cell.get_bungi_target()
 		nullify_persistent = bool(policy.get("nullify_persistent", false))
 		if is_instance_valid(nullified_plant):
-			AdventurePlantNullification.grant(nullified_plant, get_instance_id())
+			AdventurePlantNegativeEffects.apply(nullified_plant, AdventurePlantNegativeEffects.Kind.NULLIFICATION, get_instance_id())
 	if tier_id == &"" or tier_id == &"base":
 		return
 	# Use the same species-level art mapping as the zombie, not global texture mutation.
@@ -83,8 +83,9 @@ func _exit_tree() -> void:
 
 func _release_nullification() -> void:
 	if is_instance_valid(nullified_plant):
-		AdventurePlantNullification.release(
-				nullified_plant, get_instance_id(), nullify_persistent)
+		AdventurePlantNegativeEffects.release(
+				nullified_plant, AdventurePlantNegativeEffects.Kind.NULLIFICATION,
+				get_instance_id(), nullify_persistent)
 	nullified_plant = null
 
 func _on_area_2d_area_entered(area: Area2D) -> void:

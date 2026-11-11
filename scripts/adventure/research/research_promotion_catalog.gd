@@ -5,6 +5,30 @@ class_name AdventurePromotionCatalog
 const COST := 5000
 const REQUIREMENTS := [5, 7, 9, 10]
 const BOOKS: Dictionary = {
+	"promotion_wallnut_rolling": {
+		"title": "翻滚坚果", "summary": "以任何形式死亡时化为坚果保龄球", "plant_type": 4, "tier": 1,
+		"effects": [{"kind": "wallnut_bowling_on_death"}]},
+	"promotion_wallnut_tenacity": {
+		"title": "不屈", "summary": "未受伤害时，每秒恢复最大生命值的5%", "plant_type": 4, "tier": 1,
+		"effects": [{"kind": "wallnut_regen", "per_second": 0.05}]},
+	"promotion_wallnut_fortress": {
+		"title": "坚不可摧", "summary": "最大生命值翻倍", "plant_type": 4, "tier": 2,
+		"effects": [{"kind": "stat", "stat": "max_health", "percent": 1.0}]},
+	"promotion_wallnut_veteran": {
+		"title": "百战", "summary": "卡片冷却时间减少50%", "plant_type": 4, "tier": 2,
+		"effects": [{"kind": "stat", "stat": "cooldown", "percent": -0.5}]},
+	"promotion_wallnut_armor_growth": {
+		"title": "积甲", "summary": "未被攻击时，每秒获得100护甲，最多1000护甲", "plant_type": 4, "tier": 3,
+		"effects": [{"kind": "wallnut_armor_growth", "per_second": 100, "cap": 1000}]},
+	"promotion_wallnut_breakthrough": {
+		"title": "摧锋", "summary": "免疫劣化、无效化等负面状态效果", "plant_type": 4, "tier": 3,
+		"effects": [{"kind": "negative_effect_immunity"}]},
+	"promotion_wallnut_guardian": {
+		"title": "守护", "summary": "每损失20点生命，给予同排前后两格内的植物20点护甲", "plant_type": 4, "tier": 4,
+		"effects": [{"kind": "wallnut_guard", "health_per_trigger": 20, "armor_per_trigger": 20, "range": 2}]},
+	"promotion_wallnut_last_stand": {
+		"title": "不屈", "summary": "单次承受的实际伤害不超过最大生命值的2%", "plant_type": 4, "tier": 4,
+		"effects": [{"kind": "wallnut_hit_cap", "fraction": 0.02}]},
 	"promotion_peashooter_tempering": {
 		"title": "淬火", "summary": "50%概率发射可击退火豆，伤害150%；攻速+20%", "plant_type": 1, "tier": 1,
 		"effects": [{"kind": "stat", "stat": "attack_rate", "percent": 0.2},

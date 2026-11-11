@@ -63,6 +63,26 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 		else:
 			health.set_spawn_max_health(new_max)
 	_attach_root_badge(plant, record.stars)
+	# 静态转职和运行时事件统一来自已验证的冻结卡片快照。
+	var resolved: Dictionary = Promotions.effects(record)
+	var wallnut_events: Array[Dictionary] = []
+	for event: Dictionary in resolved.events:
+		match str(event.get("kind", "")):
+			"negative_effect_immunity":
+				plant.battle_negative_effect_immune = true
+			"wallnut_hit_cap":
+				var hp: HpComponentPlant = plant.get_node_or_null("HpComponent") as HpComponentPlant
+				if hp == null:
+					push_error("单次受伤上限需要植物专用生命组件")
+					return false
+				hp.max_single_hit_fraction = float(event.get("fraction", 0.0))
+			_:
+				if str(event.get("kind", "")).begins_with("wallnut_"):
+					wallnut_events.append(event)
+	if not wallnut_events.is_empty():
+		var controller := AdventureWallnutPromotionEffects.new()
+		controller.configure(plant, wallnut_events)
+		plant.add_child(controller)
 	var component: CreateSunComponent = plant.get_node_or_null("CreateSunComponent")
 	if component == null:
 		return true
@@ -74,7 +94,6 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 	if modifiers.has("sun_value"):
 		component.change_sun_value(roundi(Promotions.resolve_stat(
 			float(component.sun_value), modifiers.sun_value)))
-	var resolved: Dictionary = Promotions.effects(record)
 	for event: Dictionary in resolved.events:
 		match str(event.get("kind", "")):
 			"sun_production":

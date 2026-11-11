@@ -68,7 +68,7 @@ func _on_bite_landed(target: Node, _amount: int) -> void:
 
 func _apply_degradation(plant: Plant000Base) -> void:
     if is_instance_valid(plant):
-        plant.hp_component.apply_degradation(_degradation_bonus)
+        AdventurePlantNegativeEffects.apply(plant, AdventurePlantNegativeEffects.Kind.DEGRADATION, _zombie.get_instance_id(), _degradation_bonus)
 
 func _lose_target() -> void:
     if _target == null:

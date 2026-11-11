@@ -68,7 +68,7 @@ func advance(boss: ZB002BlackGeneral, cells: Array, delta: float, shadow: Node2D
 				continue
 			_hit[plant.get_instance_id()] = true
 			if shadow != null:
-				plant.hp_component.apply_degradation(SHADOW_DEGRADATION)
+				AdventurePlantNegativeEffects.apply(plant, AdventurePlantNegativeEffects.Kind.DEGRADATION, 0, SHADOW_DEGRADATION)
 				continue
 			# 致死前复制压扁表现，扣血仍只经过一次生命组件，不对高血植物执行处决。
 			if plant.hp_component.resolve_damage(boss.config.charge_damage) >= plant.hp_component.curr_hp:

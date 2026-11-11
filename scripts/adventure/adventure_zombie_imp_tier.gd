@@ -26,7 +26,7 @@ func setup(imp: Zombie025Imp, rule: Dictionary) -> void:
 func _on_bite(target: Node, _amount: int) -> void:
     var plant: Plant000Base = target as Plant000Base
     if is_instance_valid(plant) and not plant.is_death:
-        plant.hp_component.apply_degradation(_degradation)
+        AdventurePlantNegativeEffects.apply(plant, AdventurePlantNegativeEffects.Kind.DEGRADATION, _imp.get_instance_id(), _degradation)
 
 func _on_death() -> void:
     if not is_instance_valid(_imp) or not is_instance_valid(Global.main_game):

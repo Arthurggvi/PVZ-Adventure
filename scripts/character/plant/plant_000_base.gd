@@ -31,6 +31,8 @@ var _battle_card_damage_multiplier: float = 1.0
 var _battle_aura_damage_bonus: float = 0.0
 ## 各技能光环独立来源；允许向日葵圣战与豌豆协同叠加且各自撤销。
 var _battle_aura_damage_sources: Dictionary[StringName, float] = {}
+## 冒险转职赋予的负面效果免疫；仅在冻结出战卡生成时写入，不进入角色原版数据。
+var battle_negative_effect_immune: bool = false
 var spawn_attributes_applied: bool = false
 
 func set_battle_card_damage_multiplier(value: float) -> void:
