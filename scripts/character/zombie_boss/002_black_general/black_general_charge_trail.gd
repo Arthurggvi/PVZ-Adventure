@@ -2,8 +2,6 @@
 extends Node2D
 class_name BlackGeneralChargeTrail
 
-## 两帧残影之间的冲锋时间，单位秒。
-const INTERVAL: float = 0.16
 ## 单帧残影淡出的战斗时间，单位秒。
 const LIFETIME: float = 1.22
 ## 为定格姿势及四路分身提供黑色内层、紫灰轮廓和破碎遮罩。

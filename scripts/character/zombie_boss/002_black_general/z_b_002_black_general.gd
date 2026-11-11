@@ -16,12 +16,8 @@ const STOMP_INTERVAL: float = 0.22
 const PHASE_CHARGE_LANE: int = 2
 ## 转场全明星出场顺序，每组内同时召唤。
 const PHASE_SUMMON_ROWS := [[0, 4], [1, 3], [2]]
-## 两批全明星出场的间隔，单位秒。
-const PHASE_SUMMON_INTERVAL: float = 0.38
 ## 本体出击后，按组启动的残影行。
 const PHASE_SHADOW_ROWS := [[1, 3], [0, 4]]
-## 本体与第一组残影、两组残影之间的间隔，单位秒。
-const PHASE_SHADOW_INTERVAL: float = 0.14
 ## 本体拖尾比冲锋残影自身的拖尾更实。
 const CHARGE_TRAIL_OPACITY: float = 0.74
 ## 本体实际移动时，相邻两次落步震动之间的冲锋秒数。
@@ -62,10 +58,14 @@ var _speed: float = 1.0
 var _phase_summon_group: int = -1
 ## 从转场举旗关键帧起经过的战斗秒数。
 var _phase_summon_elapsed: float = 0.0
+## 全明星按默认入场速度走一格所需的秒数。
+var _phase_summon_interval: float = 0.0
+## 转场蓄力动画已播完，等最后一组全明星出场再起跑。
+var _waiting_for_phase_summons: bool = false
 ## 等待起跑或正在扫掠的转场残影。
 var _charge_shadows: Array[BlackGeneralChargeShadow] = []
-## 本体距下次采样冲锋拖尾的秒数。
-var _trail_wait: float = 0.0
+## 本体下一次采样拖尾的世界横坐标，按实际移动距离间隔一格。
+var _next_trail_x: float = 0.0
 ## 本体冲锋时正在延伸的烟带；收势后由烟带自身耗散。
 var _charge_wake: BlackGeneralChargeWake
 ## 本体距下一次冲锋震屏的秒数。
@@ -204,6 +204,7 @@ func _enter_phase_two_look() -> void:
 
 ## 蓄力开始立刻播放一次践踏，随后由物理时钟重播直到起跑。
 func _begin_windup() -> void:
+	_waiting_for_phase_summons = false
 	state = State.WINDUP
 	visual.play_action(&"windup")
 	if _stomp_player == null:
@@ -224,7 +225,7 @@ func _begin_charge() -> void:
 	_stop_windup_sound()
 	charge.begin(0 if _transitioning or boss_phase >= 2 else config.phase_one_kill_limit)
 	state = State.CHARGE
-	_trail_wait = 0.0
+	_next_trail_x = global_position.x
 	_shake_wait = 0.0
 	_silhouette_marks.clear()
 	if boss_phase >= 2:
@@ -238,10 +239,9 @@ func _begin_charge() -> void:
 
 ## 用 [param step] 推进本体冲锋；只有实际移动时产生震屏，并放下已经越过的剪影。
 func _advance_charge(step: float) -> void:
-	_trail_wait -= step
-	if _trail_wait <= 0.0:
+	if global_position.x <= _next_trail_x:
 		BlackGeneralChargeTrail.spawn(visual, self, z_index - 1, CHARGE_TRAIL_OPACITY)
-		_trail_wait += BlackGeneralChargeTrail.INTERVAL
+		_next_trail_x = global_position.x - _cell_width()
 	var feet: Vector2 = global_position # 记录移动前的起点，用于在实际扫过的范围上铺开烟带。
 	var completed: bool = charge.advance(self, _game.plant_cell_manager.all_plant_cells[lane], step) # 伤害可能同步触发阶段中断。
 	if state != State.CHARGE or is_death:
@@ -283,6 +283,9 @@ func _place_charge_silhouettes() -> void:
 
 ## 启动各路影子；若本体转去其他路，则由该路原定的影子补上中路。
 func _begin_charge_shadows() -> void:
+	if config.charge_speed <= 0.0:
+		return
+	var interval: float = _cell_width() / config.charge_speed # 本体和上一组各领先约一格。
 	var row_count: int = _game.zombie_manager.all_zombie_rows.size() # 过滤非五路场地的无效行。
 	var center_lane: int = mini(PHASE_CHARGE_LANE, row_count - 1) # 本体原定的冲锋行。
 	for group_index: int in range(PHASE_SHADOW_ROWS.size()): # 依次启动内侧组与外侧组。
@@ -291,7 +294,7 @@ func _begin_charge_shadows() -> void:
 				continue
 			var row: int = center_lane if planned_row == lane else planned_row # 换位后每路仍最多一影。
 			var charge_shadow := BlackGeneralChargeShadow.new() # 该行的冲锋与命中独立结算。
-			charge_shadow.setup(self, row, Vector2(boss_home_x, _row_y(row)), (group_index + 1) * PHASE_SHADOW_INTERVAL)
+			charge_shadow.setup(self, row, Vector2(boss_home_x, _row_y(row)), (group_index + 1) * interval)
 			_charge_shadows.append(charge_shadow)
 
 ## 用 [param step] 推进各路残影，扫到各自停止线后转入纯视觉退场。
@@ -312,12 +315,15 @@ func _clear_charge_shadows() -> void:
 func _advance_phase_summons(step: float) -> void:
 	_phase_summon_elapsed += step
 	while _phase_summon_group < PHASE_SUMMON_ROWS.size() \
-		and _phase_summon_elapsed >= _phase_summon_group * PHASE_SUMMON_INTERVAL:
+		and _phase_summon_elapsed >= _phase_summon_group * _phase_summon_interval:
 		for row: int in PHASE_SUMMON_ROWS[_phase_summon_group]: # 组内同时入场的全明星。
 			_summon(CharacterRegistry.ZombieType.Z026AllStar, row, &"base")
 		_phase_summon_group += 1
 	if _phase_summon_group == PHASE_SUMMON_ROWS.size():
 		_phase_summon_group = -1
+		if state == State.WINDUP and _waiting_for_phase_summons:
+			_waiting_for_phase_summons = false
+			_begin_charge()
 
 ## 二阶段传送真正现身时播放龙咆哮；初次登场和静默恢复不触发。
 func _on_teleport_appeared() -> void:
@@ -337,6 +343,8 @@ func _on_flag_raised() -> void:
 				_summon(CharacterRegistry.ZombieType.Z026AllStar, row, &"base")
 		State.PHASE_RAISE:
 			SoundManager.play_boss_phase_roar()
+			var entry_speed: float = MoveComponent.DEFAULT_ORI_SPEED * Zombie026AllStar.CHARGE_SPEED # 基础全明星的无减速入场速度。
+			_phase_summon_interval = _cell_width() / entry_speed
 			_phase_summon_group = 0
 			_phase_summon_elapsed = 0.0
 			_advance_phase_summons(0.0)
@@ -394,7 +402,10 @@ func _on_animation_finished(animation: StringName) -> void:
 				_begin_windup()
 		State.WINDUP:
 			if animation == &"windup":
-				_begin_charge()
+				if _phase_summon_group >= 0:
+					_waiting_for_phase_summons = true
+				else:
+					_begin_charge()
 		State.STOP:
 			if animation == &"charge_stop":
 				if _transitioning:

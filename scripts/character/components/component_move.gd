@@ -8,6 +8,9 @@ class_name MoveComponent
 @onready var _ground: Sprite2D = get_node_or_null("../Body/BodyCorrect/_ground")
 @onready var body: BodyCharacter = %Body
 
+## 未覆盖时的基础移动速度，单位像素/秒。
+const DEFAULT_ORI_SPEED: float = 20.0
+
 ## 移动方式
 enum E_MoveMode {
 	Ground,	## 根据ground节点移动
@@ -43,8 +46,9 @@ enum E_LadderState{
 
 @export var move_mode:E_MoveMode = E_MoveMode.Ground
 ## 根据速度移动
-@export var ori_speed :float = 20
-var curr_speed :float = 20
+@export var ori_speed :float = DEFAULT_ORI_SPEED
+## 乘入角色速度和动作倍率后的当前移动速度。
+var curr_speed :float = DEFAULT_ORI_SPEED
 var curr_speed_product :float
 var curr_speed_move :float = 1
 
