@@ -190,8 +190,10 @@ func _walking_end():
 	walking_status = WalkingStatus.end
 	#print(111,"walk is end")
 
-func update_previous_ground_global_x():
-	_previous_ground_global_x = _ground.global_position.x
+## 外部位移后重置动画行走基准；纯速度移动的僵尸可以没有地面标记。
+func update_previous_ground_global_x() -> void:
+	if is_instance_valid(_ground):
+		_previous_ground_global_x = _ground.global_position.x
 
 ## 动画结束时
 @warning_ignore("unused_parameter")

@@ -184,7 +184,7 @@ func call_zombie_dancer():
 	var kind: CharacterRegistry.ZombieType = CharacterRegistry.ZombieType.Z010Dancer # 默认召唤伴舞。
 	var replacement_tier: StringName = &"" # 空值沿用舞王等阶；首召替换时使用配置的子代等阶。
 	if not leader.has_summoned_reinforcements and summon_policy.has("replacement_type"):
-		kind = int(summon_policy["replacement_type"])
+		kind = int(summon_policy["replacement_type"]) as CharacterRegistry.ZombieType
 		replacement_tier = summon_policy.get("replacement_tier", &"")
 	var summoned_any := false
 	for i in range(4):

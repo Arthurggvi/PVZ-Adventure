@@ -28,7 +28,8 @@ static func entry(kind: String, type_id: int) -> Dictionary:
 	Global.global_read_data.ensure_almanac_loaded()
 	var registry: Dictionary = CharacterRegistry.PlantInfo if kind == "plant" else CharacterRegistry.ZombieInfo # 使用角色注册表中的稳定英文键。
 	var info: Dictionary = registry.get(type_id, {}) # 防御更新后已移除的角色。
-	var attribute: int = CharacterRegistry.PlantInfoAttribute.PlantName if kind == "plant" else CharacterRegistry.ZombieInfoAttribute.ZombieName # 两类角色各自的名称字段。
+	var attribute: int = (int(CharacterRegistry.PlantInfoAttribute.PlantName)
+		if kind == "plant" else int(CharacterRegistry.ZombieInfoAttribute.ZombieName)) # 两种枚举统一按字典的整数键读取。
 	return Global.global_read_data.data_almanac.get("Plant" if kind == "plant" else "Zombie", {}).get(str(info.get(attribute, "")), {})
 
 ## 返回 [param kind]、[param type_id] 的中文名称；尚无翻译时显示明确编号。

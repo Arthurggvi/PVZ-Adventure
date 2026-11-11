@@ -161,7 +161,7 @@ func present(player_name: String, progression: Dictionary, rows: Array[Dictionar
 	_name_label.text = player_name
 	_badge.present(int(progression.level))
 	_experience_bar.max_value = maxi(1, int(progression.required))
-	_experience_bar.value = _experience_bar.max_value if progression.capped else int(progression.current)
+	_experience_bar.value = int(_experience_bar.max_value) if progression.capped else int(progression.current)
 	_experience_label.text = "已达到经验存储上限" if progression.capped else "经验  %d / %d" % [progression.current, progression.required]
 	_portrait.texture = PortraitArt.resolve(_rows)
 	_effects_hint.set_text("角色加成\n经验 ×[color=#8ecaff]%s[/color]\n掉落数量 ×[color=#8ecaff]%d[/color]\n掉落概率 ×[color=#8ecaff]%s[/color]\n战场金币 ×[color=#8ecaff]%s[/color]" % [str(effects.experience_multiplier),
