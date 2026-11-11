@@ -64,6 +64,7 @@ enum E_Influence_Speed_Factor{
 	OutBattlefield,	## 宽屏战场外僵尸移动加速
 	AdventureTierBoost,	## 冒险专属等阶的临时加速，独立于其他速度因子
 	AdventureTierStance, ## Permanent pole carrying / exhausted movement factor
+	AdventurePromotionAttackRate, ## 冒险转职攻速倍率，动画与发射计时共用。
 }
 ## 是否被魅惑
 var is_hypno:bool = false

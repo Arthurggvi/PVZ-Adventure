@@ -5,6 +5,34 @@ class_name AdventurePromotionCatalog
 const COST := 5000
 const REQUIREMENTS := [5, 7, 9, 10]
 const BOOKS: Dictionary = {
+	"promotion_peashooter_tempering": {
+		"title": "淬火", "summary": "50%概率发射可击退火豆，伤害150%；攻速+20%", "plant_type": 1, "tier": 1,
+		"effects": [{"kind": "stat", "stat": "attack_rate", "percent": 0.2},
+			{"kind": "pea_fire", "chance": 0.5, "damage": 1.5, "knockback": 24.0}]},
+	"promotion_peashooter_photosynthesis": {
+		"title": "光合作用", "summary": "攻速+50%，阳光费用−25", "plant_type": 1, "tier": 1,
+		"effects": [{"kind": "stat", "stat": "attack_rate", "percent": 0.5},
+			{"kind": "stat", "stat": "sun_cost", "flat": -25.0}]},
+	"promotion_peashooter_piercing": {
+		"title": "贯穿", "summary": "子弹连续穿透两次；三段伤害分别为200%、100%、50%", "plant_type": 1, "tier": 2,
+		"effects": [{"kind": "pea_pierce", "hit_factors": [2.0, 1.0, 0.5]}]},
+	"promotion_peashooter_synergy": {
+		"title": "协同", "summary": "每株同种植物使本卡冷却−10%(最多50%)、费用−10(最多50)；3×3相邻同种植物彼此攻击+10%", "plant_type": 1, "tier": 2,
+		"effects": [{"kind": "pea_synergy", "cooldown_per_plant": 0.1, "cost_per_plant": 10,
+			"maximum": 5, "adjacent_damage": 0.1}]},
+	"promotion_peashooter_hot_blood": {
+		"title": "热血", "summary": "每次射击使下次伤害+20%，最多累加至+300%；失去射击目标后重置", "plant_type": 1, "tier": 3,
+		"effects": [{"kind": "pea_hot_blood", "step": 0.2, "cap": 3.0}]},
+	"promotion_peashooter_multishot": {
+		"title": "连发", "summary": "每次发射后50%概率追加一发，每发可独立继续触发", "plant_type": 1, "tier": 3,
+		"effects": [{"kind": "pea_multishot", "chance": 0.5}]},
+	"promotion_peashooter_splash": {
+		"title": "溅射", "summary": "豌豆命中时对周围僵尸造成本次命中伤害的50%", "plant_type": 1, "tier": 4,
+		"effects": [{"kind": "pea_splash", "damage": 0.5, "radius": 96.0}]},
+	"promotion_peashooter_shock": {
+		"title": "震撼", "summary": "子弹轻微击退不带二类防具的僵尸；攻速+50%", "plant_type": 1, "tier": 4,
+		"effects": [{"kind": "stat", "stat": "attack_rate", "percent": 0.5},
+			{"kind": "pea_shock", "knockback": 12.0}]},
 	"promotion_sunflower_light_conversion": {
 		"title": "光能转化", "summary": "阳光费用−25，生命+50%", "plant_type": 2, "tier": 1,
 		"effects": [

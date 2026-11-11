@@ -45,6 +45,10 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 	var modifiers: Dictionary = _stats(record)
 	if modifiers.has("damage"):
 		plant.set_battle_card_damage_multiplier(maxf(0.0, 1.0 + float(modifiers.damage.get("percent", 0.0))))
+	# 原有角色速度信号同时驱动发射计时与动画，转职攻速共用此入口。
+	if modifiers.has("attack_rate"):
+		var rate: float = maxf(0.0, 1.0 + float(modifiers.attack_rate.get("percent", 0.0)))
+		plant.update_speed_factor(rate, Character000Base.E_Influence_Speed_Factor.AdventurePromotionAttackRate)
 	if modifiers.has("max_health"):
 		var health: HpComponent = plant.get_node_or_null("HpComponent") as HpComponent
 		if health == null:

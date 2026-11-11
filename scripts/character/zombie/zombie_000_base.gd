@@ -33,6 +33,16 @@ enum IronType{
 
 ## 僵尸铁器类型
 @export var iron_type:IronType = IronType.Null
+
+## 受弹命中产生的水平击退，方向固定背离正常植物阵地。
+## [param distance] 击退像素，非正值及死亡角色无效；重置行走基准防止动画位移抵消。
+func apply_projectile_knockback(distance: float) -> void:
+	if distance <= 0.0 or not is_finite(distance) or is_death \
+			or not is_inside_tree() or is_queued_for_deletion():
+		return
+	global_position.x += distance
+	if is_instance_valid(move_component):
+		move_component.update_previous_ground_global_x()
 ## 僵尸铁器节点
 @export var iron_node:IronNode
 @export_subgroup("僵尸初始化状态")

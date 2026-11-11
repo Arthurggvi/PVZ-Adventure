@@ -18,6 +18,9 @@ var _ordered_events: Array[StageEventDefinition] = []
 var _gravestones: AdventureGravestoneDirector
 var _cooldown: AdventureCardCooldownRuntime
 var _sunflower_skills: AdventureSunflowerPromotionRuntime
+## 豌豆射手事件技能与场上协同分别由独立运行时结算。
+var _pea_skills: AdventurePeaPromotionRuntime
+var _pea_synergy: AdventurePeaSynergyRuntime
 var requested_items: Dictionary[String, int] = {}
 var pending_region_flags: Dictionary[StringName, bool] = {}
 var _reward_rng := RandomNumberGenerator.new()
@@ -69,6 +72,12 @@ func _ready() -> void:
 	_sunflower_skills = AdventureSunflowerPromotionRuntime.new()
 	_sunflower_skills.setup(zombies.main_game)
 	add_child(_sunflower_skills)
+	_pea_skills = AdventurePeaPromotionRuntime.new()
+	_pea_skills.setup(zombies.main_game)
+	add_child(_pea_skills)
+	_pea_synergy = AdventurePeaSynergyRuntime.new()
+	_pea_synergy.setup(zombies.main_game)
+	add_child(_pea_synergy)
 	_boss_director = AdventureBossDirector.new()
 	_boss_director.setup(waves, zombies)
 	add_child(_boss_director)

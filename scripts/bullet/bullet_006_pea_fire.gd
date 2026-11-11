@@ -5,6 +5,8 @@ class_name Bullet006PeaFire
 @onready var anim_lib: AnimationPlayer = $Body/AnimLib
 ## 命中或撞地后结算周围目标的溅射组件。
 @onready var spatter_component: SpatterComponent = $SpatterComponent
+## 冒险转职火豆禁用原版固定溅射；原版火豆保持默认效果。
+var enable_base_splash: bool = true
 
 func _ready() -> void:
 	super()
@@ -16,4 +18,5 @@ func _attack_enemy(enemy:Character000Base):
 	if _can_attack_character(enemy):
 		enemy.cancel_ice()
 	super(enemy)
-	spatter_component.spatter_all_area_zombie(enemy)
+	if enable_base_splash:
+		spatter_component.spatter_all_area_zombie(enemy)

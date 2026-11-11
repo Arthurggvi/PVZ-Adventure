@@ -25,6 +25,8 @@ var _registry_cooldown: float = 0.0
 var _sun_surcharge: int = 0
 ## Battlefield-only, per-card temporary costs; never enter persistent card data.
 var _flower_field_discount: int = 0
+## 协同按场上同种植物数量刷新，仅影响本局费用和后续冷却。
+var _pea_synergy_count: int = 0
 var _resonance_next_free: bool = false
 var _star_badge: Control = null
 const StarBadge = preload("res://scripts/adventure/ui/star_badge_view.gd")
@@ -92,7 +94,7 @@ func _apply_profile_card_stats() -> void:
 		push_error("Invalid combat card stat resolution")
 		return
 	_refresh_battle_sun_cost()
-	cool_time = maxf(0.0, float(stats.cooldown))
+	cool_time = maxf(0.0, float(stats.cooldown) * (1.0 - 0.1 * _pea_synergy_count))
 
 ## Dynamic board costs are added after permanent card modifiers.
 func set_sun_surcharge(amount: int) -> void:
@@ -104,7 +106,19 @@ func _refresh_battle_sun_cost() -> void:
 	if stats.is_empty():
 		return
 	sun_cost = 0 if _resonance_next_free else maxi(0,
-		int(stats.sun_cost) + _sun_surcharge - _flower_field_discount)
+		int(stats.sun_cost) + _sun_surcharge - _flower_field_discount - 10 * _pea_synergy_count)
+
+## [param count] 场上同物种存活株数；仅协同卡牌由战斗运行时调用，最多五株。
+## 变动即时刷新价格；当前已经开始的冷却不追溯修改。
+func set_pea_synergy_count(count: int) -> void:
+	var next_count: int = clampi(count, 0, 5)
+	if next_count == _pea_synergy_count:
+		return
+	_pea_synergy_count = next_count
+	_apply_profile_card_stats()
+	if is_instance_valid(Global.main_game) and is_instance_valid(Global.main_game.card_manager) \
+			and is_instance_valid(Global.main_game.card_manager.card_slot_battle):
+		judge_sun_enough(Global.main_game.card_manager.card_slot_battle.sun_value)
 
 func add_flower_field_discount(amount: int) -> void:
 	if amount <= 0:

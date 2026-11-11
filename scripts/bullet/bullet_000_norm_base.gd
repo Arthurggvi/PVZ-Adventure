@@ -15,6 +15,12 @@ class_name Bullet000NormBase
 var curr_attack_num:=0
 ## 一颗子弹对同一僵王只结算一次，避免多个受击区域或追踪补判重复命中。
 var _hit_boss_ids: Dictionary[int, bool] = {}
+## 穿透弹各次命中的伤害系数，空数组保持原版单次攻击逻辑。
+var promotion_hit_factors: PackedFloat32Array = PackedFloat32Array()
+## 穿透弹已命中的目标实例，避免同一目标多个受击框反复扣血。
+var _promotion_hit_ids: Dictionary[int, bool] = {}
+## 最近一次真实命中的伤害数值，供命中事件的额外效果按比例计算。
+var last_impact_damage: int = 0
 ## One post-impact hook for projectile perks, after normal hit/umbrella routing.
 signal impact_resolved(target: Character000Base, impact_position: Vector2)
 ## 子弹伤害
@@ -199,6 +205,10 @@ func get_first_be_hit_plant_in_cell(plant:Plant000Base)->Plant000Base:
 func attack_once(enemy:Character000Base):
 	if is_queued_for_deletion():
 		return
+	if enemy != null and not promotion_hit_factors.is_empty():
+		if _promotion_hit_ids.has(enemy.get_instance_id()):
+			return
+		_promotion_hit_ids[enemy.get_instance_id()] = true
 	if enemy is ZB000Base:
 		if not _can_attack_character(enemy) or _hit_boss_ids.has(enemy.get_instance_id()):
 			return
@@ -211,17 +221,30 @@ func attack_once(enemy:Character000Base):
 		return
 	# 扣血可能触发目标死亡或释放，提前记录命中类型，供特效位置与层级处理使用。
 	var is_boss_hit: bool = is_instance_valid(enemy) and enemy is ZB000Base
+	# 穿透衰减只作用于当前命中；恢复基础伤害，后续命中按自身阶数单独计算。
+	var original_damage: int = attack_value
+	if not promotion_hit_factors.is_empty():
+		var factor_index: int = mini(curr_attack_num - 1, promotion_hit_factors.size() - 1)
+		attack_value = maxi(0, roundi(float(original_damage) * promotion_hit_factors[factor_index]))
+	last_impact_damage = attack_value
 	## 对敌人造成伤害
 	_attack_enemy(enemy)
+	attack_value = original_damage
 	## 是否有音效
 	if type_bullet_SFX != SoundManagerClass.TypeBulletSFX.Null:
 		SoundManager.play_bullet_attack_SFX(type_bullet_SFX)
 	## 如果有子弹特效
 	if bullet_effect.is_bullet_effect:
-		# 僵王受击框较大，保留特效在子弹命中处的位置；普通目标继续使用原有 X 对齐规则。
+		# 穿透弹会继续飞行；中途命中特效复制后脱离，原始特效留给最后一次命中。
+		var effect: BulletEffect000Base = bullet_effect
+		if not promotion_hit_factors.is_empty() and curr_attack_num < max_attack_num:
+			effect = bullet_effect.duplicate() as BulletEffect000Base
+			add_child(effect)
+			effect.owner = self
+		# 僵王受击框较大，保留命中处的位置；普通目标按受击组件 X 对齐。
 		if not is_boss_hit and is_instance_valid(enemy) and enemy is Character000Base:
-			bullet_effect.global_position.x = enemy.hurt_box_component.global_position.x
-		bullet_effect.activate_bullet_effect(is_boss_hit)
+			effect.global_position.x = enemy.hurt_box_component.global_position.x
+		effect.activate_bullet_effect(is_boss_hit)
 
 	## 判断是否进入删除队列
 	impact_resolved.emit(enemy, global_position)

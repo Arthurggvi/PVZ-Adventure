@@ -29,14 +29,27 @@ var plant_spawn_profile: PlantSpawnProfile = null
 var battle_damage_multiplier: float = 1.0
 var _battle_card_damage_multiplier: float = 1.0
 var _battle_aura_damage_bonus: float = 0.0
+## 各技能光环独立来源；允许向日葵圣战与豌豆协同叠加且各自撤销。
+var _battle_aura_damage_sources: Dictionary[StringName, float] = {}
 var spawn_attributes_applied: bool = false
 
 func set_battle_card_damage_multiplier(value: float) -> void:
 	_battle_card_damage_multiplier = maxf(0.0, value)
 	_refresh_battle_damage_multiplier()
 
+## 保留原向日葵圣战调用入口；内部转为具名来源，避免覆盖其他光环。
 func set_battle_aura_damage_bonus(value: float) -> void:
-	_battle_aura_damage_bonus = maxf(0.0, value)
+	set_battle_aura_damage_source(&"sunflower_holy_war", value)
+
+## [param source] 光环来源稳定 ID；[param value] 相对基础伤害加成，0 清除来源。
+func set_battle_aura_damage_source(source: StringName, value: float) -> void:
+	if value <= 0.0:
+		_battle_aura_damage_sources.erase(source)
+	else:
+		_battle_aura_damage_sources[source] = value
+	_battle_aura_damage_bonus = 0.0
+	for amount: float in _battle_aura_damage_sources.values():
+		_battle_aura_damage_bonus += amount
 	_refresh_battle_damage_multiplier()
 
 func _refresh_battle_damage_multiplier() -> void:
