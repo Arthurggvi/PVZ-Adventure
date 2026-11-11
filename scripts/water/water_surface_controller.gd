@@ -72,34 +72,34 @@ func set_intensity(intensity: float) -> void:
 	_intensity = clampf(intensity, 0.0, 1.0)
 	if _profile == null:
 		return
-	for material: ShaderMaterial in _materials:
-		material.set_shader_parameter("ripple_strength", _profile.ripple_strength * _intensity)
-		material.set_shader_parameter("caustic_strength", _profile.caustic_strength * _intensity)
+	for water_material: ShaderMaterial in _materials: # 当前水域的私有材质。
+		water_material.set_shader_parameter("ripple_strength", _profile.ripple_strength * _intensity)
+		water_material.set_shader_parameter("caustic_strength", _profile.caustic_strength * _intensity)
 
 ## 自行累计游戏时间，规避 Shader TIME 在暂停时继续走动的问题。
 func _process(delta: float) -> void:
 	_elapsed += delta
-	for material: ShaderMaterial in _materials:
-		material.set_shader_parameter("water_time", _elapsed)
+	for water_material: ShaderMaterial in _materials: # 当前水域的私有材质。
+		water_material.set_shader_parameter("water_time", _elapsed)
 
 ## 构造单块水域的材质，并配置预设参数和源图采样矩形。
 ## [param texture] 用作像素采样源。[param uv] 归一化的纹理区域。
 func _create_material(texture: Texture2D, uv: Rect2) -> ShaderMaterial:
-	var material := ShaderMaterial.new() # 私有 ShaderMaterial
-	material.shader = WATER_SHADER
-	material.set_shader_parameter("surface_texture", texture)
-	material.set_shader_parameter("uv_rect", Vector4(uv.position.x, uv.position.y, uv.size.x, uv.size.y))
-	material.set_shader_parameter("water_time", _elapsed)
-	material.set_shader_parameter("wave_speed", _profile.wave_speed)
-	material.set_shader_parameter("ripple_strength", _profile.ripple_strength * _intensity)
-	material.set_shader_parameter("wave_density", _profile.wave_density)
-	material.set_shader_parameter("caustic_strength", _profile.caustic_strength * _intensity)
-	material.set_shader_parameter("water_tint", _profile.water_tint)
-	material.set_shader_parameter("tint_mix", _profile.tint_mix)
-	material.set_shader_parameter("caustic_tint", _profile.caustic_tint)
-	material.set_shader_parameter("opacity", _profile.opacity)
-	_materials.append(material)
-	return material
+	var water_material := ShaderMaterial.new() # 新水域独立持有的材质。
+	water_material.shader = WATER_SHADER
+	water_material.set_shader_parameter("surface_texture", texture)
+	water_material.set_shader_parameter("uv_rect", Vector4(uv.position.x, uv.position.y, uv.size.x, uv.size.y))
+	water_material.set_shader_parameter("water_time", _elapsed)
+	water_material.set_shader_parameter("wave_speed", _profile.wave_speed)
+	water_material.set_shader_parameter("ripple_strength", _profile.ripple_strength * _intensity)
+	water_material.set_shader_parameter("wave_density", _profile.wave_density)
+	water_material.set_shader_parameter("caustic_strength", _profile.caustic_strength * _intensity)
+	water_material.set_shader_parameter("water_tint", _profile.water_tint)
+	water_material.set_shader_parameter("tint_mix", _profile.tint_mix)
+	water_material.set_shader_parameter("caustic_tint", _profile.caustic_tint)
+	water_material.set_shader_parameter("opacity", _profile.opacity)
+	_materials.append(water_material)
+	return water_material
 
 ## 释放旧视效。既不残留场景节点，也不污染共用材质。
 func _reset() -> void:

@@ -73,12 +73,12 @@ var curr_zombie_num: int = 0
 ## 本战斗场景内的修改器开关；开启时处决新生成的敌人，默认关闭。
 var cheat_instant_kill_enabled := false
 
-## 参与自然提前刷新的实例集合；弱引用避免已释放对象残留，实例 ID 用于幂等移除。
-var _natural_refresh_zombies: Dictionary[int, WeakRef] = {}
+## 参与自然提前刷新的实例 ID；魅惑、死亡或离树时注销。
+var _natural_refresh_zombie_ids: Dictionary[int, bool] = {}
 ## 自然提前刷新只读取该数量，博士本体及其召唤物不在集合中。
 var natural_refresh_zombie_count: int:
 	get:
-		return _natural_refresh_zombies.size()
+		return _natural_refresh_zombie_ids.size()
 ## 自然刷新参与数量发生变化时发出；[param num] 不包含博士及其衍生僵尸。
 signal signal_natural_refresh_zombie_num_change(num: int)
 ## 僵尸出生波次独立计数；避免上一波残敌死亡被归入当前波。
@@ -95,7 +95,7 @@ var is_end_wave := false
 var all_zombies_be_hypno:Array[Zombie000Base] = []
 ## 僵尸可以存在的x坐标范围,超出该范围,每波刷新时删除,最后一波时每秒删除检查删除
 var zombie_range_pos_x:=Vector2(-300, 1000)
-## 所有僵尸列表,用于每波清除在地图外的僵尸(矿工,魅惑等僵尸)
+## 本关仍登记的普通僵尸，含魅惑实例；死亡或实际离树时移除。
 var all_zombies_1d:Array[Zombie000Base]
 
 ## 所有僵尸行
@@ -184,7 +184,7 @@ func begin_adventure_phase(profile: WaveProfile) -> void:
 		check_zombie_end_wave_timer.stop()
 	if is_instance_valid(multi_round_end_wave_timer):
 		multi_round_end_wave_timer.stop()
-	_natural_refresh_zombies.clear()
+	_natural_refresh_zombie_ids.clear()
 	_natural_wave_by_id.clear()
 	_natural_wave_counts.clear()
 	var death_archive := get_node_or_null("AdventureZombieDeathArchive") as AdventureZombieDeathArchive
@@ -751,9 +751,10 @@ func create_norm_zombie(
 	zombie.position = global_pos - zombie_parent.global_position
 	zombie_parent.add_child(zombie)
 
-	## 只要创建僵尸，都要连接这两个信号
+	# 生命周期信号与登记绑定，直接离树也必须在节点失效前注销。
 	zombie.signal_character_death.connect(_on_zombie_dead.bind(zombie))
 	zombie.signal_character_be_hypno.connect(_on_zombie_hypno.bind(zombie))
+	zombie.tree_exiting.connect(_on_zombie_tree_exiting.bind(zombie))
 	zombie.signal_lane_update.connect(zombie_update_lane.bind(zombie, zombie.lane))
 
 	all_zombies_2d[zombie.lane].append(zombie)
@@ -799,16 +800,37 @@ func _on_zombie_hypno(zombie: Zombie000Base) -> void:
 
 ## [param zombie] 死亡时只结算一次；已魅惑实例不会再次减少敌方或自然刷新数量。
 func _on_zombie_dead(zombie: Zombie000Base) -> void:
-	if not all_zombies_1d.has(zombie):
-		return
-	all_zombies_1d.erase(zombie)
-	_remove_natural_refresh_zombie(zombie.get_instance_id())
-	if zombie.is_hypno:
-		all_zombies_be_hypno.erase(zombie)
-	else:
-		curr_zombie_num -= 1
-		all_zombies_2d[zombie.lane].erase(zombie)
+	if _unregister_zombie(zombie):
+		_remove_natural_refresh_zombie(zombie.get_instance_id())
 		_try_finish_wave(zombie.global_position)
+
+
+## [param zombie] 实际离树的普通僵尸；在节点仍有效时同步清理战场列表。
+func _on_zombie_tree_exiting(zombie: Zombie000Base) -> void:
+	if zombie.is_changing_lane or not _unregister_zombie(zombie):
+		return
+	# 波次事件可能生成僵尸，等到本次离树结束后再发出。
+	_finish_zombie_departure.call_deferred(zombie.get_instance_id(), zombie.global_position, _round_generation)
+
+
+## 注销 [param zombie] 的普通僵尸登记；返回是否实际移除了一个计入敌方数量的实例。
+func _unregister_zombie(zombie: Zombie000Base) -> bool:
+	if not all_zombies_1d.has(zombie):
+		return false
+	all_zombies_1d.erase(zombie)
+	if all_zombies_be_hypno.has(zombie):
+		all_zombies_be_hypno.erase(zombie)
+		return false
+	all_zombies_2d[zombie.lane].erase(zombie)
+	curr_zombie_num -= 1
+	return true
+
+
+## [param instance_id] 已离树的敌方实例 ID；[param global_pos] 离树时的位置；[param generation] 离树时的轮次代数。
+func _finish_zombie_departure(instance_id: int, global_pos: Vector2, generation: int) -> void:
+	_remove_natural_refresh_zombie(instance_id)
+	if generation == _round_generation:
+		_try_finish_wave(global_pos)
 
 
 ## 将 [param zombie] 登记到自然刷新集合；所有原有生成默认参与，博士来源在入树前明确关闭。
@@ -817,21 +839,20 @@ func _register_natural_refresh_zombie(zombie: Zombie000Base) -> void:
 		return
 	# 集合以实例 ID 去重，死亡、魅惑和离树可重复请求移除而不重复扣数。
 	var instance_id: int = zombie.get_instance_id()
-	if _natural_refresh_zombies.has(instance_id):
+	if _natural_refresh_zombie_ids.has(instance_id):
 		return
-	_natural_refresh_zombies[instance_id] = weakref(zombie)
+	_natural_refresh_zombie_ids[instance_id] = true
 	if zombie.curr_wave >= 0:
 		var wave_number: int = zombie.curr_wave + 1
 		_natural_wave_by_id[instance_id] = wave_number
 		_natural_wave_counts[wave_number] = _natural_wave_counts.get(wave_number, 0) + 1
 		signal_natural_wave_count_change.emit(wave_number, _natural_wave_counts[wave_number])
-	zombie.tree_exiting.connect(_on_natural_refresh_zombie_tree_exiting.bind(instance_id))
 	signal_natural_refresh_zombie_num_change.emit(natural_refresh_zombie_count)
 
 
 ## 移除 [param instance_id] 的刷新登记；场景卸载期间只清理记录，不触发新的自然波次。
 func _remove_natural_refresh_zombie(instance_id: int) -> void:
-	if not _natural_refresh_zombies.erase(instance_id):
+	if not _natural_refresh_zombie_ids.erase(instance_id):
 		return
 	var wave_number: int = _natural_wave_by_id.get(instance_id, 0)
 	_natural_wave_by_id.erase(instance_id)
@@ -842,23 +863,6 @@ func _remove_natural_refresh_zombie(instance_id: int) -> void:
 			signal_natural_wave_count_change.emit(wave_number, remaining)
 	if is_game_running():
 		signal_natural_refresh_zombie_num_change.emit(natural_refresh_zombie_count)
-
-
-## [param instance_id] 离树时延迟确认；僵尸换行会重挂父节点，不能误当成离开关卡。
-func _on_natural_refresh_zombie_tree_exiting(instance_id: int) -> void:
-	call_deferred("_remove_natural_refresh_zombie_if_absent", instance_id)
-
-
-## 仅当 [param instance_id] 真正释放或离开本关卡时清理刷新登记，正常换行保留。
-func _remove_natural_refresh_zombie_if_absent(instance_id: int) -> void:
-	if not _natural_refresh_zombies.has(instance_id):
-		return
-	# 弱引用返回值先保持 Variant，避免读取已释放的角色实例。
-	var zombie = _natural_refresh_zombies[instance_id].get_ref()
-	if is_instance_valid(zombie) and zombie.is_inside_tree() and not zombie.is_queued_for_deletion() \
-		and is_instance_valid(main_game) and main_game.is_ancestor_of(zombie):
-		return
-	_remove_natural_refresh_zombie(instance_id)
 
 
 ## 普通死亡、魅惑及僵王死亡共用原有清场条件，不受额外 Boss 胜利选项影响。
@@ -890,7 +894,7 @@ func wave_refresh(curr_is_end_wave:bool):
 
 ### 删除移动超出视野的僵尸,每次刷新僵尸调用
 func set_zombie_death_over_view():
-	for z:Zombie000Base in all_zombies_1d:
+	for z:Zombie000Base in all_zombies_1d.duplicate(): # 处决会同步注销僵尸，遍历快照以免跳过后续实例。
 		if not is_instance_valid(z) or z.is_death:
 			continue
 		if z.nonlethal_displacement_exile:

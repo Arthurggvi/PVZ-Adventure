@@ -44,8 +44,8 @@ func init_pool(game_para: ResourceLevelData) -> void:
 	water_surface.configure_sprite(pool, profile)
 	pool_drop.visible = game_para.is_rain
 	if game_para.is_rain:
-		var material: ShaderMaterial = pool_drop.material as ShaderMaterial # 原版雨滴 Shader
+		var drop_material: ShaderMaterial = pool_drop.material as ShaderMaterial # 原版雨滴图层的材质。
 		if game_para.game_BG == ConstLevelData.GameBg.Pool:
-			material.set_shader_parameter("drop_color", Color(0.0, 0.914, 0.941, 1.0))
+			drop_material.set_shader_parameter("drop_color", Color(0.0, 0.914, 0.941, 1.0))
 		else:
-			material.set_shader_parameter("drop_color", Color(0.0, 0.502, 0.773, 1.0))
+			drop_material.set_shader_parameter("drop_color", Color(0.0, 0.502, 0.773, 1.0))

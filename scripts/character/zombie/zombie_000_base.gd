@@ -62,6 +62,8 @@ func inherited_child_modifier() -> ZombieSpawnModifier:
 	return combat_spawn_modifier.for_child() if combat_spawn_modifier != null else null
 ## 是否参与自然出怪的提前刷新数量统计；博士召唤及其衍生僵尸为 false，全场计数不受影响。
 var participates_natural_refresh: bool = true
+## 战场内换行会短暂离树；管理器在这次重挂期间保留原有登记。
+var is_changing_lane := false
 ## 僵尸当前状态
 var curr_be_attack_status:E_BeAttackStatusZombie=E_BeAttackStatusZombie.IsNorm:
 	set(value):
@@ -593,8 +595,9 @@ func update_lane():
 
 	## 禁用攻击组件
 	attack_component.disable_component(ComponentNormBase.E_IsEnableFactor.Garlic)
-	#GlobalUtils.child_node_change_parent(self, Global.main_game.zombie_manager.all_zombie_rows[lane])
+	is_changing_lane = true
 	reparent(Global.main_game.zombie_manager.all_zombie_rows[lane])
+	is_changing_lane = false
 	var tween:Tween = create_tween()
 	tween.tween_property(self, ^"position:y", Global.main_game.zombie_manager.all_zombie_rows[lane].zombie_create_position.position.y, 1)
 	tween.tween_callback(attack_component.enable_component.bind(ComponentNormBase.E_IsEnableFactor.Garlic))
