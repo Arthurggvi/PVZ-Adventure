@@ -14,3 +14,13 @@ func character_death() -> void:
 	# No made-up death action; use the existing Boss reward and fade pipeline.
 	request_trophy()
 	_fade_and_remove()
+
+## Visual hooks for the later behaviour tree. No summons or lane logic are fabricated.
+func play_summon_visual() -> void:
+	visual.play_summon()
+
+func play_teleport_arrive_visual() -> void:
+	visual.play_teleport_in()
+
+func play_teleport_depart_visual() -> void:
+	visual.play_teleport_out()

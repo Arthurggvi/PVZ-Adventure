@@ -12,6 +12,17 @@ class_name WhiteFlameSpotlightEffect
 @onready var _tips_left: CPUParticles2D = $FlameTipsLeft
 @onready var _tips_right: CPUParticles2D = $FlameTipsRight
 @onready var _mantle: AnimatedSprite2D = $WhiteFlameMantle
+@onready var _beam: Sprite2D = $SpotlightBeam
+@onready var _pool: Sprite2D = $SpotlightFloor
+@onready var _burst: Sprite2D = $SpotlightBurst
+
+const SUMMON_COLORS: Array[Color] = [
+	Color(0.57, 0.77, 1.00), Color(1.00, 0.54, 0.86),
+	Color(0.53, 1.00, 0.86), Color(1.00, 0.84, 0.46),
+	Color(0.78, 0.68, 1.00)
+]
+var _cue: Tween
+var _last_hue := -1
 
 var _active := false
 
@@ -75,7 +86,16 @@ func set_active(enabled: bool) -> void:
 	if _active == enabled:
 		return
 	_active = enabled
+	if _cue and _cue.is_running():
+		_cue.kill()
+	_beam.modulate = Color.WHITE
+	_pool.modulate = Color.WHITE
+	_beam.scale = Vector2.ONE
+	_burst.modulate = Color(1, 1, 1, 0)
 	visible = enabled
+	_beam.visible = enabled
+	_pool.visible = enabled
+	_burst.visible = false
 	_mantle.visible = enabled
 	_back.emitting = enabled
 	_left.emitting = enabled
@@ -96,3 +116,54 @@ func set_active(enabled: bool) -> void:
 
 func is_active() -> bool:
 	return _active
+
+## Each summon gets a temporary spotlight. Phase 2 additionally changes to
+## a random accent hue and triggers an additive lighting burst.
+func summon_spotlight(phase_two: bool) -> Color:
+	if _cue and _cue.is_running():
+		_cue.kill()
+	var shade := Color.WHITE
+	if phase_two:
+		var selection := randi_range(0, SUMMON_COLORS.size()-1 if _last_hue < 0 else SUMMON_COLORS.size()-2)
+		if _last_hue >= 0 and selection >= _last_hue:
+			selection += 1
+		_last_hue = selection
+		shade = SUMMON_COLORS[selection]
+	visible = true
+	_beam.visible = true
+	_pool.visible = true
+	_burst.visible = true
+	_beam.scale = Vector2.ONE * (1.09 if phase_two else 1.00)
+	_beam.modulate = Color(shade.r, shade.g, shade.b, 1.0 if phase_two else .0)
+	_pool.modulate = Color(shade.r, shade.g, shade.b, 1)
+	_burst.modulate = Color(shade.r, shade.g, shade.b, .91 if phase_two else .32)
+	_burst.scale = Vector2(1.23, 1.13) if phase_two else Vector2(1.08, 1.04)
+	_cue = create_tween()
+	_cue.set_parallel(true)
+	_cue.tween_property(_burst, "modulate:a", 0.0, .62)
+	if phase_two:
+		_cue.tween_property(_beam, "modulate", Color.WHITE, 1.20)
+		_cue.tween_property(_pool, "modulate", Color.WHITE, 1.20)
+		_cue.tween_property(_beam, "scale", Vector2.ONE, 1.20)
+	else:
+		_cue.tween_property(_beam, "modulate:a", 1.0, .12)
+		_cue.tween_property(_beam, "modulate:a", 0.0, .32).set_delay(.90)
+		_cue.tween_property(_pool, "modulate:a", 0.0, .32).set_delay(.90)
+	_cue.chain().tween_callback(_end_spotlight_cue)
+	return shade
+
+func _end_spotlight_cue() -> void:
+	_burst.visible = false
+	_burst.modulate.a = 0
+	_beam.modulate = Color.WHITE
+	_pool.modulate = Color.WHITE
+	_beam.scale = Vector2.ONE
+	_beam.visible = _active
+	_pool.visible = _active
+	visible = _active
+
+## Cancel a summon pulse before a teleport interruption, preserving phase gating.
+func suspend_for_teleport() -> void:
+	if _cue and _cue.is_running():
+		_cue.kill()
+	_end_spotlight_cue()

@@ -1,0 +1,35 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/boss_teleport_effect.gd" id="controller"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/black_general/parts/fx/generated/BlackGeneral_TeleportBlink.tres" id="original_blink"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/fx/teleport_blackgeneral_smoke.png" id="original_smoke"]
+
+[node name="TeleportFX" type="Node2D"]
+position = Vector2(-19, -82)
+visible = false
+script = ExtResource("controller")
+
+[node name="TeleportRipple" type="AnimatedSprite2D" parent="."]
+z_as_relative = false
+z_index = 61
+modulate = Color(1, 1, 1, 0)
+scale = Vector2(1.04, 1.04)
+sprite_frames = ExtResource("original_blink")
+animation = &"arrive"
+visible = false
+
+[node name="SmokeCover" type="CPUParticles2D" parent="."]
+position = Vector2(0, 18)
+z_as_relative = false
+z_index = 79
+texture = ExtResource("original_smoke")
+emitting = false
+
+[node name="TeleportBlink" type="AnimatedSprite2D" parent="."]
+z_as_relative = false
+z_index = 81
+modulate = Color(1, 1, 1, 0.94)
+scale = Vector2(1.28, 1.28)
+sprite_frames = ExtResource("original_blink")
+animation = &"arrive"
+visible = false

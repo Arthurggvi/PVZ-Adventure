@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/fx/white_flame_spotlight_effect.gd" id="script"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/fx/white_flame_large.png" id="flame_large"]
@@ -9,6 +9,9 @@
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/fx/stage_spotlight_beam.png" id="beam"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/fx/stage_spotlight_floor.png" id="floor"]
 
+[sub_resource type="CanvasItemMaterial" id="SpotlightAdditive"]
+blend_mode = 1
+
 [node name="WhiteFlameSpotlight" type="Node2D"]
 visible = false
 script = ExtResource("script")
@@ -18,6 +21,16 @@ z_as_relative = false
 z_index = -22
 position = Vector2(-20, -132)
 texture = ExtResource("beam")
+
+[node name="SpotlightBurst" type="Sprite2D" parent="."]
+z_as_relative = false
+z_index = -20
+position = Vector2(-20, -132)
+scale = Vector2(1.10, 1.05)
+material = SubResource("SpotlightAdditive")
+modulate = Color(1, 1, 1, 0)
+texture = ExtResource("beam")
+visible = false
 
 [node name="SpotlightFloor" type="Sprite2D" parent="."]
 z_as_relative = false
