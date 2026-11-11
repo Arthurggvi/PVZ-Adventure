@@ -122,6 +122,8 @@ func init_condition():
 		PlantCellType.Roof:
 			ori_condition = 33
 			curr_condition = 33
+	# 初始与重建地形均以实际底层植物占用为唯一权威状态。
+	_sync_support_terrain_condition()
 
 	### 在当前格子中对应位置的节点初始全局位置,植物放在该节点下
 	for place_plant_in_cell in plant_container_node.keys():
@@ -237,6 +239,8 @@ func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 	for cell: PlantCell in footprint:
 		cell.plant_in_cell[condition.place_plant_in_cell] = plant
 		plant.signal_character_death.connect(cell.one_plant_free.bind(plant))
+		# 只在实体成功加入场景并正式占用格子后更新承托地形。
+		cell._sync_support_terrain_condition()
 	var plant_condition: ResourcePlantCondition = condition
 
 	if is_plant_start_effect:
@@ -325,6 +329,8 @@ func one_plant_free(plant: Plant000Base) -> void:
 			plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Shell]
 	for place: CharacterRegistry.PlacePlantInCell in slots:
 		plant_in_cell[place] = null
+	# 植物死亡释放同样从实际占用推导地形，无需对 8/16 等位进行异或翻转。
+	_sync_support_terrain_condition()
 	if plant.plant_cell == self:
 		signal_plant_free.emit(self, plant.plant_type)
 	if is_mouse_in_ui(button):
@@ -357,28 +363,16 @@ func _update_state_zombie():
 	if is_mouse_in_ui(button):
 		_on_button_mouse_entered()
 
-## 荷叶种植/死亡时调用
-func _lily_pad_change_condition():
-	## 切换荷叶地形
-	curr_condition = curr_condition ^ 16
-	## 切换水池地形
-	curr_condition = curr_condition ^ 8
-
-## 花盆种植/死亡时调用
-func _flower_pot_change_condition():
-	## 如果当前是花盆地形，设置地形为原始地形
-	if curr_condition & 4:
+## 地形由底层槽位的实际占用推导，禁止在实例初始化或失败回滚时提前变更。
+## 水路有荷叶时可种植在荷叶上；屋顶/陆地有花盆时使用花盆地形。
+func _sync_support_terrain_condition() -> void:
+	var support: Plant000Base = plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Down)
+	if not is_instance_valid(support) or support.is_queued_for_deletion():
 		curr_condition = ori_condition
-	## 如果当前不是花盆地形，设置当前地形为花盆地形
+	elif plant_cell_type == PlantCellType.Pool:
+		curr_condition = (ori_condition & ~8) | 16
 	else:
 		curr_condition = 4
-
-## 底部植物种植或死亡时改变地形
-func down_plant_change_condition(is_water:bool):
-	if is_water:
-		_lily_pad_change_condition()
-	else:
-		_flower_pot_change_condition()
 #endregion
 
 #region 蹦极僵尸偷植物
