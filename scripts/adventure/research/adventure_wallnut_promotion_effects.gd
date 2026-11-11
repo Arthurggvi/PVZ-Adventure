@@ -61,7 +61,7 @@ func _on_hp_damage(amount: int) -> void:
 	var rule: Dictionary = _rules["wallnut_guard"]
 	var threshold: int = maxi(1, int(rule.get("health_per_trigger", 20)))
 	_guard_remainder += amount
-	var triggers: int = _guard_remainder / threshold
+	var triggers: int = floori(float(_guard_remainder) / float(threshold))
 	_guard_remainder %= threshold
 	if triggers > 0:
 		_grant_neighbors(triggers * maxi(0, int(rule.get("armor_per_trigger", 20))),

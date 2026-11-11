@@ -5,9 +5,9 @@ func _ready() -> void:
 
 func _run() -> void:
 	var previous: String = Global.user_manager.curr_user_name
-	var name := "cheat-p0-test-%d" % Time.get_ticks_usec()
-	DirAccess.make_dir_recursive_absolute("user://" + name)
-	Global.user_manager.curr_user_name = name
+	var test_profile_name := "cheat-p0-test-%d" % Time.get_ticks_usec() # 与真实用户存档隔离。
+	DirAccess.make_dir_recursive_absolute("user://" + test_profile_name)
+	Global.user_manager.curr_user_name = test_profile_name
 	assert(Global.reload_session_for_current_user())
 	assert(PVZCheat.implementation != null)
 	var f9 := InputEventKey.new()

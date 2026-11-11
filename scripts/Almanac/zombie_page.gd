@@ -20,7 +20,7 @@ func init_almanac_page() -> void:
 		references.append(ResourceCardReference.create(ResourceCardReference.CardType.Zombie, zombie_type))
 	references.append_array(AllCards.get_references(ResourceCardReference.CardType.ZombieBoss))
 	# 首个成功添加的角色，用于默认详情；目录为空时保持 null。
-	var first_reference: ResourceCardReference
+	var first_reference: ResourceCardReference = null # 没有有效图鉴卡时维持空引用。
 	# 当前候选目录引用；模板与资料都存在才创建头像。
 	for reference: ResourceCardReference in references:
 		if not _has_almanac_entry(reference) or AllCards.get_template(reference) == null:

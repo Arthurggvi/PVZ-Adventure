@@ -6,7 +6,7 @@ class_name AdventureWavePlanner
 ## [param is_big_wave] 加成先取整，再乘战场 [param multiplier]。
 static func power_budget(wave_index: int, is_big_wave: bool, multiplier: int,
 		minimum_regular_power: int = 0) -> int:
-	var base_power: int = maxi(wave_index / 3 + 1, minimum_regular_power) # 自然增长与波段下限取较大者。
+	var base_power: int = maxi(floori(float(wave_index) / 3.0) + 1, minimum_regular_power) # 自然增长与波段下限取较大者。
 	return (int(base_power * 2.5) if is_big_wave else base_power) * multiplier
 
 ## 计算 [param profile] 第 [param wave_number] 波的随机池预算，按战场 [param multiplier] 缩放。
@@ -70,25 +70,25 @@ static func find_band(profile: WaveProfile, wave_number: int) -> WaveBandDefinit
 
 ## 先计划 [param profile] 第 [param wave_number] 波的预排组，再用 [param power_budget] 填充随机池。
 ## [param max_zombies] 限制两部分总数；[param tier_threat] 提供等阶战力，[param rng] 驱动数量和组合抽样。
-static func build_plan(profile: WaveProfile, wave_number: int, power_budget: int,
+static func build_plan(profile: WaveProfile, wave_number: int, wave_power_limit: int,
 		max_zombies: int, tier_threat: Dictionary, rng: RandomNumberGenerator) -> Array[Dictionary]:
 	var plan: Array[Dictionary] = [] # 顺序即波次实例化顺序。
 	var band: WaveBandDefinition = find_band(profile, wave_number) # 本波的随机池。
-	if band == null or rng == null or power_budget < 1 or max_zombies < 1:
+	if band == null or rng == null or wave_power_limit < 1 or max_zombies < 1:
 		return plan
 	for group: WaveSpawnGroup in profile.scheduled_spawns: # 只有配置在本波的预排组会参与抽样。
 		if group == null or group.wave != wave_number:
 			continue
-		var candidates: Array[Dictionary] = _build_candidates(group.zombie_weights, group.tier_weights, tier_threat) # 预排组独立于随机池。
+		var scheduled_candidates: Array[Dictionary] = _build_candidates(group.zombie_weights, group.tier_weights, tier_threat) # 预排组独立于随机池。
 		var count: int = rng.randi_range(group.count_range.x, group.count_range.y) # 本组实例数量。
-		if candidates.is_empty() or plan.size() + count >= max_zombies:
+		if scheduled_candidates.is_empty() or plan.size() + count > max_zombies:
 			return []
 		for _index: int in range(count): # 每个名额分别抽取物种与等阶。
-			var choice: Dictionary = _pick_candidate(candidates, rng) # 预排组无需竞争随机池预算。
+			var choice: Dictionary = _pick_candidate(scheduled_candidates, rng) # 预排组无需竞争随机池预算。
 			plan.append({"zombie_type": choice.zombie_type, "tier_id": choice.tier_id,
 				"threat_cost": choice.cost, "row": group.row})
 	var candidates: Array[Dictionary] = _build_candidates(band.zombie_weights, band.tier_weights, tier_threat) # 随机池组合。
-	var remaining: int = power_budget # 预排组只占用数量容量。
+	var remaining: int = wave_power_limit # 预排组只占用数量容量。
 	while plan.size() < max_zombies:
 		var choice: Dictionary = _pick_candidate(candidates, rng, remaining) # 在剩余预算内抽取。
 		if choice.is_empty():

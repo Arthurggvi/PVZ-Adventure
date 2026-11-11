@@ -35,11 +35,11 @@ func _new_texture_rect(texture: Texture2D, origin: Vector2, dimensions: Vector2,
 	return image
 
 func _effect_material(mode: int, rank: int) -> ShaderMaterial:
-	var material := ShaderMaterial.new()
-	material.shader = Art.FX_SHADER
-	material.set_shader_parameter("effect_mode", mode)
-	material.set_shader_parameter("rank", float(rank))
-	return material
+	var fx_material := ShaderMaterial.new()
+	fx_material.shader = Art.FX_SHADER
+	fx_material.set_shader_parameter("effect_mode", mode)
+	fx_material.set_shader_parameter("rank", float(rank))
+	return fx_material
 
 func configure(rank: int) -> void:
 	var clamped: int = clampi(rank, 0, 10)
@@ -53,18 +53,18 @@ func configure(rank: int) -> void:
 		return
 	_image.material = null
 	if clamped >= 5:
-		var material := _effect_material(0, clamped)
+		var fx_material := _effect_material(0, clamped)
 		var sweep := Art.mask(clamped, "sweep_mask")
 		var guard := Art.mask(clamped, "number_guard")
 		if sweep != null:
-			material.set_shader_parameter("sweep_mask", sweep)
+			fx_material.set_shader_parameter("sweep_mask", sweep)
 		if guard != null:
-			material.set_shader_parameter("number_guard", guard)
+			fx_material.set_shader_parameter("number_guard", guard)
 		if clamped == 10:
 			var color_mask := Art.mask(10, "color_mask")
 			if color_mask != null:
-				material.set_shader_parameter("rainbow_mask", color_mask)
-		_image.material = material
+				fx_material.set_shader_parameter("rainbow_mask", color_mask)
+		_image.material = fx_material
 	_configure_glints(clamped)
 	_configure_halo(clamped)
 

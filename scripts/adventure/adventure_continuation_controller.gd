@@ -10,8 +10,8 @@ var game: MainGameManager
 ## 当前唯一的续战提示，退出战斗时一并释放。
 var dialog: InventoryDialog
 
-func setup(owner: MainGameManager) -> void:
-	game = owner
+func setup(battle: MainGameManager) -> void:
+	game = battle
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 ## 主战斗的清场请求已通过统一胜利判定后，普通阶段从这里完成独立结算。

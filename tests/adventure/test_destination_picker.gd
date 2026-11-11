@@ -56,47 +56,47 @@ func _run() -> void:
 		await _mouse_click(menu.get_node("ArtCanvas/ship_button"))
 		menu.get_node("ArtCanvas/ship_button").pressed.emit()
 		await _frames()
-		var picker: Control = menu.get_node("AdventureDestinationPicker") # 本次打开的独立场景。
-		assert(picker.has_node("ModalMotion"), "纸图开关动效尚未接入")
-		assert(picker.is_presented() and not picker.is_animating())
-		assert(picker.get_node("MotionRoot").scale == Vector2.ONE)
-		assert(picker.get_node("MotionRoot").position == Vector2.ZERO)
-		assert(is_equal_approx(picker.get_node("MotionRoot").modulate.a, 1.0))
+		var cycle_picker: Control = menu.get_node("AdventureDestinationPicker") # 本次打开的独立场景。
+		assert(cycle_picker.has_node("ModalMotion"), "纸图开关动效尚未接入")
+		assert(cycle_picker.is_presented() and not cycle_picker.is_animating())
+		assert(cycle_picker.get_node("MotionRoot").scale == Vector2.ONE)
+		assert(cycle_picker.get_node("MotionRoot").position == Vector2.ZERO)
+		assert(is_equal_approx(cycle_picker.get_node("MotionRoot").modulate.a, 1.0))
 		assert(get_tree().current_scene == menu and not AdventureSession.adventure_active)
 		assert(not FileAccess.file_exists(path) and AdventureSession.progress == null)
-		assert(picker.get_signal_connection_list("destination_selected").size() == 1)
-		var island: TextureButton = picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island") # 唯一开放卡片。
-		var locked: TextureButton = picker.get_node("MotionRoot/DesignCanvas/Cards/town") # 始终锁定的未来地区。
-		assert(island.has_focus() and not island.disabled)
+		assert(cycle_picker.get_signal_connection_list("destination_selected").size() == 1)
+		var cycle_island: TextureButton = cycle_picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island") # 唯一开放卡片。
+		var locked: TextureButton = cycle_picker.get_node("MotionRoot/DesignCanvas/Cards/town") # 始终锁定的未来地区。
+		assert(cycle_island.has_focus() and not cycle_island.disabled)
 		assert(locked.disabled and locked.focus_mode == Control.FOCUS_NONE)
 		assert(locked.get_node("DisabledOverlay").visible)
-		assert(island.position == Vector2(1090, 682) and island.size == Vector2(304, 184))
+		assert(cycle_island.position == Vector2(1090, 682) and cycle_island.size == Vector2(304, 184))
 		assert(locked.position == Vector2(808, 447) and locked.size == Vector2(304, 184))
-		assert(island.get_node("NameBounds/NameLabel").text == "僵尸岛")
-		assert(island.get_node("NameBounds/NameLabel").horizontal_alignment == HORIZONTAL_ALIGNMENT_CENTER)
-		assert(island.get_node("NameBounds/NameLabel").vertical_alignment == VERTICAL_ALIGNMENT_CENTER)
-		assert(island.get_node("NameBounds").get_rect() == Rect2(58, 143, 188, 32))
-		assert(island.get_node("NameBounds/NameLabel").get_global_rect().get_center().is_equal_approx(island.get_node("NameBounds").get_global_rect().get_center()))
+		assert(cycle_island.get_node("NameBounds/NameLabel").text == "僵尸岛")
+		assert(cycle_island.get_node("NameBounds/NameLabel").horizontal_alignment == HORIZONTAL_ALIGNMENT_CENTER)
+		assert(cycle_island.get_node("NameBounds/NameLabel").vertical_alignment == VERTICAL_ALIGNMENT_CENTER)
+		assert(cycle_island.get_node("NameBounds").get_rect() == Rect2(58, 143, 188, 32))
+		assert(cycle_island.get_node("NameBounds/NameLabel").get_global_rect().get_center().is_equal_approx(cycle_island.get_node("NameBounds").get_global_rect().get_center()))
 		await _key(KEY_TAB)
-		assert(picker.get_node("MotionRoot/DesignCanvas/Close").has_focus())
+		assert(cycle_picker.get_node("MotionRoot/DesignCanvas/Close").has_focus())
 		await _key(KEY_TAB)
-		assert(island.has_focus())
+		assert(cycle_island.has_focus())
 		if cycle == 0:
 			# 模拟旧入口已置会话锁但没有离场；必须解除界面和会话锁，错误能关闭后重试。
-			picker.set_navigation_pending(true)
+			cycle_picker.set_navigation_pending(true)
 			AdventureSession.adventure_active = true
 			assert(transition.run(func() -> bool: return true))
 			await _frames()
-			assert(not AdventureSession.adventure_active and not picker.get_node("InputShield").visible)
-			assert(picker.get_node("EntryError").visible)
-			picker.get_node("EntryError").hide()
+			assert(not AdventureSession.adventure_active and not cycle_picker.get_node("InputShield").visible)
+			assert(cycle_picker.get_node("EntryError").visible)
+			cycle_picker.get_node("EntryError").hide()
 		for dimensions: Vector2i in [Vector2i(1920,1080), Vector2i(1280,720), Vector2i(1066,600), Vector2i(1024,768)]: # 验证真实窗口的安全区。
 			get_tree().root.size = dimensions
 			await _frames()
-			var canvas: Control = picker.get_node("MotionRoot/DesignCanvas") # 所有层共用一个等比变换。
+			var canvas: Control = cycle_picker.get_node("MotionRoot/DesignCanvas") # 所有层共用一个等比变换。
 			assert(is_equal_approx(canvas.scale.x, canvas.scale.y))
-			for item: Control in [picker.get_node("MotionRoot/DesignCanvas/Paper"), island, locked, picker.get_node("MotionRoot/DesignCanvas/Close")]: # 完整矩形包括边框。
-				assert(picker.get_global_rect().encloses(item.get_global_rect()))
+			for item: Control in [cycle_picker.get_node("MotionRoot/DesignCanvas/Paper"), cycle_island, locked, cycle_picker.get_node("MotionRoot/DesignCanvas/Close")]: # 完整矩形包括边框。
+				assert(cycle_picker.get_global_rect().encloses(item.get_global_rect()))
 		get_tree().root.size = Vector2i(1066, 600)
 		await _frames()
 		await _mouse_click(menu.get_node("ArtCanvas/options_button"))
@@ -107,11 +107,11 @@ func _run() -> void:
 		for key: int in [KEY_ENTER, KEY_SPACE]: # 键盘确认不能聚焦或进入城镇。
 			await _key(key)
 		await _joy_accept()
-		picker.destination_selected.emit("town") # 路由边界也拒绝伪造的锁定选择。
+		cycle_picker.destination_selected.emit("town") # 路由边界也拒绝伪造的锁定选择。
 		assert(get_tree().current_scene == menu and not AdventureSession.adventure_active)
 		assert(not FileAccess.file_exists(path))
 		if cycle == 0:
-			await _mouse_click(picker.get_node("MotionRoot/DesignCanvas/Close"))
+			await _mouse_click(cycle_picker.get_node("MotionRoot/DesignCanvas/Close"))
 		else:
 			await _key(KEY_ESCAPE)
 		await _frames()
@@ -178,7 +178,7 @@ func _mouse_click(button: BaseButton) -> void:
 ## [param code] 是真实键码，交给 Godot GUI 路由确认与取消。
 func _key(code: int) -> void:
 	var event := InputEventKey.new() # 每次独立的键盘按下/释放事件。
-	event.keycode = code
+	event.keycode = code as Key
 	event.pressed = true
 	Input.parse_input_event(event)
 	await _frames()

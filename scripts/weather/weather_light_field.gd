@@ -28,7 +28,7 @@ func _ready() -> void:
         set_process(false)
         return
     var full_size: Vector2i = get_viewport().get_visible_rect().size
-    _field_view = _create_view(Vector2i(maxi(1, full_size.x / 2), maxi(1, full_size.y / 2)))
+    _field_view = _create_view(Vector2i(maxi(1, floori(float(full_size.x) / 2.0)), maxi(1, floori(float(full_size.y) / 2.0))))
     _field_material = ShaderMaterial.new()
     _field_material.shader = FIELD_SHADER
     _add_rect(_field_view, _field_material)
@@ -61,7 +61,7 @@ func _add_rect(target: SubViewport, material: ShaderMaterial) -> void:
 
 ## 根据上游半分辨率光场生成独立的四分之一分辨率模糊。
 func _make_blur_view(full_size: Vector2i, radius: float, threshold: float) -> SubViewport:
-    var target: SubViewport = _create_view(Vector2i(maxi(1, full_size.x / 4), maxi(1, full_size.y / 4)))
+    var target: SubViewport = _create_view(Vector2i(maxi(1, floori(float(full_size.x) / 4.0)), maxi(1, floori(float(full_size.y) / 4.0))))
     var material: ShaderMaterial = ShaderMaterial.new()
     material.shader = BLOOM_SHADER
     material.set_shader_parameter("light_field", _field_view.get_texture())
@@ -75,9 +75,9 @@ func _make_blur_view(full_size: Vector2i, radius: float, threshold: float) -> Su
 ## 屏幕大小变化时重新设置离屏缓冲尺寸和 Shader 光场尺度。
 func _resize_views() -> void:
     var full_size: Vector2i = get_viewport().get_visible_rect().size
-    _field_view.size = Vector2i(maxi(1, full_size.x / 2), maxi(1, full_size.y / 2))
+    _field_view.size = Vector2i(maxi(1, floori(float(full_size.x) / 2.0)), maxi(1, floori(float(full_size.y) / 2.0)))
     for view: SubViewport in [_tight_view, _wide_view]:
-        view.size = Vector2i(maxi(1, full_size.x / 4), maxi(1, full_size.y / 4))
+        view.size = Vector2i(maxi(1, floori(float(full_size.x) / 4.0)), maxi(1, floori(float(full_size.y) / 4.0)))
         view.get_child(0).size = Vector2(view.size)
         (view.get_child(0).material as ShaderMaterial).set_shader_parameter(
             "sample_pixel", Vector2.ONE / Vector2(_field_view.size))

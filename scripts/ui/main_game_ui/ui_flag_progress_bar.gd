@@ -49,7 +49,7 @@ func create_flag(flag_num: int) -> void:
 
 func init_flag_from_wave(wave_num: int) -> void:
 	assert(wave_num % 10 == 0, "原版关卡波次数必须为10的倍数")
-	create_flag(wave_num / 10)
+	create_flag(floori(float(wave_num) / 10.0))
 
 ## 冒险波次无十波要求；旗帜对应 WaveProfile 标记的大波和最后一波。
 func init_flag_from_adventure_profile(profile: WaveProfile) -> void:

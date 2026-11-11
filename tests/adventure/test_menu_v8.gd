@@ -34,8 +34,8 @@ func _run() -> void:
 	menu._on_item_button_1_pressed()
 	menu._on_item_button_3_pressed()
 	assert(get_tree().current_scene == menu)
-	for name: String in ["options", "help"]: # 新功能台中的真实鼠标悬停、按下和释放。
-		var utility: TextureButton = menu.art_canvas.get_node(name + "_button") # 当前被验收的功能台按钮。
+	for utility_name: String in ["options", "help"]: # 新功能台中的真实鼠标悬停、按下和释放。
+		var utility: TextureButton = menu.art_canvas.get_node(utility_name + "_button") # 当前被验收的功能台按钮。
 		var motion := InputEventMouseMotion.new() # 视口中的真实悬停输入。
 		motion.position = utility.get_global_rect().get_center()
 		Input.parse_input_event(motion)
@@ -52,7 +52,7 @@ func _run() -> void:
 		down.pressed = false
 		Input.parse_input_event(down)
 		await get_tree().create_timer(0.3).timeout
-		if name == "options":
+		if utility_name == "options":
 			var settings: GameSettingsWindow = AdventureToolbar.modal_for("settings") # 主菜单和工具栏共用的设置窗口。
 			assert(is_instance_valid(settings) and settings.visible)
 			settings.request_close()

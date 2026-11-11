@@ -398,7 +398,7 @@ func _spacer(height: float) -> Control:
 
 ## 创建不拦截鼠标的文字层；[param clip] 为真时超长名称截断而不是撑破行。
 func _text(parent: Control, value: String, rect: Rect2, font_size: int, color: Color,
-		align: int = HORIZONTAL_ALIGNMENT_LEFT, clip: bool = false) -> Label:
+		align: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT, clip: bool = false) -> Label:
 	var node := Label.new()
 	node.text = value
 	node.position = rect.position

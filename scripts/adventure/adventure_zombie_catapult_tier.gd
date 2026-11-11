@@ -77,7 +77,7 @@ func _choose_three_lane_primary() -> Character000Base:
     var rows: Array[Array] = Global.main_game.plant_cell_manager.all_plant_cells
     if rows.is_empty():
         return null
-    for lane: int in [0, rows.size() / 2, rows.size() - 1]:
+    for lane: int in [0, rows.size() >> 1, rows.size() - 1]:
         var plant: Plant000Base = _choose_plant_in_lane(lane, rows)
         if is_instance_valid(plant):
             return plant
@@ -98,7 +98,7 @@ func _shoot_three_lanes() -> void:
     var rows: Array[Array] = Global.main_game.plant_cell_manager.all_plant_cells
     if rows.is_empty():
         return
-    var lanes: Array[int] = [0, rows.size() / 2, rows.size() - 1]
+    var lanes: Array[int] = [0, rows.size() >> 1, rows.size() - 1]
     var used: Dictionary[int, bool] = {}
     for lane: int in lanes:
         if used.has(lane):
@@ -132,7 +132,7 @@ func _shoot_three_lanes() -> void:
 func _choose_plant_in_lane(lane: int, rows: Array[Array]) -> Plant000Base:
     if lane < 0 or lane >= rows.size():
         return null
-    var best: Plant000Base
+    var best: Plant000Base = null # 无候选时必须返回 null，禁止读取未初始化的目标。
     for cell: PlantCell in rows[lane]:
         for plant: Plant000Base in cell.plant_in_cell.values():
             if not is_instance_valid(plant) or plant.is_death or plant.is_queued_for_deletion():

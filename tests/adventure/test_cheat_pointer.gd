@@ -36,7 +36,7 @@ func _check() -> void:
 	print("Tab+O_HIT visible=",win.visible," panel=",panel.get_global_rect()," game=",game_button.get_global_rect())
 	await _click(game_button.get_global_rect().get_center())
 	var hovered := get_viewport().gui_get_hovered_control()
-	print("Tab+O_HIT game_pressed=",clicks.size()," hovered=", hovered.name if hovered != null else "none")
+	print("Tab+O_HIT game_pressed=",clicks.size()," hovered=", str(hovered.name) if hovered != null else "none")
 	assert(clicks.size() == 1,"Game-side click must pass through non-modal debug root")
 	var tab: Button = win._tab_buttons["items"]
 	await _click(tab.get_global_rect().get_center())

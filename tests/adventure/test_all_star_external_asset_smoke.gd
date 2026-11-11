@@ -31,7 +31,8 @@ func _run() -> void:
 		assert(is_equal_approx(anim.length, float(clips[action]) / 30.0))
 		assert(anim.get_track_count() > 100)
 		assert(anim.track_get_type(0) == Animation.TYPE_VALUE)
-	assert(is_equal_approx(Zombie026AllStar.CHARGE_SPEED / Zombie026AllStar.SPENT_SPEED, 3.125))
+	var observed_ratio: float = float(Zombie026AllStar.CHARGE_SPEED) / float(Zombie026AllStar.SPENT_SPEED) # 验证两个速度常量的相对关系。
+	assert(is_equal_approx(observed_ratio, 3.125))
 	# Source PAM temporarily inserts parts at run 453/456 and walk 164/169.
 	# Stable instance slots must retain their own texture across those edits.
 	var run_anim: Animation = player.get_animation(&"run")

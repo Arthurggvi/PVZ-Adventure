@@ -47,11 +47,11 @@ func _run() -> void:
 	start_event.trigger = StageEventDefinition.Trigger.BATTLE_START
 	start_event.plant_filter = StageEventDefinition.PlantFilter.UNSET
 	# 波次暂停/恢复仅由 BossDirector 控制；独立事件以及提前胜利静态拒绝。
-	start_event.action = 1 # 预留序列化值，已不属于合法可配置事件动作
+	start_event.set("action", 1) # 预留序列化值，已不属于合法可配置事件动作
 	start_event.action_target_id = &""
 	assert(not start_event.validate(nightmare.wave_profile.wave_count, AdventureStageCatalog.tier_ids()).is_empty())
 	start_event.action = StageEventDefinition.Action.FINISH_BATTLE
-	start_event.action_battle_result = 1 # 历史胜利事件值已禁用
+	start_event.set("action_battle_result", 1) # 历史胜利事件值已禁用
 	assert(not start_event.validate(nightmare.wave_profile.wave_count, AdventureStageCatalog.tier_ids()).is_empty())
 	nightmare.events.pop_back()
 	encounter.timing = old_timing

@@ -11,7 +11,7 @@ class_name AlmanacPlantPage
 ## 创建有图鉴资料的植物卡片，并默认显示第一个可用条目；空目录不创建展示实例。
 func init_almanac_page() -> void:
 	# 首个成功创建的图鉴卡片引用，用于初始化详情；无可用条目时保持 null。
-	var first_reference: ResourceCardReference
+	var first_reference: ResourceCardReference = null # 没有有效图鉴卡时维持空引用。
 	# 当前已解锁植物类型，沿用游戏状态中的显示顺序。
 	for plant_type: int in Global.global_game_state.curr_plant:
 		# 注册表中的资料键，图鉴只显示 JSON 中已编写的条目。

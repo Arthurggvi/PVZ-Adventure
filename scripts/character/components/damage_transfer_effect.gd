@@ -13,7 +13,7 @@ func set_source(source_id: int, protector: Zombie000Base, cell_width: float = 0.
 func select_protector(victim: Zombie000Base) -> Zombie000Base:
     if not is_instance_valid(victim) or victim.is_death or victim.is_hypno:
         return null
-    var chosen: Zombie000Base
+    var chosen: Zombie000Base = null # 没有合格保护者时明确返回空引用。
     var closest := INF
     for entry: Dictionary in _sources.values():
         var protector: Zombie000Base = (entry["ref"] as WeakRef).get_ref() as Zombie000Base

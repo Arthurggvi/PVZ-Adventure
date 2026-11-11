@@ -68,6 +68,7 @@ func _run() -> void:
 	assert(waves.curr_wave == before_wave)
 	await get_tree().create_timer(3.3).timeout
 	assert(waves.is_advancement_suspended and waves.curr_wave == before_wave)
+	assert(battle.zombie_manager.natural_refresh_zombie_count == natural_before) # Boss 召唤不应增加自然波刷新计数。
 	assert(encounter._summons.size() >= 4) # 两次以上独立召唤，不是仅入场刷新一批。
 	assert(encounter._summons.size() <= cfg.max_alive_periodic_summons)
 	for ref: WeakRef in encounter._summons.values():

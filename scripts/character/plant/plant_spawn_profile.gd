@@ -6,25 +6,25 @@ class_name PlantSpawnProfile
 var _snapshot: Dictionary = {}
 var _modifier: PlantSpawnModifier
 
-static func create(snapshot: Dictionary, modifier: PlantSpawnModifier) -> PlantSpawnProfile:
-	if modifier == null or not _has_plant_identity(snapshot):
+static func create(card_snapshot: Dictionary, modifier: PlantSpawnModifier) -> PlantSpawnProfile:
+	if modifier == null or not _has_plant_identity(card_snapshot):
 		return null
-	return PlantSpawnProfile.new(snapshot, modifier)
+	return PlantSpawnProfile.new(card_snapshot, modifier)
 
-static func _has_plant_identity(snapshot: Dictionary) -> bool:
-	var plant_id: Variant = snapshot.get("plant_type", null)
+static func _has_plant_identity(card_snapshot: Dictionary) -> bool:
+	var plant_id: Variant = card_snapshot.get("plant_type", null)
 	return (
-		not snapshot.is_empty()
+		not card_snapshot.is_empty()
 		and (typeof(plant_id) == TYPE_INT or typeof(plant_id) == TYPE_FLOAT)
 		and int(plant_id) > 0
 		and float(plant_id) == float(int(plant_id))
 	)
 
-func _init(snapshot: Dictionary, modifier: PlantSpawnModifier) -> void:
-	if modifier == null or not _has_plant_identity(snapshot):
+func _init(card_snapshot: Dictionary, modifier: PlantSpawnModifier) -> void:
+	if modifier == null or not _has_plant_identity(card_snapshot):
 		push_error("PlantSpawnProfile requires a valid species and modifier")
 		return
-	_snapshot = snapshot.duplicate(true)
+	_snapshot = card_snapshot.duplicate(true)
 	_modifier = modifier
 
 func is_valid_profile() -> bool:

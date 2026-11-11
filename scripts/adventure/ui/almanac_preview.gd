@@ -7,10 +7,10 @@ const Data = preload("res://scripts/adventure/ui/almanac_data.gd")
 ## 为 [param kind]、[param type_id]、[param tier] 创建独立形象，放入 [param parent] 的 [param bounds]。
 ## 返回是否具有可见精灵；缺少卡牌模板时从注册场景提取静态精灵，仍不进入角色生命周期。
 static func draw(parent: Control, kind: String, type_id: int, tier: int, bounds: Rect2) -> bool:
-	var reference: ResourceCardReference = Data.card_reference(kind, type_id) # 共享静态预览入口能够自动接收未来植物转职美术。
+	var card_reference: ResourceCardReference = Data.card_reference(kind, type_id) # 共享静态预览入口能够自动接收未来植物转职美术。
 	var preview: Node2D # 独立副本，切换阶级后随父容器销毁。
-	if AllCards.get_template(reference) != null:
-		preview = AllCards.create_static_preview(reference, tier - 1 if kind == "plant" else 0)
+	if AllCards.get_template(card_reference) != null:
+		preview = AllCards.create_static_preview(card_reference, tier - 1 if kind == "plant" else 0)
 	else:
 		preview = _from_scene(kind, type_id)
 	if preview == null:

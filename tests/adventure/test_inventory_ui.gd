@@ -5,9 +5,9 @@ func _ready() -> void:
 
 func _run() -> void:
 	var previous: String = Global.user_manager.curr_user_name
-	var name := "inventory-window-test-%d" % Time.get_ticks_usec()
-	DirAccess.make_dir_recursive_absolute("user://" + name)
-	Global.user_manager.curr_user_name = name
+	var test_profile_name := "inventory-window-test-%d" % Time.get_ticks_usec() # 与真实用户存档隔离。
+	DirAccess.make_dir_recursive_absolute("user://" + test_profile_name)
+	Global.user_manager.curr_user_name = test_profile_name
 	Global.reload_session_for_current_user()
 	var a: String = Global.adventure_inventory.add_card(CharacterRegistry.PlantType.P001PeaShooterSingle)
 	var b: String = Global.adventure_inventory.add_card(CharacterRegistry.PlantType.P002SunFlower)

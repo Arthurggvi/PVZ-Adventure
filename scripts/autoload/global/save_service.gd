@@ -33,12 +33,12 @@ func _get_save_game_path() -> String:
 		return ""
 	return "user://" + user_manager.curr_user_name + "/" + SaveGameFileName
 
-func _path_for_user(name: String) -> String:
-	return "user://" + name + "/" + SaveGameFileName if UserManager.is_valid_user_name(name) else ""
+func _path_for_user(user_name: String) -> String:
+	return "user://" + user_name + "/" + SaveGameFileName if UserManager.is_valid_user_name(user_name) else ""
 
 ## 先校验目标档，旧档损坏时绝不切换、也不自动创建替代存档。
-func can_load_user(name: String) -> bool:
-	var path: String = _path_for_user(name)
+func can_load_user(user_name: String) -> bool:
+	var path: String = _path_for_user(user_name)
 	if path.is_empty():
 		return false
 	return _decode_profile(path).get("ok", false)

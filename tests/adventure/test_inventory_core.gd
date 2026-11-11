@@ -117,9 +117,9 @@ func _run() -> void:
 		assert(card_model.from_dict(invalid_card) == null)
 	for field: String in ["schema_version", "next_card_id"]: # 版本和计数器拒绝非整数、非正数。
 		for invalid_value: Variant in [0, -1, 1.5, true, "1"]:
-			var invalid_state: Dictionary = JSON.parse_string(encoded) # 保持其他字段合法。
-			invalid_state[field] = invalid_value
-			assert(state_model.from_dict(invalid_state) == null)
+			var rejected_state: Dictionary = JSON.parse_string(encoded) # 保持其他字段合法。
+			rejected_state[field] = invalid_value
+			assert(state_model.from_dict(rejected_state) == null)
 	var invalid_state: Dictionary = JSON.parse_string(encoded) # 未知版本不得按新档默认接受。
 	invalid_state.schema_version = 2
 	assert(state_model.from_dict(invalid_state) == null)

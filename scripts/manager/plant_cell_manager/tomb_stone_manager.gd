@@ -129,7 +129,7 @@ func available_pvz2_positions() -> Array[Vector2i]:
 		return candidates
 	var cols: int = plant_cell_manager.row_col.y
 	for r in range(all_is_tombstone.size()):
-		for c in range(maxi(0, cols / 3), cols):
+		for c in range(maxi(0, floori(float(cols) / 3.0)), cols):
 			if c >= all_is_tombstone[r].size() or all_is_tombstone[r][c]:
 				continue
 			var cell: PlantCell = plant_cell_manager.all_plant_cells[r][c]

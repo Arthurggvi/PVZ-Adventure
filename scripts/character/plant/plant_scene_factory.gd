@@ -18,5 +18,5 @@ static func create(plant_type: int) -> Plant000Base:
 			instance.free()
 		return null
 	# Explicitly override inherited scene metadata before init_plant/_ready.
-	plant.plant_type = plant_type
+	plant.plant_type = plant_type as CharacterRegistry.PlantType
 	return plant

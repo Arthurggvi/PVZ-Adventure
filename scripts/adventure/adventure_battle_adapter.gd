@@ -25,12 +25,12 @@ static func create_loadout(state: AdventureState) -> Array[Dictionary]:
 	return result
 
 ## 通过卡槽次序匹配 UID，不能用物种编号反查（同种植物可有多个实例）。
-static func binding_at(loadout: Array[Dictionary], slot_index: int, reference: ResourceCardReference) -> Dictionary:
-	if slot_index < 0 or slot_index >= loadout.size() or reference == null:
+static func binding_at(loadout: Array[Dictionary], slot_index: int, card_reference: ResourceCardReference) -> Dictionary:
+	if slot_index < 0 or slot_index >= loadout.size() or card_reference == null:
 		return {}
-	if reference.card_type != ResourceCardReference.CardType.Plant or reference.is_imitater:
+	if card_reference.card_type != ResourceCardReference.CardType.Plant or card_reference.is_imitater:
 		return {}
 	var snapshot: Dictionary = loadout[slot_index]
-	if int(snapshot.get("plant_type", -1)) != reference.content_id:
+	if int(snapshot.get("plant_type", -1)) != card_reference.content_id:
 		return {}
 	return snapshot.duplicate(true)

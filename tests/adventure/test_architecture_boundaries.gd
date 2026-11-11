@@ -10,8 +10,8 @@ func _run() -> void:
 		"", "..", ".hidden", "a/../b", "folder/other", "folder\\other",
 		"CON", "LPT1", "foo.", "foo..bar", "a:b"
 	]
-	for name: String in invalid_names:
-		assert(not UserManager.is_valid_user_name(name), "invalid username accepted: " + name)
+	for invalid_name: String in invalid_names:
+		assert(not UserManager.is_valid_user_name(invalid_name), "invalid username accepted: " + invalid_name)
 	assert(UserManager.is_valid_user_name("唐吉诃德-01"))
 	assert(not Global.save_service.is_current_profile_loaded() or not Global.user_manager.curr_user_name.is_empty())
 

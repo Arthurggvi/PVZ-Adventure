@@ -282,22 +282,22 @@ func _begin_charge_shadows() -> void:
 		for row: int in PHASE_SHADOW_ROWS[group_index]: # 组内两个残影使用同一个延迟。
 			if row == lane or row >= row_count:
 				continue
-			var shadow := BlackGeneralChargeShadow.new() # 该行的冲锋与命中独立结算。
-			shadow.setup(self, row, Vector2(_home_x, _row_y(row)), (group_index + 1) * PHASE_SHADOW_INTERVAL)
-			_charge_shadows.append(shadow)
+			var charge_shadow := BlackGeneralChargeShadow.new() # 该行的冲锋与命中独立结算。
+			charge_shadow.setup(self, row, Vector2(_home_x, _row_y(row)), (group_index + 1) * PHASE_SHADOW_INTERVAL)
+			_charge_shadows.append(charge_shadow)
 
 ## 用 [param step] 推进各路残影，扫到各自停止线后释放。
 func _advance_charge_shadows(step: float) -> void:
 	for index: int in range(_charge_shadows.size() - 1, -1, -1): # 倒序删除已经结束的残影。
-		var shadow: BlackGeneralChargeShadow = _charge_shadows[index] # 当前行的冲锋实例。
-		if shadow.advance(self, _game.plant_cell_manager.all_plant_cells[shadow.lane], step):
-			shadow.queue_free()
+		var charge_shadow: BlackGeneralChargeShadow = _charge_shadows[index] # 当前行的冲锋实例。
+		if charge_shadow.advance(self, _game.plant_cell_manager.all_plant_cells[charge_shadow.lane], step):
+			charge_shadow.queue_free()
 			_charge_shadows.remove_at(index)
 
 ## 战斗结束时停止仍待命或正在冲锋的残影，已有拖尾自行淡出。
 func _clear_charge_shadows() -> void:
-	for shadow: BlackGeneralChargeShadow in _charge_shadows: # 清理未到达终点的实例。
-		shadow.queue_free()
+	for charge_shadow: BlackGeneralChargeShadow in _charge_shadows: # 清理未到达终点的实例。
+		charge_shadow.queue_free()
 	_charge_shadows.clear()
 
 ## 举旗后用 [param step] 推进各组出怪，到时立即生成整组。

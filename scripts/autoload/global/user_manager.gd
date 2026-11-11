@@ -12,18 +12,18 @@ const _RESERVED: Array[String] = ["CON", "PRN", "AUX", "NUL", "COM1", "COM2",
 	"COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
 	"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"]
 
-static func is_valid_user_name(name: String) -> bool:
-	if name.is_empty() or name.length() > 64 or name.strip_edges() != name:
+static func is_valid_user_name(candidate_name: String) -> bool:
+	if candidate_name.is_empty() or candidate_name.length() > 64 or candidate_name.strip_edges() != candidate_name:
 		return false
-	if name.begins_with(".") or name.ends_with(".") or name.contains(".."):
+	if candidate_name.begins_with(".") or candidate_name.ends_with(".") or candidate_name.contains(".."):
 		return false
-	for char: String in name:
-		if char.unicode_at(0) < 32 or char in "/\\:*?\"<>|":
+	for character: String in candidate_name:
+		if character.unicode_at(0) < 32 or character in "/\\:*?\"<>|":
 			return false
-	return not _RESERVED.has(name.get_slice(".", 0).to_upper())
+	return not _RESERVED.has(candidate_name.get_slice(".", 0).to_upper())
 
-static func _user_directory(name: String) -> String:
-	return "user://" + name if is_valid_user_name(name) else ""
+static func _user_directory(candidate_name: String) -> String:
+	return "user://" + candidate_name if is_valid_user_name(candidate_name) else ""
 
 func load_current_user() -> bool:
 	var config := ConfigFile.new()
@@ -70,16 +70,16 @@ func ensure_save_directory_exists(user_name: String) -> bool:
 	return DirAccess.dir_exists_absolute(path) or DirAccess.make_dir_recursive_absolute(path) == OK
 
 func add_user(new_user_name: String) -> String:
-	var name: String = new_user_name.strip_edges()
-	if not is_valid_user_name(name):
+	var candidate_name: String = new_user_name.strip_edges()
+	if not is_valid_user_name(candidate_name):
 		return "用户名包含无效字符、路径符号或保留名称"
-	if all_user_name.has(name) or DirAccess.dir_exists_absolute(_user_directory(name)):
+	if all_user_name.has(candidate_name) or DirAccess.dir_exists_absolute(_user_directory(candidate_name)):
 		return "用户已存在"
-	if not ensure_save_directory_exists(name):
+	if not ensure_save_directory_exists(candidate_name):
 		return "无法创建用户存档目录"
-	all_user_name.append(name)
+	all_user_name.append(candidate_name)
 	if not save_user_names():
-		all_user_name.erase(name)
+		all_user_name.erase(candidate_name)
 		return "无法保存用户索引"
 	signal_users_update.emit()
 	return ""

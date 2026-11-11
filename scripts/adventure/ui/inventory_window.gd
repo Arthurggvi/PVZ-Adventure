@@ -88,7 +88,7 @@ func search_changed(value: String) -> void:
 	_render()
 func change_page(delta: int) -> void:
 	var total: int = Data.rows(category, search, sort_mode).size()
-	page = clampi(page + delta, 0, maxi(0, (total - 1) / PAGE_SIZE))
+	page = clampi(page + delta, 0, maxi(0, floori(float(total - 1) / float(PAGE_SIZE))))
 	SoundManager.play_other_SFX(&"bleep")
 	_render()
 func _render() -> void:
@@ -99,7 +99,7 @@ func _render() -> void:
 		var button: TextureButton = ui.tabs[key]
 		button.texture_normal = Art.texture("tabs/tab_selected.png" if key == category else "tabs/tab_normal.png")
 	var rows: Array[Dictionary] = Data.rows(category, search, sort_mode)
-	page = mini(page, maxi(0, (rows.size() - 1) / PAGE_SIZE))
+	page = mini(page, maxi(0, floori(float(rows.size() - 1) / float(PAGE_SIZE))))
 	ui.page_label.text = "%d / %d" % [page + 1, maxi(1, ceili(float(rows.size()) / PAGE_SIZE))]
 	var grid: Control = ui.cells
 	for child: Node in grid.get_children():
@@ -109,7 +109,7 @@ func _render() -> void:
 		var position_index: int = page * PAGE_SIZE + i
 		var entry: Dictionary = rows[position_index] if position_index < rows.size() else {}
 		var tile: Control = Tile.new()
-		tile.position = Vector2((i % 11) * 92.0, (i / 11) * 103.0)
+		tile.position = Vector2((i % 11) * 92.0, floori(float(i) / 11.0) * 103.0)
 		grid.add_child(tile)
 		tile.setup(entry, position_index, category == "plants" and sort_mode == 0 and search.is_empty(), category == "plants", _row_key(entry) == _row_key(selected) and not selected.is_empty())
 		tile.chosen.connect(_select)

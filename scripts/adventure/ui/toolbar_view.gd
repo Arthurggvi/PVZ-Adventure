@@ -183,8 +183,8 @@ func _on_hover(feature_id: String, index: int) -> void:
 	if not _interactive or not _available.get(feature_id, false):
 		return
 	_hover_id = feature_id
-	var name: String = Features.ENTRIES[index].label
-	_tip_text.text = name
+	var feature_label: String = Features.ENTRIES[index].label
+	_tip_text.text = feature_label
 	_tip.position = Vector2(24.0 + index * 141.0, -56.0)
 	_tip.show()
 	_pulse(feature_id, Vector2.ONE * 1.07)

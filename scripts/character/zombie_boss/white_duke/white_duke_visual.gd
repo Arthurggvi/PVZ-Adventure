@@ -76,8 +76,8 @@ func _prepare_animations() -> void:
 	# Clone the original AnimationLibrary once, disabling only nonvisual method
 	# callbacks. All original Sprite2D transforms, timing and keys remain intact.
 	var library := AnimationLibrary.new()
-	for name: StringName in player.get_animation_list():
-		var clip: Animation = player.get_animation(name).duplicate(true)
+	for clip_name: StringName in player.get_animation_list():
+		var clip: Animation = player.get_animation(clip_name).duplicate(true)
 		for i in range(clip.get_track_count()):
 			if clip.track_get_type(i) == Animation.TYPE_METHOD:
 				clip.track_set_enabled(i, false)
@@ -86,7 +86,7 @@ func _prepare_animations() -> void:
 					var texture = clip.track_get_key_value(i, j)
 					if texture is Texture2D:
 						_hand_tracks.append({"clip":clip,"track":i,"key":j,"source":texture})
-		library.add_animation(name, clip)
+		library.add_animation(clip_name, clip)
 	player.remove_animation_library(&"")
 	player.add_animation_library(&"", library)
 	player.get_animation(&"moonwalk").loop_mode = Animation.LOOP_LINEAR

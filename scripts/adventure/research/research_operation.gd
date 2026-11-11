@@ -12,27 +12,27 @@ var material_uids: Array = []
 var use_pot: bool = false
 var fertilizer_id: String = ""
 
-static func from_choice(mode: String, choice: Dictionary) -> AdventureResearchOperation:
+static func from_choice(operation_mode: String, selection: Dictionary) -> AdventureResearchOperation:
 	var action := AdventureResearchOperation.new()
-	match mode:
+	match operation_mode:
 		"craft":
 			action.kind = Kind.CRAFT
-			action.recipe_id = str(choice.get("recipe_id", ""))
+			action.recipe_id = str(selection.get("recipe_id", ""))
 			if action.recipe_id.is_empty():
 				return null
 		"upgrade":
 			action.kind = Kind.ENHANCE
-			action.card_uid = str(choice.get("uid", ""))
-			var raw: Variant = choice.get("materials", [])
+			action.card_uid = str(selection.get("uid", ""))
+			var raw: Variant = selection.get("materials", [])
 			if not raw is Array:
 				return null
 			action.material_uids = raw.duplicate()
-			action.use_pot = bool(choice.get("use_pot", false))
-			action.fertilizer_id = str(choice.get("fertilizer", ""))
+			action.use_pot = bool(selection.get("use_pot", false))
+			action.fertilizer_id = str(selection.get("fertilizer", ""))
 		"promotion":
 			action.kind = Kind.PROMOTE
-			action.card_uid = str(choice.get("uid", ""))
-			action.book_id = str(choice.get("book_id", ""))
+			action.card_uid = str(selection.get("uid", ""))
+			action.book_id = str(selection.get("book_id", ""))
 		_:
 			return null
 	return action

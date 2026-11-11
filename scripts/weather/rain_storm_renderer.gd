@@ -63,16 +63,16 @@ func configure(next_profile: RainVisualProfile) -> void:
 func _set_layer(index: int, density: float, opacity: float, speed: float,
         length_px: float, width_px: float, column_px: float, row_px: float,
         slant: float) -> void:
-    var material: ShaderMaterial = _materials[index]
-    material.set_shader_parameter("density", density)
-    material.set_shader_parameter("layer_opacity", opacity)
-    material.set_shader_parameter("rain_speed", speed * profile.speed)
-    material.set_shader_parameter("streak_length", length_px)
-    material.set_shader_parameter("streak_width", width_px)
-    material.set_shader_parameter("cell_width", column_px)
-    material.set_shader_parameter("cell_height", row_px)
-    material.set_shader_parameter("slant", slant)
-    material.set_shader_parameter("canvas_size", size)
+    var rain_shader: ShaderMaterial = _materials[index]
+    rain_shader.set_shader_parameter("density", density)
+    rain_shader.set_shader_parameter("layer_opacity", opacity)
+    rain_shader.set_shader_parameter("rain_speed", speed * profile.speed)
+    rain_shader.set_shader_parameter("streak_length", length_px)
+    rain_shader.set_shader_parameter("streak_width", width_px)
+    rain_shader.set_shader_parameter("cell_width", column_px)
+    rain_shader.set_shader_parameter("cell_height", row_px)
+    rain_shader.set_shader_parameter("slant", slant)
+    rain_shader.set_shader_parameter("canvas_size", size)
 
 
 ## 所有雨层共享同一环境光场，实现月光、烛火附近的局部雨线变色。
@@ -86,9 +86,9 @@ func set_light_field(texture: Texture2D, response: float) -> void:
     _light_response = response
     if _light_texture != texture:
         _light_texture = texture
-        for material: ShaderMaterial in _materials:
-            material.set_shader_parameter("light_field", texture)
-            material.set_shader_parameter("has_light_field", true)
+        for rain_shader: ShaderMaterial in _materials:
+            rain_shader.set_shader_parameter("light_field", texture)
+            rain_shader.set_shader_parameter("has_light_field", true)
     for index: int in [0, 1, 3]:
         _materials[index].set_shader_parameter("light_response", response)
     _materials[2].set_shader_parameter("light_response", response * 0.6)
@@ -105,8 +105,8 @@ func set_intensity(intensity: float) -> void:
     _cloud_material.set_shader_parameter("intensity", _intensity)
     dim_overlay.color = Color(0.06, 0.09, 0.17,
         profile.storm_dim * pow(_intensity, 1.35))
-    for material: ShaderMaterial in _materials:
-        material.set_shader_parameter("intensity", _intensity)
+    for rain_shader: ShaderMaterial in _materials:
+        rain_shader.set_shader_parameter("intensity", _intensity)
 
 
 ## 正式关卡每帧更新风向和雨帘密度。
@@ -135,5 +135,5 @@ func advance(delta: float) -> void:
 func refresh_canvas_size() -> void:
     if _materials.is_empty():
         return
-    for material: ShaderMaterial in _materials:
-        material.set_shader_parameter("canvas_size", size)
+    for rain_shader: ShaderMaterial in _materials:
+        rain_shader.set_shader_parameter("canvas_size", size)
