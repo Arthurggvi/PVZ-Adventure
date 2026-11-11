@@ -52,41 +52,43 @@ static func scene_for(kind: String, type_id: int) -> PackedScene:
 		return Global.character_registry.get_plant_scene(type_id)
 	return CharacterRegistry.ZombieInfo.get(type_id, {}).get(CharacterRegistry.ZombieInfoAttribute.ZombieScenes) as PackedScene
 
-## 生成 [param kind]、[param type_id] 在 [param tier] 的文字；分支保持互斥，不伪造唯一累计数值。
-static func description(kind: String, type_id: int, tier: int) -> String:
+## 将 [param kind]、[param type_id] 在 [param tier] 的说明、数值和效果分开供详情面板排版。
+static func detail(kind: String, type_id: int, tier: int) -> Dictionary:
 	var data: Dictionary = entry(kind, type_id) # 基础说明和战斗阶级说明分开读取。
-	var lines := PackedStringArray() # 使用普通文本，避免配置中的括号被当作富文本标签。
 	var summary: String = str(data.get("描述", "")) # 缺资料时优先复用背包已有植物说明。
 	if summary.is_empty() and kind == "plant":
 		summary = InventoryData.plant_description(type_id)
-	lines.append(summary if not summary.is_empty() else "基础能力说明暂未配置。")
-	lines.append("")
+	var stats: Dictionary = {} # 数值名称与显示值分别绘制。
+	var effects: Array[Dictionary] = [] # 分组保留各转职阶的效果，按当前阶到低阶排序。
 	if kind == "plant":
-		var info: Dictionary = CharacterRegistry.PlantInfo.get(type_id, {}) # 这里显示基准值，分支的变化在下方逐项列出。
-		lines.append("基础阳光：%s    基础冷却：%s 秒" % [info.get(CharacterRegistry.PlantInfoAttribute.SunCost, "—"), info.get(CharacterRegistry.PlantInfoAttribute.CoolTime, "—")])
-		lines.append("阶级按转职展示，不计卡片强化星级或玩家装备加成。")
-		if tier == 1:
-			lines.append("\n1 阶 · 初始形态\n尚未转职，使用基础能力。")
-		else:
-			lines.append("\n%d 阶 · 转职能力\n每阶分支择一生效；高阶保留此前所选分支。" % tier)
-			for rank: int in range(1, tier): # 动态遍历每阶技能书，不把向日葵或任何技能写死在图鉴。
-				var options: PackedStringArray = [] # 同阶所有可选效果一并供玩家查阅。
-				for book_id: String in Promotions.BOOKS: # 新增技能书无需再修改图鉴。
-					var book: Dictionary = Promotions.definition(book_id) # 目录副本只用于展示。
-					if int(book.get("plant_type", 0)) == type_id and int(book.get("tier", 0)) == rank:
-						options.append("• %s：%s" % [book.get("title", book_id), book.get("summary", "效果说明暂未配置。")])
-				lines.append("\n%d 阶%s" % [rank + 1, "（当前查看）" if rank + 1 == tier else "（此前可选）"])
-				lines.append("\n".join(options) if not options.is_empty() else "暂无该阶专属效果，沿用已有形象与基础能力。")
+		var info: Dictionary = CharacterRegistry.PlantInfo.get(type_id, {}) # 转职变化显示在独立效果组。
+		stats = {
+			"基础阳光": str(info.get(CharacterRegistry.PlantInfoAttribute.SunCost, "—")),
+			"基础冷却": "%s 秒" % info.get(CharacterRegistry.PlantInfoAttribute.CoolTime, "—"),
+		}
+		for rank: int in range(tier - 1, 0, -1): # 一转对应二阶，优先显示当前阶。
+			var options: Dictionary = {} # 分支名和效果分别显示。
+			for book_id: String in Promotions.BOOKS: # 新技能沿用玩法目录。
+				var book: Dictionary = Promotions.BOOKS[book_id] # 只读取当前书目字段。
+				if int(book.get("plant_type", 0)) == type_id and int(book.get("tier", 0)) == rank:
+					var description: String = str(book.get("summary", "")).strip_edges() # 空效果统一显示“无”。
+					options[str(book.get("title", book_id))] = description if not description.is_empty() else "无"
+			if rank == tier - 1 or not options.is_empty():
+				effects.append({"title": "%d 阶" % (rank + 1), "options": options})
 	else:
 		var id: StringName = tier_id(tier) # 当前阶实际战斗所用配置。
-		var values: Dictionary = Tiers.get_tier(id) # 本体、防具、普通啃咬分别应用自己的倍率。
-		lines.append("%d 阶属性\n本体生命 ×%s    防具生命 ×%s\n普通啃咬伤害 ×%s" % [tier, values.get("hp", 1), values.get("armor", 1), values.get("attack", 1)])
-		lines.append("倍率以 1 阶为基准；特殊攻击按技能规则生效。")
+		var values: Dictionary = Tiers.get_tier(id) # 实战使用的本体、防具和啃咬倍率。
+		stats = {
+			"本体生命": "×%s" % values.get("hp", 1),
+			"防具生命": "×%s" % values.get("armor", 1),
+			"普通啃咬": "×%s" % values.get("attack", 1),
+		}
 		var ability: String = AdventureZombieTierTraits.description_for(type_id, id) # 和战斗特性系统共享现有说明接口。
-		lines.append("\n阶级效果\n" + (ability if not ability.is_empty() else "本阶无额外专属技能，保留基础能力。"))
-	var parameters: Dictionary = data.get("参数", {}) # 基础韧性、伤害类型等描述不冒充高阶实际数值。
-	if not parameters.is_empty():
-		lines.append("\n基础特性")
-		for key: String in parameters: # 原版文字只作为基础参考保留。
-			lines.append("%s：%s" % [key, str(parameters[key])])
-	return "\n".join(lines)
+		if not ability.is_empty():
+			effects.append({"title": "", "options": {"": ability}})
+	return {
+		"summary": summary if not summary.is_empty() else "无",
+		"stats": stats,
+		"effects": effects,
+		"traits": data.get("参数", {}),
+	}

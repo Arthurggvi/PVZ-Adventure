@@ -1,4 +1,4 @@
-## 图鉴专用纯视觉预览：复用卡牌静态树与阶级美术，不创建战斗中的角色。
+## 图鉴预览复用静态卡面与角色待机动画，展示实例不进入出战模式。
 extends RefCounted
 
 ## 共用物种到场景、卡牌身份和阶级 ID 的解析。
@@ -18,21 +18,61 @@ static func draw(parent: Control, kind: String, type_id: int, tier: int, bounds:
 	preview.transform = Transform2D.IDENTITY
 	if kind == "zombie":
 		AdventureZombieTierArt.apply_to_preview(preview, type_id, Data.tier_id(tier))
+	if not _fit_visual(preview, bounds):
+		preview.free()
+		return false
+	parent.add_child(preview)
+	return true
+
+## 在 [param parent] 的 [param bounds] 中展示 [param kind]、[param type_id]、[param tier] 的角色待机。
+## 复用原版展示初始化和冒险阶级美术；场景缺失或没有可用图像时回退为卡面。
+static func draw_idle(parent: Control, kind: String, type_id: int, tier: int, bounds: Rect2) -> bool:
+	var packed: PackedScene = Data.scene_for(kind, type_id) # 实战和图鉴共用注册场景。
+	if packed == null:
+		return draw(parent, kind, type_id, tier, bounds)
+	var source: Node = packed.instantiate() # 每次切换创建独立实例。
+	var character := source as Character000Base # 仅角色场景支持 IsShow 生命周期。
+	if character == null:
+		source.free()
+		return draw(parent, kind, type_id, tier, bounds)
+	character.character_init_type = Character000Base.E_CharacterInitType.IsShow
+	character.is_show = true
+	character.is_idle = true
+	if character is Plant000Base:
+		character.plant_type = type_id as CharacterRegistry.PlantType
+		if type_id == AdventureSunflowerPromotionArt.SUNFLOWER_TYPE and tier > 1:
+			AdventureSunflowerPromotionArt.apply_to_body(character.get_node_or_null("Body/BodyCorrect") as Node2D, tier - 1)
+	elif character is Zombie000Base:
+		var id: StringName = Data.tier_id(tier) # 只应用美术和对应色调。
+		character.zombie_type = type_id as CharacterRegistry.ZombieType
+		if not AdventureZombieTierArt.apply(character, id):
+			character.modulate = AdventureZombieTierCatalog.get_tier(id).get("tint", Color.WHITE)
+	parent.add_child(character)
+	# 应用待机首帧的姿态，再按实际可见精灵计算边界。
+	if character.anim_component is AnimComponentNorm:
+		character.anim_component.animation_tree.advance(0.0)
+	elif character.anim_component is AnimComponentPlayer:
+		character.anim_component.animation_player.advance(0.0)
+	if not _fit_visual(character, bounds):
+		parent.remove_child(character)
+		character.queue_free()
+		return draw(parent, kind, type_id, tier, bounds)
+	return true
+
+## 将 [param preview] 的可见部件等比居中到 [param bounds]；空图像返回 false。
+static func _fit_visual(preview: Node2D, bounds: Rect2) -> bool:
 	var rectangles: Array[Rect2] = [] # 实际可见精灵的外接矩形，适配巨人、车辆等不同大小。
 	_collect_bounds(preview, Transform2D.IDENTITY, rectangles)
 	if rectangles.is_empty():
-		preview.free()
 		return false
 	var extent: Rect2 = rectangles[0] # 所有静态部件在预览根坐标中的并集。
 	for index: int in range(1, rectangles.size()): # 合并身体、头部、防具等部分。
 		extent = extent.merge(rectangles[index])
 	if extent.size.x <= 0.0 or extent.size.y <= 0.0:
-		preview.free()
 		return false
 	var factor: float = minf(bounds.size.x / extent.size.x, bounds.size.y / extent.size.y) # 保持长宽比且不裁掉大型角色。
 	preview.scale = Vector2.ONE * factor
 	preview.position = bounds.get_center() - extent.get_center() * factor
-	parent.add_child(preview)
 	return true
 
 ## 将 [param node] 的可见图像范围变换到 [param transform] 所在坐标，收集到 [param result]。

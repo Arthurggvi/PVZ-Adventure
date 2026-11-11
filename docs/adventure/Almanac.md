@@ -11,11 +11,11 @@
 - `CharacterRegistry`：物种身份和场景；新增注册物种在首次获得或遇到后自动进入目录。
 - `data/almanac_data.json`：基础名称、能力、特性；植物缺省名称/描述复用背包。
 - `AdventurePromotionCatalog.BOOKS`：植物各转职阶的所有分支名称与说明，图鉴自动枚举。同阶分支以备选项展示，不相加。
-- `AllCards.create_static_preview`：植物外观与转职美术的共同预览入口。为其他植物接入该已有入口后，图鉴同步获得对应外观。
+- `AllCards.create_static_preview` 提供网格缩略图。详情复用角色场景的 `IsShow` 待机动画，并接入向日葵现有的转职美术。
 - `AdventureZombieTierCatalog` / `AdventureZombieTierTraits.description_for`：僵尸倍率与专属能力说明。
 - `assets/adventure/zombies/tier_art_map.json`：僵尸阶级美术，战斗与图鉴使用同一映射。
 
-没有专属能力或美术时明确显示缺省提示，不臆造未实现内容。图鉴显示基础费用/冷却、阶级倍率与分支效果，不包含玩家装备和卡片强化加成。
+详情分区显示基础能力、属性、阶级效果和基础特性。没有阶级效果时显示「无」。没有阶级专属贴图时，预览沿用玩法的外观规则。
 
 ## 持久化
 
