@@ -4,12 +4,18 @@ extends RefCounted
 ## 共用物种到场景、卡牌身份和阶级 ID 的解析。
 const Data = preload("res://scripts/adventure/ui/almanac_data.gd")
 
+## 在 [param parent] 的 [param bounds] 中绘制 [param kind]、[param type_id] 的一阶目录缩略图。
+## 返回是否绘制成功；只在目录中缩短超出本体的旗杆和撑杆。
+static func draw_thumbnail(parent: Control, kind: String, type_id: int, bounds: Rect2) -> bool:
+	return _draw_static(parent, kind, type_id, 1, bounds, true)
+
 ## 为 [param kind]、[param type_id]、[param tier] 创建独立形象，放入 [param parent] 的 [param bounds]。
-## 返回是否具有可见精灵；缺少卡牌模板时从注册场景提取静态精灵，仍不进入角色生命周期。
-static func draw(parent: Control, kind: String, type_id: int, tier: int, bounds: Rect2) -> bool:
+## [param thumbnail] 为 true 时使用目录道具比例。返回是否具有可见精灵；缺少卡牌模板时从注册场景提取静态精灵。
+static func _draw_static(parent: Control, kind: String, type_id: int, tier: int, bounds: Rect2, thumbnail: bool = false) -> bool:
 	var card_reference: ResourceCardReference = Data.card_reference(kind, type_id) # 共享静态预览入口能够自动接收未来植物转职美术。
+	var has_template: bool = AllCards.get_template(card_reference) != null # 目录道具的握点使用卡牌模板的坐标。
 	var preview: Node2D # 独立副本，切换阶级后随父容器销毁。
-	if AllCards.get_template(card_reference) != null:
+	if has_template:
 		preview = AllCards.create_static_preview(card_reference, tier - 1 if kind == "plant" else 0)
 	else:
 		preview = _from_scene(kind, type_id)
@@ -18,23 +24,39 @@ static func draw(parent: Control, kind: String, type_id: int, tier: int, bounds:
 	preview.transform = Transform2D.IDENTITY
 	if kind == "zombie":
 		AdventureZombieTierArt.apply_to_preview(preview, type_id, Data.tier_id(tier))
+		if thumbnail and has_template:
+			match type_id:
+				CharacterRegistry.ZombieType.Z002Flag:
+					_compact_prop(preview, ["Zombie_flagpole", "Zombie_flag"], Vector2(0, 54), Vector2(0.7, 0.4))
+				CharacterRegistry.ZombieType.Z004PoleVaulter:
+					_compact_prop(preview, ["Zombie_polevaulter_pole", "Zombie_polevaulter_pole2"], Vector2(19, 13), Vector2(0.6, 1.0))
 	if not _fit_visual(preview, bounds):
 		preview.free()
 		return false
 	parent.add_child(preview)
 	return true
 
+## 在 [param preview] 中把同一件道具的 [param part_names] 围绕握点 [param grip] 按 [param compression] 缩短。
+## 握点使用卡牌模板 BodyCorrect 的局部坐标，部件共用一次变换以保持接缝和握姿。
+static func _compact_prop(preview: Node2D, part_names: Array[String], grip: Vector2, compression: Vector2) -> void:
+	var pose: Transform2D = Transform2D.IDENTITY.scaled(compression) # 以握点为中心缩放，不改变持握手的位置。
+	pose.origin = grip - pose * grip
+	for part_name: String in part_names: # 旗面与旗杆、撑杆的两段需要一起变换。
+		var part := preview.find_child(part_name, true, false) as Sprite2D # 修改独立卡面副本中的道具精灵。
+		if part != null:
+			part.transform = pose * part.transform
+
 ## 在 [param parent] 的 [param bounds] 中展示 [param kind]、[param type_id]、[param tier] 的角色待机。
 ## 复用原版展示初始化和冒险阶级美术；场景缺失或没有可用图像时回退为卡面。
 static func draw_idle(parent: Control, kind: String, type_id: int, tier: int, bounds: Rect2) -> bool:
 	var packed: PackedScene = Data.scene_for(kind, type_id) # 实战和图鉴共用注册场景。
 	if packed == null:
-		return draw(parent, kind, type_id, tier, bounds)
+		return _draw_static(parent, kind, type_id, tier, bounds)
 	var source: Node = packed.instantiate() # 每次切换创建独立实例。
 	var character := source as Character000Base # 仅角色场景支持 IsShow 生命周期。
 	if character == null:
 		source.free()
-		return draw(parent, kind, type_id, tier, bounds)
+		return _draw_static(parent, kind, type_id, tier, bounds)
 	character.character_init_type = Character000Base.E_CharacterInitType.IsShow
 	character.is_show = true
 	character.is_idle = true
@@ -56,7 +78,7 @@ static func draw_idle(parent: Control, kind: String, type_id: int, tier: int, bo
 	if not _fit_visual(character, bounds):
 		parent.remove_child(character)
 		character.queue_free()
-		return draw(parent, kind, type_id, tier, bounds)
+		return _draw_static(parent, kind, type_id, tier, bounds)
 	return true
 
 ## 将 [param preview] 的可见部件等比居中到 [param bounds]；空图像返回 false。

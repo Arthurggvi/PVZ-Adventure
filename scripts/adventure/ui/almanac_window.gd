@@ -155,7 +155,7 @@ func _refresh() -> void:
 		button.custom_minimum_size = TILE_SIZE
 		button.tooltip_text = title
 		button.accessibility_name = title
-		Preview.draw(button, _kind, type_id, 1, Rect2(15, 13, 91, 86))
+		Preview.draw_thumbnail(button, _kind, type_id, Rect2(15, 13, 91, 86))
 		var caption: Label = Art.label(button, title, Vector2(10, 102), Vector2(101, 26), 18) # 卡片下部统一保留名称区。
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
