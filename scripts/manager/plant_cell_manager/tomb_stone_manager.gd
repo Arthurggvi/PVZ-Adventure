@@ -150,6 +150,35 @@ func create_pvz2_tombstone(new_num: int) -> int:
 		_create_one_tombstone(plant_cell_manager.all_plant_cells[pos.x][pos.y], pos, &"pvz2")
 	return tombstone_num - previous_total
 
+## Boss-only forced placement: skips other structures, not plants.
+## Uses the same PlantCell.create_tombstone() occupancy/death registration.
+func spawn_boss_graves(count: int, columns: Array[int] = []) -> Array[TombStone]:
+	var created: Array[TombStone] = []
+	if count <= 0 or not is_instance_valid(plant_cell_manager):
+		return created
+	var candidates: Array[Vector2i] = []
+	for row in range(all_is_tombstone.size()):
+		for col in range(all_is_tombstone[row].size()):
+			if not columns.is_empty() and not columns.has(col):
+				continue
+			if all_is_tombstone[row][col]:
+				continue
+			var cell: PlantCell = plant_cell_manager.all_plant_cells[row][col]
+			if cell.plant_cell_type == PlantCell.PlantCellType.Pool:
+				continue
+			if cell.curr_special_state_plant.get(PlantCell.E_SpecialStatePlant.IsCrater, false) \
+					or cell.curr_special_state_plant.get(PlantCell.E_SpecialStatePlant.IsIceRoad, false) \
+					or cell.curr_special_state_plant.get(PlantCell.E_SpecialStatePlant.IsPot, false):
+				continue
+			candidates.append(Vector2i(row,col))
+	candidates.shuffle()
+	for pos in candidates.slice(0,mini(count,candidates.size())):
+		var cell: PlantCell = plant_cell_manager.all_plant_cells[pos.x][pos.y]
+		_create_one_tombstone(cell,pos,&"pvz2")
+		if cell.tombstone is PvZ2AttackableTombstone:
+			created.append(cell.tombstone)
+	return created
+
 #endregion
 
 #region 存档

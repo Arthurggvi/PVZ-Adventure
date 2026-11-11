@@ -428,13 +428,16 @@ func create_tombstone(tombstone_scene: PackedScene = null):
 	var all_place_plant_in_cell_be_tombstone = [
 		CharacterRegistry.PlacePlantInCell.Norm,
 		CharacterRegistry.PlacePlantInCell.Down,
-		CharacterRegistry.PlacePlantInCell.Shell
+		CharacterRegistry.PlacePlantInCell.Shell,
+		CharacterRegistry.PlacePlantInCell.Float
 	]
 	## 删除对应位置植物
+	var cleared_plants: Array[Plant000Base] = []
 	for place_plant_in_cell in all_place_plant_in_cell_be_tombstone:
-		## 如果存在植物
-		if is_instance_valid(plant_in_cell[place_plant_in_cell]):
-			plant_in_cell[place_plant_in_cell].character_death()
+		var occupying: Plant000Base = plant_in_cell[place_plant_in_cell]
+		if is_instance_valid(occupying) and not occupying.is_death and not cleared_plants.has(occupying):
+			cleared_plants.append(occupying)
+			occupying.character_death()
 
 	tombstone = new_tombstone
 	tombstone.init_tombstone(self)

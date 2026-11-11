@@ -90,6 +90,7 @@ func _prepare_animations() -> void:
 	player.remove_animation_library(&"")
 	player.add_animation_library(&"", library)
 	player.get_animation(&"moonwalk").loop_mode = Animation.LOOP_LINEAR
+	player.get_animation(&"walk").loop_mode = Animation.LOOP_LINEAR
 	library.add_animation(&"teleport_in", BossTeleportAnimationFactory.build(true))
 	library.add_animation(&"teleport_out", BossTeleportAnimationFactory.build(false))
 

@@ -101,6 +101,9 @@ var is_ice:bool
 var ice_timer:Timer
 
 func _ready():
+	var death_archive := AdventureZombieDeathArchive.new()
+	death_archive.name = "AdventureZombieDeathArchive"
+	add_child(death_archive)
 	## 注册事件总线
 	EventBus.subscribe("ice_all_zombie", ice_all_zombie)
 	## 火爆辣椒销毁道具[冰道和梯子]
@@ -169,6 +172,9 @@ func begin_adventure_phase(profile: WaveProfile) -> void:
 	_natural_refresh_zombies.clear()
 	_natural_wave_by_id.clear()
 	_natural_wave_counts.clear()
+	var death_archive := get_node_or_null("AdventureZombieDeathArchive") as AdventureZombieDeathArchive
+	if death_archive != null:
+		death_archive.clear_history()
 	is_end_wave = false
 	zombie_wave_manager.begin_adventure_phase(profile)
 

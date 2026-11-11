@@ -8,11 +8,10 @@ enum Action { NONE, PLANT_FLAG, COMMAND, CHARGE, LEAD, CHANGE_LANE }
 ## 插旗外的技能轮转顺序，保证不会随机连续遗漏某个技能。
 const SKILLS: Array[Action] = [Action.COMMAND, Action.CHARGE, Action.LEAD]
 ## 下次必须执行换行的序列约束。
-var _must_change_lane: bool = false
+var _scheduler := BossAlternatingActionScheduler.new(Action.CHANGE_LANE)
 ## 普通技能轮转游标。
 var _cursor: int = 0
 ## 动作结束后的剩余等待秒数。
-var _cooldown: float = 0.0
 ## 插旗后的独立冷却；转阶段重置行动间隔时仍保留。
 var _flag_cooldown: float = 0.0
 
@@ -29,10 +28,9 @@ func mark_flag_planted(seconds: float) -> void:
 func tick(delta: float, busy: bool, has_flag: bool) -> Action:
 	if busy:
 		return Action.NONE
-	_cooldown = maxf(0.0, _cooldown - delta)
-	if _cooldown > 0.0:
+	if not _scheduler.ready(delta,false):
 		return Action.NONE
-	if _must_change_lane:
+	if _scheduler.must_change_lane():
 		return Action.CHANGE_LANE
 	if not has_flag and _flag_cooldown <= 0.0:
 		return Action.PLANT_FLAG
@@ -42,10 +40,8 @@ func tick(delta: float, busy: bool, has_flag: bool) -> Action:
 
 ## [param action] 刚完成的动作；[param interval] 下一动作等待秒数。
 func complete(action: Action, interval: float) -> void:
-	_must_change_lane = action != Action.CHANGE_LANE
-	_cooldown = interval
+	_scheduler.complete(action,interval)
 
 ## [param interval] 入场或转阶段结束后的首次等待；转阶段已回到右侧，重新选择技能。
 func reset(interval: float) -> void:
-	_must_change_lane = false
-	_cooldown = interval
+	_scheduler.reset(interval)
