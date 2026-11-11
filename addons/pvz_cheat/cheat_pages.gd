@@ -227,6 +227,18 @@ static func _battle(root: VBoxContainer, service: RefCounted, report: Callable) 
 		report.call(service.spawn_battle_zombies(zombie.get_selected_id(), StringName(tier.get_selected_metadata()), false)))
 	_button(spawn_buttons, "各路各一只", func():
 		report.call(service.spawn_battle_zombies(zombie.get_selected_id(), StringName(tier.get_selected_metadata()), true)))
+	_note(root, "Boss 类型")
+	var boss: OptionButton = _select(root) # 选项 ID 来自 Boss 注册表，与普通僵尸等阶无关。
+	var boss_almanac: Dictionary = Global.global_read_data.data_almanac.get("ZombieBoss", {}) # 已收录的中文名称。
+	var boss_types: Array = CharacterRegistry.ZombieBossInfo.keys() # 目录自动纳入后续注册的 Boss。
+	boss_types.sort()
+	for boss_type: int in boss_types: # 按注册编号显示可召唤类型。
+		var key: String = str(CharacterRegistry.ZombieBossInfo[boss_type][CharacterRegistry.ZombieBossInfoAttribute.BossName]) # 图鉴条目键。
+		var entry: Dictionary = boss_almanac.get(key, {}) # 白公爵等尚未收录的 Boss 可照常召唤。
+		var fallback: String = "白公爵" if boss_type == CharacterRegistry.ZombieBossType.ZB003WhiteDuke else key # 白公爵尚无图鉴条目时显示通用中文名。
+		boss.add_item(str(entry.get("名字", fallback)), boss_type)
+	boss.select(0)
+	_button(root, "召唤 Boss", func(): report.call(service.spawn_battle_boss(boss.get_selected_id())))
 	_note(root, "一键通关会结束当前阶段并保存正式结算；跳过的 Boss 不计击杀。")
 	_button(root, "一键通关", func(): report.call(service.clear_current_battle()))
 

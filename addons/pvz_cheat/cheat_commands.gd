@@ -119,6 +119,10 @@ func settle_current() -> Dictionary:
 func spawn_battle_zombies(zombie_type: int, tier_id: StringName, all_lanes: bool) -> Dictionary:
 	return Battle.spawn(zombie_type as CharacterRegistry.ZombieType, tier_id, all_lanes)
 
+## 召唤 [param boss_type] 所对应的注册 Boss，返回本次战斗命令的执行结果。
+func spawn_battle_boss(boss_type: int) -> Dictionary:
+	return Battle.spawn_boss(boss_type as CharacterRegistry.ZombieBossType)
+
 ## 请求当前战斗的一键通关。
 func clear_current_battle() -> Dictionary:
 	return Battle.clear_current()

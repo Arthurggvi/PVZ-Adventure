@@ -47,6 +47,18 @@ static func spawn(zombie_type: CharacterRegistry.ZombieType, tier_id: StringName
 		return {"ok": false, "message": "已生成 %d / %d 只僵尸，其余生成失败。" % [spawned, lanes.size()]}
 	return {"ok": true, "message": "已生成 %d 只僵尸。" % spawned}
 
+## 在当前战场的 Boss 出生点召唤 [param boss_type]，走正常出战登记并返回操作结果。
+static func spawn_boss(boss_type: CharacterRegistry.ZombieBossType) -> Dictionary:
+	var game: MainGameManager = _active_battle() # 点击时重新确认战斗仍在进行。
+	if game == null:
+		return {"ok": false, "message": "请在正式战斗中召唤 Boss。"}
+	if not CharacterRegistry.ZombieBossInfo.has(boss_type):
+		return {"ok": false, "message": "Boss 类型无效。"}
+	# 复用 Boss 卡牌与关卡遭遇共用的生成入口，完整接入血条、音乐与击杀统计。
+	if game.zombie_manager.try_create_boss_from_card(boss_type) == null:
+		return {"ok": false, "message": "无法在当前战场召唤该 Boss。"}
+	return {"ok": true, "message": "已召唤 Boss。"}
+
 ## 在 [param game] 的 [param lane] 中选取蹦极格子；无植物时使用本行的一个空格。
 static func _bungi_target(game: MainGameManager, lane: int) -> PlantCell:
 	var cells: Array = game.plant_cell_manager.all_plant_cells # 每个子数组对应一条实际战斗行。
