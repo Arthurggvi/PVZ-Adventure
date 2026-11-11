@@ -3,8 +3,8 @@
 extends Node
 class_name AdventureWallnutPromotionEffects
 
-## 复用现有可直接用于关卡的坚果保龄球弹体场景。
-const BOWLING_SCENE := preload("res://scenes/bullet/bullet_1001_bowling.tscn")
+## 坚果保龄球弹体场景路径，在亡语触发时加载以避免与战斗脚本循环依赖。
+const BOWLING_SCENE_PATH := "res://scenes/bullet/bullet_1001_bowling.tscn"
 ## 每次到达的固定逻辑秒间隔。
 const TICK_SECONDS := 1.0
 
@@ -124,7 +124,12 @@ func _on_death() -> void:
 	var game: MainGameManager = Global.main_game
 	if not is_instance_valid(game) or not is_instance_valid(game.bullets):
 		return
-	var projectile: Bullet000NormBase = BOWLING_SCENE.instantiate() as Bullet000NormBase
+	# 进入战斗后才加载弹体，此时场景依赖的脚本已完成初始化。
+	var bowling_scene := load(BOWLING_SCENE_PATH) as PackedScene
+	if bowling_scene == null:
+		push_error("无法加载坚果保龄球场景")
+		return
+	var projectile: Bullet000NormBase = bowling_scene.instantiate() as Bullet000NormBase
 	if projectile == null:
 		push_error("坚果保龄球资源类型不匹配")
 		return
