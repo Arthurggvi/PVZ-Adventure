@@ -1,30 +1,63 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=12 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_008_football.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_base"]
 [ext_resource type="Script" path="res://scripts/character/zombie/zombie_026_all_star.gd" id="2_script"]
 [ext_resource type="PackedScene" path="res://scenes/character/zombie/all_star_original_visual.tscn" id="3_visual"]
 [ext_resource type="AudioStreamWAV" path="res://assets/adventure/zombies/all_star/original/all_star_sound_177168068.wav" id="4_tackle_sfx"]
 [ext_resource type="AudioStreamOggVorbis" path="res://assets/adventure/zombies/all_star/original/entrance_referee_whistle_cc0.ogg" id="5_entry_whistle"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_player.gd" id="6_anim"]
+[ext_resource type="AnimationLibrary" path="res://scenes/character/zombie/all_star_original_animations.tres" id="7_library"]
+[ext_resource type="Script" path="res://scripts/resources/resource_body_change.gd" id="8_stage"]
+[ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred_black_anim.gd" id="9_charred"]
+[ext_resource type="Script" path="res://scripts/character/components/drop_body/ZombieHeadDrop.gd" id="10_head_drop"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/all_star/original/black/36_zombie_modern_allstar_117x101_2.png" id="11_head"]
 
 [node name="Zombie026AllStar" instance=ExtResource("1_base")]
 script = ExtResource("2_script")
 zombie_type = 26
 
-[node name="BodyCorrect" parent="Body" index="0"]
-visible = false
-
-[node name="NodeDrop" parent="Body" index="1"]
-visible = false
-
 [node name="AllStarVisual" parent="Body" index="2" instance=ExtResource("3_visual")]
 position = Vector2(-125, -157)
 scale = Vector2(0.6, 0.6)
 
-[node name="TackleSound" type="AudioStreamPlayer2D" parent="." index="14"]
+[node name="HeadDrop" type="Node2D" parent="Body" index="3"]
+visible = false
+script = ExtResource("10_head_drop")
+
+[node name="Head" type="Sprite2D" parent="Body/HeadDrop" index="0"]
+texture = ExtResource("11_head")
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("6_anim")
+
+[node name="HpStageChangeComponent" parent="." index="3"]
+boundary_value_hp = Array[int]([0])
+body_change = Array[ExtResource("8_stage")]([null])
+
+[node name="HpComponent" parent="." index="4"]
+max_hp = 1600
+
+[node name="CharredComponent" parent="." index="5"]
+script = ExtResource("9_charred")
+
+[node name="AttackComponent" parent="." index="6"]
+init_attack_value_per_min = 150
+
+[node name="MoveComponent" parent="." index="7"]
+move_mode = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." index="11"]
+root_node = NodePath("../Body/AllStarVisual")
+libraries = {
+&"": ExtResource("7_library")
+}
+
+[node name="TackleSound" type="AudioStreamPlayer2D" parent="." index="12"]
 stream = ExtResource("4_tackle_sfx")
 volume_db = -5.0
+bus = &"SFX"
 
-[node name="EntranceWhistle" type="AudioStreamPlayer" parent="." index="15"]
+[node name="EntranceWhistle" type="AudioStreamPlayer" parent="." index="13"]
 stream = ExtResource("5_entry_whistle")
 volume_db = -7.0
 bus = &"SFX"

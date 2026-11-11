@@ -24,6 +24,12 @@ animation event is attached to the frame corresponding to game damage.
 37 independently cropped original sprite textures, 47 reusable Sprite2D slots,
 native AnimationPlayer tracks with source-defined 30FPS authored transforms.
 Every slot is bound to a stable PAM reference instance path per action.
+Unused slots have explicit hidden keys so switching clips cannot retain parts.
+The visual scene stores an authored idle pose for static portraits. The live
+helmet track drives the head anchor. The original `particle_head` sprite is
+detached at that pose on ordinary death while the headless `die` clip plays.
+The tackle impact uses the source alpha key at frame 477. Project chew feedback
+is keyed to the closed-mouth poses in the original eat clip.
 PAM frame element records encode *sparse transforms*, not a complete list of
 visible parts: an attached part keeps its last pose until removed/replaced.
 Source draw order controls z_index. Empty terminal stop markers keep the
@@ -45,11 +51,12 @@ The original red texture atlas and PAM evidence remain outside the game at
 C:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/original_allstar_source/.
 Only the black palette adaptation required at runtime ships in original/black.
 
-Gameplay speed reference (UNCONFIRMED in original executable):
-third-party write-up https://www.9game.cn/zwdzjs2/1876834.html
-~0.5 tiles/sec charge and ~0.16 tiles/sec after first hit.
-Project grass tile pitch is ~80px, component base speed ~20px/s, giving
-charge=2.0 and spent=0.64 speed multipliers.
+Original gameplay configuration: `Packages/PropertySheets.rton`,
+`ZombieModernAllStarDefault` (referenced by `modern_allstar` in
+`Packages/ZombieTypes.rton`). Hitpoints 1600, EatDPS 150, SmashDamage 1500,
+Speed 0.16 and RunningSpeedScale 0.5. The sheet assigns no independent
+helmet armor. Movement uses the project scale of approximately 80 pixels
+per tile and a 20-pixel-per-second base component speed.
 
 ENTRANCE WHISTLE (SUBSTITUTE, not the verified touchscreen VS original):
 Rosa-Orenes256, "Referee whistle sound.wav", Freesound #538422,
