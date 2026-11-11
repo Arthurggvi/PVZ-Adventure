@@ -19,6 +19,12 @@ const PLANT_BURN := preload("res://scenes/character/zombie/explorer_plant_burn.t
 @onready var _head_anchor: Marker2D = $Body/ExplorerVisual/HeadAnchor
 ## 普通死亡时抛出的原版头部精灵。
 @onready var _head_drop: ZombieDropBase = $Body/HeadDrop
+## 动画驱动的外侧前臂，用于取得掉落瞬间的姿态。
+@onready var _outer_forearm: Sprite2D = $Body/ExplorerVisual/OuterForearm
+## 原版外侧断袖，始终保留在原动画图层位置。
+@onready var _broken_sleeve: Sprite2D = $Body/ExplorerVisual/BrokenSleeve
+## 复用原版 particle_arm 的前臂和手，并使用项目现有的落地动画。
+@onready var _arm_drop: ZombieDropBase = $Body/ArmDrop
 ## 同时负责普通啃咬和点燃植物的攻击范围。
 @onready var _attack_shape: CollisionShape2D = $AttackComponent/DetectComponent/Area2d/CollisionShape2D
 ## 熄灭火把时恢复的普通攻击框中心。
@@ -28,6 +34,8 @@ const PLANT_BURN := preload("res://scenes/character/zombie/explorer_plant_burn.t
 
 ## 是否持有点燃的火把；寒冷消退后保持熄灭，直到受到火伤。
 var _torch_lit := true
+## 每个实例只掉落一次外侧手臂。
+var _arm_lost := false
 
 
 ## 黄油采用专用头部锚点；预览实例不进行战斗判定。
@@ -52,6 +60,7 @@ func ready_norm_signal_connect() -> void:
 		move_component.update_move_factor.bind(MoveComponent.E_MoveFactor.IsAttack))
 	attack_component.signal_change_is_attack.disconnect(hurt_box_component.change_area_attack_appear)
 	hp_component.signal_hp_component_death.connect(_on_death)
+	hp_stage_change_component.signal_hp_stage_change.connect(_on_hp_stage_changed)
 	_play_action(&"walk")
 	_update_torch_reach()
 	set_physics_process(true)
@@ -160,12 +169,47 @@ func _on_eat_contact() -> void:
 		(attack_component as AttackComponentZombieNorm).attack_once()
 
 
+## [param stage] 本体血量阶段。首次降到半血时切换断臂外观。
+func _on_hp_stage_changed(stage: int) -> void:
+	if stage == 0 and not is_death:
+		_drop_outer_arm()
+
+
+## 将外侧前臂和手分离，保留持火把的内侧手臂。
+func _drop_outer_arm() -> void:
+	if _arm_lost:
+		return
+	_arm_lost = true
+	# 独立控制伤势显隐，待机、行走和啃咬的帧内显隐仍由原动画驱动。
+	for part: Node in _visual.get_children():
+		if part.is_in_group(&"explorer_intact_arm"):
+			(part as Sprite2D).self_modulate.a = 0.0
+	_broken_sleeve.self_modulate.a = 1.0
+
+	# 掉落图形的原始组合根节点和两个图层。
+	var pieces: Node2D = _arm_drop.get_node("Pieces")
+	var forearm: Sprite2D = pieces.get_node("Forearm")
+	var hand: Sprite2D = pieces.get_node("Hand")
+	# 对齐动画中的前臂矩阵，保留当前缩放、倾斜和魅惑翻面。
+	var drop_pose := _outer_forearm.global_transform * forearm.transform.affine_inverse()
+	_arm_drop.global_transform = Transform2D(0.0, drop_pose.origin)
+	pieces.global_transform = drop_pose
+	# 用两个掉落贴图的实际下边界确定第一次触地点。
+	var forearm_bounds := forearm.global_transform * forearm.get_rect()
+	var hand_bounds := hand.global_transform * hand.get_rect()
+	_arm_drop.ground_y = global_position.y - maxf(forearm_bounds.end.y, hand_bounds.end.y)
+	_arm_drop.visible = true
+	_arm_drop.acitvate_it()
+
+
 ## 普通死亡停止攻击和移动，从最后的头部位置抛出头部并播放原版倒地动作。
 func _on_death() -> void:
 	set_physics_process(false)
 	move_component.disable_component(ComponentNormBase.E_IsEnableFactor.Death)
 	if not is_can_death_language:
 		return
+	# 直接致死时也要在倒地动画隐藏前臂前，从当前姿态分离一次。
+	_drop_outer_arm()
 	signal_update_speed.disconnect(anim_component.owner_update_speed)
 	_visual_animation.speed_scale = 1.0
 	_head_drop.global_position = _head_anchor.global_position

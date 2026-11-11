@@ -203,145 +203,122 @@ centered = false
 transform = Transform2D(-0.006102, 0.499963, -0.499963, -0.006102, 139.484627, 28.286965)
 texture = SubResource("Part_3")
 
-[node name="zombie_hand_outer_02_1_05" type="Sprite2D" parent="."]
-centered = false
-visible = false
-
-[node name="zombie_hand_outer_01_1_06" type="Sprite2D" parent="."]
-centered = false
-visible = false
-
-[node name="zombie_hand_outer_02_2_07" type="Sprite2D" parent="."]
-centered = false
-visible = false
-
-[node name="zombie_hand_outer_02_1_08" type="Sprite2D" parent="."]
-centered = false
-visible = false
-
-[node name="zombie_hand_outer_01_2_09" type="Sprite2D" parent="."]
-centered = false
-visible = false
-
-[node name="zombie_hand_outer_02_3_10" type="Sprite2D" parent="."]
-centered = false
-visible = false
-
-[node name="zombie_hand_outer_02_2_11" type="Sprite2D" parent="."]
-centered = false
-visible = false
-
-[node name="zombie_hand_outer_01_3_12" type="Sprite2D" parent="."]
-centered = false
-visible = false
-
-[node name="zombie_expl_hand_outer_1_13" type="Sprite2D" parent="."]
-centered = false
-visible = false
-
-[node name="torch_end_lit_1_14" type="Sprite2D" parent="." groups=["explorer_torch_flame"]]
+[node name="torch_end_lit_1_05" type="Sprite2D" parent="." groups=["explorer_torch_flame"]]
 centered = false
 transform = Transform2D(0.643406, -0.425571, 0.431751, 0.652731, 80.189251, 106.073457)
 texture = SubResource("Part_4")
 
-[node name="zombie_egyptflag_hand_inner3b_1_15" type="Sprite2D" parent="."]
+[node name="zombie_egyptflag_hand_inner3b_1_06" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.685366, 0.196439, -0.213546, 0.744975, 129.276907, 159.705222)
 texture = SubResource("Part_5")
 
-[node name="zombie_cowboy_hand_inner_01_1_16" type="Sprite2D" parent="."]
+[node name="zombie_cowboy_hand_inner_01_1_07" type="Sprite2D" parent="."]
 centered = false
 visible = false
 
-[node name="zombie_expl_arm_inner_lower_1_17" type="Sprite2D" parent="."]
+[node name="zombie_expl_arm_inner_lower_1_08" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.342878, 0.680392, -0.696551, 0.351022, 178.795968, 154.041751)
 texture = SubResource("Part_6")
 
-[node name="zombie_expl_arm_inner_upper_1_18" type="Sprite2D" parent="."]
+[node name="zombie_expl_arm_inner_upper_1_09" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.645027, 0.428154, -0.430137, 0.648013, 189.24016, 123.741983)
 texture = SubResource("Part_7")
 
-[node name="zombie_expl_leg_inner_lower_1_19" type="Sprite2D" parent="."]
+[node name="zombie_expl_leg_inner_lower_1_10" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.709226, 0.319276, -0.319276, 0.709226, 196.871114, 203.081276)
 texture = SubResource("Part_8")
 
-[node name="zombie_expl_foot_inner_heel_1_20" type="Sprite2D" parent="."]
+[node name="zombie_expl_foot_inner_heel_1_11" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.780488, 0, 0, 0.780488, 176.15, 221.6)
 texture = SubResource("Part_9")
 
-[node name="zombie_expl_foot_inner_toe_1_21" type="Sprite2D" parent="."]
+[node name="zombie_expl_foot_inner_toe_1_12" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.770833, 0, 0, 0.774194, 188.6, 231.5)
 texture = SubResource("Part_10")
 
-[node name="zombie_expl_leg_inner_upper_1_22" type="Sprite2D" parent="."]
+[node name="zombie_expl_leg_inner_upper_1_13" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.764706, 0, 0, 0.773585, 190.95, 178.55)
 texture = SubResource("Part_11")
 
-[node name="zombie_expl_waist_1_23" type="Sprite2D" parent="."]
+[node name="zombie_expl_waist_1_14" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.781818, 0, 0, 0.78125, 196.05, 167)
 texture = SubResource("Part_12")
 
-[node name="zombie_expl_leg_outer_lower_1_24" type="Sprite2D" parent="."]
+[node name="zombie_expl_leg_outer_lower_1_15" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.673565, -0.388877, 0.388889, 0.673565, 216.938564, 211.838519)
 texture = SubResource("Part_13")
 
-[node name="zombie_expl_foot_outer_heel_1_25" type="Sprite2D" parent="."]
+[node name="zombie_expl_foot_outer_heel_1_16" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.772727, 0, 0, 0.782609, 216.9, 219.85)
 texture = SubResource("Part_14")
 
-[node name="zombie_expl_foot_outer_toe_1_26" type="Sprite2D" parent="."]
+[node name="zombie_expl_foot_outer_toe_1_17" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.784314, 0, 0, 0.78125, 194.1, 234.45)
 texture = SubResource("Part_15")
 
-[node name="zombie_expl_leg_upper_outer_1_27" type="Sprite2D" parent="."]
+[node name="zombie_expl_leg_upper_outer_1_18" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.771429, 0, 0, 0.779661, 212.8, 175.3)
 texture = SubResource("Part_16")
 
-[node name="zombie_expl_torso_1_28" type="Sprite2D" parent="."]
+[node name="zombie_expl_torso_1_19" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.677737, -0.391292, 0.390012, 0.675466, 167.421529, 129.332105)
 texture = SubResource("Part_17")
 
-[node name="zombie_expl_arm_outer_lower_1_29" type="Sprite2D" parent="."]
+[node name="OuterForearm" type="Sprite2D" parent="." groups=["explorer_intact_arm"]]
 centered = false
 transform = Transform2D(0.74428, 0.263279, -0.261559, 0.739415, 200.874514, 158.390335)
 texture = SubResource("Part_18")
 
-[node name="zombie_expl_hand_outer_1_30" type="Sprite2D" parent="."]
+[node name="zombie_expl_hand_outer_1_21" type="Sprite2D" parent="." groups=["explorer_intact_arm"]]
 centered = false
 transform = Transform2D(0.756104, -0.20195, 0.200118, 0.749246, 179.111005, 193.31228)
 texture = SubResource("Part_19")
 
-[node name="zombie_expl_arm_outer_upper_02_1_31" type="Sprite2D" parent="."]
+[node name="BrokenSleeve" type="Sprite2D" parent="."]
+self_modulate = Color(1, 1, 1, 0)
 centered = false
 transform = Transform2D(0.775706, 0.056727, -0.056525, 0.772936, 196.031671, 121.467169)
 texture = SubResource("Part_20")
 
-[node name="zombie_expl_arm_outer_upper_01_1_32" type="Sprite2D" parent="."]
+[node name="zombie_expl_arm_outer_upper_01_1_23" type="Sprite2D" parent="." groups=["explorer_intact_arm"]]
 centered = false
 transform = Transform2D(0.775706, 0.056727, -0.056847, 0.777336, 196.181271, 121.478109)
 texture = SubResource("Part_21")
 
-[node name="zombie_expl_jaw_1_33" type="Sprite2D" parent="."]
+[node name="zombie_expl_jaw_1_24" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.776119, 0, 0, 0.772727, 147.75, 116.6)
 texture = SubResource("Part_22")
 
-[node name="zombie_expl_skull_1_34" type="Sprite2D" parent="."]
+[node name="zombie_expl_skull_1_25" type="Sprite2D" parent="."]
 centered = false
 transform = Transform2D(0.782258, 0, 0, 0.78125, 124, 39.9)
 texture = SubResource("Part_23")
+
+[node name="zombie_hand_outer_02_1_26" type="Sprite2D" parent="." groups=["explorer_intact_arm"]]
+centered = false
+visible = false
+
+[node name="zombie_hand_outer_01_1_27" type="Sprite2D" parent="." groups=["explorer_intact_arm"]]
+centered = false
+visible = false
+
+[node name="zombie_expl_hand_outer_1_28" type="Sprite2D" parent="." groups=["explorer_intact_arm"]]
+centered = false
+visible = false
 
 [node name="HeadAnchor" type="Marker2D" parent="."]
 

@@ -9,6 +9,18 @@
 [ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred_black_anim.gd" id="7_charred"]
 [ext_resource type="Script" path="res://scripts/character/components/drop_body/ZombieHeadDrop.gd" id="8_drop"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/explorer/explorer_head.png" id="9_head"]
+[ext_resource type="Script" path="res://scripts/character/components/drop_body/ZombieArm1Drop.gd" id="10_arm_drop"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/explorer/explorer_atlas.png" id="11_atlas"]
+
+[sub_resource type="AtlasTexture" id="DroppedForearm"]
+atlas = ExtResource("11_atlas")
+region = Rect2(493, 304, 19, 51)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="DroppedHand"]
+atlas = ExtResource("11_atlas")
+region = Rect2(434, 356, 46, 49)
+filter_clip = true
 
 [node name="Zombie027Explorer" instance=ExtResource("1_base")]
 script = ExtResource("2_explorer")
@@ -27,12 +39,28 @@ script = ExtResource("8_drop")
 scale = Vector2(0.5, 0.5)
 texture = ExtResource("9_head")
 
+[node name="ArmDrop" type="Node2D" parent="Body" index="4"]
+visible = false
+script = ExtResource("10_arm_drop")
+
+[node name="Pieces" type="Node2D" parent="Body/ArmDrop"]
+
+[node name="Forearm" type="Sprite2D" parent="Body/ArmDrop/Pieces"]
+centered = false
+transform = Transform2D(0.74428, 0.263279, -0.261559, 0.739415, -0.625486, -35.509665)
+texture = SubResource("DroppedForearm")
+
+[node name="Hand" type="Sprite2D" parent="Body/ArmDrop/Pieces"]
+centered = false
+transform = Transform2D(0.756104, -0.20195, 0.200118, 0.749246, -22.388995, -0.58772)
+texture = SubResource("DroppedHand")
+
 [node name="AnimComponent" parent="." index="2"]
 script = ExtResource("5_anim")
 
 [node name="HpStageChangeComponent" parent="." index="3"]
-boundary_value_hp = Array[int]([0])
-body_change = Array[ExtResource("6_stage")]([null])
+boundary_value_hp = Array[int]([175, 0])
+body_change = Array[ExtResource("6_stage")]([null, null])
 
 [node name="HpComponent" parent="." index="4"]
 max_hp = 350
