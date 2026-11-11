@@ -83,23 +83,23 @@
     },
     "growth_agent_lv1": {
       "category": "consumable",
-      "icon": "consumables/growth_agent.png"
+      "icon": "consumables/growth_agent_lv1.png"
     },
     "growth_agent_lv2": {
       "category": "consumable",
-      "icon": "consumables/growth_agent.png"
+      "icon": "consumables/growth_agent_lv2.png"
     },
     "growth_agent_lv3": {
       "category": "consumable",
-      "icon": "consumables/growth_agent.png"
+      "icon": "consumables/growth_agent_lv3.png"
     },
     "growth_agent_lv4": {
       "category": "consumable",
-      "icon": "consumables/growth_agent.png"
+      "icon": "consumables/growth_agent_lv4.png"
     },
     "growth_agent_lv5": {
       "category": "consumable",
-      "icon": "consumables/growth_agent.png"
+      "icon": "consumables/growth_agent_lv5.png"
     },
     "fertilizer_lv1": {
       "category": "consumable",
