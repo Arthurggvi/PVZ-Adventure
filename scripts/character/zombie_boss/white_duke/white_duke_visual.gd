@@ -4,6 +4,8 @@ class_name WhiteDukeVisual
 ## live in white_duke_visual.tscn. No parallel skeleton or keyframe authoring.
 const ART := "res://assets/adventure/zombies/white_duke/"
 const ACCESSORY := ART + "accessories/"
+## 原版 [code]point[/code] 动画中手指首次举到最高处的关键帧时间，单位为秒。
+const SUMMON_POSE_PEAK := 0.666667
 @onready var player: AnimationPlayer = $AnimationPlayer
 @onready var _parts: Node2D = $Body/BodyCorrect
 @onready var _phase_fx: WhiteFlameSpotlightEffect = $Phase2FX
@@ -86,6 +88,14 @@ func _prepare_animations() -> void:
 					var texture = clip.track_get_key_value(i, j)
 					if texture is Texture2D:
 						_hand_tracks.append({"clip":clip,"track":i,"key":j,"source":texture})
+		if clip_name == &"point":
+			# 只在白爵士的动画副本上挂特效触发点，沿用原版抬手关键帧。
+			var cue_track := clip.add_track(Animation.TYPE_METHOD)
+			clip.track_set_path(cue_track, ^".")
+			clip.track_insert_key(cue_track, SUMMON_POSE_PEAK, {
+				"method": &"_play_summon_spotlight",
+				"args": [],
+			})
 		library.add_animation(clip_name, clip)
 	player.remove_animation_library(&"")
 	player.add_animation_library(&"", library)
@@ -143,12 +153,13 @@ func play_idle() -> void:
 func get_idle_duration() -> float:
 	return player.get_animation(&"moonwalk").length / player.speed_scale
 
-## The native Jackson point clip is the summon-with-raised-finger animation.
-## No skeleton or pose interpolation is reauthored.
-func play_summon() -> Color:
-	var chosen := _phase_fx.summon_spotlight(_phase_two)
+## 播放召唤动作；抬手到最高处时由动画轨触发聚光灯。
+func play_summon() -> void:
 	player.play(&"point")
-	return chosen
+
+## 在抬手最高帧播放召唤聚光灯；二阶段同时触发变色、泛光和全屏心跳。
+func _play_summon_spotlight() -> void:
+	_phase_fx.summon_spotlight(_phase_two)
 
 func play_teleport_in() -> void:
 	_set_boss_shadow_visible(false)

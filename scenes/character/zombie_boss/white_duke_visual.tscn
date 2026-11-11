@@ -212,6 +212,7 @@ texture = ExtResource("22_cfajw")
 centered = false
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+callback_mode_method = 1
 libraries = {
 &"": SubResource("JacksonNativeLibrary")
 }
