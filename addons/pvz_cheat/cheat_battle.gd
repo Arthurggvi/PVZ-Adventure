@@ -19,6 +19,17 @@ static func set_instant_kill(enabled: bool) -> Dictionary:
 	game.zombie_manager.cheat_instant_kill_enabled = enabled
 	return {"ok": true, "message": "已开启秒杀。" if enabled else "已关闭秒杀。"}
 
+## 按 [param enabled] 切换本局普通出战卡槽的无冷却状态，返回操作结果。
+static func set_no_card_cooldown(enabled: bool) -> Dictionary:
+	var game: MainGameManager = _active_battle() # 只操作当前正在进行的战斗。
+	if game == null:
+		return {"ok": false, "message": "请在正式战斗中切换卡牌无冷却。"}
+	var slot: CardSlotBattle = game.card_manager.card_slot_battle # 普通出战卡槽负责用卡后的冷却。
+	if not is_instance_valid(slot):
+		return {"ok": false, "message": "当前战斗没有使用普通出战卡槽。"}
+	slot.set_cheat_no_cooldown(enabled)
+	return {"ok": true, "message": "已开启卡牌无冷却。" if enabled else "已关闭卡牌无冷却。"}
+
 ## 在兼容的行生成 [param zombie_type]，并应用 [param tier_id]。
 ## [param all_lanes] 为 true 时预检整张战场，每条实际存在的行各生成一个实例。
 static func spawn(zombie_type: CharacterRegistry.ZombieType, tier_id: StringName, all_lanes: bool) -> Dictionary:

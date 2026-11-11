@@ -119,6 +119,10 @@ func settle_current() -> Dictionary:
 func set_battle_instant_kill(enabled: bool) -> Dictionary:
 	return Battle.set_instant_kill(enabled)
 
+## 按 [param enabled] 切换本局卡牌无冷却，返回战斗命令结果。
+func set_battle_no_card_cooldown(enabled: bool) -> Dictionary:
+	return Battle.set_no_card_cooldown(enabled)
+
 ## 生成指定 [param zombie_type] 和 [param tier_id]；[param all_lanes] 为 true 时每行一只。
 func spawn_battle_zombies(zombie_type: int, tier_id: StringName, all_lanes: bool) -> Dictionary:
 	return Battle.spawn(zombie_type as CharacterRegistry.ZombieType, tier_id, all_lanes)

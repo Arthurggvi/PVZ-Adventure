@@ -209,6 +209,9 @@ static func _battle(root: VBoxContainer, service: RefCounted, report: Callable) 
 	var instant_kill_buttons: HBoxContainer = _row(root) # 并排提供本局秒杀的开启和关闭操作。
 	_button(instant_kill_buttons, "开启秒杀", func(): report.call(service.set_battle_instant_kill(true)))
 	_button(instant_kill_buttons, "关闭秒杀", func(): report.call(service.set_battle_instant_kill(false)))
+	var cooldown_buttons: HBoxContainer = _row(root) # 并排提供普通出战卡的无冷却开关。
+	_button(cooldown_buttons, "开启卡牌无冷却", func(): report.call(service.set_battle_no_card_cooldown(true)))
+	_button(cooldown_buttons, "关闭卡牌无冷却", func(): report.call(service.set_battle_no_card_cooldown(false)))
 	_note(root, "僵尸类型")
 	var zombie: OptionButton = _select(root) # 选项 ID 直接使用僵尸注册表枚举值。
 	Global.global_read_data.ensure_almanac_loaded()
