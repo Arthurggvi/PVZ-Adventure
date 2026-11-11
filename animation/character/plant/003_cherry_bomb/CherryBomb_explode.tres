@@ -1618,31 +1618,3 @@ tracks/132/keys = {
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1)]
 }
-tracks/133/type = "method"
-tracks/133/imported = false
-tracks/133/enabled = true
-tracks/133/path = NodePath("BombComponent")
-tracks/133/interp = 1
-tracks/133/loop_wrap = true
-tracks/133/keys = {
-"times": PackedFloat32Array(0.433333),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"bomb_once"
-}]
-}
-tracks/134/type = "method"
-tracks/134/imported = false
-tracks/134/enabled = true
-tracks/134/path = NodePath(".")
-tracks/134/interp = 1
-tracks/134/loop_wrap = true
-tracks/134/keys = {
-"times": PackedFloat32Array(0.433333),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"character_death"
-}]
-}
