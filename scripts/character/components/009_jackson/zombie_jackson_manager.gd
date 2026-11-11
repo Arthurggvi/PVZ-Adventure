@@ -31,11 +31,11 @@ var init_random_speed :float
 ## 当前动画播放速度
 var animation_curr_speed :float
 
-## 需要召唤舞王的次数，第二次可以召唤,不然召唤太频繁
+## 自上次召唤计数清零后，遇到召唤机会的舞步循环次数。
 var time_need_call_zombie := 0
 ## 是否被魅惑，若被魅惑，舞王召唤魅惑伴舞
 var is_hypnotized := false
-## Triggered before the first actual summon; temporary pre-summon DR listens here.
+## 至少成功召唤一名援军后发出，供首召前减伤等能力监听。
 signal reinforcements_called()
 ## Ability-specific spawn policy; no tier identifiers or species rules in manager.
 var summon_policy: Dictionary = {}
@@ -98,14 +98,16 @@ func _on_animation_player_animation_finished(anim_name:StringName):
 	# 切换到另一个动画
 	# 如果举手的次数小于4次，继续举手
 	if time_anim < 4:
-		## 首次抬手动作判断是否召唤僵尸
-		if time_anim == 0:
-			#如果需要召唤伴舞僵尸,并且舞王还存在
-			if judge_need_call_dance() and zombie_dancers[-1]:
-				time_need_call_zombie += 1
-				if time_need_call_zombie >= 2:
-					time_need_call_zombie = 0
-					zombie_dancers[-1].anim_play("point", curr_scale, 0, 1)
+		# 每轮首次抬手时检查召唤机会；入场首召由舞王状态机直接发起。
+		if time_anim == 0 and judge_need_call_dance():
+			var leader: Zombie009Jackson = zombie_dancers[-1] # 已通过存活和召唤资格检查的舞王。
+			var required_cycles := 2 # 原有召唤间隔，单位为舞步循环。
+			if leader.has_summoned_reinforcements:
+				required_cycles *= int(summon_policy.get("repeat_summon_interval_multiplier", 1))
+			time_need_call_zombie += 1
+			if time_need_call_zombie >= required_cycles:
+				time_need_call_zombie = 0
+				leader.anim_play("point", curr_scale, 0, 1)
 
 		time_anim += 1
 		current_animation = "armraise"
@@ -217,6 +219,10 @@ func call_zombie_dancer():
 				and not child.is_hypno:
 			child.be_hypno()
 	if summoned_any:
+		leader.has_summoned_reinforcements = true
+		if summon_policy.has("repeat_summon_interval_multiplier"):
+			# 舞步可能在首召动画结束前开始，后续间隔从实际出怪重新计数。
+			time_need_call_zombie = 0
 		reinforcements_called.emit()
 	update_all_walk()
 

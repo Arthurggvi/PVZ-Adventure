@@ -13,6 +13,8 @@ var animation_origin_speed:float
 @export var num_moon_walk := 2
 ## 伴舞僵尸编号,舞王为-1
 var dancer_id:int= -1
+## 是否已成功召唤过援军；魅惑更换舞团管理器后仍按后续召唤计算间隔。
+var has_summoned_reinforcements := false
 #region 重写父类的方法
 
 #region 初始化相关
