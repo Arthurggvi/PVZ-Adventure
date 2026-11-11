@@ -1,5 +1,4 @@
-## 可配置的水面渲染器。独立泳池精灵和背景局部水域走同一套 Shader。
-## 仅负责视觉；水陆判定与实体交互保持在原有战场管理器。
+## 独立泳池精灵和背景局部水域共用 Shader；背景水域同时按配置生成水体碰撞区域。
 extends Node2D
 class_name WaterSurfaceController
 
@@ -36,7 +35,7 @@ func configure_sprite(sprite: Sprite2D, profile: WaterSurfaceProfile) -> void:
 	sprite.material = _create_material(sprite.texture, Rect2(Vector2.ZERO, Vector2.ONE))
 	set_process(true)
 
-## 按底图像素矩形绘制水域，视觉区域不影响地形判定。
+## 按同一底图像素矩形生成水面和水体碰撞区域。棋盘定义负责种植地形。
 ## [param source] 已设置最终背景纹理的 Sprite2D。[param profile] 区域及表现参数。
 func configure_background(source: Sprite2D, profile: WaterSurfaceProfile) -> void:
 	_reset()

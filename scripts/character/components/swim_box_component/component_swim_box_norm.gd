@@ -1,4 +1,4 @@
-## 普通僵尸的水体表现；接触聚合由 SwimBoxComponent 唯一管理。
+## 普通僵尸的水体表现；接触聚合由 WaterContactArea 管理。
 extends SwimBoxComponent
 class_name SwimBoxComponentNorm
 
@@ -33,7 +33,7 @@ func _on_water_contact_changed(swimming: bool) -> void:
 		signal_change_is_swimming.emit(false)
 		return
 	await _swim_tween.finished
-	if generation == _transition and _water_active and not owner_is_death:
+	if generation == _transition and water_contact_area.touching_water and not owner_is_death:
 		signal_change_is_swimming.emit(true)
 
 ## 切换 [param swimming] 的已有美术部件，不修改原共享 ResourceBodyChange。

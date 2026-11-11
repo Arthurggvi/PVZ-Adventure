@@ -12,6 +12,7 @@
 [ext_resource type="Animation" uid="uid://cwtov38w6tqhg" path="res://animation/item/LawnMover/PoolCleaner_landsuck.tres" id="13_baiuf"]
 [ext_resource type="Animation" uid="uid://ciawtq4satiq1" path="res://animation/item/LawnMover/PoolCleaner_suck.tres" id="14_w1404"]
 [ext_resource type="Animation" uid="uid://7pkxtp31uk60" path="res://animation/item/LawnMover/PoolCleaner_water.tres" id="15_85o48"]
+[ext_resource type="Script" path="res://scripts/water/water_contact_area.gd" id="16_water_contact"]
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_gcy1w"]
 _data = {
@@ -215,10 +216,10 @@ parameters/TimeScale/scale = 2.0
 position = Vector2(0, -23)
 collision_layer = 8192
 collision_mask = 513
+script = ExtResource("16_water_contact")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=976120843]
 position = Vector2(-1, -10)
 shape = SubResource("RectangleShape2D_brrg7")
 
 [connection signal="area_entered" from="Area2D" to="." method="_on_area_entered"]
-[connection signal="area_exited" from="Area2D" to="." method="_on_area_exited"]

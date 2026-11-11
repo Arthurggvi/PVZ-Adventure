@@ -1,4 +1,4 @@
-## 唯一的场景/数据装配边界；在所有子管理器 ready 前建立战场空间。
+## 在子管理器登记实体前装配战场；背景和行标记入树后可以对齐旧水路。
 extends RefCounted
 class_name BoardSceneAdapter
 
@@ -23,6 +23,29 @@ static func install(game: MainGameManager) -> BoardRuntime:
 			return board
 		_build_definition(game, board, definition, plant_root, zombie_root)
 	return board
+
+## 在 [param game] 的背景和攻击行入树后，用背景水域对齐旧棋盘的水路出生和清洁车位置。
+## 显式棋盘已经声明完整行坐标，直接使用其定义。
+static func align_legacy_water_lanes(game: MainGameManager) -> void:
+	var profile: WaterSurfaceProfile = game.game_para.water_surface_profile # 水域及近岸行基准。
+	if game.board.definition != null or profile == null or profile.lane_baseline_inset <= 0.0:
+		return
+	var background: Sprite2D = game.get_node(^"%Background") # 底图像素坐标的实际参照节点。
+	var zombie_root: Node2D = game.get_node(^"ZombiesRoot") # 旧场景的攻击行容器。
+	# 经过视口坐标转换，保留背景 CanvasLayer 与主战场之间的偏移。
+	var board_to_background: Transform2D = background.get_global_transform_with_canvas().affine_inverse() \
+		* game.get_global_transform_with_canvas()
+	var background_to_board: Transform2D = board_to_background.affine_inverse() # 水域像素坐标到棋盘。
+	for index: int in range(game.board.lanes.size()): # 和攻击行节点的登记顺序一致。
+		var lane: BoardLaneDefinition = game.board.lanes[index] # 本局独占的旧行定义。
+		if lane.spawn_type != CharacterRegistry.ZombieRowType.Pool:
+			continue
+		var marker: Marker2D = zombie_root.get_child(index).get_node(^"ZombieCreatePosition") # 正式出生标记。
+		var source_position: Vector2 = board_to_background * game.to_local(marker.global_position) # 原行高在底图中的位置。
+		source_position.y = profile.lane_baseline_y(source_position.y)
+		lane.spawn_position = background_to_board * source_position
+		lane.mower_position.y = lane.spawn_position.y
+		marker.global_position = game.to_global(lane.spawn_position)
 
 ## 适配旧 [param plant_root] / [param zombie_root]，保留原关节点和最终逻辑顺序。
 static func _adopt_legacy(game: MainGameManager, board: BoardRuntime,

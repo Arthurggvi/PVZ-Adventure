@@ -192,6 +192,7 @@ func _ready() -> void:
 	# 参数资源负责校验与初始化；失败时保持 NONE 阶段，不继续选卡或初始化子管理器。
 	if not game_para.init_para():
 		return
+	BoardSceneAdapter.align_legacy_water_lanes(self)
 	# 原版初始化仅保留随机白名单里的预览物种；冒险在这一层恢复完整阶段敌人池。
 	# Legacy 不走该分支，仍使用其原有筛选和刷怪规则。
 	if AdventureSession.owns_battle(game_para):

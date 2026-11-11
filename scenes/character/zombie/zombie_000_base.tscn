@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://b3wavy585v5p1" path="res://scripts/character/components/component_hurt_box_zombie.gd" id="12_6mvk0"]
 [ext_resource type="Script" uid="uid://c84r00ur563m8" path="res://scripts/character/components/component_drop_item.gd" id="12_ewfmg"]
 [ext_resource type="Script" uid="uid://bk802l8n0pnjb" path="res://scripts/character/components/swim_box_component/component_swim_box.gd" id="12_kbcr1"]
+[ext_resource type="Script" path="res://scripts/water/water_contact_area.gd" id="13_water_contact"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xdwn0"]
 bg_color = Color(0.137255, 0.0196078, 0.027451, 1)
@@ -276,6 +277,7 @@ script = ExtResource("12_kbcr1")
 
 [node name="Area2D" type="Area2D" parent="SwimBoxComponent" index="0" unique_id=567193401]
 collision_layer = 0
+script = ExtResource("13_water_contact")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SwimBoxComponent/Area2D" index="0" unique_id=1242079527]
 position = Vector2(0, -40)
@@ -319,6 +321,3 @@ monitoring = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetectionOnAttack" index="0" unique_id=856483964]
 position = Vector2(0, -50)
 shape = SubResource("CapsuleShape2D_xdwn0")
-
-[connection signal="area_entered" from="SwimBoxComponent/Area2D" to="SwimBoxComponent" method="_on_area_2d_area_entered"]
-[connection signal="area_exited" from="SwimBoxComponent/Area2D" to="SwimBoxComponent" method="_on_area_2d_area_exited"]

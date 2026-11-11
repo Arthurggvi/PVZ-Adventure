@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("profile")
 regions = Array[Rect2]([Rect2(263, 98, 708, 74), Rect2(265, 493, 705, 72)])
+lane_baseline_inset = 24.0
 water_tint = Color(0.92, 1, 0.83, 1)
 tint_mix = 0.075
 wave_speed = 0.42

@@ -1,3 +1,4 @@
+## 水路清洁车，水陆动画由共用水体探测器驱动。
 extends LawnMover
 class_name PoolCleaner
 
@@ -6,38 +7,19 @@ var ori_move_speed:float
 
 #region 游泳相关
 
-## 碰到僵尸
+## 是否正在吸入僵尸，供动画树选择吸入姿态。
 var is_zombie: bool = false
 
 @export_group("游泳相关")
+## 动画树使用的水中状态，由聚合后的水体接触更新。
 @export var is_water := false
-###游泳消失的精灵图
-#@export var swimming_fade : Array[Sprite2D]
-###游泳出现的精灵图
-#@export var swimming_appear : Array[Sprite2D]
 #endregion
 
 
 func _ready() -> void:
 	super._ready()
 	ori_move_speed = move_speed
-
-
-func _on_area_entered(area: Area2D) -> void:
-	# 被碾压后忽略同帧的僵尸和水池回调，防止重新启动或生成水花。
-	if is_destroyed or is_queued_for_deletion() or not is_instance_valid(area):
-		return
-	# 区域所属节点，可能为僵尸或泳池；释放中的无效 owner 不参与检测。
-	var owner_node = area.owner
-	if not is_instance_valid(owner_node):
-		return
-	if owner_node is Zombie000Base:
-		if lane == owner_node.lane:
-			_on_lane_zombie_enter(owner_node)
-
-	elif owner_node.name =="Pool":
-		print("小推车碰撞到泳池")
-		start_swim()
+	(area_2d as WaterContactArea).water_contact_changed.connect(_on_water_contact_changed)
 
 ## 启动小推车
 func _start_mower():
@@ -47,20 +29,6 @@ func _start_mower():
 	SoundManager.play_other_SFX("pool_cleaner")
 	animation_player.play("PoolCleaner_land")
 	_mower_run_all_zombie_on_start()
-
-func _on_area_exited(area: Area2D) -> void:
-	if is_destroyed or is_queued_for_deletion() or not is_instance_valid(area):
-		return
-	# 离开区域的所属节点，水池退出负责恢复陆地状态。
-	var owner_node = area.owner
-	if not is_instance_valid(owner_node):
-		return
-	if owner_node is Zombie000Base:
-		pass
-
-	elif owner_node.name =="Pool":
-		print("小推车碰离开泳池")
-		end_swim()
 
 func suck_end():
 	if is_destroyed or is_queued_for_deletion():
@@ -76,19 +44,11 @@ func _mower_run_one_zombie(zombie :Zombie000Base):
 	move_speed = ori_move_speed / 4
 	is_zombie = true
 
-#region 水池游泳
-
-func start_swim():
-	# 水花
-	var splash = SceneRegistry.SPLASH.instantiate()
-	get_parent().add_child(splash)
-	splash.global_position = global_position
-	is_water = true
-
-func end_swim():
-	# 水花
-	var splash = SceneRegistry.SPLASH.instantiate()
+## 根据 [param touching] 切换水陆动画，并在切换处播放一次水花。
+func _on_water_contact_changed(touching: bool) -> void:
+	if is_destroyed or is_queued_for_deletion():
+		return
+	is_water = touching
+	var splash := SceneRegistry.SPLASH.instantiate() as Splash # 与推车同级的水花。
+	splash.position = position
 	get_parent().add_child.call_deferred(splash)
-	splash.global_position = global_position
-	is_water = false
-#endregion
