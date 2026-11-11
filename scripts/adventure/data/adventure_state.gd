@@ -140,10 +140,17 @@ static func from_dict(data: Variant) -> AdventureState:
 			state.card_order_uids.append(card_uid)
 		state.card_order_uids.sort_custom(_uid_before)
 	for item_id: Variant in data.items: # 不接受未知种类、零/负数或非整数数量。
-		if typeof(item_id) != TYPE_STRING or not ItemRegistry.has_item(item_id) \
-			or not PlantCardInstance.is_positive_integer(data.items[item_id]):
+		if typeof(item_id) != TYPE_STRING or not PlantCardInstance.is_positive_integer(data.items[item_id]):
 			return null
-		state.items[item_id] = int(data.items[item_id])
+		# 仅在读档边界将旧单级生长剂归并为一级；运行态与新存档不再保留旧 ID。
+		var canonical_id: String = "growth_agent_lv1" if item_id == "growth_agent" else item_id
+		if not ItemRegistry.has_item(canonical_id):
+			return null
+		var quantity: int = int(data.items[item_id]) # 单个合法正整数数量。
+		var existing: int = int(state.items.get(canonical_id, 0)) # 处理新旧两类 ID 在同一存档中并存。
+		if quantity > PlantCardInstance.MAX_JSON_INTEGER - existing:
+			return null
+		state.items[canonical_id] = existing + quantity
 	for card_uid: Variant in data.selected_card_uids: # 先验证整个输入，新状态失败时不会触及调用者的旧状态。
 		if typeof(card_uid) != TYPE_STRING or not state.cards.has(card_uid) or state.selected_card_uids.has(card_uid):
 			return null

@@ -88,6 +88,7 @@ func _upgrade_quote(choice: Dictionary) -> Dictionary:
 	var consumed: Array = raw_materials
 	var pot: bool = bool(choice.get("use_pot", false))
 	var fertilizer: String = str(choice.get("fertilizer", ""))
+	var growth_agent: String = str(choice.get("growth_agent", "")) # 保底与肥料分别选择，可同场使用。
 	var pot_cost: int = Enhancement.protection_count(main.stars + 1) if main != null else 0
 	var material_cards: Array[Dictionary] = []
 	for card_uid: Variant in consumed:
@@ -96,17 +97,17 @@ func _upgrade_quote(choice: Dictionary) -> Dictionary:
 		"fee": Enhancement.COST, "pot_required": pot_cost, "target_star": mini(Enhancement.MAX_STARS, int(main.stars) + 1) if main else 0,
 		"pot_owned": inventory.get_item_count("seedling_pot"),
 		"materials": consumed.duplicate(), "material_cards": material_cards,
-		"use_pot": pot, "fertilizer": fertilizer,
+		"use_pot": pot, "fertilizer": fertilizer, "growth_agent": growth_agent,
 		"fertilizer_multiplier": Enhancement.fertilizer_multiplier(fertilizer),
 		"stars": main.stars if main else 0}
-	var issue: String = Enhancement.validate(state, uid, consumed, pot, fertilizer)
+	var issue: String = Enhancement.validate(state, uid, consumed, pot, fertilizer, growth_agent)
 	if not issue.is_empty():
 		data["message"] = issue
 		return data
 	var material_instances: Array[PlantCardInstance] = []
 	for material_uid: Variant in consumed:
 		material_instances.append(state.cards[str(material_uid)])
-	var chance: Variant = Enhancement.success_probability(main, material_instances, fertilizer)
+	var chance: Variant = Enhancement.success_probability(main, material_instances, fertilizer, growth_agent)
 	if chance == null:
 		data["message"] = "概率算法未定义：强化执行暂不可用。"
 		return data

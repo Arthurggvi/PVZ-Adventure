@@ -5,6 +5,9 @@ class_name ItemRegistry
 const FERTILIZER_NAMES := ["一级", "二级", "三级", "四级", "五级"]
 ## 转职阶数从 1 开始，技能名称和阶数取自转职目录。
 const PROMOTION_NAMES := ["一转", "二转", "三转", "四转"]
+## 五档生长剂的稳定 ID，数组索引对应主卡零至四星；其他等级无保底道具。
+const GROWTH_AGENT_IDS := ["growth_agent_lv1", "growth_agent_lv2", "growth_agent_lv3",
+	"growth_agent_lv4", "growth_agent_lv5"]
 
 ## 第一阶段静态道具目录；稳定 ID 不随显示名称改变，不持有玩家数量。
 const ITEMS: Dictionary = {
@@ -140,8 +143,11 @@ const ITEMS: Dictionary = {
 	"zombie_island.edgar_temple.nightmare_key": {"subject": "埃德加神殿", "category": "key"},
 	"seedling_pot": {"name": "育苗花盆", "category": "consumable",
 		"description": "在研究室强化时使用。强化失败后保留主卡原有星级。"},
-	"growth_agent": {"name": "生长剂", "category": "consumable",
-		"description": "为植物生长配制的浓缩营养液。使用功能待开放。"},
+	"growth_agent_lv1": {"growth_agent_level": 1, "category": "consumable"},
+	"growth_agent_lv2": {"growth_agent_level": 2, "category": "consumable"},
+	"growth_agent_lv3": {"growth_agent_level": 3, "category": "consumable"},
+	"growth_agent_lv4": {"growth_agent_level": 4, "category": "consumable"},
+	"growth_agent_lv5": {"growth_agent_level": 5, "category": "consumable"},
 	"fertilizer_lv1": {"fertilizer_level": 1, "category": "consumable"},
 	"fertilizer_lv2": {"fertilizer_level": 2, "category": "consumable"},
 	"fertilizer_lv3": {"fertilizer_level": 3, "category": "consumable"},
@@ -175,4 +181,8 @@ static func get_item_definition(item_id: String) -> Dictionary:
 			if level >= 1 and level <= FERTILIZER_NAMES.size():
 				definition["name"] = "%s肥料" % FERTILIZER_NAMES[level - 1]
 				definition["description"] = "供研究室强化植物卡时使用的%s肥料，可以提高强化成功的机会。" % FERTILIZER_NAMES[level - 1]
+			var agent_level: int = int(definition.get("growth_agent_level", 0)) # 仅适用低一级的主卡星级。
+			if agent_level >= 1 and agent_level <= GROWTH_AGENT_IDS.size():
+				definition["name"] = "%s生长剂" % FERTILIZER_NAMES[agent_level - 1]
+				definition["description"] = "研究室强化%d星主卡时使用，成功率直接变为100%%；仍需正常耗材卡及金币。" % (agent_level - 1)
 	return definition

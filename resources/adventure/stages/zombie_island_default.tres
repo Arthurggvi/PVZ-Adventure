@@ -241,10 +241,10 @@ quantity_max = 1
 
 [sub_resource type="Resource" id="Resource_jp6ra"]
 script = ExtResource("4_l15qu")
-entry_id = &"lawn.drop.growth_agent"
+entry_id = &"lawn.drop.growth_agent_lv1"
 rule = 1
 asset_kind = 1
-asset_id = &"growth_agent"
+asset_id = &"growth_agent_lv1"
 quantity_min = 1
 quantity_max = 1
 chance = 0.1

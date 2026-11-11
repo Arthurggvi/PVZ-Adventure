@@ -2,7 +2,7 @@
 extends RefCounted
 
 ## 每种槽位对应一种候选集合。
-enum Slot { RECIPE, MAIN_CARD, MATERIAL_CARD, POT, FERTILIZER, PROMOTION_BOOK }
+enum Slot { RECIPE, MAIN_CARD, MATERIAL_CARD, POT, FERTILIZER, PROMOTION_BOOK, GROWTH_AGENT }
 
 ## 复用背包格的展示数据格式。
 const Data = preload("res://scripts/adventure/ui/inventory_data.gd")
@@ -22,6 +22,8 @@ var _materials: Array[String] = []
 var _use_pot: bool = false
 ## 当前填入的肥料 ID。
 var _fertilizer: String = ""
+## 当前填入的生长剂 ID，仅供强化保底。
+var _growth_agent: String = ""
 ## 当前填入的转职书 ID。
 var _book_id: String = ""
 
@@ -39,6 +41,7 @@ func reset(mode: String, retained_uid: String = "") -> void:
 	_materials.fill("")
 	_use_pot = false
 	_fertilizer = ""
+	_growth_agent = ""
 	_book_id = ""
 
 ## 复用 [param mode] 的默认选择行为，当前主选择消失时从 [param primary] 选第一项。
@@ -73,7 +76,7 @@ func can_focus(mode: String, slot: Slot, index: int = 0) -> bool:
 		return false
 	if slot == Slot.PROMOTION_BOOK:
 		return mode == "promotion"
-	return mode == "upgrade" and (slot in [Slot.POT, Slot.FERTILIZER] \
+	return mode == "upgrade" and (slot in [Slot.POT, Slot.FERTILIZER, Slot.GROWTH_AGENT] \
 		or (slot == Slot.MATERIAL_CARD and index >= 0 and index < _materials.size()))
 
 ## 将 [param mode] 中合法的 [param slot]、[param index] 设为当前候选来源。
@@ -98,6 +101,8 @@ func pick(mode: String, row: Dictionary) -> void:
 			_use_pot = true
 		Slot.FERTILIZER:
 			_fertilizer = str(row.id)
+		Slot.GROWTH_AGENT:
+			_growth_agent = str(row.id)
 		Slot.PROMOTION_BOOK:
 			_book_id = str(row.id)
 
@@ -110,6 +115,8 @@ func clear_active() -> void:
 			_use_pot = false
 		Slot.FERTILIZER:
 			_fertilizer = ""
+		Slot.GROWTH_AGENT:
+			_growth_agent = ""
 		Slot.PROMOTION_BOOK:
 			_book_id = ""
 
@@ -121,6 +128,7 @@ func key_for(slot: Slot, index: int = 0) -> String:
 		Slot.MATERIAL_CARD: return _materials[index]
 		Slot.POT: return "seedling_pot" if _use_pot else ""
 		Slot.FERTILIZER: return _fertilizer
+		Slot.GROWTH_AGENT: return _growth_agent
 		Slot.PROMOTION_BOOK: return _book_id
 	return ""
 
@@ -162,6 +170,10 @@ func candidates(service: AdventureResearchService, primary: Array[Dictionary], p
 		Slot.FERTILIZER:
 			for id: String in Enhancement.FERTILIZERS:
 				_append_owned_item(rows, service.inventory, id)
+		Slot.GROWTH_AGENT:
+			var main: PlantCardInstance = service.state.cards.get(_main_uid) # 只展示主卡对应的生长剂档位。
+			if main != null and main.stars >= 0 and main.stars < Enhancement.GROWTH_AGENTS.size():
+				_append_owned_item(rows, service.inventory, Enhancement.GROWTH_AGENTS[main.stars])
 		Slot.PROMOTION_BOOK:
 			for branch: Dictionary in preview.get("branches", []):
 				_append_owned_item(rows, service.inventory, str(branch.id))
@@ -184,7 +196,8 @@ func operation_choice(mode: String) -> Dictionary:
 			for uid: String in _materials:
 				if not uid.is_empty():
 					consumed.append(uid)
-			return {"uid": _main_uid, "materials": consumed, "use_pot": _use_pot, "fertilizer": _fertilizer}
+			return {"uid": _main_uid, "materials": consumed, "use_pot": _use_pot,
+				"fertilizer": _fertilizer, "growth_agent": _growth_agent}
 		"promotion":
 			return {"uid": _main_uid, "book_id": _book_id}
 	return {}
@@ -197,5 +210,6 @@ static func slot_title(slot: Slot, index: int) -> String:
 		Slot.MATERIAL_CARD: return "耗材卡 %d" % (index + 1)
 		Slot.POT: return "育苗花盆"
 		Slot.FERTILIZER: return "肥料"
+		Slot.GROWTH_AGENT: return "保底生长剂（仅适用低一级的主卡）"
 		Slot.PROMOTION_BOOK: return "技能书"
 	return ""

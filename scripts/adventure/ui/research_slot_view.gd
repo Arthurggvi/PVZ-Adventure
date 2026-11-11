@@ -7,6 +7,8 @@ const Tile = preload("res://scripts/adventure/ui/inventory_tile.gd")
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 ## 槽位类型和当前选取状态。
 const Picker = preload("res://scripts/adventure/ui/research_slot_picker.gd")
+## 生长剂的占位图按当前主卡星级选择对应档位。
+const Enhancement = preload("res://scripts/adventure/research/research_enhancement_rules.gd")
 ## 道具目录中的图标路径，不依赖玩家是否持有该道具。
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 ## 复用现有灰显效果，只用于空槽图标。
@@ -93,6 +95,11 @@ static func work(owner: Control, parent: Control, mode: String, picker: Picker,
 	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if record.is_empty():
 		var hint_item: String = EMPTY_ITEM_HINTS.get(slot, "") # 花盆槽和肥料槽按道具 ID 取图。
+		if slot == Picker.Slot.GROWTH_AGENT and inventory != null:
+			var main_record: Dictionary = inventory.get_card(picker.key_for(Picker.Slot.MAIN_CARD)) # 仅使用主卡实时星级。
+			var star: int = int(main_record.get("stars", -1)) # 未选主卡时不显示误导性的一级图标。
+			if star >= 0 and star < Enhancement.GROWTH_AGENTS.size():
+				hint_item = Enhancement.GROWTH_AGENTS[star]
 		var hint_uri: String = ItemArt.promotion_tier_uri(1) if slot == Picker.Slot.PROMOTION_BOOK else ItemArt.icon_uri(hint_item) # 空转职书槽使用灰显的一转书本。
 		if not hint_uri.is_empty():
 			var hint: TextureRect = Art.image(tile, hint_uri, Tile.ICON_POSITION, Tile.ICON_SIZE) # 跟随背包格等比缩放。

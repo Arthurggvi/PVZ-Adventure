@@ -81,7 +81,23 @@
       "category": "consumable",
       "icon": "consumables/seedling_pot.png"
     },
-    "growth_agent": {
+    "growth_agent_lv1": {
+      "category": "consumable",
+      "icon": "consumables/growth_agent.png"
+    },
+    "growth_agent_lv2": {
+      "category": "consumable",
+      "icon": "consumables/growth_agent.png"
+    },
+    "growth_agent_lv3": {
+      "category": "consumable",
+      "icon": "consumables/growth_agent.png"
+    },
+    "growth_agent_lv4": {
+      "category": "consumable",
+      "icon": "consumables/growth_agent.png"
+    },
+    "growth_agent_lv5": {
       "category": "consumable",
       "icon": "consumables/growth_agent.png"
     },

@@ -58,7 +58,7 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 					or not is_finite(chance) or chance < 0.0 or chance > 1.0:
 				return _error("强化概率规则未就绪。")
 			if not Enhancement.validate(state, operation.card_uid, operation.material_uids,
-					operation.use_pot, operation.fertilizer_id).is_empty():
+					operation.use_pot, operation.fertilizer_id, operation.growth_agent_id).is_empty():
 				return _error("强化材料状态已变化。")
 			fee = Enhancement.COST
 			updated_uid = target.uid
@@ -67,6 +67,8 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 				consume["seedling_pot"] = Enhancement.protection_count(target.stars + 1)
 			if not operation.fertilizer_id.is_empty():
 				consume[operation.fertilizer_id] = 1
+			if not operation.growth_agent_id.is_empty():
+				consume[operation.growth_agent_id] = 1
 			succeeded = randf() < float(chance)
 			resulting_stars = Enhancement.result_star(target.stars, succeeded, operation.use_pot)
 		_:

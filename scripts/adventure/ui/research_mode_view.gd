@@ -43,16 +43,20 @@ static func plant(parent: Control, type_id: int, pos: Vector2, dimensions: Vecto
 	card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 ## 用 [param preview] 绘制强化信息，在 [param parent] 以 [param picker] 和 [param inventory] 展示可选工作槽。
-## [param owner] 接收主卡、耗材、花盆和肥料的槽位交互；[param coin_balance] 用于价格提示。
+## [param owner] 接收主卡、耗材、花盆、肥料和生长剂的槽位交互；[param coin_balance] 用于价格提示。
 static func upgrade(owner: Control, parent: Control, preview: Dictionary,
 		picker: Picker, inventory: AdventureInventoryService, coin_balance: int) -> void:
 	var pot_required: int = int(preview.get("pot_required", 0)) # 报价按目标星级给出的保护用量。
+	# 上排四槽按宽度缩放到与下排三张耗材卡接近的显示尺寸。
+	var tool_scale: float = 0.92
 	Slots.work(owner, parent, "upgrade", picker, inventory, Picker.Slot.POT,
-		Slots.work_cell(3, 2, 0, Slots.COMPACT_SLOT_SCALE), 0, pot_required)
+		Slots.work_cell(4, 2, 0, tool_scale), 0, pot_required)
 	Slots.work(owner, parent, "upgrade", picker, inventory, Picker.Slot.MAIN_CARD,
-		Slots.work_cell(3, 2, 1, Slots.COMPACT_SLOT_SCALE))
+		Slots.work_cell(4, 2, 1, tool_scale))
 	Slots.work(owner, parent, "upgrade", picker, inventory, Picker.Slot.FERTILIZER,
-		Slots.work_cell(3, 2, 2, Slots.COMPACT_SLOT_SCALE))
+		Slots.work_cell(4, 2, 2, tool_scale))
+	Slots.work(owner, parent, "upgrade", picker, inventory, Picker.Slot.GROWTH_AGENT,
+		Slots.work_cell(4, 2, 3, tool_scale))
 	for index: int in range(Enhancement.MAX_MATERIAL_CARDS):
 		Slots.work(owner, parent, "upgrade", picker, inventory, Picker.Slot.MATERIAL_CARD,
 			Slots.work_cell(3, 2, index + 3, Slots.COMPACT_SLOT_SCALE), index)
@@ -62,7 +66,10 @@ static func upgrade(owner: Control, parent: Control, preview: Dictionary,
 	var probability_color := Color("382719") # 未知概率沿用普通文字色。
 	if chance != null:
 		var rate: float = float(chance) # 服务返回 0 到 1，颜色按概率阈值判断。
-		probability_text = "概率：%.2f%%" % (rate * 100.0)
+		if not str(preview.get("growth_agent", "")).is_empty():
+			probability_text = "概率：100%（生长剂保底）"
+		else:
+			probability_text = "概率：%.2f%%" % (rate * 100.0)
 		if rate < 0.30:
 			probability_color = Color("a32824")
 		elif rate < 0.60:

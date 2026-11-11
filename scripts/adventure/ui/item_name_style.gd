@@ -1,4 +1,4 @@
-## 按肥料级别或技能书阶数绘制道具名称，配色仅应用于文字。
+## 按肥料/生长剂级别或技能书阶数绘制道具名称，配色仅应用于文字。
 extends RefCounted
 
 ## 复用羊皮纸面板的普通名称样式。
@@ -18,7 +18,8 @@ static func draw(parent: Node, caption: String, item_id: String, bounds: Rect2, 
 	if promotion == 4:
 		_draw_rainbow(parent, caption, bounds, font_size, allow_wrap)
 		return
-	var level: int = promotion + 2 if promotion > 0 else int(item.get("fertilizer_level", 0)) # 肥料一级起按五色映射。
+	var level: int = promotion + 2 if promotion > 0 else int(item.get(
+		"fertilizer_level", item.get("growth_agent_level", 0))) # 两种消耗品共用级别配色。
 	var color: Color = NAME_COLORS[clampi(level, 0, NAME_COLORS.size() - 1)] # 其他道具用普通文字色。
 	var label: Label = Art.label(parent, caption, bounds.position, bounds.size, font_size, color) # 沿用已有位置与字体。
 	if allow_wrap:

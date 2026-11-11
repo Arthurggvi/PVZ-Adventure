@@ -11,6 +11,8 @@ var book_id: String = ""
 var material_uids: Array = []
 var use_pot: bool = false
 var fertilizer_id: String = ""
+## 强化时选用的生长剂，空字符串表示不使用保底。
+var growth_agent_id: String = ""
 
 static func from_choice(operation_mode: String, selection: Dictionary) -> AdventureResearchOperation:
 	var action := AdventureResearchOperation.new()
@@ -29,6 +31,7 @@ static func from_choice(operation_mode: String, selection: Dictionary) -> Advent
 			action.material_uids = raw.duplicate()
 			action.use_pot = bool(selection.get("use_pot", false))
 			action.fertilizer_id = str(selection.get("fertilizer", ""))
+			action.growth_agent_id = str(selection.get("growth_agent", ""))
 		"promotion":
 			action.kind = Kind.PROMOTE
 			action.card_uid = str(selection.get("uid", ""))
@@ -50,7 +53,8 @@ func choice() -> Dictionary:
 			return {"recipe_id": recipe_id}
 		Kind.ENHANCE:
 			return {"uid": card_uid, "materials": material_uids.duplicate(),
-				"use_pot": use_pot, "fertilizer": fertilizer_id}
+				"use_pot": use_pot, "fertilizer": fertilizer_id,
+				"growth_agent": growth_agent_id}
 		Kind.PROMOTE:
 			return {"uid": card_uid, "book_id": book_id}
 	return {}
