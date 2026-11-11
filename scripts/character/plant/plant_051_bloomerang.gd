@@ -48,7 +48,6 @@ func _physics_process(delta: float) -> void:
 				and target.global_position.x <= right_edge:
 			_cooldown = randf_range(ATTACK_INTERVAL.x, ATTACK_INTERVAL.y)
 			_release_pending = true
-			BloomerangAudio.play_prepare(_sound_tier)
 			_animation.play(&"attack")
 			return
 	_cooldown = TARGET_RECHECK_DELAY
@@ -70,10 +69,10 @@ func _battle_edges() -> Vector2:
 		(world_from_screen * viewport_rect.end).x)
 
 
-## 预攻击动作开始 0.4 秒后的方法轨，重现原版攻击事件的延迟播放层。
-func _play_attack_sound() -> void:
+## 预攻击动作开始 0.4 秒后，由方法轨播放回旋镖专属投掷声。
+func _play_throw_sound() -> void:
 	if _release_pending and _can_attack(Global.main_game):
-		BloomerangAudio.play_attack(_sound_tier)
+		BloomerangAudio.play_throw(_sound_tier)
 
 
 ## 原版投掷动作的 use_action 方法轨，生成一枚继承本次出战伤害倍率的回旋镖。
@@ -92,7 +91,9 @@ func _release_boomerang() -> void:
 		Bullet000NormBase.E_InitParasAttr.CanAttackZombieState: _detect.can_attack_zombie_status,
 		Bullet000NormBase.E_InitParasAttr.DamageMultiplier: battle_damage_multiplier,
 	})
-	bullet.configure_flight(self, _battle_edges(), game.main_game_slope, _sound_tier)
+	bullet.configure_flight(self, _battle_edges(), game.main_game_slope)
+	# 只为已结算的命中发声，绑定发射时的音色档，植株离场后仍可播放。
+	bullet.impact_resolved.connect(BloomerangAudio.play_impact.bind(_sound_tier).unbind(2))
 	bullet.returned.connect(_on_boomerang_returned)
 	game.bullets.add_child(bullet)
 
