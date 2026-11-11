@@ -6,6 +6,8 @@ class_name AdventureBattleEnvironment
 @export var scene: MainSceneRegistry.MainScenes = MainSceneRegistry.MainScenes.MainGameFront
 @export var background: ConstLevelData.GameBg = ConstLevelData.GameBg.FrontDay
 @export var background_texture: Texture2D
+## 独立水面视觉预设，空值不创建水面渲染层。
+@export var water_surface_profile: WaterSurfaceProfile
 ## 战场逐行地形；空数组沿用原版场景节点设置，顺序自上而下。
 @export var terrain_rows: Array[CharacterRegistry.ZombieRowType] = []
 @export var music: ConstLevelData.GameBGM = ConstLevelData.GameBGM.FrontDay

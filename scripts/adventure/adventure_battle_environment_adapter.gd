@@ -13,6 +13,7 @@ static func build(stage: StageDefinition, phase: StagePhaseDefinition) -> Resour
 	level.game_sences = env.scene
 	level.game_BG = env.background
 	level.battle_background_texture = env.background_texture
+	level.water_surface_profile = env.water_surface_profile
 	level.terrain_rows = env.terrain_rows.duplicate()
 	level.game_BGM = env.music
 	level.is_fog = env.fog

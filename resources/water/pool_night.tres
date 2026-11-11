@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WaterSurfaceProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/water/water_surface_profile.gd" id="profile"]
+
+[resource]
+script = ExtResource("profile")
+water_tint = Color(1, 1, 1, 1)
+tint_mix = 0.0
+wave_speed = 0.23
+ripple_strength = 0.0016
+wave_density = 0.95
+caustic_strength = 0.028
+caustic_tint = Color(0.4, 0.7, 0.9, 1)
+opacity = 1.0

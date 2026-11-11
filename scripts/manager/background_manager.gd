@@ -8,6 +8,8 @@ class_name BackgroundManager
 @onready var home: MainGameHome = %Home
 ## 泳池
 var pool:Pool
+## 通用的冒险关卡局部水面控制器，原版泳池仍由 Pool 持有独立控制器。
+var water_surface: WaterSurfaceController
 ## 浓雾
 var fog:Fog
 
@@ -30,6 +32,14 @@ func init_background():
 	if curr_bg_texture == null:
 		curr_bg_texture = ConstLevelData.GameBgTextureMap[game_para.game_BG]
 	background.texture = curr_bg_texture
+	# 水面区域来自关卡资源，渲染与原版背景层共坐标，不侵入其他 CanvasLayer。
+	if game_para.water_surface_profile != null:
+		water_surface = WaterSurfaceController.new()
+		water_surface.name = "WaterSurface"
+		background.add_child(water_surface)
+		# 水面在背景之后、其他道具之前绘制，不遮盖现有实体。
+		background.move_child(water_surface, 0)
+		water_surface.configure_background(background, game_para.water_surface_profile)
 	# 自定义背景已绘制入口，原版房门和遮罩只与原版背景配套。
 	home.init_home(game_para.game_BG, game_para.battle_background_texture == null)
 	if not game_para.is_zombie_can_home:

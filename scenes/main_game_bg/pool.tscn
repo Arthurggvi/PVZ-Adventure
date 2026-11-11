@@ -1,21 +1,10 @@
-[gd_scene load_steps=15 format=3 uid="uid://bq5t78cjcpj7y"]
+[gd_scene load_steps=13 format=3 uid="uid://bq5t78cjcpj7y"]
 
 [ext_resource type="Script" uid="uid://cmnt7djyt1387" path="res://scripts/main_game_item/pool.gd" id="1_h0rrj"]
 [ext_resource type="Texture2D" uid="uid://1n27xoaqkwyu" path="res://assets/image/background/pool_base.jpg" id="2_wjd4q"]
-[ext_resource type="Shader" uid="uid://bew3j0byymgpy" path="res://shaders/my_shader/main_game_pool.gdshader" id="3_exjdu"]
 [ext_resource type="Texture2D" uid="uid://dod75n76awrvg" path="res://assets/image/background/pool.jpg" id="4_op0xy"]
 [ext_resource type="Shader" uid="uid://1wkg6t4ewiw0" path="res://shaders/my_shader/pool_drop.gdshader" id="5_ie0cy"]
 [ext_resource type="Texture2D" uid="uid://72dwq6gmdyw0" path="res://assets/image/particles/PoolSparkly.png" id="5_k3fql"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_71hfq"]
-shader = ExtResource("3_exjdu")
-shader_parameter/ripple_speed = 0.3
-shader_parameter/ripple_scale = 4.0
-shader_parameter/ripple_strength = 0.0
-shader_parameter/ripple_blur = 1.0
-shader_parameter/water_color = Color(0.2, 0.5, 0.8, 0.6)
-shader_parameter/color_blend = 0.2
-shader_parameter/alpha = 1.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_huk7e"]
 shader = ExtResource("5_ie0cy")
@@ -95,7 +84,6 @@ position = Vector2(610.595, 357)
 texture = ExtResource("2_wjd4q")
 
 [node name="Pool" type="Sprite2D" parent="."]
-material = SubResource("ShaderMaterial_71hfq")
 position = Vector2(609.046, 357.303)
 scale = Vector2(1.00531, 1.02405)
 texture = ExtResource("4_op0xy")

@@ -31,6 +31,8 @@ func set_choose_level(curr_game_mode: MainSceneRegistry.MainScenes, curr_level_p
 @export var game_BG: ConstLevelData.GameBg = ConstLevelData.GameBg.FrontDay
 ## 冒险背景，可为空以复用原版枚举背景。
 @export var battle_background_texture: Texture2D
+## 冒险环境传入的通用水面预设；为空则仅使用原版泳池节点。
+@export var water_surface_profile: WaterSurfaceProfile
 ## 冒险环境投影的逐行水陆地形；空数组继续使用场景预置行类型。
 @export var terrain_rows: Array[CharacterRegistry.ZombieRowType] = []
 
