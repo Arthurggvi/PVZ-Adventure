@@ -142,6 +142,8 @@ func consume_adventure_cost_effects() -> bool:
 var _is_cooling: bool = false
 ## 当前费用是否已被卡槽判定为足够。
 var is_sun_enough: bool = true
+## 由普通出战卡槽设置，开启时战斗中的本卡始终满足阳光费用。
+var cheat_ignore_sun_cost := false
 ## 剩余冷却时间，单位为游戏秒。
 var _cool_timer: float = 0.0
 ## 冒险事件倍率只影响新开始的冷却，不反向改动卡牌原有冷却参数。
@@ -233,9 +235,9 @@ func _process(delta: float) -> void:
 			judge_card_ready()
 
 
-## 根据 [param curr_sun_value] 更新费用可用性，并重新计算是否可以使用。
+## 根据 [param curr_sun_value] 和本卡的无限阳光状态更新费用可用性，再检查其余使用条件。
 func judge_sun_enough(curr_sun_value: int) -> void:
-	is_sun_enough = curr_sun_value >= sun_cost
+	is_sun_enough = curr_sun_value >= sun_cost or (cheat_ignore_sun_cost and card_context == CardContext.Battle)
 	judge_card_ready()
 
 

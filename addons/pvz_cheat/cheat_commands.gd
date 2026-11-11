@@ -115,6 +115,10 @@ func enter_stage(stage: int, nightmare: bool) -> Dictionary:
 func settle_current() -> Dictionary:
 	return stage_service.settle_current()
 
+## 返回当前战斗可用的开关状态，供修改器同步显示。
+func battle_toggle_states() -> Dictionary:
+	return Battle.toggle_states()
+
 ## 按 [param enabled] 设置本局秒杀开关，返回战斗命令结果。
 func set_battle_instant_kill(enabled: bool) -> Dictionary:
 	return Battle.set_instant_kill(enabled)
@@ -122,6 +126,10 @@ func set_battle_instant_kill(enabled: bool) -> Dictionary:
 ## 按 [param enabled] 切换本局卡牌无冷却，返回战斗命令结果。
 func set_battle_no_card_cooldown(enabled: bool) -> Dictionary:
 	return Battle.set_no_card_cooldown(enabled)
+
+## 按 [param enabled] 切换本局无限阳光，返回战斗命令结果。
+func set_battle_infinite_sun(enabled: bool) -> Dictionary:
+	return Battle.set_infinite_sun(enabled)
 
 ## 生成指定 [param zombie_type] 和 [param tier_id]；[param all_lanes] 为 true 时每行一只。
 func spawn_battle_zombies(zombie_type: int, tier_id: StringName, all_lanes: bool) -> Dictionary:

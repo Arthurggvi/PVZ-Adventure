@@ -78,6 +78,8 @@ func _ready() -> void:
 	feedback.add_theme_font_size_override("font_size", 16)
 	feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	outer.add_child(feedback)
+	EventBus.subscribe("main_game_progress_update", _refresh_battle_toggles)
+	get_tree().scene_changed.connect(_refresh_battle_toggles)
 	# The shortcut only builds the lightweight shell; modules are loaded on explicit selection.
 
 ## Dock to the right edge while leaving the game canvas interactive on the left.
@@ -134,6 +136,11 @@ func select_section(value: String) -> void:
 	for key: String in _tab_buttons:
 		(_tab_buttons[key] as Button).set_pressed_no_signal(key == value)
 	Pages.build(content, value, service, Callable(self, "report"))
+
+## 战斗进度 [param _progress] 或当前场景变化时刷新开关，保留页面的出怪选项。
+func _refresh_battle_toggles(_progress: Variant = null) -> void:
+	if visible and _section == "battle":
+		Pages.refresh_battle_toggles(content, service)
 
 func _clear_content() -> void:
 	for child: Node in content.get_children():

@@ -201,17 +201,45 @@ static func _stages(root: VBoxContainer, service: RefCounted, report: Callable) 
 	_button(root, "全部普通关卡通关（无奖励）", func(): report.call(service.clear_stage(6, false)))
 	_note(root, "真实结算遵守 Boss / 战斗事件条件；未满足时使用“标记通关”跳过奖励。")
 
+## 在 [param parent] 放置由 [param id] 标识的 [param caption] 开关。
+## 切换时调用 [param action]，失败则恢复原状态，最后用 [param report] 显示结果。
+static func _battle_toggle(parent: VBoxContainer, id: StringName, caption: String,
+		action: Callable, report: Callable) -> void:
+	var toggle := CheckButton.new() # 使用 Godot 的滑动开关，支持鼠标和键盘切换。
+	toggle.name = id
+	toggle.text = caption
+	toggle.custom_minimum_size.y = 36
+	toggle.toggled.connect(func(enabled: bool) -> void:
+		var result: Dictionary = action.call(enabled) # 以命令结果为准，避免失败后显示成已启用。
+		if not result.get("ok", false):
+			toggle.set_pressed_no_signal(not enabled)
+		report.call(result)
+	)
+	parent.add_child(toggle)
+
+## 通过 [param service] 将 [param root] 中的战斗开关与当前战场同步。
+static func refresh_battle_toggles(root: VBoxContainer, service: RefCounted) -> void:
+	var group := root.get_node_or_null("BattleToggles") as VBoxContainer # 页面切换后此组可能尚未创建。
+	if group == null:
+		return
+	var states: Dictionary = service.battle_toggle_states() # 缺少状态的开关在当前战斗中不可用。
+	for toggle: CheckButton in group.get_children(): # 按开关节点名匹配战斗状态。
+		var enabled: Variant = states.get(toggle.name) # bool 表示开关状态，null 表示不可用。
+		toggle.disabled = enabled == null
+		toggle.set_pressed_no_signal(enabled == true)
+
 ## 在 [param root] 绘制战斗工具，[param service] 执行命令，[param report] 接收结果。
 static func _battle(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
 	_title(root, "战斗")
 	_note(root, "仅在正式战斗中可用。单只出怪会随机选择兼容行，各路生成会先检查地形。")
 	_note(root, "秒杀开启后，新生成的僵尸和 Boss 会立即死亡，本局有效。")
-	var instant_kill_buttons: HBoxContainer = _row(root) # 并排提供本局秒杀的开启和关闭操作。
-	_button(instant_kill_buttons, "开启秒杀", func(): report.call(service.set_battle_instant_kill(true)))
-	_button(instant_kill_buttons, "关闭秒杀", func(): report.call(service.set_battle_instant_kill(false)))
-	var cooldown_buttons: HBoxContainer = _row(root) # 并排提供普通出战卡的无冷却开关。
-	_button(cooldown_buttons, "开启卡牌无冷却", func(): report.call(service.set_battle_no_card_cooldown(true)))
-	_button(cooldown_buttons, "关闭卡牌无冷却", func(): report.call(service.set_battle_no_card_cooldown(false)))
+	var toggles := VBoxContainer.new() # 将持续生效的战斗开关放在一组。
+	toggles.name = "BattleToggles"
+	root.add_child(toggles)
+	_battle_toggle(toggles, &"instant_kill", "秒杀", Callable(service, "set_battle_instant_kill"), report)
+	_battle_toggle(toggles, &"no_card_cooldown", "卡牌无冷却", Callable(service, "set_battle_no_card_cooldown"), report)
+	_battle_toggle(toggles, &"infinite_sun", "无限阳光", Callable(service, "set_battle_infinite_sun"), report)
+	refresh_battle_toggles(root, service)
 	_note(root, "僵尸类型")
 	var zombie: OptionButton = _select(root) # 选项 ID 直接使用僵尸注册表枚举值。
 	Global.global_read_data.ensure_almanac_loaded()

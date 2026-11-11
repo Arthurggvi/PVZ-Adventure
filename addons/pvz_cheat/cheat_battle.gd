@@ -11,6 +11,18 @@ static func _active_battle() -> MainGameManager:
 		return null
 	return game
 
+## 返回当前战斗可用的开关状态，缺少的键表示该开关不可用。
+static func toggle_states() -> Dictionary:
+	var game: MainGameManager = _active_battle() # 从当前场景读取状态，避免沿用上一局的显示。
+	if game == null:
+		return {}
+	var states: Dictionary = {&"instant_kill": game.zombie_manager.cheat_instant_kill_enabled} # 秒杀独立于卡槽模式。
+	var slot: CardSlotBattle = game.card_manager.card_slot_battle # 阳光和冷却开关由普通卡槽维护。
+	if is_instance_valid(slot):
+		states[&"no_card_cooldown"] = slot.cheat_no_cooldown_enabled
+		states[&"infinite_sun"] = slot.cheat_infinite_sun_enabled
+	return states
+
 ## 在当前战斗中按 [param enabled] 开关新出场敌人的秒杀，返回操作结果。
 static func set_instant_kill(enabled: bool) -> Dictionary:
 	var game: MainGameManager = _active_battle() # 秒杀开关只修改正在进行的战斗。
@@ -29,6 +41,17 @@ static func set_no_card_cooldown(enabled: bool) -> Dictionary:
 		return {"ok": false, "message": "当前战斗没有使用普通出战卡槽。"}
 	slot.set_cheat_no_cooldown(enabled)
 	return {"ok": true, "message": "已开启卡牌无冷却。" if enabled else "已关闭卡牌无冷却。"}
+
+## 按 [param enabled] 切换本局普通出战卡槽的无限阳光，返回操作结果。
+static func set_infinite_sun(enabled: bool) -> Dictionary:
+	var game: MainGameManager = _active_battle() # 只操作当前正在进行的战斗。
+	if game == null:
+		return {"ok": false, "message": "请在正式战斗中切换无限阳光。"}
+	var slot: CardSlotBattle = game.card_manager.card_slot_battle # 只有普通出战卡槽使用阳光费用。
+	if not is_instance_valid(slot):
+		return {"ok": false, "message": "当前战斗没有使用普通出战卡槽。"}
+	slot.set_cheat_infinite_sun(enabled)
+	return {"ok": true, "message": "已开启无限阳光。" if enabled else "已关闭无限阳光。"}
 
 ## 在兼容的行生成 [param zombie_type]，并应用 [param tier_id]。
 ## [param all_lanes] 为 true 时预检整张战场，每条实际存在的行各生成一个实例。

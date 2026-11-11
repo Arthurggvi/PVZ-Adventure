@@ -2,23 +2,31 @@ extends FixedBattleCardSlots
 ## 出战卡槽
 class_name CardSlotBattle
 
-## Fired once after a successful normal battle-card placement has paid its cost.
+## 普通出战卡成功放置并完成费用结算后发送一次。
 signal signal_card_committed(card: Card, consumed_resonance_free: bool)
 
 @onready var curr_sun_value: Label = $SunLabelControl/CurrSunValue
 @onready var marker_2d_sun_target: Marker2D = %Marker2DSunTarget
+## 阳光计数器的数字字体，退出无限阳光时恢复使用。
+@onready var _sun_counter_font: Font = curr_sun_value.get_theme_font("font")
 
 ## 本局默认关闭的无冷却开关，开启时跳过用卡后的冷却。
-var _cheat_no_cooldown := false
+var cheat_no_cooldown_enabled := false
+## 本局默认关闭的无限阳光开关，开启时跳过用卡扣费。
+var cheat_infinite_sun_enabled := false
 
-## 阳光值
+## 实际阳光余额，用于正常扣费和轮间存档。
 var sun_value:
 	set(value):
 		sun_value = value
-		curr_sun_value.text = str(value)
+		_refresh_sun_state()
 
-		for card in curr_cards:
-			card.judge_sun_enough(value)
+## 同步阳光计数器和出战卡的费用状态。
+func _refresh_sun_state() -> void:
+	curr_sun_value.text = "∞" if cheat_infinite_sun_enabled else str(sun_value)
+	for card: Card in curr_cards: # 出战卡共享本局的无限阳光开关。
+		card.cheat_ignore_sun_cost = cheat_infinite_sun_enabled
+		card.judge_sun_enough(sun_value)
 
 func _ready() -> void:
 	Global.config_service.signal_change_disappear_spare_card_placeholder.connect(judge_disappear_add_card_bar)
@@ -44,6 +52,7 @@ func main_game_refresh_card():
 			card.set_card_disable()
 			continue
 		card.card_context = Card.CardContext.Battle
+		card.cheat_ignore_sun_cost = cheat_infinite_sun_enabled
 		card.judge_sun_enough(sun_value)
 		if not card.signal_card_use_end.is_connected(card_use_end):
 			card.signal_card_use_end.connect(card_use_end)
@@ -62,7 +71,7 @@ func start_next_game_card_slot_battle_update():
 ## [param enabled] 为 true 时立即清空出战卡的剩余冷却，并重新检查费用与使用条件。
 ## 关闭时从下次用卡开始恢复正常计时。
 func set_cheat_no_cooldown(enabled: bool) -> void:
-	_cheat_no_cooldown = enabled
+	cheat_no_cooldown_enabled = enabled
 	if not enabled:
 		return
 	for card: Card in curr_cards: # 只刷新已经进入战斗交互的卡牌。
@@ -70,10 +79,19 @@ func set_cheat_no_cooldown(enabled: bool) -> void:
 			card.set_card_cool_end()
 			card.judge_sun_enough(sun_value)
 
-## [param card] 成功使用后扣除当前阳光价格，并根据无冷却开关决定是否开始计时。
+## 按 [param enabled] 切换无限阳光，保留实际余额并立即刷新费用可用性。
+func set_cheat_infinite_sun(enabled: bool) -> void:
+	cheat_infinite_sun_enabled = enabled
+	# 原计数器的位图字体只有数字，无限符号使用默认字体。
+	var counter_font: Font = curr_sun_value.get_theme_default_font() if enabled else _sun_counter_font
+	curr_sun_value.add_theme_font_override("font", counter_font)
+	_refresh_sun_state()
+
+## [param card] 成功使用后按当前开关结算阳光、冷却及冒险卡牌效果。
 func card_use_end(card:Card):
-	sun_value = sun_value - card.sun_cost
-	if not _cheat_no_cooldown:
+	if not cheat_infinite_sun_enabled:
+		sun_value = sun_value - card.sun_cost
+	if not cheat_no_cooldown_enabled:
 		card.card_cool()
 	if AdventureSession.owns_battle(Global.game_para):
 		var consumed_free: bool = card.consume_adventure_cost_effects()
