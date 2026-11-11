@@ -329,9 +329,10 @@ func register_boss(boss: ZB000Base, boss_type: CharacterRegistry.ZombieBossType,
 	boss.signal_trophy_requested.connect(_on_boss_trophy_requested.bind(instance_id))
 	boss.tree_exiting.connect(_on_boss_tree_exiting.bind(instance_id))
 	curr_zombie_num += 1
-	# 已挂在根节点的外部实例可直接登记；尚未入树的实例由生成入口完成后通知。
+	# 已入树的外部实例立即同步音乐和血条；尚未入树的实例由生成入口完成后同步。
 	if boss.is_inside_tree():
 		signal_living_bosses_changed.emit()
+		_refresh_boss_progress()
 	return true
 
 
@@ -436,7 +437,7 @@ func _get_registered_boss(instance_id: int) -> ZB000Base:
 func get_living_bosses() -> Array[ZB000Base]:
 	# 快照只收集仍计入场上敌方的有效实例。
 	var bosses: Array[ZB000Base] = []
-	# 登记顺序决定血条显示最新生成的存活实例。
+	# 登记顺序决定屏幕底部血条的排列顺序。
 	for instance_id: int in _registered_bosses:
 		# 死亡演出仍可登记，但不进入存活快照。
 		var boss: ZB000Base = _get_registered_boss(instance_id)
@@ -446,7 +447,7 @@ func get_living_bosses() -> Array[ZB000Base]:
 	return bosses
 
 
-## 生命周期变化后更新存活数量和最新实例血条；场景卸载时不访问已退出的 UI。
+## 生命周期变化后同步各存活实例的血条；场景卸载时不访问已退出的 UI。
 func _refresh_boss_progress() -> void:
 	if is_instance_valid(main_game) and is_instance_valid(main_game.level_info) \
 		and main_game.level_info.is_inside_tree() and not main_game.level_info.is_queued_for_deletion():

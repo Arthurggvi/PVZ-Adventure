@@ -613,6 +613,7 @@ grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("46_y1sge")
+boss_bar_scene = ExtResource("boss_hp_progress")
 
 [node name="WaveProgressRoot" type="Control" parent="CanvasLayerUI/LevelInfo"]
 layout_mode = 0
@@ -622,10 +623,6 @@ mouse_filter = 2
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-
-[node name="BossHpProgressBar" parent="CanvasLayerUI/LevelInfo" instance=ExtResource("boss_hp_progress")]
-visible = false
-layout_mode = 0
 
 [node name="RoundLabel" type="Label" parent="CanvasLayerUI/LevelInfo" unique_id=1795988872]
 visible = false
