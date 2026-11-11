@@ -93,7 +93,7 @@ func right_of(origin: PlantCell) -> PlantCell:
 
 ## 返回当前世界坐标 [param point] 下实际交互地块；重叠时与 GUI 的场景树顺序一致。
 func pick_cell(point: Vector2) -> PlantCell:
-	var result: PlantCell # 重叠时按场景树输入顺序选择，不把 z_index 当输入层级。
+	var result: PlantCell = null # 命中重叠地块时按场景树输入顺序选择。
 	for cell: PlantCell in _cells: # 地块几何与 Button._has_point 使用同一接口。
 		if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_visible_in_tree():
 			continue

@@ -80,7 +80,8 @@ func _confirm_water_exit() -> void:
 			_water_contacts.erase(id)
 	if _water_active and _water_contacts.is_empty():
 		_water_active = false
-		if not owner_is_death:
+		# 切换场景时，延迟回调可能在僵尸离开场景树后执行。
+		if not owner_is_death and is_inside_tree():
 			_on_water_contact_changed(false)
 
 ## 派生表现只处理聚合后的 [param swimming] 变化，禁止重写接触计数协议。

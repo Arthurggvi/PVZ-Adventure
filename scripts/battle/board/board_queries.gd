@@ -28,7 +28,7 @@ static func neighbors(board: BoardRuntime, origin: PlantCell, radius: int) -> Ar
 
 ## 按当前世界锚点寻找最近地块；[param lane] 为 -1 时跨行。
 static func nearest(board: BoardRuntime, point: Vector2, lane: int = -1) -> PlantCell:
-	var result: PlantCell # 没有候选返回 null。
+	var result: PlantCell = null # 没有候选返回 null。
 	var distance: float = INF # 当前最佳平方距离。
 	for cell: PlantCell in board.cells(): # 独立几何，不假定每行首格代表全行。
 		if lane >= 0 and cell.row_col.x != lane:
