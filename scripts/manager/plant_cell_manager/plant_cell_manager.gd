@@ -32,6 +32,9 @@ func _ready() -> void:
 	EventBus.subscribe("jalapeno_bomb_item_lane", jalapeno_bomb_item_lane)
 
 	## 植物种植区域信号，更新植物位置列号,更新墓碑信息
+	if not game_para.terrain_rows.is_empty() and game_para.terrain_rows.size() != plant_cells_root.get_child_count():
+		push_error("关卡行地形数量与植物格子行数不一致")
+		return
 	for plant_cells_row_i in plant_cells_root.get_child_count():
 		## 某一行all_plant_cells
 		var plant_cells_row:CanvasItem = plant_cells_root.get_child(plant_cells_row_i)
@@ -40,6 +43,14 @@ func _ready() -> void:
 		## plant_cell是从右向左的顺序，这里从左到右
 		for plant_cells_col_j in range(plant_cells_row.get_child_count() - 1, -1, -1):
 			var plant_cell:PlantCell = plant_cells_row.get_child(plant_cells_col_j)
+			# 冒险关卡逐行地形在植物格子已就绪后投影，保持种植判定与僵尸行一致。
+			if not game_para.terrain_rows.is_empty():
+				match game_para.terrain_rows[plant_cells_row_i]:
+					CharacterRegistry.ZombieRowType.Pool:
+						plant_cell.plant_cell_type = PlantCell.PlantCellType.Pool
+					CharacterRegistry.ZombieRowType.Land:
+						plant_cell.plant_cell_type = PlantCell.PlantCellType.Grass
+				plant_cell.init_condition()
 			plant_cell.row_col = Vector2(plant_cells_row_i, plant_cells_col_j)
 			plant_cells_row_node.append(plant_cell)
 			plant_cell.signal_plant_create.connect(update_plant_info_create)

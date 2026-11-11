@@ -13,6 +13,7 @@ static func build(stage: StageDefinition, phase: StagePhaseDefinition) -> Resour
 	level.game_sences = env.scene
 	level.game_BG = env.background
 	level.battle_background_texture = env.background_texture
+	level.terrain_rows = env.terrain_rows.duplicate()
 	level.game_BGM = env.music
 	level.is_fog = env.fog
 	level.is_rain = env.rain
@@ -63,8 +64,13 @@ static func validate_terrain(stage: StageDefinition) -> PackedStringArray:
 	if not Global.main_scene_registry.ZombieRowTypewithMainScenesMap.has(scene):
 		errors.append("当前冒险场景不具备僵尸行类型。")
 		return errors
-	var terrain: CharacterRegistry.ZombieRowType = Global.main_scene_registry.ZombieRowTypewithMainScenesMap[scene]
-	var rows: Array[CharacterRegistry.ZombieRowType] = [] # 仅在关卡确实指定行时读取实际布局。
+	var rows: Array[CharacterRegistry.ZombieRowType] = stage.environment.terrain_rows.duplicate() # 单关地形优先
+	if not rows.is_empty():
+		var scene_rows: Array[CharacterRegistry.ZombieRowType] = _read_spawn_rows(scene) # 原版场景行数约束
+		if scene_rows.is_empty() or rows.size() != scene_rows.size():
+			errors.append("冒险关卡自定义行数与战场场景不一致")
+			return errors
+	var terrain: CharacterRegistry.ZombieRowType = ResourceLevelData.resolve_terrain_type(scene, rows)
 	for phase: StagePhaseDefinition in stage.phases:
 		if phase == null or phase.wave_profile == null:
 			continue

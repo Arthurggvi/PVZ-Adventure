@@ -114,9 +114,15 @@ func _ready():
 	EventBus.subscribe("end_wave_zombie", func():is_end_wave=true)
 	EventBus.subscribe("test_death_all_zombie", death_all_zombie)
 
+	## 单关行地形与实际战场行数必须一致；未指定则使用原版场景节点设置。
+	if not game_para.terrain_rows.is_empty() and game_para.terrain_rows.size() != zombies_root.get_child_count():
+		push_error("关卡行地形数量与战场行数不一致")
+		return
 	## 初始化僵尸和行列表
 	for zombie_row_i in zombies_root.get_child_count():
-		var zombie_row :CanvasItem= zombies_root.get_child(zombie_row_i)
+		var zombie_row: ZombieRow = zombies_root.get_child(zombie_row_i) as ZombieRow
+		if not game_para.terrain_rows.is_empty():
+			zombie_row.zombie_row_type = game_para.terrain_rows[zombie_row_i]
 		zombie_row.z_index = zombie_row_i * 50 + 30
 
 		all_zombie_rows.append(zombie_row)
@@ -847,7 +853,7 @@ func update_multi_round_zombie_refresh_types(curr_round:int, game_sences:MainSce
 		zombie_refresh_types.append(CharacterRegistry.ZombieType.Z003Cone)
 		zombie_refresh_types.append(CharacterRegistry.ZombieType.Z005Bucket)
 	else:
-		var whitelist_refresh_zombie_types_copy = Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[Global.main_scene_registry.ZombieRowTypewithMainScenesMap[game_sences]].duplicate(true)
+		var whitelist_refresh_zombie_types_copy = Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[ResourceLevelData.resolve_terrain_type(game_sences, game_para.terrain_rows)].duplicate(true)
 		zombie_refresh_types.append(CharacterRegistry.ZombieType.Z001Norm)
 		whitelist_refresh_zombie_types_copy.erase(CharacterRegistry.ZombieType.Z001Norm)
 		# 第二种：80% 路障 (Cone)，20% 报纸 (Paper)

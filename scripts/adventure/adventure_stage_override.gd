@@ -6,6 +6,8 @@ class_name AdventureStageOverride
 @export var environment: AdventureBattleEnvironment
 ## 单关美术差异，不覆盖地区默认环境玩法配置。
 @export var battle_background_texture: Texture2D
+## 单关逐行地形覆盖；空数组继承地区和战场默认布局。
+@export var terrain_rows_override: Array[CharacterRegistry.ZombieRowType] = []
 ## 仅覆盖进入战斗时的静态默认雨势：-1 继承、0 关闭、1 开启；动态强度由阶段时间轴控制。
 @export var rain_override: int = -1
 ## 当前关卡专用镜头预设；空值沿用地区默认值。
@@ -56,6 +58,8 @@ func apply(stage: StageDefinition) -> bool:
 		stage.environment = environment.duplicate(true) as AdventureBattleEnvironment
 	if battle_background_texture != null and stage.environment != null:
 		stage.environment.background_texture = battle_background_texture
+	if not terrain_rows_override.is_empty() and stage.environment != null:
+		stage.environment.terrain_rows = terrain_rows_override.duplicate()
 	if stage.environment != null:
 		if rain_override != -1:
 			stage.environment.rain = rain_override == 1

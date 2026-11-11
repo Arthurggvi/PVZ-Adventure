@@ -47,7 +47,14 @@ func init_lawn_movers() -> void:
 
 ## 生成所有的小推车
 func create_all_lawn_movers(is_has_all_lawn_mover:Array=[]):
-	all_lawn_movers_type = AllLawnMoverTypeFromGameScenes[game_scene]
+	all_lawn_movers_type = AllLawnMoverTypeFromGameScenes[game_scene].duplicate()
+	# 关卡单独定义水路时，清洁车按实际行地形选择；不改变原版场景默认配置。
+	if not game_item_manager.game_para.terrain_rows.is_empty():
+		for lane in range(game_item_manager.game_para.terrain_rows.size()):
+			if game_item_manager.game_para.terrain_rows[lane] == CharacterRegistry.ZombieRowType.Pool:
+				all_lawn_movers_type[lane] = E_LawnMoverType.PoolCleaner
+			elif game_scene != MainSceneRegistry.MainScenes.MainGameRoof:
+				all_lawn_movers_type[lane] = E_LawnMoverType.LawnMover
 
 	print("创建小推车, 小推车类型", all_lawn_movers_type)
 	assert(game_item_manager.main_game.zombie_manager.all_zombie_rows.size() == all_lawn_movers_type.size(), "小推车数量与僵尸行数量不一致")

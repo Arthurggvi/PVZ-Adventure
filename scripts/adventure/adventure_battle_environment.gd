@@ -6,6 +6,8 @@ class_name AdventureBattleEnvironment
 @export var scene: MainSceneRegistry.MainScenes = MainSceneRegistry.MainScenes.MainGameFront
 @export var background: ConstLevelData.GameBg = ConstLevelData.GameBg.FrontDay
 @export var background_texture: Texture2D
+## 战场逐行地形；空数组沿用原版场景节点设置，顺序自上而下。
+@export var terrain_rows: Array[CharacterRegistry.ZombieRowType] = []
 @export var music: ConstLevelData.GameBGM = ConstLevelData.GameBGM.FrontDay
 @export var fog := false
 ## 进入战斗时的静态默认天气；阶段关键帧可以在战斗中改变雨势。

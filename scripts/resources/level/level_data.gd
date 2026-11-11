@@ -31,6 +31,23 @@ func set_choose_level(curr_game_mode: MainSceneRegistry.MainScenes, curr_level_p
 @export var game_BG: ConstLevelData.GameBg = ConstLevelData.GameBg.FrontDay
 ## 冒险背景，可为空以复用原版枚举背景。
 @export var battle_background_texture: Texture2D
+## 冒险环境投影的逐行水陆地形；空数组继续使用场景预置行类型。
+@export var terrain_rows: Array[CharacterRegistry.ZombieRowType] = []
+
+## 将逐行地形归并为关卡整体可用地形，供怪物白名单和场景兼容校验共用。
+## [param scene] 基础场景；[param rows] 为空时继承场景原生地形。
+static func resolve_terrain_type(scene: MainSceneRegistry.MainScenes,
+		rows: Array[CharacterRegistry.ZombieRowType]) -> CharacterRegistry.ZombieRowType:
+	if rows.is_empty():
+		return Global.main_scene_registry.ZombieRowTypewithMainScenesMap[scene]
+	var has_land: bool = false # 是否存在陆路
+	var has_pool: bool = false # 是否存在水路
+	for row_type: CharacterRegistry.ZombieRowType in rows:
+		has_land = has_land or row_type != CharacterRegistry.ZombieRowType.Pool
+		has_pool = has_pool or row_type != CharacterRegistry.ZombieRowType.Land
+	if has_land and has_pool:
+		return CharacterRegistry.ZombieRowType.Both
+	return CharacterRegistry.ZombieRowType.Pool if has_pool else CharacterRegistry.ZombieRowType.Land
 ## 游戏背景音乐
 @export var game_BGM: ConstLevelData.GameBGM = ConstLevelData.GameBGM.FrontDay
 ## 是否有雾
@@ -298,7 +315,7 @@ func _apply_card_mode_constraints() -> void:
 func _init_zombie_refresh_from_whitelist() -> void:
 	if monster_mode != ConstLevelData.E_MonsterMode.Norm:
 		return
-	whitelist_refresh_zombie_types = Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[Global.main_scene_registry.ZombieRowTypewithMainScenesMap[game_sences]]
+	whitelist_refresh_zombie_types = Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[resolve_terrain_type(game_sences, terrain_rows)]
 	zombie_refresh_types = filter_invalid_zombie_refresh_types(zombie_refresh_types, whitelist_refresh_zombie_types)
 
 
