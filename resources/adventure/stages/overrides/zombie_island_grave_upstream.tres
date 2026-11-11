@@ -79,7 +79,7 @@ zombie_weights = Dictionary[int, int]({
 1: 6,
 3: 3,
 6: 2,
-10: 1,
+9: 1,
 5: 2,
 7: 2,
 2: 1
@@ -99,7 +99,7 @@ zombie_weights = Dictionary[int, int]({
 1: 6,
 3: 3,
 6: 2,
-10: 1,
+9: 1,
 5: 2,
 7: 2,
 2: 1
@@ -237,7 +237,7 @@ script = ExtResource("5_spawn")
 wave = 30
 count_range = Vector2i(4, 4)
 zombie_weights = Dictionary[int, int]({
-10: 1
+9: 1
 })
 tier_weights = Dictionary[StringName, int]({
 &"veteran": 7,
@@ -249,7 +249,7 @@ script = ExtResource("5_spawn")
 wave = 40
 count_range = Vector2i(4, 4)
 zombie_weights = Dictionary[int, int]({
-10: 1
+9: 1
 })
 tier_weights = Dictionary[StringName, int]({
 &"veteran": 7,
