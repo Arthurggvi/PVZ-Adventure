@@ -44,8 +44,8 @@ func _install_coat() -> void:
 		sprite.centered = false
 		sprite.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		sprite.texture = load(String(rec["resource"]))
-		sprite.z_as_relative = false
-		sprite.z_index = int(rec["z"])
+		# 绑定表以躯干为层级基准，扣除锚点偏移后仍随白爵士所在行绘制。
+		sprite.z_index = int(rec["z"]) - anchor.z_index
 		anchor.add_child(sprite)
 		var point: Array = rec["origin"]
 		var offset := Transform2D(0.0, Vector2(float(point[0]), float(point[1])))

@@ -15,6 +15,13 @@ class_name WhiteFlameSpotlightEffect
 @onready var _beam: Sprite2D = $SpotlightBeam
 @onready var _pool: Sprite2D = $SpotlightFloor
 @onready var _burst: Sprite2D = $SpotlightBurst
+## 二阶段换色时从落光中心向外扩散的加色泛光。
+@onready var _pulse: Sprite2D = $SpotlightPulse
+
+## 泛光从透明升至峰值的时间，单位为秒。
+const PULSE_ATTACK_TIME := 0.10
+## 泛光从峰值扩散至完全消失的时间，单位为秒。
+const PULSE_DECAY_TIME := 0.54
 
 const SUMMON_COLORS: Array[Color] = [
 	Color(0.57, 0.77, 1.00), Color(1.00, 0.54, 0.86),
@@ -88,14 +95,7 @@ func set_active(enabled: bool) -> void:
 	_active = enabled
 	if _cue and _cue.is_running():
 		_cue.kill()
-	_beam.modulate = Color.WHITE
-	_pool.modulate = Color.WHITE
-	_beam.scale = Vector2.ONE
-	_burst.modulate = Color(1, 1, 1, 0)
-	visible = enabled
-	_beam.visible = enabled
-	_pool.visible = enabled
-	_burst.visible = false
+	_end_spotlight_cue()
 	_mantle.visible = enabled
 	_back.emitting = enabled
 	_left.emitting = enabled
@@ -117,8 +117,8 @@ func set_active(enabled: bool) -> void:
 func is_active() -> bool:
 	return _active
 
-## Each summon gets a temporary spotlight. Phase 2 additionally changes to
-## a random accent hue and triggers an additive lighting burst.
+## 播放召唤聚光灯并返回本次光色。[br]
+## [param phase_two] 为真时切换到与上次不同的颜色，同时触发一次心跳式泛光。
 func summon_spotlight(phase_two: bool) -> Color:
 	if _cue and _cue.is_running():
 		_cue.kill()
@@ -133,18 +133,26 @@ func summon_spotlight(phase_two: bool) -> Color:
 	_beam.visible = true
 	_pool.visible = true
 	_burst.visible = true
-	_beam.scale = Vector2.ONE * (1.09 if phase_two else 1.00)
+	_pulse.visible = phase_two
 	_beam.modulate = Color(shade.r, shade.g, shade.b, 1.0 if phase_two else .0)
 	_pool.modulate = Color(shade.r, shade.g, shade.b, 1)
-	_burst.modulate = Color(shade.r, shade.g, shade.b, .91 if phase_two else .32)
-	_burst.scale = Vector2(1.23, 1.13) if phase_two else Vector2(1.08, 1.04)
+	_burst.modulate = Color(shade.r, shade.g, shade.b, .67 if phase_two else .32)
+	_burst.scale = _beam.scale * Vector2(1.08, 1.04)
 	_cue = create_tween()
 	_cue.set_parallel(true)
 	_cue.tween_property(_burst, "modulate:a", 0.0, .62)
 	if phase_two:
 		_cue.tween_property(_beam, "modulate", Color.WHITE, 1.20)
 		_cue.tween_property(_pool, "modulate", Color.WHITE, 1.20)
-		_cue.tween_property(_beam, "scale", Vector2.ONE, 1.20)
+		_cue.tween_property(_burst, "scale", _beam.scale * Vector2(1.25, 1.06), .62)
+		# 光斑先快速亮起，随即向四周铺开并衰减。
+		_pulse.scale = _pool.scale * .72
+		_pulse.modulate = Color(shade.r, shade.g, shade.b, 0.0)
+		_cue.tween_property(_pulse, "modulate:a", .92, PULSE_ATTACK_TIME)
+		_cue.tween_property(_pulse, "modulate:a", 0.0, PULSE_DECAY_TIME).set_delay(PULSE_ATTACK_TIME)
+		_cue.tween_property(
+			_pulse, "scale", _pool.scale * Vector2(2.2, 1.85), PULSE_ATTACK_TIME + PULSE_DECAY_TIME
+		).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	else:
 		_cue.tween_property(_beam, "modulate:a", 1.0, .12)
 		_cue.tween_property(_beam, "modulate:a", 0.0, .32).set_delay(.90)
@@ -152,12 +160,12 @@ func summon_spotlight(phase_two: bool) -> Color:
 	_cue.chain().tween_callback(_end_spotlight_cue)
 	return shade
 
+## 清除召唤泛光，并按当前阶段恢复常驻白光或隐藏聚光灯。
 func _end_spotlight_cue() -> void:
 	_burst.visible = false
-	_burst.modulate.a = 0
+	_pulse.visible = false
 	_beam.modulate = Color.WHITE
 	_pool.modulate = Color.WHITE
-	_beam.scale = Vector2.ONE
 	_beam.visible = _active
 	_pool.visible = _active
 	visible = _active

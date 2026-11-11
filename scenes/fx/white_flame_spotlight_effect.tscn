@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/fx/white_flame_spotlight_effect.gd" id="script"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/fx/white_flame_large.png" id="flame_large"]
@@ -12,76 +12,91 @@
 [sub_resource type="CanvasItemMaterial" id="SpotlightAdditive"]
 blend_mode = 1
 
+[sub_resource type="Shader" id="SpotlightBeamShader"]
+code = "shader_type canvas_item;
+render_mode blend_add;
+
+void fragment() {
+	// 光柱下缘渐隐，与落在地面的椭圆光斑衔接。
+	COLOR.a *= 1.0 - smoothstep(0.91, 1.0, UV.y);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="SpotlightBeamMaterial"]
+shader = SubResource("SpotlightBeamShader")
+
 [node name="WhiteFlameSpotlight" type="Node2D"]
 visible = false
 script = ExtResource("script")
 
 [node name="SpotlightBeam" type="Sprite2D" parent="."]
-z_as_relative = false
 z_index = -22
-position = Vector2(-20, -132)
+position = Vector2(-19, -3)
+scale = Vector2(1.65, 1.35)
+material = SubResource("SpotlightBeamMaterial")
 texture = ExtResource("beam")
+offset = Vector2(0, -142.5)
 
 [node name="SpotlightBurst" type="Sprite2D" parent="."]
-z_as_relative = false
 z_index = -20
-position = Vector2(-20, -132)
-scale = Vector2(1.10, 1.05)
-material = SubResource("SpotlightAdditive")
+position = Vector2(-19, -3)
+material = SubResource("SpotlightBeamMaterial")
 modulate = Color(1, 1, 1, 0)
 texture = ExtResource("beam")
+offset = Vector2(0, -142.5)
 visible = false
 
 [node name="SpotlightFloor" type="Sprite2D" parent="."]
-z_as_relative = false
 z_index = -21
 position = Vector2(-19, -3)
+scale = Vector2(1.7, 1.45)
+material = SubResource("SpotlightAdditive")
+texture = ExtResource("floor")
+
+[node name="SpotlightPulse" type="Sprite2D" parent="."]
+visible = false
+z_index = -19
+position = Vector2(-19, -3)
+material = SubResource("SpotlightAdditive")
 texture = ExtResource("floor")
 
 [node name="FlamesBehind" type="CPUParticles2D" parent="."]
-z_as_relative = false
 z_index = -9
 position = Vector2(-19, -82)
 texture = ExtResource("flame_large")
 emitting = false
 
 [node name="FlamesFrontLeft" type="CPUParticles2D" parent="."]
-z_as_relative = false
 z_index = 10
 position = Vector2(-52, -45)
 texture = ExtResource("wisp2")
 emitting = false
 
 [node name="FlamesFrontRight" type="CPUParticles2D" parent="."]
-z_as_relative = false
 z_index = 10
 position = Vector2(19, -49)
 texture = ExtResource("wisp3")
 emitting = false
 
 [node name="WhiteFireWisps" type="CPUParticles2D" parent="."]
-z_as_relative = false
 z_index = -8
 position = Vector2(-19, -77)
 texture = ExtResource("wisp")
 emitting = false
 
 [node name="FlameTipsLeft" type="CPUParticles2D" parent="."]
-z_as_relative = false
 z_index = 11
 position = Vector2(-52, -44)
 texture = ExtResource("flame_large")
 emitting = false
 
 [node name="FlameTipsRight" type="CPUParticles2D" parent="."]
-z_as_relative = false
 z_index = 11
 position = Vector2(19, -42)
 texture = ExtResource("flame_small")
 emitting = false
 
 [node name="WhiteFlameMantle" type="AnimatedSprite2D" parent="."]
-z_as_relative = false
 z_index = -10
 position = Vector2(-12, -62)
 scale = Vector2(0.56, 0.72)
