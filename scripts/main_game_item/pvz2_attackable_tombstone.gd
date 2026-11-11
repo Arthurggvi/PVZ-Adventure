@@ -87,8 +87,6 @@ func _on_health_changed(current_hp: int) -> void:
 	_play_hit_recoil()
 	if _damage_stage > old_stage:
 		_play_effect(DAMAGE_EFFECTS[_damage_stage])
-		# 原版墓碑表只指定碎裂音效，裂纹加深时复用项目现有的撞击声。
-		SoundManager.play_bullet_attack_SFX(SoundManagerClass.TypeBulletSFX.Bowling)
 
 ## 给碑身短促震动和亮度回落；只改变精灵表现。
 func _play_hit_recoil() -> void:
