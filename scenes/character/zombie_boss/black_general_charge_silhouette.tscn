@@ -1,0 +1,71 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/character_000_base.tscn" id="base"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/black_general_charge_silhouette.gd" id="silhouette"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/black_general_charge_trail.gd" id="pose"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_static.gd" id="anim"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/black_general/parts/fx/generated/BlackSmoke_Back.tres" id="mist"]
+
+[sub_resource type="RectangleShape2D" id="hurt"]
+size = Vector2(82, 154)
+
+[node name="BlackGeneralChargeSilhouette" instance=ExtResource("base")]
+script = ExtResource("silhouette")
+random_speed_range = Vector2(1, 1)
+
+[node name="Shadow" parent="." index="0"]
+visible = false
+
+[node name="Mist" type="AnimatedSprite2D" parent="Body" index="1"]
+position = Vector2(11, -90)
+scale = Vector2(1.15, 1.08)
+modulate = Color(0.78, 0.72, 0.86, 0.58)
+z_index = -1
+sprite_frames = ExtResource("mist")
+animation = &"loop"
+
+[node name="Pose" type="Node2D" parent="Body" index="2"]
+scale = Vector2(1.16, 1.16)
+modulate = Color(0.19, 0.14, 0.22, 0.84)
+script = ExtResource("pose")
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("anim")
+
+[node name="HpComponent" parent="." index="3"]
+max_hp = 1500
+
+[node name="ProgressBarHp" type="ProgressBar" parent="HpComponent"]
+unique_name_in_owner = true
+offset_left = -28.0
+offset_top = -187.0
+offset_right = 28.0
+offset_bottom = -181.0
+mouse_filter = 2
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="LabelHp" type="Label" parent="HpComponent"]
+unique_name_in_owner = true
+offset_left = -28.0
+offset_top = -210.0
+offset_right = 28.0
+offset_bottom = -187.0
+mouse_filter = 2
+text = "1500"
+horizontal_alignment = 1
+
+[node name="HurtBoxDetection" parent="HurtBoxComponent" index="0"]
+collision_layer = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection"]
+position = Vector2(0, -77)
+shape = SubResource("hurt")
+
+[node name="HurtBoxReal" parent="HurtBoxComponent" index="1"]
+collision_layer = 512
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(0, -77)
+shape = SubResource("hurt")

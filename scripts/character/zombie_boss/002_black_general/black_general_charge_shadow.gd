@@ -6,6 +6,8 @@ class_name BlackGeneralChargeShadow
 const VISUAL_SCENE: PackedScene = preload("res://scenes/character/zombie_boss/black_general_visual.tscn")
 ## 影子拖尾的初始透明度，低于本体拖尾。
 const TRAIL_OPACITY: float = 0.26
+## 分路残影的拖尾淡出秒数，短于本体拖尾。
+const TRAIL_LIFETIME: float = 0.78
 
 ## 影子所在的零起始行。
 var lane: int
@@ -47,6 +49,6 @@ func advance(boss: ZB002BlackGeneral, cells: Array, step: float) -> bool:
 		_visual.play_action(&"charge")
 	_trail_wait -= movement_step
 	if _trail_wait <= 0.0:
-		BlackGeneralChargeTrail.spawn(_visual, boss, z_index - 1, TRAIL_OPACITY)
+		BlackGeneralChargeTrail.spawn(_visual, boss, z_index - 1, TRAIL_OPACITY, TRAIL_LIFETIME)
 		_trail_wait += BlackGeneralChargeTrail.INTERVAL
 	return _charge.advance(boss, cells, movement_step, self)

@@ -26,6 +26,11 @@ func cancel() -> void:
 	active = false
 	_hit.clear()
 
+## 返回 [param cells] 的第二列右边界；没有足够格子时返回 INF，表示无有效冲锋路径。
+func stop_line(cells: Array) -> float:
+	var row: Array = _ordered_row(cells) # 与扫掠使用相同的排序与停止线。
+	return _second_column_edge(row) if row.size() >= 2 else INF
+
 ## [param cells] 当前行格子。返回按画面坐标排序的副本，不改变关卡布局。
 func _ordered_row(cells: Array) -> Array:
 	var row: Array = cells.duplicate() # 只排序副本，不改变场地原始布局。

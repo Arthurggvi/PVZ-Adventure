@@ -4,6 +4,10 @@ class_name ZB002BlackGeneral
 
 ## 令旗战斗实体，纯展示资源继续独立复用。
 const FLAG_SCENE: PackedScene = preload("res://scenes/character/zombie_boss/black_general_flag_entity.tscn")
+## 二阶段沿冲锋路径生成的独立剪影设施。
+const SILHOUETTE_SCENE: PackedScene = preload("res://scenes/character/zombie_boss/black_general_charge_silhouette.tscn")
+## 举旗关键帧从脚下涌起的黑焰。
+const FLAG_FLAME = preload("res://scripts/character/zombie_boss/002_black_general/black_general_flag_flame.gd")
 ## 僵王博士践踏动画使用的原音效。
 const STOMP_SOUND: AudioStream = preload("res://assets/audio/SFX/zombie/gargantuar_thump.ogg")
 ## 蓄力期间连续践踏的间隔，单位秒。
@@ -13,13 +17,21 @@ const PHASE_CHARGE_LANE: int = 2
 ## 转场全明星出场顺序，每组内同时召唤。
 const PHASE_SUMMON_ROWS := [[0, 4], [1, 3], [2]]
 ## 两批全明星出场的间隔，单位秒。
-const PHASE_SUMMON_INTERVAL: float = 0.18
+const PHASE_SUMMON_INTERVAL: float = 0.38
 ## 本体出击后，按组启动的残影行。
 const PHASE_SHADOW_ROWS := [[1, 3], [0, 4]]
 ## 本体与第一组残影、两组残影之间的间隔，单位秒。
 const PHASE_SHADOW_INTERVAL: float = 0.14
 ## 本体拖尾比冲锋残影自身的拖尾更实。
-const CHARGE_TRAIL_OPACITY: float = 0.72
+const CHARGE_TRAIL_OPACITY: float = 0.82
+## 本体实际移动时，相邻两次落步震动之间的冲锋秒数。
+const CHARGE_SHAKE_INTERVAL: float = 0.34
+## 落步震屏的横纵幅度，单位像素。
+const CHARGE_SHAKE_AMPLITUDE := Vector2(4.0, 7.0)
+## 单次落步震屏的衰减时长，单位游戏秒。
+const CHARGE_SHAKE_DURATION: float = 0.24
+## 从起点到停止线的距离比例，三个剪影沿路径分布。
+const SILHOUETTE_PATH_FRACTIONS := [0.22, 0.50, 0.78]
 ## 动作执行状态；转阶段与死亡抢占普通动作，不依赖异步等待链。
 enum State { ENTER, OPENING, IDLE, RAISE, WINDUP, CHARGE, STOP,
 	CHANGE_LANE, PHASE_RAISE, PHASE_CHARGE_OUT, PHASE_CHARGE_IN,
@@ -60,6 +72,10 @@ var _phase_summon_elapsed: float = 0.0
 var _charge_shadows: Array[BlackGeneralChargeShadow] = []
 ## 本体距下次采样冲锋拖尾的秒数。
 var _trail_wait: float = 0.0
+## 本体距下一次冲锋震屏的秒数。
+var _shake_wait: float = 0.0
+## 本次冲锋尚未越过的剪影世界横坐标，按越过顺序存放。
+var _silhouette_marks: Array[float] = []
 ## 专用践踏音轨，允许快速重播并在冲锋或中断时立即停止。
 var _stomp_player: AudioStreamPlayer
 ## 蓄力中距下次践踏的战斗秒数。
@@ -129,14 +145,7 @@ func _physics_process(delta: float) -> void:
 			if next != BlackGeneralBehaviorTree.Action.NONE:
 				_begin_action(next)
 		State.CHARGE:
-			_trail_wait -= step
-			if _trail_wait <= 0.0:
-				BlackGeneralChargeTrail.spawn(visual, self, z_index - 1, CHARGE_TRAIL_OPACITY)
-				_trail_wait += BlackGeneralChargeTrail.INTERVAL
-			var completed: bool = charge.advance(self, _game.plant_cell_manager.all_plant_cells[lane], step) # 伤害可能同步触发阶段中断。
-			if completed and state == State.CHARGE and not is_death:
-				state = State.STOP
-				visual.play_action(&"charge_stop")
+			_advance_charge(step)
 		State.CHANGE_LANE:
 			global_position = global_position.move_toward(_move_target, config.lane_change_speed * step)
 			if global_position.is_equal_approx(_move_target):
@@ -148,7 +157,6 @@ func _physics_process(delta: float) -> void:
 ## [param next] 已由行为树选择的普通动作；施法只在举旗关键帧执行一次。
 func _begin_action(next: BlackGeneralBehaviorTree.Action) -> void:
 	_action = next
-	_released = false
 	match next:
 		BlackGeneralBehaviorTree.Action.CHANGE_LANE:
 			var count: int = _game.zombie_manager.all_zombie_rows.size() # 实际行数。
@@ -160,7 +168,12 @@ func _begin_action(next: BlackGeneralBehaviorTree.Action) -> void:
 			_begin_windup()
 		_:
 			state = State.RAISE
-			visual.play_action(&"raise")
+			_play_raise()
+
+## 重置释放门闩，让每次举旗的关键帧各触发一次表现和技能。
+func _play_raise() -> void:
+	_released = false
+	visual.play_action(&"raise")
 
 ## 每个普通动作只在正常结束时反馈，阶段中断不执行旧技能尾部。
 func _finish_action() -> void:
@@ -182,14 +195,13 @@ func _apply_boss_visual_phase(phase: int, animated: bool) -> void:
 	_stop_windup_sound()
 	charge.cancel()
 	_transitioning = true
-	_released = false
 	_set_invulnerable(true)
 	# 转阶段必须能完成；清理已有控制，随后无敌窗口拒绝新控制。
 	reset_control_effects()
 	state = State.PHASE_RAISE
 	# 半血可能发生在普通举旗中，重播以确保阶段召唤关键帧不会被跳过。
 	visual.player.stop()
-	visual.play_action(&"raise")
+	_play_raise()
 
 ## 在转场传送切换模型时，同步点燃仍存活的令旗。
 func _enter_phase_two_look() -> void:
@@ -214,6 +226,54 @@ func _begin_windup() -> void:
 func _stop_windup_sound() -> void:
 	if is_instance_valid(_stomp_player) and _stomp_player.playing:
 		_stomp_player.stop()
+
+## 蓄力结束后开始本体冲锋，二阶段沿实际路线布置剪影落点。
+func _begin_charge() -> void:
+	_stop_windup_sound()
+	charge.begin(0 if _transitioning or boss_phase >= 2 else config.phase_one_kill_limit)
+	state = State.CHARGE
+	_trail_wait = 0.0
+	_shake_wait = 0.0
+	_silhouette_marks.clear()
+	if boss_phase >= 2:
+		var stop_x: float = charge.stop_line(_game.plant_cell_manager.all_plant_cells[lane]) # 本路冲锋的左侧边界。
+		if stop_x < global_position.x:
+			for fraction: float in SILHOUETTE_PATH_FRACTIONS: # 按实际移动距离均匀散开。
+				_silhouette_marks.append(lerpf(global_position.x, stop_x, fraction))
+	visual.play_action(&"charge")
+	if _transitioning:
+		_begin_charge_shadows()
+
+## 用 [param step] 推进本体冲锋；只有实际移动时产生震屏，并放下已经越过的剪影。
+func _advance_charge(step: float) -> void:
+	_trail_wait -= step
+	if _trail_wait <= 0.0:
+		BlackGeneralChargeTrail.spawn(visual, self, z_index - 1, CHARGE_TRAIL_OPACITY)
+		_trail_wait += BlackGeneralChargeTrail.INTERVAL
+	var from_x: float = global_position.x # 区分真正向前推进和没有冲锋路径的情况。
+	var completed: bool = charge.advance(self, _game.plant_cell_manager.all_plant_cells[lane], step) # 伤害可能同步触发阶段中断。
+	if state != State.CHARGE or is_death:
+		return
+	if global_position.x < from_x:
+		_shake_wait -= step
+		if _shake_wait <= 0.0:
+			EventBus.push_event(MainGameCamera.SHAKE_EVENT, [CHARGE_SHAKE_AMPLITUDE, CHARGE_SHAKE_DURATION])
+			_shake_wait += CHARGE_SHAKE_INTERVAL
+		_place_charge_silhouettes()
+	if completed:
+		state = State.STOP
+		visual.play_action(&"charge_stop")
+
+## 在实际扫过的位置留下独立设施；由战场持有，直到各自生命耗尽。
+func _place_charge_silhouettes() -> void:
+	while not _silhouette_marks.is_empty() and global_position.x <= _silhouette_marks[0]:
+		var x: float = _silhouette_marks.pop_front() # 即使同帧扫过多个落点，也使用各自的精确坐标。
+		var silhouette: BlackGeneralChargeSilhouette = SILHOUETTE_SCENE.instantiate() # 可被植物攻击的剪影实体。
+		silhouette.lane = lane
+		silhouette.z_index = lane * 50 + 34
+		silhouette.position = _game.to_local(Vector2(x, global_position.y))
+		_game.add_child(silhouette)
+		silhouette.imprint(visual, global_position)
 
 ## 启动四路影子，各组按既定时间从本行右侧出击。
 func _begin_charge_shadows() -> void:
@@ -258,9 +318,10 @@ func _on_teleport_appeared() -> void:
 
 ## 举旗关键帧的唯一效果释放入口。
 func _on_flag_raised() -> void:
-	if not _battle_active() or _released:
+	if not _battle_active() or _released or state not in [State.OPENING, State.RAISE, State.PHASE_RAISE, State.PHASE_FINISH]:
 		return
 	_released = true
+	FLAG_FLAME.new().ignite(_game, global_position, z_index + 1)
 	match state:
 		State.OPENING:
 			SoundManager.play_boss_phase_roar()
@@ -294,8 +355,7 @@ func _on_animation_finished(animation: StringName) -> void:
 		State.ENTER:
 			if animation == &"teleport_in":
 				state = State.OPENING
-				_released = false
-				visual.play_action(&"raise")
+				_play_raise()
 		State.OPENING, State.PHASE_FINISH:
 			if animation == &"raise":
 				_transitioning = false
@@ -322,13 +382,7 @@ func _on_animation_finished(animation: StringName) -> void:
 				_begin_windup()
 		State.WINDUP:
 			if animation == &"windup":
-				_stop_windup_sound()
-				charge.begin(0 if _transitioning or boss_phase >= 2 else config.phase_one_kill_limit)
-				state = State.CHARGE
-				_trail_wait = 0.0
-				visual.play_action(&"charge")
-				if _transitioning:
-					_begin_charge_shadows()
+				_begin_charge()
 		State.STOP:
 			if animation == &"charge_stop":
 				if _transitioning:
@@ -344,7 +398,7 @@ func _on_animation_finished(animation: StringName) -> void:
 		State.PHASE_IN:
 			if animation == &"teleport_in":
 				state = State.PHASE_FINISH
-				visual.play_action(&"raise")
+				_play_raise()
 
 ## 返回本关卡是否存在存活令旗，同场多个黑将军也不会重复插旗。
 func _has_flag() -> bool:
