@@ -93,12 +93,12 @@ func _on_original_tackle_sound() -> void:
 		_tackle_sound.play()
 
 
-## [param action] 完成播放的原始动作名；只在擒抱或正常死亡动作完成时切换。
+## [param action] 完成播放的原始动作名；擒抱结束后恢复行走，倒地后淡出尸体。
 func _on_visual_animation_finished(action: StringName) -> void:
 	if charge_state == ChargeState.TACKLING and action == &"tackle":
 		_retire_charge()
 	elif charge_state == ChargeState.DEAD and action == &"die":
-		queue_free()
+		_fade_and_remove()
 
 
 ## 擒抱完成或被魅惑后恢复普通行走和啃咬。
