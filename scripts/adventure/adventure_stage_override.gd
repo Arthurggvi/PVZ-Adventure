@@ -91,6 +91,9 @@ func apply(stage: StageDefinition) -> bool:
 		nightmare.events.append_array(additional_nightmare_events.duplicate(true))
 	if replace_nightmare_bosses:
 		nightmare.boss_encounters = nightmare_bosses.duplicate(true)
+		# 显式清空 Boss 时，首通奖励改为随阶段清场结算。
+		if nightmare.boss_encounters.is_empty():
+			nightmare.first_clear_requires_boss_kill = false
 	if normal_battle_music != null:
 		normal.battle_music = normal_battle_music
 	if nightmare_battle_music != null:
