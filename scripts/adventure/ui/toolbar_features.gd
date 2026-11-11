@@ -8,7 +8,7 @@ const ENTRIES: Array[Dictionary] = [
 	{"id": "inventory", "label": "背包", "asset": "icon_inventory.png"},
 	{"id": "quests", "label": "任务", "asset": "icon_quests.png"},
 	{"id": "research", "label": "研究室", "asset": "icon_research.png"},
-	{"id": "deck", "label": "卡组", "asset": "icon_deck.png"},
+	{"id": "almanac", "label": "图鉴", "asset": "icon_deck.png"},
 	{"id": "settings", "label": "设置", "asset": "icon_settings.png"},
 ]
 

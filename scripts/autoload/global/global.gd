@@ -4,6 +4,30 @@ extends Node
 signal quests_changed
 ## 当前档案的装备或成长提交成功后刷新角色表现。
 signal player_changed
+## 首次发现物种时通知已打开的图鉴刷新目录。
+signal almanac_changed
+## 同一帧的多次遇敌合并保存，避免一波僵尸逐只写盘。
+var _almanac_save_queued := false
+
+## 仅由实战角色调用；[param kind] 和 [param type_id] 标识物种，展示和原版战斗不记录。
+func record_almanac_encounter(kind: String, type_id: int) -> void:
+	if save_service == null or not save_service.is_current_profile_loaded() \
+			or not AdventureSession.owns_battle(game_para):
+		return
+	var state: AdventureState = global_game_state.adventure_state # 捕获所属档案，延迟保存前再次校验。
+	if state == null or not state.discover_character(kind, type_id):
+		return
+	almanac_changed.emit()
+	if not _almanac_save_queued:
+		_almanac_save_queued = true
+		_save_almanac_encounters.call_deferred(state)
+
+## 合并保存 [param state] 的发现记录；切档后放弃旧回调，失败时交给统一自动保存重试。
+func _save_almanac_encounters(state: AdventureState) -> void:
+	_almanac_save_queued = false
+	if global_game_state.adventure_state == state and save_service.is_current_profile_loaded():
+		if not save_service.save_now():
+			push_warning("图鉴发现记录待保存，将随下次自动保存重试。")
 
 ## 约定：业务/UI 只通过本脚本暴露的引用访问（如 `Global.user_manager`、`Global.save_service`、`Global.config_service`），
 ## 不要直接 `get_node` / `%` 访问 Global 场景里的子节点，避免绕过门面、破坏初始化顺序假设。

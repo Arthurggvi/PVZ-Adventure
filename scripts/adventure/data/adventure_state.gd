@@ -30,6 +30,18 @@ var equipment: PlayerEquipmentState = PlayerEquipmentState.new()
 var quests: AdventureQuestState = AdventureQuestState.new()
 ## 已完成的教学步骤；只保存业务节点，不保存窗口、动画或临时选择。
 var tutorial_steps: Dictionary[String, bool] = {}
+## 永久发现的物种键（plant:编号 / zombie:编号）；不保存阶级或界面状态。
+var almanac_discoveries: Dictionary[String, bool] = {}
+
+## 记录 [param kind] 类别的 [param type_id]；首次发现返回 true，重复或非法输入不改变状态。
+func discover_character(kind: String, type_id: int) -> bool:
+	if kind not in ["plant", "zombie"] or type_id <= 0:
+		return false
+	var key: String = "%s:%d" % [kind, type_id] # 稳定物种身份，独立于卡片 UID 和当前阶数。
+	if almanac_discoveries.has(key):
+		return false
+	almanac_discoveries[key] = true
+	return true
 
 ## 返回深拷贝的 JSON 基础数据；非法内存状态返回空字典，不泄漏对象引用。
 func to_dict() -> Dictionary:
@@ -50,6 +62,7 @@ func to_dict() -> Dictionary:
 	data["player_level"] = player_level
 	data["equipment"] = equipment.to_dict()
 	data["tutorial_steps"] = tutorial_steps.duplicate()
+	data["almanac_discoveries"] = almanac_discoveries.duplicate()
 	return data if from_dict(data) != null else {}
 
 ## 从 [param data] 校验并创建独立状态；非法结构、版本、UID、出战列表或数量返回 null。
@@ -68,6 +81,18 @@ static func from_dict(data: Variant) -> AdventureState:
 	if data.has("card_order_uids") and not data.card_order_uids is Array:
 		return null
 	var state := AdventureState.new() # 所有容器和卡片都在此新实例中恢复。
+	var discoveries: Variant = data.get("almanac_discoveries", {}) # 旧档没有发现域，后续从持有植物补录。
+	if not discoveries is Dictionary:
+		return null
+	for key: Variant in discoveries: # 保留合法但未来暂未注册的物种，避免版本变化丢失收集记录。
+		if not key is String or not discoveries[key] is bool or discoveries[key] != true:
+			return null
+		var parts: PackedStringArray = key.split(":") # 分类与编号必须采用唯一规范写法。
+		if parts.size() != 2 or parts[0] not in ["plant", "zombie"] or not parts[1].is_valid_int():
+			return null
+		if int(parts[1]) <= 0 or str(int(parts[1])) != parts[1]:
+			return null
+		state.almanac_discoveries[key] = true
 	var steps: Variant = data.get("tutorial_steps", {}) # 旧档缺字段时从当前任务节点恢复引导。
 	if not steps is Dictionary:
 		return null
@@ -101,6 +126,7 @@ static func from_dict(data: Variant) -> AdventureState:
 			or not Promotions.is_valid_chain(card):
 			return null
 		state.cards[card_uid] = card
+		state.discover_character("plant", card.plant_type)
 	# 旧版存档没有显式排序：从稳定 UID 数字恢复首次顺序，不触碰卡组。
 	if data.has("card_order_uids"):
 		for card_uid: Variant in data.card_order_uids:

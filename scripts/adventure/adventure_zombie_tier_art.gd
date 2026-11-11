@@ -15,6 +15,15 @@ static func apply(zombie: Zombie000Base, tier_id: StringName) -> bool:
 		return false
 	return _apply_tree(zombie, textures)
 
+## 为 [param preview] 独立静态预览应用 [param zombie_type]、[param tier_id] 的同一套战斗美术。
+## 无专用贴图时复用实战色调；只修改副本，不挂载行为组件或记录遇敌。
+static func apply_to_preview(preview: Node2D, zombie_type: int, tier_id: StringName) -> void:
+	if preview == null:
+		return
+	var textures: Dictionary = AdventureZombieTierArtCatalog.textures_for(zombie_type, tier_id) # 使用战斗美术的权威映射。
+	var changed: bool = not textures.is_empty() and _apply_tree(preview, textures) # 静态目录可能只有部分身体部件。
+	preview.modulate = Color.WHITE if changed else AdventureZombieTierCatalog.get_tier(tier_id).get("tint", Color.WHITE)
+
 ## 遍历当前实例所有可见部件及其原版动画组件。
 static func _apply_tree(node: Node, textures: Dictionary) -> bool:
 	var changed := false

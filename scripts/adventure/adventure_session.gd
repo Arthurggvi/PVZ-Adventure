@@ -106,6 +106,7 @@ func grant_starter_cards() -> bool:
 	var inventory: AdventureInventoryService = Global.adventure_inventory
 	var old_next_id: int = state.next_card_id
 	var old_deck: Array[String] = state.selected_card_uids.duplicate()
+	var old_discoveries: Dictionary = state.almanac_discoveries.duplicate() # 初始赠卡失败时连同首次收录一起恢复。
 	var had_claim: bool = state.claimed_rewards.has("intro_starter_cards")
 	var previous_claim: bool = state.claimed_rewards.get("intro_starter_cards", false)
 	var sunflower: String = inventory.add_card(CharacterRegistry.PlantType.P002SunFlower)
@@ -123,6 +124,7 @@ func grant_starter_cards() -> bool:
 		inventory.remove_card(peashooter)
 	state.next_card_id = old_next_id
 	state.selected_card_uids = old_deck
+	state.almanac_discoveries.assign(old_discoveries)
 	if had_claim:
 		state.claimed_rewards["intro_starter_cards"] = previous_claim
 	else:

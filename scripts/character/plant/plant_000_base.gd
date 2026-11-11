@@ -91,6 +91,8 @@ var garden_date_init:Dictionary
 #region 初始化相关
 func _ready() -> void:
 	super()
+	if character_init_type == E_CharacterInitType.IsNorm:
+		Global.record_almanac_encounter("plant", int(plant_type))
 	if is_imitater_material:
 		plant_imitater_update_body()
 

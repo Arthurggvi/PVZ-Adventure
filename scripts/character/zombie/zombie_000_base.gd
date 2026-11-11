@@ -180,6 +180,8 @@ func _ready() -> void:
 	if is_mini_zombie:
 		update_mini_zombie()
 	super()
+	if character_init_type == E_CharacterInitType.IsNorm:
+		Global.record_almanac_encounter("zombie", int(zombie_type))
 	##INFO: 检测是否有头节点
 	var is_have_head:=false
 	for head1_path:NodePath in head1_path_candidate:

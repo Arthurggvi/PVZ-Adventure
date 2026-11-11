@@ -31,6 +31,7 @@ func add_card(plant_type: Variant, stars: Variant = 0) -> String:
 	_state.cards[card_uid] = card
 	_state.card_order_uids.append(card_uid)
 	_state.next_card_id += 1
+	_state.discover_character("plant", card.plant_type)
 	return card_uid
 
 ## 删除 [param uid] 的卡并同步剔除所有出战引用；不存在时返回 false。

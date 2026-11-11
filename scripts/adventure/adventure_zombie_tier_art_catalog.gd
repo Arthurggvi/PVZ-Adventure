@@ -1,5 +1,5 @@
 ## 冒险僵尸等阶贴图目录：按物种与等阶合并原版纹理替换表。
-## 只有冒险出生绑定器调用；无美术配置时返回空表，不改变原版画面。
+## 冒险出生绑定器与图鉴静态预览共用；无美术配置时返回空表，不改变原版画面。
 extends RefCounted
 class_name AdventureZombieTierArtCatalog
 
@@ -96,7 +96,7 @@ static func _species_mapping(
 	return {"ok": true, "paths": paths}
 
 
-## 在首次冒险僵尸出生时读取唯一 manifest。
+## 在首次冒险僵尸出生或图鉴预览时读取唯一 manifest。
 static func _load_once() -> void:
 	if _loaded:
 		return
