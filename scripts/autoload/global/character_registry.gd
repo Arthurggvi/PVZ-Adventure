@@ -648,7 +648,7 @@ const ZombieInfo = {
 		ZombieInfoAttribute.CoolTime: 0.0,
 		ZombieInfoAttribute.SunCost: 125,
 		ZombieInfoAttribute.ZombieScenes:preload("res://scenes/character/zombie/zombie_007_screendoor.tscn"),
-		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Both
 	},
 	ZombieType.Z008Football:{
 		ZombieInfoAttribute.ZombieName: "ZombieFootball",

@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://df725841r4fqq"]
+[gd_scene load_steps=18 format=3 uid="uid://df725841r4fqq"]
 
 [ext_resource type="PackedScene" uid="uid://b72u5kwdpw4te" path="res://scenes/character/zombie/zombie_001_norm.tscn" id="1_qj1pj"]
 [ext_resource type="Script" uid="uid://caqagbuu2in1i" path="res://scripts/character/components/iron_node/iron_node_armor.gd" id="2_rjx66"]
@@ -50,6 +50,11 @@ size = Vector2(48, 5)
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_kbcr1"]
 radius = 20.0
 height = 100.0
+
+[sub_resource type="Resource" id="Resource_swim_art"]
+script = ExtResource("2_w3rtv")
+sprite_appear = Array[NodePath]([NodePath("../Body/BodyCorrect/Zombie_duckytube")])
+sprite_disappear = Array[NodePath]([NodePath("../Body/BodyCorrect/leg")])
 
 [node name="Zombie007Screendoor" node_paths=PackedStringArray("iron_node") instance=ExtResource("1_qj1pj")]
 script = ExtResource("2_screendoor")
@@ -273,3 +278,6 @@ shape = SubResource("RectangleShape2D_rjx66")
 
 [node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
 shape = SubResource("CapsuleShape2D_kbcr1")
+
+[node name="SwimBoxComponent" parent="." index="8"]
+body_change_swim = SubResource("Resource_swim_art")
