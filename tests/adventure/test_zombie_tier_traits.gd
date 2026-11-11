@@ -11,11 +11,13 @@ func _run() -> void:
 	_require(AdventureZombieTierTraits.for_spawn(
 		CharacterRegistry.ZombieType.Z001Norm, &"tier5").is_empty(), "normal zombie has no trait")
 	_require(AdventureZombieTierTraits.for_spawn(
-		CharacterRegistry.ZombieType.Z003Cone, &"veteran").is_empty(), "cone tier2 no trait")
+		CharacterRegistry.ZombieType.Z003Cone, &"base").is_empty(), "cone tier1 no trait")
+	# spec 是当前等阶脱盔后的速度倍率、持续秒数和友军影响范围。
 	for spec in [
-		{"tier": &"elite", "multiplier": 1.2, "duration": 0.5, "radius": 0},
-		{"tier": &"tier4", "multiplier": 1.5, "duration": 0.8, "radius": 0},
-		{"tier": &"tier5", "multiplier": 1.5, "duration": 0.8, "radius": 1},
+		{"tier": &"veteran", "multiplier": 1.3, "duration": 0.5, "radius": 0},
+		{"tier": &"elite", "multiplier": 1.6, "duration": 0.5, "radius": 0},
+		{"tier": &"tier4", "multiplier": 2.0, "duration": 0.8, "radius": 0},
+		{"tier": &"tier5", "multiplier": 2.0, "duration": 0.8, "radius": 1},
 	]:
 		var tier: StringName = spec["tier"]
 		var configured: Array[Dictionary] = AdventureZombieTierTraits.for_spawn(

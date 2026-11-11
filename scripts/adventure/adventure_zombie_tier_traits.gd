@@ -23,17 +23,21 @@ const DEFINITIONS: Dictionary = {
         ],
     },
     CharacterRegistry.ZombieType.Z003Cone: {
+        &"veteran": [
+            {"trigger": &"armor1_lost", "effect": &"timed_speed_boost",
+                "multiplier": 1.3, "duration": 0.5, "radius_cells": 0},
+        ],
         &"elite": [
             {"trigger": &"armor1_lost", "effect": &"timed_speed_boost",
-                "multiplier": 1.2, "duration": 0.5, "radius_cells": 0},
+                "multiplier": 1.6, "duration": 0.5, "radius_cells": 0},
         ],
         &"tier4": [
             {"trigger": &"armor1_lost", "effect": &"timed_speed_boost",
-                "multiplier": 1.5, "duration": 0.8, "radius_cells": 0},
+                "multiplier": 2.0, "duration": 0.8, "radius_cells": 0},
         ],
         &"tier5": [
             {"trigger": &"armor1_lost", "effect": &"timed_speed_boost",
-                "multiplier": 1.5, "duration": 0.8, "radius_cells": 1},
+                "multiplier": 2.0, "duration": 0.8, "radius_cells": 1},
         ],
     },
     CharacterRegistry.ZombieType.Z004PoleVaulter: {
