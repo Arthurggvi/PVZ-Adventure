@@ -323,6 +323,7 @@ summon_while_paused = 1
 summon_end = 1
 summon_interval_seconds = 5.0
 summon_count = 2
+phase_two_summon_count = 3
 max_alive_periodic_summons = 8
 summon_zombie_weights = Dictionary[int, int]({
 1: 4,

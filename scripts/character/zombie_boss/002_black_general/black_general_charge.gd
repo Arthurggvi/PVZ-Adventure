@@ -1,6 +1,9 @@
-## 冲锋的移动及扫掠伤害；不控制动画、阶段、召唤或动作调度。
+## 冲锋的移动及扫掠命中；本体结算伤害，影子只施加劣化。
 extends RefCounted
 class_name BlackGeneralCharge
+
+## 二阶段转场影子施加的劣化强度，沿用生命组件的最高值规则。
+const SHADOW_DEGRADATION: float = 0.10
 
 ## 本次冲锋已命中的植物 ID，防止一株高血植物每帧重复受伤。
 var _hit: Dictionary[int, bool] = {}
@@ -23,11 +26,6 @@ func cancel() -> void:
 	active = false
 	_hit.clear()
 
-## [param cells] 当前行格子。返回第二列右侧的停止线，用于判断转阶段是否还有冲锋距离。
-func stop_line(cells: Array) -> float:
-	var row: Array = _ordered_row(cells) # 从左到右的场地行副本。
-	return _second_column_edge(row) if row.size() >= 2 else INF
-
 ## [param cells] 当前行格子。返回按画面坐标排序的副本，不改变关卡布局。
 func _ordered_row(cells: Array) -> Array:
 	var row: Array = cells.duplicate() # 只排序副本，不改变场地原始布局。
@@ -39,15 +37,17 @@ func _second_column_edge(row: Array) -> float:
 	var second: PlantCell = row[1] # 画面第二列。
 	return second.get_global_rect().end.x
 
-## [param boss] 本次冲锋角色；[param cells] 所在行格子；[param delta] 已乘角色速度的秒数。
+## [param boss] 冲锋速度及本体伤害来源；[param cells] 所在行格子；[param delta] 已乘角色速度的秒数。
+## [param shadow] 提供时移动该影子，命中时只施加劣化。
 ## 返回是否完成；扫描整个移动区间，低帧率也不会跳过植物或碰到第二列植物。
-func advance(boss: ZB002BlackGeneral, cells: Array, delta: float) -> bool:
+func advance(boss: ZB002BlackGeneral, cells: Array, delta: float, shadow: Node2D = null) -> bool:
 	if not active or cells.size() < 2:
 		active = false
 		return true
 	var row: Array = _ordered_row(cells) # 从右向左遍历这一份有序副本。
 	var stop_x: float = _second_column_edge(row) # 第二列右边界，禁止进入受保护格。
-	var from_x: float = boss.global_position.x # 本帧移动起点。
+	var actor: Node2D = shadow if shadow != null else boss # 本次扫掠移动的节点。
+	var from_x: float = actor.global_position.x # 本帧移动起点。
 	var to_x: float = maxf(stop_x, from_x - boss.config.charge_speed * delta) # 裁剪后的移动终点。
 	for column: int in range(row.size() - 1, 1, -1): # 第三列至最右列，从右向左结算。
 		var cell: PlantCell = row[column] # 本次扫过的格子。
@@ -62,6 +62,9 @@ func advance(boss: ZB002BlackGeneral, cells: Array, delta: float) -> bool:
 				or _hit.has(plant.get_instance_id()):
 				continue
 			_hit[plant.get_instance_id()] = true
+			if shadow != null:
+				plant.hp_component.apply_degradation(SHADOW_DEGRADATION)
+				continue
 			# 致死前复制压扁表现，扣血仍只经过一次生命组件，不对高血植物执行处决。
 			if plant.hp_component.resolve_damage(boss.config.charge_damage) >= plant.hp_component.curr_hp:
 				plant.body.be_flattened_body()
@@ -74,6 +77,6 @@ func advance(boss: ZB002BlackGeneral, cells: Array, delta: float) -> bool:
 				boss.global_position.x = minf(from_x, bounds.end.x)
 				active = false
 				return true
-	boss.global_position.x = to_x
+	actor.global_position.x = to_x
 	active = to_x > stop_x
 	return not active

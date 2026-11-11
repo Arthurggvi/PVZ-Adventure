@@ -9,7 +9,7 @@ class_name BlackGeneralConfig
 ## 两次成功插旗之间的最短战斗秒数。
 @export var flag_cooldown: float = 20.0
 ## 冲锋速度，单位像素/秒，受角色减速影响。
-@export var charge_speed: float = 600.0
+@export var charge_speed: float = 300.0
 ## 换行跑步速度，单位像素/秒。
 @export var lane_change_speed: float = 140.0
 ## 每株植物每次冲锋受到的伤害。
@@ -24,7 +24,7 @@ class_name BlackGeneralConfig
 	CharacterRegistry.ZombieType.Z004PoleVaulter, CharacterRegistry.ZombieType.Z005Bucket,
 	CharacterRegistry.ZombieType.Z008Football]
 ## 令旗生命值。
-@export var flag_health: int = 1500
+@export var flag_health: int = 3000
 ## 第一阶段令旗格挡。
 @export var phase_one_block: int = 10
 ## 第二阶段令旗格挡。

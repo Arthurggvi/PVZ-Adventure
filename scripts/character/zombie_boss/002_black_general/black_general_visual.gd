@@ -9,6 +9,8 @@ signal teleport_appeared
 @onready var player: AnimationPlayer = $AnimationPlayer
 @onready var _parts: Node2D = $Body/BodyCorrect
 var _phase2 := false
+## 冲锋步频随冲锋位移一起减半。
+const CHARGE_ANIMATION_SPEED: float = 0.5
 const P2_DIR := "res://assets/adventure/zombies/black_general/parts/phase2/"
 const BASE_DIR := "res://assets/adventure/zombies/black_general/parts/armor/"
 const MAP := {
@@ -19,12 +21,13 @@ const MAP := {
 }
 func _ready() -> void:
  set_phase2(false)
+## 播放 [param action]，使用独立的冲锋步频并保留角色受控速度倍率。
 func play_action(action: StringName) -> void:
  if not player.has_animation(action):
   push_error("BlackGeneralVisual: missing action %s" % action)
   return
  $Body.modulate.a = 1.0
- player.play(action)
+ player.play(action, -1.0, CHARGE_ANIMATION_SPEED if action == &"charge" else 1.0)
 func set_phase2(enabled: bool) -> void:
  _phase2 = enabled
  for native: String in MAP:

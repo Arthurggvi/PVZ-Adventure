@@ -4,9 +4,26 @@ class_name ZB002BlackGeneral
 
 ## 令旗战斗实体，纯展示资源继续独立复用。
 const FLAG_SCENE: PackedScene = preload("res://scenes/character/zombie_boss/black_general_flag_entity.tscn")
+## 僵王博士践踏动画使用的原音效。
+const STOMP_SOUND: AudioStream = preload("res://assets/audio/SFX/zombie/gargantuar_thump.ogg")
+## 蓄力期间连续践踏的间隔，单位秒。
+const STOMP_INTERVAL: float = 0.22
+## 转场本体固定从第 3 路出击，内部行号从 0 开始。
+const PHASE_CHARGE_LANE: int = 2
+## 转场全明星出场顺序，每组内同时召唤。
+const PHASE_SUMMON_ROWS := [[0, 4], [1, 3], [2]]
+## 两批全明星出场的间隔，单位秒。
+const PHASE_SUMMON_INTERVAL: float = 0.18
+## 本体出击后，按组启动的残影行。
+const PHASE_SHADOW_ROWS := [[1, 3], [0, 4]]
+## 本体与第一组残影、两组残影之间的间隔，单位秒。
+const PHASE_SHADOW_INTERVAL: float = 0.14
+## 本体拖尾比冲锋残影自身的拖尾更实。
+const CHARGE_TRAIL_OPACITY: float = 0.72
 ## 动作执行状态；转阶段与死亡抢占普通动作，不依赖异步等待链。
 enum State { ENTER, OPENING, IDLE, RAISE, WINDUP, CHARGE, STOP,
-	CHANGE_LANE, PHASE_RAISE, PHASE_OUT, PHASE_IN, PHASE_FINISH, DYING }
+	CHANGE_LANE, PHASE_RAISE, PHASE_CHARGE_OUT, PHASE_CHARGE_IN,
+	PHASE_OUT, PHASE_IN, PHASE_FINISH, DYING }
 ## 场景可覆盖的技能数值。
 @export var config: BlackGeneralConfig = BlackGeneralConfig.new()
 ## 已接入的纯视觉角色。
@@ -35,6 +52,18 @@ var _released: bool = false
 var _flags: Array[BlackGeneralFlag] = []
 ## 角色动画与位移共同使用的速度倍率。
 var _speed: float = 1.0
+## 转场举旗后下一批全明星的索引；-1 表示没有待召唤的组。
+var _phase_summon_group: int = -1
+## 从转场举旗关键帧起经过的战斗秒数。
+var _phase_summon_elapsed: float = 0.0
+## 等待起跑或正在扫掠的转场残影。
+var _charge_shadows: Array[BlackGeneralChargeShadow] = []
+## 本体距下次采样冲锋拖尾的秒数。
+var _trail_wait: float = 0.0
+## 专用践踏音轨，允许快速重播并在冲锋或中断时立即停止。
+var _stomp_player: AudioStreamPlayer
+## 蓄力中距下次践踏的战斗秒数。
+var _stomp_wait: float = 0.0
 
 ## 入树时连接已接入的动画事件，定位在管理器登记结束后进行。
 func ready_norm() -> void:
@@ -79,17 +108,31 @@ func _battle_active() -> bool:
 ## [param delta] 物理秒数；移动和行动等待受角色速度影响，插旗冷却按战斗时间计。
 func _physics_process(delta: float) -> void:
 	if not _battle_active():
+		_stop_windup_sound()
+		_clear_charge_shadows()
 		return
 	behavior.advance_flag_cooldown(delta)
+	if state == State.WINDUP:
+		_stomp_wait -= delta
+		if _stomp_wait <= 0.0:
+			_stomp_player.play()
+			_stomp_wait += STOMP_INTERVAL
 	var step: float = delta * _speed # 经角色控制效果缩放的逻辑时间。
 	if step <= 0.0:
 		return
+	if _phase_summon_group >= 0:
+		_advance_phase_summons(step)
+	_advance_charge_shadows(step)
 	match state:
 		State.IDLE:
 			var next: BlackGeneralBehaviorTree.Action = behavior.tick(step, false, _has_flag()) # 下一叶节点。
 			if next != BlackGeneralBehaviorTree.Action.NONE:
 				_begin_action(next)
 		State.CHARGE:
+			_trail_wait -= step
+			if _trail_wait <= 0.0:
+				BlackGeneralChargeTrail.spawn(visual, self, z_index - 1, CHARGE_TRAIL_OPACITY)
+				_trail_wait += BlackGeneralChargeTrail.INTERVAL
 			var completed: bool = charge.advance(self, _game.plant_cell_manager.all_plant_cells[lane], step) # 伤害可能同步触发阶段中断。
 			if completed and state == State.CHARGE and not is_death:
 				state = State.STOP
@@ -114,8 +157,7 @@ func _begin_action(next: BlackGeneralBehaviorTree.Action) -> void:
 			state = State.CHANGE_LANE
 			visual.play_action(&"run")
 		BlackGeneralBehaviorTree.Action.CHARGE:
-			state = State.WINDUP
-			visual.play_action(&"windup")
+			_begin_windup()
 		_:
 			state = State.RAISE
 			visual.play_action(&"raise")
@@ -135,27 +177,79 @@ func _apply_boss_visual_phase(phase: int, animated: bool) -> void:
 	if phase != 2 or not is_instance_valid(visual):
 		return
 	if not animated:
-		visual.set_phase2(true)
+		_enter_phase_two_look()
 		return
+	_stop_windup_sound()
 	charge.cancel()
 	_transitioning = true
 	_released = false
 	_set_invulnerable(true)
 	# 转阶段必须能完成；清理已有控制，随后无敌窗口拒绝新控制。
 	reset_control_effects()
-	# 换行中受伤时，以当前位置最近的一路为当前行，再沿该行发起冲锋。
-	for row: int in range(_game.zombie_manager.all_zombie_rows.size()): # 最近行候选。
-		if absf(_row_y(row) - global_position.y) < absf(_row_y(lane) - global_position.y):
-			lane = row
-	global_position.y = _row_y(lane)
-	z_index = lane * 50 + 40
-	# 若半血在上一次冲锋的停止线上触发，先回到本行右侧，确保转阶段有实际冲锋路径。
-	if global_position.x <= charge.stop_line(_game.plant_cell_manager.all_plant_cells[lane]):
-		_return_to_home()
 	state = State.PHASE_RAISE
 	# 半血可能发生在普通举旗中，重播以确保阶段召唤关键帧不会被跳过。
 	visual.player.stop()
 	visual.play_action(&"raise")
+
+## 在转场传送切换模型时，同步点燃仍存活的令旗。
+func _enter_phase_two_look() -> void:
+	visual.set_phase2(true)
+	for flag: BlackGeneralFlag in _flags: # 只升级本体召出的存活令旗。
+		if is_instance_valid(flag) and not flag.is_death and not flag.is_queued_for_deletion():
+			flag.enter_phase_two(config.phase_two_block)
+
+## 蓄力开始立刻播放一次践踏，随后由物理时钟重播直到起跑。
+func _begin_windup() -> void:
+	state = State.WINDUP
+	visual.play_action(&"windup")
+	if _stomp_player == null:
+		_stomp_player = AudioStreamPlayer.new()
+		_stomp_player.stream = STOMP_SOUND
+		_stomp_player.bus = &"SFX"
+		add_child(_stomp_player)
+	_stomp_wait = STOMP_INTERVAL
+	_stomp_player.play()
+
+## 结束蓄力或中断动作时切断践踏声。
+func _stop_windup_sound() -> void:
+	if is_instance_valid(_stomp_player) and _stomp_player.playing:
+		_stomp_player.stop()
+
+## 启动四路影子，各组按既定时间从本行右侧出击。
+func _begin_charge_shadows() -> void:
+	var row_count: int = _game.zombie_manager.all_zombie_rows.size() # 过滤非五路场地的无效行。
+	for group_index: int in range(PHASE_SHADOW_ROWS.size()): # 依次启动内侧组与外侧组。
+		for row: int in PHASE_SHADOW_ROWS[group_index]: # 组内两个残影使用同一个延迟。
+			if row == lane or row >= row_count:
+				continue
+			var shadow := BlackGeneralChargeShadow.new() # 该行的冲锋与命中独立结算。
+			shadow.setup(self, row, Vector2(_home_x, _row_y(row)), (group_index + 1) * PHASE_SHADOW_INTERVAL)
+			_charge_shadows.append(shadow)
+
+## 用 [param step] 推进各路残影，扫到各自停止线后释放。
+func _advance_charge_shadows(step: float) -> void:
+	for index: int in range(_charge_shadows.size() - 1, -1, -1): # 倒序删除已经结束的残影。
+		var shadow: BlackGeneralChargeShadow = _charge_shadows[index] # 当前行的冲锋实例。
+		if shadow.advance(self, _game.plant_cell_manager.all_plant_cells[shadow.lane], step):
+			shadow.queue_free()
+			_charge_shadows.remove_at(index)
+
+## 战斗结束时停止仍待命或正在冲锋的残影，已有拖尾自行淡出。
+func _clear_charge_shadows() -> void:
+	for shadow: BlackGeneralChargeShadow in _charge_shadows: # 清理未到达终点的实例。
+		shadow.queue_free()
+	_charge_shadows.clear()
+
+## 举旗后用 [param step] 推进各组出怪，到时立即生成整组。
+func _advance_phase_summons(step: float) -> void:
+	_phase_summon_elapsed += step
+	while _phase_summon_group < PHASE_SUMMON_ROWS.size() \
+		and _phase_summon_elapsed >= _phase_summon_group * PHASE_SUMMON_INTERVAL:
+		for row: int in PHASE_SUMMON_ROWS[_phase_summon_group]: # 组内同时入场的全明星。
+			_summon(CharacterRegistry.ZombieType.Z026AllStar, row, &"base")
+		_phase_summon_group += 1
+	if _phase_summon_group == PHASE_SUMMON_ROWS.size():
+		_phase_summon_group = -1
 
 ## 二阶段传送真正现身时播放龙咆哮；初次登场和静默恢复不触发。
 func _on_teleport_appeared() -> void:
@@ -169,11 +263,14 @@ func _on_flag_raised() -> void:
 	_released = true
 	match state:
 		State.OPENING:
+			SoundManager.play_boss_phase_roar()
 			for row: int in [1, 3]: # 策划第 2、4 路，内部使用零起始。
 				_summon(CharacterRegistry.ZombieType.Z026AllStar, row, &"base")
 		State.PHASE_RAISE:
-			for row: int in range(_game.zombie_manager.all_zombie_rows.size()): # 每路一只全明星。
-				_summon(CharacterRegistry.ZombieType.Z026AllStar, row, &"base")
+			SoundManager.play_boss_phase_roar()
+			_phase_summon_group = 0
+			_phase_summon_elapsed = 0.0
+			_advance_phase_summons(0.0)
 		State.RAISE:
 			match _action:
 				BlackGeneralBehaviorTree.Action.PLANT_FLAG:
@@ -181,6 +278,7 @@ func _on_flag_raised() -> void:
 				BlackGeneralBehaviorTree.Action.COMMAND:
 					_command()
 				BlackGeneralBehaviorTree.Action.LEAD:
+					SoundManager.play_boss_phase_roar()
 					_summon(CharacterRegistry.ZombieType.Z008Football, lane, &"elite", global_position.x - _cell_width())
 
 ## [param animation] 已结束的动画；状态与动画双重匹配，迟到回调不能推进新动作。
@@ -210,14 +308,27 @@ func _on_animation_finished(animation: StringName) -> void:
 				_finish_action()
 		State.PHASE_RAISE:
 			if animation == &"raise":
-				state = State.WINDUP
-				visual.play_action(&"windup")
+				state = State.PHASE_CHARGE_OUT
+				visual.play_action(&"teleport_out")
+		State.PHASE_CHARGE_OUT:
+			if animation == &"teleport_out":
+				_enter_phase_two_look()
+				lane = mini(PHASE_CHARGE_LANE, _game.zombie_manager.all_zombie_rows.size() - 1)
+				_return_to_home()
+				state = State.PHASE_CHARGE_IN
+				visual.play_action(&"teleport_in")
+		State.PHASE_CHARGE_IN:
+			if animation == &"teleport_in":
+				_begin_windup()
 		State.WINDUP:
 			if animation == &"windup":
+				_stop_windup_sound()
 				charge.begin(0 if _transitioning or boss_phase >= 2 else config.phase_one_kill_limit)
 				state = State.CHARGE
+				_trail_wait = 0.0
 				visual.play_action(&"charge")
-				SoundManager.play_character_SFX(&"gargantuar_thump")
+				if _transitioning:
+					_begin_charge_shadows()
 		State.STOP:
 			if animation == &"charge_stop":
 				if _transitioning:
@@ -227,10 +338,6 @@ func _on_animation_finished(animation: StringName) -> void:
 					_finish_action()
 		State.PHASE_OUT:
 			if animation == &"teleport_out":
-				visual.set_phase2(true)
-				for flag: BlackGeneralFlag in _flags: # 升级自己仍存活的令旗。
-					if is_instance_valid(flag) and not flag.is_death:
-						flag.aura.set_amount(config.phase_two_block)
 				_return_to_home()
 				state = State.PHASE_IN
 				visual.play_action(&"teleport_in")
@@ -259,7 +366,9 @@ func _plant_flag() -> void:
 	flag.global_position = global_position - Vector2(_cell_width(), 0.0)
 	_flags.append(flag)
 	flag.tree_exiting.connect(_forget_flag.bind(flag.get_instance_id()))
-	flag.activate(_game.zombie_manager, config.phase_two_block if boss_phase >= 2 else config.phase_one_block)
+	flag.activate(_game.zombie_manager, config.phase_one_block)
+	if boss_phase >= 2:
+		flag.enter_phase_two(config.phase_two_block)
 	behavior.mark_flag_planted(config.flag_cooldown)
 
 ## [param instance_id] 已销毁令旗的编号；移除失效引用，避免后续阶段升级访问已释放节点。
@@ -276,6 +385,7 @@ func _command() -> void:
 	var count: int = _game.zombie_manager.all_zombie_rows.size() * config.command_per_lane # 保留原号令的援军总数。
 	for index: int in range(count): # 每名援军各抽取一次。
 		types.append(config.command_types.pick_random())
+	SoundManager.play_boss_phase_roar()
 	_game.zombie_manager.zombie_wave_manager.spawn_support_flag_wave(self, types, &"veteran" if boss_phase >= 2 else &"base")
 
 ## [param type] 物种；[param row] 零起始行；[param tier] 等阶；[param x] 可选世界横坐标。
@@ -324,12 +434,14 @@ func be_ice_decelerate(time: float) -> void:
 	if not _transitioning:
 		super.be_ice_decelerate(time)
 
-## 死亡抢占任意动作，清理旗帜后传送退场，完成动画才请求结算。
+## 死亡抢占任意动作，清理冲锋与旗帜后传送退场，完成动画才请求结算。
 func character_death() -> void:
 	if is_death:
 		return
 	state = State.DYING
 	charge.cancel()
+	_stop_windup_sound()
+	_clear_charge_shadows()
 	_clear_flags()
 	super.character_death()
 	visual.play_action(&"teleport_out")

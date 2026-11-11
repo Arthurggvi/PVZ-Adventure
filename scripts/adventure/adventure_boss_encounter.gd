@@ -74,10 +74,14 @@ func _on_boss_tree_exiting() -> void:
 		_finish(StageEventDefinition.BossExitReason.DEFEATED if boss.is_death else StageEventDefinition.BossExitReason.ESCAPED)
 
 func _on_summon_tick() -> void:
-	if not active or not zombie_manager.is_game_running():
+	if not active or not zombie_manager.is_game_running() or not is_instance_valid(boss) \
+		or boss.is_death or boss.is_queued_for_deletion():
 		return
-	var capacity: int = config.max_alive_periodic_summons - _summons.size()
-	for i: int in range(mini(config.summon_count, capacity)):
+	var capacity: int = config.max_alive_periodic_summons - _summons.size() # 当前场上剩余名额。
+	var count: int = config.summon_count # 一阶段及未配置二阶段时的批量。
+	if boss.boss_phase >= 2 and config.phase_two_summon_count > 0:
+		count = config.phase_two_summon_count
+	for i: int in range(mini(count, capacity)): # 每个剩余名额独立抽取物种与等阶。
 		var type_key: Variant = _weighted_pick(config.summon_zombie_weights)
 		var tier_key: Variant = _weighted_pick(config.summon_tier_weights)
 		if type_key == null or tier_key == null:

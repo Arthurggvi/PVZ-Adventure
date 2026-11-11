@@ -34,6 +34,8 @@ enum SummonEnd { UNSET, BOSS_EXIT, PHASE_END }
 @export var summon_interval_seconds: float = -1.0
 ## 每批召唤数量，启用周期召唤时必须为正整数。
 @export var summon_count: int = 0
+## 二阶段每批数量；0 表示沿用一阶段数量，间隔与存活上限仍共用。
+@export var phase_two_summon_count: int = 0
 ## 仅本遭遇控制器周期援军的存活上限；Boss AI 的技能召唤由 Boss 技能资源独立管理。
 @export var max_alive_periodic_summons: int = 0
 ## 召唤物只使用普通僵尸物种，不混入 Boss。
@@ -62,13 +64,16 @@ func validate(wave_count: int = 0, known_tier_ids: Array[StringName] = []) -> Pa
 	if summon_rule == SummonRule.PERIODIC:
 		if not is_finite(summon_interval_seconds) or summon_interval_seconds <= 0.0 or summon_count < 1 or max_alive_periodic_summons < summon_count:
 			errors.append("周期召唤的间隔、批量或存活上限无效。")
+		if phase_two_summon_count < 0 or phase_two_summon_count > max_alive_periodic_summons:
+			errors.append("二阶段周期召唤数量无效。")
 		if summon_while_paused != SummonWhilePaused.CONTINUE:
 			errors.append("Boss 存活时援军必须独立于自然波次持续刷新。")
 		if summon_end != SummonEnd.BOSS_EXIT:
 			errors.append("Boss 死亡或撤退后必须终止援军刷新。")
 		errors.append_array(WaveBandDefinition.validate_pool(summon_zombie_weights, summon_tier_weights, known_tier_ids))
 	elif summon_rule == SummonRule.NONE:
-		if summon_interval_seconds != -1.0 or summon_count != 0 or max_alive_periodic_summons != 0 \
+		if summon_interval_seconds != -1.0 or summon_count != 0 or phase_two_summon_count != 0 \
+			or max_alive_periodic_summons != 0 \
 			or not summon_zombie_weights.is_empty() or not summon_tier_weights.is_empty() \
 			or summon_while_paused != SummonWhilePaused.UNSET or summon_end != SummonEnd.UNSET:
 			errors.append("不召唤的遭遇不能残留周期召唤参数。")

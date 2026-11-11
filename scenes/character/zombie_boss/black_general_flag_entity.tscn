@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/character/zombie_boss/black_general_planted_flag.tscn" id="art"]
 [ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/black_general_flag.gd" id="flag"]
 [ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_static.gd" id="anim"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/black_general/parts/fx/generated/BlackSmoke_Back.tres" id="flame"]
 
 [sub_resource type="RectangleShape2D" id="hurt"]
 size = Vector2(38, 120)
@@ -15,11 +16,20 @@ random_speed_range = Vector2(1, 1)
 [node name="FlagArt" parent="Body" index="1" instance=ExtResource("art")]
 scale = Vector2(0.5, 0.5)
 
+[node name="BlackFlame" type="AnimatedSprite2D" parent="Body" index="2"]
+visible = false
+modulate = Color(1, 1, 1, 0.48)
+position = Vector2(-18, -84)
+scale = Vector2(0.66, 0.66)
+z_index = -1
+sprite_frames = ExtResource("flame")
+animation = &"loop"
+
 [node name="AnimComponent" parent="." index="2"]
 script = ExtResource("anim")
 
 [node name="HpComponent" parent="." index="3"]
-max_hp = 1500
+max_hp = 3000
 
 [node name="ProgressBarHp" type="ProgressBar" parent="HpComponent"]
 unique_name_in_owner = true
@@ -39,7 +49,7 @@ offset_top = -178.0
 offset_right = 28.0
 offset_bottom = -155.0
 mouse_filter = 2
-text = "1500"
+text = "3000"
 horizontal_alignment = 1
 
 [node name="HurtBoxDetection" parent="HurtBoxComponent" index="0"]
