@@ -14,6 +14,11 @@ class_name Plant005PotatoMine
 @export_group("动画状态")
 ## 埋伏计时已结束，动画树可以开始播放出土动画。
 @export var is_prepare_end := false
+## 冒险出战快照赋予的出土与重复埋伏能力，原版保持默认关闭。
+var battle_instant_arm: bool = false
+var battle_rearm: bool = false
+var _is_armed: bool = false
+signal signal_potato_armed
 
 
 ## 初始化正常出战角色
@@ -28,6 +33,15 @@ func ready_norm() -> void:
 	update_prepare_speed(GlobalUtils.get_dic_product(influence_speed_factors))
 	if is_zombie_mode:
 		_on_prepare_timer_timeout()
+	elif battle_instant_arm:
+		is_prepare_end = true
+		prepare_timer.stop()
+		# 直接跳至原版已出土状态，立即启用踩雷判定，不等待15秒或出土动画。
+		var playback: AnimationNodeStateMachinePlayback = anim_component.animation_tree.get(
+			"parameters/AnimationNodeStateMachine/playback") as AnimationNodeStateMachinePlayback
+		if playback != null:
+			playback.start(&"PotatoMine_armed")
+		_rise_end()
 	else:
 		prepare_timer.start_scaled(prepare_time)
 
@@ -43,7 +57,10 @@ func _detonate() -> void:
 			or not bomb_component.is_enabling or bomb_component.is_bomb:
 		return
 	bomb_component.bomb_once()
-	character_death()
+	if battle_rearm:
+		_rearm_mine()
+	else:
+		character_death()
 
 ## 出土动画结束后才允许出战实例踩雷；展示实例只恢复眨眼。
 func _rise_end() -> void:
@@ -51,9 +68,25 @@ func _rise_end() -> void:
 		return
 	if character_init_type == E_CharacterInitType.IsNorm:
 		detect_component.enable_component(ComponentNormBase.E_IsEnableFactor.Prepare)
+		if not _is_armed:
+			_is_armed = true
+			signal_potato_armed.emit()
 	blink_component.enable_component(ComponentNormBase.E_IsEnableFactor.Prepare)
 
-## 埋伏结束后启动出土动画，并播放泥土和出土音效。
+## 重新进入原版埋伏状态；保留植物实体、生命和既有出土动画资源。
+func _rearm_mine() -> void:
+	_is_armed = false
+	is_prepare_end = false
+	bomb_component.is_bomb = false
+	detect_component.disable_component(ComponentNormBase.E_IsEnableFactor.Prepare)
+	blink_component.disable_component(ComponentNormBase.E_IsEnableFactor.Prepare)
+	var playback: AnimationNodeStateMachinePlayback = anim_component.animation_tree.get(
+		"parameters/AnimationNodeStateMachine/playback") as AnimationNodeStateMachinePlayback
+	if playback != null:
+		playback.start(&"PotatoMine_light")	# 原版潜伏外观，计时后沿原版出土轨道复苏。
+	prepare_timer.start_scaled(prepare_time)
+
+## 埋伏结束后启动出土动画，并播放泥土和出土音效.
 func _on_prepare_timer_timeout() -> void:
 	if is_prepare_end or is_death or is_queued_for_deletion():
 		return

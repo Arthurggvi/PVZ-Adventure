@@ -66,6 +66,7 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 	# 静态转职和运行时事件统一来自已验证的冻结卡片快照。
 	var resolved: Dictionary = Promotions.effects(record)
 	var wallnut_events: Array[Dictionary] = []
+	var potato_events: Array[Dictionary] = []
 	for event: Dictionary in resolved.events:
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
@@ -77,8 +78,19 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 					return false
 				hp.max_single_hit_fraction = float(event.get("fraction", 0.0))
 			_:
-				if str(event.get("kind", "")).begins_with("wallnut_"):
+				var kind: String = str(event.get("kind", ""))
+				if kind.begins_with("wallnut_"):
 					wallnut_events.append(event)
+				elif kind.begins_with("potato_"):
+					potato_events.append(event)
+	if not potato_events.is_empty():
+		var mine: Plant005PotatoMine = plant as Plant005PotatoMine
+		if mine == null:
+			push_error("土豆地雷转职事件只能挂在原版地雷植物上")
+			return false
+		var potato_controller := AdventurePotatoPromotionEffects.new()
+		potato_controller.configure(mine, potato_events)
+		mine.add_child(potato_controller)
 	if not wallnut_events.is_empty():
 		var controller := AdventureWallnutPromotionEffects.new()
 		controller.configure(plant, wallnut_events)

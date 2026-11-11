@@ -4,6 +4,8 @@ class_name BombComponentNorm
 
 ## 爆炸表现，与伤害筛选独立触发。
 @onready var bomb_effect: BombEffectBase = $BombEffect
+## 冒险技能的可选结算入口；不设置时保留所有原版范围与伤害逻辑。
+var damage_resolver: Callable
 
 ## 爆炸特效
 func _start_bomb_fx():
@@ -11,6 +13,9 @@ func _start_bomb_fx():
 
 ## 收集范围内的有效敌人并按角色去重；僵王跨行由受击区域决定，致死后保留死亡演出。
 func _bomb_all_enemy():
+	if damage_resolver.is_valid():
+		damage_resolver.call()
+		return
 	var damage: int = resolved_damage()
 	# 保存未转换的引用，前一个目标的死亡回调可能释放后续目标。
 	var targets: Array = []

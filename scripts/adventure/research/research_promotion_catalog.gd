@@ -5,6 +5,31 @@ class_name AdventurePromotionCatalog
 const COST := 5000
 const REQUIREMENTS := [5, 7, 9, 10]
 const BOOKS: Dictionary = {
+	"promotion_potato_harmony": {
+		"title": "调和", "summary": "阳光费用−25，冷却时间−25%", "plant_type": 5, "tier": 1,
+		"effects": [{"kind": "stat", "stat": "sun_cost", "flat": -25.0},
+			{"kind": "stat", "stat": "cooldown", "percent": -0.25}]},
+	"promotion_potato_charge": {
+		"title": "蓄势", "summary": "出土后每秒爆炸伤害+5%，最多+300%", "plant_type": 5, "tier": 1,
+		"effects": [{"kind": "potato_charge", "step": 0.05, "cap": 3.0}]},
+	"promotion_potato_instant": {
+		"title": "休眠停止", "summary": "种植后立即完成出土并可以触雷", "plant_type": 5, "tier": 2,
+		"effects": [{"kind": "potato_instant"}]},
+	"promotion_potato_regrow": {
+		"title": "萌发", "summary": "爆炸后保留地雷并重新进入埋伏状态", "plant_type": 5, "tier": 2,
+		"effects": [{"kind": "potato_regrow"}]},
+	"promotion_potato_spread": {
+		"title": "扩散", "summary": "爆炸范围扩大为自身周围3×3格", "plant_type": 5, "tier": 3,
+		"effects": [{"kind": "potato_spread", "range": 1}]},
+	"promotion_potato_frenzy": {
+		"title": "狂化", "summary": "爆炸伤害翻倍，每炸死一名僵尸使本卡剩余冷却−1秒", "plant_type": 5, "tier": 3,
+		"effects": [{"kind": "potato_frenzy", "damage": 2.0, "cooldown_per_kill": 1.0}]},
+	"promotion_potato_energy": {
+		"title": "能量转化", "summary": "每炸死一名僵尸掉落50阳光", "plant_type": 5, "tier": 4,
+		"effects": [{"kind": "potato_energy", "sun_per_kill": 50}]},
+	"promotion_potato_coupling": {
+		"title": "耦合", "summary": "每次爆炸抛射3枚土豆子弹，落地引爆并继承爆炸伤害、范围与击杀效果", "plant_type": 5, "tier": 4,
+		"effects": [{"kind": "potato_coupling", "projectiles": 3}]},
 	"promotion_wallnut_rolling": {
 		"title": "翻滚坚果", "summary": "以任何形式死亡时化为坚果保龄球", "plant_type": 4, "tier": 1,
 		"effects": [{"kind": "wallnut_bowling_on_death"}]},
