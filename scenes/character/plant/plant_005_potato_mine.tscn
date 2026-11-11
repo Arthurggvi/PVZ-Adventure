@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3 uid="uid://b5hkuknpeg7bl"]
+[gd_scene load_steps=43 format=3 uid="uid://b5hkuknpeg7bl"]
 
 [ext_resource type="Script" uid="uid://biw3o2t4rr2yr" path="res://scripts/util/speed_timer.gd" id="speed_timer"]
 [ext_resource type="PackedScene" uid="uid://c5cke4cm02um7" path="res://scenes/character/plant/plant_000_base.tscn" id="1_8djfp"]
@@ -22,7 +22,9 @@
 [ext_resource type="Script" uid="uid://cp6q723x2kd2g" path="res://scripts/fx/plant_effect/plant_effect_002_bomb_potato_mine.gd" id="21_kp7v2"]
 [ext_resource type="Texture2D" uid="uid://c8f1ytvtikhaa" path="res://assets/image/particles/PotatoMine_particles.png" id="22_6w1u8"]
 [ext_resource type="Texture2D" uid="uid://c7xenjnldyucf" path="res://assets/reanim/PotatoMine_mashed.png" id="23_hi8k1"]
-[ext_resource type="Script" uid="uid://bafp0ax1lmlge" path="res://scripts/character/components/detect_component/component_detect.gd" id="24_kp7v2"]
+[ext_resource type="Script" path="res://scripts/character/components/detect_component/component_detect_potato_mine.gd" id="24_kp7v2"]
+[ext_resource type="Texture2D" path="res://assets/image/particles/ExplosionSpudow.png" id="25_spudow"]
+[ext_resource type="Texture2D" path="res://assets/image/particles/PotatoMineFlash.png" id="26_flash"]
 
 [sub_resource type="Resource" id="Resource_l48fy"]
 script = ExtResource("15_6w1u8")
@@ -105,8 +107,8 @@ node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"AnimationNode
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kp7v2"]
 size = Vector2(55, 5)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_l48fy"]
-size = Vector2(100, 50)
+[sub_resource type="CircleShape2D" id="CircleShape2D_blast"]
+radius = 60.0
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_l48fy"]
 particles_animation = true
@@ -130,9 +132,9 @@ anim_offset_max = 1.0
 
 [node name="Plant005PotatoMine" node_paths=PackedStringArray("node_no_change_direction", "node2d_detect_in_slope") instance=ExtResource("1_8djfp")]
 script = ExtResource("2_0r7iw")
-prepare_time = 10.0
 is_prepare_end = false
 plant_type = 5
+random_speed_range = Vector2(1, 1)
 node_no_change_direction = [null, null, null]
 node2d_detect_in_slope = [NodePath("HurtBoxComponent/HurtBoxDetection"), NodePath("BombComponent/Area2DBomb"), NodePath("DetectComponent")]
 
@@ -251,16 +253,17 @@ parameters/TimeScale/scale = 1.0
 
 [node name="DetectComponent" type="Node2D" parent="." index="10"]
 script = ExtResource("24_kp7v2")
-can_attack_zombie_status = 17
+is_detect_attack = true
+can_attack_zombie_status = 21
 
 [node name="Area2D" type="Area2D" parent="DetectComponent" index="0"]
 position = Vector2(0, -25)
 collision_layer = 0
-collision_mask = 4
+collision_mask = 20
 monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DetectComponent/Area2D" index="0"]
-position = Vector2(10.5, 0)
+position = Vector2(-7.5, 0)
 shape = SubResource("RectangleShape2D_kp7v2")
 
 [node name="BombComponent" type="Node2D" parent="." index="11"]
@@ -274,13 +277,13 @@ bomb_sfx = &"PotatoMine"
 
 [node name="Area2DBomb" type="Area2D" parent="BombComponent" index="0"]
 collision_layer = 0
-collision_mask = 20
+collision_mask = 4
 input_pickable = false
 monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BombComponent/Area2DBomb" index="0"]
-position = Vector2(0, -25)
-shape = SubResource("RectangleShape2D_l48fy")
+position = Vector2(-20, -25)
+shape = SubResource("CircleShape2D_blast")
 
 [node name="BombEffect" type="Node2D" parent="BombComponent" index="1"]
 visible = false
@@ -294,6 +297,7 @@ amount = 60
 texture = ExtResource("22_6w1u8")
 lifetime = 0.75
 one_shot = true
+speed_scale = 2.0
 explosiveness = 1.0
 process_material = SubResource("ParticleProcessMaterial_f5s5r")
 
@@ -301,6 +305,16 @@ process_material = SubResource("ParticleProcessMaterial_f5s5r")
 position = Vector2(-68, -76)
 texture = ExtResource("23_hi8k1")
 centered = false
+
+[node name="Flash" type="Sprite2D" parent="BombComponent/BombEffect" index="2"]
+position = Vector2(0, -28)
+scale = Vector2(2.5, 2.5)
+texture = ExtResource("26_flash")
+
+[node name="Spudow" type="Sprite2D" parent="BombComponent/BombEffect" index="3"]
+position = Vector2(0, -53)
+scale = Vector2(0.65, 0.65)
+texture = ExtResource("25_spudow")
 
 [node name="PrepareTimer" type="Timer" parent="." index="12"]
 script = ExtResource("speed_timer")

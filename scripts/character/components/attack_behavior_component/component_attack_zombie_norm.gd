@@ -2,6 +2,9 @@ extends AttackComponentBase
 class_name AttackComponentZombieNorm
 ## 普通僵尸攻击组件
 
+## 僵尸完成最后一口啃食时播放的原版吞咽音效。
+const PLANT_EATEN_SFX := preload("res://assets/audio/sounds/gulp.ogg")
+
 @export_group("每秒伤害值")
 @export var init_attack_value_per_min :int = 100
 
@@ -45,12 +48,25 @@ func _physics_process(delta: float) -> void:
 		if not is_instance_valid(detect_component.enemy_can_be_attacked):
 			return
 		if frame_counter==0 and is_instance_valid(detect_component.enemy_can_be_attacked):
-			var target: Node = detect_component.enemy_can_be_attacked
+			# 保留本次命中的目标，扣血触发死亡时检测组件可能会切换目标。
+			var target: Character000Base = detect_component.enemy_can_be_attacked
+			# 计算这 8 帧累计的啃食伤害，并应用攻击者当前的伤害修正。
 			var damage: int = owner.hp_component.outgoing_damage(
 				int(curr_attack_value_per_min * delta * 8))
-			target.be_zombie_eat(damage, owner)
+			_apply_bite(target, damage)
 			if damage > 0 and is_instance_valid(target):
 				bite_landed.emit(target, damage)
+
+
+## 施加一次啃食伤害，植物首次被啃死时播放吞咽音效。
+## [param target] 检测组件确认有效的本次受击目标。
+## [param damage] 交给目标生命组件结算的啃食伤害。
+func _apply_bite(target: Character000Base, damage: int) -> void:
+	# 记录扣血前的状态，避免对已经死亡的植物重复播放。
+	var was_living_plant := target is Plant000Base and not target.is_death
+	target.be_zombie_eat(damage, owner)
+	if was_living_plant and is_instance_valid(target) and target.is_death:
+		SoundManager.play_sfx_with_pool(PLANT_EATEN_SFX)
 
 
 ## 攻击一次发亮，动画调用
