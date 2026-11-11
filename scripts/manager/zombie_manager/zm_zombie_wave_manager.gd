@@ -164,11 +164,12 @@ func uses_classic_spawn_timing() -> bool:
 ## 等待首波保护后开始第一波并启动进度计时；关卡已结束或阶段切换时不启动。
 func start_first_wave():
 	var refresh_generation: int = _refresh_generation # 首波保护与进度计时都只属于当前阶段。
-	if uses_classic_spawn_timing():
+	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile # 本次开波使用的阶段配置。
+	if profile != null and profile.use_classic_spawn_timing and profile.classic_opening_protection:
 		await get_tree().create_timer(CLASSIC_OPENING_SECONDS, false).timeout
 	if not _is_wave_refresh_current(refresh_generation):
 		return
-	if zombie_wave_create_manager.adventure_wave_profile != null:
+	if profile != null:
 		adventure_battle_started.emit()
 	if not _is_wave_refresh_current(refresh_generation):
 		return
