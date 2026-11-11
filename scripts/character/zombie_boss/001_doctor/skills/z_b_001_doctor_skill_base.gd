@@ -45,7 +45,22 @@ func initialize_skill() -> void:
 
 ## [param part_position] 资源定义的绝对局部位置；每次重新赋值，避免连续技能累计偏移。
 func apply_visual_position(part_position: Vector2) -> void:
-	position_node.position = part_position
+	position_node.position = _get_battlefield_part_position(position_node, part_position)
+
+
+## [param part] 技能定位部件；[param part_position] 以原机甲出生点标定的局部位置。
+## 机甲改从另一行入场时，抵消其出生偏移，让动作仍对准已锁定的战场目标。
+func _get_battlefield_part_position(part: Node2D, part_position: Vector2) -> Vector2:
+	# 场景所有者是博士，机甲根容器的原点为技能资源的标定原点。
+	var doctor: ZB001Doctor = owner as ZB001Doctor
+	# 机甲根节点的父级提供战场标定坐标。
+	var boss_root: Node2D = doctor.get_parent() as Node2D
+	if boss_root == null or doctor.position.is_zero_approx():
+		return part_position
+	# 将机甲出生偏移转换到部件父节点的本地坐标，兼容缩放及旋转。
+	var world_offset: Vector2 = doctor.global_position - boss_root.global_position
+	var part_parent: Node2D = part.get_parent() as Node2D # 部件位置所在的坐标空间。
+	return part_position + part_parent.to_local(part_parent.global_position - world_offset)
 
 
 ## 正常收尾、间隔待机和死亡取消统一恢复首次保存的待机位置；未初始化时不改变场景姿势。
@@ -89,7 +104,6 @@ func _arm_action(animation_name: StringName) -> StringName:
 ## [param animation_name] 为选定动画；[param part_position] 为场地配置中的绝对局部位置。
 ## 只保存本动作数据，实际定位等待攻击动画 0 秒处的方法轨道。
 func _arm_position_action(animation_name: StringName, part_position: Vector2) -> StringName:
-	_action_part_position = part_position
 	# 先重置动作门闩，再缓存解析结果，防止初始化门闩清掉刚选中的腿部控制器。
 	var armed_animation: StringName = _arm_action(animation_name)
 	if not armed_animation.is_empty():
@@ -97,6 +111,7 @@ func _arm_position_action(animation_name: StringName, part_position: Vector2) ->
 		if not is_instance_valid(_active_part_motion):
 			_action_ready = false
 			return &""
+		_action_part_position = _get_battlefield_part_position(_active_part_motion.target_node, part_position)
 	return armed_animation
 
 

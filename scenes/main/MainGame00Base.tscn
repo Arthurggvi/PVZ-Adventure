@@ -1369,7 +1369,7 @@ unique_name_in_owner = true
 
 [node name="ZombieBossRoot" type="Node2D" parent="." unique_id=1715739206]
 unique_name_in_owner = true
-z_index = 4000
+z_index = 3600
 
 [node name="Items" type="Node2D" parent="." unique_id=771447310]
 unique_name_in_owner = true

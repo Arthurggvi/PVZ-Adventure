@@ -2,7 +2,7 @@ extends Node2D
 class_name BulletEffect000Base
 ## 子弹命中特效基类：脱离子弹后独立播放，统一处理僵王命中的显示层级。
 
-## 僵王命中特效的绝对层级，位于当前 4000 层的 ZombieBossRoot 机甲之前。
+## 僵王命中特效的绝对层级，位于各行僵王本体之前。
 const BOSS_HIT_EFFECT_Z_INDEX: int = 4001
 
 ## 是否有子弹特效

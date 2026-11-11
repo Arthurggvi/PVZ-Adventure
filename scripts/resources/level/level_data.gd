@@ -118,7 +118,7 @@ static func resolve_terrain_type(scene: MainSceneRegistry.MainScenes,
 ## 正常模式：0 为正式开战时生成，1 起为指定波次生成；无出怪模式必须为 0。
 ## 参数使用从 1 开始的波次，管理器接入时需与内部从 0 开始的 curr_wave 转换。
 @export_range(0, 999, 1, "or_greater") var boss_spawn_wave: int = 0
-## 相对于主游戏 ZombieBossRoot 的出生位置，不是植物格子行列或屏幕坐标。
+## 相对于主游戏 ZombieBossRoot 的出生位置，零向量使用僵王的默认出场布局。
 @export var boss_spawn_position: Vector2 = Vector2.ZERO
 
 @export_subgroup("锤僵尸出怪模式（需调整对应墓碑参数）")

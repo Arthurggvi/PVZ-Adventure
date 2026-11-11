@@ -36,6 +36,21 @@ var _played_enter_footsteps: Array[int] = []
 @onready var state_machine: ZB001DoctorStateMachine = get_node_or_null("%StateMachine") as ZB001DoctorStateMachine
 
 
+## [param manager] 所属战场；[param spawn_lane] 为指定的零起始行号，-1 保留原入场坐标。
+## 多 Boss 分路时仅移动机甲的纵坐标，保留博士原有的横向动画轨迹。
+func get_default_boss_spawn_position(manager: ZombieManager, spawn_lane: int = -1) -> Vector2:
+	if spawn_lane < 0:
+		return Vector2.ZERO
+	# 指定行脚底的世界位置。
+	var marker: Marker2D = manager.all_zombie_rows[spawn_lane].zombie_create_position
+	return Vector2(0.0, manager.zombie_boss_root.to_local(marker.global_position).y - get_boss_feet_offset_y())
+
+
+## 返回机甲原场景的脚底纵向偏移，入树前也可用影子定位。
+func get_boss_feet_offset_y() -> float:
+	return ($Shadow as Node2D).position.y
+
+
 ## 保留父类信号连接，并连接独立于当前活动状态的死亡爆炸回调；展示和花园不经过此入口。
 func ready_norm() -> void:
 	# 延迟启动前先关闭受击，避免物理检测在 Enter 执行前把博士当作可攻击目标。
@@ -188,11 +203,11 @@ func character_death() -> void:
 		state_machine.request_death()
 
 
-## 父类先解除控制效果，再按初始随机速度计算博士的死亡倍率；不修改初始速度记录。
-## 死亡开始、抬头过渡和致死冰冻清理可能重复调用，始终从同一基础值计算以避免加速叠加。
+## 父类先恢复初始随机速度，再按该基础值计算博士的死亡倍率。
+## 死亡开始与抬头过渡可能重复调用，始终从同一基础值计算以避免加速叠加。
 func prepare_death_animation() -> void:
 	super.prepare_death_animation()
-	# 父类已校正为有限正数的初始随机倍率；保留个体速度差异，但不保留冰冻或黄油停滞。
+	# 父类已校正为有限正数的初始随机倍率，保留个体速度差异。
 	var base_speed: float = influence_speed_factors[E_Influence_Speed_Factor.InitRandomSpeed]
 	# 非法导出值回退为正常速度，避免死亡动画停住而无法触发奖杯关键帧。
 	var death_multiplier: float = death_animation_speed_scale if is_finite(death_animation_speed_scale) and death_animation_speed_scale >= 1.0 else 1.0

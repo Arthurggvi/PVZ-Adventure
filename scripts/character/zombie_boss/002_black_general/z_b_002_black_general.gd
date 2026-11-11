@@ -12,7 +12,7 @@ const FLAG_FLAME = preload("res://scripts/character/zombie_boss/002_black_genera
 const STOMP_SOUND: AudioStream = preload("res://assets/audio/SFX/zombie/gargantuar_thump.ogg")
 ## 蓄力期间连续践踏的间隔，单位秒。
 const STOMP_INTERVAL: float = 0.22
-## 转场本体固定从第 3 路出击，内部行号从 0 开始。
+## 转场本体优先从第 3 路出击，内部行号从 0 开始。
 const PHASE_CHARGE_LANE: int = 2
 ## 转场全明星出场顺序，每组内同时召唤。
 const PHASE_SUMMON_ROWS := [[0, 4], [1, 3], [2]]
@@ -50,12 +50,6 @@ var state: State = State.ENTER
 var _action: BlackGeneralBehaviorTree.Action = BlackGeneralBehaviorTree.Action.NONE
 ## 固定所属关卡，防止切场后回调访问新关卡。
 var _game: MainGameManager
-## 行切换或阶段传送时返回的场地右侧位置。
-var _home_x: float = 0.0
-## 本次换行的目标零起始行号。
-var _next_lane: int = 0
-## 跑步的目的坐标。
-var _move_target: Vector2
 ## 转阶段动作是否仍在进行，期间保持无敌。
 var _transitioning: bool = false
 ## 本次举旗释放门闩，防止动画事件被重复发送。
@@ -99,7 +93,7 @@ func ready_show() -> void:
 	visual.play_action(&"idle")
 	set_physics_process(false)
 
-## 绑定真正持有角色的关卡并从中间路传送登场。
+## 绑定真正持有角色的关卡并从已分配的出生点传送登场。
 func _start_battle() -> void:
 	var ancestor: Node = get_parent() # 沿祖先定位，不使用切换后的全局场景。
 	while ancestor != null and not ancestor is MainGameManager:
@@ -107,13 +101,14 @@ func _start_battle() -> void:
 	_game = ancestor as MainGameManager
 	if not _battle_active() or _game.plant_cell_manager.all_plant_cells.is_empty():
 		return
-	lane = floori(_game.zombie_manager.all_zombie_rows.size() / 2.0)
+	if not is_finite(boss_home_x):
+		place_boss_at_spawn(_game.zombie_manager, get_default_boss_spawn_position(_game.zombie_manager))
+	if lane < 0 or lane >= _game.plant_cell_manager.all_plant_cells.size():
+		return
 	var row: Array = _game.plant_cell_manager.all_plant_cells[lane] # 初始行的场地范围。
 	if row.size() < 2:
 		return
-	var last: PlantCell = row[-1] # 场地最右格，用网格尺寸确定待机位置。
-	_home_x = last.global_position.x + last.size.x * 1.25
-	_return_to_home()
+	signal_status_update.emit()
 	state = State.ENTER
 	visual.play_action(&"teleport_in")
 
@@ -150,11 +145,7 @@ func _physics_process(delta: float) -> void:
 		State.CHARGE:
 			_advance_charge(step)
 		State.CHANGE_LANE:
-			global_position = global_position.move_toward(_move_target, config.lane_change_speed * step)
-			if global_position.is_equal_approx(_move_target):
-				lane = _next_lane
-				z_index = lane * 50 + 40
-				signal_status_update.emit()
+			if advance_boss_lane_change(_game.zombie_manager, config.lane_change_speed * step):
 				_finish_action()
 
 ## [param next] 已由行为树选择的普通动作；施法只在举旗关键帧执行一次。
@@ -162,9 +153,7 @@ func _begin_action(next: BlackGeneralBehaviorTree.Action) -> void:
 	_action = next
 	match next:
 		BlackGeneralBehaviorTree.Action.CHANGE_LANE:
-			var count: int = _game.zombie_manager.all_zombie_rows.size() # 实际行数。
-			_next_lane = (lane + randi_range(1, maxi(1, count - 1))) % count
-			_move_target = Vector2(_home_x, _row_y(_next_lane))
+			boss_target_lane = _game.zombie_manager.choose_boss_lane(self)
 			state = State.CHANGE_LANE
 			visual.play_action(&"run")
 		BlackGeneralBehaviorTree.Action.CHARGE:
@@ -195,13 +184,12 @@ func _apply_boss_visual_phase(phase: int, animated: bool) -> void:
 	if not animated:
 		_enter_phase_two_look()
 		return
+	boss_target_lane = -1
 	_stop_windup_sound()
 	charge.cancel()
 	_retire_charge_wake()
 	_transitioning = true
 	_set_invulnerable(true)
-	# 转阶段必须能完成；清理已有控制，随后无敌窗口拒绝新控制。
-	reset_control_effects()
 	state = State.PHASE_RAISE
 	# 半血可能发生在普通举旗中，重播以确保阶段召唤关键帧不会被跳过。
 	visual.player.stop()
@@ -293,15 +281,17 @@ func _place_charge_silhouettes() -> void:
 		_game.add_child(silhouette)
 		silhouette.imprint(visual, global_position)
 
-## 启动四路影子，各组按既定时间从本行右侧出击。
+## 启动各路影子；若本体转去其他路，则由该路原定的影子补上中路。
 func _begin_charge_shadows() -> void:
 	var row_count: int = _game.zombie_manager.all_zombie_rows.size() # 过滤非五路场地的无效行。
+	var center_lane: int = mini(PHASE_CHARGE_LANE, row_count - 1) # 本体原定的冲锋行。
 	for group_index: int in range(PHASE_SHADOW_ROWS.size()): # 依次启动内侧组与外侧组。
-		for row: int in PHASE_SHADOW_ROWS[group_index]: # 组内两个残影使用同一个延迟。
-			if row == lane or row >= row_count:
+		for planned_row: int in PHASE_SHADOW_ROWS[group_index]: # 同组的残影使用同一个延迟。
+			if planned_row == center_lane or planned_row >= row_count:
 				continue
+			var row: int = center_lane if planned_row == lane else planned_row # 换位后每路仍最多一影。
 			var charge_shadow := BlackGeneralChargeShadow.new() # 该行的冲锋与命中独立结算。
-			charge_shadow.setup(self, row, Vector2(_home_x, _row_y(row)), (group_index + 1) * PHASE_SHADOW_INTERVAL)
+			charge_shadow.setup(self, row, Vector2(boss_home_x, _row_y(row)), (group_index + 1) * PHASE_SHADOW_INTERVAL)
 			_charge_shadows.append(charge_shadow)
 
 ## 用 [param step] 推进各路残影，扫到各自停止线后转入纯视觉退场。
@@ -386,12 +376,16 @@ func _on_animation_finished(animation: StringName) -> void:
 				_finish_action()
 		State.PHASE_RAISE:
 			if animation == &"raise":
+				# 预占实际冲锋行，让其他 Boss 在传送演出期间也能避让。
+				var preferred: int = mini(PHASE_CHARGE_LANE, _game.zombie_manager.all_zombie_rows.size() - 1)
+				boss_target_lane = _game.zombie_manager.choose_boss_lane(self, preferred, true)
 				state = State.PHASE_CHARGE_OUT
 				visual.play_action(&"teleport_out")
 		State.PHASE_CHARGE_OUT:
 			if animation == &"teleport_out":
 				_enter_phase_two_look()
-				lane = mini(PHASE_CHARGE_LANE, _game.zombie_manager.all_zombie_rows.size() - 1)
+				lane = boss_target_lane
+				boss_target_lane = -1
 				_return_to_home()
 				state = State.PHASE_CHARGE_IN
 				visual.play_action(&"teleport_in")
@@ -479,8 +473,8 @@ func _row_y(row: int) -> float:
 
 ## 传送回当前行右端，重置渲染层级并通知重新索敌。
 func _return_to_home() -> void:
-	global_position = Vector2(_home_x, _row_y(lane))
-	z_index = lane * 50 + 40
+	global_position = Vector2(boss_home_x, _row_y(lane))
+	set_boss_depth(lane)
 	signal_status_update.emit()
 
 ## [param enabled] 入场/阶段无敌，不覆盖死亡或其他组件禁用原因。
@@ -493,18 +487,6 @@ func _set_invulnerable(enabled: bool) -> void:
 ## [param speed] 当前角色速度乘积，供位移与冷却同步动画。
 func _on_speed_changed(speed: float) -> void:
 	_speed = maxf(0.0, speed)
-
-## [param time] 冰冻时长；[param slow_time] 后续减速时长。
-## 冰伤若同步触发换阶段，清理父类在扣血之后才创建的控制效果。
-func be_ice_freeze(time: float, slow_time: float) -> void:
-	super.be_ice_freeze(time, slow_time)
-	if _transitioning:
-		reset_control_effects()
-
-## [param time] 冰豆的后续减速；转阶段期间拒绝命中后迟到的附加控制。
-func be_ice_decelerate(time: float) -> void:
-	if not _transitioning:
-		super.be_ice_decelerate(time)
 
 ## 死亡抢占任意动作，清理冲锋与旗帜后传送退场，完成动画才请求结算。
 func character_death() -> void:

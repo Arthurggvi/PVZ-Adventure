@@ -7,6 +7,9 @@ signal signal_living_bosses_changed()
 ## 正常僵尸完成初始化与登记后发送，供光环等通用效果覆盖新实例。
 signal signal_zombie_created(zombie: Zombie000Base)
 
+## 两只僵王同时默认登场时，按先后安排在第 2、4 路，内部从 0 开始。
+const BOSS_DUO_LANES := Vector2i(1, 3)
+
 ## 无出怪模式或最后一波启用的场外清理计时器，每秒清理离开视野的普通僵尸。
 @onready var check_zombie_end_wave_timer: Timer = $CheckZombieEndWaveTimer
 ## 管理器
@@ -38,6 +41,10 @@ var _boss_trophy_pending_id: int = 0
 var _boss_trophy_created := false
 ## 轮间读档暂存的数据；选卡完成后才恢复正常出战实例，避免选卡期间启动技能。
 var _saved_boss_data: Dictionary = {}
+## 场上原先为空时，本帧默认出场的首个实例 ID；用于识别同时登场。
+var _first_default_boss_id: int = 0
+## 首只默认僵王登场的处理帧，避免挪动更早已出战的僵王。
+var _first_default_boss_frame: int = -1
 ## 每轮只安排一次首波计时，下一轮开始时重置。
 var _start_requested := false
 ## 轮次切换时递增，首波延迟不能从上一轮恢复到新一轮。
@@ -232,14 +239,14 @@ func create_boss() -> ZB000Base:
 	if monster_mode != ConstLevelData.E_MonsterMode.Norm and monster_mode != ConstLevelData.E_MonsterMode.Null:
 		return null
 	# 自动实例与卡牌实例共用创建流程，但自动入口仍保持一次性。
-	var boss: ZB000Base = _create_boss_instance(game_para.boss_type, game_para.boss_spawn_position)
+	var boss: ZB000Base = _create_boss_instance(game_para.boss_type)
 	if boss != null:
 		_auto_boss_spawned = true
 		_auto_boss_id = boss.get_instance_id()
 	return boss
 
 
-## [param boss_type] 已注册的僵王类型；正式战斗、有效根节点及固定出生点允许时返回 true。
+## [param boss_type] 已注册的僵王类型；正式战斗、有效根节点及关卡出生点允许时返回 true。
 ## 卡牌资格不依赖自动出场配置、出怪模式或场上数量。
 func can_summon_boss(boss_type: CharacterRegistry.ZombieBossType) -> bool:
 	if not is_game_running() or not is_instance_valid(zombie_boss_root) \
@@ -254,18 +261,21 @@ func can_summon_boss(boss_type: CharacterRegistry.ZombieBossType) -> bool:
 	return scene != null and scene.can_instantiate()
 
 
-## [param boss_type] 卡牌引用中的僵王类型；每次成功返回新实例，不复用自动生成或已有角色。
-## 使用关卡固定出生点，失败返回 null，由手持入口决定是否扣费和冷却。
-func try_create_boss_from_card(boss_type: CharacterRegistry.ZombieBossType) -> ZB000Base:
-	return _create_boss_instance(boss_type, game_para.boss_spawn_position)
+## [param boss_type] 卡牌引用中的僵王类型；成功返回新实例，失败返回 null。[br]
+## [param spawn_position] 可选的本地出生点；INF 使用关卡配置或自动分路。
+func try_create_boss_from_card(boss_type: CharacterRegistry.ZombieBossType,
+	spawn_position: Vector2 = Vector2.INF) -> ZB000Base:
+	return _create_boss_instance(boss_type, spawn_position)
 
 
-## [param boss_type] 注册类型；[param spawn_position] 为僵王根节点下的本地位置。[br]
+## [param boss_type] 注册类型；[param spawn_position] 为僵王根节点下的本地位置，INF 使用关卡配置。[br]
 ## [param count_as_new] 恢复存档时为 false，避免累计生成数重复增加。[br]
-## [param restored_hp] 为正数时恢复存活血量，-1 沿用满血；成功返回新实例，失败返回 null。
-func _create_boss_instance(boss_type: CharacterRegistry.ZombieBossType, spawn_position: Vector2,
-	count_as_new: bool = true, restored_hp: int = -1) -> ZB000Base:
-	if not can_summon_boss(boss_type) or not spawn_position.is_finite():
+## [param restored_hp] 为正数时恢复存活血量，-1 沿用满血。[br]
+## [param restored_home_x] 为存档中的本地待机横坐标，INF 表示旧存档未保存该值。
+## 成功返回新实例，失败返回 null。
+func _create_boss_instance(boss_type: CharacterRegistry.ZombieBossType, spawn_position: Vector2 = Vector2.INF,
+	count_as_new: bool = true, restored_hp: int = -1, restored_home_x: float = INF) -> ZB000Base:
+	if not can_summon_boss(boss_type) or (spawn_position != Vector2.INF and not spawn_position.is_finite()):
 		return null
 	# 资格检查已确认该注册场景可以实例化。
 	var scene: PackedScene = Global.character_registry.get_zombie_boss_info(
@@ -286,11 +296,26 @@ func _create_boss_instance(boss_type: CharacterRegistry.ZombieBossType, spawn_po
 		boss.free()
 		return null
 	boss.character_init_type = Character000Base.E_CharacterInitType.IsNorm
-	boss.position = spawn_position
 	# 先连接信号并计数，再触发角色 _ready，避免初始化期间发出的通知被遗漏。
 	if not register_boss(boss, boss_type, count_as_new):
 		boss.free()
 		return null
+	# 调用方位置优先，关卡坐标次之，两者均未指定时由各僵王提供默认位置。
+	if spawn_position == Vector2.INF and game_para.boss_spawn_position == Vector2.ZERO:
+		if count_as_new:
+			_place_boss_at_default_spawn(boss)
+		else:
+			boss.place_boss_at_spawn(self, boss.get_default_boss_spawn_position(self), restored_home_x)
+	else:
+		# 明确指定或从存档读取的位置，不参与自动分路。
+		var position_override: Vector2 = game_para.boss_spawn_position if spawn_position == Vector2.INF else spawn_position
+		boss.place_boss_at_spawn(self, position_override, restored_home_x)
+		if not count_as_new and not is_finite(restored_home_x):
+			# 旧存档只有当前位置，回到该行默认右侧待机点。
+			var default_home: Vector2 = game_para.boss_spawn_position
+			if default_home == Vector2.ZERO:
+				default_home = boss.get_default_boss_spawn_position(self, boss.lane)
+			boss.boss_home_x = zombie_boss_root.to_global(default_home).x
 	zombie_boss_root.add_child(boss)
 	# 子节点已初始化，状态机尚未执行延迟启动；恢复血量不会重放上轮技能中间状态。
 	if restored_hp > 0:
@@ -301,6 +326,76 @@ func _create_boss_instance(boss_type: CharacterRegistry.ZombieBossType, spawn_po
 	if cheat_instant_kill_enabled:
 		_apply_cheat_instant_kill.call_deferred(boss)
 	return boss
+
+
+## [param boss] 已登记且尚未入树的默认出场实例；同帧首对按第 2、4 路分开。
+## 跨帧增援只选择自己的位置，优先使用可用的第 4 路。
+func _place_boss_at_default_spawn(boss: ZB000Base) -> void:
+	# 本次实例尚未入树，存活快照只包含更早入树的僵王。
+	var others: Array[ZB000Base] = get_living_bosses()
+	# 同一处理帧内，连续的生成调用视为同时登场。
+	var frame: int = Engine.get_process_frames()
+	# -1 保留单独登场时各僵王原有的出生点。
+	var spawn_lane: int = -1
+	if others.is_empty():
+		_first_default_boss_id = boss.get_instance_id()
+		_first_default_boss_frame = frame
+	elif others.size() == 1 and frame == _first_default_boss_frame \
+		and others[0].get_instance_id() == _first_default_boss_id \
+		and all_zombie_rows.size() > BOSS_DUO_LANES.y:
+		# 第一个实例可能已经开始入场，直接更新其脚底位置、待机点和层级。
+		var first: ZB000Base = others[0]
+		first.place_boss_at_spawn(self, first.get_default_boss_spawn_position(self, BOSS_DUO_LANES.x))
+		spawn_lane = BOSS_DUO_LANES.y
+	else:
+		spawn_lane = choose_boss_lane(boss, BOSS_DUO_LANES.y)
+	boss.place_boss_at_spawn(self, boss.get_default_boss_spawn_position(self, spawn_lane))
+
+
+## [param world_y] 本体脚底的世界纵坐标；返回最接近的零起始行号，无行时为 -1。
+func get_boss_lane_at_y(world_y: float) -> int:
+	# 当前最接近的行和距离，依次扫描场地现有的出怪标记。
+	var closest_lane: int = -1
+	var closest_distance: float = INF
+	for row_index: int in all_zombie_rows.size(): # 行索引从上到下。
+		# 出怪点和脚底的垂直距离，单位像素。
+		var distance: float = absf(world_y - all_zombie_rows[row_index].zombie_create_position.global_position.y)
+		if distance < closest_distance:
+			closest_distance = distance
+			closest_lane = row_index
+	return closest_lane
+
+
+## [param boss] 正在选行的僵王。[br]
+## [param preferred_lane] 可选的零起始行号，在同样空闲的候选中优先使用。[br]
+## [param can_stay] 转场演出可保留当前行，普通换行排除当前行。
+## 同时避让其他僵王的现行和预占行，所有行都有占用时选择占用最少的行。
+## 场地没有其他可选行时，返回 [param boss] 的当前行。
+func choose_boss_lane(boss: ZB000Base, preferred_lane: int = -1, can_stay: bool = false) -> int:
+	# 每行的占用数，当前行和已预占的目标行分别计入。
+	var lane_load: PackedInt32Array = []
+	lane_load.resize(all_zombie_rows.size())
+	for other: ZB000Base in get_living_bosses(): # 离场或死亡的实例不再预占行。
+		if other == boss:
+			continue
+		if other.lane >= 0 and other.lane < lane_load.size():
+			lane_load[other.lane] += 1
+		if other.boss_target_lane != other.lane and other.boss_target_lane >= 0 \
+			and other.boss_target_lane < lane_load.size():
+			lane_load[other.boss_target_lane] += 1
+	# 收集同为最低占用数的行，普通换行在其中随机选择。
+	var candidates: Array[int] = []
+	var min_load: int = 2147483647 # 首个有效候选一定会刷新此值。
+	for row_index: int in lane_load.size(): # 场地零起始行号。
+		if (not can_stay and row_index == boss.lane) or lane_load[row_index] > min_load:
+			continue
+		if lane_load[row_index] < min_load:
+			candidates.clear()
+			min_load = lane_load[row_index]
+		candidates.append(row_index)
+	if candidates.is_empty():
+		return boss.lane
+	return preferred_lane if candidates.has(preferred_lane) else candidates.pick_random()
 
 
 ## [param boss] 尚未入树或已挂在僵王根节点的正常出战实例。[br]
@@ -463,12 +558,16 @@ func get_save_game_data_bosses() -> Dictionary:
 		return _saved_boss_data.duplicate(true)
 	# 只保存正常存活角色，不保存死亡演出或具体技能阶段。
 	var living_bosses: Array[Dictionary] = []
-	# 每只角色保留类型、生命值、根节点本地位置及自动入口归属。
+	# 每只角色保留类型、生命值、本地位置、待机横坐标及自动入口归属。
 	for boss: ZB000Base in get_living_bosses():
 		# 运行时 ID 不写入存档，仅用于查找本次实例的元数据。
 		var instance_id: int = boss.get_instance_id()
-		living_bosses.append({"boss_type": _boss_types[instance_id], "hp": boss.hp_component.curr_hp,
-			"position": boss.position, "is_auto": instance_id == _auto_boss_id})
+		# 待机横坐标转换为与当前位置相同的根节点本地坐标。
+		var snapshot: Dictionary = {"boss_type": _boss_types[instance_id], "hp": boss.hp_component.curr_hp,
+			"position": boss.position, "is_auto": instance_id == _auto_boss_id}
+		if is_finite(boss.boss_home_x):
+			snapshot["home_x"] = zombie_boss_root.to_local(Vector2(boss.boss_home_x, boss.global_position.y)).x
+		living_bosses.append(snapshot)
 	return {"living_bosses": living_bosses, "spawn_total": _boss_spawn_total,
 		"dead_total": _boss_dead_total, "auto_spawned": _auto_boss_spawned}
 
@@ -495,11 +594,13 @@ func restore_saved_bosses() -> void:
 		# 0 血量不恢复为存活角色。
 		var hp: int = snapshot.get("hp", 0)
 		# 根节点本地坐标，避免恢复时受相机或父节点世界位置影响。
-		var spawn_position: Vector2 = snapshot.get("position", game_para.boss_spawn_position)
+		var spawn_position: Vector2 = snapshot.get("position", Vector2.INF)
+		# 旧存档缺少待机横坐标时，按关卡配置或原行的默认右侧待机点恢复。
+		var home_x: float = snapshot.get("home_x", INF)
 		if hp <= 0:
 			continue
 		# 恢复使用同一生成流程，但累计生成数已经从存档读取。
-		var boss: ZB000Base = _create_boss_instance(boss_type, spawn_position, false, hp)
+		var boss: ZB000Base = _create_boss_instance(boss_type, spawn_position, false, hp, home_x)
 		if boss == null:
 			push_error("ZombieManager：无法恢复存档中的僵王：%s。" % boss_type)
 			continue
@@ -933,8 +1034,7 @@ func ice_all_zombie(time_ice:float, time_decelerate: float):
 		# 当前接受冻结效果的普通僵尸。
 		for zombie:Zombie000Base in zombie_row:
 			zombie.be_ice_freeze(time_ice, time_decelerate)
-	# 僵王不加入普通僵尸列表，避免重复计数或受到普通僵尸的删除规则影响。
-	# 每只存活僵王只接收一次本次全场冻结。
+	# 独立登记的僵王各结算一次寒冰菇伤害，由共同受击入口免疫冰冻。
 	for boss: ZB000Base in get_living_bosses():
 		if is_instance_valid(boss):
 			boss.be_ice_freeze(time_ice, time_decelerate)

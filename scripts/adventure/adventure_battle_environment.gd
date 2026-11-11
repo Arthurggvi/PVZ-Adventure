@@ -22,6 +22,7 @@ class_name AdventureBattleEnvironment
 @export var zombie_can_reach_home := true
 @export var initial_sun: int = 150
 @export var zombie_power_multiplier: int = 1
+## 关卡指定的僵王本地出生点，零向量使用默认出场布局。
 @export var boss_spawn_position := Vector2.ZERO
 @export var shovel_enabled := true
 @export var preplanted: Array[PrePlantResource] = []

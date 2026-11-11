@@ -10,9 +10,6 @@ var state := State.ENTER
 var _game: MainGameManager
 var _graves: WhiteDukeGraveService
 var _active_action: WhiteDukeBehaviorTree.Action = WhiteDukeBehaviorTree.Action.NONE
-var _home_x := 0.0
-var _move_target := Vector2.ZERO
-var _next_lane := 0
 var _released := false
 var _speed := 1.0
 func ready_norm() -> void:
@@ -25,6 +22,7 @@ func ready_show() -> void:
 	super.ready_show()
 	visual.play_idle()
 	set_physics_process(false)
+## 绑定所属战场，从管理器分配的出生点开始传送演出。
 func _begin_battle() -> void:
 	var ancestor: Node = get_parent()
 	while ancestor != null and not ancestor is MainGameManager:
@@ -32,10 +30,11 @@ func _begin_battle() -> void:
 	_game = ancestor as MainGameManager
 	if not _is_active() or _game.plant_cell_manager.all_plant_cells.is_empty():
 		return
-	lane = floori(_game.zombie_manager.all_zombie_rows.size()/2.0)
-	var row: Array = _game.plant_cell_manager.all_plant_cells[lane]
-	_home_x = (row[-1] as PlantCell).global_position.x + (row[-1] as PlantCell).size.x*1.25
-	_return_home()
+	if not is_finite(boss_home_x):
+		place_boss_at_spawn(_game.zombie_manager, get_default_boss_spawn_position(_game.zombie_manager))
+	if lane < 0:
+		return
+	signal_status_update.emit()
 	_graves = WhiteDukeGraveService.new()
 	_graves.name = "WhiteDukeGraveService"
 	add_child(_graves)
@@ -62,12 +61,7 @@ func _physics_process(delta: float) -> void:
 					and visual.player.current_animation_position >= config.summon_release_at:
 				_release_summon()
 		State.MOVING:
-			global_position = global_position.move_toward(_move_target,
-				config.lane_change_speed*elapsed)
-			if global_position.is_equal_approx(_move_target):
-				lane = _next_lane
-				z_index = lane*50+40
-				signal_status_update.emit()
+			if advance_boss_lane_change(_game.zombie_manager, config.lane_change_speed * elapsed):
 				skills.lane_change()
 				_finish_action()
 
@@ -75,9 +69,7 @@ func _begin_action(action: WhiteDukeBehaviorTree.Action) -> void:
 	_active_action = action
 	_released = false
 	if action == WhiteDukeBehaviorTree.Action.CHANGE_LANE:
-		var n := _game.zombie_manager.all_zombie_rows.size()
-		_next_lane = (lane+randi_range(1,maxi(1,n-1)))%n
-		_move_target = Vector2(_home_x,_row_y(_next_lane))
+		boss_target_lane = _game.zombie_manager.choose_boss_lane(self)
 		state = State.MOVING
 		visual.player.play(&"walk")
 	else:
@@ -150,10 +142,10 @@ func _apply_boss_visual_phase(phase: int, animated: bool) -> void:
 	visual.set_phase2(true)
 	if not animated or not _is_active() or not is_instance_valid(_graves):
 		return
+	boss_target_lane = -1
 	_released = false
 	_active_action = WhiteDukeBehaviorTree.Action.NONE
 	_set_invulnerable(true)
-	reset_control_effects()
 	state = State.PHASE_CAST
 	visual.player.stop()
 	visual.play_summon()
@@ -162,8 +154,8 @@ func _row_y(row: int) -> float:
 	return _game.zombie_manager.all_zombie_rows[row].zombie_create_position.global_position.y
 
 func _return_home() -> void:
-	global_position = Vector2(_home_x,_row_y(lane))
-	z_index = lane*50+40
+	global_position = Vector2(boss_home_x, _row_y(lane))
+	set_boss_depth(lane)
 	signal_status_update.emit()
 
 func _set_invulnerable(enabled: bool) -> void:

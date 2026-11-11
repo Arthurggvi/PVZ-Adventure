@@ -9,9 +9,7 @@ func _attack_enemy(enemy:Character000Base):
 	super(enemy)
 	if not is_instance_valid(enemy) or not _can_attack_character(enemy):
 		return
-	if enemy is ZB000Base:
-		enemy.be_ice_decelerate(time_be_decelerated)
-	elif enemy is Zombie000Base and enemy.hp_component.curr_hp_armor2 <= 0:
+	if enemy is Zombie000Base and enemy.hp_component.curr_hp_armor2 <= 0:
 		enemy.be_ice_decelerate(time_be_decelerated)
 
 
