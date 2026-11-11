@@ -83,6 +83,8 @@ grow_vertical = 0
 
 [node name="Marker2D" type="Marker2D" parent="PlantNormContainer"]
 
+[node name="Content" type="Node2D" parent="PlantNormContainer"]
+
 [node name="PlantShellContainer" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 7
@@ -96,6 +98,8 @@ grow_horizontal = 2
 grow_vertical = 0
 
 [node name="Marker2D" type="Marker2D" parent="PlantShellContainer"]
+
+[node name="Content" type="Node2D" parent="PlantShellContainer"]
 
 [node name="PlantImitaterContainer" type="Control" parent="."]
 layout_mode = 1

@@ -49,8 +49,8 @@ var curr_condition:int = 3
 
 ## 在当前格子中对应位置的容器节点
 @onready var plant_container_node:Dictionary =  {
-	CharacterRegistry.PlacePlantInCell.Norm: $PlantNormContainer,
-	CharacterRegistry.PlacePlantInCell.Shell: $PlantShellContainer,
+	CharacterRegistry.PlacePlantInCell.Norm: $PlantNormContainer/Content,
+	CharacterRegistry.PlacePlantInCell.Shell: $PlantShellContainer/Content,
 	CharacterRegistry.PlacePlantInCell.Float: $PlantFloatContainer,
 	CharacterRegistry.PlacePlantInCell.Down: $PlantDownContainer,
 	CharacterRegistry.PlacePlantInCell.Imitater: $PlantImitaterContainer,
@@ -58,6 +58,12 @@ var curr_condition:int = 3
 
 ## 在当前格子中对应容器位置的节点初始全局位置,
 var plant_postion_node_ori_global_position:Dictionary =  {}
+
+## UI 定位节点始终留在格子中；移动的只有实际植物 Node2D，不再重挂带锚点的 Control。
+@onready var _support_slot_anchors: Dictionary = {
+	CharacterRegistry.PlacePlantInCell.Norm: $PlantNormContainer,
+	CharacterRegistry.PlacePlantInCell.Shell: $PlantShellContainer,
+}
 
 @export_subgroup("特殊状态，特殊状态下无法种植")
 ## 是否可以种植普通植物
@@ -127,7 +133,8 @@ func init_condition():
 
 	### 在当前格子中对应位置的节点初始全局位置,植物放在该节点下
 	for place_plant_in_cell in plant_container_node.keys():
-		plant_postion_node_ori_global_position[place_plant_in_cell] = plant_container_node[place_plant_in_cell].global_position
+		var anchor: CanvasItem = _support_slot_anchors.get(place_plant_in_cell, plant_container_node[place_plant_in_cell])
+		plant_postion_node_ori_global_position[place_plant_in_cell] = anchor.get_global_transform().origin
 #endregion
 
 
@@ -199,6 +206,11 @@ func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 		plant = PlantSceneFactory.create(plant_type)
 	if plant == null:
 		return null
+	# 底层槽位必须提供承托锚点，非法植物类型在提交前退出。
+	if condition.place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Down \
+			and not is_imitater and not plant is Plant000DownBase:
+		plant.free()
+		return null
 	plant.init_plant({
 		Plant000Base.E_PInitAttr.CharacterInitType: Character000Base.E_CharacterInitType.IsNorm,
 		Plant000Base.E_PInitAttr.PlantCell: self,
@@ -253,19 +265,8 @@ func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 			plant_start_effect_scene = SceneRegistry.PLANT_START_EFFECT.instantiate()
 		plant.body.add_child(plant_start_effect_scene)
 
-	if not is_imitater:
-
-		## 如果是down位置植物，修改中间植物节点顺序， 提高中间植物和壳的位置,
-		if plant_condition.place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Down:
-			#plant = plant as PlantDownBase
-			## 修改PlantNorm和PlantShell为底部植物节点上下移动节点的子节点
-			remove_child(plant_container_node[CharacterRegistry.PlacePlantInCell.Norm])
-			plant.down_plant_container.add_child(plant_container_node[CharacterRegistry.PlacePlantInCell.Norm])
-			plant_container_node[CharacterRegistry.PlacePlantInCell.Norm].global_position = plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Norm] - plant.plant_up_position
-
-			remove_child(plant_container_node[CharacterRegistry.PlacePlantInCell.Shell])
-			plant.down_plant_container.add_child(plant_container_node[CharacterRegistry.PlacePlantInCell.Shell])
-			plant_container_node[CharacterRegistry.PlacePlantInCell.Shell].global_position = plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Shell] - plant.plant_up_position
+	if not is_imitater and plant_condition.place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Down:
+		_attach_support_layers(plant as Plant000DownBase)
 
 	signal_plant_create.emit(self, plant.plant_type)
 
@@ -296,6 +297,24 @@ func coffee_bean_awake_up():
 	else:
 		print("没有睡眠植物")
 
+## 植物锚点始终由格子 Control 管理；只有稳定的 Node2D 内容容器挂入承托物。
+## [param support] 底层承托植物，移动偏移使用其已有资源参数。
+func _attach_support_layers(support: Plant000DownBase) -> void:
+	assert(support != null)
+	for slot: CharacterRegistry.PlacePlantInCell in _support_slot_anchors:
+		var anchor: Control = _support_slot_anchors[slot]
+		var content: Node2D = plant_container_node[slot]
+		content.reparent(support.down_plant_container, true)
+		content.global_position = anchor.global_position - support.plant_up_position
+
+## 承托物死亡/铲除时恢复原锚点，避免缓存世界坐标造成跨行漂移。
+func _detach_support_layers() -> void:
+	for slot: CharacterRegistry.PlacePlantInCell in _support_slot_anchors:
+		var anchor: Control = _support_slot_anchors[slot]
+		var content: Node2D = plant_container_node[slot]
+		content.reparent(anchor, false)
+		content.position = Vector2.ZERO
+
 ## 获取种植新植物时植物虚影的位置
 func get_new_plant_static_shadow_global_position(place_plant_in_cell:CharacterRegistry.PlacePlantInCell):
 	return plant_container_node[place_plant_in_cell].global_position
@@ -317,16 +336,7 @@ func one_plant_free(plant: Plant000Base) -> void:
 				ladder.ladder_death()
 				break
 	if plant.plant_cell == self and slots.has(CharacterRegistry.PlacePlantInCell.Down):
-		plant.down_plant_container.remove_child(
-			plant_container_node[CharacterRegistry.PlacePlantInCell.Norm])
-		add_child(plant_container_node[CharacterRegistry.PlacePlantInCell.Norm])
-		plant_container_node[CharacterRegistry.PlacePlantInCell.Norm].global_position = \
-			plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Norm]
-		plant.down_plant_container.remove_child(
-			plant_container_node[CharacterRegistry.PlacePlantInCell.Shell])
-		add_child(plant_container_node[CharacterRegistry.PlacePlantInCell.Shell])
-		plant_container_node[CharacterRegistry.PlacePlantInCell.Shell].global_position = \
-			plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Shell]
+		_detach_support_layers()
 	for place: CharacterRegistry.PlacePlantInCell in slots:
 		plant_in_cell[place] = null
 	# 植物死亡释放同样从实际占用推导地形，无需对 8/16 等位进行异或翻转。
