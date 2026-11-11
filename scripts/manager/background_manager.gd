@@ -30,7 +30,8 @@ func init_background():
 	if curr_bg_texture == null:
 		curr_bg_texture = ConstLevelData.GameBgTextureMap[game_para.game_BG]
 	background.texture = curr_bg_texture
-	home.init_home(game_para.game_BG)
+	# 自定义背景已绘制入口，原版房门和遮罩只与原版背景配套。
+	home.init_home(game_para.game_BG, game_para.battle_background_texture == null)
 	if not game_para.is_zombie_can_home:
 		print("僵尸无法进房")
 		home.disable_home()

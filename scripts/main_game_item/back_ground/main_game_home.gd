@@ -21,12 +21,15 @@ class_name MainGameHome
 	$Door/DoorMask/Background6GameoverMask
 ]
 
-## 根据当前背景初始化房门
-func init_home(game_BG: ConstLevelData.GameBg):
-	if is_instance_valid(door_downs[game_BG]):
-		## 打开房门
-		door_downs[game_BG].visible = true
-	door_masks[game_BG].visible = true
+## 刷新房门贴图，保留进门检测和失败演出所需的节点。
+## [param game_BG] 原版背景枚举，用于选择对应的房门和遮罩。
+## [param use_original_door] 仅在使用原版背景时显示与之配套的贴图。
+func init_home(game_BG: ConstLevelData.GameBg, use_original_door: bool = true) -> void:
+	for background_index in door_masks.size(): # 遍历原版背景对应的每组贴图。
+		var show_door := use_original_door and background_index == game_BG # 当前贴图组是否与战场背景配套。
+		if is_instance_valid(door_downs[background_index]):
+			door_downs[background_index].visible = show_door
+		door_masks[background_index].visible = show_door
 
 ## 僵尸进房
 func _on_area_2d_home_area_entered(area: Area2D) -> void:
