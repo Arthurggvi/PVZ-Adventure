@@ -46,6 +46,8 @@ script = ExtResource("2_boomerang")
 bullet_type = 17
 max_attack_num = -1
 bullet_mode = 2
+trigger_be_attack_sfx = false
+type_bullet_SFX = 0
 
 [node name="BulletShadow" parent="." index="0"]
 position = Vector2(0, 40)

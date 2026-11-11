@@ -276,14 +276,19 @@ const SFXCarzyDaveMap := {
 ## 音效对象池实现
 var sfx_bullet_pool = []
 
-func play_sfx_with_pool(sfx_resource: AudioStream) -> AudioStreamPlayer:
-	if sfx_resource in curr_frame_sfx:
-		return
-	curr_frame_sfx.append(sfx_resource)
+## 用 SFX 对象池播放 [param sfx_resource]，并应用本次的 [param volume_db] 和 [param pitch_scale]。
+## 默认同帧合并相同资源；[param deduplicate_in_frame] 为 false 时保留每次播放事件。
+## 返回实际使用的播放器，播放被合并时返回 null。
+func play_sfx_with_pool(sfx_resource: AudioStream, volume_db: float = 0.0,
+		pitch_scale: float = 1.0, deduplicate_in_frame: bool = true) -> AudioStreamPlayer:
+	if deduplicate_in_frame:
+		if sfx_resource in curr_frame_sfx:
+			return null
+		curr_frame_sfx.append(sfx_resource)
 
-	var player: AudioStreamPlayer
+	var player: AudioStreamPlayer # 本次取得的闲置播放器，没有闲置实例时创建。
 	# 从池中获取可用播放器
-	for p in sfx_bullet_pool:
+	for p: AudioStreamPlayer in sfx_bullet_pool: # 已挂在 SFX 总线上的池内实例。
 		if not p.playing:
 			player = p
 			break
@@ -298,6 +303,8 @@ func play_sfx_with_pool(sfx_resource: AudioStream) -> AudioStreamPlayer:
 
 	## 配置播放器
 	player.stream = sfx_resource
+	player.volume_db = volume_db
+	player.pitch_scale = pitch_scale
 	player.play()
 	return player
 
