@@ -17,6 +17,10 @@ class_name WhiteFlameSpotlightEffect
 @onready var _burst: Sprite2D = $SpotlightBurst
 ## 二阶段换色时从落光中心向外扩散的加色泛光。
 @onready var _pulse: Sprite2D = $SpotlightPulse
+## 位于天气镜头层之后、卡槽之前的全屏震颤层。
+@onready var _screen_heartbeat: CanvasLayer = $ScreenHeartbeat
+## 每个白爵士实例独立持有的震颤材质。
+@onready var _heartbeat_material: ShaderMaterial = $ScreenHeartbeat/Distortion.material as ShaderMaterial
 
 ## 泛光从透明升至峰值的时间，单位为秒。
 const PULSE_ATTACK_TIME := 0.10
@@ -118,7 +122,7 @@ func is_active() -> bool:
 	return _active
 
 ## 播放召唤聚光灯并返回本次光色。[br]
-## [param phase_two] 为真时切换到与上次不同的颜色，同时触发一次心跳式泛光。
+## [param phase_two] 为真时切换到与上次不同的颜色，同时触发泛光和全屏震颤。
 func summon_spotlight(phase_two: bool) -> Color:
 	if _cue and _cue.is_running():
 		_cue.kill()
@@ -134,6 +138,7 @@ func summon_spotlight(phase_two: bool) -> Color:
 	_pool.visible = true
 	_burst.visible = true
 	_pulse.visible = phase_two
+	_screen_heartbeat.visible = phase_two
 	_beam.modulate = Color(shade.r, shade.g, shade.b, 1.0 if phase_two else .0)
 	_pool.modulate = Color(shade.r, shade.g, shade.b, 1)
 	_burst.modulate = Color(shade.r, shade.g, shade.b, .67 if phase_two else .32)
@@ -142,6 +147,12 @@ func summon_spotlight(phase_two: bool) -> Color:
 	_cue.set_parallel(true)
 	_cue.tween_property(_burst, "modulate:a", 0.0, .62)
 	if phase_two:
+		# 镜头震颤与地面泛光同步收尾，随后停止复制战场画面。
+		var pulse_duration := PULSE_ATTACK_TIME + PULSE_DECAY_TIME
+		_heartbeat_material.set_shader_parameter(&"pulse_color", shade)
+		_heartbeat_material.set_shader_parameter(&"progress", 0.0)
+		_cue.tween_property(_heartbeat_material, "shader_parameter/progress", 1.0, pulse_duration)
+		_cue.tween_callback(_screen_heartbeat.hide).set_delay(pulse_duration)
 		_cue.tween_property(_beam, "modulate", Color.WHITE, 1.20)
 		_cue.tween_property(_pool, "modulate", Color.WHITE, 1.20)
 		_cue.tween_property(_burst, "scale", _beam.scale * Vector2(1.25, 1.06), .62)
@@ -151,7 +162,7 @@ func summon_spotlight(phase_two: bool) -> Color:
 		_cue.tween_property(_pulse, "modulate:a", .92, PULSE_ATTACK_TIME)
 		_cue.tween_property(_pulse, "modulate:a", 0.0, PULSE_DECAY_TIME).set_delay(PULSE_ATTACK_TIME)
 		_cue.tween_property(
-			_pulse, "scale", _pool.scale * Vector2(2.2, 1.85), PULSE_ATTACK_TIME + PULSE_DECAY_TIME
+			_pulse, "scale", _pool.scale * Vector2(2.2, 1.85), pulse_duration
 		).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	else:
 		_cue.tween_property(_beam, "modulate:a", 1.0, .12)
@@ -160,10 +171,11 @@ func summon_spotlight(phase_two: bool) -> Color:
 	_cue.chain().tween_callback(_end_spotlight_cue)
 	return shade
 
-## 清除召唤泛光，并按当前阶段恢复常驻白光或隐藏聚光灯。
+## 清除召唤泛光和全屏震颤，并按当前阶段恢复常驻白光或隐藏聚光灯。
 func _end_spotlight_cue() -> void:
 	_burst.visible = false
 	_pulse.visible = false
+	_screen_heartbeat.hide()
 	_beam.modulate = Color.WHITE
 	_pool.modulate = Color.WHITE
 	_beam.visible = _active
