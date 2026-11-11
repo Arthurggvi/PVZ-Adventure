@@ -175,16 +175,17 @@ func get_current_animation_info():
 			"progress": 0
 		}
 
-## 召唤伴舞僵尸
+## 首次成功召唤可按配置替换为独立援军，后续使用原有伴舞规则。
 func call_zombie_dancer():
-	var leader: Zombie009Jackson = zombie_dancers.get(-1) as Zombie009Jackson
+	var leader: Zombie009Jackson = zombie_dancers.get(-1) as Zombie009Jackson # 召唤记录跟随舞王实例，魅惑换团也不会重置。
 	if not is_instance_valid(leader) or leader.is_death:
 		return
-	var repeated: bool = bool(summon_policy.get("repeat_summon", false))
-	var replacement_tier: StringName = summon_policy.get("replacement_tier", &"")
-	var kind: CharacterRegistry.ZombieType = CharacterRegistry.ZombieType.Z010Dancer
-	if summon_policy.has("replacement_type"):
+	var repeated: bool = bool(summon_policy.get("repeat_summon", false)) # 伴舞满员后仍可召唤独立援军。
+	var kind: CharacterRegistry.ZombieType = CharacterRegistry.ZombieType.Z010Dancer # 默认召唤伴舞。
+	var replacement_tier: StringName = &"" # 空值沿用舞王等阶；首召替换时使用配置的子代等阶。
+	if not leader.has_summoned_reinforcements and summon_policy.has("replacement_type"):
 		kind = int(summon_policy["replacement_type"])
+		replacement_tier = summon_policy.get("replacement_tier", &"")
 	var summoned_any := false
 	for i in range(4):
 		var slot_free: bool = not zombie_dancers[i]
@@ -213,8 +214,6 @@ func call_zombie_dancer():
 		if not is_instance_valid(child):
 			continue
 		summoned_any = true
-		if slot_free and kind != CharacterRegistry.ZombieType.Z010Dancer:
-			zombie_dancers[i] = true # Replacements manage their own groups.
 		if is_hypnotized and (kind != CharacterRegistry.ZombieType.Z010Dancer or not slot_free) \
 				and not child.is_hypno:
 			child.be_hypno()
