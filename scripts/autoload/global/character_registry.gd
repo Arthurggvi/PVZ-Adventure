@@ -832,7 +832,6 @@ const ZombieSpawnPower: Dictionary[ZombieType, int] = {
 	ZombieType.Z024Gargantuar: 10,	# 伽刚特尔
 	ZombieType.Z025Imp: 1,			# 小鬼
 	ZombieType.Z026AllStar: 12,		# 全明星冲锋
-	ZombieType.Z027Explorer: 3,		# 探险家火把
 }
 
 ## 僵尸初始出怪权重；各出怪系统复制后独立调整，不修改公共基础数据。[br]
@@ -863,7 +862,6 @@ const ZombieSpawnWeights: Dictionary[ZombieType, int] = {
 	ZombieType.Z022Ladder: 1000,		# 扶梯
 	ZombieType.Z023Catapult: 1500,	# 投篮
 	ZombieType.Z024Gargantuar: 1500,	# 伽刚特尔
-	ZombieType.Z027Explorer: 3000,		# 探险家
 }
 
 

@@ -15,6 +15,7 @@ var blacklist_refresh_zombie_types: Array[CharacterRegistry.ZombieType] = [
 	CharacterRegistry.ZombieType.Z011Duckytube,
 	CharacterRegistry.ZombieType.Z010Dancer,
 	CharacterRegistry.ZombieType.Z025Imp,
+	CharacterRegistry.ZombieType.Z027Explorer, ## 角色已注册，尚未加入关卡刷新。
 	CharacterRegistry.ZombieType.Z1001BobsledSingle,
 ]
 
