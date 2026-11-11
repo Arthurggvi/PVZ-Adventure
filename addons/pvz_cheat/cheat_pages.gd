@@ -116,29 +116,48 @@ static func _set_item_choice(choice: MenuButton, id: String, caption: String) ->
 	choice.text = caption + "  ▾"
 	choice.tooltip_text = caption
 
-## 按 [param query] 重建 [param choice] 的分类子菜单，并默认选中第一项匹配的物品。
+## 创建可选择具体物品的子菜单，选择后将物品标签和库存 ID 写入 [param choice]。
+static func _create_item_leaf_menu(choice: MenuButton) -> PopupMenu:
+	var menu := PopupMenu.new() # 此菜单只接收可发放或扣除的物品项。
+	menu.index_pressed.connect(func(index: int) -> void: # 索引用于读取选中项的库存 ID 和标签。
+		_set_item_choice(choice, str(menu.get_item_metadata(index)), menu.get_item_text(index)))
+	return menu
+
+## 按 [param query] 重建 [param choice] 的分类菜单。转职书按所属植物再分组，默认选择第一项匹配的物品。
 static func _refill_item_choice(choice: MenuButton, query: String) -> void:
 	var popup: PopupMenu = choice.get_popup() # 顶层菜单只列有匹配项的类别。
 	popup.clear(true)
 	_set_item_choice(choice, "", "没有匹配的物品")
-	var needle: String = query.strip_edges().to_lower() # 名称和 ID 都可筛选。
+	var needle: String = query.strip_edges().to_lower() # 支持物品名称、ID 和转职书所属植物。
 	var ids: Array = ItemRegistry.ITEMS.keys() # 使用稳定的 ID 排序，便于查找。
 	ids.sort()
 	var groups: Dictionary[String, PopupMenu] = {} # 各类别的子菜单按需创建。
+	var plant_menus: Dictionary[int, PopupMenu] = {} # 按植物编号合并转职书，同一植物只出现一次。
 	for id: String in ids: # 每条目录记录仅在其所属类别中出现一次。
 		var definition: Dictionary = ItemRegistry.get_item_definition(id) # 复用正式物品名及分类。
 		var caption: String = "%s · %s" % [definition.get("name", id), id] # 保留物品 ID 以便区分同名道具。
-		if not needle.is_empty() and not caption.to_lower().contains(needle):
-			continue
 		var category: String = str(definition.get("category", "")) # 与背包使用相同的目录分类。
+		var is_promotion_book: bool = category == "promotion_book" # 仅转职书有所属植物子菜单。
+		var plant_type: int = 0 # 编号 0 表示技能目录未指定植物。
+		var plant_name: String = "" # 仅转职书提供可筛选的植物名。
+		if is_promotion_book:
+			plant_type = int(AdventurePromotionCatalog.definition(id).get("plant_type", 0))
+			plant_name = InventoryData.plant_name(plant_type) if plant_type > 0 else "未标注植物"
+		if not needle.is_empty() and not caption.to_lower().contains(needle) and not plant_name.to_lower().contains(needle):
+			continue
 		if not ITEM_CATEGORIES.has(category):
 			category = "other"
-		var submenu: PopupMenu = groups.get(category) # 每个类别共用一个可展开的子菜单。
+		var submenu: PopupMenu = groups.get(category) # 先定位类别菜单，转职书随后定位到植物菜单。
 		if submenu == null:
-			submenu = PopupMenu.new()
+			submenu = PopupMenu.new() if is_promotion_book else _create_item_leaf_menu(choice)
 			groups[category] = submenu
-			submenu.index_pressed.connect(func(index: int) -> void:
-				_set_item_choice(choice, str(submenu.get_item_metadata(index)), submenu.get_item_text(index)))
+		if is_promotion_book:
+			var plant_menu: PopupMenu = plant_menus.get(plant_type) # 只为有匹配技能书的植物显示入口。
+			if plant_menu == null:
+				plant_menu = _create_item_leaf_menu(choice)
+				plant_menus[plant_type] = plant_menu
+				submenu.add_submenu_node_item(plant_name, plant_menu)
+			submenu = plant_menu
 		submenu.add_item(caption)
 		submenu.set_item_metadata(submenu.item_count - 1, id)
 		if choice.get_meta(&"item_id") == "":
@@ -152,7 +171,7 @@ static func _refill_item_choice(choice: MenuButton, query: String) -> void:
 static func _items(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
 	_title(root, "获得 / 扣除物品")
 	var search := LineEdit.new() # 同时筛选所有物品类别。
-	search.placeholder_text = "筛选物品名称或 ID"
+	search.placeholder_text = "筛选物品名称、所属植物或 ID"
 	root.add_child(search)
 	var choice := MenuButton.new() # 原生下拉菜单处理分类的展开、收起及键盘导航。
 	choice.flat = false
