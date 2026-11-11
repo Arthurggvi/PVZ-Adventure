@@ -1,6 +1,9 @@
 extends Zombie009Jackson
 class_name Zombie010Dancer
 
+## 被召唤的伴舞从地下升起所需的战斗秒数。
+const SUMMON_RISE_SECONDS := 1.5
+
 ## 是否为被召唤的伴舞僵尸
 var is_call := false
 ## 是否被魅惑舞王召唤
@@ -43,7 +46,10 @@ func _init_dance():
 		## 初始化状态为入场状态,伴舞入场状态不攻击
 		state_machine.init_state(JacksonStateMachine.E_JacksonStatus.Enter)
 		await zombie_appear_from_ground()
-		state_machine.change_jackson_anim_status(state_machine.curr_jackson_status,state_machine.judge_curr_status())
+		if not is_inside_tree() or is_death:
+			return
+		state_machine.change_jackson_anim_status(
+				JacksonStateMachine.E_JacksonStatus.Enter, state_machine.judge_curr_status())
 
 	if is_call_be_hypno:
 		be_hypno()
@@ -63,19 +69,9 @@ func init_random_speed():
 		return
 	super()
 
-## 伴舞僵尸从地下出现
+## 伴舞僵尸在入场状态下从地下出现。
 func zombie_appear_from_ground():
-	await zombie_up_from_ground()
-	#dirt.start_dirt()
-	#body.visible = false
-	#mask.visible = true
-	#body_in_mask.position.y = 300.0
-	#var tween = create_tween()
-	##await get_tree().process_frame
-	#tween.tween_property(body_in_mask, ^"global_position", body.global_position, 1.0)
-	#await tween.finished
-	#body.visible = true
-	#mask.visible = false
+	await zombie_up_from_ground(SUMMON_RISE_SECONDS)
 
 ## 初始化展示角色
 func _init_show_jackon():

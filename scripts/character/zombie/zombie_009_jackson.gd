@@ -30,10 +30,6 @@ func ready_show():
 
 ## 舞王展示角色初始化，伴舞重写
 func _init_show_jackon():
-	var anim = animation_player.get_animation("moonwalk")
-	if anim:
-		# 设置循环模式
-		anim.loop_mode = Animation.LOOP_LINEAR
 	animation_player.play("moonwalk")
 	move_component.disable_component(ComponentNormBase.E_IsEnableFactor.InitType)
 
@@ -44,10 +40,13 @@ func _init_dance():
 	jackson_manager.zombie_dancers[-1] = self
 	dance_manager_replaced.emit(jackson_manager)
 	state_machine.jackson_manager = jackson_manager
-	var anim = animation_player.get_animation("moonwalk")
-	if anim:
-		# 设置循环模式
-		anim.loop_mode = Animation.LOOP_NONE
+	# 战斗使用非循环滑步；图鉴和白公爵仍使用原有的循环资源。
+	var battle_library := AnimationLibrary.new()
+	# 只复制滑步，避免修改展示和首领场景共用的动画。
+	var moonwalk := animation_player.get_animation(&"moonwalk").duplicate() as Animation
+	moonwalk.loop_mode = Animation.LOOP_NONE
+	battle_library.add_animation(&"moonwalk", moonwalk)
+	animation_player.add_animation_library(&"battle", battle_library)
 	## 初始化状态为入场状态
 	state_machine.init_state(JacksonStateMachine.E_JacksonStatus.Enter)
 
@@ -93,26 +92,40 @@ func change_is_attack(value:bool):
 	else:
 		end_attack()
 
-## 开始攻击
+## 获得攻击目标；舞王入场时遇到植物会立即开始首召。
 func start_attack():
-	## 只有在Norm下可以直接转为攻击状态
+	if state_machine.curr_jackson_status == state_machine.E_JacksonStatus.Enter and dancer_id == -1 \
+			and attack_component.detect_component.enemy_can_be_attacked is Plant000Base:
+		state_machine.begin_first_summon()
+		return
 	if state_machine.curr_jackson_status == state_machine.E_JacksonStatus.Norm:
 		state_machine.change_jackson_anim_status(state_machine.curr_jackson_status, state_machine.E_JacksonStatus.Attack)
 
-	jackson_manager.change_move(dancer_id, move_component.get_exclude_dancer_move_res())
+	sync_dance_movement()
 
-## 结束攻击
+## 失去攻击目标；召唤和出土完成时再根据最新目标决定是否啃食。
 func end_attack():
-	## 如果还没有死亡,且不是入场状态
-	if not is_death and state_machine.curr_jackson_status != JacksonStateMachine.E_JacksonStatus.Enter:
-		state_machine.change_jackson_anim_status(state_machine.curr_jackson_status, state_machine.E_JacksonStatus.Norm)
+	if is_death:
+		return
+	if state_machine.curr_jackson_status == JacksonStateMachine.E_JacksonStatus.Attack:
+		state_machine.change_jackson_anim_status(JacksonStateMachine.E_JacksonStatus.Attack, JacksonStateMachine.E_JacksonStatus.Norm)
+	sync_dance_movement()
 
-	if not is_death:
-		jackson_manager.change_move(dancer_id, move_component.get_exclude_dancer_move_res())
+## 将当前角色能否移动同步给舞团，保持召唤和伴舞出土期间的位置。
+func sync_dance_movement() -> void:
+	# 当前状态决定角色是否在原地表演召唤动作。
+	var status: JacksonStateMachine.E_JacksonStatus = state_machine.curr_jackson_status
+	# 舞王滑步时可移动，伴舞的入场则是在原地出土。
+	var must_hold := status == JacksonStateMachine.E_JacksonStatus.Point \
+			or (status == JacksonStateMachine.E_JacksonStatus.Enter and dancer_id != -1)
+	jackson_manager.change_move(dancer_id, not must_hold and move_component.get_exclude_dancer_move_res())
 
-## 舞王管理器调用该方法控制walk
+## 舞王管理器调用该方法控制移动，只在滑步或行走动画期间推进。
+## [param curr_is_move] 舞团是否允许移动。
 func update_move(curr_is_move):
 	move_component.update_move_factor(not curr_is_move, MoveComponent.E_MoveFactor.IsDancerAttack)
+	if animation_player.current_animation not in [&"walk", JacksonStateMachine.ENTRANCE_ANIMATION]:
+		move_component._walking_end()
 #endregion
 
 #region 动画相关
@@ -161,6 +174,8 @@ func jackson_be_hypno():
 	jackson_manager.start_anim()
 	jackson_manager.is_hypnotized = true
 
+	if state_machine.curr_jackson_status == JacksonStateMachine.E_JacksonStatus.Point:
+		sync_dance_movement()
 	state_machine.allow_dance()
 
 #endregion
@@ -170,7 +185,7 @@ func jackson_be_hypno():
 func anim_play(anim_name, curr_scale, start_time, speed):
 	state_machine.anim_play(anim_name, curr_scale, start_time, speed)
 
-### 使用舞王管理器召唤伴舞僵尸
+## 召唤动画的响指轨道调用，生成援军并开始原地停留。
 func call_zombie_dancer():
-	if not is_death:
+	if not is_death and state_machine.begin_summon_hold():
 		jackson_manager.call_zombie_dancer()
