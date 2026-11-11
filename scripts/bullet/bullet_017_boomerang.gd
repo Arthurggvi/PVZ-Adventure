@@ -158,6 +158,14 @@ func _hit_overlaps() -> void:
 			return
 
 
+## 对 [param zombie] 按飞行方向结算伤害。去程先打二类防具，返程从背后打到一类防具或本体。
+func _attack_zombie(zombie: Zombie000Base) -> void:
+	# 复用通用扣血入口；伤害类型只由实际命中的飞行阶段决定。
+	var hit_mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Real if _returning \
+		else BulletRegistry.AttackMode.Norm
+	zombie.be_attacked_bullet(attack_value, hit_mode, true, trigger_be_attack_sfx)
+
+
 ## 返回 [param world_x] 对应的屋顶相对高度，平地返回 0。
 func _slope_height(world_x: float) -> float:
 	return _slope.get_all_slope_y(world_x) if is_instance_valid(_slope) else 0.0
