@@ -111,7 +111,8 @@ zombie_weights = Dictionary[int, int]({
 3: 3,
 6: 2,
 20: 1,
-9: 1
+9: 1,
+27: 1
 })
 tier_weights = Dictionary[StringName, int]({
 &"base": 1
@@ -460,6 +461,17 @@ tier_weights = Dictionary[StringName, int]({
 &"elite": 3
 })
 
+[sub_resource type="Resource" id="NightmareWave40Explorers"]
+script = ExtResource("5_spawn")
+wave = 40
+count_range = Vector2i(2, 2)
+zombie_weights = Dictionary[int, int]({
+27: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+
 [sub_resource type="Resource" id="NightmareWave50Yetis"]
 script = ExtResource("5_spawn")
 wave = 50
@@ -532,7 +544,7 @@ script = ExtResource("4_profile")
 profile_id = &"zombie_island.grave_downstream.nightmare.waves"
 wave_count = 50
 flag_waves = Array[int]([10, 20, 30, 40])
-scheduled_spawns = Array[ExtResource("5_spawn")]([SubResource("NightmareBucketRow1"), SubResource("NightmareBucketRow2"), SubResource("NightmareBucketRow3"), SubResource("NightmareBucketRow4"), SubResource("NightmareBucketRow5"), SubResource("NightmareScreenDoorRow1"), SubResource("NightmareScreenDoorRow2"), SubResource("NightmareScreenDoorRow3"), SubResource("NightmareScreenDoorRow4"), SubResource("NightmareScreenDoorRow5"), SubResource("NightmareWave30Dancers"), SubResource("NightmareWave40Dancers"), SubResource("NightmareWave50Yetis"), SubResource("NightmareFlag10"), SubResource("NightmareFlag20"), SubResource("NightmareFlag30"), SubResource("NightmareFlag40"), SubResource("NightmareFlag50")])
+scheduled_spawns = Array[ExtResource("5_spawn")]([SubResource("NightmareBucketRow1"), SubResource("NightmareBucketRow2"), SubResource("NightmareBucketRow3"), SubResource("NightmareBucketRow4"), SubResource("NightmareBucketRow5"), SubResource("NightmareScreenDoorRow1"), SubResource("NightmareScreenDoorRow2"), SubResource("NightmareScreenDoorRow3"), SubResource("NightmareScreenDoorRow4"), SubResource("NightmareScreenDoorRow5"), SubResource("NightmareWave30Dancers"), SubResource("NightmareWave40Dancers"), SubResource("NightmareWave40Explorers"), SubResource("NightmareWave50Yetis"), SubResource("NightmareFlag10"), SubResource("NightmareFlag20"), SubResource("NightmareFlag30"), SubResource("NightmareFlag40"), SubResource("NightmareFlag50")])
 bands = Array[ExtResource("3_band")]([SubResource("NightmareOpening"), SubResource("NightmareBuckets"), SubResource("NightmareScreenDoors"), SubResource("NightmareElite"), SubResource("NightmareFinal")])
 
 [sub_resource type="Resource" id="NormalStartGraves"]

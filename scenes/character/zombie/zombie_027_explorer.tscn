@@ -1,0 +1,54 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/zombie/zombie_027_explorer.gd" id="2_explorer"]
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/explorer_visual.tscn" id="3_visual"]
+[ext_resource type="AnimationLibrary" path="res://scenes/character/zombie/explorer_animations.tres" id="4_animations"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_player.gd" id="5_anim"]
+[ext_resource type="Script" path="res://scripts/resources/resource_body_change.gd" id="6_stage"]
+[ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred_black_anim.gd" id="7_charred"]
+[ext_resource type="Script" path="res://scripts/character/components/drop_body/ZombieHeadDrop.gd" id="8_drop"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/explorer/explorer_head.png" id="9_head"]
+
+[node name="Zombie027Explorer" instance=ExtResource("1_base")]
+script = ExtResource("2_explorer")
+zombie_type = 27
+random_speed_range = Vector2(1, 1)
+
+[node name="ExplorerVisual" parent="Body" index="2" instance=ExtResource("3_visual")]
+position = Vector2(-100, -128.5)
+scale = Vector2(0.5, 0.5)
+
+[node name="HeadDrop" type="Node2D" parent="Body" index="3"]
+visible = false
+script = ExtResource("8_drop")
+
+[node name="Head" type="Sprite2D" parent="Body/HeadDrop"]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("9_head")
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("5_anim")
+
+[node name="HpStageChangeComponent" parent="." index="3"]
+boundary_value_hp = Array[int]([0])
+body_change = Array[ExtResource("6_stage")]([null])
+
+[node name="HpComponent" parent="." index="4"]
+max_hp = 350
+
+[node name="CharredComponent" parent="." index="5"]
+script = ExtResource("7_charred")
+
+[node name="AttackComponent" parent="." index="6"]
+init_attack_value_per_min = 100
+
+[node name="MoveComponent" parent="." index="7"]
+move_mode = 1
+ori_speed = 20.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." index="11"]
+root_node = NodePath("../Body/ExplorerVisual")
+libraries = {
+&"": ExtResource("4_animations")
+}

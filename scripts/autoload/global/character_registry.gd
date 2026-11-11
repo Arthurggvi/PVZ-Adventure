@@ -134,6 +134,7 @@ enum ZombieType {
 	Z024Gargantuar,
 	Z025Imp,
 	Z026AllStar,
+	Z027Explorer,
 
 	Z1001BobsledSingle=1001,	## 单个雪橇车僵尸
 	}
@@ -782,6 +783,13 @@ const ZombieInfo = {
 		ZombieInfoAttribute.ZombieScenes:preload("res://scenes/character/zombie/zombie_026_all_star.tscn"),
 		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
 	},
+	ZombieType.Z027Explorer:{
+		ZombieInfoAttribute.ZombieName: "ZombieExplorer",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 150,
+		ZombieInfoAttribute.ZombieScenes:preload("res://scenes/character/zombie/zombie_027_explorer.tscn"),
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+	},
 
 	## 单独雪橇僵尸
 	ZombieType.Z1001BobsledSingle:{
@@ -824,6 +832,7 @@ const ZombieSpawnPower: Dictionary[ZombieType, int] = {
 	ZombieType.Z024Gargantuar: 10,	# 伽刚特尔
 	ZombieType.Z025Imp: 1,			# 小鬼
 	ZombieType.Z026AllStar: 12,		# 全明星冲锋
+	ZombieType.Z027Explorer: 3,		# 探险家火把
 }
 
 ## 僵尸初始出怪权重；各出怪系统复制后独立调整，不修改公共基础数据。[br]
@@ -854,6 +863,7 @@ const ZombieSpawnWeights: Dictionary[ZombieType, int] = {
 	ZombieType.Z022Ladder: 1000,		# 扶梯
 	ZombieType.Z023Catapult: 1500,	# 投篮
 	ZombieType.Z024Gargantuar: 1500,	# 伽刚特尔
+	ZombieType.Z027Explorer: 3000,		# 探险家
 }
 
 

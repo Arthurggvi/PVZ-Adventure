@@ -1,0 +1,348 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/explorer/explorer_atlas.png" id="atlas"]
+
+[sub_resource type="AtlasTexture" id="Part_0"]
+atlas = ExtResource("atlas")
+region = Rect2(175, 409, 44, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_1"]
+atlas = ExtResource("atlas")
+region = Rect2(477, 139, 35, 163)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_2"]
+atlas = ExtResource("atlas")
+region = Rect2(1, 1, 204, 136)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_3"]
+atlas = ExtResource("atlas")
+region = Rect2(498, 1, 2, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_4"]
+atlas = ExtResource("atlas")
+region = Rect2(396, 426, 35, 46)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_5"]
+atlas = ExtResource("atlas")
+region = Rect2(168, 451, 39, 40)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_6"]
+atlas = ExtResource("atlas")
+region = Rect2(446, 242, 21, 50)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_7"]
+atlas = ExtResource("atlas")
+region = Rect2(165, 277, 31, 63)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_8"]
+atlas = ExtResource("atlas")
+region = Rect2(175, 342, 18, 45)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_9"]
+atlas = ExtResource("atlas")
+region = Rect2(125, 410, 41, 41)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_10"]
+atlas = ExtResource("atlas")
+region = Rect2(331, 409, 48, 31)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_11"]
+atlas = ExtResource("atlas")
+region = Rect2(476, 407, 34, 53)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_12"]
+atlas = ExtResource("atlas")
+region = Rect2(221, 409, 55, 32)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_13"]
+atlas = ExtResource("atlas")
+region = Rect2(482, 357, 18, 45)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_14"]
+atlas = ExtResource("atlas")
+region = Rect2(38, 407, 44, 46)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_15"]
+atlas = ExtResource("atlas")
+region = Rect2(278, 409, 51, 32)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_16"]
+atlas = ExtResource("atlas")
+region = Rect2(1, 407, 35, 59)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_17"]
+atlas = ExtResource("atlas")
+region = Rect2(406, 94, 69, 100)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_18"]
+atlas = ExtResource("atlas")
+region = Rect2(493, 304, 19, 51)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_19"]
+atlas = ExtResource("atlas")
+region = Rect2(434, 356, 46, 49)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_20"]
+atlas = ExtResource("atlas")
+region = Rect2(127, 277, 36, 80)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_21"]
+atlas = ExtResource("atlas")
+region = Rect2(396, 356, 36, 68)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_22"]
+atlas = ExtResource("atlas")
+region = Rect2(398, 196, 67, 44)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_23"]
+atlas = ExtResource("atlas")
+region = Rect2(1, 277, 124, 128)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_24"]
+atlas = ExtResource("atlas")
+region = Rect2(396, 304, 95, 50)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_25"]
+atlas = ExtResource("atlas")
+region = Rect2(406, 1, 90, 91)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_26"]
+atlas = ExtResource("atlas")
+region = Rect2(207, 1, 197, 136)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_27"]
+atlas = ExtResource("atlas")
+region = Rect2(1, 139, 196, 136)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_28"]
+atlas = ExtResource("atlas")
+region = Rect2(199, 274, 195, 133)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_29"]
+atlas = ExtResource("atlas")
+region = Rect2(199, 139, 197, 133)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_30"]
+atlas = ExtResource("atlas")
+region = Rect2(221, 443, 173, 10)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_31"]
+atlas = ExtResource("atlas")
+region = Rect2(398, 242, 46, 58)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_32"]
+atlas = ExtResource("atlas")
+region = Rect2(127, 359, 46, 49)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_33"]
+atlas = ExtResource("atlas")
+region = Rect2(434, 407, 40, 46)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Part_34"]
+atlas = ExtResource("atlas")
+region = Rect2(84, 407, 39, 48)
+filter_clip = true
+
+[node name="ExplorerVisual" type="Node2D"]
+
+[node name="zombie_expl_hand_inner_01_1_00" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.688481, 0.197332, -0.213546, 0.744975, 129.276907, 159.705222)
+texture = SubResource("Part_0")
+
+[node name="zombie_egypt_hand_inner_01_1_01" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="torch_stick_1_02" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.643575, -0.425339, 0.429591, 0.650009, 80.33952, 106.372029)
+texture = SubResource("Part_1")
+
+[node name="torch_fire_1_03" type="Sprite2D" parent="." groups=["explorer_torch_flame"]]
+centered = false
+transform = Transform2D(-0.009512, 0.77936, -0.77936, -0.009512, 154.412383, 5.617446)
+texture = SubResource("Part_2")
+
+[node name="torch_fire_2_04" type="Sprite2D" parent="." groups=["explorer_torch_flame"]]
+centered = false
+transform = Transform2D(-0.006102, 0.499963, -0.499963, -0.006102, 139.484627, 28.286965)
+texture = SubResource("Part_3")
+
+[node name="zombie_hand_outer_02_1_05" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="zombie_hand_outer_01_1_06" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="zombie_hand_outer_02_2_07" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="zombie_hand_outer_02_1_08" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="zombie_hand_outer_01_2_09" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="zombie_hand_outer_02_3_10" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="zombie_hand_outer_02_2_11" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="zombie_hand_outer_01_3_12" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="zombie_expl_hand_outer_1_13" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="torch_end_lit_1_14" type="Sprite2D" parent="." groups=["explorer_torch_flame"]]
+centered = false
+transform = Transform2D(0.643406, -0.425571, 0.431751, 0.652731, 80.189251, 106.073457)
+texture = SubResource("Part_4")
+
+[node name="zombie_egyptflag_hand_inner3b_1_15" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.685366, 0.196439, -0.213546, 0.744975, 129.276907, 159.705222)
+texture = SubResource("Part_5")
+
+[node name="zombie_cowboy_hand_inner_01_1_16" type="Sprite2D" parent="."]
+centered = false
+visible = false
+
+[node name="zombie_expl_arm_inner_lower_1_17" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.342878, 0.680392, -0.696551, 0.351022, 178.795968, 154.041751)
+texture = SubResource("Part_6")
+
+[node name="zombie_expl_arm_inner_upper_1_18" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.645027, 0.428154, -0.430137, 0.648013, 189.24016, 123.741983)
+texture = SubResource("Part_7")
+
+[node name="zombie_expl_leg_inner_lower_1_19" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.709226, 0.319276, -0.319276, 0.709226, 196.871114, 203.081276)
+texture = SubResource("Part_8")
+
+[node name="zombie_expl_foot_inner_heel_1_20" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.780488, 0, 0, 0.780488, 176.15, 221.6)
+texture = SubResource("Part_9")
+
+[node name="zombie_expl_foot_inner_toe_1_21" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.770833, 0, 0, 0.774194, 188.6, 231.5)
+texture = SubResource("Part_10")
+
+[node name="zombie_expl_leg_inner_upper_1_22" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.764706, 0, 0, 0.773585, 190.95, 178.55)
+texture = SubResource("Part_11")
+
+[node name="zombie_expl_waist_1_23" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.781818, 0, 0, 0.78125, 196.05, 167)
+texture = SubResource("Part_12")
+
+[node name="zombie_expl_leg_outer_lower_1_24" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.673565, -0.388877, 0.388889, 0.673565, 216.938564, 211.838519)
+texture = SubResource("Part_13")
+
+[node name="zombie_expl_foot_outer_heel_1_25" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.772727, 0, 0, 0.782609, 216.9, 219.85)
+texture = SubResource("Part_14")
+
+[node name="zombie_expl_foot_outer_toe_1_26" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.784314, 0, 0, 0.78125, 194.1, 234.45)
+texture = SubResource("Part_15")
+
+[node name="zombie_expl_leg_upper_outer_1_27" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.771429, 0, 0, 0.779661, 212.8, 175.3)
+texture = SubResource("Part_16")
+
+[node name="zombie_expl_torso_1_28" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.677737, -0.391292, 0.390012, 0.675466, 167.421529, 129.332105)
+texture = SubResource("Part_17")
+
+[node name="zombie_expl_arm_outer_lower_1_29" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.74428, 0.263279, -0.261559, 0.739415, 200.874514, 158.390335)
+texture = SubResource("Part_18")
+
+[node name="zombie_expl_hand_outer_1_30" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.756104, -0.20195, 0.200118, 0.749246, 179.111005, 193.31228)
+texture = SubResource("Part_19")
+
+[node name="zombie_expl_arm_outer_upper_02_1_31" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.775706, 0.056727, -0.056525, 0.772936, 196.031671, 121.467169)
+texture = SubResource("Part_20")
+
+[node name="zombie_expl_arm_outer_upper_01_1_32" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.775706, 0.056727, -0.056847, 0.777336, 196.181271, 121.478109)
+texture = SubResource("Part_21")
+
+[node name="zombie_expl_jaw_1_33" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.776119, 0, 0, 0.772727, 147.75, 116.6)
+texture = SubResource("Part_22")
+
+[node name="zombie_expl_skull_1_34" type="Sprite2D" parent="."]
+centered = false
+transform = Transform2D(0.782258, 0, 0, 0.78125, 124, 39.9)
+texture = SubResource("Part_23")
+
+[node name="HeadAnchor" type="Marker2D" parent="."]
+
+[node name="TorchReach" type="Marker2D" parent="."]

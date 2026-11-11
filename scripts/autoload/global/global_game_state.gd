@@ -119,5 +119,6 @@ var curr_zombie :Array[CharacterRegistry.ZombieType]= [
 	CharacterRegistry.ZombieType.Z023Catapult,
 	CharacterRegistry.ZombieType.Z024Gargantuar,
 	CharacterRegistry.ZombieType.Z025Imp,
+	CharacterRegistry.ZombieType.Z027Explorer,
 	#CharacterRegistry.ZombieType.Z1001BobsledSingle,
 ]

@@ -15,7 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://cyxid1u6gds6f" path="res://assets/reanim/fire8.png" id="13_oh6ci"]
 [ext_resource type="Texture2D" uid="uid://cgr7dqab5jusn" path="res://assets/reanim/fire1.png" id="14_uu8oo"]
 [ext_resource type="Texture2D" uid="uid://dawptb0j1rwae" path="res://assets/reanim/fire3.png" id="15_4q51t"]
-[ext_resource type="Script" uid="uid://kr4r24a1l80x" path="res://scripts/bullet/component/spatter_component.gd" id="16_nb40j"]
+[ext_resource type="Script" path="res://scripts/bullet/component/spatter_component_fire_pea.gd" id="16_nb40j"]
 
 [sub_resource type="Animation" id="Animation_dty4y"]
 length = 2.0

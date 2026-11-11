@@ -20,3 +20,13 @@ func _attack_enemy(enemy:Character000Base):
 	super(enemy)
 	if enable_base_splash:
 		spatter_component.spatter_all_area_zombie(enemy)
+
+
+## [param zombie] 直击的僵尸；探险家只有实际受到火焰伤害时才会重燃。
+func _attack_zombie(zombie: Zombie000Base) -> void:
+	# 减伤或免疫可能使一次火豌豆命中没有造成伤害。
+	var hp_before: int = zombie.hp_component.get_all_hp()
+	super(zombie)
+	if is_instance_valid(zombie) and zombie is Zombie027Explorer \
+		and zombie.hp_component.get_all_hp() < hp_before:
+		zombie.relight_from_fire()
