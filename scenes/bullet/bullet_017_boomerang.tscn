@@ -56,6 +56,9 @@ sprite_frames = SubResource("SpriteFrames_spin")
 animation = &"spin"
 autoplay = "spin"
 
+[node name="BulletEffect" parent="." index="2"]
+is_bullet_effect = false
+
 [node name="Area2DAttack" parent="." index="3"]
 collision_mask = 512
 

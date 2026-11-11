@@ -6784,9 +6784,13 @@ card_reference = SubResource("CardReference_1_51")
 [node name="CardBg" parent="PlantCards2/BloomerangCard" index="0"]
 texture = ExtResource("3_m4n4y")
 
-[node name="Artwork" type="Sprite2D" parent="PlantCards2/BloomerangCard/CardBg/CharacterStatic" index="0"]
-position = Vector2(0, -8)
-scale = Vector2(0.28, 0.28)
+[node name="Bloomerang" type="Node2D" parent="PlantCards2/BloomerangCard/CardBg/CharacterStatic" index="0"]
+position = Vector2(2, 16)
+scale = Vector2(0.5, 0.5)
+
+[node name="Artwork" type="Sprite2D" parent="PlantCards2/BloomerangCard/CardBg/CharacterStatic/Bloomerang"]
+position = Vector2(0, -32)
+scale = Vector2(0.55, 0.55)
 texture = ExtResource("bloomerang_art")
 hframes = 9
 vframes = 13
