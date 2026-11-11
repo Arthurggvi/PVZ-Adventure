@@ -205,6 +205,10 @@ static func _stages(root: VBoxContainer, service: RefCounted, report: Callable) 
 static func _battle(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
 	_title(root, "战斗")
 	_note(root, "仅在正式战斗中可用。单只出怪会随机选择兼容行，各路生成会先检查地形。")
+	_note(root, "秒杀开启后，新生成的僵尸和 Boss 会立即死亡，本局有效。")
+	var instant_kill_buttons: HBoxContainer = _row(root) # 并排提供本局秒杀的开启和关闭操作。
+	_button(instant_kill_buttons, "开启秒杀", func(): report.call(service.set_battle_instant_kill(true)))
+	_button(instant_kill_buttons, "关闭秒杀", func(): report.call(service.set_battle_instant_kill(false)))
 	_note(root, "僵尸类型")
 	var zombie: OptionButton = _select(root) # 选项 ID 直接使用僵尸注册表枚举值。
 	Global.global_read_data.ensure_almanac_loaded()

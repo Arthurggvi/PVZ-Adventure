@@ -63,6 +63,8 @@ var multi_round_end_wave_time :float = 49
 
 ## 场上计入清场判定的敌人总数，包含已登记的存活僵王。
 var curr_zombie_num: int = 0
+## 本战斗场景内的修改器开关；开启时处决新生成的敌人，默认关闭。
+var cheat_instant_kill_enabled := false
 
 ## 参与自然提前刷新的实例集合；弱引用避免已释放对象残留，实例 ID 用于幂等移除。
 var _natural_refresh_zombies: Dictionary[int, WeakRef] = {}
@@ -296,6 +298,8 @@ func _create_boss_instance(boss_type: CharacterRegistry.ZombieBossType, spawn_po
 	# 登记发生在入树前，音乐通知必须等入树完成，存活快照才能包含本次实例。
 	signal_living_bosses_changed.emit()
 	_refresh_boss_progress()
+	if cheat_instant_kill_enabled:
+		_apply_cheat_instant_kill.call_deferred(boss)
 	return boss
 
 
@@ -656,8 +660,19 @@ func create_norm_zombie(
 	curr_zombie_num += 1
 	_register_natural_refresh_zombie(zombie)
 	signal_zombie_created.emit(zombie)
+	if cheat_instant_kill_enabled:
+		_apply_cheat_instant_kill.call_deferred(zombie)
 
 	return zombie
+
+## 在生成调用方完成波次或遭遇登记后，让新出场的 [param enemy] 通过原有死亡入口离场。
+## 回调时重新检查开关和战斗状态，避免关闭后或切场期间继续处决。
+func _apply_cheat_instant_kill(enemy: Character000Base) -> void:
+	if not cheat_instant_kill_enabled or not is_game_running() \
+			or not is_instance_valid(enemy) or not enemy.is_inside_tree() \
+			or enemy.is_death or enemy.is_queued_for_deletion():
+		return
+	enemy.character_death_disappear()
 
 #endregion
 

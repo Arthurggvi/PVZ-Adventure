@@ -11,6 +11,14 @@ static func _active_battle() -> MainGameManager:
 		return null
 	return game
 
+## 在当前战斗中按 [param enabled] 开关新出场敌人的秒杀，返回操作结果。
+static func set_instant_kill(enabled: bool) -> Dictionary:
+	var game: MainGameManager = _active_battle() # 秒杀开关只修改正在进行的战斗。
+	if game == null:
+		return {"ok": false, "message": "请在正式战斗中切换秒杀。"}
+	game.zombie_manager.cheat_instant_kill_enabled = enabled
+	return {"ok": true, "message": "已开启秒杀。" if enabled else "已关闭秒杀。"}
+
 ## 在兼容的行生成 [param zombie_type]，并应用 [param tier_id]。
 ## [param all_lanes] 为 true 时预检整张战场，每条实际存在的行各生成一个实例。
 static func spawn(zombie_type: CharacterRegistry.ZombieType, tier_id: StringName, all_lanes: bool) -> Dictionary:
