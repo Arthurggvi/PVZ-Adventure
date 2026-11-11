@@ -7,6 +7,8 @@ const IMITATER = preload("res://shader_material/imitater.tres")
 
 ## 身体上下遮罩材质模板；使用时复制，避免不同角色共享裁剪高度。
 const BODY_MASK = preload("res://shader_material/body_mask.tres")
+## 复生僵尸与白爵士共用的背部白炎帧。
+const WHITE_FLAME_MANTLE: SpriteFrames = preload("res://assets/adventure/zombies/white_duke/fx/white_flame_mantle.tres")
 var hit_tween: Tween = null  # 发光动画
 var light_and_dark_tween: Tween = null  # 明暗交替动画
 
@@ -27,10 +29,59 @@ enum E_ChangeColors{
 	DamageBlock,	## 固定格挡的淡青色滤镜。
 	Degradation,	## 铅灰色劣化；独立于冰冻、受击和格挡。
 	BossPhaseTwo,	## Boss 二阶段独立闪黑，保留冰冻与受击颜色。
+	WhiteFlameRevival,	## 复生僵尸的白光呼吸，与受击等状态分别合成。
 }
 
 ## 二阶段循环补间，与普通明暗交替互不占用。
 var boss_phase_tween: Tween
+
+## 挂在身体上的小型白炎，随身体移动、翻转并接受出土裁切。
+var _revival_mantle: AnimatedSprite2D
+## 由白炎节点绑定的呼吸补间，死亡时停止。
+var _revival_tween: Tween
+
+
+## 给已入树的复生僵尸挂载白炎和循环闪白；同一个身体只挂载一次。
+func start_white_flame_revival() -> void:
+	# 身体的直接父节点负责发出角色死亡信号。
+	var character := get_parent() as Character000Base
+	if character == null or character.is_death or is_instance_valid(_revival_mantle):
+		return
+	_revival_mantle = AnimatedSprite2D.new()
+	_revival_mantle.name = "RevivalWhiteFlame"
+	_revival_mantle.sprite_frames = WHITE_FLAME_MANTLE
+	_revival_mantle.position = Vector2(-3, -53)
+	_revival_mantle.scale = Vector2(0.42, 0.46)
+	_revival_mantle.self_modulate.a = 0.56
+	# 白炎薄薄覆在身体上，体型较宽的僵尸也能看见火苗。
+	_revival_mantle.z_index = 1
+	add_child(_revival_mantle)
+	_revival_mantle.play(&"rise")
+	_revival_mantle.frame = get_instance_id() % _revival_mantle.sprite_frames.get_frame_count(&"rise")
+
+	# 轻微错开呼吸周期，避免同批复生的僵尸整齐闪白。
+	var rest_time := 0.27 + 0.055 * float(get_instance_id() % 11)
+	_revival_tween = _revival_mantle.create_tween().set_loops()
+	_revival_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_revival_tween.tween_method(_set_revival_brightness, 1.0, 1.85, 0.30)
+	_revival_tween.tween_method(_set_revival_brightness, 1.85, 1.0, 0.90)
+	_revival_tween.tween_interval(rest_time)
+	character.signal_character_death.connect(_stop_white_flame_revival, CONNECT_ONE_SHOT)
+
+
+## [param brightness] 白光呼吸的颜色乘数；1 表示恢复正常亮度。
+func _set_revival_brightness(brightness: float) -> void:
+	set_other_color(E_ChangeColors.WhiteFlameRevival, Color(brightness, brightness, brightness))
+
+
+## 角色死亡时清除白炎和闪白通道，保留其余受击与状态颜色。
+func _stop_white_flame_revival() -> void:
+	_revival_tween.kill()
+	_revival_mantle.hide()
+	_revival_mantle.queue_free()
+	change_color.erase(E_ChangeColors.WhiteFlameRevival)
+	_update_modulate()
+
 
 ## [param enabled] 是否开启二阶段缓慢闪黑；停用时恢复本通道白色。
 func set_boss_phase_pulse(enabled: bool) -> void:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/fx/white_flame_spotlight_effect.gd" id="script"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/fx/white_flame_large.png" id="flame_large"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/fx/stage_spotlight_beam.png" id="beam"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/fx/stage_spotlight_floor.png" id="floor"]
 [ext_resource type="Shader" path="res://shaders/white_duke_heartbeat.gdshader" id="heartbeat"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/white_duke/fx/white_flame_mantle.tres" id="mantle"]
 
 [sub_resource type="CanvasItemMaterial" id="SpotlightAdditive"]
 blend_mode = 1
@@ -122,3 +123,4 @@ z_index = -10
 position = Vector2(-12, -62)
 scale = Vector2(0.56, 0.72)
 visible = false
+sprite_frames = ExtResource("mantle")

@@ -93,6 +93,11 @@ func spawn_from_grave(zombie_type: CharacterRegistry.ZombieType,
 	zombie.tree_exiting.connect(_forget_emerging.bind(weakref(zombie)), CONNECT_ONE_SHOT)
 	if on_created.is_valid():
 		on_created.call(zombie)
+	# 白爵士在场时，所有墓碑出土都继承复生外观，包括旗帜波触发的出土。
+	for boss: ZB000Base in manager.get_living_bosses():
+		if boss is ZB003WhiteDuke:
+			zombie.body.start_white_flame_revival()
+			break
 	_emerge_zombie(zombie, anim_multiply)
 	return zombie
 

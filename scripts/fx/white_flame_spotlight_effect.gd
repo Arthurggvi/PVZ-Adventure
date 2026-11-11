@@ -38,7 +38,6 @@ var _last_hue := -1
 var _active := false
 
 func _ready() -> void:
-	_prepare_mantle()
 	# Narrow, low-opacity tongues rather than a ring of stamped flame icons.
 	_configure(_back, 15, Vector2(29, 44), 1.04, 10, 19, .23, .37, .58)
 	_configure(_left, 9, Vector2(3, 42), .96, 11, 24, .45, .77, .42)
@@ -47,17 +46,6 @@ func _ready() -> void:
 	_configure(_tips_left, 8, Vector2(4, 37), .87, 11, 20, .23, .39, .72)
 	_configure(_tips_right, 8, Vector2(4, 37), .90, 11, 20, .23, .39, .70)
 	set_active(false)
-
-func _prepare_mantle() -> void:
-	var sequence := SpriteFrames.new()
-	sequence.remove_animation(&"default")
-	sequence.add_animation(&"rise")
-	sequence.set_animation_loop(&"rise", true)
-	sequence.set_animation_speed(&"rise", 4.8)
-	for i in 8:
-		var filename := "res://assets/adventure/zombies/white_duke/fx/white_flame_mantle_%02d.png" % i
-		sequence.add_frame(&"rise", load(filename))
-	_mantle.sprite_frames = sequence
 
 func _configure(
 	emitter: CPUParticles2D,
