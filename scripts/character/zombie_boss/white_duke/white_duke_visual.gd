@@ -6,6 +6,8 @@ const ART := "res://assets/adventure/zombies/white_duke/"
 const ACCESSORY := ART + "accessories/"
 ## 原版 [code]point[/code] 动画中手指首次举到最高处的关键帧时间，单位为秒。
 const SUMMON_POSE_PEAK := 0.666667
+## 二阶段召唤抬手时播放的反向吸气，长度决定提前触发的时间。
+const PHASE_TWO_SUMMON_INHALE := preload("res://resources/audio/sfx/white_duke_summon_inhale.wav")
 ## 二阶段召唤音效，按顺序轮换，每次只播放一个和弦。
 const PHASE_TWO_SUMMON_SOUNDS: Array[AudioStream] = [
 	preload("res://resources/audio/sfx/white_duke_summon_01.wav"),
@@ -96,9 +98,13 @@ func _prepare_animations() -> void:
 					if texture is Texture2D:
 						_hand_tracks.append({"clip":clip,"track":i,"key":j,"source":texture})
 		if clip_name == &"point":
-			# 只在白爵士的动画副本上挂特效触发点，沿用原版抬手关键帧。
-			var cue_track := clip.add_track(Animation.TYPE_METHOD)
+			# 在白爵士的动画副本上安排吸气，并沿用原版抬手关键帧触发聚光灯。
+			var cue_track := clip.add_track(Animation.TYPE_METHOD) # 召唤音效和聚光灯共用的回调轨。
 			clip.track_set_path(cue_track, ^".")
+			clip.track_insert_key(cue_track, SUMMON_POSE_PEAK - PHASE_TWO_SUMMON_INHALE.get_length(), {
+				"method": &"_play_summon_inhale",
+				"args": [],
+			})
 			clip.track_insert_key(cue_track, SUMMON_POSE_PEAK, {
 				"method": &"_play_summon_spotlight",
 				"args": [],
@@ -163,6 +169,11 @@ func get_idle_duration() -> float:
 ## 播放召唤动作；抬手到最高处时由动画轨触发聚光灯。
 func play_summon() -> void:
 	player.play(&"point")
+
+## 二阶段抬手时播放反向吸气，按当前动画速度调整时长，让尾端贴合主和弦。
+func _play_summon_inhale() -> void:
+	if _phase_two and player.speed_scale > 0.0:
+		SoundManager.play_sfx_with_pool(PHASE_TWO_SUMMON_INHALE, 0.0, player.speed_scale, false)
 
 ## 在抬手最高帧播放召唤聚光灯，二阶段同时触发变色、泛光、全屏心跳和召唤音效。
 func _play_summon_spotlight() -> void:
