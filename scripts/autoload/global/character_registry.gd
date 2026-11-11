@@ -816,6 +816,7 @@ const ZombieSpawnPower: Dictionary[ZombieType, int] = {
 	ZombieType.Z009Jackson: 5,		# 舞王战力
 	ZombieType.Z010Dancer: 1,		# 伴舞战力
 
+	ZombieType.Z011Duckytube: 2,	# 鸭子游泳圈
 	ZombieType.Z012Snorkle: 3,		# 潜水
 	ZombieType.Z013Zamboni: 7,		# 冰车
 	ZombieType.Z014Bobsled: 3,		# 滑雪四兄弟
@@ -832,6 +833,7 @@ const ZombieSpawnPower: Dictionary[ZombieType, int] = {
 	ZombieType.Z024Gargantuar: 10,	# 伽刚特尔
 	ZombieType.Z025Imp: 1,			# 小鬼
 	ZombieType.Z026AllStar: 12,		# 全明星冲锋
+	ZombieType.Z027Explorer: 3,		# 探险家火把
 }
 
 ## 僵尸初始出怪权重；各出怪系统复制后独立调整，不修改公共基础数据。[br]

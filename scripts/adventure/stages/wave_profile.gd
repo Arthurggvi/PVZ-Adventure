@@ -74,7 +74,10 @@ func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 			errors.append("自然波次包含空的预排出怪组。")
 			continue
 		errors.append_array(group.validate(wave_count, known_tier_ids))
-		scheduled_caps[group.wave] = scheduled_caps.get(group.wave, 0) + group.count_range.y
+		if group.wave < 1 or group.end_wave() > wave_count:
+			continue
+		for wave_number: int in range(group.wave, group.end_wave() + 1): # 逐波统计可能重叠的预排组。
+			scheduled_caps[wave_number] = scheduled_caps.get(wave_number, 0) + group.count_range.y
 	for wave_number: int in scheduled_caps: # 每波必须给随机池至少留一个位置。
 		if scheduled_caps[wave_number] >= MAX_ZOMBIES_PER_WAVE:
 			errors.append("第%d波的预排出怪占满了随机池容量。" % wave_number)

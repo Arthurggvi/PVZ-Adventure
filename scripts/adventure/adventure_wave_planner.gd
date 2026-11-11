@@ -76,8 +76,8 @@ static func build_plan(profile: WaveProfile, wave_number: int, wave_power_limit:
 	var band: WaveBandDefinition = find_band(profile, wave_number) # 本波的随机池。
 	if band == null or rng == null or wave_power_limit < 1 or max_zombies < 1:
 		return plan
-	for group: WaveSpawnGroup in profile.scheduled_spawns: # 只有配置在本波的预排组会参与抽样。
-		if group == null or group.wave != wave_number:
+	for group: WaveSpawnGroup in profile.scheduled_spawns: # 预排组可以覆盖一个波段。
+		if group == null or wave_number < group.wave or wave_number > group.end_wave():
 			continue
 		var scheduled_candidates: Array[Dictionary] = _build_candidates(group.zombie_weights, group.tier_weights, tier_threat) # 预排组独立于随机池。
 		var count: int = rng.randi_range(group.count_range.x, group.count_range.y) # 本组实例数量。

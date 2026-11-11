@@ -16,11 +16,11 @@ static func entries(phase: StagePhaseDefinition) -> Array[Dictionary]:
 			continue
 		_merge_pool(result, band.zombie_weights, band.tier_weights,
 			Vector2i(band.first_wave, band.last_wave))
-	for group: WaveSpawnGroup in profile.scheduled_spawns: # 预排出怪：只占自己那一波。
+	for group: WaveSpawnGroup in profile.scheduled_spawns: # 预排出怪：展示其覆盖的波次区间。
 		if group == null:
 			continue
 		_merge_pool(result, group.zombie_weights, group.tier_weights,
-			Vector2i(group.wave, group.wave))
+			Vector2i(group.wave, group.end_wave()))
 	for encounter: BossEncounterDefinition in phase.boss_encounters: # Boss 援军不属于固定波次。
 		if encounter == null:
 			continue
