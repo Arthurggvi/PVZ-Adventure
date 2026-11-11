@@ -9,6 +9,8 @@ const WATER_SHADER: Shader = preload("res://shaders/water/water_surface.gdshader
 var _materials: Array[ShaderMaterial] = []
 ## 按配置创建的矩形水面节点。
 var _regions: Array[ColorRect] = []
+## 同一份区域数据生成的水体碰撞形状，提供统一入水/出水事件。
+var _water_bodies: Array[WaterBodyArea] = []
 ## 绑定的原版泳池精灵。
 var _source_sprite: Sprite2D
 ## 受游戏暂停控制的累计时间（秒）。
@@ -58,6 +60,11 @@ func configure_background(source: Sprite2D, profile: WaterSurfaceProfile) -> voi
 		surface.material = _create_material(source.texture, atlas_rect)
 		add_child(surface)
 		_regions.append(surface)
+		# 物理检测与水面表现必须使用同一矩形，杜绝画面与入水判定脱节。
+		var water_body := WaterBodyArea.from_region(region)
+		water_body.name = "WaterBody"
+		add_child(water_body)
+		_water_bodies.append(water_body)
 	set_process(not _materials.is_empty())
 
 ## 调整整体水面动态强度；[param intensity] 限定在 0..1。
@@ -105,6 +112,11 @@ func _reset() -> void:
 			remove_child(surface)
 			surface.queue_free()
 	_regions.clear()
+	for body: WaterBodyArea in _water_bodies:
+		if is_instance_valid(body):
+			remove_child(body)
+			body.queue_free()
+	_water_bodies.clear()
 	_materials.clear()
 	_elapsed = 0.0
 	_profile = null

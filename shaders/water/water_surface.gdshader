@@ -40,7 +40,10 @@ void fragment() {
 	float ca = sin(flow_uv.x * 69.0 + flow_uv.y * 15.0 + phase * 1.35 +
 		sin(flow_uv.y * 21.0 - phase) * 1.5);
 	float cb = cos(flow_uv.x * 47.0 - flow_uv.y * 22.0 - phase * 0.9);
-	float light_lines = pow(max(ca, 0.0), 10.0) * pow(max(cb, 0.0), 4.0);
+	// 两条宽窄不同的流动光脊：避免过度取幂使焦散几乎完全不可见。
+	float ridge_a = pow(max(ca, 0.0), 3.0);
+	float ridge_b = pow(max(cb, 0.0), 3.0);
+	float light_lines = ridge_a * (0.34 + 0.66 * ridge_b);
 	vec3 color = mix(base.rgb, base.rgb * water_tint.rgb, tint_mix);
 	color += caustic_tint.rgb * light_lines * caustic_strength * edge_fade;
 	COLOR = vec4(color, base.a * opacity);

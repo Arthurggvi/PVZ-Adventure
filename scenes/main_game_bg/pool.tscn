@@ -1,10 +1,11 @@
-[gd_scene load_steps=13 format=3 uid="uid://bq5t78cjcpj7y"]
+[gd_scene load_steps=14 format=3 uid="uid://bq5t78cjcpj7y"]
 
 [ext_resource type="Script" uid="uid://cmnt7djyt1387" path="res://scripts/main_game_item/pool.gd" id="1_h0rrj"]
 [ext_resource type="Texture2D" uid="uid://1n27xoaqkwyu" path="res://assets/image/background/pool_base.jpg" id="2_wjd4q"]
 [ext_resource type="Texture2D" uid="uid://dod75n76awrvg" path="res://assets/image/background/pool.jpg" id="4_op0xy"]
 [ext_resource type="Shader" uid="uid://1wkg6t4ewiw0" path="res://shaders/my_shader/pool_drop.gdshader" id="5_ie0cy"]
 [ext_resource type="Texture2D" uid="uid://72dwq6gmdyw0" path="res://assets/image/particles/PoolSparkly.png" id="5_k3fql"]
+[ext_resource type="Script" path="res://scripts/water/water_body_area.gd" id="water_body"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_huk7e"]
 shader = ExtResource("5_ie0cy")
@@ -116,6 +117,7 @@ texture = ExtResource("5_k3fql")
 process_material = SubResource("ParticleProcessMaterial_du5qn")
 
 [node name="PoolArea2D" type="Area2D" parent="."]
+script = ExtResource("water_body")
 z_index = 1000
 position = Vector2(606.595, 361)
 collision_mask = 0

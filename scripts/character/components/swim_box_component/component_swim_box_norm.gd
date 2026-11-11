@@ -5,7 +5,7 @@ class_name SwimBoxComponentNorm
 
 ## 检测到泳池
 func _on_area_2d_area_entered(area: Area2D) -> void:
-	if area.owner is Pool:
+	if area is WaterBodyArea:
 		if body_change_swim:
 			for sprite_path in body_change_swim.sprite_disappear:
 				var sprite = get_node(sprite_path)
@@ -33,7 +33,7 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
 ## 离开泳池
 func _on_area_2d_area_exited(area: Area2D) -> void:
 	if not owner_is_death:
-		if area.owner is Pool:
+		if area is WaterBodyArea:
 			## 水花
 			appear_splash()
 
