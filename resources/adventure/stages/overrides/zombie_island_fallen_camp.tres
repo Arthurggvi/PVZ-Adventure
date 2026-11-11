@@ -101,14 +101,14 @@ script = ExtResource("2_band")
 band_id = &"zombie_island.fallen_camp.nightmare.opening"
 first_wave = 1
 last_wave = 10
-minimum_regular_power = 4
+minimum_regular_power = 16
 zombie_weights = Dictionary[int, int]({
 1: 5,
 3: 3
 })
 tier_weights = Dictionary[StringName, int]({
-&"base": 1,
-&"veteran": 1
+&"veteran": 1,
+&"elite": 2
 })
 
 [sub_resource type="Resource" id="NightmarePolePool"]
@@ -116,15 +116,15 @@ script = ExtResource("2_band")
 band_id = &"zombie_island.fallen_camp.nightmare.pole_vaulters"
 first_wave = 11
 last_wave = 20
-minimum_regular_power = 7
+minimum_regular_power = 28
 zombie_weights = Dictionary[int, int]({
 1: 5,
 3: 3,
 4: 2
 })
 tier_weights = Dictionary[StringName, int]({
-&"base": 1,
-&"veteran": 1
+&"veteran": 1,
+&"elite": 2
 })
 
 [sub_resource type="Resource" id="NightmareBucketPool"]
@@ -132,7 +132,7 @@ script = ExtResource("2_band")
 band_id = &"zombie_island.fallen_camp.nightmare.bucket"
 first_wave = 21
 last_wave = 30
-minimum_regular_power = 9
+minimum_regular_power = 40
 zombie_weights = Dictionary[int, int]({
 1: 5,
 3: 3,
@@ -140,8 +140,8 @@ zombie_weights = Dictionary[int, int]({
 5: 2
 })
 tier_weights = Dictionary[StringName, int]({
-&"base": 1,
-&"veteran": 1
+&"veteran": 1,
+&"elite": 2
 })
 
 [sub_resource type="Resource" id="NightmareFootballPool"]
@@ -149,7 +149,7 @@ script = ExtResource("2_band")
 band_id = &"zombie_island.fallen_camp.nightmare.football"
 first_wave = 31
 last_wave = 50
-minimum_regular_power = 12
+minimum_regular_power = 60
 zombie_weights = Dictionary[int, int]({
 1: 5,
 3: 3,
@@ -158,135 +158,145 @@ zombie_weights = Dictionary[int, int]({
 8: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"base": 1,
-&"veteran": 1
+&"veteran": 1,
+&"elite": 2
 })
 
 [sub_resource type="Resource" id="NightmarePoleRow1"]
 script = ExtResource("4_spawn")
 wave = 10
+count_range = Vector2i(2, 2)
 row = 1
 zombie_weights = Dictionary[int, int]({
 4: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmarePoleRow2"]
 script = ExtResource("4_spawn")
 wave = 10
+count_range = Vector2i(2, 2)
 row = 2
 zombie_weights = Dictionary[int, int]({
 4: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmarePoleRow3"]
 script = ExtResource("4_spawn")
 wave = 10
+count_range = Vector2i(2, 2)
 row = 3
 zombie_weights = Dictionary[int, int]({
 4: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmarePoleRow4"]
 script = ExtResource("4_spawn")
 wave = 10
+count_range = Vector2i(2, 2)
 row = 4
 zombie_weights = Dictionary[int, int]({
 4: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmarePoleRow5"]
 script = ExtResource("4_spawn")
 wave = 10
+count_range = Vector2i(2, 2)
 row = 5
 zombie_weights = Dictionary[int, int]({
 4: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmareFlagFirst"]
 script = ExtResource("4_spawn")
 wave = 10
+count_range = Vector2i(2, 2)
 zombie_weights = Dictionary[int, int]({
 2: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmareFlagBuckets"]
 script = ExtResource("4_spawn")
 wave = 20
-count_range = Vector2i(5, 5)
+count_range = Vector2i(10, 10)
 zombie_weights = Dictionary[int, int]({
 5: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmareFlagSecond"]
 script = ExtResource("4_spawn")
 wave = 20
+count_range = Vector2i(2, 2)
 zombie_weights = Dictionary[int, int]({
 2: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmareFlagFootballs"]
 script = ExtResource("4_spawn")
 wave = 30
-count_range = Vector2i(5, 5)
+count_range = Vector2i(10, 10)
 zombie_weights = Dictionary[int, int]({
 8: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmareFlagThird"]
 script = ExtResource("4_spawn")
 wave = 30
+count_range = Vector2i(2, 2)
 zombie_weights = Dictionary[int, int]({
 2: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmareFlagFourth"]
 script = ExtResource("4_spawn")
 wave = 40
+count_range = Vector2i(2, 2)
 zombie_weights = Dictionary[int, int]({
 2: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmareFlagFifth"]
 script = ExtResource("4_spawn")
 wave = 50
+count_range = Vector2i(2, 2)
 zombie_weights = Dictionary[int, int]({
 2: 1
 })
 tier_weights = Dictionary[StringName, int]({
-&"veteran": 1
+&"elite": 1
 })
 
 [sub_resource type="Resource" id="NightmareProfile"]
