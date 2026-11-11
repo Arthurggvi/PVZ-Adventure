@@ -1,92 +1,84 @@
 # PVZ-Adventure｜唯一权威项目交接
 
-更新：2026-11-10。此文件只记录有效的权威入口、施工方法、当前系统边界及下一次接手必须知道的风险。**功能已接入、自动化验证通过、人工视觉验收通过是三个不同状态**；不得相互代替。
+更新：2026-11-11。**只记录权威路径、可复用管线、实施方法、有效约束和未关闭的验收边界。** 源码与实际资源优先于本文；“接入”“自动化通过”“实机视觉通过”必须分别表述。
 
-## 0｜唯一权威路径与仓库纪律（每次先读）
+## 0｜权威入口、施工纪律（先读）
 
-- **工程**：`C:\Dev\PvZ\PVZ-Adventure`（Git：`develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时，优先 Remote Desktop Commander 远程只读核验、再按授权直接施工。
-- **本文件唯一权威原件**：`C:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。在工程 Git 中的 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 为**同一 NTFS 文件的硬链接跟踪入口**，只用于版本控制，禁止当成第二份可独立修改的权威稿。若编辑器以“保存为新文件再替换”方式写盘，须核对并重建硬链接，防止两处脱钩。
-- **权威项目资源**：`res://assets/adventure/`（新增冒险美术），`res://assets/reanim/`（原版分件），`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`；仓外审查 `C:\Dev\PvZ\_review\<module>\`、长效资料 `C:\Dev\PvZ\_reference\`。运行时不得引用仓外临时资源。
-- **工作顺序**：确认连接/仓库状态 → 读本文与对应权威源码/资源 → 审计可复用管线 → 用现有模型和配置最小改动 → Godot 导入/真实场景烘焙 → 自审 → 定向测试/性能 → Catbox 交付 → 定向 Git commit。
-- **Git**：先 `git status --short` 和 `git log -1`；保护用户并行改动。禁止无授权 `git reset`、`git clean`、`git add .`、`push`；只暂存本轮文件，执行 `git diff --cached --check`，提交后报告 hash 与工作区剩余修改。`assets/adventure/*` 的忽略文件须必要时定向 `git add -f` 并核对清单。
-- **工程要求**：一条权威数据总线；组件可配置、可替换、相互解耦。拒绝补丁堆叠、为未来植物/僵尸开发者增加重复接线、在场景 ID 上硬编码天气或战斗状态。
+- **工程与引擎**：`C:\Dev\PvZ\PVZ-Adventure`（Git `develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时优先远程只读审计，获授权后直接施工，避免让用户手工搬运文件。
+- **本交接文档唯一原件**：`C:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。Git 跟踪入口 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 是**同一 NTFS 硬链接**，不应独立编辑/替换。改动需原位写入，并用 `fsutil hardlink list` 验证仍为同一文件。
+- **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `C:\Dev\PvZ\_review\<module>` 用于临时审查；`C:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。
+- **施工顺序**：检查 Git 和连接 → 读本文及权威代码/资源 → 复现并定位根因 → 设计通用接口与状态所有权 → 直接重构旧实现 → Godot 导入与定向测试 → 真实场景渲染/视觉自审 → 必要时 Catbox 手机验收 → 仅暂存本轮文件并提交。
+- **仓库纪律**：先 `git status --short`、`git log -1`，保护并行工作区；禁止未授权的 `git reset`、`git clean`、`git add .` 和 `git push`。提交前 `git diff --cached --check` 并逐项核对暂存清单。被 `.gitignore` 忽略的新美术资源，必要时定向 `git add -f`。
+- **架构原则**：一条权威数据与状态链；配置描述差异，组件实现机制。禁止针对某一关/植物/僵尸追加并行实现、补丁式坐标修正、冗余管理器或把重复接线留给后续开发者。
 
-### 0.1｜素材 / 动画 / 手机验收
+## 1｜核心系统权威总线
 
-- 先确认原版分件、动画轨道、尺寸、RGBA、锚点、图层和 PVZ 2009 手绘风；优先复用。必要缺件先列资源清单和提示词，再绘制；不合格的透明度、裁切、比例、风格直接返工。禁止把有背景的展示图当作可用分件。
-- 动画验收要用真实工程数据烘焙完整 GIF，逐帧核对动作、遮挡、锚点、循环、切图与音效事件；不得只看静态拼装图。PvZ2 PAM 转换必须保留增量关键帧、稳定 ref ID 和继承显隐/变换，绘制顺序不作为实例身份；原版 FScmd/事件帧须保留。
-- 用户要求手机预览必须**实际上传 Catbox 并给直链**：静态 PNG/JPG、动画 GIF、必要时 ZIP。检查上传 HTTP 200、文件大小/MIME、GIF 帧数与画面裁切。上传不是渲染验收；优先在 Godot 真实场景烘焙而非伪造预览。Catbox GIF 大文件可能失败，必要时降帧率/保留全尺寸。
-- 优先定向 headless editor 导入与真实场景测试。**Godot headless 0 错误不等于完整动画/战斗视觉验收**；测试范围以本轮功能和明确验收指标为准。
-
-## 1｜项目权威总线与有效系统
-
-| 模块 | 唯一入口 / 关键维护约束 |
+| 系统 | 唯一入口与维护边界 |
 |---|---|
-| 关卡与续战 | `AdventureStageRegistry` / `AdventureStageCatalog` → `AdventureSession.active_phase` → `AdventureBattleRuntime` / WavePlanner / BossDirector → `AdventureContinuationController`。普通完成后有钥匙可选择噩梦；续战切换实际阶段并重置波次。 |
-| 天气（详见 §2） | `StagePhaseDefinition.weather_sequence` → `BackgroundManager.transition_weather` → `BattleWeatherDirector` → 原版雨景/雨声、RainStormRenderer、WeatherLensController 与光场。**天气配置与阶段切换彼此解耦。** |
-| 资产与存档 | `GlobalGameState.adventure_state` → `AdventureInventoryService` → SaveService / SaveFileStore，存档 `user://<profile>/GlobalSaveGame.json`；卡牌资产使用独立 UID，不允许第二资产源。 |
-| 植物 / 研究室 | `PlantCardInstance` / `PlantSpawnProfile` / `AdventureBattleAdapter` / `PlantSceneFactory`；合成、升星、转职、扣料经过 `ResearchService → ResearchTransaction`，失败事务回滚；卡牌、战场、书面视觉复用同一表现入口。 |
-| 玩家 / 背包 | `PlayerProgression` / `PlayerEffects` 用战斗冻结快照；背包 11×6 / 四类别，ItemRegistry 及 `res://assets/adventure/ui/items/item_icon_map.json` 为图标映射；装备六槽由 PlayerEquipmentService / PlayerTransaction 管理。 |
-| 僵尸等阶 | `adventure_zombie_tier_catalog.gd` → binding / traits / species_installer；权威美术 `res://assets/adventure/zombies/tier_art_map.json` → `AdventureZombieTierArt`。美术继承不代替行为继承。 |
-| 可攻击墓碑 | `StagePhaseDefinition.gravestone_rules` → `AdventureGravestoneDirector` → TombStoneManager；PvZ2AttackableTombstone / PvZ2TombstoneTarget 统一占格、受击和损伤。 |
-| 全 Boss | ZombieManager / ZB000Base → 阶段信号 → SoundManager、LevelInfo / boss_hp_progress_bar，统一头像+血条；个别 Boss 行为由独立行为树实现。 |
-| 调试 | `addons/pvz_cheat/`，用于卡牌、材料、快速通关等定向测试；不可绕开正常玩法业务链作为正式验收。 |
+| 冒险关卡与续战 | `AdventureStageRegistry` / `AdventureStageCatalog` → `AdventureStageOverride` → `AdventureBattleEnvironmentAdapter` → `ResourceLevelData` / `AdventureSession.active_phase` → `AdventureBattleRuntime`、WavePlanner、BossDirector、`AdventureContinuationController`。进入不询问难度；普通结束后有钥匙可选择接续噩梦。 |
+| 战场水陆地形 | `AdventureBattleEnvironment.terrain_rows` → `ResourceLevelData.terrain_rows` → `ZombieManager` 行类型、`PlantCellManager` 格子类型、`GIM_LawnMover` 清洁车。视觉材质不能代替地形判定。 |
+| 水面视觉与接触 | `AdventureBattleEnvironment.water_surface_profile` → `BackgroundManager` → `WaterSurfaceController` / `WaterSurfaceProfile` → 同源 `WaterBodyArea`；泳池和局部水沟共享水面 Shader 与入水协议，详见 §2。 |
+| 植物种植与承托 | 卡片 `HMCharacter.click_cell` → `PlantCell.create_plant` → 实体占用成功 → 卡片 `signal_card_use_end` 费用/冷却结算。`PlantCell` 持有地形条件、占格、承托层锚点；详见 §3。 |
+| 研究室/植物卡牌 | `PlantCardInstance` / `PlantSpawnProfile` / `AdventureBattleAdapter` / `PlantSceneFactory`；合成、强化、转职、扣料经 `ResearchService → ResearchTransaction`。战场、卡面、技能书外观基于同一实例/阶段。 |
+| 资产、存档、玩家 | `GlobalGameState.adventure_state` → `AdventureInventoryService` → SaveService / SaveFileStore；存档 `user://<profile>/GlobalSaveGame.json`。卡牌实例有独立 UID；玩家战斗效果取冻结快照，装备经事务服务处理。 |
+| 天气/雨/镜头 | `StagePhaseDefinition.weather_sequence` → `BackgroundManager.transition_weather` → `BattleWeatherDirector` → 雨幕、雨声、`WeatherLensController` / 光场；详见 §4。 |
+| 僵尸、墓碑、Boss | 僵尸等阶 catalog → binding/traits/species installer；墓碑 `gravestone_rules` → `AdventureGravestoneDirector` → TombStoneManager；Boss 由 ZombieManager / ZB000Base 管理阶段与统一 HUD，物种行为树独立。 |
+| 调试 | `addons/pvz_cheat/`。修改器可快速布卡/物品/波次，但不能以绕开正常放置及扣费的结果代替完整玩法验收。 |
 
-六关：草坪 → 没落营地 → 墓地上游 → 墓地下游 → 下水道 → 埃德加神殿。非商业单机同人。功能完成度以现有源代码及实际测试为证，不凭文档描述推断。
+六关顺序：草坪、没落营地、墓地上游、墓地下游、下水道、埃德加神殿。非商业单机二创。
 
-## 2｜墓地下游噩梦暴雨：当前权威天气实现（2026-11-10）
+## 2｜通用水面：原版泳池与下水道 1、5 路
 
-### 2.1 关卡触发与时间轴
+**权威路径**
+- 战场底图：`res://assets/adventure/environments/battle_backgrounds/05_sewer_interior_water.png`（1400×600）。
+- 下水道覆盖：`res://resources/adventure/stages/overrides/zombie_island_sewer.tres`，其中 `terrain_rows_override = [Pool, Land, Land, Land, Pool]`（对应整数 `[1,0,0,0,1]`）、`water_surface_profile` 指向 `res://resources/water/sewer_water.tres`。
+- 通用视觉：`scripts/water/water_surface_controller.gd`、`scripts/water/water_surface_profile.gd`、`shaders/water/water_surface.gdshader`；接触体：`scripts/water/water_body_area.gd`。原版泳池由 `scripts/main_game_item/pool.gd` / `scenes/main_game_bg/pool.tscn` 接入同一 Shader，日夜参数在 `resources/water/pool_day.tres`、`pool_night.tres`。
 
-- **只有第四关「墓地下游」进入噩梦阶段才启动当前暴雨**；普通阶段无雨，第二关「没落营地」无雨。权威配置 `res://resources/adventure/stages/overrides/zombie_island_grave_downstream.tres`：`weather_lens_profile` 和 `nightmare_weather_sequence`。不得将 `AdventureBattleEnvironment.rain` 或共享地区默认值改成全程下雨。
-- **唯一触发链**：`AdventureContinuationController` 在接续噩梦后调用 `game.background_manager.apply_phase_weather(AdventureSession.active_phase)` → `BackgroundManager.transition_weather(timeline)` → `BattleWeatherDirector.play_sequence`；`StagePhaseDefinition.weather_sequence` 为可选，空值代表保持原天气。该 API 也允许其他关卡/剧情从任意天气过渡到目标天气。
-- **时间轴资源**：`res://resources/weather/grave_downstream_nightmare_weather.tres`，`WeatherSequence` + `WeatherKeyframe`。关键帧 (秒, 雨强度, 湿镜头强度)：`(0, .04, 0) → (6, .18, .07) → (15, .47, .34) → (26, .81, .75) → (36, 1, 1)`；使用 smoothstep 插值，36 秒后**永久保持最后状态**直到显式新天气，不允许自动回晴。满雨原版粒子发射比 `rain_particle_ratio_at_full = .68`。
-- 雨与镜头可以分开配置；设置静态持续下雨的关卡不必提供过渡关键帧。注意过渡和持续状态都应按战斗时间推进，暂停不前进，离开场景释放状态。
+**正确实现方法**
+1. 水底纹理保留静态颜色、池壁和边界；水面独立渲染多频 UV 波纹与焦散。`WaterSurfaceProfile.regions` 使用**背景原图像素坐标**定义水域；改动底图时重新校准区域并实际看图，不能靠关卡 ID 或绘制后的屏幕坐标猜测。
+2. `WaterSurfaceController.configure_background` 从同一 `regions` 创建水面 `ColorRect` 与 `WaterBodyArea` 碰撞矩形；`configure_sprite` 支持原版泳池独立贴图。每区域私有材质；游戏时间 `water_time` 受暂停控制，`set_intensity` 调节强度。
+3. 僵尸 `SwimBoxComponent`（普通/潜水）通过检测 `area is WaterBodyArea` 进入或离开水，触发身体下沉、游泳动画/水花；不得恢复 `area.owner is Pool` 的旧场景类型耦合。僵尸能否在某行生成、植物能否在该行种植仍取 `terrain_rows`，两种判定不可混用。
+4. 改水路时必须同时检查底图、区域视觉、物理入水体、僵尸游泳状态、格子种植条件及泳池清洁车。只画绿水或只添水面 Shader 都不算完成。
 
-### 2.2 雨、风、地面与音频
+**验证入口**：`res://tests/adventure/test_water_surface_integration.tscn`，检查区域、物理进入/离开、游戏帧推进、原版泳池协议。该测试通过只证明管线；完整战斗中的水波可见性、层级和游泳姿态仍须实机/逐帧视觉核验。
 
-- **主入口** `scripts/weather/battle_weather_director.gd`；原雨景 `scenes/main_game_bg/rain.tscn` / `scripts/main_game_item/back_ground/main_game_rain.gd`：保留 `GPUParticles2D` 和 Fog/Fog3，`MainGameRain.set_intensity` 同时调节原粒子 `amount_ratio`、雾与 `SoundManager.set_rain_intensity`，退出雨景停止雨声。天气导演**按需生成**雨景，初始无雨的普通阶段不要提前占用资源。
-- **分层暴雨** `scenes/weather/rain_storm_renderer.tscn` → `RainStormRenderer`，使用 `rain_curtain.gdshader`（远/中/近三层速度与尺度）、`rain_splashes.gdshader`（地面溅水）、`rain_storm_clouds.gdshader`（天空暗云），阵风 `RainWindField`。已有雨景粒子保留；不要复活已废弃的旧雨线 Shader。
-- **唯一美术参数** `res://resources/weather/grave_downstream_storm_visual.tres`（RainVisualProfile）：三层雨密度/不透明度、速度、阵风、溅水、雨色、地面范围、压暗。按关卡配置引用 `WeatherSequence.rain_visual_profile`；其他关卡可不设置而保留默认雨场景表现。改强度先调资源，不在 Shader 和关卡 ID 间散落常量。
-- 视觉上暴雨应来自密集但透明的近景雨线、空间尺度差、阵风改变斜率、地面溅水；过高的纯白雨线和强烈均匀灰雾均属返工对象。
+## 3｜种植事务与荷叶/花盆承托布局
 
-### 2.3 湿镜头、局部光场与 Bloom
+**权威路径**
+- `scripts/main_game_item/plant_cell.gd` 与 `scenes/ui/plant_cell.tscn`；基础承托类 `scripts/character/plant/plant_000_down_base.gd`；荷叶 `scenes/character/plant/plant_017_lily_pad.tscn`；水陆行投影 `scripts/manager/plant_cell_manager/plant_cell_manager.gd`。
+- 正式种植与特殊植物条件分别经 `PlantCell.create_plant` / `ResourcePlantCondition`；荷叶 `condition_017_lily_pad.gd`。水路原始条件为 `9`（空/水），荷叶成功占用 Down 槽后为 `17`（空/荷叶）；移除后恢复 `9`。
 
-- **表现入口** `res://scenes/weather/weather_lens.tscn`（独立 CanvasLayer 8，游戏卡槽 CanvasLayer 10+ 保持独立）→ `WeatherLensController`。预设 `res://resources/weather/rainstorm_wet_lens.tres`（WeatherLensProfile）：柔焦、Bloom、雾色/强度、水珠、折射、擦拭半径/恢复时间、闪电与可选 `light_profile`。镜头使用屏幕 UV，不随摄像机平移；背景光锚点使用背景 Sprite 的变换转换成屏幕 UV。
-- **共享光场** `WeatherLightField` / `WeatherLightProfile` / `WeatherLightSource`，地图配置 `res://resources/weather/grave_downstream_light_profile.tres`：月亮、窗户、提灯、两组烛火。半分辨率 `SubViewport` 光场 + 两张四分之一分辨率 tight/wide Bloom；着色器 `weather_light_field.gdshader`、`weather_bloom_blur.gdshader`。通过 `WeatherLensController.get_light_field_texture()` 向 RainStormRenderer 分发光场；其他实体可通过 `register_light_emitter` / `unregister_light_emitter` 注册动态光源。静态 5 光源，统一容量上限 8。
-- **全分辨率最终合成** `shaders/weather/wet_lens.gdshader`：独立亮度光场的多尺度 Bloom + 空气散射 + 非均匀柔焦 + 水膜折射/反光/高光压缩；雨线和地面水花读取同一光场以响应冷月光、暖烛光。未提供 LightProfile 的雨关走兼容旧泛光。避免多全屏 Shader 无序屏幕采样；必要时正确处理 BackBufferCopy/离屏纹理更新。
-- **水珠、交互隔离** `WeatherLensDroplets` 负责附着、增长、合并、滑落；`WeatherLensWipe` 负责鼠标轨迹/指数恢复，Shader 仅采样二者 uniform。鼠标只擦掉镜头水膜相关模糊/水珠，不擦掉环境中的真实雨和大气光。光场、雨幕、镜头均不直接写战斗资产或阶段状态。
-- **注意性能**：当前镜头 Shader 仍有 24 个擦拭点 / 20 颗水珠片元循环；不要无预算叠加更多全分辨率 Pass。光场半分辨率、Bloom 四分之一分辨率，目标 1066×600 / 60FPS；2ms 额外 GPU 目标仅为设计预算，尚未实测证实。适配当前 GL Compatibility，不能假设 Forward+ HDR 可用。
+**不可违反的事务规则**
+1. `Plant000DownBase.init_plant` **只初始化实体**，不得提前切换格子地形。正式 `create_plant` 完成两次资格与占用校验，生成成功并写入 `plant_in_cell` 后，才由 `PlantCell._sync_support_terrain_condition()` 根据 Down 槽实际占用推导地形；释放/死亡时再同步。不得回退到旧版位掩码异或翻转。
+2. 放置失败应保持格子不变、卡牌不扣阳光；成功后经 `HMCharacter` 的成功信号由卡槽统一扣费/冷却。不能在植物脚本内私自扣阳光。需同时考虑读档、替换植物、铲除和重复种植。
+3. `PlantNormContainer` 与 `PlantShellContainer` 是带锚点的 `Control`，**始终留在 PlantCell**。`scenes/ui/plant_cell.tscn` 中各自的 `Content: Node2D` 才是实际植物容器；`_attach_support_layers(support)` 将两块 Content 挂到 `support.down_plant_container` 并使用承托物 `plant_up_position` 定位；`_detach_support_layers()` 回到锚点并归零局部位置。不要重新挂载整个 `Control`，不要用曾缓存的全局坐标回填。
+4. 植物的实体、壳体、放置虚影与承托位置必须引用同一组 `plant_container_node` 内容锚点；随荷叶浮动时上层一起移动，荷叶消失后回格子定位。荷叶承托偏移以资源配置为准，当前 `plant_up_position = Vector2(0,10)`；禁止给下水道、西瓜投手或单个植物加特判偏移。
+5. 花盆与荷叶共用战场承托布局；花园专用 `PlantCellGarden` 是另一场景和生命周期，未经单独审计不应顺手更改。
 
-### 2.4 验证方法与边界
+**验证入口**
+- `res://tests/adventure/test_ground_support_transaction.tscn`：预提交无副作用、成功/重复种植、释放后恢复条件、可重种、屋顶花盆。
+- `res://tests/adventure/test_lily_pad_support_layout.tscn`：荷叶 + 西瓜投手正式放置、上层/壳体锚点、尺寸变化、随动、拆除及花盆复用。
+- 已做真实工程素材的孤立场景前后烘焙对比；**尚不可代替下水道五行完整战斗画面的人工终验**。特别观察跨行、荷叶遮挡、第一/五路、西瓜投手与南瓜壳的稳定对齐。
 
-- **完整战斗预览**：`res://tools/weather_preview/battle_preview.tscn` / `render_battle.gd`；通过 Godot 正常 `--scene` 启动（渲染驱动 `opengl3`），**不要**用 `--script` 替代完整自动加载场景。预览在隔离用户数据环境中运行，真实场景 `MainGame01Front.tscn`，含 7 卡槽、12 植物、5 僵尸；人为触发噩梦天气时间轴，输出 54 帧到 `%TEMP%\pvz_weather_battle_preview`，ffmpeg GIF 后上传 Catbox。演示用背景为墓地下游，不能拿仅有背景的 GIF 冒充完整战斗。
-- **现有证据**：Godot 4.7.2 editor headless 退出码 0；OpenGL Compatibility 完整战斗烘焙 54 帧，stderr 0，普通雨势 0、噩梦渐强至 1；光源过曝已实机调校收敛，最后提交天气光学主线 `905986e6`。正式图像（非设计图）由 Catbox 上的最终 GIF 验收；临时预览链接不写入长期权威文档。
-- **未验收**：正常游玩完整走“普通通关 → 钥匙弹窗 → 确认噩梦”与后续阶段续存；高密度单位实战的 GPU 帧耗时、低配置设备适配；人工视觉验收所有镜头与鼠标擦痕。无头运行成功不得冒充上述项已通过。
+## 4｜天气、光场、雨声：当前需要维护的接口
 
-## 3｜植物外观 / 僵尸等阶 / Boss 的必要维护知识
+- **仅第四关墓地下游的噩梦阶段触发本次暴雨**；没落营地没有雨。关卡 `resources/adventure/stages/overrides/zombie_island_grave_downstream.tres` 引用 `nightmare_weather_sequence`、`weather_lens_profile`。不要把地区默认配置设成全程降雨。
+- 时间轴 `resources/weather/grave_downstream_nightmare_weather.tres`（WeatherSequence / WeatherKeyframe）按 `0→6→15→26→36` 秒递增至暴雨；最后关键帧持续保持，除非显式请求新天气。暂停不能推进天气。暴雨视觉 `resources/weather/grave_downstream_storm_visual.tres`（RainVisualProfile），音频 `resources/weather/storm_rain_audio.tres`（RainAudioProfile）。
+- `scripts/weather/battle_weather_director.gd` 为状态/过渡唯一导演；原雨景 `scenes/main_game_bg/rain.tscn` / `MainGameRain`、`RainStormRenderer`（分层雨幕、地面水花、风场）按强度驱动。SoundManager 统一混音，不要创建额外雨声播放器。
+- 湿镜头统一 `scenes/weather/weather_lens.tscn` → `WeatherLensController` / `WeatherLensProfile`；光源统一 `WeatherLightField` / `WeatherLightProfile`，关卡预设 `resources/weather/grave_downstream_light_profile.tres`。Bloom、折射、水滴与鼠标擦除都从现有光场/镜头渲染管线实现；镜头擦除只影响水膜，不删除真实雨线或环境光。
+- 主要调参先动配置资源，再审 Shader；GL Compatibility 运行、分辨率和 GPU 预算需要测量，不能凭 headless 成功宣称性能达标。全战斗雨景预览入口 `tools/weather_preview/battle_preview.tscn` / `render_battle.gd`；按正式 `--scene` 运行，不能用只有背景的 GIF 冒充完整战斗验收。
 
-### 3.1 向日葵四转：复用原版 Idle
+## 5｜美术/动画、僵尸、Boss：必要工作方法
 
-- 原版权威：`scenes/character/plant/plant_002_sun_flower.tscn` + `animation/character/plant/002_sun_flower/SunFlower_idle.tres` + `assets/reanim/SunFlower_*.png`；原花盘、茎叶、眨眼和关键帧继续复用。正式分件 `assets/adventure/plants/sunflower/manifest.json` 定义 `tier_1..tier_4`，每阶 19 张原尺寸/alpha 花瓣、星芒；三转需要原 Wink 配件，旧三块式 `head/petal_halo/leaves_and_collar` 废弃。
-- 唯一入口 `scripts/adventure/plant_art/adventure_sunflower_promotion_art.gd`。`PlantSpawnProfile.snapshot().promotion_1..4` 决定同一 UID 的转职阶段；0 阶维持原版。原 Idle 动画有 texture 轨道，直接改写 Sprite.texture 会被覆盖；必须在原 Sprite 子节点上叠加 PromotionPetal / PromotionStar 等部件，继承原运动。
-- 战场和卡面以 `AdventureBattleAdapter.profile_for` / `AllCards.create_static_preview(reference, promotion_tier)` 复用；转职书由 `AdventurePromotionCatalog.definition(book_id)` 的目标阶决定书面形象，而非卡牌持有人的当前阶。保留 UID 粒度，避免同物种共用一张全局升级图片。
-- 已完成 Godot 导入及定向卡面/战场挂点验证；完整人工画面/所有动画视觉验收仍须单独确认。
+- **PVZ 2009 手绘素材规范**：先读工程素材清单 → 核对原版复用件、动画轨道、尺寸、透明通道与锚点 → 必要时写提示词文档 → 再生图 → 审核不合格即返工 → 拆分、烘焙 PNG/GIF → ZIP/实装 → 真实场景测试。禁止未经需求核对直接生图。手机要求预览时，实际上传 Catbox 并校验可访问性、帧数、尺寸；不虚构链接。
+- **原版分件动画**：PvZ2 PAM 转换须保留稳定 ref ID、增量关键帧的继承、原始层级、显隐与事件帧；不能把画层顺序误当实例身份。全明星 `scenes/character/zombie/zombie_026_all_star.tscn` / `scenes/character/zombie/all_star_original_animations.tres` 可复查已建立的转换管线。
+- **向日葵转职外观**：原版 `plant_002_sun_flower.tscn` + SunFlower_idle 动画/原 `assets/reanim` 分件；新资源 `assets/adventure/plants/sunflower/manifest.json`；接入 `scripts/adventure/plant_art/adventure_sunflower_promotion_art.gd`。原动画有 texture 轨道，不能直接改 Sprite.texture；需挂载随原动画运动的分件。战斗、卡面与技能书复用同一转职阶段逻辑。
+- **僵尸等阶**：`scripts/adventure/adventure_zombie_tier_catalog.gd` → binding/traits/species installer；美术 `assets/adventure/zombies/tier_art_map.json`。固定格挡、二类防具、额外护甲、技能/抗性需独立算，不能只看总 HP；平衡基于整套植物/僵尸阵容与实战消耗（五阶主要对标十星植物），不要做单卡云比较。
+- **墓碑/Boss**：`StagePhaseDefinition.gravestone_rules` / `AdventureGravestoneDirector` / TombStoneManager，墓碑的刷新/复生必须使用本格实际生成点；常规旗帜刷怪和特定 Boss 复生的规则分别配置。Boss 统一血条/阶段状态，经 `ZB000Base`、ZombieManager、SoundManager 管线；美术封口不等于行为树和实战验收完成。黑将军实体 `scenes/character/zombie_boss/zombie_boss_002_black_general.tscn`，不要把旧策划数值当作工程当前实际配置。
 
-### 3.2 僵尸等阶与墓碑
+## 6｜验收与交接收口
 
-- 1–25 号原版僵尸等阶 1–5 已接入数值、主要能力及美术；1 阶 base，2–5 分别 veteran/elite/tier4/tier5。通用 HP 及原护甲倍率 1/1.5/3/5/10，普通啃咬及出怪预算从各自权威 catalog 取值；**固定格挡、二类防具、额外护甲、技能和伤害类型不可归并为一个总血量**。
-- 权威链 `scripts/adventure/adventure_zombie_tier_catalog.gd` → tier_binding / tier_traits / tier_species_installer / 特有行为组件；美术 `res://assets/adventure/zombies/tier_art_map.json` → `AdventureZombieTierArtCatalog` / `AdventureZombieTierArt`。`inherits` 仅复用美术；不推断行为。27+ 扩展物种不可假冒为已接入等阶；全明星 26 与 Boss 单独动画/数值管线。
-- 平衡必须以**整套阵容**为单位；五阶主要对标十星植物，不能用零星单卡单挑评价。垫材、铲除、磁力/魅惑/灰烬、穿透、冷却与阳光都要算成本；扶梯搭载与无效化、巨人召唤小鬼及投篮多路压制需按真实物种能力审查。多项定向测试和导入通过不代表全混编波次、真实手操和战术平衡已验收。
-- 可攻击墓碑 HP 700 / 五段损伤；`StagePhaseDefinition.gravestone_rules` → `AdventureGravestoneDirector` → TombStoneManager，禁止已占格生成。墓地上游黄昏支持天阳光且蘑菇不睡；墓地下游夜晚；按关卡 overrides 区分规则，雨天不能替代墓碑配置。
-
-### 3.3 Boss / 全明星共用规范
-
-- 黑将军实体 `scenes/character/zombie_boss/zombie_boss_002_black_general.tscn`，HP 120000，主美术 `assets/adventure/zombies/black_general/`，动作 `animation/character/zombie_boss/002_black_general/`；已封口资源及两阶段视觉不重复施工。
-- `ZB000Base` 的阶段信号（首次 HP≤50%）→ `ZombieManager` / `SoundManager`，全 Boss HUD `LevelInfo → scenes/ui/boss_hp_progress_bar.tscn`（统一头像框、血条、淡入淡出、鼠标避让）。黑将军行为树/召唤/遭遇规则不应因为美术与 HUD 已完工就宣称实装。
-- 全明星采用 PvZ2 原始 PAM 的稳定 ref ID、稀疏关键帧继承、原始层级/动画事件；正式 `scenes/character/zombie/zombie_026_all_star.tscn` 与 `scenes/character/zombie/all_star_original_animations.tres`。可复用转换方法位于 `C:\Dev\PvZ\_review\all_star\pvz2_original_5_8_1\`；不要复制其物种逻辑到其它僵尸，替代哨声不可冒充原版音效。
-
-## 4｜维护要求
-
-- 新需求先更新/定位权威数据源，再写实现；需要调整状态和视觉时分别修改配置/控制器，不建立并行“全局天气”“独立镜头”“额外卡牌外观”捷径。
-- 新一轮交接只保留**权威路径、总线、经过验证的稳定事实、方法与尚未关闭的验收边界**；删除过时 commit 快照、失败实验、短期预览 URL 和重复旧待办。文档不记录临时工作树状态。
+- 核对**真实运行链路**：关卡启动、参数投影、有效场景格子、真正的卡槽扣费与冷却、入水触发、屏幕绘制。原版泳池与下水道两处均需回归。尤其关注承托植物种植/铲除/读档和跨行错位。
+- 自动化：运行相关的 `test_water_surface_integration.tscn`、`test_ground_support_transaction.tscn`、`test_lily_pad_support_layout.tscn`，同时跑 Godot 4.7.2 headless editor 导入。测试通过不等于完整视觉/用户手操已验收。
+- **仍需实机终验**：下水道第 1、5 路水面动态实际可见性、荷叶及上层植物长期浮动/格子对齐、僵尸游泳、真实卡槽阳光结算、原版泳池兼容；暴雨长时性能和正常通关接续噩梦流程亦不能仅以单元测试判定。
+- 交接文档永远只保留**当前唯一管线、权威路径、真正可复用的方法与未关闭风险**；旧补丁路径、临时测试结论、过期链接、冗余清单和随时变化的 Git 提交快照不写入正文。
