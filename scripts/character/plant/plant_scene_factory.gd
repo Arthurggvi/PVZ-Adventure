@@ -7,7 +7,7 @@ static func create(plant_type: int) -> Plant000Base:
 	# The registry resolves scenes at runtime; static preload dependencies here
 	# would create a cycle: registry -> condition resource -> plant cell -> factory.
 	var scene: PackedScene = Global.character_registry.get_plant_scene(plant_type)
-	if scene == null:
+	if scene == null or not scene.can_instantiate():
 		push_error("PlantSceneFactory: missing plant scene for species %s" % plant_type)
 		return null
 	var instance: Node = scene.instantiate()

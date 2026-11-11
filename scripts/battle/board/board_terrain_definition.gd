@@ -31,10 +31,11 @@ func validate() -> PackedStringArray:
 	if presentation_kind < 0 or presentation_kind > 2:
 		errors.append("地形表现分类无效。")
 	if behavior_scene != null:
-		var instance: Node = behavior_scene.instantiate() # 离树仅检查扩展根契约。
-		if not instance is BoardTerrainBehavior:
-			errors.append("地形行为根必须继承 BoardTerrainBehavior。")
-		instance.free()
+		var instance: BoardTerrainBehavior = create_behavior() # 所有入口复用同一离树构造边界。
+		if instance == null:
+			errors.append("地形行为场景不可实例化或根类型错误。")
+		else:
+			instance.free()
 	return errors
 
 ## 为旧场景的 [param kind] 创建等价能力；不生成重复水体。
@@ -55,3 +56,15 @@ static func legacy(kind: int) -> BoardTerrainDefinition:
 		_:
 			result.tags = [&"land"]
 	return result
+
+
+## 唯一行为构造入口；空场景、实例化失败、错误根类型均返回 null，不操作活场景。
+func create_behavior() -> BoardTerrainBehavior:
+	if behavior_scene == null or not behavior_scene.can_instantiate():
+		return null
+	var node: Node = behavior_scene.instantiate() # 尚未进入场景树的候选。
+	if not node is BoardTerrainBehavior:
+		if is_instance_valid(node):
+			node.free()
+		return null
+	return node as BoardTerrainBehavior

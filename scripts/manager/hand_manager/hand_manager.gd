@@ -94,28 +94,12 @@ func _on_click_cell(plant_cell:PlantCell):
 			curr_hm_status = E_HandManagerStatus.Null
 
 ## 鼠标进入cell
-func _on_cell_mouse_enter(plant_cell:PlantCell):
-	curr_plant_cell = plant_cell
-	match curr_hm_status:
-		E_HandManagerStatus.Null:
-			hm_null.mouse_enter(plant_cell)
-		E_HandManagerStatus.Character:
-			hm_character.mouse_enter(plant_cell)
-		E_HandManagerStatus.Item:
-			hm_item.mouse_enter(plant_cell)
+func _on_cell_mouse_enter(_plant_cell: PlantCell) -> void:
+	_refresh_board_hover(true)
 
 ## 鼠标移出cell
-func _on_cell_mouse_exit(plant_cell:PlantCell):
-	if curr_plant_cell != plant_cell:
-		return
-	curr_plant_cell = null
-	match curr_hm_status:
-		E_HandManagerStatus.Null:
-			hm_null.mouse_exit(plant_cell)
-		E_HandManagerStatus.Character:
-			hm_character.mouse_exit(plant_cell)
-		E_HandManagerStatus.Item:
-			hm_item.mouse_exit(plant_cell)
+func _on_cell_mouse_exit(_plant_cell: PlantCell) -> void:
+	_refresh_board_hover()
 
 ## 取消角色和道具
 func _input(event):
@@ -131,16 +115,23 @@ func _input(event):
 
 
 ## 移动平台经过静止鼠标时同样重新拾取；菜单/卡槽等 GUI 优先，不穿透界面种植。
-func _refresh_board_hover() -> void:
+func _refresh_board_hover(force_refresh: bool = false) -> void:
 	if not is_instance_valid(main_game) or main_game.board == null or not main_game.board.configured:
 		return
-	var hovered: Control = get_viewport().gui_get_hovered_control() # 当前 GUI 的遮挡优先级。
-	var candidate: PlantCell = main_game.board.pick_cell(main_game.get_global_mouse_position()) # 当前几何命中。
+	var hovered: Control = get_viewport().gui_get_hovered_control() # GUI 遮挡优先。
+	var candidate: PlantCell = main_game.board.pick_cell(main_game.get_global_mouse_position()) # 与按钮一致的地块顺序。
 	if hovered != null and not hovered.get_parent() is PlantCell and not hovered is PlantCell:
 		candidate = null
-	if candidate == curr_plant_cell:
+	if candidate == curr_plant_cell and not force_refresh:
 		return
-	if is_instance_valid(curr_plant_cell):
-		_on_cell_mouse_exit(curr_plant_cell)
+	if candidate != curr_plant_cell and is_instance_valid(curr_plant_cell):
+		match curr_hm_status:
+			E_HandManagerStatus.Null: hm_null.mouse_exit(curr_plant_cell)
+			E_HandManagerStatus.Character: hm_character.mouse_exit(curr_plant_cell)
+			E_HandManagerStatus.Item: hm_item.mouse_exit(curr_plant_cell)
+	curr_plant_cell = candidate
 	if candidate != null:
-		_on_cell_mouse_enter(candidate)
+		match curr_hm_status:
+			E_HandManagerStatus.Null: hm_null.mouse_enter(candidate)
+			E_HandManagerStatus.Character: hm_character.mouse_enter(candidate)
+			E_HandManagerStatus.Item: hm_item.mouse_enter(candidate)

@@ -1111,3 +1111,19 @@ func death_all_zombie():
 			var zombie:Zombie000Base = zombie_row[i]
 			zombie.character_death_disappear()
 #endregion
+
+
+## 普通僵尸卡的唯一放置资格；预览和提交都调用，不改变出怪计数。[br]
+## [param zombie_type] 为注册物种；[param cell] 必须是本战场仍有效的地块。
+func can_place_zombie_at_cell(zombie_type: CharacterRegistry.ZombieType, cell: PlantCell) -> bool:
+	if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_inside_tree() \
+			or not is_instance_valid(main_game) or cell.board != main_game.board \
+			or not main_game.is_ancestor_of(cell) or not cell.board.allows_mutation():
+		return false
+	if not cell.can_common_zombie and zombie_type != CharacterRegistry.ZombieType.Z021Bungi:
+		return false
+	if not can_spawn_zombie_in_lane(zombie_type, cell.row_col.x):
+		return false
+	var terrain: CharacterRegistry.ZombieRowType = Global.character_registry.get_zombie_info(
+		zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieRowType) # 同一注册水陆要求。
+	return ZombieRow.supports_spawn(terrain, cell.get_spawn_terrain_type())

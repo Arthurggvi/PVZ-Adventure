@@ -181,89 +181,31 @@ func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 		is_plant_start_effect := true, is_imitater_material := false,
 		is_zombie_mode := false, spawn_profile: PlantSpawnProfile = null,
 		origin: PlacementOrigin = PlacementOrigin.Player) -> Plant000Base:
-	if spawn_profile != null and not spawn_profile.matches_plant_type(int(plant_type)):
-		return null
-	var condition: ResourcePlantCondition = Global.character_registry.get_plant_info(
-		plant_type, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
-	if condition == null:
-		return null
-	var footprint: Array[PlantCell] = condition.placement_cells(self)
-	if footprint.is_empty():
-		return null
-	# Player planting obeys terrain and active restrictions. Level setup may
-	# directly place a registered plant on empty cells or upgrade complete
-	# prerequisites. Save restore and transformation never consume prerequisites.
-	if origin == PlacementOrigin.Player and not condition.judge_is_can_plant(self, plant_type):
-		return null
-	var claims: Array[Dictionary] = []
-	if condition.is_purple_card and origin in [PlacementOrigin.Player, PlacementOrigin.LevelSetup]:
-		claims = condition.get_upgrade_claims(self, plant_type)
-	if not _placement_is_available(condition, footprint, claims):
-		return null
+	var placement: PlantPlacement = PlantPlacement.prepare(self, plant_type, is_imitater,
+		is_plant_start_effect, is_imitater_material, is_zombie_mode, spawn_profile, origin) # 共享离树准备。
+	return placement.commit() if placement != null else null
 
-	var plant: Plant000Base
-	if is_imitater:
-		plant = PlantSceneFactory.create(CharacterRegistry.PlantType.P999Imitater)
-		var imitater: Plant999Imitater = plant as Plant999Imitater
-		if imitater == null:
-			if plant != null:
-				plant.free()
-			return null
-		imitater.imitater_plant_type = plant_type
-	else:
-		plant = PlantSceneFactory.create(plant_type)
-	if plant == null:
-		return null
-	# 底层槽位必须提供承托锚点，非法植物类型在提交前退出。
-	if condition.place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Down \
-			and not is_imitater and not plant is Plant000DownBase:
-		plant.free()
-		return null
-	plant.init_plant({
-		Plant000Base.E_PInitAttr.CharacterInitType: Character000Base.E_CharacterInitType.IsNorm,
-		Plant000Base.E_PInitAttr.PlantCell: self,
-		Plant000Base.E_PInitAttr.IsImitaterMaterial: is_imitater_material,
-		Plant000Base.E_PInitAttr.IsZombieMode: is_zombie_mode,
-	})
-	if spawn_profile != null and not spawn_profile.apply(plant, int(plant_type)):
-		plant.free()
-		return null
-	plant.plant_spawn_profile = spawn_profile
-
-	# Two-phase commit: validate all claims again before consuming a single plant.
-	if origin == PlacementOrigin.Player and not condition.judge_is_can_plant(self, plant_type):
-		plant.free()
-		return null
-	# The same claims apply to player upgrades and scripted level upgrades.
-	# Verify the complete set again before the first predecessor is consumed.
-	if not claims.is_empty():
-		var current_claims: Array[Dictionary] = condition.get_upgrade_claims(self, plant_type)
-		if current_claims.size() != claims.size():
-			plant.free()
-			return null
-		for i in range(claims.size()):
-			if current_claims[i]["cell"] != claims[i]["cell"] \
-					or current_claims[i]["slot"] != claims[i]["slot"] \
-					or current_claims[i]["plant"] != claims[i]["plant"]:
-				plant.free()
-				return null
-	if not _placement_is_available(condition, footprint, claims):
-		plant.free()
-		return null
-	for claim: Dictionary in claims:
+## 提交已完整预检的 [param placement]；读档事务用 [param notify] 延后成功通知。[br]
+## 此处不构造实体、不解码存档；真实占用、承托接线仍只有本入口写入。
+func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Plant000Base:
+	assert(placement.cell == self and not placement.committed)
+	var plant: Plant000Base = placement.plant # 准备阶段构造并初始化的实例。
+	var condition: ResourcePlantCondition = placement.condition # 同一物种占用契约。
+	placement.committed = true
+	for claim: Dictionary in placement.claims:
 		(claim["plant"] as Plant000Base).character_death_disappear()
-	if is_imitater:
+	if placement.imitater:
 		plant_container_node[CharacterRegistry.PlacePlantInCell.Imitater].add_child(plant)
 	else:
 		plant_container_node[condition.place_plant_in_cell].add_child(plant)
-	for cell: PlantCell in footprint:
+	for cell: PlantCell in placement.footprint:
 		cell.plant_in_cell[condition.place_plant_in_cell] = plant
 		plant.signal_character_death.connect(cell.one_plant_free.bind(plant))
 		# 只在实体成功加入场景并正式占用格子后更新承托地形。
 		cell._sync_support_terrain_condition()
 	var plant_condition: ResourcePlantCondition = condition
 
-	if is_plant_start_effect:
+	if placement.play_effect:
 		## 种植特效
 		var plant_start_effect_scene:Node2D
 		## 当前地形为水或者睡莲
@@ -273,10 +215,13 @@ func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 			plant_start_effect_scene = SceneRegistry.PLANT_START_EFFECT.instantiate()
 		plant.body.add_child(plant_start_effect_scene)
 
-	if not is_imitater and plant_condition.place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Down:
+	if not placement.imitater and plant_condition.place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Down:
 		_attach_support_layers(plant as Plant000DownBase)
 
-	signal_plant_create.emit(self, plant.plant_type)
+	if not placement.saved_state.is_empty():
+		plant.load_game_data_plant(placement.saved_state)
+	if notify:
+		signal_plant_create.emit(self, plant.plant_type)
 
 	return plant
 
@@ -427,18 +372,12 @@ func be_bungi() -> Node2D:
 #region 特殊状态
 #region 墓碑相关
 ## 创建墓碑：默认保留一代版本，显式传入场景时使用新墓碑实体。
-func create_tombstone(tombstone_scene: PackedScene = null):
-	if is_instance_valid(tombstone):
-		print("当前植物格子", row_col, "已经有墓碑， 创建墓碑失败")
-		return
-	var source_scene: PackedScene = tombstone_scene if tombstone_scene != null else SceneRegistry.TOMBSTONE
-	var spawned := source_scene.instantiate()
-	var new_tombstone := spawned as TombStone
-	if new_tombstone == null:
-		if spawned != null:
-			spawned.free()
-		push_error("Invalid tombstone scene: expected TombStone root")
-		return
+func create_tombstone(tombstone_scene: PackedScene = null) -> TombStone:
+	if (board != null and not board.allows_mutation()) or is_instance_valid(tombstone):
+		return null
+	var prepared: TombStone = prepare_tombstone(tombstone_scene) # 失败在清除植物之前返回。
+	if prepared == null:
+		return null
 	## 被墓碑顶掉的植物
 	var all_place_plant_in_cell_be_tombstone = [
 		CharacterRegistry.PlacePlantInCell.Norm,
@@ -454,14 +393,31 @@ func create_tombstone(tombstone_scene: PackedScene = null):
 			cleared_plants.append(occupying)
 			occupying.character_death()
 
-	tombstone = new_tombstone
-	tombstone.init_tombstone(self)
-	add_child(tombstone)
+	install_prepared_tombstone(prepared)
+	return prepared
+
+## 为本格离树构造墓碑；失败不清除植物，不更新障碍状态。
+func prepare_tombstone(source: PackedScene = null) -> TombStone:
+	var scene: PackedScene = source if source != null else SceneRegistry.TOMBSTONE # 原有实体模板。
+	if scene == null or not scene.can_instantiate():
+		return null
+	var instance: Node = scene.instantiate() # 尚未进入战场的节点。
+	if not instance is TombStone:
+		if is_instance_valid(instance):
+			instance.free()
+		return null
+	var result := instance as TombStone # 正式类型契约。
+	result.init_tombstone(self)
+	return result
+
+## 普通生成与存档统一挂载 [param prepared]；恢复计划提前排除占用冲突。
+func install_prepared_tombstone(prepared: TombStone) -> void:
+	assert(prepared != null and prepared.plant_cell == self and prepared.get_parent() == null)
+	tombstone = prepared
 	tombstone.position = Vector2(size.x / 2, size.y)
+	add_child(tombstone)
 	update_special_state_plant(true, E_SpecialStatePlant.IsTombstone)
-
 	Global.main_game.plant_cell_manager.tombstone_list.append(tombstone)
-
 
 ## 刪除墓碑，墓碑死亡时调用该函数
 func tombstone_death_update_plant_cell_data():
@@ -682,15 +638,13 @@ func get_plant_place_from_mouse_pos():
 ## 被挂载梯子
 ## global_pos:挂载梯子精灵节点的全局位置
 func be_ladder(tier_id: StringName = &"", target: Plant000Base = null) -> Ladder:
-	if is_instance_valid(ladder):
+	if (board != null and not board.allows_mutation()) or is_instance_valid(ladder):
 		return null
-	ladder = SceneRegistry.LADDER.instantiate() as Ladder
-	ladder.init_ladder(self, tier_id, target)
-	add_child(ladder)
-	for p in plant_in_cell:
-		if is_instance_valid(plant_in_cell[p]):
-			plant_in_cell[p].signal_ladder_update.emit()
-	return ladder
+	var prepared: Ladder = prepare_ladder() # 同一构造边界用于读档预留。
+	if prepared == null:
+		return null
+	install_prepared_ladder(prepared, tier_id, target)
+	return prepared
 
 ## 梯子消失
 func ladder_loss(source: Ladder = null):
@@ -753,15 +707,7 @@ func get_save_game_data_plant_cell() -> ResourceSaveGamePlantCell:
 
 	return save_game_data_plant_cell
 
-## 读档植物格子数据
-func load_game_data_plant_cell(save_game_data_plant_cell:ResourceSaveGamePlantCell):
-	for place_plant_in_cell in save_game_data_plant_cell.plant_type_in_cell:
-		var game_data_plant:Dictionary = save_game_data_plant_cell.plant_type_in_cell[place_plant_in_cell]
-		_load_game_data_create_plant(game_data_plant)
-
-	if save_game_data_plant_cell.is_ladder:
-		be_ladder(save_game_data_plant_cell.ladder_tier_id)
-
+## 整体读档由 BoardRestoreTransaction 统一准备，禁止逐格解码后立即写入。
 ## 清除当前植物格子数据
 func clear_data_plant_cell():
 	for place_plant_in_cell in plant_in_cell:
@@ -769,14 +715,7 @@ func clear_data_plant_cell():
 			plant_in_cell[place_plant_in_cell].character_death_disappear()
 
 
-## 读档时创建植物
-func _load_game_data_create_plant(game_data_plant):
-	var plant:Plant000Base
-	plant = create_plant(game_data_plant["plant_type"], false, false,
-		game_data_plant["is_imitater_material"], false, null,
-		PlacementOrigin.SaveRestore)
-	if plant != null:
-		plant.load_game_data_plant(game_data_plant)
+# 已移除逐条吞错恢复路径；植物创建仍由上方共享放置事务负责。
 #endregion
 
 
@@ -816,15 +755,13 @@ func set_planting_block(source: StringName, blocked: bool) -> void:
 
 ## 安装 [param terrain] 的能力和独立行为；失败保留原地形。
 func apply_board_terrain(terrain: BoardTerrainDefinition) -> bool:
-	if terrain == null or not terrain.validate().is_empty():
+	if board != null and not board.allows_mutation():
 		return false
-	if _terrain_layer == null:
-		_terrain_layer = BoardTerrainLayer.new()
-		_terrain_layer.name = "TerrainLayer"
-		_terrain_layer.cell = self
-		_terrain_layer.z_index = -1
-		add_child(_terrain_layer)
-	return _terrain_layer.apply(terrain)
+	var prepared: BoardTerrainLayer = BoardTerrainLayer.prepare(self, terrain) # 先构造全部资源。
+	if prepared == null:
+		return false
+	install_prepared_terrain(prepared)
+	return true
 
 ## 返回当前地形行为的可序列化状态。
 func capture_terrain_state() -> Dictionary:
@@ -853,3 +790,39 @@ func get_spawn_global_position() -> Vector2:
 	var game: MainGameManager = Global.main_game # 旧固定行出生坐标协议。
 	return Vector2(global_position.x + size.x * 0.5,
 		game.zombie_manager.all_zombie_rows[row_col.x].zombie_create_position.global_position.y)
+
+
+## 仅安装已准备好的 [param layer]；资源构造与校验必须发生在旧层释放之前。
+func install_prepared_terrain(layer: BoardTerrainLayer) -> void:
+	assert(layer != null and layer.cell == self and layer.get_parent() == null)
+	if is_instance_valid(_terrain_layer):
+		remove_child(_terrain_layer)
+		_terrain_layer.queue_free()
+	_terrain_layer = layer
+	board_terrain = layer.terrain
+	plant_cell_type = board_terrain.presentation_kind as PlantCellType
+	init_condition()
+	add_child(layer)
+	layer.restore_prepared_state()
+
+
+## 离树准备梯子；初始化对植物的影响留到正式提交，失败不产生负面效果。
+func prepare_ladder() -> Ladder:
+	if SceneRegistry.LADDER == null or not SceneRegistry.LADDER.can_instantiate():
+		return null
+	var instance: Node = SceneRegistry.LADDER.instantiate() # 未接入战场的梯子。
+	if not instance is Ladder:
+		if is_instance_valid(instance):
+			instance.free()
+		return null
+	return instance as Ladder
+
+## 挂载已构造的 [param prepared] 并沿用原梯子初始化/通知协议。
+func install_prepared_ladder(prepared: Ladder, tier_id: StringName, target: Plant000Base = null) -> void:
+	assert(prepared != null and prepared.get_parent() == null)
+	ladder = prepared
+	ladder.init_ladder(self, tier_id, target)
+	add_child(ladder)
+	for slot: CharacterRegistry.PlacePlantInCell in plant_in_cell: # 通知实际在场植物。
+		if is_instance_valid(plant_in_cell[slot]):
+			plant_in_cell[slot].signal_ladder_update.emit()

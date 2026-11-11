@@ -53,15 +53,5 @@ static func accepts(board: BoardRuntime, state: Dictionary) -> bool:
 
 ## 恢复预检通过的 [param state]；应在植物与墓碑读档之前调用。
 static func restore(board: BoardRuntime, state: Dictionary) -> bool:
-	if not accepts(board, state):
-		push_error("战场空间存档与当前布局不兼容，已拒绝恢复。")
-		return false
-	if state.is_empty():
-		return true
-	for id: StringName in board.surfaces: # 先恢复平台，使后续实例使用最终锚点。
-		board.surfaces[id].restore_state(state["surfaces"][str(id)])
-	for cell: PlantCell in board.cells(): # 地形已在全量预检中验证。
-		var entry: Dictionary = state["cells"][str(cell.cell_id)] # 当前地块状态。
-		cell.apply_board_terrain(board.terrains[StringName(entry["terrain"])])
-		cell.restore_terrain_state(entry["behavior"])
-	return true
+	var plan: BoardStateRestore = BoardStateRestore.prepare(board, state) # 完整准备后提交。
+	return plan != null and plan.commit()

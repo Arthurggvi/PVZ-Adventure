@@ -124,11 +124,8 @@ func _update_cell_shadow(plant_cell: PlantCell, curr_characte_static_shadow: Nod
 				curr_characte_static_shadow.modulate.a = 0.5
 				return true
 		ResourceCardReference.CardType.Zombie:
-			if not plant_cell.can_common_zombie and curr_card.card_reference.content_id != CharacterRegistry.ZombieType.Z021Bungi:
-				return false
-			if plant_cell.row_col.x >= Global.main_game.zombie_manager.all_zombie_rows.size():
-				return false
-			if zombie_row_type != CharacterRegistry.ZombieRowType.Both and zombie_row_type != Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x].zombie_row_type:
+			if not hand_manager.main_game.zombie_manager.can_place_zombie_at_cell(
+				curr_card.card_reference.content_id, plant_cell):
 				return false
 			curr_characte_static_shadow.global_position = get_zombie_static_shadow_global_position(plant_cell)
 			curr_characte_static_shadow.modulate.a = 0.5
@@ -199,6 +196,9 @@ func _create_character_at_cell(plant_cell: PlantCell) -> bool:
 				true, false, false, curr_card.plant_spawn_profile
 			) != null
 		ResourceCardReference.CardType.Zombie:
+			if not hand_manager.main_game.zombie_manager.can_place_zombie_at_cell(
+				curr_card.card_reference.content_id, plant_cell):
+				return false
 			# 普通僵尸仍按行初始化，保留关卡模式与特殊僵尸回调。
 			var zombie_init_para: Dictionary = {
 				Zombie000Base.E_ZInitAttr.CharacterInitType: Character000Base.E_CharacterInitType.IsNorm,

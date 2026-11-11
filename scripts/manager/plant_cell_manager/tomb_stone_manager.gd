@@ -118,7 +118,7 @@ func get_save_game_data_tomb_stone_manager() -> Dictionary:
 
 ## 校验 [param data] 的全部引用；旧矩阵只在旧场景兼容，错误记录不静默丢失。
 func accepts_save(data: Dictionary) -> bool:
-	var records: Array = _records(data) # 统一旧矩阵与当前记录协议。
+	var records: Array = decode_save_records(data) # 统一旧矩阵与当前记录协议。
 	if records.size() == 1 and records[0] == null:
 		return false
 	var seen: Dictionary[StringName, bool] = {} # 防止同一地块重复生成。
@@ -135,21 +135,8 @@ func accepts_save(data: Dictionary) -> bool:
 		seen[cell.cell_id] = true
 	return true
 
-## 已通过整体战场预检后恢复 [param data]，不会重排地块。
-func load_game_data_tomb_stone_manager(data: Dictionary) -> void:
-	if not accepts_save(data):
-		push_error("墓碑存档包含未知或重复地块。")
-		return
-	for record: Dictionary in _records(data): # 完整预检后的有效记录。
-		var cell: PlantCell = plant_cell_manager.saved_cell(StringName(record.get("cell_id", "")),
-			Vector2i(record.get("row", -1), record.get("col", -1))) # 对应实际地块。
-		var kind := StringName(record.get("kind", "legacy")) # 已验证种类。
-		_create_one_tombstone(cell, kind)
-		if kind == &"pvz2" and _has_grave(cell):
-			cell.tombstone.restore_hp(record["hp"])
-
 ## 将 [param data] 中旧布尔矩阵解码为记录；[null] 表示非法格式，空数组表示没有墓碑。
-func _records(data: Dictionary) -> Array:
+func decode_save_records(data: Dictionary) -> Array:
 	if data.has("tombstones"):
 		return data["tombstones"] if data["tombstones"] is Array else [null]
 	var result: Array = [] # 仅向后兼容读取，不在运行时保留矩阵。

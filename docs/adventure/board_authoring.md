@@ -22,7 +22,7 @@
 
 **自定义离散坐标**：可以只声明逻辑地址 `(0,0)`、`(0,4)`、`(1,2)` 的三个种植点，各自设置不同 position/size。中间不存在的地址不会创建占位格，也不会被当作压缩数组的下标。cell_id 在位置变化、资源数组重排时保持不变。
 
-**非矩形点击范围**：`hit_polygon` 的顶点在该格 size 的局部范围内；空值使用矩形。Button 命中和移动后的实时拾取共用此几何，界面菜单/卡槽优先，不穿透 GUI 种植。
+**非矩形点击范围**：`hit_polygon` 的顶点在该格 size 的局部范围内；空值使用矩形。Button 命中和移动后的实时拾取共用此几何与 GUI 场景树顺序，界面菜单/卡槽优先，不穿透 GUI 种植。HandManager 统一解析悬停/点击目标，禁止各信号独立覆盖目标。普通僵尸卡资格统一调用 `ZombieManager.can_place_zombie_at_cell()`，预览和提交不能分叉。
 
 **邻接关系**：默认按同平台逻辑地址计算范围；`explicit_neighbors = true` 后改为 `neighbor_ids` 的有向步进关系。需要双向相邻时应在两端都声明。`right_neighbor_id` 可单独声明玉米加农炮等多格植物的向右占格；目标必须同平台、同攻击行。不能让一株多格植物横跨两块独立移动平台。
 
@@ -54,7 +54,7 @@ var changed: bool = game.board.set_cell_terrain(&"ferry_plant_a", &"mud")
 
 ## 特殊地形扩展
 
-`BoardTerrainDefinition.behavior_scene` 的根必须继承 `BoardTerrainBehavior`；每个地块创建独立实例。扩展脚本通过 `cell` 访问当前占用，覆写 `tick(delta)`、`removed()`，需要持久化时实现 `capture_state()` / `accepts_state()` / `restore_state()`。验证方法必须是离树可调用的纯校验，不能依赖 onready、玩家库存或当前战斗。
+`BoardTerrainDefinition.behavior_scene` 的根必须继承 `BoardTerrainBehavior`；所有实例化均经 `create_behavior()` 检查可实例化性、空实例与根类型。`BoardTerrainLayer.prepare()` 完成离树构造和状态预检后才可安装，不在释放旧层后继续尝试构造。每个地块创建独立实例。扩展脚本通过 `cell` 访问当前占用，覆写 `tick(delta)`、`removed()`，需要持久化时实现 `capture_state()` / `accepts_state()` / `restore_state()`。验证方法必须是离树可调用的纯校验，不能依赖 onready、玩家库存或当前战斗。
 
 新植物对特殊地形的要求使用 `ResourcePlantCondition.required_terrain_tags` / `forbidden_terrain_tags`；不要给 PlantCell 的地形枚举不断追加物种分支。`presentation_kind` 只负责旧美术分类，不能替代生成条件 `spawn_type` 或种植能力。
 
@@ -66,7 +66,11 @@ var changed: bool = game.board.set_cell_terrain(&"ferry_plant_a", &"mud")
 
 `ResourceSaveGamePlantCellManager.board_state` 保存布局 ID/revision、地块身份与逻辑地址、地形及行为状态、平台运动阶段、攻击行身份顺序。植物和墓碑新档按 cell_id 恢复；只有原布局兼容旧 row_col 档案。
 
-正式恢复前先对所有空间/植物目标/墓碑目标做完整预检。未知或重复 ID、拓扑不兼容、错误行为状态不允许静默回退到原矩阵。先恢复平台位姿和地形，再恢复植物、承托层与墓碑；不会重做卡牌扣费。
+正式恢复统一走 `BoardRestoreTransaction.prepare()` → `commit()`。`BoardStateRestore` 负责空间计划，`BoardRestoreEntities` 校验并预留全部植物/墓碑/梯子；准备阶段不写活占用。未知/重复 ID、拓扑不兼容、字段缺失或类型错误、物种槽位不匹配、多格重叠、结构冲突全部拒绝。空白场地校验与全部资源构造成功后，才同步恢复平台、地形、依赖结构、承托与植物；不重做扣费，也不容许中途跳过失败记录。
+
+正常种植与读档共用 `PlantPlacement` 离树构造及 `PlantCell.commit_prepared_plant()`，两条路径不得各自维护占用。恢复按 Down 承托层优先，与存档记录顺序无关。全部占用就绪后先从真实实例重建数量，再发布创建事件；整个提交/发布期间由 BoardRuntime 令牌拒绝重入。
+
+植物基础恢复校验由 `Plant000Base.accepts_save_state()` 提供；物种新增持久化字段时，在该物种覆盖此纯离树方法并调用 super，不能只在加载函数中直接取未验证字段。依赖墓碑共占的植物通过 `ResourcePlantCondition.requires_tombstone` 声明结构关系；普通植物与墓碑冲突时整份恢复失败。
 
 地块身份集合在一场战斗中固定。移动须走平台，不直接重挂/释放格子或改 address。承托层仍使用格子 Control 锚点与 Content Node2D，植物、壳体、受击盒和交互随节点变换移动；禁止缓存初始世界坐标后回填。
 

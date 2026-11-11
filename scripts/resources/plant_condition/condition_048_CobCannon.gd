@@ -4,11 +4,14 @@ extends ResourcePlantCondition
 class_name ResourcePlantConditionCobCannon
 
 func placement_cells(cell: PlantCell) -> Array[PlantCell]:
+	var result: Array[PlantCell] = [] # 成功和失败分支都保持相同的元素类型。
 	if not is_instance_valid(cell) or cell.board == null:
-		return []
-	var next: PlantCell = cell.board.right_of(cell) # 稀疏或显式邻接，不按数组下标猜测。
-	return [cell, next] if next != null else []
-
+		return result
+	var next: PlantCell = cell.board.right_of(cell) # 邻接由空间协议解析，不压缩缺格。
+	if next != null:
+		result.append(cell)
+		result.append(next)
+	return result
 
 func upgrade_footprint_available(cells: Array[PlantCell]) -> bool:
 	for cell: PlantCell in cells:

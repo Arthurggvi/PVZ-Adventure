@@ -34,8 +34,10 @@
 - **配置入口**：`BoardDefinition` 声明离散点、平台、地形目录和攻击行；`BoardGridDefinition` 只是规则网格生成器。任意 position/size、稀疏地址、局部 hit_polygon、显式邻接均可配置。当前六关保留原布局，经旧场景适配进入同一管线，没有改成示例行列数。
 - **运行时入口**：`game.board.cell_by_id/cell_at/row_cells/neighbors/horizontal_neighbors/right_of/nearest_cell/local_pitch`；移动走 `move_surface_to(surface_id, target, seconds)`，地形变更走 `set_cell_terrain(cell_id, terrain_id, keep_occupants=false)`。行副本只能枚举，禁止以 `[行][逻辑列]` 查询稀疏坐标；禁止缓存初始世界锚点。
 - **运动与占用**：地块、植物、荷叶上层/壳层、受击盒和交互区域由同一平台节点平移；多格植物禁止跨独立平台。自动往返/显式过渡使用有效战斗时间并受暂停控制。移动不改 cell_id、攻击行或邻接，不通过逐个植物补偿坐标实现。
-- **特殊地形**：能力位、承托能力、tags、具名禁种来源统一进入 ResourcePlantCondition。行为场景继承 `BoardTerrainBehavior`，每格独立实例；扩展行为负责自己的更新、移除清理和纯存档校验。`water_contact` 可创建地块同源接触体，水面美术与环境区域需配套配置。
-- **存档**：`board_state` 保存布局版本、稳定身份、地形/行为、平台运动阶段和攻击行顺序；植物/墓碑按 cell_id 恢复，旧 row_col 仅兼容旧布局。整份预检先于正式恢复；未知 ID、重复记录与错版拓扑拒绝恢复，不能静默回退。
+- **特殊地形**：能力位、承托能力、tags、具名禁种来源统一进入 ResourcePlantCondition。`BoardTerrainDefinition.create_behavior()` 是行为构造唯一入口；`BoardTerrainLayer.prepare()` 离树准备完整实例后再替换旧层，空场景/错误根类型必须拒绝且保留旧地形。行为继承 `BoardTerrainBehavior`，负责自身更新、移除清理和离树纯校验；`water_contact` 只提供同源接触体，水面美术仍须配套。
+- **恢复事务**：`PlantCellManager` → `BoardRestoreTransaction.prepare/commit`；`BoardStateRestore` 准备平台/地形，`BoardRestoreEntities` 准备植物/墓碑/梯子。输入字段、物种/槽位、真实多格占用及结构关系全部预检，离树构造成功后才同步提交。失败返回 false，禁止跳过坏记录、部分恢复或重建失败后谎报成功。`board_state`/cell_id 保持原稳定身份协议，旧 row_col 仅兼容旧布局；恢复只允许空白场地。
+- **提交边界**：恢复期间持有 BoardRuntime 唯一令牌，禁止回调重入；先完成全部实体和承托、从实际占用重建计数，再发布创建事件。`PlantPlacement` 是正常种植和读档共用的离树构造计划，`PlantCell.commit_prepared_plant` 是唯一挂载/占用入口；不要重新建立逐格读档旁路。
+- **输入与放置资格**：HandManager 的进入/离开/刷新/点击共用 `_refresh_board_hover`；Board 拾取按 GUI 场景树优先级，保留菜单遮挡与点击目标一致性。普通僵尸卡预览/提交共用 `ZombieManager.can_place_zombie_at_cell`，同时检查行兼容、局部地形和活地块身份，不能再写独立的行类型等值比较。
 - **边界**：已接入离散种植空间和平移平台；未引入连续无格种植、旋转缩放、运行时增删地块、跨攻击行迁移或自由寻路。背景、镜头、屋顶坡面、原版大型 Boss 演出与按像素/行计算的攻击仍须针对新几何配套核验。源码接入不等于任意布局已完成实机验收。
 
 ## 2｜通用水面：原版泳池与下水道 1、5 路
@@ -60,7 +62,7 @@
 - 正式种植与特殊植物条件分别经 `PlantCell.create_plant` / `ResourcePlantCondition`；荷叶 `condition_017_lily_pad.gd`。水路原始条件为 `9`（空/水），荷叶成功占用 Down 槽后为 `17`（空/荷叶）；移除后恢复 `9`。
 
 **不可违反的事务规则**
-1. `Plant000DownBase.init_plant` **只初始化实体**，不得提前切换格子地形。正式 `create_plant` 完成两次资格与占用校验，生成成功并写入 `plant_in_cell` 后，才由 `PlantCell._sync_support_terrain_condition()` 根据 Down 槽实际占用投影 `BoardTerrainDefinition.supported_flags`；释放/死亡时恢复原能力。不得回退到旧版位掩码异或翻转。
+1. `Plant000DownBase.init_plant` **只初始化实体**，不得提前切换格子地形。正式 `create_plant` 经 `PlantPlacement.prepare` 与提交前复核，使用 `commit_prepared_plant` 写入 `plant_in_cell` 后，才由 `PlantCell._sync_support_terrain_condition()` 根据 Down 槽实际占用投影 `BoardTerrainDefinition.supported_flags`；释放/死亡时恢复原能力。不得回退到旧版位掩码异或翻转。
 2. 放置失败应保持格子不变、卡牌不扣阳光；成功后经 `HMCharacter` 的成功信号由卡槽统一扣费/冷却。不能在植物脚本内私自扣阳光。需同时考虑读档、替换植物、铲除和重复种植。
 3. `PlantNormContainer` 与 `PlantShellContainer` 是带锚点的 `Control`，**始终留在 PlantCell**。`scenes/ui/plant_cell.tscn` 中各自的 `Content: Node2D` 才是实际植物容器；`_attach_support_layers(support)` 将两块 Content 挂到 `support.down_plant_container` 并使用承托物 `plant_up_position` 定位；`_detach_support_layers()` 回到锚点并归零局部位置。不要重新挂载整个 `Control`，不要用曾缓存的全局坐标回填。
 4. 植物的实体、壳体、放置虚影与承托位置必须引用同一组 `plant_container_node` 内容锚点；随荷叶浮动时上层一起移动，荷叶消失后回格子定位。荷叶承托偏移以资源配置为准，当前 `plant_up_position = Vector2(0,10)`；禁止给下水道、西瓜投手或单个植物加特判偏移。

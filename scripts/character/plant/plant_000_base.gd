@@ -329,3 +329,11 @@ func load_game_data_plant(save_game_data_plant:Dictionary):
 
 	hp_component.curr_hp = save_game_data_plant["curr_hp"]
 	hp_component.signal_hp_loss.emit(hp_component.curr_hp, true)
+
+
+## 离树检查 [param state] 的完整基础字段；失败时不触发任何角色回调。
+func accepts_save_state(state: Dictionary) -> bool:
+	return state.get("plant_type") is int and int(state["plant_type"]) == int(plant_type) \
+		and state.get("curr_hp") is int and int(state["curr_hp"]) > 0 \
+		and state.get("is_imitater_material") is bool \
+		and (not state.has("is_sleeping") or state["is_sleeping"] is bool)

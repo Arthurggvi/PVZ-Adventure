@@ -48,11 +48,15 @@ func _ready() -> void:
 #region 植物信息
 ## 更新植物信息(创建新植物)
 func update_plant_info_create(_plant_cell:PlantCell, plant_type:CharacterRegistry.PlantType):
+	if board != null and not board.allows_mutation():
+		return # 恢复事务已按完整占用重建计数，发布阶段不得再次累计。
 	curr_plant_num[plant_type] = curr_plant_num.get(plant_type, 0) + 1
 	EventBus.push_event("update_card_purple_sun_cost")
 
 ## 更新植物信息(植物死亡)
 func update_plant_info_free(_plant_cell:PlantCell, plant_type:CharacterRegistry.PlantType):
+	if board != null and not board.allows_mutation():
+		return # 同步恢复期间的统计统一在提交结束前派生。
 	curr_plant_num[plant_type] -= 1
 	EventBus.push_event("update_card_purple_sun_cost")
 	if curr_plant_num[plant_type] < 0:
@@ -499,17 +503,8 @@ func clear_all_plant_cell_data():
 
 ## 植物格子管理器读档
 func load_game_data_plant_cell_manager(saved: ResourceSaveGamePlantCellManager) -> bool:
-	if not accepts_save(saved):
-		push_error("种植点存档不匹配当前战场，未恢复植物。")
-		return false
-	if not board.restore_state(saved.board_state):
-		return false
-	for record: ResourceSaveGamePlantCell in saved.all_plant_cells_datas: # 所有身份已经预检。
-		var cell: PlantCell = saved_cell(record.cell_id, record.row_col) # 新档只按 ID 恢复。
-		cell.load_game_data_plant_cell(record)
-	tomb_stone_manager.load_game_data_tomb_stone_manager(saved.tomb_stone_manager_data)
-	return true
-
+	var plan: BoardRestoreTransaction = BoardRestoreTransaction.prepare(self, saved) # 冻结数据并完成所有资源准备。
+	return plan != null and plan.commit()
 
 #endregion
 
@@ -524,14 +519,20 @@ func saved_cell(id: StringName, address: Vector2i) -> PlantCell:
 
 ## 全量预检 [param saved]，必须先于卡槽/推车等其他恢复副作用。
 func accepts_save(saved: ResourceSaveGamePlantCellManager) -> bool:
-	if saved == null or board == null or not BoardStateSnapshot.accepts(board, saved.board_state):
-		return false
-	var seen: Dictionary[StringName, bool] = {} # 拒绝重复地块记录，避免重复生成。
-	for record: ResourceSaveGamePlantCell in saved.all_plant_cells_datas: # 旧地址只在旧布局有效。
-		if record == null:
-			return false
-		var cell: PlantCell = saved_cell(record.cell_id, record.row_col) # 当前目标。
-		if cell == null or seen.has(cell.cell_id):
-			return false
-		seen[cell.cell_id] = true
-	return tomb_stone_manager.accepts_save(saved.tomb_stone_manager_data)
+	var plan: BoardRestoreTransaction = BoardRestoreTransaction.prepare(self, saved) # 完整预检而非只核对 ID。
+	return plan != null
+
+
+## 从真实占用一次性派生数量；只供整体恢复在发布事件之前调用，多格实例只计一次。
+func rebuild_plant_counts() -> void:
+	curr_plant_num.clear()
+	var seen: Dictionary[int, bool] = {} # 按实例身份去重，不按格子数累计。
+	for cell: PlantCell in board.cells(): # 占用仍由格子唯一持有。
+		for reference: Variant in cell.plant_in_cell.values(): # 先检查可能已失效的引用。
+			if not is_instance_valid(reference):
+				continue
+			var plant := reference as Plant000Base # 已经在场的正式植物。
+			if plant == null or plant.is_death or plant.is_queued_for_deletion() or seen.has(plant.get_instance_id()):
+				continue
+			seen[plant.get_instance_id()] = true
+			curr_plant_num[plant.plant_type] = curr_plant_num.get(plant.plant_type, 0) + 1

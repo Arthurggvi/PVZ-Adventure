@@ -5,6 +5,8 @@ class_name ResourcePlantCondition
 @export var required_terrain_tags: Array[StringName] = []
 ## 明确禁止的地形能力标签，不与原种植能力位混用。
 @export var forbidden_terrain_tags: Array[StringName] = []
+## 该物种与墓碑共占且依赖墓碑存在；恢复计划据此验证结构关系。
+@export var requires_tombstone: bool = false
 
 @export_group("植物种植")
 @export_flags("1 无", "2 草地", "4 花盆", "8 水", "16 睡莲", "32 屋顶/裸地")

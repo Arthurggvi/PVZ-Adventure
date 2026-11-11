@@ -26,6 +26,8 @@ var surfaces: Dictionary[StringName, BoardSurface] = {}
 var terrains: Dictionary[StringName, BoardTerrainDefinition] = {}
 ## 固定攻击行定义；旧关由场景适配得到。
 var lanes: Array[BoardLaneDefinition] = []
+## 同步恢复事务的唯一所有者；阻止回调重入触发第二次空间变更。
+var _restore_owner: RefCounted
 ## 种植地形变更通知；不承担卡槽费用结算。
 signal terrain_changed(cell: PlantCell)
 
@@ -97,7 +99,7 @@ func pick_cell(point: Vector2) -> PlantCell:
 	for cell: PlantCell in _cells: # 地块几何与 Button._has_point 使用同一接口。
 		if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_visible_in_tree():
 			continue
-		if cell.contains_world_point(point) and (result == null or result.is_greater_than(cell)):
+		if cell.contains_world_point(point) and (result == null or cell.is_greater_than(result)):
 			result = cell
 	return result
 
@@ -110,7 +112,7 @@ func nearest_cell(point: Vector2, lane: int = -1) -> PlantCell:
 ## 默认有植物/障碍则拒绝，失败不改动现有状态，不自动铲除或退款。
 func set_cell_terrain(cell_id: StringName, terrain_id: StringName, keep_occupants: bool = false) -> bool:
 	var cell: PlantCell = cell_by_id(cell_id) # 目标地块。
-	if cell == null or not terrains.has(terrain_id):
+	if not allows_mutation() or cell == null or not terrains.has(terrain_id):
 		return false
 	if not keep_occupants and (cell.get_curr_plant_num() > 0 or cell.curr_special_state_plant.values().any(func(active): return active)):
 		return false
@@ -121,7 +123,7 @@ func set_cell_terrain(cell_id: StringName, terrain_id: StringName, keep_occupant
 
 ## 将 [param surface_id] 移至主战场局部 [param target]；秒数为零时立即定位。
 func move_surface_to(surface_id: StringName, target: Vector2, seconds: float = 0.0) -> bool:
-	if not surfaces.has(surface_id) or not target.is_finite() or not is_finite(seconds) or seconds < 0.0:
+	if not allows_mutation() or not surfaces.has(surface_id) or not target.is_finite() or not is_finite(seconds) or seconds < 0.0:
 		return false
 	surfaces[surface_id].move_to(target, seconds)
 	return true
@@ -159,3 +161,20 @@ func finish_configuration() -> void:
 	for row: Array in _rows: # 排序的是私有索引，外部只取得副本。
 		row.sort_custom(func(left: PlantCell, right: PlantCell): return left.row_col.y < right.row_col.y)
 	configured = true
+
+
+## 仅恢复事务自身可在提交期变更占用；普通操作不携带 [param transaction]。
+func allows_mutation(transaction: RefCounted = null) -> bool:
+	return _restore_owner == null or _restore_owner == transaction
+
+## 同步提交开始前取得唯一令牌；已有事务时拒绝重入。
+func begin_restore(transaction: RefCounted) -> bool:
+	if transaction == null or _restore_owner != null:
+		return false
+	_restore_owner = transaction
+	return true
+
+## 由相同 [param transaction] 释放令牌，不能结束其他事务。
+func end_restore(transaction: RefCounted) -> void:
+	assert(_restore_owner == transaction)
+	_restore_owner = null

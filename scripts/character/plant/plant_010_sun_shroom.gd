@@ -67,3 +67,8 @@ func load_game_data_plant(save_game_data_plant:Dictionary):
 	if is_grow:
 		grow_timer.stop()
 		create_sun_component.change_sun_value(norm_sun_value)
+
+
+## 阳光菇额外持久化成长状态；缺失时保持旧档的未成长默认值。
+func accepts_save_state(state: Dictionary) -> bool:
+	return super(state) and (not state.has("is_grow") or state["is_grow"] is bool)
