@@ -251,10 +251,25 @@ func start_next_wave() -> void:
 	for zombie: Zombie000Base in spawned:
 		zombie.signal_zombie_hp_loss.connect(zombie_wave_refresh_manager.judge_half_refresh)
 		wave_all_hp += zombie.hp_component.get_all_hp()
+		if zombie is Zombie014Bobsled:
+			wave_all_hp += zombie.passenger_wave_health()
 	zombie_wave_refresh_manager.update_wave_health_data(wave_all_hp, curr_wave_type, curr_wave)
 	signal_wave_refresh.emit(is_final)
 	if profile != null:
 		adventure_wave_started.emit(wave_number)
+
+## [param sled] 已损毁的雪橇；[param crew] 继承原波次的下车队员。
+## 只交接本波已经纳入血量预算的雪橇，支援和脚本刷出的队伍沿用原归属。
+func replace_bobsled_with_crew(sled: Zombie014Bobsled, crew: Array[Zombie000Base]) -> void:
+	# roster 是残半刷新读取的本波名单。
+	var roster: Array[Zombie000Base] = zombie_wave_create_manager.wave_all_zombies
+	if not roster.has(sled):
+		return
+	roster.erase(sled)
+	roster.append_array(crew)
+	# member 的后续实际掉血沿用本波的提前刷新结算。
+	for member: Zombie000Base in crew:
+		member.signal_zombie_hp_loss.connect(zombie_wave_refresh_manager.judge_half_refresh)
 
 ## [param source] 发起号令的存活 Boss；[param zombie_types] 本批额外援军；[param tier_id] 整波等阶。
 ## 复用正式旗帜波的红字及警报，从常规出生点刷出旗帜僵尸和援军，不推进自然波次。

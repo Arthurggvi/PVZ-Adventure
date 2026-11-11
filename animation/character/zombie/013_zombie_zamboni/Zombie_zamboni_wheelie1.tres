@@ -1933,7 +1933,7 @@ tracks/158/keys = {
 }
 tracks/159/type = "value"
 tracks/159/imported = false
-tracks/159/enabled = true
+tracks/159/enabled = false
 tracks/159/path = NodePath("Body/BodyCorrect/Zombie_zamboni_2:texture")
 tracks/159/interp = 1
 tracks/159/loop_wrap = true
@@ -2026,18 +2026,4 @@ tracks/166/keys = {
 "transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1)]
-}
-tracks/167/type = "method"
-tracks/167/imported = false
-tracks/167/enabled = true
-tracks/167/path = NodePath(".")
-tracks/167/interp = 1
-tracks/167/loop_wrap = true
-tracks/167/keys = {
-"times": PackedFloat32Array(1),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"zamboni_death_effect"
-}]
 }

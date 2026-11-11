@@ -1,4 +1,4 @@
-[gd_scene load_steps=64 format=3 uid="uid://b8d5t24ffmpix"]
+[gd_scene load_steps=65 format=3 uid="uid://b8d5t24ffmpix"]
 
 [ext_resource type="PackedScene" uid="uid://cktksmdbn2nmn" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_lm26a"]
 [ext_resource type="Script" uid="uid://d8stg7p2wiw4" path="res://scripts/character/zombie/zombie_014_bobsled.gd" id="2_2l04k"]
@@ -21,6 +21,7 @@
 [ext_resource type="Texture2D" uid="uid://b6mx2j7yxpic0" path="res://assets/reanim/Zombie_bobsled_outerarm_lower.png" id="16_gcnop"]
 [ext_resource type="Texture2D" uid="uid://ccwkitu7mcah4" path="res://assets/reanim/Zombie_bobsled_outerarm_upper.png" id="18_27m1y"]
 [ext_resource type="Texture2D" uid="uid://6rywuj0daeb0" path="res://assets/reanim/Zombie_bobsled_outerarm_hand2.png" id="18_m6b3o"]
+[ext_resource type="Texture2D" path="res://assets/image/main_game_item/Zombie_bobsled_inside.png" id="20_inside"]
 [ext_resource type="Texture2D" uid="uid://bmlrbmgapvcwf" path="res://assets/reanim/Zombie_bobsled1.png" id="20_iok4y"]
 [ext_resource type="Texture2D" uid="uid://dsmqlevppxh3t" path="res://assets/reanim/Zombie_bobsled_outerarm_hand.png" id="22_yqynq"]
 [ext_resource type="PackedScene" uid="uid://ds30bt2f2bdfi" path="res://scenes/character/components/zombie_death_bomb.tscn" id="24_csye1"]
@@ -6995,20 +6996,6 @@ tracks/114/keys = {
 "update": 0,
 "values": [Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 1)]
 }
-tracks/115/type = "method"
-tracks/115/imported = false
-tracks/115/enabled = true
-tracks/115/path = NodePath(".")
-tracks/115/interp = 1
-tracks/115/loop_wrap = true
-tracks/115/keys = {
-"times": PackedFloat32Array(0.75),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"update_bobsled_order"
-}]
-}
 
 [sub_resource type="Animation" id="Animation_lu4tc"]
 resource_name = "Zombie_bobsled_push"
@@ -9475,10 +9462,11 @@ height = 200.0
 [node name="Zombie014Bobsled" instance=ExtResource("1_lm26a")]
 script = ExtResource("2_2l04k")
 zombie_type = 14
+random_speed_range = Vector2(1, 1)
 
-[node name="Body2" type="Node2D" parent="." index="0"]
+[node name="Body2" type="Node2D" parent="." index="1"]
 unique_name_in_owner = true
-position = Vector2(32, -1)
+position = Vector2(40, -7.2)
 script = ExtResource("2_yqynq")
 
 [node name="BodyCorrect" type="Node2D" parent="Body2" index="0"]
@@ -9603,9 +9591,9 @@ libraries = {
 }
 playback_default_blend_time = 0.2
 
-[node name="Body4" type="Node2D" parent="." index="1"]
+[node name="Body4" type="Node2D" parent="." index="0"]
 unique_name_in_owner = true
-position = Vector2(116, 0)
+position = Vector2(120, -7.2)
 script = ExtResource("2_yqynq")
 
 [node name="BodyCorrect" type="Node2D" parent="Body4" index="0"]
@@ -9731,12 +9719,14 @@ libraries = {
 playback_default_blend_time = 0.2
 
 [node name="ZombieBobsled1" type="Sprite2D" parent="." index="2"]
-position = Vector2(20, -34)
+position = Vector2(-103, -83)
+scale = Vector2(0.8, 0.8)
 texture = ExtResource("20_iok4y")
+centered = false
 
 [node name="Body3" type="Node2D" parent="." index="3"]
 unique_name_in_owner = true
-position = Vector2(74, 0)
+position = Vector2(80, 5.6)
 script = ExtResource("2_yqynq")
 
 [node name="BodyCorrect" type="Node2D" parent="Body3" index="0"]
@@ -9862,7 +9852,7 @@ libraries = {
 playback_default_blend_time = 0.2
 
 [node name="Body" parent="." index="5"]
-position = Vector2(-7, 0)
+position = Vector2(0, 8)
 
 [node name="ZombieDeathBomb" parent="Body" index="0" instance=ExtResource("24_csye1")]
 
@@ -9995,8 +9985,13 @@ playback_default_blend_time = 0.2
 script = ExtResource("24_lm26a")
 
 [node name="HpStageChangeComponent" parent="." index="7"]
-boundary_value_hp = Array[int]([200, 100, 0])
-body_change = Array[ExtResource("25_yqynq")]([SubResource("Resource_rehmt"), SubResource("Resource_0upo2"), SubResource("Resource_227y1")])
+boundary_value_hp = Array[int]([0])
+body_change = Array[ExtResource("25_yqynq")]([null])
+boundary_value_hp_armor1 = Array[int]([199, 99, 0])
+body_change_armor1 = Array[ExtResource("25_yqynq")]([SubResource("Resource_rehmt"), SubResource("Resource_0upo2"), SubResource("Resource_227y1")])
+
+[node name="HpComponent" parent="." index="8"]
+max_hp_armor1 = 300
 
 [node name="CharredComponent" parent="." index="9"]
 script = ExtResource("30_mbxdl")
@@ -10254,7 +10249,8 @@ libraries = {
 }
 
 [node name="MoveComponent" parent="." index="11"]
-ori_speed = 30.0
+move_mode = 1
+ori_speed = 48.0
 
 [node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection" index="0"]
 position = Vector2(40, -50)
@@ -10271,7 +10267,8 @@ position = Vector2(40, -50)
 rotation = 1.5707964
 shape = SubResource("CapsuleShape2D_mbxdl")
 
-[node name="JudgeIsInIceRoadTimer" type="Timer" parent="." index="15"]
-wait_time = 0.3
-
-[connection signal="timeout" from="JudgeIsInIceRoadTimer" to="." method="judge_is_in_ice_road"]
+[node name="ZombieBobsledInside" type="Sprite2D" parent="." index="15"]
+position = Vector2(-103, -83)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("20_inside")
+centered = false

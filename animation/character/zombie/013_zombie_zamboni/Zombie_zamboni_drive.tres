@@ -1934,7 +1934,7 @@ tracks/158/keys = {
 }
 tracks/159/type = "value"
 tracks/159/imported = false
-tracks/159/enabled = true
+tracks/159/enabled = false
 tracks/159/path = NodePath("Body/BodyCorrect/Zombie_zamboni_2:texture")
 tracks/159/interp = 1
 tracks/159/loop_wrap = true

@@ -1,4 +1,4 @@
-[gd_scene load_steps=99 format=3 uid="uid://doviyp7mjnmpi"]
+[gd_scene load_steps=100 format=3 uid="uid://doviyp7mjnmpi"]
 
 [ext_resource type="PackedScene" uid="uid://cktksmdbn2nmn" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_cvyhe"]
 [ext_resource type="Script" uid="uid://jl0nl4a234bc" path="res://scripts/resources/resource_body_change.gd" id="2_5r5rm"]
@@ -34,6 +34,8 @@
 [ext_resource type="Texture2D" uid="uid://doi8hycn1ymmy" path="res://assets/reanim/Zombie_charred_zamboni2.png" id="25_upxng"]
 [ext_resource type="Texture2D" uid="uid://c1xnwdf7vw50m" path="res://assets/reanim/Zombie_zamboni_1_damage1.png" id="25_xvg1s"]
 [ext_resource type="Texture2D" uid="uid://bo6ixm22qqf7f" path="res://assets/reanim/Zombie_zamboni_1_damage2.png" id="26_da3wv"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_zamboni_2_damage1.png" id="25_damage_lower"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_zamboni_2_damage2.png" id="26_damage_lower"]
 [ext_resource type="Script" uid="uid://c383an8puxb8m" path="res://scripts/character/components/zombie013Zamboni/zombie_013_death_bomb.gd" id="26_q5x6w"]
 [ext_resource type="Texture2D" uid="uid://87lgt5oiabyy" path="res://assets/reanim/Zombie_charred_zamboni3.png" id="26_tjtkh"]
 [ext_resource type="Texture2D" uid="uid://dtu8sxebvqhwp" path="res://assets/reanim/Zombie_charred_zamboni4.png" id="27_5rl58"]
@@ -267,22 +269,14 @@ anim_offset_max = 1.0
 
 [sub_resource type="Resource" id="Resource_p0won"]
 script = ExtResource("2_5r5rm")
-sprite_change = Array[NodePath]([NodePath("../Body/BodyCorrect/Zombie_zamboni_1")])
-sprite_change_texture = Array[Texture2D]([ExtResource("25_xvg1s")])
+sprite_change = Array[NodePath]([NodePath("../Body/BodyCorrect/Zombie_zamboni_1"), NodePath("../Body/BodyCorrect/Zombie_zamboni_2")])
+sprite_change_texture = Array[Texture2D]([ExtResource("25_xvg1s"), ExtResource("25_damage_lower")])
 metadata/_custom_type_script = "uid://jl0nl4a234bc"
 
 [sub_resource type="Resource" id="Resource_xvg1s"]
 script = ExtResource("2_5r5rm")
-sprite_change = Array[NodePath]([NodePath("../Body/BodyCorrect/Zombie_zamboni_1")])
-sprite_change_texture = Array[Texture2D]([ExtResource("26_da3wv")])
-metadata/_custom_type_script = "uid://jl0nl4a234bc"
-
-[sub_resource type="Resource" id="Resource_da3wv"]
-script = ExtResource("2_5r5rm")
-metadata/_custom_type_script = "uid://jl0nl4a234bc"
-
-[sub_resource type="Resource" id="Resource_xxx3k"]
-script = ExtResource("2_5r5rm")
+sprite_change = Array[NodePath]([NodePath("../Body/BodyCorrect/Zombie_zamboni_1"), NodePath("../Body/BodyCorrect/Zombie_zamboni_2")])
+sprite_change_texture = Array[Texture2D]([ExtResource("26_da3wv"), ExtResource("26_damage_lower")])
 metadata/_custom_type_script = "uid://jl0nl4a234bc"
 
 [sub_resource type="Animation" id="Animation_fuck"]
@@ -1302,6 +1296,9 @@ _data = {
 &"ALL_ANIMS": SubResource("Animation_fuck")
 }
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_crush"]
+size = Vector2(65, 50)
+
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_xvg1s"]
 radius = 50.0
 height = 150.0
@@ -1319,19 +1316,20 @@ animation = &"Zombie_zamboni_drive"
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_mhapb"]
 animation = &"Zombie_zamboni_wheelie1"
 
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_wheelie2"]
+animation = &"Zombie_zamboni_wheelie2"
+
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_nsa4o"]
 advance_mode = 2
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_vksv8"]
-advance_mode = 2
-advance_expression = "is_caltrop"
 
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_ta2fm"]
 states/Zombie_zamboni_drive/node = SubResource("AnimationNodeAnimation_mfy74")
 states/Zombie_zamboni_drive/position = Vector2(433, 100)
 states/Zombie_zamboni_wheelie1/node = SubResource("AnimationNodeAnimation_mhapb")
 states/Zombie_zamboni_wheelie1/position = Vector2(433, 29)
-transitions = ["Start", "Zombie_zamboni_drive", SubResource("AnimationNodeStateMachineTransition_nsa4o"), "Zombie_zamboni_drive", "Zombie_zamboni_wheelie1", SubResource("AnimationNodeStateMachineTransition_vksv8")]
+states/Zombie_zamboni_wheelie2/node = SubResource("AnimationNodeAnimation_wheelie2")
+states/Zombie_zamboni_wheelie2/position = Vector2(590, 29)
+transitions = ["Start", "Zombie_zamboni_drive", SubResource("AnimationNodeStateMachineTransition_nsa4o")]
 graph_offset = Vector2(50, -40)
 
 [sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_pmmng"]
@@ -1347,15 +1345,15 @@ node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"StateMachine"
 
 [node name="Zombie013Zamboni" instance=ExtResource("1_cvyhe")]
 script = ExtResource("2_tjtkh")
-is_caltrop = false
 zombie_type = 13
+random_speed_range = Vector2(1, 1)
 is_ignore_ladder = true
 
 [node name="IceRoad" parent="." index="0" instance=ExtResource("3_yuhtx")]
-position = Vector2(80, -22)
+position = Vector2(80, -14)
 
 [node name="Shadow" parent="." index="1"]
-scale = Vector2(1.86047, 1)
+visible = false
 
 [node name="ZombieDeathBomb" parent="Body" index="0" instance=ExtResource("4_da3wv")]
 
@@ -1611,8 +1609,8 @@ texture = ExtResource("99_zam_blank")
 centered = false
 
 [node name="HpStageChangeComponent" parent="." index="4"]
-boundary_value_hp = Array[int]([900, 450, 199, 0])
-body_change = Array[ExtResource("2_5r5rm")]([SubResource("Resource_p0won"), SubResource("Resource_xvg1s"), SubResource("Resource_da3wv"), SubResource("Resource_xxx3k")])
+boundary_value_hp = Array[int]([899, 449, 0])
+body_change = Array[ExtResource("2_5r5rm")]([SubResource("Resource_p0won"), SubResource("Resource_xvg1s"), null])
 
 [node name="HpComponent" parent="." index="5"]
 max_hp = 1350
@@ -1681,6 +1679,10 @@ script = ExtResource("46_5rl58")
 [node name="DetectComponent" parent="AttackComponent" index="0"]
 can_attack_plant_status = 13
 
+[node name="CollisionShape2D" parent="AttackComponent/DetectComponent/Area2d" index="0"]
+position = Vector2(-41, 0)
+shape = SubResource("RectangleShape2D_crush")
+
 [node name="MoveComponent" parent="." index="8"]
 move_mode = 1
 
@@ -1708,4 +1710,4 @@ libraries = {
 tree_root = SubResource("AnimationNodeBlendTree_yuhtx")
 advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../AnimationPlayer")
-parameters/TimeScale/scale = 1.0
+parameters/TimeScale/scale = 0.8

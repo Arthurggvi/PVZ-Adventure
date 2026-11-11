@@ -1,13 +1,15 @@
-[gd_scene load_steps=84 format=3 uid="uid://dymhn3pbpopjj"]
+[gd_scene load_steps=82 format=3 uid="uid://dymhn3pbpopjj"]
 
 [ext_resource type="PackedScene" uid="uid://cktksmdbn2nmn" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_8oflg"]
-[ext_resource type="Script" uid="uid://deadav0gay5hh" path="res://scripts/character/zombie/zombie_019_pogo.gd" id="2_7w2na"]
+[ext_resource type="Script" path="res://scripts/character/zombie/zombie_019_pogo.gd" id="2_7w2na"]
 [ext_resource type="Texture2D" uid="uid://c56eve4tvxpgc" path="res://assets/reanim/Zombie_innerarm_hand.png" id="2_85pd0"]
 [ext_resource type="Texture2D" uid="uid://b4vbh746dhyol" path="res://assets/reanim/Zombie_pogo_innerarm_lower.png" id="3_7w2na"]
 [ext_resource type="Texture2D" uid="uid://cwegs0y3yh745" path="res://assets/reanim/Zombie_pogo_innerarm_upper.png" id="4_jd5uf"]
 [ext_resource type="Texture2D" uid="uid://ddx81cmfuhkdp" path="res://assets/reanim/Zombie_pogo_innerleg_upper.png" id="6_mhg02"]
 [ext_resource type="Texture2D" uid="uid://ck4bw8mi7jb85" path="res://assets/reanim/Zombie_pogo_stick3.png" id="8_7w2na"]
 [ext_resource type="Texture2D" uid="uid://ckkq20wh4bgsd" path="res://assets/reanim/Zombie_pogo_outerleg_lower.png" id="8_u56i1"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_pogo_innerleg_lower.png" id="8_inner_lower"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_pogo_innerleg_foot.png" id="8_inner_foot"]
 [ext_resource type="Texture2D" uid="uid://bsebt1k241sxy" path="res://assets/reanim/Zombie_pogo_outerleg_upper.png" id="9_egh41"]
 [ext_resource type="Texture2D" uid="uid://cjk0trx5oo7r0" path="res://assets/reanim/Zombie_pogo_stick2.png" id="9_jd5uf"]
 [ext_resource type="Texture2D" uid="uid://cdaqfqaw05eih" path="res://assets/reanim/Zombie_pogo_outerleg_foot.png" id="10_nvs6p"]
@@ -24,7 +26,6 @@
 [ext_resource type="Texture2D" uid="uid://y6d1gcmf8pgp" path="res://assets/reanim/Zombie_outerarm_hand2.png" id="19_ng8vt"]
 [ext_resource type="Texture2D" uid="uid://dcl73lips6w62" path="res://assets/reanim/Zombie_pogo_stickhands.png" id="20_mhg02"]
 [ext_resource type="Animation" uid="uid://btwf7dera23o1" path="res://animation/character/zombie/019_zombie_pogo/Zombie_pogo_eat.tres" id="20_u8jyi"]
-[ext_resource type="Animation" uid="uid://b04rxkkhqybuh" path="res://animation/character/zombie/019_zombie_pogo/Zombie_pogo_idle.tres" id="21_iprbs"]
 [ext_resource type="Animation" uid="uid://cfirlme8cxkh4" path="res://animation/character/zombie/019_zombie_pogo/Zombie_pogo_pogo.tres" id="22_0a7pq"]
 [ext_resource type="Script" uid="uid://cgdy515nfukla" path="res://scripts/character/components/iron_node/iron_node.gd" id="22_3luav"]
 [ext_resource type="Texture2D" uid="uid://divrs56ci7ra6" path="res://assets/reanim/Zombie_charred1.png" id="22_iprbs"]
@@ -38,7 +39,7 @@
 [ext_resource type="Texture2D" uid="uid://ba24qi08nistr" path="res://assets/reanim/Zombie_pogo_stickhands2.png" id="27_g7exj"]
 [ext_resource type="Texture2D" uid="uid://0xaexyw1yvqy" path="res://assets/reanim/Zombie_charred4.png" id="27_vmvtj"]
 [ext_resource type="Texture2D" uid="uid://crmlwh47065kj" path="res://assets/reanim/Zombie_charred5.png" id="28_xrq0h"]
-[ext_resource type="Texture2D" uid="uid://x6xhwf56idfh" path="res://assets/reanim/Zombie_pogo_stick2damage1.png" id="29_1mbvg"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_pogo_stickdamage2.png" id="29_1mbvg"]
 [ext_resource type="Texture2D" uid="uid://78jjjhyvy8d6" path="res://assets/reanim/Zombie_charred6.png" id="29_xn0wi"]
 [ext_resource type="Texture2D" uid="uid://c0p7n6mios8v1" path="res://assets/reanim/Zombie_charred7.png" id="30_5ypuc"]
 [ext_resource type="Texture2D" uid="uid://ba7juni57uvnm" path="res://assets/reanim/Zombie_pogo_stick2damage2.png" id="30_i5pu2"]
@@ -60,16 +61,14 @@ region = Rect2(0, 0, 39.6584, 34.3292)
 
 [sub_resource type="Resource" id="Resource_5oxmc"]
 script = ExtResource("30_ng8vt")
-sprite_change = Array[NodePath]([NodePath("../Body/BodyCorrect/Zombie_outerarm_upper"), NodePath("../Body/BodyCorrect/Hand3/Zombie_pogo_stickhands"), NodePath("../Body/BodyCorrect/Stick1/Zombie_pogo_stick2")])
-sprite_change_texture = Array[Texture2D]([ExtResource("31_4tyjs"), ExtResource("27_g7exj"), ExtResource("29_1mbvg")])
+sprite_change = Array[NodePath]([NodePath("../Body/BodyCorrect/Zombie_outerarm_upper"), NodePath("../Body/BodyCorrect/Hand3/Zombie_pogo_stickhands"), NodePath("../Body/BodyCorrect/Stick1/Zombie_pogo_stick2"), NodePath("../Body/BodyCorrect/Stick2/Zombie_pogo_stick")])
+sprite_change_texture = Array[Texture2D]([ExtResource("31_4tyjs"), ExtResource("27_g7exj"), ExtResource("30_i5pu2"), ExtResource("29_1mbvg")])
 sprite_disappear = Array[NodePath]([NodePath("../Body/BodyCorrect/Hand1"), NodePath("../Body/BodyCorrect/Hand2")])
 node_drop = NodePath("../Body/NodeDrop/Node2D_Hand_Drop")
 metadata/_custom_type_script = "uid://jl0nl4a234bc"
 
 [sub_resource type="Resource" id="Resource_25qpi"]
 script = ExtResource("30_ng8vt")
-sprite_change = Array[NodePath]([NodePath("../Body/BodyCorrect/Stick1/Zombie_pogo_stick2")])
-sprite_change_texture = Array[Texture2D]([ExtResource("30_i5pu2")])
 sprite_disappear = Array[NodePath]([NodePath("../Body/BodyCorrect/Head")])
 node_drop = NodePath("../Body/NodeDrop/Node2D_Head_Drop")
 metadata/_custom_type_script = "uid://jl0nl4a234bc"
@@ -1115,7 +1114,6 @@ _data = {
 &"RESET": SubResource("Animation_jd5uf"),
 &"Zombie_pogo_death": ExtResource("19_386db"),
 &"Zombie_pogo_eat": ExtResource("20_u8jyi"),
-&"Zombie_pogo_idle": ExtResource("21_iprbs"),
 &"Zombie_pogo_pogo": ExtResource("22_0a7pq"),
 &"Zombie_pogo_walk": ExtResource("23_3luav")
 }
@@ -1137,29 +1135,29 @@ node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_dqx4l"]
 animation = &"Zombie_pogo_death"
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_mhg02"]
-animation = &"Zombie_pogo_idle"
-
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_85pd0"]
 animation = &"Zombie_pogo_pogo"
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_q2qu5"]
-animation = &"Zombie_pogo_pogo"
+[sub_resource type="AnimationNodeTimeSeek" id="AnimationNodeTimeSeek_pogo"]
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_pogo"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_pogo"]
+nodes/Animation/node = SubResource("AnimationNodeAnimation_85pd0")
+nodes/Animation/position = Vector2(0, 120)
+nodes/Seek/node = SubResource("AnimationNodeTimeSeek_pogo")
+nodes/Seek/position = Vector2(190, 120)
+nodes/Hold/node = SubResource("AnimationNodeTimeScale_pogo")
+nodes/Hold/position = Vector2(380, 120)
+nodes/output/position = Vector2(580, 120)
+node_connections = [&"output", 0, &"Hold", &"Hold", 0, &"Seek", &"Seek", 0, &"Animation"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_u56i1"]
 animation = &"Zombie_pogo_walk"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_egh41"]
-advance_mode = 2
-advance_expression = "is_idle"
-
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_nvs6p"]
 advance_mode = 2
-advance_expression = "not is_idle"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_juos5"]
-advance_mode = 2
-advance_expression = "not is_idle"
+advance_expression = "is_pogo"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_h37l2"]
 xfade_time = 0.2
@@ -1188,29 +1186,17 @@ switch_mode = 2
 advance_mode = 2
 advance_expression = "is_death"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_dqx4l"]
-advance_mode = 2
-advance_expression = "is_pogo"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_mhg02"]
-advance_mode = 2
-advance_expression = "not is_pogo"
-
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_8oflg"]
 states/Eat/node = SubResource("AnimationNodeBlendTree_jd5uf")
 states/Eat/position = Vector2(735, 195)
 states/End/position = Vector2(940, 100)
 states/Zombie_pogo_death/node = SubResource("AnimationNodeAnimation_dqx4l")
 states/Zombie_pogo_death/position = Vector2(621, 285)
-states/Zombie_pogo_idle/node = SubResource("AnimationNodeAnimation_mhg02")
-states/Zombie_pogo_idle/position = Vector2(345, 20)
-states/Zombie_pogo_pogo/node = SubResource("AnimationNodeAnimation_q2qu5")
-states/Zombie_pogo_pogo/position = Vector2(473, 100)
-"states/Zombie_pogo_pogo 2/node" = SubResource("AnimationNodeAnimation_85pd0")
-"states/Zombie_pogo_pogo 2/position" = Vector2(345, -53)
+states/PogoPose/node = SubResource("AnimationNodeBlendTree_pogo")
+states/PogoPose/position = Vector2(473, 100)
 states/Zombie_pogo_walk/node = SubResource("AnimationNodeAnimation_u56i1")
 states/Zombie_pogo_walk/position = Vector2(473, 195)
-transitions = ["Start", "Zombie_pogo_idle", SubResource("AnimationNodeStateMachineTransition_egh41"), "Start", "Zombie_pogo_pogo", SubResource("AnimationNodeStateMachineTransition_nvs6p"), "Zombie_pogo_idle", "Zombie_pogo_pogo", SubResource("AnimationNodeStateMachineTransition_juos5"), "Zombie_pogo_pogo", "Zombie_pogo_walk", SubResource("AnimationNodeStateMachineTransition_h37l2"), "Zombie_pogo_walk", "Eat", SubResource("AnimationNodeStateMachineTransition_esao7"), "Eat", "Zombie_pogo_walk", SubResource("AnimationNodeStateMachineTransition_d7rm5"), "Eat", "Zombie_pogo_death", SubResource("AnimationNodeStateMachineTransition_8va2f"), "Zombie_pogo_walk", "Zombie_pogo_death", SubResource("AnimationNodeStateMachineTransition_8srko"), "Zombie_pogo_idle", "Zombie_pogo_pogo 2", SubResource("AnimationNodeStateMachineTransition_dqx4l"), "Zombie_pogo_pogo 2", "Zombie_pogo_idle", SubResource("AnimationNodeStateMachineTransition_mhg02")]
+transitions = ["Start", "PogoPose", SubResource("AnimationNodeStateMachineTransition_nvs6p"), "PogoPose", "Zombie_pogo_walk", SubResource("AnimationNodeStateMachineTransition_h37l2"), "Zombie_pogo_walk", "Eat", SubResource("AnimationNodeStateMachineTransition_esao7"), "Eat", "Zombie_pogo_walk", SubResource("AnimationNodeStateMachineTransition_d7rm5"), "Eat", "Zombie_pogo_death", SubResource("AnimationNodeStateMachineTransition_8va2f"), "Zombie_pogo_walk", "Zombie_pogo_death", SubResource("AnimationNodeStateMachineTransition_8srko")]
 graph_offset = Vector2(40, -58)
 
 [sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_85pd0"]
@@ -1224,15 +1210,13 @@ nodes/TimeScale/position = Vector2(100, 120)
 node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"StateMachine"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fons2"]
-size = Vector2(1, 5)
+size = Vector2(30, 10)
 
 [node name="Zombie019Pogo" node_paths=PackedStringArray("iron_node") instance=ExtResource("1_8oflg")]
 script = ExtResource("2_7w2na")
 eat_brain_glo_pos_x_in_zombie_mode = 50.0
-time_pogo_once_default = 0.7
-pogo_y_defalut = 30.0
-is_pogo = true
 zombie_type = 19
+random_speed_range = Vector2(1, 1)
 iron_type = 3
 iron_node = NodePath("Body/BodyCorrect/IronNode")
 is_trigger_tall_nut_stop_jump = true
@@ -1273,7 +1257,7 @@ centered = false
 position = Vector2(32.791637, 79.77492)
 rotation = -6.04582
 scale = Vector2(0.72, 0.7960836)
-texture = ExtResource("8_u56i1")
+texture = ExtResource("8_inner_lower")
 centered = false
 
 [node name="Zombie_innerleg_upper" type="Sprite2D" parent="Body/BodyCorrect" index="5"]
@@ -1288,7 +1272,7 @@ centered = false
 position = Vector2(12.274918, 102.6418)
 rotation = -6.5204163
 scale = Vector2(0.7970836, 0.7970836)
-texture = ExtResource("10_nvs6p")
+texture = ExtResource("8_inner_foot")
 centered = false
 
 [node name="Stick1" type="Node2D" parent="Body/BodyCorrect" index="7"]
@@ -1576,7 +1560,7 @@ libraries = {
 
 [node name="MoveComponent" parent="." index="7"]
 move_mode = 1
-ori_speed = 30.0
+ori_speed = 36.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." index="11"]
 libraries = {
@@ -1588,6 +1572,8 @@ deterministic = false
 tree_root = SubResource("AnimationNodeBlendTree_7w2na")
 advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../AnimationPlayer")
+parameters/StateMachine/PogoPose/Seek/seek_request = -1.0
+parameters/StateMachine/PogoPose/Hold/scale = 0.0
 parameters/StateMachine/Eat/TimeScale/scale = 1.5
 parameters/TimeScale/scale = 1.2
 
@@ -1600,5 +1586,5 @@ collision_layer = 0
 collision_mask = 34
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DetectComponentPogo/Area2d" index="0"]
-position = Vector2(-24.5, 0)
+position = Vector2(-24, 0)
 shape = SubResource("RectangleShape2D_fons2")

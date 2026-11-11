@@ -75,17 +75,35 @@ func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 	else:
 		for zombie_type: CharacterRegistry.ZombieType in create_curr_wave_zombie_list(wave, is_big_wave):
 			wave_spawn.append({"zombie_type": zombie_type, "tier_id": &""})
-	## 特殊基础权重,若有雪橇车僵尸,更新该权重
-	var special_base_weight:Array[float] = []
+	# ice_weights 是本波雪橇可用的行权重，按需读取一次。
+	var ice_weights: Array[float] = []
 	wave_all_zombies.clear()
 	## 当前波次僵尸数据
 	var curr_wave_zombie_date:Array[Dictionary]
 
-	for i in range(wave_spawn.size()):
-		var spawn: Dictionary = wave_spawn[i]
+	# spawn 是策划生成的单个出生项。
+	for spawn: Dictionary in wave_spawn:
+		# zombie_type 是本项要生成的类型。
 		var zombie_type: CharacterRegistry.ZombieType = spawn["zombie_type"]
+		# lane 为选定的行，-1 表示无合法行。
 		var lane :int = -1
 		var fixed_row: int = spawn.get("row", 0) # 预排行从 1 开始，0 继续使用常规选行。
+		if zombie_type == CharacterRegistry.ZombieType.Z014Bobsled and fixed_row == 0:
+			if ice_weights.is_empty():
+				ice_weights = _bobsled_ice_weights()
+			# 没有可用冰道时，初代用四名普通僵尸替代整队。
+			if not ice_weights.has(1.0):
+				# member_index 是这支替补小队中的序号。
+				for member_index in range(4):
+					# normal_type 用于按普通僵尸的行规则选行。
+					var normal_type := CharacterRegistry.ZombieType.Z001Norm
+					lane = zombie_choose_row_system.select_spawn_row(
+							Global.character_registry.get_zombie_info(normal_type, CharacterRegistry.ZombieInfoAttribute.ZombieRowType))
+					if lane >= 0:
+						curr_wave_zombie_date.append({
+							"zombie_type": normal_type, "lane": lane, "tier_id": spawn["tier_id"],
+						})
+				continue
 		if fixed_row > 0:
 			lane = fixed_row - 1
 			if not zombie_manager.can_spawn_zombie_in_lane(zombie_type, lane):
@@ -93,20 +111,9 @@ func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 				continue
 			zombie_choose_row_system.on_zombie_spawned(lane)
 		elif zombie_type == CharacterRegistry.ZombieType.Z014Bobsled:
-			## 计算冰道权重
-			if special_base_weight.is_empty():
-				for row_ice_road:Array[IceRoad] in zombie_manager.all_ice_roads:
-					if row_ice_road.is_empty():
-						special_base_weight.append(0)
-					else:
-						special_base_weight.append(1)
-				print(special_base_weight)
-			## 如果没有冰道
-			if GlobalUtils.sum_arr(special_base_weight) == 0:
-				zombie_type = CharacterRegistry.ZombieType.Z013Zamboni
-				lane = zombie_choose_row_system.select_spawn_row(Global.character_registry.ZombieInfo[zombie_type][CharacterRegistry.ZombieInfoAttribute.ZombieRowType])
-			else:
-				lane = zombie_choose_row_system.select_spawn_row(Global.character_registry.ZombieInfo[zombie_type][CharacterRegistry.ZombieInfoAttribute.ZombieRowType], special_base_weight)
+			lane = zombie_choose_row_system.select_spawn_row(
+					Global.character_registry.get_zombie_info(zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieRowType),
+					ice_weights)
 		else:
 			lane = zombie_choose_row_system.select_spawn_row(Global.character_registry.ZombieInfo[zombie_type][CharacterRegistry.ZombieInfoAttribute.ZombieRowType])
 		# 选行失败时跳过该项，不能把 -1 作为最后一行索引使用。
@@ -132,6 +139,16 @@ func create_curr_wave_all_zombies(wave:int, is_big_wave:bool):
 			wave_all_zombies.append(zombie)
 
 	return wave_all_zombies
+
+## 返回各行的雪橇出生权重，只有已铺到种植区的有效冰道得分。
+func _bobsled_ice_weights() -> Array[float]:
+	# weights 与僵尸行顺序对应，1 为可用，0 为不可用。
+	var weights: Array[float] = []
+	# row_roads 是一行中由不同造冰车生成的冰道。
+	for row_roads: Array in zombie_manager.all_ice_roads:
+		weights.append(1.0 if row_roads.any(
+				func(road: IceRoad) -> bool: return is_instance_valid(road) and road.has_board_ice()) else 0.0)
+	return weights
 
 
 ## 生成波次僵尸
@@ -165,6 +182,9 @@ func wave_create_zombie(
 	}
 	var zombie_parent = zombie_manager.all_zombie_rows[lane]
 	var zombie_glo_pos = zombie_manager.all_zombie_rows[lane].zombie_create_position.global_position + Vector2(randf_range(-10, 10), 0)
+	if zombie_type == CharacterRegistry.ZombieType.Z014Bobsled:
+		# 初代雪橇比普通僵尸更早在画面外开始推行。
+		zombie_glo_pos.x += 64.0
 
 	var zombie = zombie_manager.create_norm_zombie(zombie_type,zombie_parent,
 		zombie_init_para, zombie_glo_pos, init_zombie_special, spawn_modifier)

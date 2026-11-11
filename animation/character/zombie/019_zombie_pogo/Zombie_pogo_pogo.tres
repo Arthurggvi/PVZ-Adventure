@@ -16,7 +16,6 @@
 [resource]
 resource_name = "Zombie_pogo_pogo"
 length = 0.833333
-loop_mode = 1
 step = 0.0416667
 tracks/0/type = "value"
 tracks/0/imported = false
@@ -1590,17 +1589,5 @@ tracks/130/keys = {
 "update": 0,
 "values": [Vector2(-42, -129)]
 }
-tracks/131/type = "method"
-tracks/131/imported = false
-tracks/131/enabled = true
-tracks/131/path = NodePath(".")
-tracks/131/interp = 1
-tracks/131/loop_wrap = true
-tracks/131/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"values": [{
-"args": [],
-"method": &"pogo_start"
-}]
+]
 }

@@ -69,8 +69,10 @@ func _ready() -> void:
 	add_child(_onboarding)
 	_on_scene_changed()
 
+## [param _delta] 为帧间隔，档案切换期间没有状态时也继续更新工具栏。
 func _process(_delta: float) -> void:
-	var current: AdventureState = Global.global_game_state.adventure_state # 重命名不替换状态对象，因此不会误关窗口。
+	# current 是当前档案的冒险状态；无档案时清理旧窗口。
+	var current: AdventureState = Global.global_game_state.adventure_state if Global.global_game_state != null else null
 	if current != _bound_state:
 		_bound_state = current
 		_apply_host_scene(get_tree().current_scene)
@@ -120,7 +122,8 @@ func open_map_navigation() -> bool:
 
 func _can_open_inventory() -> bool:
 	return Global.save_service != null and Global.save_service.is_current_profile_loaded() \
-		and Global.adventure_inventory != null and Global.global_game_state.adventure_state != null
+		and Global.adventure_inventory != null and Global.global_game_state != null \
+		and Global.global_game_state.adventure_state != null
 
 ## 首关普通阶段通关前不能打开任务；与灰显图标共用同一个入口条件。
 func _can_open_quests() -> bool:

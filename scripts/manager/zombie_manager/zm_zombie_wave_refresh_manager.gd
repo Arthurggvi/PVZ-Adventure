@@ -189,6 +189,8 @@ func _classic_wave_health() -> int:
 			else:
 				total_health += health.get_all_hp() - health.curr_hp_armor2 \
 					+ int(health.curr_hp_armor2 * CLASSIC_SHIELD_HEALTH_WEIGHT)
+			if zombie is Zombie014Bobsled:
+				total_health += zombie.passenger_wave_health()
 	return total_health
 
 ## 初代节奏在保护结束后检查实际血量，达标时只缩短倒计时一次。

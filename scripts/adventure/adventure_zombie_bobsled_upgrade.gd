@@ -1,5 +1,4 @@
-## The sledgeboard's decay is owned by the original ice-road check; this
-## component supplies a typed lifespan policy and reusable rolling crush.
+## 设置雪橇车离冰耐久倍率，并在升阶时启用碾压。
 extends Node
 class_name AdventureZombieBobsledUpgrade
 

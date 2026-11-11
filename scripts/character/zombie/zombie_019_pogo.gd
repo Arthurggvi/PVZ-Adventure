@@ -1,135 +1,245 @@
+## 持杆时按落地节拍选择前进、原地蓄跳或越过植物，失去跳杆后步行啃食。
 extends Zombie000Base
 class_name Zombie019Pogo
-## 跳跳僵尸初始化时禁用攻击组件,使用DetectComponentPogo检测植物,若有植物,弹跳两次跳过该植物
 
-## 我是僵尸模式取消跳跃的位置
-@export var eat_brain_glo_pos_x_in_zombie_mode:float = 50
+## 初代每跳 80 个 10 毫秒逻辑刻。
+const BOUNCE_SECONDS := 0.8
+## 跨越开始 10 个逻辑刻后撞上高坚果。
+const BONK_SECONDS := 0.1
+## 弹簧压缩从落地前 7 个逻辑刻开始，随后播放至最后一帧。
+const SPRING_START_SECONDS := 0.73
+## 落地前 5 个逻辑刻播放跳杆音效。
+const SPRING_SOUND_SECONDS := 0.75
+## 原始 40 帧/秒相对导入动画 12 帧/秒的倍率。
+const SPRING_ANIM_RATE := 40.0 / 12.0
+## 越过目标中心后继续前进的距离，按本项目格宽折算。
+const VAULT_CLEARANCE := 24.0
+## 跳杆底端的贴地高度，抵消本体场景的初始偏移。
+const STICK_GROUND_OFFSET := 22.0
 
-@onready var detect_component_pogo: DetectComponent = $DetectComponentPogo
-@onready var body_correct: Node2D = $Body/BodyCorrect
+## 脑子前卸掉跳杆的世界坐标，仅我是僵尸模式使用。
+@export var eat_brain_glo_pos_x_in_zombie_mode: float = 50.0
 
-var tween_pogo:Tween
-@export var time_pogo_once_default:float = 0.7
-## 一次弹跳需要的时间
-var time_pogo_once:float = time_pogo_once_default
-## 上下弹跳的值
-@export var pogo_y_defalut :float= 30
-var pogo_y :float= 30
-## 当前跳跳僵尸的速度,影响弹跳tween
-var speed_scale_pogo:float = 1
-## 当遇到植物时弹跳的次数,弹跳两次触发大跳
-var pogo_time_on_plant := 0
-## 跳跃是否被高坚果停止
-var is_jump_stop:=false
-@export_group("动画状态")
-## 是否为跳跳状态
-@export var is_pogo := true
-## 是否为大跳状态
-var is_big_pogo := false
+## 供动画树和土豆雷识别持杆状态。
+var is_pogo := true
+## 额外升阶指定的跨越格数，0 使用目标植物的位置。
 var big_jump_cells := 0
+## [param before_x] 和 [param after_x] 分别为跨越起点和落点的世界坐标。
 signal signal_big_jump_landed(before_x: float, after_x: float)
-var _big_x_tween: Tween
 
-func ready_norm():
+## 弹跳阶段分别为常规前进、原地蓄跳、向前越过植物。
+enum Bounce { Travel, Windup, Vault }
+
+## 当前弹跳阶段。
+var _bounce := Bounce.Travel
+## 当前弹跳已经过的游戏秒数。
+var _bounce_elapsed := 0.0
+## 落地压缩动画自上一跳触地前开始后已经过的游戏秒数。
+var _spring_elapsed := 1.0
+## 越过植物的起点世界坐标。
+var _vault_start_x := 0.0
+## 本次越过植物的有符号水平距离，单位为世界像素。
+var _vault_distance := 0.0
+## 跨越路线上的高坚果，移除后可以继续跨越。
+var _blocking_nut: Plant024TallNut
+## 失去跳杆后尚需落下的高度，单位为本地像素。
+var _height := 0.0
+## 步行动画所使用的美术原点。
+@onready var _grounded_body_position: Vector2 = $Body/BodyCorrect.position
+## 前方植物检测区，过滤同行可跨越目标。
+@onready var detect_component_pogo: DetectComponent = $DetectComponentPogo
+## 随弹跳改变高度的美术节点，受击框和影子留在地面。
+@onready var body_correct: Node2D = $Body/BodyCorrect
+## 弹簧动画通过时间定位采样，步行和啃食仍由动画树推进。
+@onready var _animation_tree: AnimationTree = $AnimationTree
+## 跳杆压缩动作的最后一帧。
+@onready var _spring_last_frame: float = $AnimationPlayer.get_animation(&"Zombie_pogo_pogo").length
+
+## 初始化持杆战斗状态并错开同批僵尸的弹跳节拍。
+func ready_norm() -> void:
 	super()
-	time_pogo_once = time_pogo_once_default
 	attack_component.disable_component(ComponentNormBase.E_IsEnableFactor.Character)
-	## 跳跳状态下检测到植物停止移动,弹跳两次后移动
-	detect_component_pogo.signal_can_attack.connect(pogo_ray_enemy)
-	#detect_component_pogo.signal_not_can_attack.connect(func():move_component.update_move_factor.bind(false, MoveComponent.E_MoveFactor.IsCharacter))
+	_bounce_elapsed = randf_range(0.0, BOUNCE_SECONDS)
 
-func _process(_delta: float) -> void:
-	## 如果是我是僵尸模式
-	if is_zombie_mode:
-		if is_pogo and global_position.x < eat_brain_glo_pos_x_in_zombie_mode:
-			loss_iron_item()
-
-## 检测到敌人时
-func pogo_ray_enemy():
-	## 非大跳状态并且敌人在左边时
-	if not is_big_pogo and \
-	detect_component_pogo.enemy_can_be_attacked.global_position.x < global_position.x:
-		move_component.update_only_move_speed(0)
-
-
-## 初始化正常出战角色信号连接
-func ready_norm_signal_connect():
+## 预览采用原版弹跳末帧的站姿。
+func ready_show() -> void:
 	super()
-	hp_component.signal_hp_component_death.connect(loss_iron_item)
-	signal_update_speed.connect(_on_update_speed)
+	_update_bounce_visual()
 
-## 失去铁器道具的影响
-func loss_iron_item():
+## 掉头时立即卸掉跳杆，避免无头僵尸继续弹跳。
+func ready_norm_signal_connect() -> void:
+	super()
+	hp_stage_change_component.signal_hp_stage_change.connect(_on_hp_stage_changed)
+
+## [param delta] 是本帧的游戏秒数，应用寒冷、黄油和升阶速度倍率。
+func _process(delta: float) -> void:
+	if is_show or is_death:
+		return
+	# elapsed 是角色速度修正后的时间，停顿状态下为零。
+	var elapsed: float = delta * move_component.curr_speed_product
+	if not is_pogo:
+		if _height > 0.0:
+			_height = move_toward(_height, 0.0, elapsed * 200.0)
+			body_correct.position.y = _grounded_body_position.y - _height
+		return
+	if is_zombie_mode and global_position.x < eat_brain_glo_pos_x_in_zombie_mode:
+		loss_iron_item()
+		return
+	if elapsed <= 0.0:
+		return
+
+	# 上一帧和本帧的弹跳时间，用来处理一次性的压缩、音效及水平移动。
+	var before: float = _bounce_elapsed
+	_bounce_elapsed = minf(before + elapsed, BOUNCE_SECONDS)
+	_spring_elapsed += elapsed
+	if before < SPRING_START_SECONDS and _bounce_elapsed >= SPRING_START_SECONDS:
+		_spring_elapsed = _bounce_elapsed - SPRING_START_SECONDS
+	if before < SPRING_SOUND_SECONDS and _bounce_elapsed >= SPRING_SOUND_SECONDS:
+		SoundManager.play_character_SFX(&"pogo_zombie")
+	if _bounce == Bounce.Vault:
+		# 高坚果被铲除或死亡时解除阻挡。新进入检测区的高坚果同样有效。
+		var blocked: bool = (
+			is_instance_valid(_blocking_nut)
+			and not _blocking_nut.is_death
+			and not _blocking_nut.is_queued_for_deletion()
+			and _bounce_elapsed >= BONK_SECONDS
+		)
+		# 撞击帧最多走到预定撞击时刻，避免低帧率下穿过高坚果。
+		var travel_end: float = maxf(before, minf(_bounce_elapsed, BONK_SECONDS)) if blocked else _bounce_elapsed
+		var move_x: float = _vault_distance * (travel_end - before) / BOUNCE_SECONDS # 本帧跨越位移。
+		position.x += move_x
+		move_component.move_y_correct(-move_x)
+		if blocked:
+			_update_bounce_visual()
+			SoundManager.play_other_SFX(&"bonk")
+			_drop_broken_stick()
+			loss_iron_item()
+			return
+
+	if _bounce_elapsed >= BOUNCE_SECONDS:
+		_finish_bounce()
+	_update_bounce_visual()
+
+## 完成一跳后按当前植物位置决定下一跳，原地蓄跳仅需一次。
+func _finish_bounce() -> void:
+	if _bounce == Bounce.Vault:
+		signal_big_jump_landed.emit(_vault_start_x, global_position.x)
+	_bounce_elapsed = 0.0
+	# target 是检测区内离僵尸最近的同行植物，已越过的植物不再参与。
+	var target: Plant000Base
+	if not is_hypno:
+		# enemy 是前方检测区内可交互的存活角色。
+		for enemy: Character000Base in detect_component_pogo.get_all_enemy_can_be_attacked():
+			if (
+				enemy is Plant000Base
+				and enemy.global_position.x <= global_position.x
+				and (target == null or enemy.global_position.x > target.global_position.x)
+			):
+				target = enemy as Plant000Base
+	if target == null:
+		_bounce = Bounce.Travel
+		move_component.update_only_move_speed()
+	elif _bounce == Bounce.Windup:
+		_start_vault(target)
+	else:
+		_bounce = Bounce.Windup
+		move_component.update_only_move_speed(0.0)
+
+## [param target] 是本次要越过的植物，以其世界坐标决定普通落点。
+func _start_vault(target: Plant000Base) -> void:
+	_bounce = Bounce.Vault
+	_vault_start_x = global_position.x
+	_vault_distance = target.global_position.x - VAULT_CLEARANCE * absf(global_scale.x) - _vault_start_x
+	_blocking_nut = target as Plant024TallNut
+	if big_jump_cells > 0 and is_instance_valid(Global.main_game):
+		# 以当前位置最近的种植格计算对应地图的列距。
+		var cell: PlantCell = Global.main_game.board.nearest_cell(global_position, lane)
+		if cell != null:
+			_vault_distance = -Global.main_game.board.local_pitch(cell).x * float(big_jump_cells)
+
+## 按初代的曲线改变高度，并在每次触地时采样跳杆压缩动作。
+func _update_bounce_visual() -> void:
+	# height 是当前阶段的最高点，按本项目美术的 0.8 倍比例折算。
+	var height: float = 32.0
+	match _bounce:
+		Bounce.Windup:
+			height = 40.0
+		Bounce.Vault:
+			height = 72.0
+	# phase 是三角形弹跳曲线，再用反二次曲线在顶点放慢。
+	var phase: float = 1.0 - absf(2.0 * _bounce_elapsed / BOUNCE_SECONDS - 1.0)
+	_height = STICK_GROUND_OFFSET + height * phase * (2.0 - phase)
+	body_correct.position.y = _grounded_body_position.y - _height
+	_animation_tree.set("parameters/StateMachine/PogoPose/Seek/seek_request",
+			minf(_spring_elapsed * SPRING_ANIM_RATE, _spring_last_frame))
+
+## [param plant] 是阻跳范围内的高坚果，仅在本次跨越时记录。
+func jump_be_stop(plant: Plant000Base) -> void:
+	if is_pogo and _bounce == Bounce.Vault and plant.global_position.x <= global_position.x:
+		_blocking_nut = plant as Plant024TallNut
+
+## 复制当前跳杆零件作为撞击掉落物，主动画立即切换为步行。
+func _drop_broken_stick() -> void:
+	# 掉落物独立于僵尸的身体和动画树。
+	var stick: Node2D = iron_node.duplicate(0) as Node2D
+	get_parent().add_child(stick)
+	stick.global_transform = iron_node.global_transform
+	stick.show()
+	# 补间将跳杆翻落至地面，然后淡出。
+	var drop: Tween = stick.create_tween()
+	drop.set_parallel().tween_property(stick, ^"global_position:y", global_position.y, 0.25)
+	drop.tween_property(stick, ^"rotation", stick.rotation - 1.4, 0.25)
+	drop.chain().tween_property(stick, ^"modulate:a", 0.0, 0.25)
+	drop.chain().tween_callback(stick.queue_free)
+
+## 卸掉跳杆并恢复行走、啃食及土豆雷的正常判定。
+func loss_iron_item() -> void:
+	if not is_pogo:
+		return
 	super()
 	is_pogo = false
-	move_component.update_move_mode(MoveComponent.E_MoveMode.Ground)
-	attack_component.enable_component(ComponentNormBase.E_IsEnableFactor.Character)
-
-## 开始起跳
-func pogo_start():
-	is_big_pogo = false
-	## 如果有敌人
-	if detect_component_pogo.enemy_can_be_attacked and \
-	detect_component_pogo.enemy_can_be_attacked.global_position.x < global_position.x:
-		pogo_time_on_plant += 1
-		if pogo_time_on_plant > 2:
-			pogo_time_on_plant = 0
-			if is_jump_stop:
-				loss_iron_item()
-				return
-			else:
-				is_big_pogo = true
-				move_component.update_only_move_speed(0 if big_jump_cells > 0 else 4)
-				pogo_y = pogo_y_defalut * 2
-		else:
-			move_component.update_only_move_speed(0)
-			pogo_y = pogo_y_defalut
+	$Body/BodyCorrect/Stick1.hide()
+	$Body/BodyCorrect/Stick2.hide()
+	$Body/BodyCorrect/Hand3.hide()
+	detect_component_pogo.disable_component(ComponentNormBase.E_IsEnableFactor.Character)
+	if is_death:
+		_height = 0.0
+		body_correct.position = _grounded_body_position
 	else:
-		move_component.update_only_move_speed(1)
-		pogo_y = pogo_y_defalut
+		move_component.update_move_mode(MoveComponent.E_MoveMode.Ground)
+		move_component.update_only_move_speed()
+		attack_component.enable_component(ComponentNormBase.E_IsEnableFactor.Character)
 
-	if tween_pogo != null:
-		tween_pogo.kill()
+## [param stage] 为身体受损阶段，1 表示掉头。
+func _on_hp_stage_changed(stage: int) -> void:
+	if stage == 1:
+		loss_iron_item()
 
-	SoundManager.play_character_SFX(&"pogo_zombie")
+## 死亡时终止跳跃，并在地面播放死亡动作。
+func character_death() -> void:
+	super()
+	loss_iron_item()
+	body_correct.position = _grounded_body_position
 
-	tween_pogo = get_tree().create_tween()
-	tween_pogo.set_speed_scale(speed_scale_pogo)
-	#tween_pogo.set_parallel()
-	tween_pogo.tween_property(body_correct, ^"position:y", body_correct.position.y-pogo_y, time_pogo_once*2/5).set_ease(Tween.EASE_OUT)
-	tween_pogo.tween_property(body_correct, ^"position:y", body_correct.position.y, time_pogo_once*3/5).set_ease(Tween.EASE_IN)
-	if is_big_pogo:
-		var from_x: float = global_position.x
-		if big_jump_cells > 0:
-			var game: MainGameManager = Global.main_game
-			if is_instance_valid(game) and lane >= 0:
-				var cell: PlantCell = game.board.nearest_cell(global_position, lane) # 当前地点的几何基准。
-				if cell != null:
-					var pitch: float = game.board.local_pitch(cell).x # 当前列间距。
-					if _big_x_tween != null and _big_x_tween.is_running():
-						_big_x_tween.kill()
-					_big_x_tween = create_tween()
-					_big_x_tween.set_speed_scale(speed_scale_pogo)
-					_big_x_tween.tween_property(self, ^"global_position:x",
-							from_x - pitch * float(big_jump_cells), time_pogo_once)
-					_big_x_tween.finished.connect(_emit_jump_landed.bind(from_x))
-		if big_jump_cells <= 0:
-			tween_pogo.finished.connect(_emit_jump_landed.bind(from_x))
+## 持杆时冰冻只造成减速。
+## [param time] 为冻结秒数，[param new_time_ice_end_decelerate] 为后续减速秒数。
+func be_ice_freeze(time: float, new_time_ice_end_decelerate: float) -> void:
+	if is_pogo:
+		be_ice_decelerate(time + new_time_ice_end_decelerate)
+	else:
+		super(time, new_time_ice_end_decelerate)
 
-func _emit_jump_landed(from_x: float) -> void:
-	if is_death or is_jump_stop or not is_big_pogo:
-		return
-	signal_big_jump_landed.emit(from_x, global_position.x)
+## [param butter_time] 为停顿秒数，持杆时先落回地面再停顿。
+func be_butter(butter_time: float = 4.0) -> void:
+	if is_pogo and not is_death:
+		_height = STICK_GROUND_OFFSET
+		body_correct.position.y = _grounded_body_position.y - _height
+	super(butter_time)
 
-## 更新速度时同时修改弹跳的tween
-func _on_update_speed(speed_factor_product:float):
-	#print("更新速度:", speed_factor_product)
-	#time_pogo_once = time_pogo_once_default * speed_factor_product
-	speed_scale_pogo = speed_factor_product
-
-	if tween_pogo != null:
-		tween_pogo.set_speed_scale(speed_scale_pogo)
-
-## 跳跃被强行停止,高坚果调用
-func jump_be_stop(_plant:Plant000Base):
-	is_jump_stop = true
+## 被魅惑后掉头弹跳，终止已经锁定的跨越路线。
+func be_hypno() -> void:
+	super()
+	if is_pogo:
+		_bounce = Bounce.Travel
+		_blocking_nut = null
+		move_component.update_only_move_speed()
