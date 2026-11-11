@@ -3,6 +3,8 @@ extends Node
 class_name ZombieWaveManager
 
 #region 波次管理器参数
+## 初代 PC 冒险模式从可种植到首波的游戏秒数。
+const CLASSIC_OPENING_SECONDS: float = 18.0
 ## 是否有墓碑,即墓碑是否生成僵尸
 var is_have_tombston := false
 ## 一轮游戏最大波次
@@ -154,13 +156,24 @@ func begin_adventure_phase(profile: WaveProfile) -> void:
 	progress_bar_segment_every_wave = 100.0 / (profile.wave_count - 1)
 	progress_bar_segment_mini_every_sec = 0.0
 
-## 战斗阶段开始第一波并启动进度计时；关卡已结束时不启动。
+## 返回当前阶段是否启用初代 PC 冒险模式的出怪节奏。
+func uses_classic_spawn_timing() -> bool:
+	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile # 当前生效的阶段配置。
+	return profile != null and profile.use_classic_spawn_timing
+
+## 等待首波保护后开始第一波并启动进度计时；关卡已结束或阶段切换时不启动。
 func start_first_wave():
+	var refresh_generation: int = _refresh_generation # 首波保护与进度计时都只属于当前阶段。
+	if uses_classic_spawn_timing():
+		await get_tree().create_timer(CLASSIC_OPENING_SECONDS, false).timeout
+	if not _is_wave_refresh_current(refresh_generation):
+		return
 	if zombie_wave_create_manager.adventure_wave_profile != null:
 		adventure_battle_started.emit()
-	# 第一波生成期间若停止或切轮，不再重启旧轮进度计时器。
-	var refresh_generation: int = _refresh_generation
+	if not _is_wave_refresh_current(refresh_generation):
+		return
 	start_next_wave()
+	# 第一波生成期间若停止或切轮，不再重启旧轮进度计时器。
 	if not _is_wave_refresh_current(refresh_generation):
 		return
 	every_wave_progress_timer.start()
@@ -215,7 +228,7 @@ func start_next_wave() -> void:
 	elif is_flag_front:
 		next_type = E_WaveType.FlagFront
 	if next_type in [E_WaveType.Final, E_WaveType.Flag]:
-		await ui_remind_word.zombie_approach(next_type == E_WaveType.Final)
+		await ui_remind_word.zombie_approach(next_type == E_WaveType.Final, uses_classic_spawn_timing())
 		if not _is_wave_refresh_current(refresh_generation):
 			return
 		if is_advancement_suspended:
@@ -278,15 +291,17 @@ func call_tombstone_create_zombie():
 		var new_zombie_type = zombie_type_candidate_tombstone.pick_random()
 		plant_cell_manager.tombstone_list[i].create_new_zombie(new_zombie_type)
 
-## 更新每秒旗帜进度(僵尸波次更新管理器信号触发)
+## 用 [param time] 游戏秒的倒计时更新每秒旗帜进度。
 func update_progress_bar_segment_mini_every_sec(time:float):
-	## 如果是旗帜波，时间加6（僵尸靠近）+3（最后一波置为0）秒红字时间
 	if curr_wave == max_wave - 1:
 		progress_bar_segment_mini_every_sec = 0.0
 		return
-	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile
-	var is_flag: bool = (profile.is_flag_wave(curr_wave + 1) if profile != null else curr_wave % 10 == 9)
-	if is_flag:
+	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile # 当前阶段定义的旗帜波。
+	if uses_classic_spawn_timing():
+		# 当前波的进度段包含下一波出现前的预警。
+		if profile.is_flag_wave(curr_wave + 2) or curr_wave + 2 == max_wave:
+			time += UIRemindWord.CLASSIC_FLAG_WARNING_SECONDS
+	elif (profile.is_flag_wave(curr_wave + 1) if profile != null else curr_wave % 10 == 9):
 		time += 6
 	progress_bar_segment_mini_every_sec = progress_bar_segment_every_wave / maxf(time, 0.001)
 

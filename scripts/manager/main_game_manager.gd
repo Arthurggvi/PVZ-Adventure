@@ -489,6 +489,11 @@ func main_game_start():
 	zombie_manager.restore_saved_bosses()
 	card_manager.card_slot_update_main_game()
 
+	# 初代节奏从可种植时起算首波保护，音乐延迟不计入保护时间。
+	var classic_spawn_timing: bool = zombie_manager.zombie_wave_manager.uses_classic_spawn_timing()
+	if classic_spawn_timing:
+		zombie_manager.start_game()
+
 	# 本次延迟所属轮次，防止旧轮协程重新播放音乐或启动下一轮刷怪。
 	var start_round: int = curr_game_round
 	# 红字结束后一秒按当前存活僵王选择音乐，不能覆盖读档或卡牌入场已切换的僵王曲目。
@@ -498,7 +503,8 @@ func main_game_start():
 		return
 	refresh_battle_bgm()
 
-	zombie_manager.start_game()
+	if not classic_spawn_timing:
+		zombie_manager.start_game()
 
 
 #region 游戏结束

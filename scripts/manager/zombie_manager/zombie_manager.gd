@@ -207,8 +207,9 @@ func start_game():
 			return
 
 		ConstLevelData.E_MonsterMode.Norm:
-			## 10秒后开始刷新僵尸
-			await get_tree().create_timer(10).timeout
+			# 初代节奏的首波保护由波次管理器统一处理，普通入场与噩梦续战共用。
+			if not zombie_wave_manager.uses_classic_spawn_timing():
+				await get_tree().create_timer(10).timeout
 			# 等待期间可能已经失败或离开关卡，不能让旧协程恢复后继续生成敌人。
 			if round_generation == _round_generation and is_game_running():
 				zombie_wave_manager.start_first_wave()

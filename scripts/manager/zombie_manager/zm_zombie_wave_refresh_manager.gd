@@ -43,6 +43,20 @@ enum E_RefreshStatus{
 ## 波次最小时间
 @export var time_min_wave := 6.0
 
+## 初代普通冒险每波的倒计时范围，单位为百分之一游戏秒。
+const CLASSIC_REFRESH_TICKS: Vector2i = Vector2i(2500, 3099)
+## 开波后经过此游戏秒数，才可按血量缩短倒计时。
+const CLASSIC_EARLY_CHECK_SECONDS: float = 4.0
+## 提前刷新的剩余倒计时，单位为游戏秒。
+const CLASSIC_EARLY_COUNTDOWN_SECONDS: float = 2.0
+## 允许提前刷新时，本波敌方剩余血量的比例范围。
+const CLASSIC_HEALTH_THRESHOLD_RANGE: Vector2 = Vector2(0.5, 0.65)
+## 初代刷新判定只计入五分之一的手持盾牌血量。
+const CLASSIC_SHIELD_HEALTH_WEIGHT: float = 0.2
+
+## 本波是否使用初代节奏；每次生成新波时随当前阶段重新读取。
+var _classic_spawn_timing: bool = false
+
 ## 当前刷新状态
 var curr_refresh_status:=E_RefreshStatus.DisableRefresh
 ## 停止或切波时递增，最短波间隔的旧等待不能消费新波次的刷新机会。
@@ -92,10 +106,12 @@ signal signal_start_await_refresh
 
 func _ready() -> void:
 	wave_min_time_timer.wait_time = time_min_wave
+	set_process(false)
 
 
 ## 停止自然刷新和最短波间隔计时，并关闭提前刷新；已排队的回调仍检查战斗阶段。
 func stop_refresh() -> void:
+	set_process(false)
 	_is_suspended = false
 	wave_norm_refresh_timer.paused = false
 	wave_min_time_timer.paused = false
@@ -108,10 +124,21 @@ func stop_refresh() -> void:
 
 ## 每次刷新僵尸后获取当前波次生成僵尸血量值
 func update_wave_health_data(curr_wave_total_health:int, new_curr_wave_type:ZombieWaveManager.E_WaveType, new_curr_wave:int):
+	set_process(false)
 	_refresh_generation += 1
 	self.curr_wave_type = new_curr_wave_type
 	self.curr_wave = new_curr_wave
 	curr_refresh_status = E_RefreshStatus.DisableRefresh
+	_classic_spawn_timing = zombie_manager.zombie_wave_manager.uses_classic_spawn_timing()
+
+	if _classic_spawn_timing and curr_wave_type != ZombieWaveManager.E_WaveType.Final:
+		# 初代普通冒险在旗前波也按本波剩余血量判断提前刷新。
+		curr_can_refresh_type = E_RefreshType.HalfRefresh
+		wave_total_health = _classic_wave_health()
+		var threshold: float = randf_range(CLASSIC_HEALTH_THRESHOLD_RANGE.x, CLASSIC_HEALTH_THRESHOLD_RANGE.y) # 本波的剩余血量门槛。
+		refresh_health = int(threshold * wave_total_health)
+		_update_timer()
+		return
 
 	match self.curr_wave_type:
 		## 普通波或旗帜波会触发残半刷新，更新当前残半刷新数据
@@ -134,27 +161,51 @@ func update_wave_health_data(curr_wave_total_health:int, new_curr_wave_type:Zomb
 
 ## 更新计时器
 func _update_timer():
-	var wave_norm_refresh_time := 0.0
-	match curr_can_refresh_type:
-		E_RefreshType.HalfRefresh:
-			wave_norm_refresh_time = randf_range(norm_refresh_time_range_in_half_refresh.x, norm_refresh_time_range_in_half_refresh.y)
-
-		E_RefreshType.TotalRefresh:
-			wave_norm_refresh_time = randf_range(norm_refresh_time_range_in_total_refresh.x, norm_refresh_time_range_in_total_refresh.y)
-
-	## 不可以刷新
 	if curr_can_refresh_type == E_RefreshType.Null:
 		wave_min_time_timer.stop()
 		wave_norm_refresh_timer.stop()
+		return
+	var wave_norm_refresh_time: float # 当前波等到自动刷新所需的游戏秒数。
+	if _classic_spawn_timing:
+		wave_norm_refresh_time = float(randi_range(CLASSIC_REFRESH_TICKS.x, CLASSIC_REFRESH_TICKS.y)) / 100.0
+	elif curr_can_refresh_type == E_RefreshType.HalfRefresh:
+		wave_norm_refresh_time = randf_range(norm_refresh_time_range_in_half_refresh.x, norm_refresh_time_range_in_half_refresh.y)
 	else:
-		wave_min_time_timer.start()
-		wave_norm_refresh_timer.start(wave_norm_refresh_time)
-		signal_norm_time.emit(wave_norm_refresh_time)
+		wave_norm_refresh_time = randf_range(norm_refresh_time_range_in_total_refresh.x, norm_refresh_time_range_in_total_refresh.y)
+	wave_min_time_timer.start(CLASSIC_EARLY_CHECK_SECONDS if _classic_spawn_timing else time_min_wave)
+	wave_norm_refresh_timer.start(wave_norm_refresh_time)
+	signal_norm_time.emit(wave_norm_refresh_time)
+
+## 读取本波敌人实际剩余血量，应用初代盾牌权重并计入雪人回血。
+func _classic_wave_health() -> int:
+	var total_health: int = 0 # 仅累计当前波仍敌对的单位。
+	for zombie: Zombie000Base in zombie_manager.zombie_wave_manager.zombie_wave_create_manager.wave_all_zombies:
+		# 已死亡、魅惑或离场的本波僵尸不再贡献血量。
+		if is_instance_valid(zombie) and zombie.is_inside_tree() and not zombie.is_queued_for_deletion() \
+				and not zombie.is_death and not zombie.is_hypno and zombie.curr_wave == curr_wave:
+			var health: HpComponentZombie = zombie.hp_component as HpComponentZombie # 当前本体与各类护甲的血量。
+			if health == null:
+				total_health += zombie.hp_component.get_all_hp()
+			else:
+				total_health += health.get_all_hp() - health.curr_hp_armor2 \
+					+ int(health.curr_hp_armor2 * CLASSIC_SHIELD_HEALTH_WEIGHT)
+	return total_health
+
+## 初代节奏在保护结束后检查实际血量，达标时只缩短倒计时一次。
+func _process(_delta: float) -> void:
+	if _is_suspended or not zombie_manager.is_game_running() \
+			or curr_refresh_status != E_RefreshStatus.AwaitRefresh:
+		return
+	if wave_norm_refresh_timer.time_left <= CLASSIC_EARLY_COUNTDOWN_SECONDS:
+		set_process(false)
+	elif _classic_wave_health() <= refresh_health:
+		wave_norm_refresh_timer.start(CLASSIC_EARLY_COUNTDOWN_SECONDS)
+		set_process(false)
 
 ## 判断残半刷新
 func judge_half_refresh(all_loss_hp:int, wave:int):
 	## 可以残半刷新时，更新当前波次僵尸血量，僵尸掉血信号连接触发
-	if wave == curr_wave and curr_can_refresh_type == E_RefreshType.HalfRefresh:
+	if not _classic_spawn_timing and wave == curr_wave and curr_can_refresh_type == E_RefreshType.HalfRefresh:
 		wave_current_health -= all_loss_hp
 
 		if wave_current_health <= refresh_health or zombie_manager.natural_refresh_zombie_count <= 0:
@@ -183,6 +234,9 @@ func _on_wave_min_time_timer_timeout() -> void:
 	if _is_suspended or not zombie_manager.is_game_running() or curr_can_refresh_type == E_RefreshType.Null:
 		return
 	curr_refresh_status = E_RefreshStatus.AwaitRefresh
+	if _classic_spawn_timing:
+		set_process(true)
+		return
 	signal_start_await_refresh.emit()
 	# 选行失败可能产生空波；达到最短等待后重新检查，避免依赖一次不存在的死亡信号。
 	if curr_refresh_status != E_RefreshStatus.AwaitRefresh:
@@ -205,6 +259,7 @@ func refresh_once() -> void:
 			or curr_can_refresh_type == E_RefreshType.Null:
 		return
 	curr_refresh_status = E_RefreshStatus.CompleteRefresh
+	set_process(false)
 	curr_can_refresh_type = E_RefreshType.Null
 	# 延迟事件携带自身波次代数；停止、切波和切阶段都会废弃旧请求。
 	_deliver_refresh.call_deferred(_refresh_generation)

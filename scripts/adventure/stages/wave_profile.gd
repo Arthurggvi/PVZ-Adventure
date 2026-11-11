@@ -8,6 +8,8 @@ const MAX_ZOMBIES_PER_WAVE: int = 50
 @export var profile_id: StringName = &""
 ## 阶段自然波次总数，必须至少有两波。
 @export var wave_count: int = 0
+## 启用初代 PC 冒险模式的首波保护、普通刷新倒计时与大波预警节奏。
+@export var use_classic_spawn_timing: bool = false
 ## 可选的大波波次（1-based）；末波始终为 Final，默认具备最终大波表现。
 @export var flag_waves: Array[int] = []
 ## 在对应波次先于随机池生成的出怪组，顺序由资源数组决定。

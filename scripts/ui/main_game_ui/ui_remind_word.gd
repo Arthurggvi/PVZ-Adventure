@@ -2,6 +2,9 @@
 extends Control
 class_name UIRemindWord
 
+## 初代 PC 冒险模式旗帜波的预警总时长，单位为游戏秒。
+const CLASSIC_FLAG_WARNING_SECONDS: float = 7.5
+
 @onready var ready_plant: TextureRect = $Ready
 @onready var set_plant: TextureRect = $Set
 @onready var plant: TextureRect = $Plant
@@ -24,13 +27,18 @@ func ready_set_plant() -> void:
 
 
 ## 播放大波提示；[param final] 为真时接着播放最后一波提示。
+## [param classic_timing] 为真时，大波与末波的总预警都采用初代 PC 冒险模式时长。
 ## 动效包含在原有刷怪等待中，战斗暂停时与波次倒计时一起停止。
-func zombie_approach(final: bool) -> void:
+func zombie_approach(final: bool, classic_timing: bool = false) -> void:
 	show()
 	SoundManager.play_other_SFX("hugewave")
 	# 参照 TextFadeOn 的 12 FPS 素材，从约两倍大小收至原尺寸，尾段淡出。
 	await _animate_wave_word(approaching, 4.0, 2.003, 19.0 / 12.0, 4.0 / 12.0)
-	await get_tree().create_timer(2.0, false).timeout
+	# 经典模式把末波红字计入预警总时长；其他关卡沿用 2 秒过渡。
+	var gap_seconds: float = 2.0 # 大波红字与末波红字之间的等待。
+	if classic_timing:
+		gap_seconds = CLASSIC_FLAG_WARNING_SECONDS - 4.0 - (3.0 if final else 0.0)
+	await get_tree().create_timer(gap_seconds, false).timeout
 	if final:
 		SoundManager.play_other_SFX("finalwave")
 		# 参照 FinalWave 素材使用更大的入场倍率和更快的收缩。
