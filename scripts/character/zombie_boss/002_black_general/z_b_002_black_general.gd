@@ -23,7 +23,7 @@ const PHASE_SHADOW_ROWS := [[1, 3], [0, 4]]
 ## 本体与第一组残影、两组残影之间的间隔，单位秒。
 const PHASE_SHADOW_INTERVAL: float = 0.14
 ## 本体拖尾比冲锋残影自身的拖尾更实。
-const CHARGE_TRAIL_OPACITY: float = 0.82
+const CHARGE_TRAIL_OPACITY: float = 0.74
 ## 本体实际移动时，相邻两次落步震动之间的冲锋秒数。
 const CHARGE_SHAKE_INTERVAL: float = 0.34
 ## 落步震屏的横纵幅度，单位像素。
@@ -72,6 +72,8 @@ var _phase_summon_elapsed: float = 0.0
 var _charge_shadows: Array[BlackGeneralChargeShadow] = []
 ## 本体距下次采样冲锋拖尾的秒数。
 var _trail_wait: float = 0.0
+## 本体冲锋时正在延伸的烟带；收势后由烟带自身耗散。
+var _charge_wake: BlackGeneralChargeWake
 ## 本体距下一次冲锋震屏的秒数。
 var _shake_wait: float = 0.0
 ## 本次冲锋尚未越过的剪影世界横坐标，按越过顺序存放。
@@ -125,6 +127,7 @@ func _battle_active() -> bool:
 func _physics_process(delta: float) -> void:
 	if not _battle_active():
 		_stop_windup_sound()
+		_retire_charge_wake()
 		_clear_charge_shadows()
 		return
 	behavior.advance_flag_cooldown(delta)
@@ -194,6 +197,7 @@ func _apply_boss_visual_phase(phase: int, animated: bool) -> void:
 		return
 	_stop_windup_sound()
 	charge.cancel()
+	_retire_charge_wake()
 	_transitioning = true
 	_set_invulnerable(true)
 	# 转阶段必须能完成；清理已有控制，随后无敌窗口拒绝新控制。
@@ -250,19 +254,33 @@ func _advance_charge(step: float) -> void:
 	if _trail_wait <= 0.0:
 		BlackGeneralChargeTrail.spawn(visual, self, z_index - 1, CHARGE_TRAIL_OPACITY)
 		_trail_wait += BlackGeneralChargeTrail.INTERVAL
-	var from_x: float = global_position.x # 区分真正向前推进和没有冲锋路径的情况。
+	var feet: Vector2 = global_position # 记录移动前的起点，用于在实际扫过的范围上铺开烟带。
 	var completed: bool = charge.advance(self, _game.plant_cell_manager.all_plant_cells[lane], step) # 伤害可能同步触发阶段中断。
 	if state != State.CHARGE or is_death:
 		return
-	if global_position.x < from_x:
+	if global_position.x < feet.x:
+		if _charge_wake == null:
+			_charge_wake = BlackGeneralChargeWake.spawn(self, feet, z_index - 2, 1.0)
+			BlackGeneralShadowBurst.erupt(self, feet, z_index - 1, 0.82)
+		_charge_wake.follow(global_position.x)
 		_shake_wait -= step
 		if _shake_wait <= 0.0:
 			EventBus.push_event(MainGameCamera.SHAKE_EVENT, [CHARGE_SHAKE_AMPLITUDE, CHARGE_SHAKE_DURATION])
 			_shake_wait += CHARGE_SHAKE_INTERVAL
 		_place_charge_silhouettes()
 	if completed:
+		if _charge_wake != null:
+			BlackGeneralShadowBurst.erupt(self, global_position, z_index + 1, 1.20)
+			EventBus.push_event(MainGameCamera.SHAKE_EVENT, [Vector2(6.0, 10.0), 0.36])
+			_retire_charge_wake()
 		state = State.STOP
 		visual.play_action(&"charge_stop")
+
+## 结束或打断本体冲锋时，将已扫过的烟带留在原路上耗散。
+func _retire_charge_wake() -> void:
+	if is_instance_valid(_charge_wake):
+		_charge_wake.retire(1.44)
+		_charge_wake = null
 
 ## 在实际扫过的位置留下独立设施；由战场持有，直到各自生命耗尽。
 func _place_charge_silhouettes() -> void:
@@ -286,18 +304,18 @@ func _begin_charge_shadows() -> void:
 			charge_shadow.setup(self, row, Vector2(_home_x, _row_y(row)), (group_index + 1) * PHASE_SHADOW_INTERVAL)
 			_charge_shadows.append(charge_shadow)
 
-## 用 [param step] 推进各路残影，扫到各自停止线后释放。
+## 用 [param step] 推进各路残影，扫到各自停止线后转入纯视觉退场。
 func _advance_charge_shadows(step: float) -> void:
 	for index: int in range(_charge_shadows.size() - 1, -1, -1): # 倒序删除已经结束的残影。
 		var charge_shadow: BlackGeneralChargeShadow = _charge_shadows[index] # 当前行的冲锋实例。
 		if charge_shadow.advance(self, _game.plant_cell_manager.all_plant_cells[charge_shadow.lane], step):
-			charge_shadow.queue_free()
 			_charge_shadows.remove_at(index)
+			charge_shadow.finish()
 
 ## 战斗结束时停止仍待命或正在冲锋的残影，已有拖尾自行淡出。
 func _clear_charge_shadows() -> void:
 	for charge_shadow: BlackGeneralChargeShadow in _charge_shadows: # 清理未到达终点的实例。
-		charge_shadow.queue_free()
+		charge_shadow.cancel()
 	_charge_shadows.clear()
 
 ## 举旗后用 [param step] 推进各组出怪，到时立即生成整组。
@@ -494,6 +512,7 @@ func character_death() -> void:
 		return
 	state = State.DYING
 	charge.cancel()
+	_retire_charge_wake()
 	_stop_windup_sound()
 	_clear_charge_shadows()
 	_clear_flags()
