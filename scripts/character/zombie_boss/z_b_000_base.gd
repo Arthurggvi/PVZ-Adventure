@@ -54,11 +54,12 @@ func get_default_boss_spawn_position(manager: ZombieManager, spawn_lane: int = -
 	# 行的出怪标记提供脚底高度和缺少植物格时的备用横坐标。
 	var feet: Vector2 = manager.all_zombie_rows[row_index].zombie_create_position.global_position
 	# 从植物网格的右边缘推算传送入口，沿用黑将军和白爵士原有偏移。
-	var grid: Array = manager.main_game.plant_cell_manager.all_plant_cells
-	if row_index < grid.size() and not grid[row_index].is_empty():
-		# 该行最右侧的植物格。
-		var last: PlantCell = grid[row_index][-1]
-		feet.x = last.global_position.x + last.size.x * 1.25
+	var cells: Array[PlantCell] = manager.main_game.board.row_cells(row_index) # 当前行实际地块。
+	var edge: float = -INF # 不规则排列按当前世界右缘选取。
+	for cell: PlantCell in cells: # 保留原版四分之一格的出场空隙。
+		edge = maxf(edge, cell.global_position.x + cell.size.x * 1.25)
+	if is_finite(edge):
+		feet.x = edge
 	return manager.zombie_boss_root.to_local(feet)
 
 

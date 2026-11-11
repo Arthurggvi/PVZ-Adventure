@@ -24,7 +24,10 @@ func create_all_brain_on_zombie_mode():
 ## 创建一个脑子
 ##[lane:int] 行数
 func _create_one_brain(lane:int):
-	var curr_plant_cell:PlantCell = Global.main_game.plant_cell_manager.all_plant_cells[lane][0]
+	var cells: Array[PlantCell] = Global.main_game.board.row_cells(lane) # 当前行实际种植点。
+	if cells.is_empty():
+		return
+	var curr_plant_cell:PlantCell = cells[0]
 	var brain:BrainOnZombieMode = BRAIN_ON_ZOMBIE_MODE.instantiate()
 	brain.init_brain(curr_plant_cell)
 

@@ -80,27 +80,20 @@ func _refresh_blessings() -> void:
 	_refresh_pending = false
 	if not is_instance_valid(game):
 		return
-	var rows: Array = game.plant_cell_manager.all_plant_cells
-	var next: Dictionary[int, Plant000Base] = {}
-	for row_index: int in range(rows.size()):
-		var cells: Array = rows[row_index]
-		for column: int in range(cells.size()):
-			var source_cell: PlantCell = cells[column]
-			var has_source := false
-			for candidate: Variant in source_cell.plant_in_cell.values():
-				if _is_holy_war_source(candidate as Plant000Base):
-					has_source = true
-					break
-			if not has_source:
-				continue
-			for neighbor_col: int in [column - 1, column + 1]:
-				if neighbor_col < 0 or neighbor_col >= cells.size():
-					continue
-				var target_cell: PlantCell = cells[neighbor_col]
-				for candidate: Variant in target_cell.plant_in_cell.values():
-					var plant: Plant000Base = candidate as Plant000Base
-					if _active(plant):
-						next[plant.get_instance_id()] = plant
+	var next: Dictionary[int, Plant000Base] = {} # 本轮受影响的实际植物。
+	for source_cell: PlantCell in game.board.cells(): # 每个真实种植点检查圣战来源。
+		var has_source: bool = false # 本格多层植物只贡献一次来源。
+		for candidate: Variant in source_cell.plant_in_cell.values(): # 当前实际占用。
+			if _is_holy_war_source(candidate as Plant000Base):
+				has_source = true
+				break
+		if not has_source:
+			continue
+		for target_cell: PlantCell in game.board.horizontal_neighbors(source_cell): # 前后拓扑邻格。
+			for candidate: Variant in target_cell.plant_in_cell.values(): # 多格植物按实例去重。
+				var plant: Plant000Base = candidate as Plant000Base # 当前候选。
+				if _active(plant):
+					next[plant.get_instance_id()] = plant
 	for id: int in _affected:
 		if not next.has(id):
 			_set_blessing(_affected[id], false)

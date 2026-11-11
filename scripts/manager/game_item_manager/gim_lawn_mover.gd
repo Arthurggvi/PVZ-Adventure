@@ -17,13 +17,6 @@ const LawnMoverSecneMap = {
 	E_LawnMoverType.RoofCleaner : preload("res://scenes/item/game_scenes_item/lawn_mover/roof_cleaner.tscn")
 }
 
-## 所有场景中的小推车类型
-const AllLawnMoverTypeFromGameScenes = {
-	MainSceneRegistry.MainScenes.MainGameFront:[0,0,0,0,0],
-	MainSceneRegistry.MainScenes.MainGameBack:[0,0,1,1,0,0],
-	MainSceneRegistry.MainScenes.MainGameRoof:[2,2,2,2,2]
-}
-
 @onready var lawn_movers: Node2D = %LawnMovers
 ## 小推车生成的全局x位置
 @export var GlobalXLawnMover:float = 20
@@ -47,23 +40,20 @@ func init_lawn_movers() -> void:
 
 ## 生成所有的小推车
 func create_all_lawn_movers(is_has_all_lawn_mover:Array=[]):
-	all_lawn_movers_type = AllLawnMoverTypeFromGameScenes[game_scene].duplicate()
-	# 关卡单独定义水路时，清洁车按实际行地形选择；不改变原版场景默认配置。
-	if not game_item_manager.game_para.terrain_rows.is_empty():
-		for lane in range(game_item_manager.game_para.terrain_rows.size()):
-			if game_item_manager.game_para.terrain_rows[lane] == CharacterRegistry.ZombieRowType.Pool:
-				all_lawn_movers_type[lane] = E_LawnMoverType.PoolCleaner
-			elif game_scene != MainSceneRegistry.MainScenes.MainGameRoof:
-				all_lawn_movers_type[lane] = E_LawnMoverType.LawnMover
+	all_lawn_movers_type.clear()
+	for lane: BoardLaneDefinition in game_item_manager.main_game.board.lanes: # 攻击行的清洁车协议。
+		all_lawn_movers_type.append(lane.mower_kind)
 
 	print("创建小推车, 小推车类型", all_lawn_movers_type)
 	assert(game_item_manager.main_game.zombie_manager.all_zombie_rows.size() == all_lawn_movers_type.size(), "小推车数量与僵尸行数量不一致")
 	for lane in range(all_lawn_movers_type.size()):
 		var zombie_row:ZombieRow = game_item_manager.main_game.zombie_manager.all_zombie_rows[lane]
 		var global_pos_lawn_mover:Vector2 = Vector2(GlobalXLawnMover, zombie_row.zombie_create_position.global_position.y)
+		if game_item_manager.main_game.board.definition != null:
+			global_pos_lawn_mover = game_item_manager.main_game.to_global(game_item_manager.main_game.board.lanes[lane].mower_position)
 		all_lawn_movers_global_pos.append(global_pos_lawn_mover)
 		var new_lawn_mover:LawnMover
-		if is_has_all_lawn_mover.is_empty() or is_has_all_lawn_mover[lane] == true:
+		if is_has_all_lawn_mover.is_empty() or (lane < is_has_all_lawn_mover.size() and is_has_all_lawn_mover[lane] == true):
 			new_lawn_mover = create_lawn_mover(lane, all_lawn_movers_type[lane], all_lawn_movers_global_pos[lane])
 		else:
 			new_lawn_mover = null
@@ -118,4 +108,3 @@ func get_save_game_data_lawn_mover_manager()->Dictionary:
 			is_has_all_lawn_mover.append(false)
 	save_game_data_lawn_mover["is_has_all_lawn_mover"] = is_has_all_lawn_mover
 	return save_game_data_lawn_mover
-

@@ -113,7 +113,7 @@ func _run() -> void:
 	var cols := battle.plant_cell_manager.row_col.y
 	for row in range(battle.plant_cell_manager.row_col.x):
 		for c in range(cols-3,cols):
-			assert(ts.all_is_tombstone[row][c],"phase three columns not filled")
+			assert(is_instance_valid(ts.plant_cell_manager.board.cell_at(Vector2i(row, c)).tombstone),"phase three columns not filled")
 	assert(not boss.hp_component.damage_immune)
 	boss.hp_component.Hp_loss_death(false)
 	assert(boss.is_death)

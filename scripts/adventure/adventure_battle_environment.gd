@@ -3,6 +3,9 @@
 extends Resource
 class_name AdventureBattleEnvironment
 
+## 可选种植空间定义；为空时适配原场景布局。
+@export var board_definition: BoardDefinition
+
 @export var scene: MainSceneRegistry.MainScenes = MainSceneRegistry.MainScenes.MainGameFront
 @export var background: ConstLevelData.GameBg = ConstLevelData.GameBg.FrontDay
 @export var background_texture: Texture2D
@@ -39,4 +42,8 @@ func validate() -> PackedStringArray:
 		errors.append("初始阳光不得为负数。")
 	if zombie_power_multiplier < 1:
 		errors.append("僵尸战力倍率必须为正整数。")
+	if board_definition != null:
+		errors.append_array(board_definition.validate())
+		if not terrain_rows.is_empty():
+			errors.append("自定义布局不能同时声明旧逐行地形。")
 	return errors

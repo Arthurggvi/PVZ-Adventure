@@ -76,8 +76,7 @@ func spawn_from_grave(zombie_type: CharacterRegistry.ZombieType,
 		Zombie000Base.E_ZInitAttr.ParticipatesNaturalRefresh: natural,
 	}
 	var row: ZombieRow = manager.all_zombie_rows[lane]
-	var position_at_grave := Vector2(global_position.x,
-			row.zombie_create_position.global_position.y)
+	var position_at_grave: Vector2 = plant_cell.get_spawn_global_position() # 当前地块脚点。
 	var zombie: Zombie000Base = manager.create_norm_zombie(zombie_type, row,
 		zombie_init_para, position_at_grave, Callable(), modifier)
 	if not is_instance_valid(zombie):
@@ -126,5 +125,5 @@ func restore_hp(_hp: int) -> void:
 
 ## 墓碑死亡
 func tombstone_death():
-	plant_cell.tombstone.plant_cell.tombstone_death_update_plant_cell_data()
+	plant_cell.tombstone_death_update_plant_cell_data()
 	queue_free()

@@ -34,7 +34,7 @@ static func get_visual_grid(manager: PlantCellManager) -> Array[Array]:
 			# 原始种植点用于手臂定位；不能用动态植物容器位置替代。
 			var cell := cell_reference as PlantCell
 			if not cell.is_inside_tree() or cell.is_queued_for_deletion() \
-				or not cell.plant_postion_node_ori_global_position.has(CharacterRegistry.PlacePlantInCell.Norm):
+				or not cell.is_node_ready():
 				return empty_grid
 			row.append(cell)
 		row.sort_custom(_is_cell_left_of)

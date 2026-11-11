@@ -23,7 +23,21 @@ func _run() -> void:
         var cell := PlantCell.new()
         cell.size = Vector2(80, 80)
         grid.append([cell])
-    cells.all_plant_cells = grid
+    game.board = BoardRuntime.new() # 既有场地夹具改用当前空间注册协议。
+    var lanes: Array[BoardLaneDefinition] = [] # 原案例的五个逻辑行。
+    for index: int in range(grid.size()): # 保留原测试输入。
+        var lane := BoardLaneDefinition.new() # 离树攻击行声明。
+        lane.lane_id = StringName("lane_%d" % index)
+        lanes.append(lane)
+    game.board.configure_lanes(lanes)
+    game.board.terrains[&"grass"] = BoardTerrainDefinition.legacy(0)
+    for index: int in range(grid.size()): # 注册原有 PlantCell，不增加测试案例。
+        var data := BoardCellDefinition.new() # 地块身份与原逻辑行对应。
+        data.cell_id = StringName("cell_%d" % index)
+        data.address = Vector2i(index, 0)
+        game.board.register_cell(grid[index][0], data)
+    game.board.finish_configuration()
+    cells.main_game = game
     game.plant_cell_manager = cells
     var manager := ZombieManager.new()
     manager.main_game = game

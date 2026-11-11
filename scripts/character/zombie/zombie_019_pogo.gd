@@ -103,12 +103,9 @@ func pogo_start():
 		if big_jump_cells > 0:
 			var game: MainGameManager = Global.main_game
 			if is_instance_valid(game) and lane >= 0:
-				var grid: Array[Array] = game.plant_cell_manager.all_plant_cells
-				if lane < grid.size() and not grid[lane].is_empty():
-					var pitch: float = (grid[lane][0] as PlantCell).size.x
-					if grid[lane].size() > 1:
-						pitch = absf((grid[lane][1] as PlantCell).global_position.x
-								- (grid[lane][0] as PlantCell).global_position.x)
+				var cell: PlantCell = game.board.nearest_cell(global_position, lane) # 当前地点的几何基准。
+				if cell != null:
+					var pitch: float = game.board.local_pitch(cell).x # 当前列间距。
 					if _big_x_tween != null and _big_x_tween.is_running():
 						_big_x_tween.kill()
 					_big_x_tween = create_tween()

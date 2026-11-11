@@ -1,226 +1,167 @@
+## 墓碑生成与存档服务；占用唯一来自 PlantCell，不维护第二份矩阵或改写地块身份。
 extends Node
 class_name TombStoneManager
 
+## 可攻击墓碑的正式实体资源。
 const PVZ2_TOMBSTONE_PATH := "res://scenes/item/game_scenes_item/pvz2_attackable_tombstone.tscn"
-
+## 所属种植管理器，只通过空间查询取得实际地块。
 @onready var plant_cell_manager: PlantCellManager = %PlantCellManager
+## 墓碑数量由有效实例计算，死亡回调无需同步第二份计数。
+var tombstone_num: int:
+	get:
+		var count: int = 0 # 当前仍占格的墓碑。
+		for cell: PlantCell in plant_cell_manager.board.cells(): # 空位和待释放实体不计数。
+			if _has_grave(cell):
+				count += 1
+		return count
 
-## 是否有墓碑(二维)
-var all_is_tombstone:Array[Array]
-## 墓碑数量
-var tombstone_num := 0
-
+## 监听原版与冒险共用的生成入口。
 func _ready() -> void:
-	## 注册创建墓碑全局事件
 	EventBus.subscribe("create_tombstone", create_tombstone)
 	EventBus.subscribe("create_pvz2_tombstone", create_pvz2_tombstone)
 
-## 初始化墓碑管理器
-func init_tomb_stone_manager(_game_para:ResourceLevelData):
-	# 植物种植区域信号，更新植物位置列号,更新墓碑信息
-	for plant_cells_row_i in range(plant_cell_manager.all_plant_cells.size()):
-		var plant_cells_row = plant_cell_manager.all_plant_cells[plant_cells_row_i]
-		var is_tombstone_row := []
-		for plant_cells_col_j in range(plant_cells_row.size() - 1, -1, -1):
-			var plant_cell:PlantCell = plant_cells_row[plant_cells_col_j]
-			plant_cell.row_col = Vector2(plant_cells_row_i, plant_cells_col_j)
-			## 该位置没有墓碑
-			is_tombstone_row.append(false)
+## 保留管理器生命周期入口；空间已由 BoardSceneAdapter 完成，不得重新编号。
+func init_tomb_stone_manager(_game_para: ResourceLevelData) -> void:
+	pass
 
-		all_is_tombstone.append(is_tombstone_row)
+## 判断 [param cell] 的真实墓碑占用，等待释放的旧实体不占位。
+func _has_grave(cell: PlantCell) -> bool:
+	return is_instance_valid(cell.tombstone) and not cell.tombstone.is_queued_for_deletion()
 
-#region 墓碑相关
-## 生成待选位置,没有墓碑的行和列
-func _candidates_position(rows:int, cols_start:int, cols_end:int=plant_cell_manager.row_col.y) -> Array[Vector2i]:
-	# 构建可选位置列表
-	var candidates: Array[Vector2i]= []
-	for r in range(rows):
-		for c in range(cols_start, cols_end):
-			## 如果没有墓碑
-			if not all_is_tombstone[r][c]:
-				candidates.append(Vector2i(r, c))
-
-	# 打乱顺序确保随机性
-	candidates.shuffle()
-	return candidates
-
-## 随机生成墓碑的位置
-func _reandom_tombstone_pos(new_num:int) ->  Array[Vector2i]:
-	var rows = plant_cell_manager.row_col.x
-	var cols = plant_cell_manager.row_col.y
-
-	# 如果请求的数量超过所有格子总数，就返回所有格子
-	if new_num + tombstone_num >= rows * cols:
-		var all_positions = _candidates_position(rows, cols)
-		return all_positions
-
-	var usable_cols : int
-	## 当场上墓碑数量小于 6列 * 行数时
-	if tombstone_num < 6 * rows:
-		usable_cols = cols - 6
-	else:
-		usable_cols = cols
-
-	# 构建可选位置列表
-	var candidates = _candidates_position(rows, usable_cols)
-	print("待选位置", candidates)
-	# 取前n个作为随机选择位置
-	var selected_positions = candidates.slice(0, min(new_num, candidates.size()))
-
-	if len(selected_positions) < new_num:
-		# 构建可选位置列表
-		var new_candidates = _candidates_position(rows, 0, usable_cols)
-		var add_pos = new_candidates.slice(0, min(new_num- len(selected_positions), new_candidates.size()))
-
-		selected_positions.append_array(add_pos)
-
-	print("墓碑生成位置：",  selected_positions)
-
-	return selected_positions
-
-## 创建一个墓碑
-func _create_one_tombstone(plant_cell: PlantCell, pos:Vector2i, kind: StringName = &"legacy"):
-	assert(not is_instance_valid(plant_cell.tombstone))
-	assert(not all_is_tombstone[pos.x][pos.y], "第"+str(pos)+"墓碑有问题")
-
-	## plant_cell生成墓碑并连接信号
-	var source: PackedScene = null
+## 通过正式 PlantCell 事务生成 [param kind] 的墓碑，不复制植物清除逻辑。
+func _create_one_tombstone(cell: PlantCell, kind: StringName = &"legacy") -> void:
+	if cell == null or _has_grave(cell):
+		return
+	var source: PackedScene = null # 旧墓碑由 PlantCell 使用默认资源。
 	if kind == &"pvz2":
 		source = load(PVZ2_TOMBSTONE_PATH) as PackedScene
 		if source == null:
-			push_error("PVZ2 tombstone scene failed to load")
 			return
-	plant_cell.create_tombstone(source)
-	if not is_instance_valid(plant_cell.tombstone):
-		return
-	plant_cell.signal_cell_delete_tombstone.connect(_delete_tombstone)
+	cell.create_tombstone(source)
 
-	# 创建墓碑相关参数变化
-	all_is_tombstone[pos.x][pos.y] = true
-	tombstone_num += 1
-
-
-## 删除墓碑修改对应的参数并断开信号连接
-func _delete_tombstone(plant_cell:PlantCell, _tombstone:TombStone):
-	var pos:Vector2i = plant_cell.row_col
-	all_is_tombstone[pos.x][pos.y] = false
-	tombstone_num -= 1
-	plant_cell.signal_cell_delete_tombstone.disconnect(_delete_tombstone)
-
-
-## 黑夜关卡生成墓碑（生成数量）
-func create_tombstone(new_num:int, kind: StringName = &"legacy"):
+## 原版事件按右侧六列优先选择；只枚举真实地块，稀疏缺格不会越界。
+func create_tombstone(new_num: int, kind: StringName = &"legacy") -> void:
 	await get_tree().process_frame
-	## 最大数量： 最大可生成列数 * 行数
-	## 生成随机位置
-	print("墓碑生成数量", new_num)
-	var selected_positions :Array[Vector2i]= _reandom_tombstone_pos(new_num)
+	if not is_instance_valid(plant_cell_manager) or plant_cell_manager.board == null:
+		return
+	var preferred: Array[PlantCell] = [] # 原版右侧优先区域。
+	var remaining: Array[PlantCell] = [] # 右侧不足时的候补。
+	var start_column: int = maxi(0, plant_cell_manager.row_col.y - 6) # 兼容原版生成偏好。
+	for cell: PlantCell in plant_cell_manager.board.cells(): # 无地块矩阵补齐逻辑。
+		if _has_grave(cell):
+			continue
+		if cell.row_col.y >= start_column:
+			preferred.append(cell)
+		else:
+			remaining.append(cell)
+	preferred.shuffle()
+	remaining.shuffle()
+	preferred.append_array(remaining)
+	for cell: PlantCell in preferred.slice(0, maxi(0, new_num)): # 需求超过数量时只返回实际候选。
+		_create_one_tombstone(cell, kind)
 
-	print("墓碑生成位置", selected_positions)
-	for pos in selected_positions:
-		var plant_cell:PlantCell = plant_cell_manager.all_plant_cells[pos.x][pos.y]
-
-		_create_one_tombstone(plant_cell, pos, kind)
-
-## Pure occupancy filter, shared by all phase/flag spawn sources.
+## 自然墓碑只占空地；返回逻辑地址供原有事件消费者使用。
 func available_pvz2_positions() -> Array[Vector2i]:
-	var candidates: Array[Vector2i] = []
-	if not is_instance_valid(plant_cell_manager):
-		return candidates
-	var cols: int = plant_cell_manager.row_col.y
-	for r in range(all_is_tombstone.size()):
-		for c in range(maxi(0, floori(float(cols) / 3.0)), cols):
-			if c >= all_is_tombstone[r].size() or all_is_tombstone[r][c]:
-				continue
-			var cell: PlantCell = plant_cell_manager.all_plant_cells[r][c]
-			if not cell.can_common_plant or cell.get_curr_plant_num() != 0:
-				continue
-			candidates.append(Vector2i(r, c))
-	return candidates
+	var result: Array[Vector2i] = [] # 不返回不存在的稀疏地址。
+	if not is_instance_valid(plant_cell_manager) or plant_cell_manager.board == null:
+		return result
+	var start_column: int = maxi(0, floori(float(plant_cell_manager.row_col.y) / 3.0)) # 保留中右侧偏好。
+	for cell: PlantCell in plant_cell_manager.board.cells(): # 实际占用为唯一判定。
+		if cell.row_col.y >= start_column and cell.can_common_plant \
+				and cell.get_curr_plant_num() == 0 and not _has_grave(cell) \
+				and cell.get_spawn_terrain_type() != CharacterRegistry.ZombieRowType.Pool:
+			result.append(cell.row_col)
+	return result
 
-## 可攻击墓碑仅在空格生成，优先中右侧，避免抢占已种植的格子。
+## [param new_num] 为目标生成数量；返回真正新增的墓碑数。
 func create_pvz2_tombstone(new_num: int) -> int:
 	if new_num <= 0:
 		return 0
-	var previous_total := tombstone_num
-	var candidates := available_pvz2_positions()
+	var before: int = tombstone_num # 真实生成前计数。
+	var candidates: Array[Vector2i] = available_pvz2_positions() # 只读资格查询。
 	candidates.shuffle()
-	for i in range(mini(new_num, candidates.size())):
-		var pos := candidates[i]
-		_create_one_tombstone(plant_cell_manager.all_plant_cells[pos.x][pos.y], pos, &"pvz2")
-	return tombstone_num - previous_total
+	for address: Vector2i in candidates.slice(0, new_num): # 地址由空间解析，不拿来下标压缩行。
+		_create_one_tombstone(plant_cell_manager.board.cell_at(address), &"pvz2")
+	return tombstone_num - before
 
-## Boss-only forced placement: skips other structures, not plants.
-## Uses the same PlantCell.create_tombstone() occupancy/death registration.
+## Boss 可顶掉植物，但不覆盖水体、墓碑、坑洞、冰道或罐子；[param columns] 为空表示不限制列。
 func spawn_boss_graves(count: int, columns: Array[int] = []) -> Array[TombStone]:
-	var created: Array[TombStone] = []
+	var result: Array[TombStone] = [] # 正式创建成功的实体。
 	if count <= 0 or not is_instance_valid(plant_cell_manager):
-		return created
-	var candidates: Array[Vector2i] = []
-	for row in range(all_is_tombstone.size()):
-		for col in range(all_is_tombstone[row].size()):
-			if not columns.is_empty() and not columns.has(col):
-				continue
-			if all_is_tombstone[row][col]:
-				continue
-			var cell: PlantCell = plant_cell_manager.all_plant_cells[row][col]
-			if cell.plant_cell_type == PlantCell.PlantCellType.Pool:
-				continue
-			if cell.curr_special_state_plant.get(PlantCell.E_SpecialStatePlant.IsCrater, false) \
-					or cell.curr_special_state_plant.get(PlantCell.E_SpecialStatePlant.IsIceRoad, false) \
-					or cell.curr_special_state_plant.get(PlantCell.E_SpecialStatePlant.IsPot, false):
-				continue
-			candidates.append(Vector2i(row,col))
+		return result
+	var candidates: Array[PlantCell] = [] # 不在此阶段清除植物。
+	for cell: PlantCell in plant_cell_manager.board.cells(): # 每个候选对应一个真实种植点。
+		if (not columns.is_empty() and not columns.has(cell.row_col.y)) or _has_grave(cell) \
+				or cell.get_spawn_terrain_type() == CharacterRegistry.ZombieRowType.Pool \
+				or not cell.is_terrain_planting_allowed():
+			continue
+		if cell.curr_special_state_plant.get(PlantCell.E_SpecialStatePlant.IsCrater, false) \
+				or cell.curr_special_state_plant.get(PlantCell.E_SpecialStatePlant.IsIceRoad, false) \
+				or cell.curr_special_state_plant.get(PlantCell.E_SpecialStatePlant.IsPot, false):
+			continue
+		candidates.append(cell)
 	candidates.shuffle()
-	for pos in candidates.slice(0,mini(count,candidates.size())):
-		var cell: PlantCell = plant_cell_manager.all_plant_cells[pos.x][pos.y]
-		_create_one_tombstone(cell,pos,&"pvz2")
-		if cell.tombstone is PvZ2AttackableTombstone:
-			created.append(cell.tombstone)
-	return created
+	for cell: PlantCell in candidates.slice(0, count): # 仍走同一个实体/占用生成入口。
+		_create_one_tombstone(cell, &"pvz2")
+		if _has_grave(cell):
+			result.append(cell.tombstone)
+	return result
 
-#endregion
-
-#region 存档
-
-## 保存墓碑种类及剩余生命；保留旧二维布尔字段兼容既有存档。
+## 保存稳定地块身份、墓碑种类和血量；旧地址仅为兼容资料。
 func get_save_game_data_tomb_stone_manager() -> Dictionary:
-	var records: Array[Dictionary] = []
-	for r in range(plant_cell_manager.all_plant_cells.size()):
-		for c in range(plant_cell_manager.all_plant_cells[r].size()):
-			var stone: TombStone = plant_cell_manager.all_plant_cells[r][c].tombstone
-			if not is_instance_valid(stone) or stone.is_queued_for_deletion():
-				continue
-			records.append({
-				"row": r, "col": c,
-				"kind": str(stone.get_tombstone_kind()),
-				"hp": stone.get_current_hp(),
-			})
-	return {"all_is_tombstone": all_is_tombstone, "tombstones": records}
+	var records: Array[Dictionary] = [] # 不再持久化冗余占用矩阵。
+	for cell: PlantCell in plant_cell_manager.board.cells(): # 同一墓碑只有一个地块拥有者。
+		if _has_grave(cell):
+			records.append({"cell_id": str(cell.cell_id), "row": cell.row_col.x, "col": cell.row_col.y,
+				"kind": str(cell.tombstone.get_tombstone_kind()), "hp": cell.tombstone.get_current_hp()})
+	return {"tombstones": records}
 
-func load_game_data_tomb_stone_manager(save_data: Dictionary):
-	if save_data.has("tombstones") and save_data["tombstones"] is Array:
-		for record in save_data["tombstones"]:
-			if not record is Dictionary:
-				continue
-			var r := int(record.get("row", -1))
-			var c := int(record.get("col", -1))
-			if r < 0 or r >= all_is_tombstone.size():
-				continue
-			if c < 0 or c >= all_is_tombstone[r].size() or all_is_tombstone[r][c]:
-				continue
-			var pos := Vector2i(r, c)
-			var cell: PlantCell = plant_cell_manager.all_plant_cells[r][c]
-			var kind: StringName = &"pvz2" if record.get("kind", "") == "pvz2" else &"legacy"
-			_create_one_tombstone(cell, pos, kind)
-			if kind == &"pvz2" and is_instance_valid(cell.tombstone):
-				cell.tombstone.restore_hp(int(record.get("hp", 700)))
+## 校验 [param data] 的全部引用；旧矩阵只在旧场景兼容，错误记录不静默丢失。
+func accepts_save(data: Dictionary) -> bool:
+	var records: Array = _records(data) # 统一旧矩阵与当前记录协议。
+	if records.size() == 1 and records[0] == null:
+		return false
+	var seen: Dictionary[StringName, bool] = {} # 防止同一地块重复生成。
+	for record: Variant in records: # 先检查未可信数据类型。
+		if not record is Dictionary or not record.get("cell_id", "") is String \
+				or not record.get("row", -1) is int or not record.get("col", -1) is int:
+			return false
+		var cell: PlantCell = plant_cell_manager.saved_cell(StringName(record.get("cell_id", "")),
+			Vector2i(record.get("row", -1), record.get("col", -1))) # 稳定 ID 优先。
+		if cell == null or seen.has(cell.cell_id) or record.get("kind", "legacy") not in ["legacy", "pvz2"]:
+			return false
+		if record.get("kind", "legacy") == "pvz2" and (not record.get("hp") is int or record["hp"] <= 0):
+			return false
+		seen[cell.cell_id] = true
+	return true
+
+## 已通过整体战场预检后恢复 [param data]，不会重排地块。
+func load_game_data_tomb_stone_manager(data: Dictionary) -> void:
+	if not accepts_save(data):
+		push_error("墓碑存档包含未知或重复地块。")
 		return
-	var old_cells: Array[Array] = save_data.get("all_is_tombstone", all_is_tombstone)
-	for i in range(mini(old_cells.size(), all_is_tombstone.size())):
-		for j in range(mini(old_cells[i].size(), all_is_tombstone[i].size())):
-			if old_cells[i][j] and not all_is_tombstone[i][j]:
-				var pos := Vector2i(i, j)
-				_create_one_tombstone(plant_cell_manager.all_plant_cells[i][j], pos)
+	for record: Dictionary in _records(data): # 完整预检后的有效记录。
+		var cell: PlantCell = plant_cell_manager.saved_cell(StringName(record.get("cell_id", "")),
+			Vector2i(record.get("row", -1), record.get("col", -1))) # 对应实际地块。
+		var kind := StringName(record.get("kind", "legacy")) # 已验证种类。
+		_create_one_tombstone(cell, kind)
+		if kind == &"pvz2" and _has_grave(cell):
+			cell.tombstone.restore_hp(record["hp"])
 
-#endregion
+## 将 [param data] 中旧布尔矩阵解码为记录；[null] 表示非法格式，空数组表示没有墓碑。
+func _records(data: Dictionary) -> Array:
+	if data.has("tombstones"):
+		return data["tombstones"] if data["tombstones"] is Array else [null]
+	var result: Array = [] # 仅向后兼容读取，不在运行时保留矩阵。
+	var rows: Variant = data.get("all_is_tombstone", []) # 老版本存档字段。
+	if not rows is Array:
+		return [null]
+	for r: int in range(rows.size()): # 老矩阵的逻辑行号。
+		if not rows[r] is Array:
+			return [null]
+		for c: int in range(rows[r].size()): # 老矩阵的逻辑列号。
+			if not rows[r][c] is bool:
+				return [null]
+			if rows[r][c]:
+				result.append({"row": r, "col": c, "kind": "legacy"})
+	return result

@@ -80,12 +80,9 @@ func create_imp():
 ## 获取投掷小鬼的目标位置
 func _get_imp_throw_glo_pos()->Vector2:
 	if fallback_throw_column >= 0 and global_position.x <= MinXThrowGargantuar:
-		var grid: Array[Array] = Global.main_game.plant_cell_manager.all_plant_cells
-		if lane >= 0 and lane < grid.size() and fallback_throw_column < grid[lane].size():
-			var target_cell: PlantCell = grid[lane][fallback_throw_column] as PlantCell
-			glo_pos_imp_be_thrown = Vector2(
-				target_cell.global_position.x + target_cell.size.x * 0.5,
-				Global.main_game.zombie_manager.all_zombie_rows[lane].zombie_create_position.global_position.y)
+		var target_cell: PlantCell = Global.main_game.board.cell_at(Vector2i(lane, fallback_throw_column)) # 真实逻辑地址。
+		if target_cell != null:
+			glo_pos_imp_be_thrown = target_cell.get_spawn_global_position()
 			return glo_pos_imp_be_thrown
 	var target_x_imp_throw = clamp(global_position.x - XThrow, RangeXImpThrow.x, RangeXImpThrow.y)
 	var target_x_imp_throw_res = target_x_imp_throw + randf_range(RangeRandomXThrow.x, RangeRandomXThrow.y)

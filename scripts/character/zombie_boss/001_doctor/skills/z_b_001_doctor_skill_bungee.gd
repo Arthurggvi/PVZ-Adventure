@@ -104,9 +104,9 @@ func prepare_action() -> StringName:
 	# 选中范围的首列格子，屋顶高度不会被应用到手臂 Y。
 	var start_cell: PlantCell = selected.start_cell
 	# 使用相同的初始种植点，避免花盆容器移动改变对齐结果。
-	var reference_position: Vector2 = reference_cell.plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Norm]
+	var reference_position: Vector2 = reference_cell.get_slot_anchor_global_position(CharacterRegistry.PlacePlantInCell.Norm)
 	# 目标定位点转换到手臂父级的局部坐标后只取 X。
-	var target_position: Vector2 = start_cell.plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Norm]
+	var target_position: Vector2 = start_cell.get_slot_anchor_global_position(CharacterRegistry.PlacePlantInCell.Norm)
 	# 手臂父级坐标空间兼容博士自身的缩放，不硬编码单列像素宽度。
 	var arm_parent := position_node.get_parent() as Node2D
 	# 第一列标定位置加横向列差，Y 来自场地配置，不叠加屋顶高度。

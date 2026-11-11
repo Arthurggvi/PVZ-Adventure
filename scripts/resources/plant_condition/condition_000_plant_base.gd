@@ -1,6 +1,11 @@
 extends Resource
 class_name ResourcePlantCondition
 
+## 额外需要的地形能力标签；空数组保持全部原植物行为。
+@export var required_terrain_tags: Array[StringName] = []
+## 明确禁止的地形能力标签，不与原种植能力位混用。
+@export var forbidden_terrain_tags: Array[StringName] = []
+
 @export_group("植物种植")
 @export_flags("1 无", "2 草地", "4 花盆", "8 水", "16 睡莲", "32 屋顶/裸地")
 ## 植物种植地形条件（满足一个即可），默认（草地2+花盆4+睡莲16 = 22）
@@ -57,6 +62,25 @@ func get_upgrade_claims(cell: PlantCell, plant_type: CharacterRegistry.PlantType
 
 ## All planting entrypoints use the same conditions before mutating the board.
 func judge_is_can_plant(plant_cell: PlantCell, curr_plant_type: CharacterRegistry.PlantType) -> bool:
+	if not is_instance_valid(plant_cell):
+		return false
+	var footprint: Array[PlantCell] = placement_cells(plant_cell) # 预览与事务使用同一占用声明。
+	if footprint.is_empty():
+		return false
+	for target: PlantCell in footprint: # 所有占用地块共享固有地形限制。
+		if not is_instance_valid(target) or target.board != plant_cell.board:
+			return false
+		if plant_cell.board_definition != null and (target.board_definition == null \
+			or target.board_definition.surface_id != plant_cell.board_definition.surface_id):
+			return false
+		if not target.is_terrain_planting_allowed():
+			return false
+		for tag: StringName in required_terrain_tags: # 新物种可声明能力而无需认识地形种类。
+			if target.board_terrain == null or not target.board_terrain.tags.has(tag):
+				return false
+		for tag: StringName in forbidden_terrain_tags: # 禁止能力优先于物种特殊规则。
+			if target.board_terrain != null and target.board_terrain.tags.has(tag):
+				return false
 	if is_purple_card:
 		var cells: Array[PlantCell] = placement_cells(plant_cell)
 		if cells.is_empty():

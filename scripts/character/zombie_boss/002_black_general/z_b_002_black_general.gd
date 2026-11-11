@@ -476,7 +476,8 @@ func _summon(type: CharacterRegistry.ZombieType, row: int, tier: StringName, x: 
 
 ## 返回本行格宽，召唤与插旗共享前方一格定义。
 func _cell_width() -> float:
-	return (_game.plant_cell_manager.all_plant_cells[lane][0] as PlantCell).size.x
+	return _game.board.cell_width_at(global_position, lane)
+
 
 ## [param row] 零起始行号，返回脚底世界纵坐标。
 func _row_y(row: int) -> float:

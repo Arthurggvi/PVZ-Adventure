@@ -4,6 +4,8 @@ extends Resource
 class_name AdventureStageOverride
 
 @export var environment: AdventureBattleEnvironment
+## 单关空间覆盖；定义自有地形，不能同时使用 terrain_rows_override。
+@export var board_definition: BoardDefinition
 ## 单关美术差异，不覆盖地区默认环境玩法配置。
 @export var battle_background_texture: Texture2D
 ## 单关水面表现覆盖，空值继承地区默认水面配置。
@@ -58,6 +60,11 @@ func apply(stage: StageDefinition) -> bool:
 		return false
 	if environment != null:
 		stage.environment = environment.duplicate(true) as AdventureBattleEnvironment
+	if board_definition != null and stage.environment != null:
+		if not terrain_rows_override.is_empty():
+			return false
+		stage.environment.board_definition = board_definition
+		stage.environment.terrain_rows.clear()
 	if battle_background_texture != null and stage.environment != null:
 		stage.environment.background_texture = battle_background_texture
 	if water_surface_profile != null and stage.environment != null:

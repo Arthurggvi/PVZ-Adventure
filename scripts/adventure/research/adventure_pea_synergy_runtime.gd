@@ -61,8 +61,7 @@ func _refresh() -> void:
 			var right: Plant000Base = plants[ids[j]]
 			if not (sources[ids[i]] or sources[ids[j]]):
 				continue
-			if absi(left.row_col.x - right.row_col.x) > 1 \
-					or absi(left.row_col.y - right.row_col.y) > 1:
+			if not game.board.neighbors(left.plant_cell).has(right.plant_cell):
 				continue
 			buffs[ids[i]] = float(buffs.get(ids[i], 0.0)) + 0.1
 			buffs[ids[j]] = float(buffs.get(ids[j], 0.0)) + 0.1

@@ -166,12 +166,12 @@ func random_res():
 			if p_plant_zombie <=0.5:
 				curr_plant_type = Global.global_read_data.whitelist_plant_types_with_pot.pick_random()
 			else:
-				var curr_zomebi_row_type:CharacterRegistry.ZombieRowType = Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x].zombie_row_type
+				var curr_zomebi_row_type:CharacterRegistry.ZombieRowType = plant_cell.get_spawn_terrain_type()
 				curr_zombie_type = Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[curr_zomebi_row_type].pick_random()
 		E_PotType.Plant:
 			curr_plant_type = Global.global_read_data.whitelist_plant_types_with_pot.pick_random()
 		E_PotType.Zombie:
-			var curr_zomebi_row_type:CharacterRegistry.ZombieRowType = Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x].zombie_row_type
+			var curr_zomebi_row_type:CharacterRegistry.ZombieRowType = plant_cell.get_spawn_terrain_type()
 			curr_zombie_type = Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[curr_zomebi_row_type].pick_random()
 
 ## 打开 [param plant_type] 对应植物的临时卡，保留原有位置、限时和弹出动画。
@@ -212,10 +212,7 @@ func open_zombie(zombie_type:CharacterRegistry.ZombieType):
 		zombie_type,
 		Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x],
 		zombie_init_para,
-		Vector2(
-			plant_cell.global_position.x + plant_cell.size.x/2,
-			Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x].zombie_create_position.global_position.y
-		),
+		plant_cell.get_spawn_global_position(),
 		GlobalUtils.get_special_zombie_callable(zombie_type, plant_cell)
 	)
 
@@ -315,7 +312,7 @@ func character_static_init_res_random_plant():
 ## 为本行地形允许的普通僵尸预先复制静态预览，僵王不进入罐子内容。
 func character_static_init_res_random_zombie():
 	# 当前罐子所在僵尸行的地形类型。
-	var curr_zomebi_row_type:CharacterRegistry.ZombieRowType = Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x].zombie_row_type
+	var curr_zomebi_row_type:CharacterRegistry.ZombieRowType = plant_cell.get_spawn_terrain_type()
 	## 从白名单生成所有的僵尸虚影
 	# 本行地形对应的普通僵尸内容编号。
 	for zombie_type:CharacterRegistry.ZombieType in Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[curr_zomebi_row_type]:

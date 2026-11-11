@@ -44,9 +44,9 @@ func prepare_action() -> StringName:
 	# 锁定格子引用而非植物；落地时再读取格子中的最新植物。
 	var cells: Array[PlantCell] = ZB001DoctorCellQuery.get_region(grid, selected, attack_size)
 	# 初始种植点不随花盆/睡莲的容器位移改变，已包含格子在屋顶上的布局。
-	var reference_global: Vector2 = reference_cells[0].plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Norm]
+	var reference_global: Vector2 = reference_cells[0].get_slot_anchor_global_position(CharacterRegistry.PlacePlantInCell.Norm)
 	# 目标使用与基准相同的定位点，避免重复添加斜坡高度。
-	var target_global: Vector2 = cells[0].plant_postion_node_ori_global_position[CharacterRegistry.PlacePlantInCell.Norm]
+	var target_global: Vector2 = cells[0].get_slot_anchor_global_position(CharacterRegistry.PlacePlantInCell.Norm)
 	# 在手臂父节点的局部空间求差，兼容博士父级的缩放和旋转。
 	var arm_parent := position_node.get_parent() as Node2D
 	apply_visual_position(scene_config.throw_rv_cell_one_position + arm_parent.to_local(target_global) - arm_parent.to_local(reference_global))

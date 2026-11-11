@@ -7,7 +7,7 @@
 - **工程与引擎**：`C:\Dev\PvZ\PVZ-Adventure`（Git `develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时优先远程只读审计，获授权后直接施工，避免让用户手工搬运文件。
 - **本交接文档唯一原件**：`C:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。Git 跟踪入口 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 是**同一 NTFS 硬链接**，不应独立编辑/替换。改动需原位写入，并用 `fsutil hardlink list` 验证仍为同一文件。
 - **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `C:\Dev\PvZ\_review\<module>` 用于临时审查；`C:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。
-- **施工顺序**：检查 Git 和连接 → 读本文及权威代码/资源 → 复现并定位根因 → 设计通用接口与状态所有权 → 直接重构旧实现 → Godot 导入与定向测试 → 真实场景渲染/视觉自审 → 必要时 Catbox 手机验收 → 仅暂存本轮文件并提交。
+- **施工顺序**：检查 Git 和连接 → 读本文及权威代码/资源 → 复现并定位根因 → 设计通用接口与状态所有权 → 直接重构旧实现 → Godot 导入/解析检查 → 按 AGENTS.md 在明确获授权时运行测试/实机验收 → 必要时 Catbox 手机验收 → 仅暂存本轮文件并提交。
 - **仓库纪律**：先 `git status --short`、`git log -1`，保护并行工作区；禁止未授权的 `git reset`、`git clean`、`git add .` 和 `git push`。提交前 `git diff --cached --check` 并逐项核对暂存清单。被 `.gitignore` 忽略的新美术资源，必要时定向 `git add -f`。
 - **架构原则**：一条权威数据与状态链；配置描述差异，组件实现机制。禁止针对某一关/植物/僵尸追加并行实现、补丁式坐标修正、冗余管理器或把重复接线留给后续开发者。
 
@@ -16,7 +16,8 @@
 | 系统 | 唯一入口与维护边界 |
 |---|---|
 | 冒险关卡与续战 | `AdventureStageRegistry` / `AdventureStageCatalog` → `AdventureStageOverride` → `AdventureBattleEnvironmentAdapter` → `ResourceLevelData` / `AdventureSession.active_phase` → `AdventureBattleRuntime`、WavePlanner、BossDirector、`AdventureContinuationController`。进入不询问难度；普通结束后有钥匙可选择接续噩梦。 |
-| 战场水陆地形 | `AdventureBattleEnvironment.terrain_rows` → `ResourceLevelData.terrain_rows` → `ZombieManager` 行类型、`PlantCellManager` 格子类型、`GIM_LawnMover` 清洁车。视觉材质不能代替地形判定。 |
+| 战场种植空间 | `board_definition`（单关覆盖/环境/ResourceLevelData）→ `MainGameManager._enter_tree()` → `BoardSceneAdapter` → `MainGameManager.board: BoardRuntime`。定义与运行时位于 `scripts/battle/board/`；配置/扩展指南 `docs/adventure/board_authoring.md`，见下方 §1.1。 |
+| 战场水陆地形 | 显式布局由 `BoardTerrainDefinition` 决定单格能力、`BoardLaneDefinition` 决定出怪与清洁车；旧 `terrain_rows` 只由 BoardSceneAdapter 适配现有场景。两种布局配置不能同时使用，视觉分类不能代替逻辑能力。 |
 | 水面视觉与接触 | `AdventureBattleEnvironment.water_surface_profile` → `BackgroundManager` → `WaterSurfaceController` / `WaterSurfaceProfile` → 同源 `WaterBodyArea`；泳池和局部水沟共享水面 Shader 与入水协议，详见 §2。 |
 | 植物种植与承托 | 卡片 `HMCharacter.click_cell` → `PlantCell.create_plant` → 实体占用成功 → 卡片 `signal_card_use_end` 费用/冷却结算。`PlantCell` 持有地形条件、占格、承托层锚点；详见 §3。 |
 | 研究室/植物卡牌 | `PlantCardInstance` / `PlantSpawnProfile` / `AdventureBattleAdapter` / `PlantSceneFactory`；合成、强化、转职、扣料经 `ResearchService → ResearchTransaction`。战场、卡面、技能书外观基于同一实例/阶段。 |
@@ -26,6 +27,16 @@
 | 调试 | `addons/pvz_cheat/`。修改器可快速布卡/物品/波次，但不能以绕开正常放置及扣费的结果代替完整玩法验收。 |
 
 六关顺序：草坪、没落营地、墓地上游、墓地下游、下水道、埃德加神殿。非商业单机二创。
+
+## 1.1｜种植空间：状态所有权与扩展边界
+
+- **唯一所有权**：`BoardRuntime` 索引稳定 `cell_id`、逻辑 `address` 与平台，不复制占用。`PlantCell` 仍独占种植/升级/释放事务和承托层；`PlantCellManager` 不再自行生成矩阵，墓碑管理器不再维护 `all_is_tombstone` 冗余运行状态或改写格子列号。
+- **配置入口**：`BoardDefinition` 声明离散点、平台、地形目录和攻击行；`BoardGridDefinition` 只是规则网格生成器。任意 position/size、稀疏地址、局部 hit_polygon、显式邻接均可配置。当前六关保留原布局，经旧场景适配进入同一管线，没有改成示例行列数。
+- **运行时入口**：`game.board.cell_by_id/cell_at/row_cells/neighbors/horizontal_neighbors/right_of/nearest_cell/local_pitch`；移动走 `move_surface_to(surface_id, target, seconds)`，地形变更走 `set_cell_terrain(cell_id, terrain_id, keep_occupants=false)`。行副本只能枚举，禁止以 `[行][逻辑列]` 查询稀疏坐标；禁止缓存初始世界锚点。
+- **运动与占用**：地块、植物、荷叶上层/壳层、受击盒和交互区域由同一平台节点平移；多格植物禁止跨独立平台。自动往返/显式过渡使用有效战斗时间并受暂停控制。移动不改 cell_id、攻击行或邻接，不通过逐个植物补偿坐标实现。
+- **特殊地形**：能力位、承托能力、tags、具名禁种来源统一进入 ResourcePlantCondition。行为场景继承 `BoardTerrainBehavior`，每格独立实例；扩展行为负责自己的更新、移除清理和纯存档校验。`water_contact` 可创建地块同源接触体，水面美术与环境区域需配套配置。
+- **存档**：`board_state` 保存布局版本、稳定身份、地形/行为、平台运动阶段和攻击行顺序；植物/墓碑按 cell_id 恢复，旧 row_col 仅兼容旧布局。整份预检先于正式恢复；未知 ID、重复记录与错版拓扑拒绝恢复，不能静默回退。
+- **边界**：已接入离散种植空间和平移平台；未引入连续无格种植、旋转缩放、运行时增删地块、跨攻击行迁移或自由寻路。背景、镜头、屋顶坡面、原版大型 Boss 演出与按像素/行计算的攻击仍须针对新几何配套核验。源码接入不等于任意布局已完成实机验收。
 
 ## 2｜通用水面：原版泳池与下水道 1、5 路
 
@@ -37,7 +48,7 @@
 **正确实现方法**
 1. 水底纹理保留静态颜色、池壁和边界；水面独立渲染多频 UV 波纹与焦散。`WaterSurfaceProfile.regions` 使用**背景原图像素坐标**定义水域；改动底图时重新校准区域并实际看图，不能靠关卡 ID 或绘制后的屏幕坐标猜测。
 2. `WaterSurfaceController.configure_background` 从同一 `regions` 创建水面 `ColorRect` 与 `WaterBodyArea` 碰撞矩形；`configure_sprite` 支持原版泳池独立贴图。每区域私有材质；游戏时间 `water_time` 受暂停控制，`set_intensity` 调节强度。
-3. 僵尸 `SwimBoxComponent`（普通/潜水）通过检测 `area is WaterBodyArea` 进入或离开水，触发身体下沉、游泳动画/水花；不得恢复 `area.owner is Pool` 的旧场景类型耦合。僵尸能否在某行生成、植物能否在该行种植仍取 `terrain_rows`，两种判定不可混用。
+3. 僵尸 `SwimBoxComponent` 聚合 `WaterBodyArea` 接触；普通/潜水表现只处理首次入水/最后出水，避免相邻或重叠水格重复下沉。普通下沉使用固定基准和可取消过渡，旧异步回调不能覆盖新状态；不得恢复 `area.owner is Pool` 耦合。出怪行能力、单格种植能力与实际物理入水是分开的协议。
 4. 改水路时必须同时检查底图、区域视觉、物理入水体、僵尸游泳状态、格子种植条件及泳池清洁车。只画绿水或只添水面 Shader 都不算完成。
 
 **验证入口**：`res://tests/adventure/test_water_surface_integration.tscn`，检查区域、物理进入/离开、游戏帧推进、原版泳池协议。该测试通过只证明管线；完整战斗中的水波可见性、层级和游泳姿态仍须实机/逐帧视觉核验。
@@ -45,11 +56,11 @@
 ## 3｜种植事务与荷叶/花盆承托布局
 
 **权威路径**
-- `scripts/main_game_item/plant_cell.gd` 与 `scenes/ui/plant_cell.tscn`；基础承托类 `scripts/character/plant/plant_000_down_base.gd`；荷叶 `scenes/character/plant/plant_017_lily_pad.tscn`；水陆行投影 `scripts/manager/plant_cell_manager/plant_cell_manager.gd`。
+- `scripts/main_game_item/plant_cell.gd` 与 `scenes/ui/plant_cell.tscn`；基础承托类 `scripts/character/plant/plant_000_down_base.gd`；荷叶 `scenes/character/plant/plant_017_lily_pad.tscn`；空间/旧水陆行投影 `scripts/battle/board/board_scene_adapter.gd`，地形能力 `board_terrain_definition.gd`。
 - 正式种植与特殊植物条件分别经 `PlantCell.create_plant` / `ResourcePlantCondition`；荷叶 `condition_017_lily_pad.gd`。水路原始条件为 `9`（空/水），荷叶成功占用 Down 槽后为 `17`（空/荷叶）；移除后恢复 `9`。
 
 **不可违反的事务规则**
-1. `Plant000DownBase.init_plant` **只初始化实体**，不得提前切换格子地形。正式 `create_plant` 完成两次资格与占用校验，生成成功并写入 `plant_in_cell` 后，才由 `PlantCell._sync_support_terrain_condition()` 根据 Down 槽实际占用推导地形；释放/死亡时再同步。不得回退到旧版位掩码异或翻转。
+1. `Plant000DownBase.init_plant` **只初始化实体**，不得提前切换格子地形。正式 `create_plant` 完成两次资格与占用校验，生成成功并写入 `plant_in_cell` 后，才由 `PlantCell._sync_support_terrain_condition()` 根据 Down 槽实际占用投影 `BoardTerrainDefinition.supported_flags`；释放/死亡时恢复原能力。不得回退到旧版位掩码异或翻转。
 2. 放置失败应保持格子不变、卡牌不扣阳光；成功后经 `HMCharacter` 的成功信号由卡槽统一扣费/冷却。不能在植物脚本内私自扣阳光。需同时考虑读档、替换植物、铲除和重复种植。
 3. `PlantNormContainer` 与 `PlantShellContainer` 是带锚点的 `Control`，**始终留在 PlantCell**。`scenes/ui/plant_cell.tscn` 中各自的 `Content: Node2D` 才是实际植物容器；`_attach_support_layers(support)` 将两块 Content 挂到 `support.down_plant_container` 并使用承托物 `plant_up_position` 定位；`_detach_support_layers()` 回到锚点并归零局部位置。不要重新挂载整个 `Control`，不要用曾缓存的全局坐标回填。
 4. 植物的实体、壳体、放置虚影与承托位置必须引用同一组 `plant_container_node` 内容锚点；随荷叶浮动时上层一起移动，荷叶消失后回格子定位。荷叶承托偏移以资源配置为准，当前 `plant_up_position = Vector2(0,10)`；禁止给下水道、西瓜投手或单个植物加特判偏移。
@@ -79,6 +90,6 @@
 ## 6｜验收与交接收口
 
 - 核对**真实运行链路**：关卡启动、参数投影、有效场景格子、真正的卡槽扣费与冷却、入水触发、屏幕绘制。原版泳池与下水道两处均需回归。尤其关注承托植物种植/铲除/读档和跨行错位。
-- 自动化：运行相关的 `test_water_surface_integration.tscn`、`test_ground_support_transaction.tscn`、`test_lily_pad_support_layout.tscn`，同时跑 Godot 4.7.2 headless editor 导入。测试通过不等于完整视觉/用户手操已验收。
-- **仍需实机终验**：下水道第 1、5 路水面动态实际可见性、荷叶及上层植物长期浮动/格子对齐、僵尸游泳、真实卡槽阳光结算、原版泳池兼容；暴雨长时性能和正常通关接续噩梦流程亦不能仅以单元测试判定。
+- 验证遵循 `AGENTS.md`：默认不新增、不运行测试；同步已有测试的失效接口引用，执行 Godot 4.7.2 headless editor 导入/解析。明确获授权后再运行相关水面、承托、关卡和存档测试；解析成功不等于测试或完整视觉验收通过。
+- **仍需实机终验**：自定义稀疏坐标、移动平台/静止鼠标交互、荷叶多层随动、地形切换和稳定 ID 读档；下水道第 1、5 路水面动态实际可见性、荷叶及上层植物长期浮动/格子对齐、僵尸游泳、真实卡槽阳光结算、原版泳池兼容；暴雨长时性能和正常通关接续噩梦流程亦不能仅以单元测试判定。
 - 交接文档永远只保留**当前唯一管线、权威路径、真正可复用的方法与未关闭风险**；旧补丁路径、临时测试结论、过期链接、冗余清单和随时变化的 Git 提交快照不写入正文。

@@ -9,7 +9,7 @@ func update_plant_cell_slope_y(plant_cell:PlantCell, node_2d:Node2D):
 	## 斜面与水平面的差值
 	var diff_slope_flat:float = 0
 	if is_instance_valid(plant_cell):
-		diff_slope_flat = plant_cell.position.y
+		diff_slope_flat = plant_cell.get_ground_height()
 
 	if diff_slope_flat != 0:
 		node_2d.position.y -= diff_slope_flat
@@ -18,7 +18,7 @@ func update_plant_cell_slope_y_array(plant_cell:PlantCell, node2d_detect_in_slop
 	## 斜面与水平面的差值
 	var diff_slope_flat:float = 0
 	if is_instance_valid(plant_cell):
-		diff_slope_flat = plant_cell.position.y
+		diff_slope_flat = plant_cell.get_ground_height()
 
 	if diff_slope_flat != 0:
 		for n in node2d_detect_in_slope:

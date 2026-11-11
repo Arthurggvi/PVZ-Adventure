@@ -2,6 +2,9 @@ extends Resource
 class_name ResourceSaveGamePlantCellManager
 ## 植物格子管理器存档数据
 
+## 战场空间版本、地块地形与平台运动状态，不复制植物占用。
+@export var board_state: Dictionary = {}
+
 ## 每个植物格子的数据
 ## 若植物格子有数据,则保存行列和数据,若没有数据,则跳过该格子
 @export var all_plant_cells_datas:Array[ResourceSaveGamePlantCell]

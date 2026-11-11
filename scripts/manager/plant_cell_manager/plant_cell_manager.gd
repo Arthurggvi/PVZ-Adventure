@@ -4,11 +4,18 @@ class_name PlantCellManager
 @onready var plant_cells_root: Node2D = %PlantCellsRoot
 @onready var tomb_stone_manager: TombStoneManager = $TombStoneManager
 
-## PlantCellManager初始化
-## 二维数组，保存每个植物格子节点
-var all_plant_cells: Array[Array] = []
-## 植物格子的行和列
-var row_col:Vector2i = Vector2i.ZERO
+## 当前战场的唯一空间状态，管理器不再构造或维护另一份网格。
+var board: BoardRuntime:
+	get:
+		return main_game.board if is_instance_valid(main_game) else null
+## 兼容旧枚举消费者的只读行视图；稀疏地址必须使用 board.cell_at。
+var all_plant_cells: Array[Array]:
+	get:
+		return board.rows() if board != null else []
+## 逻辑地址边界，不等同于实际地块数量。
+var row_col: Vector2i:
+	get:
+		return board.extent if board != null else Vector2i.ZERO
 ## TombStoneManager(PlantCellManager子节点)初始化
 ## 生成的墓碑列表(一维)
 var tombstone_list :Array[TombStone] = []
@@ -31,34 +38,11 @@ func _ready() -> void:
 	## 火爆辣椒销毁道具[冰道和梯子]
 	EventBus.subscribe("jalapeno_bomb_item_lane", jalapeno_bomb_item_lane)
 
-	## 植物种植区域信号，更新植物位置列号,更新墓碑信息
-	if not game_para.terrain_rows.is_empty() and game_para.terrain_rows.size() != plant_cells_root.get_child_count():
-		push_error("关卡行地形数量与植物格子行数不一致")
+	if board == null or not board.configured:
 		return
-	for plant_cells_row_i in plant_cells_root.get_child_count():
-		## 某一行all_plant_cells
-		var plant_cells_row:CanvasItem = plant_cells_root.get_child(plant_cells_row_i)
-		plant_cells_row.z_index = plant_cells_row_i * 50 + 10
-		var plant_cells_row_node := []
-		## plant_cell是从右向左的顺序，这里从左到右
-		for plant_cells_col_j in range(plant_cells_row.get_child_count() - 1, -1, -1):
-			var plant_cell:PlantCell = plant_cells_row.get_child(plant_cells_col_j)
-			# 冒险关卡逐行地形在植物格子已就绪后投影，保持种植判定与僵尸行一致。
-			if not game_para.terrain_rows.is_empty():
-				match game_para.terrain_rows[plant_cells_row_i]:
-					CharacterRegistry.ZombieRowType.Pool:
-						plant_cell.plant_cell_type = PlantCell.PlantCellType.Pool
-					CharacterRegistry.ZombieRowType.Land:
-						plant_cell.plant_cell_type = PlantCell.PlantCellType.Grass
-				plant_cell.init_condition()
-			plant_cell.row_col = Vector2(plant_cells_row_i, plant_cells_col_j)
-			plant_cells_row_node.append(plant_cell)
-			plant_cell.signal_plant_create.connect(update_plant_info_create)
-			plant_cell.signal_plant_free.connect(update_plant_info_free)
-
-		all_plant_cells.append(plant_cells_row_node)
-
-	row_col = Vector2i(all_plant_cells.size(), all_plant_cells[0].size())
+	for cell: PlantCell in board.cells(): # 空间已装配，只连接种植统计，不改布局身份。
+		cell.signal_plant_create.connect(update_plant_info_create)
+		cell.signal_plant_free.connect(update_plant_info_free)
 
 
 #region 植物信息
@@ -106,36 +90,23 @@ func signal_connect_plant_cell_with_hand_manager(hand_manager:HandManager):
 
 ## 预种植植物数据
 func create_pre_plant():
-	## 预种植植物数据
-	var all_pre_plant_data = game_para.all_pre_plant_data
-	for pre_plant_data in all_pre_plant_data:
-		if pre_plant_data == null:
-			printerr("关卡数据中预种植植物有空值")
+	for data: PrePlantResource in game_para.all_pre_plant_data: # 预种植指令，无副作用地选择实际格子。
+		if data == null:
 			continue
-		## 行或列大于当前最大值\小于0,跳过
-		if pre_plant_data.plant_cell_pos.x > row_col.x or\
-		pre_plant_data.plant_cell_pos.y > row_col.y or\
-		pre_plant_data.plant_cell_pos.x < 0 or pre_plant_data.plant_cell_pos.y < 0:
+		if data.cell_id != &"":
+			var target: PlantCell = board.cell_by_id(data.cell_id) # 稳定身份优先，不回退错误坐标。
+			if target != null:
+				plant_cell_pre_plant(target, data.plant_type, data.is_imitater_plant, game_para.is_zombie_mode)
+			else:
+				push_error("预种植引用未知地块：%s" % data.cell_id)
 			continue
-		## 满屏铺满
-		elif pre_plant_data.plant_cell_pos.x == 0 and pre_plant_data.plant_cell_pos.y == 0:
-			for plant_cell_row in all_plant_cells:
-				for plant_cell:PlantCell in plant_cell_row:
-					plant_cell_pre_plant(plant_cell, pre_plant_data.plant_type, pre_plant_data.is_imitater_plant, game_para.is_zombie_mode)
-		## 某一列
-		elif pre_plant_data.plant_cell_pos.x == 0 and pre_plant_data.plant_cell_pos.y != 0:
-			for plant_cell_row in all_plant_cells:
-				var plant_cell:PlantCell = plant_cell_row[pre_plant_data.plant_cell_pos.y-1]
-				plant_cell_pre_plant(plant_cell, pre_plant_data.plant_type, pre_plant_data.is_imitater_plant, game_para.is_zombie_mode)
-		## 某一行
-		elif pre_plant_data.plant_cell_pos.x != 0 and pre_plant_data.plant_cell_pos.y == 0:
-			var plant_cell_row = all_plant_cells[pre_plant_data.plant_cell_pos.x-1]
-			for plant_cell:PlantCell in plant_cell_row:
-				plant_cell_pre_plant(plant_cell, pre_plant_data.plant_type, pre_plant_data.is_imitater_plant, game_para.is_zombie_mode)
-		## 某一个
-		else:
-			var plant_cell:PlantCell = all_plant_cells[pre_plant_data.plant_cell_pos.x-1][pre_plant_data.plant_cell_pos.y-1]
-			plant_cell_pre_plant(plant_cell, pre_plant_data.plant_type, pre_plant_data.is_imitater_plant, game_para.is_zombie_mode)
+		if data.plant_cell_pos.x < 0 or data.plant_cell_pos.y < 0:
+			continue
+		for cell: PlantCell in board.cells(): # 旧 1 起点/0 通配语义不变，缺格不参与。
+			if (data.plant_cell_pos.x == 0 or data.plant_cell_pos.x == cell.row_col.x + 1) \
+				and (data.plant_cell_pos.y == 0 or data.plant_cell_pos.y == cell.row_col.y + 1):
+				plant_cell_pre_plant(cell, data.plant_type, data.is_imitater_plant, game_para.is_zombie_mode)
+
 
 ## 始化我是僵尸模式的植物数据
 func init_plant_on_zombie_mode():
@@ -146,8 +117,9 @@ func init_plant_on_zombie_mode():
 	plant_random_pool_on_zombie_mode = RandomPicker.new(plant_random_pool_on_zombie_mode_data)
 	all_plant_cells_create_plant_on_zombie_mode.clear()
 
-	for i in range(row_col.x):
-		all_plant_cells_create_plant_on_zombie_mode.append_array(all_plant_cells[i].slice(0, game_para.plant_col_on_zombie_mode))
+	for cell: PlantCell in board.cells(): # 按实际逻辑列过滤，不把稀疏行压缩成数组列。
+		if cell.row_col.y < game_para.plant_col_on_zombie_mode:
+			all_plant_cells_create_plant_on_zombie_mode.append(cell)
 
 ## 创建我是僵尸模式的植物
 func create_plant_on_zombie_mode():
@@ -194,25 +166,16 @@ func cerate_pot():
 
 ## 将需求的植物格子按僵尸行类型分类
 func init_plant_cell_row_on_zombie_row_type():
-	if game_para.pot_col_range.y > row_col.y:
-		game_para.pot_col_range.y = row_col.y
-		print("warning:生成罐子的结束列数大于当前场景植物格子的列数，生成罐子的结束列数已修改为植物格子列数")
-	## 罐子需要的列
-	var need_col:int = game_para.pot_col_range.y - game_para.pot_col_range.x
-	var num_pot_candidate:int = need_col * row_col.x
-	print("设置罐子的列数：", need_col, " 罐子生成位置数量为：", num_pot_candidate)
-
-	if need_col == 0:
-		print("warning: 罐子列数为0，取消生成罐子")
-		return
-
+	plant_cell_row_on_zombie_row_type[CharacterRegistry.ZombieRowType.Land].clear()
+	plant_cell_row_on_zombie_row_type[CharacterRegistry.ZombieRowType.Pool].clear()
+	var candidate_count: int = 0 # 只计真实种植点，不能以行数乘列数估算。
+	for cell: PlantCell in board.cells(): # 局部水陆能力独立于整行生成能力。
+		if cell.row_col.y >= game_para.pot_col_range.x and cell.row_col.y < game_para.pot_col_range.y:
+			plant_cell_row_on_zombie_row_type[cell.get_spawn_terrain_type()].append(cell)
+			candidate_count += 1
 	if game_para.pot_mode == ConstLevelData.E_PotMode.Fixd:
-		print("罐子生成模式为 固定数量生成模式， 罐子生成总数为：", game_para.pot_num_on_fixed_mode)
-		assert(game_para.pot_num_on_fixed_mode <= num_pot_candidate, "罐子需求总数为：" + str(game_para.pot_num_on_fixed_mode) + "生成罐子候选植物格子数量为：" + str(num_pot_candidate))
+		assert(game_para.pot_num_on_fixed_mode <= candidate_count, "罐子需求超过实际种植点数量。")
 
-	for i in range(all_plant_cells.size()):
-		var plant_cell_row:Array= all_plant_cells[i]
-		plant_cell_row_on_zombie_row_type[Global.main_game.zombie_manager.all_zombie_rows[i].zombie_row_type].append_array(plant_cell_row.slice(game_para.pot_col_range.x, game_para.pot_col_range.y))
 
 
 #region 权重模式
@@ -275,12 +238,12 @@ func get_pot_para_on_weight_mode(plant_cell:PlantCell) -> Dictionary:
 				if p_is_plant_or_zombie <= 0.5:
 					pot_para[ScaryPot.E_PotInitParaAttr.PlantType] = pot_plant_random_pool.get_random_item()
 				else:
-					var curr_zomebi_row_type:CharacterRegistry.ZombieRowType = Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x].zombie_row_type
+					var curr_zomebi_row_type:CharacterRegistry.ZombieRowType = plant_cell.get_spawn_terrain_type()
 					pot_para[ScaryPot.E_PotInitParaAttr.ZombieType] = pot_zombie_random_pool[curr_zomebi_row_type].get_random_item()
 			ScaryPot.E_PotType.Plant:
 				pot_para[ScaryPot.E_PotInitParaAttr.PlantType] =pot_plant_random_pool.get_random_item()
 			ScaryPot.E_PotType.Zombie:
-				var curr_zomebi_row_type:CharacterRegistry.ZombieRowType = Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x].zombie_row_type
+				var curr_zomebi_row_type:CharacterRegistry.ZombieRowType = plant_cell.get_spawn_terrain_type()
 				pot_para[ScaryPot.E_PotInitParaAttr.ZombieType] = pot_zombie_random_pool[curr_zomebi_row_type].get_random_item()
 	else:
 		pot_para[ScaryPot.E_PotInitParaAttr.IsFixedRes] = false
@@ -451,7 +414,7 @@ func create_tombstone(new_num:int):
 ## 火爆辣椒爆炸特效
 ## [lane:int]:行
 func jalapeno_bomb_effect(lane:int):
-	for plant_cell:PlantCell in all_plant_cells[lane]:
+	for plant_cell:PlantCell in board.row_cells(lane):
 		var fire_new:BombEffectFire = SceneRegistry.FIRE.instantiate()
 		## 修改其图层
 		fire_new.z_index = lane * 50 + 40
@@ -463,7 +426,7 @@ func jalapeno_bomb_effect(lane:int):
 
 func jalapeno_bomb_item_lane(lane:int):
 	## 梯子
-	for p_c :PlantCell in all_plant_cells[lane]:
+	for p_c :PlantCell in board.row_cells(lane):
 		if is_instance_valid(p_c.ladder):
 			p_c.ladder.queue_free()
 
@@ -518,6 +481,7 @@ func start_next_game_plant_cell_manager_update():
 ## 植物格子管理器存档
 func get_save_game_data_plant_cell_manager() -> ResourceSaveGamePlantCellManager:
 	var save_game_data_plant_cell_manager:ResourceSaveGamePlantCellManager = ResourceSaveGamePlantCellManager.new()
+	save_game_data_plant_cell_manager.board_state = board.capture_state()
 
 	for plant_cell_lane in all_plant_cells:
 		for plant_cell:PlantCell in plant_cell_lane:
@@ -534,17 +498,40 @@ func clear_all_plant_cell_data():
 			plant_cell.clear_data_plant_cell()
 
 ## 植物格子管理器读档
-func load_game_data_plant_cell_manager(save_game_data_plant_cell_manager:ResourceSaveGamePlantCellManager):
-	#clear_all_plant_cell_data()
-	### INFO: 等待两帧,queue_free()删除后
-	### 若是等待一帧,一局游戏多次读档测试时稳定触发某次植物未删除,不知道为什么
-	#await get_tree().process_frame
-	#await get_tree().process_frame
+func load_game_data_plant_cell_manager(saved: ResourceSaveGamePlantCellManager) -> bool:
+	if not accepts_save(saved):
+		push_error("种植点存档不匹配当前战场，未恢复植物。")
+		return false
+	if not board.restore_state(saved.board_state):
+		return false
+	for record: ResourceSaveGamePlantCell in saved.all_plant_cells_datas: # 所有身份已经预检。
+		var cell: PlantCell = saved_cell(record.cell_id, record.row_col) # 新档只按 ID 恢复。
+		cell.load_game_data_plant_cell(record)
+	tomb_stone_manager.load_game_data_tomb_stone_manager(saved.tomb_stone_manager_data)
+	return true
 
-	for save_game_data_plant_cell:ResourceSaveGamePlantCell in save_game_data_plant_cell_manager.all_plant_cells_datas:
-		var plant_cell:PlantCell = all_plant_cells[save_game_data_plant_cell.row_col.x][save_game_data_plant_cell.row_col.y]
-		plant_cell.load_game_data_plant_cell(save_game_data_plant_cell)
-
-	tomb_stone_manager.load_game_data_tomb_stone_manager(save_game_data_plant_cell_manager.tomb_stone_manager_data )
 
 #endregion
+
+
+## 解析存档地块；仅旧布局且没有 [param id] 时接受 [param address] 兼容地址。
+func saved_cell(id: StringName, address: Vector2i) -> PlantCell:
+	if board == null:
+		return null
+	if id != &"":
+		return board.cell_by_id(id)
+	return board.cell_at(address) if board.definition == null else null
+
+## 全量预检 [param saved]，必须先于卡槽/推车等其他恢复副作用。
+func accepts_save(saved: ResourceSaveGamePlantCellManager) -> bool:
+	if saved == null or board == null or not BoardStateSnapshot.accepts(board, saved.board_state):
+		return false
+	var seen: Dictionary[StringName, bool] = {} # 拒绝重复地块记录，避免重复生成。
+	for record: ResourceSaveGamePlantCell in saved.all_plant_cells_datas: # 旧地址只在旧布局有效。
+		if record == null:
+			return false
+		var cell: PlantCell = saved_cell(record.cell_id, record.row_col) # 当前目标。
+		if cell == null or seen.has(cell.cell_id):
+			return false
+		seen[cell.cell_id] = true
+	return tomb_stone_manager.accepts_save(saved.tomb_stone_manager_data)

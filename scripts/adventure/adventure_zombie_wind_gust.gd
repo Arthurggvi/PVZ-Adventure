@@ -28,14 +28,11 @@ static func blow_all(manager: ZombieManager) -> void:
         blow_target(zombie, displacement_cells(flying), flying)
 
 static func _cell_width(target: Character000Base) -> float:
-    var game: MainGameManager = Global.main_game
-    if not is_instance_valid(game) or not is_instance_valid(game.plant_cell_manager):
+    var game: MainGameManager = Global.main_game # 当前战场空间。
+    if not is_instance_valid(game) or game.board == null:
         return 0.0
-    var grid: Array[Array] = game.plant_cell_manager.all_plant_cells
-    var lane: int = target.lane
-    if lane < 0 or lane >= grid.size() or grid[lane].is_empty():
-        return 0.0
-    return (grid[lane][0] as PlantCell).size.x
+    return game.board.cell_width_at(target.global_position, target.lane)
+
 
 static func _visible_right(target: Character000Base) -> float:
     var viewport: Viewport = target.get_viewport()

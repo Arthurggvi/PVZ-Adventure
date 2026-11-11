@@ -1,6 +1,9 @@
 extends Node2D
 class_name MainGameManager
 
+## 当前战斗唯一空间索引，在子管理器 ready 之前完成装配。
+var board: BoardRuntime
+
 ## 正式战斗内复用的战外档案头像框。
 const ProfileHud = preload("res://scripts/adventure/ui/adventure_profile_hud.gd")
 
@@ -159,6 +162,8 @@ var is_save_game_data_on_init:=false
 #endregion
 func _enter_tree() -> void:
 	set_game_para()
+	if game_para != null and not is_queued_for_deletion():
+		board = BoardSceneAdapter.install(self)
 
 ## 进入树时更新游戏参数，子管理器赋值对应的游戏参数
 func set_game_para() -> void:
@@ -181,6 +186,9 @@ func _exit_tree() -> void:
 		Global.main_game = null
 
 func _ready() -> void:
+	if board == null or not board.configured:
+		push_error("战场空间初始化失败，未启动战斗。")
+		return
 	# 参数资源负责校验与初始化；失败时保持 NONE 阶段，不继续选卡或初始化子管理器。
 	if not game_para.init_para():
 		return
@@ -192,6 +200,11 @@ func _ready() -> void:
 	## 多轮游戏并且有存档
 	is_save_game_data_on_init = game_para.game_round != 1 and game_para.save_game_data_main_game != null
 
+	if is_save_game_data_on_init:
+		var saved: ResourceSaveGamePlantCellManager = game_para.save_game_data_main_game.plant_cell_manager_data # 空间快照预检。
+		if not plant_cell_manager.accepts_save(saved):
+			push_error("存档布局不兼容，未恢复任何战斗状态。")
+			return
 	## 订阅总线事件
 	event_bus_subscribe()
 	## 默认禁用全局敌人检测组件(追踪子弹调用, 放置追踪植物时启用,追踪植物死亡时,检测是否关闭)
@@ -212,7 +225,8 @@ func _ready() -> void:
 
 	## 若有存档
 	if is_save_game_data_on_init:
-		load_game_main_game()
+		if not load_game_main_game():
+			return
 		# 存档表示上一轮已经结束，选卡阶段直接恢复过渡，不重新判胜。
 		_advance_to_next_round()
 	else:
@@ -762,22 +776,27 @@ func re_main_game():
 
 
 ## 读档
-func load_game_main_game():
+func load_game_main_game() -> bool:
 	if game_para.save_game_data_main_game != null:
 		curr_game_round = game_para.save_game_data_main_game.curr_game_round
 		var save_game_data_main_game:ResourceSaveGameMainGame = game_para.save_game_data_main_game
 		## 罐子模式
 		if game_para.is_pot_mode:
 			if game_para.is_save_plant_on_pot_mode:
-				plant_cell_manager.load_game_data_plant_cell_manager(save_game_data_main_game.plant_cell_manager_data)
+				if not plant_cell_manager.load_game_data_plant_cell_manager(save_game_data_main_game.plant_cell_manager_data):
+					return false
+			elif not board.restore_state(save_game_data_main_game.plant_cell_manager_data.board_state):
+				return false
 		else:
-			plant_cell_manager.load_game_data_plant_cell_manager(save_game_data_main_game.plant_cell_manager_data)
+			if not plant_cell_manager.load_game_data_plant_cell_manager(save_game_data_main_game.plant_cell_manager_data):
+				return false
 		## 天降阳光
 		day_suns_manager.curr_sun_sum_value = save_game_data_main_game.day_sun_curr_sun_sum_value
 		## 植物卡槽数据
 		card_manager.load_game_data_card_manager(save_game_data_main_game.card_manager_data)
 		# 选卡和准备阶段只缓存僵王数据，正式进入 MAIN_GAME 后再恢复角色实例。
 		zombie_manager.load_game_data_bosses(save_game_data_main_game.boss_manager_data)
+	return true
 
 #endregion
 #region 更新全局关卡数据

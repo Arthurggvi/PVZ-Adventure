@@ -330,9 +330,7 @@ func spawn_bungi_zombies():
 			CharacterRegistry.ZombieType.Z021Bungi,
 			zombie_manager.all_zombie_rows[plant_cell.row_col.x],
 			zombie_init_para,
-			Vector2(plant_cell.global_position.x + plant_cell.size.x/2,
-				zombie_manager.all_zombie_rows[plant_cell.row_col.x].zombie_create_position.global_position.y
-			),
+			plant_cell.get_spawn_global_position(),
 			GlobalUtils.create_bungi.bind(plant_cell)
 		)
 

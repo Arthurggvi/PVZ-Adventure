@@ -10,6 +10,7 @@ static func build(stage: StageDefinition, phase: StagePhaseDefinition) -> Resour
 	if not env.validate().is_empty() or not CardSlotRules.is_valid_capacity(stage.max_selected_cards):
 		return null
 	var level := ResourceLevelData.new()
+	level.board_definition = env.board_definition
 	level.game_sences = env.scene
 	level.game_BG = env.background
 	level.battle_background_texture = env.background_texture
@@ -66,7 +67,15 @@ static func validate_terrain(stage: StageDefinition) -> PackedStringArray:
 		errors.append("当前冒险场景不具备僵尸行类型。")
 		return errors
 	var rows: Array[CharacterRegistry.ZombieRowType] = stage.environment.terrain_rows.duplicate() # 单关地形优先
-	if not rows.is_empty():
+	if stage.environment.board_definition != null:
+		var layout: BoardDefinition = stage.environment.board_definition # 关卡静态空间权威。
+		errors.append_array(layout.validate())
+		if not errors.is_empty():
+			return errors
+		rows.clear()
+		for lane: BoardLaneDefinition in layout.lane_definitions(): # 显式攻击行无需匹配旧场景节点数。
+			rows.append(lane.spawn_type)
+	elif not rows.is_empty():
 		var scene_rows: Array[CharacterRegistry.ZombieRowType] = _read_spawn_rows(scene) # 原版场景行数约束
 		if scene_rows.is_empty() or rows.size() != scene_rows.size():
 			errors.append("冒险关卡自定义行数与战场场景不一致")

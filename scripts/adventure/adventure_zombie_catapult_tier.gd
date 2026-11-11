@@ -116,8 +116,8 @@ func _shoot_three_lanes() -> void:
         var marker: Marker2D = _attack.markers_2d_bullet[0]
         var spawn_at: Vector2 = marker.global_position
         var source_row: int = clampi(_car.lane, 0, rows.size() - 1)
-        var dy: float = (rows[lane][0] as PlantCell).global_position.y - (
-                rows[source_row][0] as PlantCell).global_position.y
+        var zombie_rows: Array[ZombieRow] = Global.main_game.zombie_manager.all_zombie_rows # 物理出生行与有无植物格无关。
+        var dy: float = zombie_rows[lane].zombie_create_position.global_position.y - zombie_rows[source_row].zombie_create_position.global_position.y
         spawn_at.y += dy
         var direction: Vector2 = _attack.detect_component.ray_area_direction[0]
         var args: Dictionary = _attack.get_bullet_paras(spawn_at, direction)
@@ -157,10 +157,9 @@ func _process(delta: float) -> void:
 func _refresh_aura() -> void:
     if not is_instance_valid(Global.main_game) or not is_instance_valid(_car):
         return
-    var rows: Array[Array] = Global.main_game.plant_cell_manager.all_plant_cells
-    if _car.lane < 0 or _car.lane >= rows.size() or rows[_car.lane].is_empty():
+    var width: float = Global.main_game.board.cell_width_at(_car.global_position, _car.lane) # 当前地点格宽。
+    if width <= 0.0:
         return
-    var width: float = (rows[_car.lane][0] as PlantCell).size.x
     var next: Dictionary[int, Zombie000Base] = {}
     for ally: Zombie000Base in AdventureZombieTierNeighbors.allied_in_range(
             _car, Global.main_game.zombie_manager.all_zombies_1d, width, 1):

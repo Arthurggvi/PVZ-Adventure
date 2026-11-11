@@ -20,16 +20,11 @@ func has_remaining_jumps() -> bool:
 	return completed_jumps < max_jumps
 
 func _configured_distance() -> float:
-	if jump_distance_cells <= 0:
+	if jump_distance_cells <= 0 or not is_instance_valid(Global.main_game):
 		return jump_x
-	var game = Global.main_game
-	if not is_instance_valid(game) or not is_instance_valid(game.plant_cell_manager):
-		return jump_x
-	var grid: Array[Array] = game.plant_cell_manager.all_plant_cells
-	if owner_zombie.lane < 0 or owner_zombie.lane >= grid.size() \
-			or grid[owner_zombie.lane].is_empty():
-		return jump_x
-	return (grid[owner_zombie.lane][0] as PlantCell).size.x * float(jump_distance_cells)
+	var width: float = Global.main_game.board.cell_width_at(owner_zombie.global_position, owner_zombie.lane) # 当前地点格宽。
+	return width * float(jump_distance_cells) if width > 0.0 else jump_x
+
 ## 可以跳跃的敌人状态
 @export_flags("1 正常", "2 悬浮", "4 地刺", "8 低矮") var can_attack_plant_status:int = 9
 @export_flags("1 正常", "2 跳跃", "4 水下", "8 空中", "16 地下")var can_attack_zombie_status:int = 1

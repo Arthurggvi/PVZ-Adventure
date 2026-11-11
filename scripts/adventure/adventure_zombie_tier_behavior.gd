@@ -131,10 +131,9 @@ func _nearby(radius: int) -> Array[Zombie000Base]:
     var manager := _manager()
     if manager == null or _zombie.lane < 0:
         return []
-    var grid: Array[Array] = manager.main_game.plant_cell_manager.all_plant_cells
-    if _zombie.lane >= grid.size() or grid[_zombie.lane].is_empty():
+    var width: float = manager.main_game.board.cell_width_at(_zombie.global_position, _zombie.lane) # 当前地点格宽。
+    if width <= 0.0:
         return []
-    var width: float = (grid[_zombie.lane][0] as PlantCell).size.x
     return AdventureZombieTierNeighbors.allied_in_range(
             _zombie, manager.all_zombies_1d, width, radius)
 

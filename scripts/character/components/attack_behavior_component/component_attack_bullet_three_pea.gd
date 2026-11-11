@@ -27,7 +27,7 @@ func _init_attack_component_bullet_three_pea(row_col:Vector2i):
 func _shoot_bullet():
 	for i in range(3):
 		## 边路补偿补偿
-		if (bullet_border_compensation == 1 and i == 0) or (bullet_border_compensation == -1 and i == 2):
+		if owner.lane + i - 1 < 0 or owner.lane + i - 1 >= Global.main_game.zombie_manager.all_zombie_rows.size():
 			_create_bullte(0.3, 1)
 
 		else:
@@ -46,7 +46,10 @@ func _create_bullte(await_time:float, i:int=1, change_y_target:bool=false):
 
 	## 有偏移的为正常发射的子弹：再 tween 到对应行高
 	if change_y_target and bullet is BulletLinear000Base:
-		(bullet as BulletLinear000Base).change_y(markers_2d_bullet[0].global_position.y + (i - 1) * 100)
+		var rows: Array[ZombieRow] = Global.main_game.zombie_manager.all_zombie_rows # 当前真实攻击行。
+		var target_lane: int = owner.lane + i - 1 # 本颗子弹的逻辑目标行。
+		var offset_y: float = rows[target_lane].zombie_create_position.global_position.y - rows[owner.lane].zombie_create_position.global_position.y # 不假定固定 100 像素。
+		(bullet as BulletLinear000Base).change_y(markers_2d_bullet[0].global_position.y + offset_y)
 
 
 ## 先走父类 get_bullet_paras（方向、可攻击状态、位置等），再按三线规则改 BulletLane

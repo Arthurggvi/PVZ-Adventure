@@ -1,6 +1,24 @@
 extends Control
 class_name PlantCell
 
+## 唯一种植空间索引；独立预览/花园不借用战斗空间。
+var board: BoardRuntime
+## 战斗私有的静态地块声明，身份和逻辑地址不由画面位置反推。
+var board_definition: BoardCellDefinition
+## 当前地形能力，只有统一地形入口可以替换。
+var board_terrain: BoardTerrainDefinition
+## 旧屋顶沿用场景局部坡面修正，自定义坐标不自动当作高度。
+var legacy_ground_height: bool = false
+## 地形实例层，切换时统一释放行为和水体。
+var _terrain_layer: BoardTerrainLayer
+## 具名禁种来源；特殊地形无需扩展原有固定枚举。
+var _planting_blocks: Dictionary[StringName, bool] = {}
+## 稳定身份直接读取定义，禁止保存第二份可变 ID。
+var cell_id: StringName:
+	get:
+		return board_definition.cell_id if board_definition != null else &""
+
+
 ## 植物的父节点为对应位置的容器节点 plant_container_node
 ## 底部植物会上下移动
 ## 如果使用tween控制移动，每帧计算差值控制中间植物上下移动会卡#
@@ -28,8 +46,14 @@ enum PlantCellType{
 ## 当前格子类型
 @export var plant_cell_type :PlantCellType = PlantCellType.Grass
 
-## 行和列 PlantCellManager赋值
-@export var row_col:Vector2i
+## 逻辑攻击行/拓扑列由 BoardDefinition 唯一声明；旧场景导出仅作兼容。
+@export var row_col:Vector2i:
+	get:
+		return board_definition.address if board_definition != null else row_col
+	set(value):
+		# 旧场景反序列化可赋值，运行时地址由布局声明唯一决定。
+		if board_definition == null:
+			row_col = value
 
 @export_group("当前格子的条件")
 @export_subgroup("植物种植")
@@ -55,9 +79,6 @@ var curr_condition:int = 3
 	CharacterRegistry.PlacePlantInCell.Down: $PlantDownContainer,
 	CharacterRegistry.PlacePlantInCell.Imitater: $PlantImitaterContainer,
 }
-
-## 在当前格子中对应容器位置的节点初始全局位置,
-var plant_postion_node_ori_global_position:Dictionary =  {}
 
 ## UI 定位节点始终留在格子中；移动的只有实际植物 Node2D，不再重挂带锚点的 Control。
 @onready var _support_slot_anchors: Dictionary = {
@@ -86,8 +107,6 @@ var curr_ice_roads:Array[IceRoad] = []
 var tombstone:TombStone
 ## 当前cell的坑洞
 var crater:DoomShroomCrater
-## 标准九列屋顶从左到右的斜面列数；零起点列号 0～4 使用斜面坑洞，其余列使用平面坑洞。
-const ROOF_SLOPE_COLUMN_COUNT := 5
 
 @export_subgroup("特殊状态，特殊状态下无法种植僵尸")
 ## 是否可以种植僵尸
@@ -111,30 +130,19 @@ func _ready() -> void:
 	var new_stylebox_normal = $Button.get_theme_stylebox("pressed").duplicate()
 	$Button.add_theme_stylebox_override("normal", new_stylebox_normal)
 
-	## 根据格子类型初始化植物种植地形条件
-	init_condition()
+	## 统一地形能力在节点就绪后安装；旧场景不创建额外水体。
+	if board_terrain == null:
+		board_terrain = BoardTerrainDefinition.legacy(plant_cell_type)
+	apply_board_terrain(board_terrain)
 
-## 根据当前格子类型初始化当前格子状态
+## 从当前地形能力初始化种植条件；承托层只投影 supported_flags。
 func init_condition():
-	match plant_cell_type:
-		PlantCellType.Grass:
-			ori_condition = 3
-			curr_condition = 3
-
-		PlantCellType.Pool:
-			ori_condition = 9
-			curr_condition = 9
-
-		PlantCellType.Roof:
-			ori_condition = 33
-			curr_condition = 33
-	# 初始与重建地形均以实际底层植物占用为唯一权威状态。
+	if board == null:
+		board_terrain = BoardTerrainDefinition.legacy(plant_cell_type)
+	ori_condition = board_terrain.planting_flags
 	_sync_support_terrain_condition()
+	_update_state_plant()
 
-	### 在当前格子中对应位置的节点初始全局位置,植物放在该节点下
-	for place_plant_in_cell in plant_container_node.keys():
-		var anchor: CanvasItem = _support_slot_anchors.get(place_plant_in_cell, plant_container_node[place_plant_in_cell])
-		plant_postion_node_ori_global_position[place_plant_in_cell] = anchor.get_global_transform().origin
 #endregion
 
 
@@ -278,6 +286,9 @@ func _placement_is_available(condition: ResourcePlantCondition,
 	for cell: PlantCell in footprint:
 		if not is_instance_valid(cell):
 			return false
+		if board != cell.board or (board_definition != null and (cell.board_definition == null
+			or board_definition.surface_id != cell.board_definition.surface_id)):
+			return false
 		var occupant: Plant000Base = cell.plant_in_cell.get(condition.place_plant_in_cell)
 		if not is_instance_valid(occupant) or occupant.is_queued_for_deletion():
 			continue
@@ -360,7 +371,7 @@ func update_special_state_zombie(value:bool, change_specila_state:E_SpecialState
 ## 更新状态
 func _update_state_plant():
 	##是否全为false(无特殊状态，可以种植)
-	can_common_plant = curr_special_state_plant.values().all(func(v): return not v)
+	can_common_plant = is_terrain_planting_allowed() and curr_special_state_plant.values().all(func(v): return not v)
 	##如果更新状态时鼠标在当前植物格子中，重新发射鼠标进入格子信号检测种植
 	if is_mouse_in_ui(button):
 		_on_button_mouse_entered()
@@ -374,15 +385,15 @@ func _update_state_zombie():
 		_on_button_mouse_entered()
 
 ## 地形由底层槽位的实际占用推导，禁止在实例初始化或失败回滚时提前变更。
-## 水路有荷叶时可种植在荷叶上；屋顶/陆地有花盆时使用花盆地形。
+## 承托能力由 BoardTerrainDefinition 声明，新地形无需扩展这里的分支。
 func _sync_support_terrain_condition() -> void:
-	var support: Plant000Base = plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Down)
-	if not is_instance_valid(support) or support.is_queued_for_deletion():
+	var support: Plant000Base = plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Down) # 实际承托占用。
+	if not is_instance_valid(support) or support.is_queued_for_deletion() \
+			or board_terrain == null or board_terrain.supported_flags == 0:
 		curr_condition = ori_condition
-	elif plant_cell_type == PlantCellType.Pool:
-		curr_condition = (ori_condition & ~8) | 16
 	else:
-		curr_condition = 4
+		curr_condition = board_terrain.supported_flags
+
 #endregion
 
 #region 蹦极僵尸偷植物
@@ -454,11 +465,16 @@ func create_tombstone(tombstone_scene: PackedScene = null):
 
 ## 刪除墓碑，墓碑死亡时调用该函数
 func tombstone_death_update_plant_cell_data():
-	signal_cell_delete_tombstone.emit(self, tombstone)
-	Global.main_game.plant_cell_manager.tombstone_list.erase(tombstone)
-	## 等到墓碑被删除后，下一帧更新（如果鼠标拿着新植物在当前格子中，可以更新）
+	var removed: TombStone = tombstone # 保存死亡实例，不等待已释放引用。
+	if not is_instance_valid(removed):
+		return
+	tombstone = null
+	signal_cell_delete_tombstone.emit(self, removed)
+	Global.main_game.plant_cell_manager.tombstone_list.erase(removed)
 	await get_tree().process_frame
-	update_special_state_plant(false, E_SpecialStatePlant.IsTombstone)
+	if not is_instance_valid(tombstone):
+		update_special_state_plant(false, E_SpecialStatePlant.IsTombstone)
+
 
 #endregion
 
@@ -476,20 +492,17 @@ func create_crater():
 
 ## 根据实际背景与原始格子地形返回坑洞图片组索引，不受睡莲或花盆改变种植条件的影响。[br]
 ## 0/1 为陆地白天/黑夜，2/3 为水池白天/黑夜，4/5 为屋顶平面/斜面。[br]
-## 屋顶按开局初始化完成后的左起零起点列号判断；未知背景回退到陆地白天。
+## 屋顶按实际地面高度判断斜面，不再依赖标准九列的固定列号。
 func _get_crater_type() -> int:
-	match Global.main_game.game_para.game_BG:
-		ConstLevelData.GameBg.FrontDay:
-			return 0
-		ConstLevelData.GameBg.FrontNight:
-			return 1
-		ConstLevelData.GameBg.Pool:
-			return 2 if plant_cell_type == PlantCellType.Pool else 0
-		ConstLevelData.GameBg.Fog:
-			return 3 if plant_cell_type == PlantCellType.Pool else 1
-		ConstLevelData.GameBg.Roof, ConstLevelData.GameBg.RoofNight:
-			return 5 if row_col.y >= 0 and row_col.y < ROOF_SLOPE_COLUMN_COUNT else 4
-	return 0
+	var night: bool = Global.main_game.game_para.game_BG in [ # 美术明暗使用环境表现，不改蘑菇睡眠规则。
+		ConstLevelData.GameBg.FrontNight, ConstLevelData.GameBg.Fog, ConstLevelData.GameBg.RoofNight]
+	match plant_cell_type:
+		PlantCellType.Pool:
+			return 3 if night else 2
+		PlantCellType.Roof:
+			return 5 if not is_zero_approx(get_ground_height()) else 4
+	return 1 if night else 0
+
 
 
 ## 清空坑洞所在格子的各层植物，不触发连带亡语；底层植物最后死亡以恢复地形和容器结构。
@@ -705,28 +718,26 @@ func get_plant_ladder() -> Plant000Base:
 
 ## 获取周围一圈(包括本身格子)的某个植物
 func get_plant_surrounding(p_t:CharacterRegistry.PlantType) -> Array[Plant000Base]:
-	var all_plant:Array[Plant000Base] = []
-	## 植物种植条件
-	var plant_condition:ResourcePlantCondition = Global.character_registry.get_plant_info(p_t, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
-	for i in range(max(0, row_col.x-1), min(Global.main_game.plant_cell_manager.row_col.x, row_col.x+2)):
-		for j in range(max(0, row_col.y-1), min(Global.main_game.plant_cell_manager.row_col.y, row_col.y+2)):
-			var p_c:PlantCell = Global.main_game.plant_cell_manager.all_plant_cells[i][j]
-			if is_instance_valid(p_c.plant_in_cell[plant_condition.place_plant_in_cell]) and p_c.plant_in_cell[plant_condition.place_plant_in_cell].plant_type == p_t:
-				all_plant.append(p_c.plant_in_cell[plant_condition.place_plant_in_cell])
-	return all_plant
+	var result: Array[Plant000Base] = [] # 按实际占用去重。
+	var condition: ResourcePlantCondition = Global.character_registry.get_plant_info(p_t,
+		CharacterRegistry.PlantInfoAttribute.PlantConditionResource) # 物种占用层。
+	for cell: PlantCell in get_plant_cell_surrounding(): # 同一空间查询用于所有邻接技能。
+		var plant: Plant000Base = cell.plant_in_cell.get(condition.place_plant_in_cell) # 实际占用。
+		if is_instance_valid(plant) and plant.plant_type == p_t and not result.has(plant):
+			result.append(plant)
+	return result
+
 
 ## 获取周围一圈的植物格子，包括本身
-func get_plant_cell_surrounding()->Array[PlantCell]:
-	var all_plant_cells_surrounding:Array[PlantCell]
-	for i in range(max(0, row_col.x-1), min(Global.main_game.plant_cell_manager.row_col.x, row_col.x+2)):
-		for j in range(max(0, row_col.y-1), min(Global.main_game.plant_cell_manager.row_col.y, row_col.y+2)):
-			all_plant_cells_surrounding.append(Global.main_game.plant_cell_manager.all_plant_cells[i][j])
-	return all_plant_cells_surrounding
+func get_plant_cell_surrounding() -> Array[PlantCell]:
+	return board.neighbors(self) if board != null else [self]
+
 
 #region 存档
 ## 植物格子存档
 func get_save_game_data_plant_cell() -> ResourceSaveGamePlantCell:
 	var save_game_data_plant_cell:ResourceSaveGamePlantCell = ResourceSaveGamePlantCell.new()
+	save_game_data_plant_cell.cell_id = cell_id
 	save_game_data_plant_cell.row_col = row_col
 	for place_plant_in_cell in plant_in_cell:
 		var plant: Plant000Base = plant_in_cell[place_plant_in_cell]
@@ -767,3 +778,78 @@ func _load_game_data_create_plant(game_data_plant):
 	if plant != null:
 		plant.load_game_data_plant(game_data_plant)
 #endregion
+
+
+## [param point] 为格子局部像素坐标；命中几何同时供按钮和移动拾取使用。
+func contains_local_point(point: Vector2) -> bool:
+	if not Rect2(Vector2.ZERO, size).has_point(point):
+		return false
+	return board_definition == null or board_definition.hit_polygon.is_empty() \
+		or Geometry2D.is_point_in_polygon(point, board_definition.hit_polygon)
+
+## 即时转换 [param point] 的世界坐标，不保存运动前的矩形。
+func contains_world_point(point: Vector2) -> bool:
+	return contains_local_point(get_global_transform().affine_inverse() * point)
+
+## 原始种植锚点即时查询；[param slot] 不包含承托物的动画偏移。
+func get_slot_anchor_global_position(slot: CharacterRegistry.PlacePlantInCell) -> Vector2:
+	var anchor: CanvasItem = _support_slot_anchors.get(slot, plant_container_node.get(slot)) # 固定于格子的锚点。
+	return anchor.get_global_transform().origin if is_instance_valid(anchor) else global_position
+
+## 自定义坐标的 Y 值不是坡面高度；只应用声明的检测高度。
+func get_ground_height() -> float:
+	return position.y if legacy_ground_height or board_definition == null else board_definition.ground_height
+
+## 仅包含地形固有限制和具名来源；墓碑吞噬者等仍可按原规则处理障碍。
+func is_terrain_planting_allowed() -> bool:
+	return _planting_blocks.is_empty() and (board_terrain == null or not board_terrain.blocks_planting)
+
+## 按 [param source] 独立开关禁种；撤销一个来源不能清除其他地形效果。
+func set_planting_block(source: StringName, blocked: bool) -> void:
+	if source == &"":
+		return
+	if blocked:
+		_planting_blocks[source] = true
+	else:
+		_planting_blocks.erase(source)
+	_update_state_plant()
+
+## 安装 [param terrain] 的能力和独立行为；失败保留原地形。
+func apply_board_terrain(terrain: BoardTerrainDefinition) -> bool:
+	if terrain == null or not terrain.validate().is_empty():
+		return false
+	if _terrain_layer == null:
+		_terrain_layer = BoardTerrainLayer.new()
+		_terrain_layer.name = "TerrainLayer"
+		_terrain_layer.cell = self
+		_terrain_layer.z_index = -1
+		add_child(_terrain_layer)
+	return _terrain_layer.apply(terrain)
+
+## 返回当前地形行为的可序列化状态。
+func capture_terrain_state() -> Dictionary:
+	return _terrain_layer.behavior.capture_state() if _terrain_layer != null \
+		and is_instance_valid(_terrain_layer.behavior) else {}
+
+## 恢复已由空间存档预检的 [param state]，不重新执行种植。
+func restore_terrain_state(state: Dictionary) -> void:
+	if _terrain_layer != null and is_instance_valid(_terrain_layer.behavior):
+		_terrain_layer.behavior.restore_state(state)
+
+
+## 格子自身的水陆生成条件；与固定攻击行是否允许该物种分开判断。
+func get_spawn_terrain_type() -> CharacterRegistry.ZombieRowType:
+	if board_terrain != null:
+		return board_terrain.spawn_type
+	return CharacterRegistry.ZombieRowType.Pool if plant_cell_type == PlantCellType.Pool \
+		else CharacterRegistry.ZombieRowType.Land
+
+
+
+## 当前种植点的僵尸/墓碑生成脚点；自定义布局使用真实坐标，旧布局保留原行标记。
+func get_spawn_global_position() -> Vector2:
+	if board != null and board.definition != null:
+		return get_global_transform() * Vector2(size.x * 0.5, size.y - get_ground_height())
+	var game: MainGameManager = Global.main_game # 旧固定行出生坐标协议。
+	return Vector2(global_position.x + size.x * 0.5,
+		game.zombie_manager.all_zombie_rows[row_col.x].zombie_create_position.global_position.y)

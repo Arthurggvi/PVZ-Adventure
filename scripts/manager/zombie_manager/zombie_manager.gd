@@ -123,15 +123,12 @@ func _ready():
 	EventBus.subscribe("end_wave_zombie", func():is_end_wave=true)
 	EventBus.subscribe("test_death_all_zombie", death_all_zombie)
 
-	## 单关行地形与实际战场行数必须一致；未指定则使用原版场景节点设置。
-	if not game_para.terrain_rows.is_empty() and game_para.terrain_rows.size() != zombies_root.get_child_count():
-		push_error("关卡行地形数量与战场行数不一致")
+	# 攻击行已由统一装配器创建/适配，这里只登记僵尸运行状态。
+	if main_game.board == null or not main_game.board.configured:
 		return
 	## 初始化僵尸和行列表
 	for zombie_row_i in zombies_root.get_child_count():
 		var zombie_row: ZombieRow = zombies_root.get_child(zombie_row_i) as ZombieRow
-		if not game_para.terrain_rows.is_empty():
-			zombie_row.zombie_row_type = game_para.terrain_rows[zombie_row_i]
 		zombie_row.z_index = zombie_row_i * 50 + 30
 
 		all_zombie_rows.append(zombie_row)
@@ -696,8 +693,7 @@ func create_skill_bungi(target_cell: PlantCell, anchor: Marker2D, on_created: Ca
 	# 父节点沿用实际僵尸行，保持现有行层级和死亡登记方式。
 	var row: ZombieRow = all_zombie_rows[lane]
 	# 根节点使用落点基准；身体上方偏移由蹦极自身处理，坡面由 ready_norm 修正一次。
-	var spawn_position := Vector2(target_cell.global_position.x + target_cell.size.x / 2.0,
-		row.zombie_create_position.global_position.y)
+	var spawn_position: Vector2 = target_cell.get_spawn_global_position() # 当前地块脚点。
 	if not spawn_position.is_finite():
 		return null
 	# 技能生成不归属自然波次，但仍正常计入场上僵尸数量。
@@ -974,7 +970,7 @@ func update_multi_round_zombie_refresh_types(curr_round:int, game_sences:MainSce
 		zombie_refresh_types.append(CharacterRegistry.ZombieType.Z003Cone)
 		zombie_refresh_types.append(CharacterRegistry.ZombieType.Z005Bucket)
 	else:
-		var whitelist_refresh_zombie_types_copy = Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[ResourceLevelData.resolve_terrain_type(game_sences, game_para.terrain_rows)].duplicate(true)
+		var whitelist_refresh_zombie_types_copy = Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[ResourceLevelData.resolve_terrain_type(game_sences, game_para.terrain_rows, game_para.board_definition)].duplicate(true)
 		zombie_refresh_types.append(CharacterRegistry.ZombieType.Z001Norm)
 		whitelist_refresh_zombie_types_copy.erase(CharacterRegistry.ZombieType.Z001Norm)
 		# 第二种：80% 路障 (Cone)，20% 报纸 (Paper)

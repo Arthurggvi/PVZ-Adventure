@@ -106,15 +106,9 @@ func _blast_context() -> Dictionary:
 func _launch_potatoes(count: int) -> void:
 	if count <= 0 or not is_instance_valid(_game) or not is_instance_valid(_game.bullets):
 		return
-	var rows: Array = _game.plant_cell_manager.all_plant_cells
-	var destinations: Array[Dictionary] = []
-	for row: int in range(maxi(0, _mine.row_col.x - 1),
-			mini(rows.size(), _mine.row_col.x + 2)):
-		var cells: Array = rows[row]
-		for col: int in range(maxi(0, _mine.row_col.y - 1),
-				mini(cells.size(), _mine.row_col.y + 2)):
-			var cell: PlantCell = cells[col]
-			destinations.append({"point": cell.get_global_rect().get_center(), "lane": row})
+	var destinations: Array[Dictionary] = [] # 即时地块坐标，不把稀疏数组下标当成列号。
+	for cell: PlantCell in _game.board.neighbors(_mine.plant_cell): # 同平台拓扑邻接。
+		destinations.append({"point": cell.get_global_rect().get_center(), "lane": cell.row_col.x})
 	if destinations.is_empty():
 		return
 	destinations.shuffle()

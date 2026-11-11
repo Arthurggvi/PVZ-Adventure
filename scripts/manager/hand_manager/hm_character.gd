@@ -33,6 +33,8 @@ func init_hm_character() -> void:
 func character_process() -> void:
 	if is_instance_valid(characte_static):
 		characte_static.global_position = temporary_character.get_global_mouse_position()
+	if is_instance_valid(hand_manager.curr_plant_cell) and is_instance_valid(characte_static_shadow):
+		mouse_enter(hand_manager.curr_plant_cell)
 
 ## 开始手持 [param card]，建立独立预览并读取本类型条件。
 ## 返回是否成功初始化；无效引用和缺少静态预览的卡片不进入手持，不创建战斗角色。
@@ -145,14 +147,11 @@ func _update_cell_shadow(plant_cell: PlantCell, curr_characte_static_shadow: Nod
 
 ## 返回普通僵尸在 [param plant_cell] 对应行的预览全局位置，包含屋顶坡面修正。
 func get_zombie_static_shadow_global_position(plant_cell: PlantCell) -> Vector2:
-	# 水平位置位于格子中点，垂直位置沿用僵尸行的生成标记。
-	var global_pos: Vector2 = Vector2(
-		plant_cell.global_position.x + plant_cell.size.x / 2,
-		Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x].zombie_create_position.global_position.y
-	)
-	if is_instance_valid(Global.main_game.main_game_slope):
+	var global_pos: Vector2 = plant_cell.get_spawn_global_position() # 即时地块坐标。
+	if plant_cell.board.definition == null and is_instance_valid(Global.main_game.main_game_slope):
 		global_pos += Vector2(0, Global.main_game.main_game_slope.get_all_slope_y(global_pos.x))
 	return global_pos
+
 
 ## 移出 [param _plant_cell] 时隐藏当前及柱子模式虚影。
 func mouse_exit(_plant_cell: PlantCell) -> void:
@@ -209,10 +208,7 @@ func _create_character_at_cell(plant_cell: PlantCell) -> bool:
 				curr_card.card_reference.content_id,
 				Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x],
 				zombie_init_para,
-				Vector2(
-					plant_cell.global_position.x + plant_cell.size.x / 2,
-					Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x].zombie_create_position.global_position.y
-				),
+				plant_cell.get_spawn_global_position(),
 				GlobalUtils.get_special_zombie_callable(curr_card.card_reference.content_id, plant_cell)
 			) != null
 		ResourceCardReference.CardType.ZombieBoss:
@@ -243,14 +239,13 @@ func click_card_column() -> void:
 ## 检查 [param plant_cell] 同列的其余行，仅为可放置格子显示额外虚影。
 func _mouse_enter_column(plant_cell: PlantCell) -> void:
 	_mouse_exit_column()
-	# 虚影行号与对应植物格子行保持一致。
-	for lane: int in characte_static_shadow_colum.size():
-		if lane == plant_cell.row_col.x or lane >= Global.main_game.plant_cell_manager.all_plant_cells.size():
+	for lane: int in characte_static_shadow_colum.size(): # 虚影索引仍对应固定攻击行。
+		if lane == plant_cell.row_col.x:
 			continue
-		_update_cell_shadow(
-			Global.main_game.plant_cell_manager.all_plant_cells[lane][plant_cell.row_col.y],
-			characte_static_shadow_colum[lane]
-		)
+		var cell: PlantCell = hand_manager.main_game.board.cell_at(Vector2i(lane, plant_cell.row_col.y)) # 缺格不生成虚影。
+		if cell != null:
+			_update_cell_shadow(cell, characte_static_shadow_colum[lane])
+
 
 ## 隐藏柱子模式所有额外虚影。
 func _mouse_exit_column() -> void:
@@ -261,10 +256,11 @@ func _mouse_exit_column() -> void:
 
 ## 在 [param plant_cell] 同列的其他可放置行创建角色，不重复发出成功结算信号。
 func _click_cell_column(plant_cell: PlantCell) -> void:
-	# 透明度记录本次额外行的放置判定。
-	for lane: int in characte_static_shadow_colum.size():
-		if characte_static_shadow_colum[lane].modulate.a != 0:
-			_create_character_at_cell(Global.main_game.plant_cell_manager.all_plant_cells[lane][plant_cell.row_col.y])
+	for lane: int in characte_static_shadow_colum.size(): # 正式创建再次查询当前目标。
+		var cell: PlantCell = hand_manager.main_game.board.cell_at(Vector2i(lane, plant_cell.row_col.y)) # 稀疏逻辑地址。
+		if cell != null and characte_static_shadow_colum[lane].modulate.a != 0:
+			_create_character_at_cell(cell)
+
 
 ## 释放本次手持产生的柱子模式预览，退出后清空引用列表。
 func _clear_curr_data_column() -> void:

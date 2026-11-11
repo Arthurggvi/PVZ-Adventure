@@ -69,29 +69,21 @@ func _on_hp_damage(amount: int) -> void:
 
 ## 按同排前后各 [param reach] 格分发可叠加护甲；同一植物只处理一次。
 func _grant_neighbors(amount: int, reach: int) -> void:
-	var game: MainGameManager = Global.main_game
-	if amount <= 0 or not is_instance_valid(game) or not is_instance_valid(game.plant_cell_manager):
+	var game: MainGameManager = Global.main_game # 当前战场空间。
+	if amount <= 0 or not is_instance_valid(game) or game.board == null:
 		return
-	var rows: Array = game.plant_cell_manager.all_plant_cells
-	if _plant.row_col.x < 0 or _plant.row_col.x >= rows.size():
-		return
-	var cells: Array = rows[_plant.row_col.x]
-	var seen: Dictionary[int, bool] = {}
-	for direction: int in [-1, 1]:
-		for distance: int in range(1, reach + 1):
-			var column: int = _plant.row_col.y + direction * distance
-			if column < 0 or column >= cells.size():
+	var seen: Dictionary[int, bool] = {} # 多格占用与多层查询按实例去重。
+	for cell: PlantCell in game.board.horizontal_neighbors(_plant.plant_cell, reach): # 同路拓扑范围。
+		for entry: Variant in cell.plant_in_cell.values(): # 当前实际占用。
+			var candidate: Plant000Base = entry as Plant000Base # 存活的受益植物。
+			if not is_instance_valid(candidate) or candidate.is_death \
+					or candidate == _plant or seen.has(candidate.get_instance_id()):
 				continue
-			var cell: PlantCell = cells[column]
-			for entry: Variant in cell.plant_in_cell.values():
-				var candidate: Plant000Base = entry as Plant000Base
-				if not is_instance_valid(candidate) or candidate.is_death \
-						or candidate == _plant or seen.has(candidate.get_instance_id()):
-					continue
-				seen[candidate.get_instance_id()] = true
-				var hp: HpComponentPlant = candidate.hp_component as HpComponentPlant
-				if hp != null:
-					hp.grant_bonus_armor(amount)
+			seen[candidate.get_instance_id()] = true
+			var hp: HpComponentPlant = candidate.hp_component as HpComponentPlant # 独立生命/护甲协议。
+			if hp != null:
+				hp.grant_bonus_armor(amount)
+
 
 ## 每株独立固定一秒积累；失去目标处理不影响不同植株的计时。
 func _process(delta: float) -> void:

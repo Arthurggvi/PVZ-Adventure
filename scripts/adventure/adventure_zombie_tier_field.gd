@@ -34,15 +34,10 @@ func _on_spawned(_zombie: Zombie000Base) -> void:
 
 func _width() -> float:
     if not is_instance_valid(_source) or not is_instance_valid(_manager) \
-            or not is_instance_valid(_manager.main_game):
+            or not is_instance_valid(_manager.main_game) or _manager.main_game.board == null:
         return 0.0
-    var grid: Array[Array] = _manager.main_game.plant_cell_manager.all_plant_cells
-    if _source.lane < 0 or _source.lane >= grid.size():
-        return 0.0
-    var row: Array = grid[_source.lane]
-    if row.is_empty() or not is_instance_valid(row[0]):
-        return 0.0
-    return (row[0] as PlantCell).size.x
+    return _manager.main_game.board.cell_width_at(_source.global_position, _source.lane)
+
 
 func _refresh() -> void:
     if not is_instance_valid(_source) or not is_instance_valid(_manager) \

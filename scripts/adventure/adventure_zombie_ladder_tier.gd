@@ -17,11 +17,9 @@ func setup(zombie: Zombie022Ladder, rule: Dictionary) -> void:
 func _on_ladder_placed(_plant: Plant000Base, _ladder: Ladder) -> void:
     if _aura <= 1.0 or _duration <= 0.0 or not is_instance_valid(Global.main_game):
         return
-    var rows: Array[Array] = Global.main_game.plant_cell_manager.all_plant_cells
-    var lane: int = _zombie.lane
-    if lane < 0 or lane >= rows.size() or rows[lane].is_empty():
+    var cell_width: float = Global.main_game.board.cell_width_at(_zombie.global_position, _zombie.lane) # 当前地点格宽。
+    if cell_width <= 0.0:
         return
-    var cell_width: float = (rows[lane][0] as PlantCell).size.x
     for ally: Zombie000Base in AdventureZombieTierNeighbors.allied_in_range(
             _zombie, Global.main_game.zombie_manager.all_zombies_1d, cell_width, 1):
         AdventureZombieTimedSpeedBoost.apply_to(ally, _aura, _duration)

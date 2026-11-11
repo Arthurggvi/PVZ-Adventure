@@ -1,6 +1,9 @@
 extends Resource
 class_name ResourceLevelData
 
+## 战场空间静态协议；为空时由 BoardSceneAdapter 导入旧场景。
+@export var board_definition: BoardDefinition
+
 #region 选关数据,管理关卡存档
 ## 游戏模式(冒险，迷你游戏，解密，生存)，游戏选关场景
 var game_mode: MainSceneRegistry.MainScenes = MainSceneRegistry.MainScenes.Null
@@ -39,7 +42,11 @@ func set_choose_level(curr_game_mode: MainSceneRegistry.MainScenes, curr_level_p
 ## 将逐行地形归并为关卡整体可用地形，供怪物白名单和场景兼容校验共用。
 ## [param scene] 基础场景；[param rows] 为空时继承场景原生地形。
 static func resolve_terrain_type(scene: MainSceneRegistry.MainScenes,
-		rows: Array[CharacterRegistry.ZombieRowType]) -> CharacterRegistry.ZombieRowType:
+		rows: Array[CharacterRegistry.ZombieRowType], layout: BoardDefinition = null) -> CharacterRegistry.ZombieRowType:
+	if layout != null:
+		rows = []
+		for lane: BoardLaneDefinition in layout.lane_definitions(): # 自定义布局的真实出怪行。
+			rows.append(lane.spawn_type)
 	if rows.is_empty():
 		return Global.main_scene_registry.ZombieRowTypewithMainScenesMap[scene]
 	var has_land: bool = false # 是否存在陆路
@@ -317,7 +324,7 @@ func _apply_card_mode_constraints() -> void:
 func _init_zombie_refresh_from_whitelist() -> void:
 	if monster_mode != ConstLevelData.E_MonsterMode.Norm:
 		return
-	whitelist_refresh_zombie_types = Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[resolve_terrain_type(game_sences, terrain_rows)]
+	whitelist_refresh_zombie_types = Global.global_read_data.whitelist_refresh_zombie_types_with_zombie_row_type[resolve_terrain_type(game_sences, terrain_rows, board_definition)]
 	zombie_refresh_types = filter_invalid_zombie_refresh_types(zombie_refresh_types, whitelist_refresh_zombie_types)
 
 

@@ -27,6 +27,7 @@ func _ready() -> void:
 	EventBus.subscribe("main_game_click_shovel", _click_shovel)
 
 func _process(_delta: float) -> void:
+	_refresh_board_hover()
 	match curr_hm_status:
 		E_HandManagerStatus.Null:
 			hm_null.null_process()
@@ -79,6 +80,9 @@ func _click_shovel() -> void:
 
 ## 鼠标点击cell
 func _on_click_cell(plant_cell:PlantCell):
+	_refresh_board_hover()
+	if plant_cell != curr_plant_cell or not is_instance_valid(plant_cell):
+		return
 	match curr_hm_status:
 		E_HandManagerStatus.Null:
 			hm_null.click_cell(plant_cell)
@@ -102,6 +106,8 @@ func _on_cell_mouse_enter(plant_cell:PlantCell):
 
 ## 鼠标移出cell
 func _on_cell_mouse_exit(plant_cell:PlantCell):
+	if curr_plant_cell != plant_cell:
+		return
 	curr_plant_cell = null
 	match curr_hm_status:
 		E_HandManagerStatus.Null:
@@ -113,6 +119,8 @@ func _on_cell_mouse_exit(plant_cell:PlantCell):
 
 ## 取消角色和道具
 func _input(event):
+	if event is InputEventMouseButton:
+		_refresh_board_hover()
 	## 当前手持状态不为空且鼠标点击事件
 	if curr_hm_status != E_HandManagerStatus.Null and event is InputEventMouseButton:
 		## 右键点击 或左鍵点击空白
@@ -120,3 +128,19 @@ func _input(event):
 		event.button_index == MOUSE_BUTTON_LEFT and event.pressed and not curr_plant_cell:
 			SoundManager.play_other_SFX("tap2")
 			curr_hm_status = E_HandManagerStatus.Null
+
+
+## 移动平台经过静止鼠标时同样重新拾取；菜单/卡槽等 GUI 优先，不穿透界面种植。
+func _refresh_board_hover() -> void:
+	if not is_instance_valid(main_game) or main_game.board == null or not main_game.board.configured:
+		return
+	var hovered: Control = get_viewport().gui_get_hovered_control() # 当前 GUI 的遮挡优先级。
+	var candidate: PlantCell = main_game.board.pick_cell(main_game.get_global_mouse_position()) # 当前几何命中。
+	if hovered != null and not hovered.get_parent() is PlantCell and not hovered is PlantCell:
+		candidate = null
+	if candidate == curr_plant_cell:
+		return
+	if is_instance_valid(curr_plant_cell):
+		_on_cell_mouse_exit(curr_plant_cell)
+	if candidate != null:
+		_on_cell_mouse_enter(candidate)

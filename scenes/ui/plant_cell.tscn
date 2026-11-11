@@ -1,6 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://brnfbv2sxv2qh"]
+[gd_scene load_steps=6 format=3 uid="uid://brnfbv2sxv2qh"]
 
 [ext_resource type="Script" uid="uid://c5ndd0ab746h3" path="res://scripts/main_game_item/plant_cell.gd" id="1_66flf"]
+
+[ext_resource type="Script" path="res://scripts/battle/board/board_cell_button.gd" id="board_button"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_12gte"]
 
@@ -17,6 +19,7 @@ mouse_filter = 2
 script = ExtResource("1_66flf")
 
 [node name="Button" type="Button" parent="."]
+script = ExtResource("board_button")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

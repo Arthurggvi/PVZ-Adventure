@@ -78,29 +78,33 @@ func _test() -> void:
 					"no duplicate fixed-start tombstones")
 	# Placement candidates must skip plants, special blockers and existing tombstones.
 	var grid := PlantCellManager.new()
-	grid.row_col = Vector2i(1, 6)
 	var cells: Array = []
 	for c in range(6):
 		var check_cell := PlantCell.new()
 		check_cell.row_col = Vector2i(0, c)
 		cells.append(check_cell)
-	grid.all_plant_cells = [cells]
+	var grid_host: MainGameManager = _bind_existing_cells(cells) # 原测试夹具改用空间注册接口。
+	grid.main_game = grid_host
 	var blocked_plant := Plant000Base.new()
 	cells[2].plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm] = blocked_plant
 	cells[3].can_common_plant = false
 	var manager_probe := TombStoneManager.new()
 	manager_probe.plant_cell_manager = grid
-	manager_probe.all_is_tombstone = [[false, false, false, false, true, false]]
+	var occupied_grave := TombStone.new() # 原有占用案例使用真实墓碑引用。
+	cells[4].tombstone = occupied_grave
 	var candidates := manager_probe.available_pvz2_positions()
 	_require(candidates == [Vector2i(0, 5)], "grave placement ignores occupied cells")
 	manager_probe.free()
+	occupied_grave.free()
 	blocked_plant.free()
 	for check_cell: PlantCell in cells:
 		check_cell.free()
 	grid.free()
+	grid_host.free()
 	cell.tombstone = grave
 	var cell_manager := PlantCellManager.new()
-	cell_manager.all_plant_cells = [[cell]]
+	var save_host: MainGameManager = _bind_existing_cells([cell]) # 原有序列化案例的空间夹具。
+	cell_manager.main_game = save_host
 	var stone_manager := TombStoneManager.new()
 	stone_manager.plant_cell_manager = cell_manager
 	var save_data := stone_manager.get_save_game_data_tomb_stone_manager()
@@ -109,6 +113,7 @@ func _test() -> void:
 		and records[0].get("hp") == 400, "serialize PVZ2 type and HP")
 	stone_manager.free()
 	cell_manager.free()
+	save_host.free()
 	var death_cell := ProbeCell.new()
 	death_cell.row_col = Vector2i(1, 4)
 	var death_grave := GRAVE_SCENE.instantiate() as PvZ2AttackableTombstone
@@ -132,3 +137,26 @@ func _require(ok: bool, description: String) -> void:
 	if not ok:
 		_failed = true
 		push_error("PVZ2_TOMBSTONE_FAIL: " + description)
+
+
+## 为既有案例绑定当前空间接口，不增加案例或执行范围。
+func _bind_existing_cells(cells: Array) -> MainGameManager:
+	var game := MainGameManager.new() # 离树夹具宿主，不启动战斗。
+	game.board = BoardRuntime.new()
+	var count: int = 1 # 夹具中的最大逻辑行数。
+	for cell: PlantCell in cells: # 保留案例原有逻辑地址。
+		count = maxi(count, cell.row_col.x + 1)
+	var lanes: Array[BoardLaneDefinition] = [] # 夹具的攻击行。
+	for index: int in range(count): # 每个原有逻辑行一个声明。
+		var lane := BoardLaneDefinition.new() # 原有测试无需装配标记节点。
+		lane.lane_id = StringName("lane_%d" % index)
+		lanes.append(lane)
+	game.board.configure_lanes(lanes)
+	game.board.terrains[&"grass"] = BoardTerrainDefinition.legacy(0)
+	for cell: PlantCell in cells: # 注册现有节点，不替换测试对象。
+		var data := BoardCellDefinition.new() # 稳定身份来自原有地址。
+		data.address = cell.row_col
+		data.cell_id = StringName("cell_%d_%d" % [cell.row_col.x, cell.row_col.y])
+		game.board.register_cell(cell, data)
+	game.board.finish_configuration()
+	return game
