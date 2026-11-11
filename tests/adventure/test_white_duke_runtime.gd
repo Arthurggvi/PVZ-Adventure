@@ -18,6 +18,12 @@ func _run() -> void:
 	assert(boss.visual.player.has_animation(&"point"))
 	assert(boss.visual.player.has_animation(&"teleport_in"))
 	assert(boss.visual.player.has_animation(&"teleport_out"))
+	var rules := GravestoneWaveRules.new()
+	rules.flag_summons_one_per_grave = true
+	var roll := RandomNumberGenerator.new()
+	assert(not bool(rules.plan(3, false, roll)["summon"]))
+	assert(bool(rules.plan(4, true, roll)["summon"]))
+	assert(boss.config.lane_change_speed == 72.5)
 	var tree := WhiteDukeBehaviorTree.new()
 	tree.reset(0)
 	var actions: Array[int] = []

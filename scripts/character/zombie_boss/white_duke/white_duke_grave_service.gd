@@ -34,10 +34,25 @@ func _alive() -> bool:
 		and is_instance_valid(_game) and _game.zombie_manager.is_game_running() \
 		and _game.is_ancestor_of(_boss) and not _boss.is_queued_for_deletion()
 
+## The only boss-target selector: never place or select revivals in col 0/1.
+## Ordinary wave tombstones retain their own, unchanged candidate policy.
+func _target_columns(requested: Array[int] = []) -> Array[int]:
+	var result: Array[int] = []
+	if not is_instance_valid(_game):
+		return result
+	var count: int = _game.plant_cell_manager.row_col.y
+	for col in range(_settings.minimum_grave_column, count):
+		if requested.is_empty() or requested.has(col):
+			result.append(col)
+	return result
+
 func create_graves(count: int, columns: Array[int] = []) -> Array[TombStone]:
-	if not _alive():
+	if not _alive() or count <= 0:
 		return []
-	return _game.plant_cell_manager.tomb_stone_manager.spawn_boss_graves(count,columns)
+	var targets := _target_columns(columns)
+	if targets.is_empty():
+		return []
+	return _game.plant_cell_manager.tomb_stone_manager.spawn_boss_graves(count, targets)
 
 func graves_in_columns(columns: Array[int] = []) -> Array[TombStone]:
 	return _all_stones(columns)
@@ -45,8 +60,8 @@ func graves_in_columns(columns: Array[int] = []) -> Array[TombStone]:
 func _all_stones(columns: Array[int] = []) -> Array[TombStone]:
 	var result: Array[TombStone] = []
 	for stone: TombStone in _game.plant_cell_manager.tombstone_list:
-		if stone is TombStone and is_instance_valid(stone) \
-				and not stone.is_queued_for_deletion():
+		if is_instance_valid(stone) and not stone.is_queued_for_deletion() \
+				and stone.row_col.y >= _settings.minimum_grave_column:
 			if columns.is_empty() or columns.has(stone.row_col.y):
 				result.append(stone)
 	return result
@@ -62,17 +77,34 @@ func recent_for(stones: Array[TombStone], count: int,
 		corpses.resize(count)
 	queue_corpses(corpses,stones,buff)
 
+## Select from explicit stones first, then existing field stones. When a skill
+## has corpses but no usable grave, force two new graves on the same grid.
+func _ensure_stones(preferred: Array[TombStone]) -> Array[TombStone]:
+	var valid: Array[TombStone] = []
+	for stone: TombStone in preferred:
+		if is_instance_valid(stone) and not stone.is_queued_for_deletion() \
+				and stone.row_col.y >= _settings.minimum_grave_column:
+			valid.append(stone)
+	if valid.is_empty():
+		valid = _all_stones()
+	if valid.is_empty():
+		valid = create_graves(2)
+	return valid
+
 func queue_corpses(corpses: Array[Dictionary], stones: Array[TombStone],
 		buff: bool = false) -> void:
-	if stones.is_empty() or not _alive():
+	if corpses.is_empty() or not _alive():
+		return
+	var available := _ensure_stones(stones)
+	if available.is_empty():
 		return
 	for i in corpses.size():
 		if _pending.size() >= 120:
 			break
 		_pending.append({
 			"corpse": corpses[i],
-			"stone": weakref(stones[i % stones.size()]),
-			"buff": buff
+			"stone": weakref(available[i % available.size()]),
+			"buff": buff,
 		})
 	_drain()
 
@@ -97,6 +129,8 @@ func _process(delta: float) -> void:
 	_boss_timer -= delta
 	if _boss_timer <= 0:
 		_boss_timer += _settings.grave_boss_revive_seconds
+		if stones.is_empty() and not _archive.recent(INF).is_empty():
+			stones = _ensure_stones(stones)
 		if not stones.is_empty():
 			_enqueue_random(stones.pick_random())
 	_drain()
@@ -112,50 +146,30 @@ func _drain() -> void:
 	if not _alive():
 		return
 	var spawned := 0
-	for i in range(_pending.size()-1,-1,-1):
+	for i in range(_pending.size() - 1, -1, -1):
 		if spawned >= 8:
 			break
 		var task: Dictionary = _pending[i]
 		var stone: TombStone = (task["stone"] as WeakRef).get_ref() as TombStone
 		if not is_instance_valid(stone) or stone.is_queued_for_deletion():
-			_pending.remove_at(i)
-			continue
+			var replacements := _ensure_stones([])
+			if replacements.is_empty():
+				_pending.remove_at(i)
+				continue
+			stone = replacements.pick_random()
 		if is_instance_valid(stone.new_zombie):
 			continue
-		if _raise(stone,task["corpse"],bool(task["buff"])):
-			spawned += 1
+		var record: Dictionary = task["corpse"]
+		var on_created: Callable = Callable()
+		if task["buff"]:
+			on_created = _grant_phase_buff
+		var zombie: Zombie000Base = stone.spawn_from_grave(record["type"],
+			AdventureZombieTierBinding.new(record["tier"]), 0.5, on_created, false)
 		_pending.remove_at(i)
+		if is_instance_valid(zombie):
+			spawned += 1
 
-func _raise(stone: TombStone, record: Dictionary,
-		buff: bool) -> bool:
-	var creator: ZombieWaveCreateManager = _game.zombie_manager.zombie_wave_manager.zombie_wave_create_manager
-	var zombie: Zombie000Base = creator.wave_create_zombie(
-		record["type"],stone.row_col.x,-1,Callable(),false,
-		AdventureZombieTierBinding.new(record["tier"]))
-	if not is_instance_valid(zombie):
-		return false
-	zombie.global_position.x = stone.global_position.x
-	var hp: HpComponentZombie = zombie.hp_component as HpComponentZombie
-	hp.curr_hp = maxi(1,ceili(hp.max_hp*.5))
-	if hp.max_hp_armor1 > 0:
-		hp.curr_hp_armor1 = maxi(1,ceili(hp.max_hp_armor1*.5))
-	if hp.max_hp_armor2 > 0:
-		hp.curr_hp_armor2 = maxi(1,ceili(hp.max_hp_armor2*.5))
-	if buff:
-		AdventureZombieTimedSpeedBoost.apply_to(zombie,_settings.fury_speed_multiplier,
-			_settings.immunity_seconds)
-		AdventureZombieTimedCombatBuff.grant_immunity(zombie,_settings.immunity_seconds)
-	stone.new_zombie = zombie
-	zombie.tree_exiting.connect(_clear_busy.bind(weakref(stone),weakref(zombie)),CONNECT_ONE_SHOT)
-	_rise(stone,zombie)
-	return true
-
-func _rise(stone: TombStone, zombie: Zombie000Base) -> void:
-	await zombie.zombie_up_from_tombstone(1.0)
-	if is_instance_valid(stone) and stone.new_zombie == zombie:
-		stone.new_zombie = null
-
-func _clear_busy(stone_ref: WeakRef, zombie_ref: WeakRef) -> void:
-	var stone: TombStone = stone_ref.get_ref() as TombStone
-	if is_instance_valid(stone) and stone.new_zombie == zombie_ref.get_ref():
-		stone.new_zombie = null
+func _grant_phase_buff(zombie: Zombie000Base) -> void:
+	AdventureZombieTimedSpeedBoost.apply_to(zombie, _settings.fury_speed_multiplier,
+		_settings.immunity_seconds)
+	AdventureZombieTimedCombatBuff.grant_immunity(zombie, _settings.immunity_seconds)

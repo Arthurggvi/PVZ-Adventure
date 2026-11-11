@@ -45,10 +45,34 @@ func _run() -> void:
 	assert(not last.is_empty() and last[0]["type"] == CharacterRegistry.ZombieType.Z006Paper)
 	assert(last[0]["tier"] == &"veteran")
 	print("WHITE_DUKE_TEST_ARCHIVE_OK")
+	# Both flag-wave spawning and boss reviving use this single grave-cell
+	# endpoint and the original zombie_up_from_tombstone animation.
+	var marker: TombStone = placed[0]
+	var emerged := marker.spawn_from_grave(CharacterRegistry.ZombieType.Z006Paper,
+		AdventureZombieTierBinding.new(&"veteran"), 0.5, Callable(), false)
+	assert(emerged != null and marker.new_zombie == emerged)
+	assert(emerged.lane == marker.row_col.x)
+	assert(is_equal_approx(emerged.global_position.x, marker.global_position.x))
+	assert(emerged.is_body_up_from_ground)
+	assert(emerged.hp_component.curr_hp == ceili(emerged.hp_component.max_hp * 0.5))
+	print("WHITE_DUKE_TEST_GRAVE_CELL_EMERGENCE_AND_HALF_HP")
 	var boss: ZB003WhiteDuke = manager.try_create_boss_from_card(
 		CharacterRegistry.ZombieBossType.ZB003WhiteDuke) as ZB003WhiteDuke
 	assert(boss != null and boss.hp_component.max_hp==90000)
 	print("WHITE_DUKE_TEST_BOSS_CREATED")
+	await _frames()
+	assert(is_instance_valid(boss._graves))
+	# White Duke can never place graves or revive zombies in columns 0 and 1.
+	assert(boss.config.minimum_grave_column == 2)
+	var front_cols: Array[int] = [0, 1]
+	assert(boss._graves._target_columns(front_cols).is_empty())
+	assert(boss._graves.create_graves(2, front_cols).is_empty())
+	assert(boss._graves.graves_in_columns(front_cols).is_empty())
+	var extra_graves := boss._graves.create_graves(1)
+	assert(extra_graves.size() == 1 and extra_graves[0].row_col.y >= 2)
+	for owned_stone: TombStone in boss._graves.graves_in_columns():
+		assert(owned_stone.row_col.y >= 2)
+	print("WHITE_DUKE_TEST_EXCLUDED_FRONT_COLUMNS")
 	await get_tree().create_timer(4.0).timeout
 	print("WHITE_DUKE_TEST_ENTRY_STATE ",boss.state)
 	assert(boss.state == ZB003WhiteDuke.State.IDLE, "entry->summon->idle")

@@ -39,7 +39,7 @@ func _test() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
 	for spec in [{"stage": 3, "sun": true, "banner": true},
-			{"stage": 4, "sun": false, "banner": false}]:
+			{"stage": 4, "sun": false, "banner": true}]:
 		var stage: StageDefinition = AdventureStageRegistry.resolve(int(spec["stage"]))
 		_require(stage != null, "grave stage loads")
 		if stage == null:
@@ -55,8 +55,8 @@ func _test() -> void:
 			_require(rules.regular_interval == 3 and rules.regular_count == Vector2i(1, 2),
 				"natural graves every three waves")
 			_require(rules.flag_summons_one_per_grave == bool(spec["banner"]),
-				"banner zombies only upstream")
-			var expected_flag: Vector2i = Vector2i(2, 3) if bool(spec["banner"]) else Vector2i.ZERO
+				"flag zombies from the existing graves in both grave stages")
+			var expected_flag: Vector2i = Vector2i(2, 3) if int(spec["stage"]) == 3 else Vector2i.ZERO
 			_require(rules.flag_count == expected_flag, "banner grave quantities")
 			for number: int in range(1, 11):
 				var flag: bool = phase.wave_profile.flag_wave_numbers().has(number)

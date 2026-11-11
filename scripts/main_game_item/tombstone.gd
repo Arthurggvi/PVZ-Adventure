@@ -51,26 +51,63 @@ func failure_eat_tombstone():
 	tombstone_mask.position.y -= 30
 	tombstone.position.y += 30
 
-## 生成僵尸
-func create_new_zombie(new_zombie_type:CharacterRegistry.ZombieType, anim_multiply:float=1.0):
-	if not new_zombie:
+## Unified grave-cell spawn. Neither the tombstone nor the normal flag-wave
+## rules schedule revivals: callers opt in explicitly (e.g. White Duke).
+## Only this endpoint assigns grave coordinates and plays the original emerge animation.
+func spawn_from_grave(zombie_type: CharacterRegistry.ZombieType,
+		modifier: ZombieSpawnModifier = null, health_ratio: float = 1.0,
+		on_created: Callable = Callable(), natural: bool = true,
+		anim_multiply: float = 1.0) -> Zombie000Base:
+	if not is_inside_tree() or is_queued_for_deletion() or is_instance_valid(new_zombie) \
+			or not is_instance_valid(plant_cell) or health_ratio <= 0.0:
+		return null
+	var game: MainGameManager = Global.main_game
+	if not is_instance_valid(game) or not game.is_ancestor_of(self) \
+			or not game.zombie_manager.is_game_running():
+		return null
+	var manager: ZombieManager = game.zombie_manager
+	var lane: int = row_col.x
+	if not manager.can_spawn_zombie_in_lane(zombie_type, lane):
+		return null
+	var zombie_init_para: Dictionary = {
+		Zombie000Base.E_ZInitAttr.CharacterInitType: Character000Base.E_CharacterInitType.IsNorm,
+		Zombie000Base.E_ZInitAttr.Lane: lane,
+		Zombie000Base.E_ZInitAttr.CurrWave: -1,
+		Zombie000Base.E_ZInitAttr.ParticipatesNaturalRefresh: natural,
+	}
+	var row: ZombieRow = manager.all_zombie_rows[lane]
+	var position_at_grave := Vector2(global_position.x,
+			row.zombie_create_position.global_position.y)
+	var zombie: Zombie000Base = manager.create_norm_zombie(zombie_type, row,
+		zombie_init_para, position_at_grave, Callable(), modifier)
+	if not is_instance_valid(zombie):
+		return null
+	new_zombie = zombie
+	if health_ratio < 1.0:
+		var hp: HpComponentZombie = zombie.hp_component as HpComponentZombie
+		hp.curr_hp = maxi(1, ceili(hp.max_hp * health_ratio))
+		if hp.max_hp_armor1 > 0:
+			hp.curr_hp_armor1 = maxi(1, ceili(hp.max_hp_armor1 * health_ratio))
+		if hp.max_hp_armor2 > 0:
+			hp.curr_hp_armor2 = maxi(1, ceili(hp.max_hp_armor2 * health_ratio))
+	zombie.tree_exiting.connect(_forget_emerging.bind(weakref(zombie)), CONNECT_ONE_SHOT)
+	if on_created.is_valid():
+		on_created.call(zombie)
+	_emerge_zombie(zombie, anim_multiply)
+	return zombie
 
-		var zombie_init_para:Dictionary = {
-			Zombie000Base.E_ZInitAttr.CharacterInitType:Character000Base.E_CharacterInitType.IsNorm,
-			Zombie000Base.E_ZInitAttr.Lane:row_col.x,
-		}
+## Compatibility with flag waves / old grave event consumers; same emergence path.
+func create_new_zombie(zombie_type: CharacterRegistry.ZombieType,
+		anim_multiply: float = 1.0) -> void:
+	spawn_from_grave(zombie_type, null, 1.0, Callable(), true, anim_multiply)
 
-		new_zombie = Global.main_game.zombie_manager.create_norm_zombie(
-			new_zombie_type,
-			Global.main_game.zombie_manager.all_zombie_rows[row_col.x],
-			zombie_init_para,
-			Vector2(global_position.x,Global.main_game.zombie_manager.all_zombie_rows[row_col.x].zombie_create_position.global_position.y)
-		)
-		## 等待僵尸从墓碑出现
-		await new_zombie.zombie_up_from_tombstone(anim_multiply)
+func _emerge_zombie(zombie: Zombie000Base, anim_multiply: float) -> void:
+	await zombie.zombie_up_from_tombstone(maxf(0.01, anim_multiply))
+	_forget_emerging(weakref(zombie))
+
+func _forget_emerging(reference: WeakRef) -> void:
+	if new_zombie == reference.get_ref():
 		new_zombie = null
-	else:
-		print("当前墓碑正在生产僵尸")
 
 ## 墓碑存档协议。派生类覆盖种类、血量和恢复，旧墓碑保持无血量语义。
 func get_tombstone_kind() -> StringName:

@@ -18,6 +18,7 @@
 script = ExtResource("2_graves")
 regular_interval = 3
 regular_count = Vector2i(1, 2)
+flag_summons_one_per_grave = true
 
 [sub_resource type="Resource" id="NormalOpening"]
 script = ExtResource("3_band")

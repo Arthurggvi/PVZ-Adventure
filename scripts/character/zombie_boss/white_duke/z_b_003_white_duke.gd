@@ -68,6 +68,7 @@ func _physics_process(delta: float) -> void:
 				lane = _next_lane
 				z_index = lane*50+40
 				signal_status_update.emit()
+				skills.lane_change()
 				_finish_action()
 
 func _begin_action(action: WhiteDukeBehaviorTree.Action) -> void:
