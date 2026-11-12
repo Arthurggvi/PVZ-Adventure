@@ -26,15 +26,15 @@ def build(workspace: Path, manifest: dict) -> None:
     small=ImageFont.truetype('C:/Windows/Fonts/msyh.ttc',17)
     for state in ['day','night']:
         encode(root/'frames'/state,out/f'{state}_harbor_full.mp4')
-        encode(root/'frames'/f'crop_{state}',out/f'{state}_harbor_closeup.mp4',True)
+        encode(root/'frames'/f'harbor_{state}',out/f'{state}_harbor_closeup.mp4',True)
         image(root/'renders'/f'{state}_phase_25.png').save(out/f'{state}_preview.jpg',quality=96,subsampling=0,optimize=True)
         image(root/'renders'/f'{state}_ui.png').save(out/f'{state}_ui.jpg',quality=94,subsampling=0,optimize=True)
     # 同相位的昼/夜近景并排，全部来自真实 GPU 帧，量化只用于手机 GIF。
     selected=np.linspace(0,count-1,min(manifest['preview']['gif_frames'],count),dtype=int)
     pair_frames=[]
     for index in selected:
-        day=image(root/'frames/crop_day'/f'frame_{index:04d}.png')
-        night=image(root/'frames/crop_night'/f'frame_{index:04d}.png')
+        day=image(root/'frames/harbor_day'/f'frame_{index:04d}.png')
+        night=image(root/'frames/harbor_night'/f'frame_{index:04d}.png')
         size=(day.width*2,day.height*2);day=day.resize(size,Image.Resampling.LANCZOS);night=night.resize(size,Image.Resampling.LANCZOS)
         pair=Image.new('RGB',(size[0]*2,size[1]+46),(25,30,35));draw=ImageDraw.Draw(pair)
         draw.text((14,9),'白天｜实际港口动态',font=font,fill=(239,238,228))

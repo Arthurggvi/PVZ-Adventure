@@ -33,6 +33,16 @@ def build(root: Path) -> None:
         values=data(layer,"Y' u8");mask=layer.create_mask(Gimp.AddMaskType.BLACK);layer.add_mask(mask)
         mask.get_buffer().set(rect,'Y u8',values);layer.set_apply_mask(False)
         hashes[filename]=hashlib.sha256(values).hexdigest()
+    if manifest.get('features',{}).get('wind',False):
+        wind=group(image,'31_WIND_CONTROLS_树冠布料与固定端',False)
+        for filename in ['canopy_left.png','canopy_rear.png','awning_alpha.png','awning_pin.png','flag_select.png','protected_anchors.png','wind_support.png']:
+            layer=load(image,root/'wind_assets'/filename,filename,wind)
+            values=data(layer,"Y' u8");mask=layer.create_mask(Gimp.AddMaskType.BLACK);layer.add_mask(mask)
+            mask.get_buffer().set(rect,'Y u8',values);layer.set_apply_mask(False)
+            hashes[filename]=hashlib.sha256(values).hexdigest()
+        parts=group(image,'32_WIND_PARTS_原像素布料及有限补底',False)
+        for filename in ['awning_plate.png','awning.png','flag.png']:
+            load(image,root/'wind_assets'/filename,filename,parts)
     refs=group(image,'40_GPU_REFERENCES_真实动态静帧_非时间参数',True)
     for filename in ['day_disabled.png','day_phase_25.png','night_phase_25.png']:
         load(image,root/'renders'/filename,filename,refs,filename=='day_phase_25.png')
@@ -43,7 +53,8 @@ def build(root: Path) -> None:
     assert Gimp.file_save(Gimp.RunMode.NONINTERACTIVE,image,file(destination),None)
     image.delete();reopened=Gimp.file_load(Gimp.RunMode.NONINTERACTIVE,file(destination));assert reopened is not None
     top=reopened.get_layers();orig=next(l for l in top if l.get_name().startswith('00_'));controls=next(l for l in top if l.get_name().startswith('30_'))
-    checks={l.get_name():hashlib.sha256(data(l.get_mask(),'Y u8')).hexdigest()==hashes[l.get_name()] for l in controls.get_children()}
+    check_groups=[node for node in top if node.get_name().startswith(('30_','31_'))]
+    checks={layer.get_name():hashlib.sha256(data(layer.get_mask(),'Y u8')).hexdigest()==hashes[layer.get_name()] for node in check_groups for layer in node.get_children()}
     report={'source_pixels_unchanged':hashlib.sha256(data(orig)).hexdigest()==original_hash,'source_locked':orig.get_lock_content() and orig.get_lock_position(),
       'mask_checks':checks,'file_bytes':destination.stat().st_size,'canvas':size,
       'notes':'XCF is editing/inspection view; shaders and config own motion. Premultiplied layers and material lighting references remain separate float32 products. Manual edits do not reverse-sync.'}

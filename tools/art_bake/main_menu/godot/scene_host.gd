@@ -17,6 +17,8 @@ var sampler: RefCounted
 var motion: Dictionary
 ## 当前时段进度。
 var time_progress := 0.0
+## 可选统一风场，只持有本宿主实例。
+var wind_controller: RefCounted
 
 ## [param path] 是本工作目录图片；不触发生产游戏资源导入。
 func texture_file(path: String) -> ImageTexture:
@@ -72,10 +74,12 @@ func configure(folder: String) -> void:
 		var value: Array = profile.reference[key] # 固定校准参数。
 		light_material.set_shader_parameter(key,Vector3(value[0],value[1],value[2]))
 	base.material = light_material
+	wind_controller = load(folder.path_join("runtime/wind_layer.gd")).new()
+	var wind_view: SubViewport = wind_controller.configure(self,folder,lit_view) # 树/棚在船体变换之前处理。
 	output_view = make_view(size)
-	var composite := artwork(output_view,lit_view.get_texture()) # 读取真实实时受光结果。
+	var composite := artwork(output_view,wind_view.get_texture()) # 读取真实实时受光结果。
 	var harbor_shader := Shader.new() # 只负责有界动态，不重复计算灯光。
-	harbor_shader.code = FileAccess.get_file_as_string(folder.path_join("runtime/harbor.gdshader"))
+	harbor_shader.code = wind_controller.shader_source(folder,"harbor.gdshader")
 	harbor_material = ShaderMaterial.new()
 	harbor_material.shader = harbor_shader
 	harbor_material.set_shader_parameter("canvas_pixels",Vector2(size))
@@ -85,6 +89,7 @@ func configure(folder: String) -> void:
 	for uniform: String in ["clean_light_uv","boat_premult","boat_light_uv","fixed_premult","fixed_light_uv"]: # 预乘颜色与低频受光参考分别绑定。
 		harbor_material.set_shader_parameter(uniform,float_texture(folder.path_join("assets/"+uniform+".rgba32f"),size))
 	composite.material = harbor_material
+	wind_controller.bind_flag(self,folder,harbor_material)
 	ui_layer = Node2D.new()
 	output_view.add_child(ui_layer)
 	for filename in ["layer_profile_proposed.png","layer_console_proposed.png","layer_toolbar_expanded.png"]:
@@ -118,6 +123,8 @@ func set_time(progress: float) -> void:
 ## [param phase] 为可重复的周期进度；不读取系统时钟。
 func set_phase(phase: float) -> void:
 	harbor_material.set_shader_parameter("phase",phase)
+	if wind_controller != null:
+		wind_controller.set_elapsed(phase*float(motion.loop_seconds))
 
 ## [param enabled] 控制全部港口动态；关闭直接返回静态受光源。
 func set_motion_enabled(enabled: bool) -> void:
@@ -126,4 +133,11 @@ func set_motion_enabled(enabled: bool) -> void:
 ## [param seconds] 为调用者提供的连续运行秒数；周期统一来自 motion.json。
 func set_elapsed(seconds: float) -> void:
 	assert(float(motion.loop_seconds) > 0.0)
-	set_phase(fposmod(seconds / float(motion.loop_seconds),1.0))
+	harbor_material.set_shader_parameter("phase",fposmod(seconds/float(motion.loop_seconds),1.0))
+	if wind_controller != null:
+		wind_controller.set_elapsed(seconds)
+
+## [param enabled] 切换新增风动，不修改港口基线开关。
+func set_wind_enabled(enabled: bool) -> void:
+	if wind_controller != null:
+		wind_controller.set_enabled(enabled)

@@ -22,6 +22,8 @@ def build(work: Path, force: bool=False) -> None:
       ('ground','ground_emitters',[work/'config/finish_config.json',work/'working_base.png',work/'maps'],['ground_finished.png','finish_maps']),
       ('light','light_field',[work/'config/attenuation_config.json',work/'config/scene_config.json',work/'master_original.png',work/'maps'],['attenuation_maps']),
       ('harbor','harbor_assets',[work/'config/harbor_layout.json',work/'master_original.png',work/'ground_finished.png',work/'maps/water.png',code/'python/harbor_matte.py'],['assets'])]
+    if (work/'config/wind_layout.json').is_file():
+        plan.append(('wind','wind_assets',[work/'master_original.png',work/'config/wind_layout.json',work/'assets/boat_premult.rgba32f',code/'python/harbor_matte.py',code/'python/cloth_matte.py'],['wind_assets']))
     record=[]
     for name,module,inputs,outputs in plan:
         source=code/'python'/f'{module}.py';key=fingerprint(inputs+[source])
@@ -48,7 +50,7 @@ def build(work: Path, force: bool=False) -> None:
 def stage_runtime(work: Path) -> None:
     source=Path(__file__).resolve().parent/'godot';target=work/'runtime';target.mkdir(exist_ok=True)
     for path in source.iterdir():
-        if path.suffix not in {'.gd','.gdshader'}:continue
+        if path.suffix not in {'.gd','.gdshader','.gdshaderinc'}:continue
         shutil.copy2(path,target/path.name)
     (target/'SOURCE_NOTICE.txt').write_text('派生执行副本：不要在此调参或修改源码。源码入口是 tools/art_bake/main_menu。\n',encoding='utf-8')
 
@@ -69,7 +71,9 @@ def main() -> None:
     if args.action in ['render','all']:
         launcher=args.tools_config.parent/'artctl.py'
         subprocess.run([tools['python'],str(launcher),'godot',str(work/'runtime/capture.gd'),'--run-dir',str(work)],check=True)
-    if args.action in ['preview','all']:importlib.import_module('python.previews').build(work,manifest)
+    if args.action in ['preview','all']:
+        preview_module='wind_previews' if manifest.get('features',{}).get('wind',False) else 'previews'
+        importlib.import_module('python.'+preview_module).build(work,manifest)
     if args.action in ['workfile','all']:
         source=Path(__file__).resolve().parent/'python/workfile.py'
         subprocess.run([tools['python'],str(args.tools_config.parent/'artctl.py'),'gimp',str(source),'--run-dir',str(work)],check=True)

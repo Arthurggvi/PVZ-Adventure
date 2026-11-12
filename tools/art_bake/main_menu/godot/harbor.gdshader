@@ -1,5 +1,15 @@
 shader_type canvas_item;
 render_mode unshaded;
+// WIND_FIELD_INCLUDE
+uniform sampler2D boat_without_flag : filter_linear, repeat_disable;
+uniform sampler2D flag_premult : filter_linear, repeat_disable;
+uniform bool flag_enabled = true;
+uniform float flag_amplitude = 1.8;
+uniform float flag_delay = 0.6;
+uniform float flag_cycles = 4.0;
+uniform float flag_travel = 4.5;
+uniform float flag_root_x = 1589.0;
+uniform float flag_tip_x = 1627.0;
 // 真实预乘透明部件：海底补图→活动船→固定码头，颜色与alpha一起过滤。
 uniform sampler2D masks : filter_linear, repeat_disable;
 uniform sampler2D master_color : filter_linear, repeat_disable;
@@ -64,6 +74,15 @@ void fragment() {
             result.rgb*=1.0+rim*contact_strength*water_time_gain*region.b;
         }
         vec4 boat=relit_part(TEXTURE,boat_premult,boat_light_uv,boat_uv);
+        if (wind_enabled && wind_strength>0.0 && flag_enabled && flag_amplitude>0.0) {
+            // 先在船局部变形自由布面，再由已有boat_uv统一继承船体运动。
+            float along=clamp((boat_uv.x*canvas_pixels.x-flag_root_x)/(flag_tip_x-flag_root_x),0.0,1.0);
+            float flutter=wind_signal(flag_cycles,flag_delay,along*flag_travel)*flag_amplitude*along*along;
+            vec2 flag_uv=boat_uv-vec2(0.0,flutter)/canvas_pixels;
+            vec4 cloth=relit_part(TEXTURE,flag_premult,boat_light_uv,flag_uv);
+            boat=relit_part(TEXTURE,boat_without_flag,boat_light_uv,boat_uv);
+            boat=cloth+boat*(1.0-cloth.a);
+        }
         result.rgb=boat.rgb+result.rgb*(1.0-boat.a);
         vec4 fixed=relit_part(TEXTURE,fixed_premult,fixed_light_uv,UV);
         result.rgb=fixed.rgb+result.rgb*(1.0-fixed.a);

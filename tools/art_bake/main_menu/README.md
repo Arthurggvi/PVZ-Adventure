@@ -1,10 +1,10 @@
 # 主菜单美术制作管线｜单入口、配置驱动、可复现
 
-当前港口为 S7B 返工候选；旧 S7 已被退回，不得继续将旧遮罩与最近RGB映射作为通过基线。
+S7B港口已通过。当前S8增加两处树冠内部、船旗和遮阳棚风动，预览待审；旧S7仍为退回版。已通过的港口资产和光照不随本轮重调。
 
 ## 权威入口
 - 代码：本目录。`menu.py` 是唯一命令入口；`python/` 为确定性构建器，`godot/` 为共享受光/动态宿主与捕获代码。`.gdignore` 避免生产游戏自动导入制作工具。
-- 当前资产工作目录：`C:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112`。
+- 当前资产工作目录：`C:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112`。
 - 原生工具路径：`C:\Dev\Tools\ArtControl\config.json`，复用现有 `artctl.py`。不安装新服务、不开放端口。
 - `workspace/runtime` 是自动部署的执行副本，不得在里面修改权威源码。交付包将本目录作为 `pipeline_source/` 保存，可指向新的工作目录。
 
@@ -30,7 +30,7 @@
 
 ```powershell
 $entry='C:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
-$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112'
+$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112'
 $tools='C:\Dev\Tools\ArtControl\config.json'
 python $entry build --workspace $work --tools-config $tools
 python $entry render --workspace $work --tools-config $tools
@@ -65,6 +65,17 @@ python $entry all --workspace $work --tools-config $tools
 - 普通运动调参仍只改 motion.json，未通过降低幅度掩盖旧边缘问题；需要放大幅度时必须重新审查遮挡与缺失内容。系缆固定端由前柱遮挡，没有新增绳索物理。
 - 验收必须包括黑/灰/白底与极限相位，范围外像素不变、静态回退一致不能证明动态图层分离正确。
 
+## S8 新增风场（不替代港口）
+
+- `config/wind.json` 管总开关、强度、风向、阵风和各部件响应；普通风速/幅度只需重新渲染。`wind_layout.json`管树冠保边、布料trimap、固定点和选择范围，需要时只重建wind资产。
+- `wind_assets.py` / `cloth_matte.py` 保留原像素，颜色选区与闭合轮廓避免窗玻璃混入布料；遮阳棚补底沿原窗面的列方向延拓，不用最近二维RGB把窗框拉成分叉。
+- `wind_field.gdshaderinc` 是唯一公共函数；`wind_layer.gd` 持有一个显式时钟，两个材质使用同一风场，各部件有不同响应与相位。
+- `lit_view → land_wind（树冠、棚）→ harbor（既有港口＋船局部旗帜）→ UI`。旗帜在原像素内预先分为flag与无旗船两个预乘分量，然后按船局部坐标变形；不重复叠加船位移。
+- 树冠只动内部叶面，轮廓/树干/屋顶交界固定；遮阳棚上边及侧支点固定，自由外沿轻动。没有新物件、粒子、烟鸟或本机时间读取。
+- `set_wind_enabled(false)` 只关闭本轮新增效果，同相位输出应与通过的S7B逐像素一致。整体风强度为0也旁路；树冠/遮阳棚/旗分别有enabled开关。
+- 预览默认6秒24FPS，和现有港口共同循环。改周期时须让capture.duration_seconds覆盖各周期的共同循环；周期内cycles采用整数，避免首尾相位不一致。
+- 近景和XCF由同一入口输出；`wind_previews.py`检查风关闭对照、作用域外、固定端和循环。此类数值不代替实际边缘/观感审查。详见 `docs/adventure/main_menu_wind_pipeline.md`。
+
 ## 原生工作副本与数据所有权
 
 XCF 保留原图保护层、必要部件、四张控制蒙版、GPU 参考与UI。参考静帧不是实时参数源，编辑部件前关闭参考组。手工 XCF 修改不会自动回写 JSON/浮点映射；先另存，再明确导回路径。GIMP 原生蒙版继续使用 Y u8 数值存取，禁止对控制数据额外做 gamma 变换。
@@ -75,7 +86,7 @@ XCF 保留原图保护层、必要部件、四张控制蒙版、GPU 参考与UI�
 
 按项目 AGENTS 未新增/运行测试套件。交付核对涵盖构建前后静态一致性、关闭动态与S6逐像素对照、固定码头/动态范围外像素、循环首尾、原图与历史文件哈希、XCF保存重开。真实输出记录在工作目录 reports，不用旧报告冒充新结果。
 
-尚未完成：生产菜单替换、真实入口交互、其余风/布料/烟等动态、本机时间的清晨/昼夜闭环与绑定。没有新增场景物件或生成图片。
+尚未完成：生产菜单替换、真实入口交互、本轮以外的环境动态、本机时间的清晨/昼夜闭环与绑定。没有新增场景物件或生成图片。
 
 官方技术参考：Godot SubViewport/ViewportTexture，用于实时受光纹理的二级采样；本方案关闭 HDR2D，保持已核对的颜色编码。
 https://docs.godotengine.org/en/stable/tutorials/rendering/viewports.html
