@@ -23,7 +23,7 @@ func outgoing_damage(amount: int) -> int:
 ## 当前生效的限时无敌来源，按来源 ID 记录，可与脚本无敌叠加。
 var _immunity_sources: Dictionary[int, bool] = {}
 ## 角色控制的无敌窗口；直接生命调整仍可通过专用旁路执行。
-var damage_immune: bool = false
+var damage_immune: bool = false:
 	set(value): # value 为脚本设置的无敌开关。
 		damage_immune = value
 		_update_damage_immunity_tint()
