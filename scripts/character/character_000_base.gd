@@ -21,12 +21,14 @@ enum E_TimerType{
 	IceDecelerate,	## 冰冻减速
 	IceFreeze,		## 冰冻停滞
 	Butter,			## 黄油
+	Stun,			## 眩晕
 }
 ## 减速相关计时器(第一次使用时创建)
 var all_timer:Dictionary[E_TimerType, Timer] = {
 	E_TimerType.IceDecelerate:null,
 	E_TimerType.IceFreeze:null,
 	E_TimerType.Butter:null,
+	E_TimerType.Stun:null,
 }
 #endregion
 
@@ -65,6 +67,7 @@ enum E_Influence_Speed_Factor{
 	AdventureTierBoost,	## 冒险专属等阶的临时加速，独立于其他速度因子
 	AdventureTierStance, ## Permanent pole carrying / exhausted movement factor
 	AdventurePromotionAttackRate, ## 冒险转职攻速倍率，动画与发射计时共用。
+	Stun, ## 眩晕的独立速度因子，停止行动时为 0。
 }
 ## 是否被魅惑
 var is_hypno:bool = false

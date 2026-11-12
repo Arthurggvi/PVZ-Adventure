@@ -115,6 +115,9 @@ func update_move_mode(new_move_mode:E_MoveMode):
 	move_mode = new_move_mode
 
 func _process(delta: float) -> void:
+	if owner_zombie.is_stunned():
+		update_previous_ground_global_x()
+		return
 	if ladder_state == E_LadderState.Down:
 		move_y_correct_ladder_down(delta)
 	if is_move:

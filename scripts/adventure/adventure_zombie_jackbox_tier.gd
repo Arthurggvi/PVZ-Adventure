@@ -27,10 +27,13 @@ func setup(jackbox: Zombie016Jackbox, rule: Dictionary) -> void:
         afterlife.disarm()
         jackbox.signal_first_jackbox_blast_survived.connect(afterlife.arm)
 
+## [param delta] 为本帧游戏秒数，眩晕时暂停接触引爆和啃咬引信。
 func _process(delta: float) -> void:
     if not is_instance_valid(_jackbox) or _jackbox.is_death or _jackbox.is_pop \
             or _jackbox.first_explosion_survived:
         set_process(false)
+        return
+    if _jackbox.is_stunned():
         return
     var attack: AttackComponentZombieNorm = _jackbox.attack_component as AttackComponentZombieNorm
     var target: Node = attack.detect_component.enemy_can_be_attacked

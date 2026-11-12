@@ -540,6 +540,35 @@ func jump_be_stop(_plant:Plant000Base):
 	pass
 
 
+#region 眩晕
+## 返回当前是否因眩晕而暂停行动，供独立于动画推进的攻击和位移读取。
+func is_stunned() -> bool:
+	return influence_speed_factors.get(E_Influence_Speed_Factor.Stun, 1.0) == 0.0
+
+
+## [param duration] 为负面效果入口验证过的游戏秒数；连续命中只延长当前剩余时间。
+func be_stunned(duration: float) -> void:
+	# 每个僵尸复用一个随场景暂停的计时器，由角色持有并随角色释放。
+	var timer: Timer = all_timer[E_TimerType.Stun]
+	if not is_instance_valid(timer):
+		timer = GlobalUtils.create_new_timer_once(self, _end_stun)
+		timer.process_callback = Timer.TIMER_PROCESS_PHYSICS
+		all_timer[E_TimerType.Stun] = timer
+		signal_character_death.connect(_end_stun, CONNECT_ONE_SHOT)
+	if timer.time_left < duration:
+		timer.start(duration)
+	if not is_stunned():
+		update_speed_factor(0.0, E_Influence_Speed_Factor.Stun)
+
+
+## 到期或死亡时解除眩晕，让其他速度因子和死亡动画继续生效。
+func _end_stun() -> void:
+	all_timer[E_TimerType.Stun].stop()
+	if is_stunned():
+		update_speed_factor(1.0, E_Influence_Speed_Factor.Stun)
+#endregion
+
+
 #region 黄油
 ## 黄油糊脸
 ##[butter_time:float]:黄油糊脸时间

@@ -31,9 +31,12 @@ func setup(flag: Zombie000Base, manager: ZombieManager, rule: Dictionary) -> voi
             AdventureZombieTimedCombatBuff.grant_immunity(z, spawn_immunity)
         )
 
+## [param delta] 为本帧游戏秒数，眩晕时暂停主动发出的号令。
 func _process(delta: float) -> void:
     if not is_instance_valid(_flag) or _flag.is_death or _flag.is_hypno:
         clear()
+        return
+    if _flag.is_stunned():
         return
     _timer += delta
     while _timer >= _pulse_interval:

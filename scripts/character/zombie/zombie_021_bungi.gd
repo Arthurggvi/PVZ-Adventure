@@ -43,6 +43,8 @@ var _steal_finished: bool = false
 var _is_raising: bool = false
 ## 当前下降 Tween，返回或死亡时取消，避免和上升 Tween 同时写身体位置。
 var _drop_tween: Tween
+## 落地后等待抓取的计时器，眩晕期间暂停。
+var _grab_timer: Timer
 
 
 ## 在新实例入树前统一注入出战参数；只保存引用与标记，不访问 onready 节点或重置运行状态。[br]
@@ -88,7 +90,14 @@ func ready_norm() -> void:
 	if not _can_continue_descent():
 		return
 	if linger_seconds > 0.0:
-		await get_tree().create_timer(linger_seconds, false).timeout
+		_grab_timer = Timer.new()
+		_grab_timer.one_shot = true
+		_grab_timer.paused = is_stunned()
+		add_child(_grab_timer)
+		_grab_timer.start(linger_seconds)
+		await _grab_timer.timeout
+		_grab_timer.queue_free()
+		_grab_timer = null
 		if not _can_continue_descent():
 			return
 	is_grab = true
@@ -101,6 +110,25 @@ func ready_show() -> void:
 	set_process(false)
 	bungee_target.visible = false
 	shadow.visible = false
+
+
+## 出战实例还需将眩晕同步到独立于动画树的下降轨迹和抓取等待。
+func ready_norm_signal_connect() -> void:
+	super()
+	signal_update_speed.connect(_update_steal_stun)
+
+
+## [param _speed_product] 为通用速度倍率。偷取的下降与等待只因眩晕而暂停。
+func _update_steal_stun(_speed_product: float) -> void:
+	# 只读取眩晕标记，保留原先独立于一般加减速的下降和等待时间。
+	var stunned: bool = is_stunned()
+	if is_instance_valid(_drop_tween) and _drop_tween.is_valid():
+		if stunned:
+			_drop_tween.pause()
+		elif not _drop_tween.is_running():
+			_drop_tween.play()
+	if is_instance_valid(_grab_timer):
+		_grab_timer.paused = stunned
 
 
 ## 在首次显示前配置裁切；只让绳段继承材质，不修改角色身体与被偷植物的材质。

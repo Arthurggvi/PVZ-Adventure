@@ -26,6 +26,8 @@ func anim_start():
 
 ## 攻击一次，动画调用
 func attack_once():
+	if owner.is_stunned():
+		return
 	_attack_once_native()
 	signal_smash_completed.emit(enemy)
 

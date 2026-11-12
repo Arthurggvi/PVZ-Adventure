@@ -113,7 +113,31 @@ const BOOKS: Dictionary = {
 		"effects": [{"kind": "adjacent_aura", "damage_bonus": 1.0, "damage_reduction": 0.5}]},
 	"promotion_sunflower_flower_field": {
 		"title": "花田", "summary": "每次种植本向日葵，使其他植物卡费用−25（可叠加，最低0）；使用各卡后重置该卡折扣", "plant_type": 2, "tier": 4,
-		"effects": [{"kind": "deck_cost_discount", "step": 25}]}
+		"effects": [{"kind": "deck_cost_discount", "step": 25}]},
+	"promotion_lightning_reed_quick_burst": {
+		"title": "闪电神经", "summary": "每次攻击快速放电两次", "plant_type": 50, "tier": 1,
+		"effects": [{"kind": "reed_quick_burst", "delay": 0.12}]},
+	"promotion_lightning_reed_overload": {
+		"title": "感电过载", "summary": "同一道闪电每折射一次，伤害额外+50%，累计最多+200%", "plant_type": 50, "tier": 1,
+		"effects": [{"kind": "reed_overload", "step": 0.5, "cap": 2.0}]},
+	"promotion_lightning_reed_splash": {
+		"title": "激荡", "summary": "击中僵尸时，对周围其他敌人造成本次命中伤害的30%", "plant_type": 50, "tier": 2,
+		"effects": [{"kind": "reed_splash", "fraction": 0.3, "radius": 96.0}]},
+	"promotion_lightning_reed_paralysis": {
+		"title": "麻痹", "summary": "每次击中使可受控的僵尸停止行动0.2秒", "plant_type": 50, "tier": 2,
+		"effects": [{"kind": "reed_paralysis", "seconds": 0.2}]},
+	"promotion_lightning_reed_dual_strike": {
+		"title": "电压击穿", "summary": "每次放电可同时直击两个不同敌人", "plant_type": 50, "tier": 3,
+		"effects": [{"kind": "reed_dual_strike", "targets": 2}]},
+	"promotion_lightning_reed_warp": {
+		"title": "跃迁", "summary": "首击索敌覆盖全屏（含身后），且闪电可以命中空中单位", "plant_type": 50, "tier": 3,
+		"effects": [{"kind": "reed_warp"}]},
+	"promotion_lightning_reed_split": {
+		"title": "弧光震荡", "summary": "每次折射可分裂出两道闪电，分别攻击附近的敌人", "plant_type": 50, "tier": 4,
+		"effects": [{"kind": "reed_split", "branches": 2}]},
+	"promotion_lightning_reed_ion_refraction": {
+		"title": "电离折射", "summary": "闪电的折射次数+5", "plant_type": 50, "tier": 4,
+		"effects": [{"kind": "reed_ion_refraction", "extra_bounces": 5}]},
 }
 
 static func definition(id: String) -> Dictionary:
