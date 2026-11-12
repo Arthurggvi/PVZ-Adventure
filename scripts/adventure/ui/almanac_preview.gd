@@ -3,6 +3,8 @@ extends RefCounted
 
 ## 共用物种到场景、卡牌身份和阶级 ID 的解析。
 const Data = preload("res://scripts/adventure/ui/almanac_data.gd")
+## 豌豆射手的实战和图鉴待机共用的转职外观。
+const PeaArt = preload("res://scripts/adventure/plant_art/adventure_peashooter_promotion_art.gd")
 
 ## 在 [param parent] 的 [param bounds] 中绘制 [param kind]、[param type_id] 的一阶目录缩略图。
 ## 返回是否绘制成功；只在目录中缩短超出本体的旗杆和撑杆。
@@ -66,6 +68,8 @@ static func draw_idle(parent: Control, kind: String, type_id: int, tier: int, bo
 			# 二阶对应一转。图鉴用所选阶级创建外观，和战斗共用角色场景。
 			var body := character.get_node_or_null(^"Body/BodyCorrect") as Node2D
 			match type_id:
+				PeaArt.PLANT_TYPE:
+					PeaArt.apply_to_body(body, tier - 1)
 				AdventureSunflowerPromotionArt.SUNFLOWER_TYPE:
 					AdventureSunflowerPromotionArt.apply_to_body(body, tier - 1)
 				AdventureLightningReedPromotionArt.PLANT_TYPE:

@@ -30,6 +30,8 @@ var _pea_synergy_count: int = 0
 var _resonance_next_free: bool = false
 var _star_badge: Control = null
 const StarBadge = preload("res://scripts/adventure/ui/star_badge_view.gd")
+## 豌豆射手的转职配件和配色。
+const PeaArt = preload("res://scripts/adventure/plant_art/adventure_peashooter_promotion_art.gd")
 ## 向日葵转职的分层卡面资源。
 const SunflowerArt = preload("res://scripts/adventure/plant_art/adventure_sunflower_promotion_art.gd")
 ## 闪电芦苇转职的统一配色。
@@ -62,6 +64,8 @@ func promotion_tier() -> int:
 ## 在 [param preview] 上应用 [param plant_type] 的 [param rank] 转卡面。其余物种直接使用原图。
 static func apply_promotion_appearance(preview: Node2D, plant_type: int, rank: int) -> bool:
 	match plant_type:
+		PeaArt.PLANT_TYPE:
+			return PeaArt.apply_to_preview(preview, rank)
 		SunflowerArt.SUNFLOWER_TYPE:
 			return SunflowerArt.apply_to_preview(preview, rank)
 		ReedArt.PLANT_TYPE:
