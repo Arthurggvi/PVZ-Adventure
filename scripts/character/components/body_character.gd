@@ -15,6 +15,24 @@ var light_and_dark_tween: Tween = null  # 明暗交替动画
 # modulate 状态颜色变量
 var base_color := Color(1, 1, 1)
 
+## 抛飞在身体父节点局部坐标系中的偏移。普通姿态通过 [member pose_position] 与其合成。
+var _forced_pose_offset: Vector2 = Vector2.ZERO
+## 入水、出土等动作使用的局部身体位置，独立于抛飞的高度。
+var pose_position: Vector2:
+	get:
+		return position - _forced_pose_offset
+	set(value):
+		position = value + _forced_pose_offset
+
+
+## 将身体沿世界坐标向上抬 [param height] 像素。设为 0 后回到当前姿态，脚点和受击框保持在地面。
+func set_forced_lift(height: float) -> void:
+	var base: Vector2 = pose_position # 先保存当前姿态，避免覆盖并行的入水或出土过渡。
+	var parent_node := get_parent() as Node2D # 角色缩放会影响局部位移，需用其逆变换。
+	_forced_pose_offset = parent_node.global_transform.affine_inverse().basis_xform(Vector2.UP * height)
+	pose_position = base
+
+
 ## 各表现因素对应的颜色乘数；最终逐项相乘，白色表示该因素不改变颜色。
 var change_color:Dictionary[E_ChangeColors, Color] = {
 }
@@ -194,20 +212,20 @@ func zombie_body_up_from_ground(up_time:float = 1.0):
 	owner.add_child(dirt_rise_effect)
 	dirt_rise_effect.start_dirt()
 
-	position.y += 100
+	pose_position.y += 100
 	# 本次身体上浮的补间，将下移后的身体恢复到原高度，结束后关闭遮罩。
 	var tween :Tween = create_tween()
-	tween.tween_property(self, "position:y", position.y-100, up_time)
+	tween.tween_property(self, ^"pose_position:y", pose_position.y - 100.0, up_time)
 	await tween.finished
 	body_mask_end()
 
 ## 僵尸从水下出来(珊瑚僵尸)
 func zombie_body_up_from_pool():
 	body_mask_start()
-	position.y += 100
+	pose_position.y += 100
 	# 本次身体上浮的补间，将下移后的身体恢复到原高度，结束后关闭遮罩。
 	var tween :Tween = create_tween()
-	tween.tween_property(self, "position:y", position.y-100, 1)
+	tween.tween_property(self, ^"pose_position:y", pose_position.y - 100.0, 1.0)
 	await tween.finished
 	body_mask_end()
 

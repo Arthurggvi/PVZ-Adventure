@@ -7,7 +7,7 @@ var is_can_ladder:=true
 signal signal_ladder(plant:Plant000Base)
 
 func _physics_process(delta: float) -> void:
-	if is_enabling and is_attack_res and not owner.is_stunned():
+	if is_enabling and is_attack_res and not owner.is_action_suspended():
 		frame_counter = wrapi(frame_counter + 1, 0, 8)
 		if not is_instance_valid(detect_component.enemy_can_be_attacked):
 			return

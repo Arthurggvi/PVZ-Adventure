@@ -15,11 +15,80 @@ static func query_areas(space: PhysicsDirectSpaceState2D,
     query.collision_mask = profile.collision_mask
     query.collide_with_areas = true
     query.collide_with_bodies = false
-    for entry: Dictionary in space.intersect_shape(query, 256):
+    var limit: int = 256 # 满额时扩大查询，多受击框的密集僵尸也能覆盖。
+    var entries: Array[Dictionary] = space.intersect_shape(query, limit) # 当前完整度待确认的命中。
+    while entries.size() == limit:
+        limit *= 2
+        entries = space.intersect_shape(query, limit)
+    for entry: Dictionary in entries: # 仅保留仍有效的区域。
         var area: Area2D = entry.get("collider") as Area2D
         if is_instance_valid(area):
             hits.append(area)
     return hits
+
+## 对 [param areas] 中的敌方角色按实例去重。
+## [param lane] 为爆心所在行，[param radius] 为行半径，-1 表示不限制。[param statuses] 为可命中的僵尸状态位。
+static func plant_blast_targets(areas: Array[Area2D], lane: int,
+        radius: int, statuses: int) -> Array[Character000Base]:
+    var targets: Array[Character000Base] = [] # 当前几何命中的候选快照。
+    var seen: Dictionary[int, bool] = {} # 同一角色的多个受击区域只登记一次。
+    for area: Area2D in areas:
+        if not is_instance_valid(area) or not is_instance_valid(area.owner):
+            continue
+        var target := area.owner as Character000Base # 设施与普通僵尸共用角色入口。
+        if not _can_hit_plant_blast(target, lane, radius, statuses):
+            continue
+        var id: int = target.get_instance_id() # 以角色身份去重。
+        if not seen.has(id):
+            seen[id] = true
+            targets.append(target)
+    return targets
+
+## 结算 [param areas] 覆盖的植物爆炸，沿用 [param lane]、[param radius] 和 [param statuses] 筛选。
+## [param damage] 是出战修正后的伤害，[param ash] 选择普通僵尸是否播放灰烬。
+## 返回实际击杀的僵尸或僵王，设施销毁不计入击杀。
+static func resolve_plant_blast(areas: Array[Area2D], lane: int, radius: int,
+        statuses: int, damage: int, ash: bool) -> Array[Character000Base]:
+    var casualties: Array[Character000Base] = [] # 只保存本次受击从存活变为死亡的角色。
+    for area: Area2D in areas: # 梯子按原爆炸区域与行限制清理。
+        if not is_instance_valid(area) or not is_instance_valid(area.owner):
+            continue
+        var ladder := area.owner as Ladder # 具有自身销毁入口的非角色目标。
+        if ladder != null and (radius < 0 or absi(ladder.lane - lane) <= radius):
+            ladder.ladder_death()
+    # 一次伤害可能同步销毁后续目标，逐个结算前复核有效性。
+    for reference: Variant in plant_blast_targets(areas, lane, radius, statuses):
+        if not is_instance_valid(reference):
+            continue
+        var target: Character000Base = reference # 同步回调后重新验证。
+        if not _can_hit_plant_blast(target, lane, radius, statuses):
+            continue
+        if target is Zombie000Base:
+            var casualty: Zombie000Base = target.be_bomb(damage, ash) # 可能是转移伤害的保护者。
+            if is_instance_valid(casualty):
+                casualties.append(casualty)
+        else:
+            target.be_attacked_bullet(damage, BulletRegistry.AttackMode.Penetration, false, false)
+            if is_instance_valid(target) and target is ZB000Base and target.is_death:
+                casualties.append(target)
+    return casualties
+
+## 判断 [param target] 是否仍可被以 [param lane] 为中心的植物爆炸命中。
+## [param radius] 为行限制，[param statuses] 为允许的受击状态位。
+static func _can_hit_plant_blast(target: Character000Base, lane: int, radius: int, statuses: int) -> bool:
+    if not is_instance_valid(target) or target.is_death or target.is_hypno \
+            or target.is_queued_for_deletion() or not target.is_inside_tree() \
+            or not is_instance_valid(target.hurt_box_component) or not target.hurt_box_component.is_enabling:
+        return false
+    if target is ZB000Base:
+        # 跨行僵王由实际受击区域决定几何命中。
+        return target.character_init_type == Character000Base.E_CharacterInitType.IsNorm \
+            and (statuses & Zombie000Base.E_BeAttackStatusZombie.IsNorm) != 0
+    if radius >= 0 and absi(target.lane - lane) > radius:
+        return false
+    if target is EnemyStructureBase:
+        return (statuses & Zombie000Base.E_BeAttackStatusZombie.IsNorm) != 0
+    return target is Zombie000Base and (target.curr_be_attack_status & statuses) != 0
 
 ## True=source is charmed and must hit zombies; false=source targets plants.
 ## 'lethal' retains native Jackbox elimination; numeric blasts always use HP routing.

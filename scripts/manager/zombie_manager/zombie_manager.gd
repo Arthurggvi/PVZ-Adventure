@@ -895,7 +895,9 @@ func set_zombie_death_over_view():
 		if not is_instance_valid(z) or z.is_death:
 			continue
 		if z.nonlethal_displacement_exile:
-			if z.global_position.x > zombie_range_pos_x.y:
+			# 轨迹结束后只保留会向战场走回的目标，避免反向移动的矿工卡住清场。
+			if z.global_position.x > zombie_range_pos_x.y and (z.direction_x_root > 0 \
+					or (is_instance_valid(z.move_component) and z.move_component.is_forced_moving())):
 				continue
 			z.nonlethal_displacement_exile = false
 		# 检查是否在屏幕外

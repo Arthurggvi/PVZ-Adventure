@@ -123,11 +123,14 @@ func jump_be_stop(plant:Plant000Base):
 	is_jump_stop = true
 	jump_stop_postion = plant.global_position
 
-## 动画调用，判断跳跃是否被强行停止
+## 高坚果拦截时在跳跃结算后对齐落点，阻挡产生的位移走共用入口。
 func judge_jump_be_stop():
 	if is_jump_stop:
 		await jump_end()
-		owner.global_position.x = jump_stop_postion.x+20
+		if is_instance_valid(owner_zombie):
+			# 保留原来的停步距离，按当前世界位置换算为位移量。
+			var offset: float = jump_stop_postion.x + 20.0 - owner_zombie.global_position.x
+			move_component.apply_forced_displacement(Vector2(offset, 0.0))
 
 ## 射线检测区域
 func _on_area_2d_area_entered(area: Area2D) -> void:

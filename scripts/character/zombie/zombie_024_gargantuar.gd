@@ -99,15 +99,9 @@ func update_imp_throw_pos(zombie_imp:Zombie025Imp):
 	print("位置:", zombie_imp.target_pos_anim_head_to_body)
 
 
-## Tier-five explosions still use the ordinary collapse animation and death
-## signal. Avoid the base character's queue_free() special case.
-func be_bomb(attack_value: int, is_cherry_bomb: bool = false) -> void:
-	if not preserve_death_animation_after_blast:
-		super.be_bomb(attack_value, is_cherry_bomb)
-		return
-	is_can_death_language = false
-	hp_component.Hp_loss(attack_value, BulletRegistry.AttackMode.Penetration,
-			false, false)
+## 五阶巨人的致死爆炸保留倒地动画，受击和击杀归因仍走统一入口。
+func _preserves_blast_death_animation() -> bool:
+	return preserve_death_animation_after_blast
 
 ## 压扁地刺时被地刺反击无效果
 func be_caltrop():

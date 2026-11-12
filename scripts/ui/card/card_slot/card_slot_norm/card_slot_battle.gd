@@ -98,6 +98,17 @@ func card_use_end(card:Card):
 		card.judge_sun_enough(sun_value)
 		signal_card_committed.emit(card, consumed_free)
 
+## 按 [param uid] 查找当前战斗中的独立植物卡，找不到时返回 null。
+func find_plant_card_by_uid(uid: String) -> Card:
+	if uid.is_empty():
+		return null
+	# 冷却和费用收益归属实际出战卡，同种植物的其他卡不能代领。
+	for card: Card in curr_cards:
+		if is_instance_valid(card) and not card.is_queued_for_deletion() \
+				and str(card.battle_card_data.get("uid", "")) == uid:
+			return card
+	return null
+
 #region 控制台相关
 ## 是否显示多余卡槽
 func judge_disappear_add_card_bar():

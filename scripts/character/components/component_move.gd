@@ -76,15 +76,159 @@ enum E_MoveFactor{
 	IsDancerAttack,			## 伴舞攻击
 	IsSwimingChange,		## 进入或离开泳池间隙
 	IsAnimGap,				## 动画过度间隙
-	IsBlover,				## 被三叶草吹走
+	ForcedDisplacement,		## 正在由共用入口执行强制位移
 	IsDeath,				## 停止移动的死亡时
 }
 
 signal signal_move_body_y(move_y_value:float)
 
+## 不同来源的轨迹可同时结算，同类轨迹至多保留一条。
+enum E_ForcedMotion {
+	Push, ## 水平击退或吹飞。
+	Launch, ## 带抛物线和落地回调的击飞。
+	LaneShift, ## 换行期间仍可沿新的一行向前走。
+}
+
+## 一条使用物理时间推进的位移轨迹。
+class ForcedMotion:
+	## 世界坐标中的总位移，单位像素。
+	var offset: Vector2
+	## 轨迹持续的战斗秒数。
+	var duration: float
+	## 已推进的战斗秒数。
+	var elapsed: float = 0.0
+	## 开始时已抬起的高度，单位世界像素。
+	var initial_lift: float = 0.0
+	## 本次新增的抛物线高度，单位世界像素。
+	var arc_height: float = 0.0
+	## 只有存活并到达轨迹终点才执行的回调。
+	var on_finish: Array[Callable] = []
+
+	## 按 [param progress]（0 到 1）合成抛高，落地时恢复到地面。
+	func lift_at(progress: float) -> float:
+		return (initial_lift + 4.0 * arc_height * progress) * (1.0 - progress)
+
+## 当前生效的轨迹，空闲时关闭物理处理。
+var _forced_motions: Dictionary[E_ForcedMotion, ForcedMotion] = {}
+
 func _ready() -> void:
 	super()
 	curr_speed = ori_speed
+	set_physics_process(false)
+	owner_zombie.signal_character_death.connect(_stop_forced_displacement)
+
+## 返回是否正在被抛起。纯水平击退只占用移动，抛起还会暂停攻击和动画。
+func is_forced_airborne() -> bool:
+	return _forced_motions.has(E_ForcedMotion.Launch)
+
+
+## 返回是否正在因水平击退或抛起而暂停普通行走。
+func is_forced_moving() -> bool:
+	return is_forced_airborne() or _forced_motions.has(E_ForcedMotion.Push)
+
+
+## 将存活角色移动 [param offset] 世界像素，X 向右，Y 向下。
+## [param seconds] 为 0 时立即移动。[param height] 为抛物线高度，纯换行和吹动可与抛起叠加。
+## [param landed] 在完成位移时调用。连续抛起保留剩余位移和回调，死亡时取消。
+## 返回是否接受本次位移。离场、死亡或无效参数返回 false。
+func apply_forced_displacement(offset: Vector2, seconds: float = 0.0,
+		height: float = 0.0, landed: Callable = Callable()) -> bool:
+	if not is_inside_tree() or not is_instance_valid(owner_zombie) or owner_zombie.is_death \
+			or owner_zombie.is_queued_for_deletion() or not offset.is_finite() \
+			or not is_finite(seconds) or seconds < 0.0 or not is_finite(height) or height < 0.0:
+		return false
+	if seconds == 0.0:
+		_shift_forced(offset)
+		if landed.is_valid():
+			landed.call()
+		return true
+	var motion := ForcedMotion.new() # 新请求从当前世界位置开始走相对位移。
+	motion.offset = offset
+	motion.duration = seconds
+	motion.arc_height = height
+	var kind: E_ForcedMotion = E_ForcedMotion.LaneShift if offset.x == 0.0 else E_ForcedMotion.Push # 默认按位移方向区分。
+	if height > 0.0:
+		kind = E_ForcedMotion.Launch
+		var previous: ForcedMotion = _forced_motions.get(kind) # 重抛时沿用在空中的高度和余程。
+		if previous != null:
+			var progress: float = previous.elapsed / previous.duration # 旧轨迹已走过的比例。
+			motion.offset += previous.offset * (1.0 - progress)
+			motion.initial_lift = previous.lift_at(progress)
+			motion.on_finish.append_array(previous.on_finish)
+		# 抛离梯子后以地面为落点，取消旧的爬梯高度和下降进度。
+		if ladder_state != E_LadderState.None:
+			body.pose_position.y += sum_y_value_correct_ladder_up - sum_y_value_correct_ladder_down
+			ladder_state = E_LadderState.None
+	if landed.is_valid():
+		motion.on_finish.append(landed)
+	_forced_motions[kind] = motion
+	_update_forced_motion_state()
+	return true
+
+
+## 按物理帧 [param delta] 推进各轨迹，全部更新后再触发落地或吹飞结算。
+func _physics_process(delta: float) -> void:
+	if owner_zombie.is_death or owner_zombie.is_queued_for_deletion():
+		_stop_forced_displacement()
+		return
+	var completed: Array[Callable] = [] # 回调可结束战斗或新增位移，延迟到更新所有轨迹之后。
+	for kind: E_ForcedMotion in _forced_motions.keys(): # 键快照允许删除已完成的轨迹。
+		var motion: ForcedMotion = _forced_motions[kind] # 本帧正在推进的轨迹。
+		var before: float = motion.elapsed / motion.duration # 本帧开始前已走过的比例。
+		motion.elapsed = minf(motion.elapsed + delta, motion.duration)
+		var progress: float = motion.elapsed / motion.duration # 本帧结束时应走到的比例。
+		_shift_forced(motion.offset * (progress - before))
+		if kind == E_ForcedMotion.Launch:
+			body.set_forced_lift(motion.lift_at(progress))
+		if progress == 1.0:
+			_forced_motions.erase(kind)
+			completed.append_array(motion.on_finish)
+	_update_forced_motion_state()
+	for callback: Callable in completed: # 已落地或已到达吹飞终点的回调。
+		if owner_zombie.is_death or owner_zombie.is_queued_for_deletion():
+			break
+		if callback.is_valid():
+			callback.call()
+
+
+## 应用本步 [param offset] 世界位移。横移跨斜坡时更新脚点并防止非致死击退触发清场。
+func _shift_forced(offset: Vector2) -> void:
+	# 位移使用全局横坐标，屋顶高度按起点和终点之差计算。
+	var old_x: float = owner_zombie.global_position.x
+	owner_zombie.global_position += offset
+	if offset.x == 0.0:
+		return
+	var new_x: float = owner_zombie.global_position.x # 本步水平终点。
+	var game: MainGameManager = Global.main_game # 仅使用本角色所属战场的斜坡和清场边界。
+	if is_instance_valid(game) and game.is_ancestor_of(owner_zombie):
+		if is_instance_valid(game.main_game_slope):
+			signal_move_body_y.emit(game.main_game_slope.get_all_slope_y(new_x)
+				- game.main_game_slope.get_all_slope_y(old_x))
+		if offset.x > 0.0 and is_instance_valid(game.zombie_manager) \
+				and new_x > game.zombie_manager.zombie_range_pos_x.y:
+			owner_zombie.nonlethal_displacement_exile = true
+	update_previous_ground_global_x()
+
+
+## 只更新强制位移自身的因子，保留眩晕、攀爬及其他行动状态。
+func _update_forced_motion_state() -> void:
+	var hold_movement: bool = is_forced_moving() # 换行只改变纵向位置，不暂停行走。
+	if move_factors.get(E_MoveFactor.ForcedDisplacement, false) != hold_movement:
+		update_move_factor(hold_movement, E_MoveFactor.ForcedDisplacement)
+	var speed: float = 0.0 if is_forced_airborne() else 1.0 # 空中暂停自身动作。
+	var factor := Character000Base.E_Influence_Speed_Factor.ForcedAirborne # 抛起单独占用的速度因子。
+	if owner_zombie.influence_speed_factors.get(factor, 1.0) != speed:
+		owner_zombie.update_speed_factor(speed, factor)
+	set_physics_process(not _forced_motions.is_empty())
+
+
+## 死亡时取消所有位移和完成回调，并清除身体的抛高偏移。
+func _stop_forced_displacement() -> void:
+	if _forced_motions.is_empty():
+		return
+	_forced_motions.clear()
+	body.set_forced_lift(0.0)
+	_update_forced_motion_state()
 
 ## 根据角色速度修改移动速度
 func owner_update_speed(speed_product:float):
@@ -115,7 +259,7 @@ func update_move_mode(new_move_mode:E_MoveMode):
 	move_mode = new_move_mode
 
 func _process(delta: float) -> void:
-	if owner_zombie.is_stunned():
+	if owner_zombie.is_stunned() or is_forced_moving():
 		update_previous_ground_global_x()
 		return
 	if ladder_state == E_LadderState.Down:

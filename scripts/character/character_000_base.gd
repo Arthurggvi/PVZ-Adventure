@@ -68,6 +68,7 @@ enum E_Influence_Speed_Factor{
 	AdventureTierStance, ## Permanent pole carrying / exhausted movement factor
 	AdventurePromotionAttackRate, ## 冒险转职攻速倍率，动画与发射计时共用。
 	Stun, ## 眩晕的独立速度因子，停止行动时为 0。
+	ForcedAirborne, ## 被抛起时暂停动作，落地后恢复此通道。
 }
 ## 是否被魅惑
 var is_hypno:bool = false

@@ -18,17 +18,17 @@ func _on_water_contact_changed(swimming: bool) -> void:
 	if _swim_tween != null:
 		_swim_tween.kill()
 	if not _has_dry_body_y:
-		_dry_body_y = body.position.y
+		_dry_body_y = body.pose_position.y
 		_has_dry_body_y = true
 	_apply_swim_art(swimming)
 	appear_splash()
 	if swimming and owner.is_seaweed:
-		body.position.y = _dry_body_y + 30.0
+		body.pose_position.y = _dry_body_y + 30.0
 		body.zombie_body_up_from_pool()
 		signal_change_is_swimming.emit(true)
 		return
 	_swim_tween = create_tween()
-	_swim_tween.tween_property(body, "position:y", _dry_body_y + (30.0 if swimming else 0.0), 0.5)
+	_swim_tween.tween_property(body, ^"pose_position:y", _dry_body_y + (30.0 if swimming else 0.0), 0.5)
 	if not swimming:
 		signal_change_is_swimming.emit(false)
 		return

@@ -72,12 +72,15 @@ func _absorb_bonus_armor(amount: int) -> int:
 		bonus_armor_changed.emit(bonus_armor)
 	return maxi(0, amount - absorbed)
 
-## A redirected hit goes through the protector's complete mitigation and armor routing.
+## 保护者对 [param amount] 点转移伤害独立结算减伤与护甲。[param mode] 为伤害类型。
+## [param drop]、[param sfx] 和 [param extra_drop] 沿用原伤害的表现开关。返回本次实际击杀的僵尸。
 func accept_transferred_hit(amount: int, mode: BulletRegistry.AttackMode,
-		drop: bool, sfx: bool, extra_drop: bool) -> void:
+		drop: bool, sfx: bool, extra_drop: bool) -> Zombie000Base:
+	var previous: bool = _handling_transferred_hit # 内层伤害不能提前解除外层保护者的转移锁。
 	_handling_transferred_hit = true
-	Hp_loss(amount, mode, drop, sfx, extra_drop)
-	_handling_transferred_hit = false
+	var casualty: Zombie000Base = apply_hit(amount, mode, drop, sfx, extra_drop) # 当前转移实际产生的击杀。
+	_handling_transferred_hit = previous
+	return casualty
 
 @onready var progress_bar_hp_armor_2: ProgressBar = %ProgressBarHpArmor2
 @onready var label_hp_armor_2: Label = %LabelHpArmor2
@@ -177,8 +180,14 @@ func apply_unblocked_loss(amount: int,
 ## [is_drop_on_death:bool] 死亡时是否有掉落
 ## [trigger_be_attack_SFX:bool]:是否触发受击音效
 ## [is_drop_2:bool] 是否有掉落额外条件
-## return bool: 返回是否死亡
 func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm, is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true):
+	apply_hit(attack_value, bullet_mode, is_drop_on_death, trigger_be_attack_SFX, is_drop_2)
+
+## 结算 [param attack_value] 点伤害和 [param bullet_mode] 分流。
+## [param is_drop_on_death]、[param trigger_be_attack_SFX] 和 [param is_drop_2] 沿用普通命中表现。
+## 返回本次从存活变为死亡的实际受击者，转移伤害时可返回保护者。
+func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
+		is_drop_on_death: bool, trigger_be_attack_SFX: bool, is_drop_2: bool = true) -> Zombie000Base:
 	# A protector receives the raw hit and re-runs its own block -> DR -> armor.
 	# Scripted forced loss and nested transfers never redirect.
 	if not _bypass_damage_block and not _handling_transferred_hit and not is_damage_immune() \
@@ -186,9 +195,10 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 		var protector: Zombie000Base = damage_transfer.select_protector(owner_character)
 		if protector != null:
 			var protector_hp: HpComponentZombie = protector.hp_component as HpComponentZombie
-			protector_hp.accept_transferred_hit(attack_value, bullet_mode,
+			return protector_hp.accept_transferred_hit(attack_value, bullet_mode,
 					is_drop_on_death, trigger_be_attack_SFX, is_drop_2)
-			return
+	# 只有本次受击产生的状态变化算击杀，已死亡的角色不重复回报。
+	var was_alive: bool = not is_death
 	# Ordinary hits are mitigated once before any health-pool routing.
 	if attack_value > 0 and not is_death and not _bypass_damage_block:
 		received_attack.emit(attack_value)
@@ -238,6 +248,7 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 		## 如果有受击音效并且触发受击音效
 		if sfx_be_attack_armor2 != SoundManager.TypeBeAttackSFX.Null and trigger_be_attack_SFX:
 			SoundManager.play_be_attack_SFX(sfx_be_attack_armor2)
+	return owner_character as Zombie000Base if was_alive and is_death else null
 
 ## 小僵尸大麻烦更新僵尸血量
 func update_mini_zombie_hp():

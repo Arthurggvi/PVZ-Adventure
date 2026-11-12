@@ -78,7 +78,7 @@ func _play_crew(animation: StringName, rate: float) -> void:
 
 ## [param delta] 为本帧游戏秒数，用于上车和冰道检查。
 func _process(delta: float) -> void:
-	if is_show or is_death or _breaking or is_stunned():
+	if is_show or is_death or _breaking or is_action_suspended():
 		return
 	if not _boarding:
 		_push_elapsed += delta

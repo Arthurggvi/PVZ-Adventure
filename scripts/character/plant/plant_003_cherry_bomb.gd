@@ -7,18 +7,26 @@ const FUSE_SECONDS := 1.0
 const FUSE_ANIMATION_SPEED := 12.5 / 30.0
 ## 种下后立即播放的吸气音效。
 const FUSE_SFX := preload("res://assets/audio/sounds/reverse_explosion.ogg")
-## 与爆炸主音效同帧播放的果肉迸裂声。
-const BURST_SFX := preload("res://assets/audio/sounds/juicy.ogg")
-
 ## 结算一次圆形爆炸伤害并启动爆炸表现。
-@onready var bomb_component: BombComponentBase = %BombComponent
+@onready var bomb_component: BombComponentNorm = %BombComponent
 ## 仅出战时启动的一次性引信，受战斗暂停和全局速度控制。
 @onready var fuse_timer: Timer = $FuseTimer
+## 此出战实例的来源卡与转职词条，种植前由冻结快照注入。
+var _source_uid: String
+var _promotion_effects: Array[Dictionary] = []
+
+## 保存 [param uid] 和 [param effects]，仅在原引信引爆时创建后续战斗效果。
+func configure_promotions(uid: String, effects: Array[Dictionary]) -> void:
+	_source_uid = uid
+	_promotion_effects = effects
 
 ## 种下后开始膨胀和引信；展示与花园沿用待机动画。
 func ready_norm() -> void:
 	super()
 	anim_component.set_animation_origin_speed(FUSE_ANIMATION_SPEED)
+	if not _promotion_effects.is_empty():
+		# 转职区域从物理空间查询，首爆和追爆都在物理帧结算。
+		fuse_timer.process_callback = Timer.TIMER_PROCESS_PHYSICS
 	fuse_timer.timeout.connect(_detonate)
 	bomb_component.signal_bomb_once.connect(_finish_blast)
 	fuse_timer.start(FUSE_SECONDS)
@@ -28,13 +36,21 @@ func ready_norm() -> void:
 func _detonate() -> void:
 	if is_death or is_queued_for_deletion():
 		return
+	if bomb_component.is_enabling and not bomb_component.is_bomb and not _promotion_effects.is_empty():
+		# 追爆和地火必须由战场持有，母株爆炸后仍按原流程移除。
+		var blast := AdventureCherryBlast.new()
+		if blast.configure(self, bomb_component, _source_uid, _promotion_effects):
+			Global.main_game.bombs.add_child(blast)
+			bomb_component.damage_resolver = blast.detonate
+		else:
+			blast.free()
 	bomb_component.bomb_once()
 	character_death()
 
-## 播放叠加音效，并清除种植格及相邻格子的梯子。
+## 普通炸弹清除种植格及相邻格子的梯子，转职爆炸按自己的范围处理。
 func _finish_blast() -> void:
-	SoundManager.play_sfx_with_pool(BURST_SFX)
-	if is_instance_valid(plant_cell):
+	if not bomb_component.damage_resolver.is_valid() and is_instance_valid(plant_cell):
+		# 未转职的樱桃仍清除原来的邻格范围。
 		for cell: PlantCell in plant_cell.get_plant_cell_surrounding():
 			if is_instance_valid(cell.ladder):
 				cell.ladder.ladder_death()

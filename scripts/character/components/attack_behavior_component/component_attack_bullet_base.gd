@@ -82,7 +82,7 @@ func set_cancel_attack():
 
 ## 发射子弹（动画调用）
 func _shoot_bullet():
-	if owner is Zombie000Base and owner.is_stunned():
+	if owner is Zombie000Base and owner.is_action_suspended():
 		return
 	if shoot_override.is_valid():
 		shoot_override.call()

@@ -58,10 +58,9 @@ static func _award_kills(game: MainGameManager, kills: Array[Vector2],
 		var cards: CardSlotBattle = game.card_manager.card_slot_battle
 		var uid: String = str(parameters.get("card_uid", ""))
 		if is_instance_valid(cards):
-			for card: Card in cards.curr_cards:
-				if str(card.battle_card_data.get("uid", "")) == uid and not uid.is_empty():
-					card.adventure_adjust_remaining_cooldown(-seconds * kills.size())
-					break
+			var card: Card = cards.find_plant_card_by_uid(uid) # 只返还来源卡的冷却。
+			if card != null:
+				card.adventure_adjust_remaining_cooldown(-seconds * kills.size())
 	var sun_value: int = int(parameters.get("sun_per_kill", 0))
 	if sun_value <= 0 or not is_instance_valid(game.suns):
 		return

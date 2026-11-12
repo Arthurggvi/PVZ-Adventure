@@ -43,31 +43,11 @@ static func _visible_right(target: Character000Base) -> float:
 static func blow_target(target: Zombie000Base, cells: int, flying: bool) -> void:
     if not is_instance_valid(target) or target.is_death or target.is_queued_for_deletion():
         return
-    var width: float = _cell_width(target)
-    if width <= 0.0 or cells <= 0:
+    var width: float = _cell_width(target) # 当前行附近一格的像素宽度。
+    if width <= 0.0 or cells <= 0 or not is_instance_valid(target.move_component):
         return
-    # 吹动期间暂停目标自身的移动，结束后恢复。
-    var move: MoveComponent = target.move_component
-    if is_instance_valid(move):
-        move.update_move_factor(true, MoveComponent.E_MoveFactor.IsBlover)
-    var previous: Variant = target.get_meta(&"blover_tween", null)
-    if previous is Tween and previous.is_running():
-        (previous as Tween).kill()
-    var dest: float = target.global_position.x + width * float(cells)
-    var visible_right: float = _visible_right(target)
-    if not flying and is_instance_valid(Global.main_game):
-        var manager: ZombieManager = Global.main_game.zombie_manager as ZombieManager
-        if is_instance_valid(manager):
-            target.nonlethal_displacement_exile = (
-                    dest > manager.zombie_range_pos_x.y)
-    var tween: Tween = target.create_tween()
-    target.set_meta(&"blover_tween", tween)
-    tween.tween_property(target, ^"global_position:x", dest, 0.35)
-    tween.finished.connect(func() -> void:
-        if not is_instance_valid(target) or target.is_death:
-            return
-        target.remove_meta(&"blover_tween")
-        if is_instance_valid(move):
-            move.update_move_factor(false, MoveComponent.E_MoveFactor.IsBlover)
-        if is_wind_elimination(flying, dest, visible_right):
-            target.character_death_disappear())
+    var visible_right: float = _visible_right(target) # 本次吹飞允许清除气球的屏幕边界。
+    target.move_component.apply_forced_displacement(Vector2(width * float(cells), 0.0), 0.35, 0.0,
+        func() -> void:
+            if is_wind_elimination(flying, target.global_position.x, visible_right):
+                target.character_death_disappear())

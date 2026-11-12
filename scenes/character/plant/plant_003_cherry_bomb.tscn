@@ -1,4 +1,4 @@
-[gd_scene load_steps=35 format=3 uid="uid://dqtpqeh1yldux"]
+[gd_scene load_steps=34 format=3 uid="uid://dqtpqeh1yldux"]
 
 [ext_resource type="PackedScene" uid="uid://c5cke4cm02um7" path="res://scenes/character/plant/plant_000_base.tscn" id="1_mdj76"]
 [ext_resource type="Texture2D" uid="uid://dvuugtbourjhs" path="res://assets/reanim/CherryBomb_leftstem.png" id="2_1003c"]
@@ -22,8 +22,7 @@
 [ext_resource type="Animation" uid="uid://eg5i0srekcuo" path="res://animation/character/plant/003_cherry_bomb/CherryBomb_explode.tres" id="19_6bpf6"]
 [ext_resource type="Script" uid="uid://l0umdgng0y2m" path="res://scripts/character/components/bomb_component/component_bomb_norm.gd" id="20_dniyj"]
 [ext_resource type="Animation" uid="uid://b2a3f5y4dudyi" path="res://animation/character/plant/003_cherry_bomb/CherryBomb_idle.tres" id="20_g6ibo"]
-[ext_resource type="Script" uid="uid://uv71i8wk2job" path="res://scripts/fx/plant_effect/plant_effect_001_bomb_cherry.gd" id="22_7axkc"]
-[ext_resource type="Texture2D" uid="uid://ysajcyiwrdnk" path="res://assets/image/particles/ExplosionPowie.png" id="24_2gy5r"]
+[ext_resource type="PackedScene" path="res://scenes/fx/cherry_blast.tscn" id="22_7axkc"]
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_q5e28"]
 _data = {
@@ -245,13 +244,8 @@ monitorable = false
 position = Vector2(0, -28)
 shape = SubResource("CircleShape2D_2gy5r")
 
-[node name="BombEffect" type="Node2D" parent="BombComponent" index="1"]
-visible = false
+[node name="BombEffect" parent="BombComponent" index="1" instance=ExtResource("22_7axkc")]
 position = Vector2(0, -28)
-script = ExtResource("22_7axkc")
-
-[node name="ExplosiveFont" type="Sprite2D" parent="BombComponent/BombEffect" index="0"]
-texture = ExtResource("24_2gy5r")
 
 [node name="FuseTimer" type="Timer" parent="." index="11"]
 one_shot = true

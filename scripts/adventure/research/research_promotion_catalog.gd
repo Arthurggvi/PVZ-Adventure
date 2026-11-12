@@ -5,6 +5,31 @@ class_name AdventurePromotionCatalog
 const COST := 5000
 const REQUIREMENTS := [5, 7, 9, 10]
 const BOOKS: Dictionary = {
+	"promotion_cherry_bomb_spark": {
+		"title": "火花", "summary": "每炸死一名僵尸，本卡剩余冷却−1秒", "plant_type": 3, "tier": 1,
+		"effects": [{"kind": "cherry_spark", "cooldown_per_kill": 1.0}]},
+	"promotion_cherry_bomb_combustion": {
+		"title": "爆燃", "summary": "爆炸后留下2秒地火，每0.5秒造成30基础灼伤，受星级加成", "plant_type": 3, "tier": 1,
+		"effects": [{"kind": "cherry_combustion", "damage": 30, "interval": 0.5, "duration": 2.0}]},
+	"promotion_cherry_bomb_red_core": {
+		"title": "赤核", "summary": "每炸死一名僵尸，下次种植本卡的费用−25，最低为0", "plant_type": 3, "tier": 2,
+		"effects": [{"kind": "cherry_red_core", "discount_per_kill": 25}]},
+	"promotion_cherry_bomb_shock_blast": {
+		"title": "震爆", "summary": "将爆炸范围外扩一格内的僵尸抛高并向后震飞两格，落地眩晕0.5秒", "plant_type": 3, "tier": 2,
+		"effects": [{"kind": "cherry_shock_blast", "extra_range": 1, "cells": 2,
+			"flight": 0.45, "height": 100.0, "stun": 0.5}]},
+	"promotion_cherry_bomb_double_blast": {
+		"title": "子母雷", "summary": "首次引爆后在原地追加一次爆炸", "plant_type": 3, "tier": 3,
+		"effects": [{"kind": "cherry_double_blast", "delay": 0.55}]},
+	"promotion_cherry_bomb_fusion": {
+		"title": "聚变", "summary": "爆炸范围扩大至5×5格", "plant_type": 3, "tier": 3,
+		"effects": [{"kind": "cherry_fusion", "radius": 2}]},
+	"promotion_cherry_bomb_fruit_of_fear": {
+		"title": "恐惧之果", "summary": "爆炸伤害×2", "plant_type": 3, "tier": 4,
+		"effects": [{"kind": "cherry_fruit_of_fear", "multiplier": 2.0}]},
+	"promotion_cherry_bomb_bad_fruit": {
+		"title": "恶果", "summary": "每名炸死的僵尸引爆一次周围一格，伤害为本株爆炸伤害的50%", "plant_type": 3, "tier": 4,
+		"effects": [{"kind": "cherry_bad_fruit", "damage_fraction": 0.5}]},
 	"promotion_potato_harmony": {
 		"title": "调和", "summary": "阳光费用−25，冷却时间−25%", "plant_type": 5, "tier": 1,
 		"effects": [{"kind": "stat", "stat": "sun_cost", "flat": -25.0},

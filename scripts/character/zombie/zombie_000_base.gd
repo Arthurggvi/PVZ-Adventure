@@ -37,12 +37,8 @@ enum IronType{
 ## 受弹命中产生的水平击退，方向固定背离正常植物阵地。
 ## [param distance] 击退像素，非正值及死亡角色无效；重置行走基准防止动画位移抵消。
 func apply_projectile_knockback(distance: float) -> void:
-	if distance <= 0.0 or not is_finite(distance) or is_death \
-			or not is_inside_tree() or is_queued_for_deletion():
-		return
-	global_position.x += distance
-	if is_instance_valid(move_component):
-		move_component.update_previous_ground_global_x()
+	if distance > 0.0 and is_instance_valid(move_component):
+		move_component.apply_forced_displacement(Vector2(distance, 0.0))
 ## 僵尸铁器节点
 @export var iron_node:IronNode
 @export_subgroup("僵尸初始化状态")
@@ -52,8 +48,7 @@ func apply_projectile_knockback(distance: float) -> void:
 var curr_wave:=-1
 ## 本局冒险自然波次分配的独立等阶标识；原版/技能僵尸为空。
 var adventure_tier_id: StringName = &""
-## Out-of-view cleanup must not convert a nonlethal gust into a kill.
-## Reset when this zombie walks back into the active battle range.
+## 向右击退越过清场边界后，允许仍在向战场移动的僵尸走回来。
 var nonlethal_displacement_exile := false
 ## Original combat spawn modifier; used to derive explicit child-spawn policy.
 var combat_spawn_modifier: ZombieSpawnModifier = null
@@ -467,20 +462,24 @@ func be_grap_in_pool():
 	anim_component.stop_anim()
 	move_component.update_move_factor(true, MoveComponent.E_MoveFactor.IsDeath)
 
-## 被炸弹炸
-## 灰烬动画从角色本体摘出来,本体节点free,灰烬动画播放玩后删除
-## is_cherry_bomb:bool = false ：是否灰烬炸弹(非土豆雷)
-func be_bomb(attack_value:int, is_cherry_bomb:bool = false):
+## 承受 [param attack_value] 点爆炸伤害，返回本次实际击杀的僵尸。
+## [param is_cherry_bomb] 为 true 时，普通致死爆炸使用原版灰烬演出。
+func be_bomb(attack_value: int, is_cherry_bomb: bool = false) -> Zombie000Base:
 	is_can_death_language = false
-	hp_component.Hp_loss(attack_value,BulletRegistry.AttackMode.Penetration, false, false)
-	## 如果角色死亡
-	if is_death:
+	var casualty: Zombie000Base = (hp_component as HpComponentZombie).apply_hit(
+		attack_value, BulletRegistry.AttackMode.Penetration, false, false) # 可能是承受转移伤害的保护者。
+	if is_death and not _preserves_blast_death_animation():
 		## 在在灰烬动画条件下
 		if is_cherry_bomb and (not is_swimming or not curr_be_attack_status != E_BeAttackStatusZombie.IsDownGround):
 			charred_component.play_charred_anim()
 		queue_free()
-	#await get_tree().process_frame
 	set_deferred("is_can_death_language", true)
+	return casualty
+
+
+## 返回致死爆炸是否保留物种自身的死亡演出。
+func _preserves_blast_death_animation() -> bool:
+	return false
 
 ## 被大嘴花吃
 func be_chomper_eat(attack_value:int):
@@ -546,6 +545,11 @@ func is_stunned() -> bool:
 	return influence_speed_factors.get(E_Influence_Speed_Factor.Stun, 1.0) == 0.0
 
 
+## 返回是否因眩晕或被抛起而暂停动作，供不依赖动画速度的行为判断。
+func is_action_suspended() -> bool:
+	return is_stunned() or (is_instance_valid(move_component) and move_component.is_forced_airborne())
+
+
 ## [param duration] 为负面效果入口验证过的游戏秒数；连续命中只延长当前剩余时间。
 func be_stunned(duration: float) -> void:
 	# 每个僵尸复用一个随场景暂停的计时器，由角色持有并随角色释放。
@@ -601,35 +605,48 @@ func _on_butter_timer_timeout() -> void:
 #endregion
 
 #region 僵尸吃大蒜换行
+## 大蒜反应结束后，仍存活的僵尸开始换行。
 func update_lane_on_eat_garlic():
 	SoundManager.play_character_SFX("yuck")
 	update_speed_factor(0.0, E_Influence_Speed_Factor.EatGarlic)
 	await get_tree().create_timer(0.5, false).timeout
+	if is_death or is_queued_for_deletion() or not is_inside_tree():
+		return
 	update_speed_factor(1.0, E_Influence_Speed_Factor.EatGarlic)
 	update_lane()
 
 
-## 换行
-func update_lane():
-	## 可以换的行索引
-	var can_update_zombie_row_i:Array[int] = []
-	if lane != 0 and Global.main_game.zombie_manager.all_zombie_rows[lane-1].zombie_row_type == curr_zombie_row_type:
-		can_update_zombie_row_i.append(lane-1)
-	if lane != Global.main_game.zombie_manager.all_zombie_rows.size()-1 and Global.main_game.zombie_manager.all_zombie_rows[lane+1].zombie_row_type == curr_zombie_row_type:
-		can_update_zombie_row_i.append(lane+1)
-
-	var new_lane_i = can_update_zombie_row_i.pick_random()
-	lane = new_lane_i
+## 选同类相邻行并更新战场登记。实际位移走移动组件，和击飞的斜坡修正相加。
+func update_lane() -> void:
+	var game: MainGameManager = Global.main_game # 只在当前战斗的僵尸行内切换。
+	if is_death or is_queued_for_deletion() or not is_instance_valid(game) or not game.is_ancestor_of(self):
+		return
+	if not is_instance_valid(game.zombie_manager) or not is_instance_valid(move_component):
+		return
+	var rows: Array[ZombieRow] = game.zombie_manager.all_zombie_rows # 行索引与战斗登记一致。
+	if lane < 0 or lane >= rows.size():
+		return
+	var available: Array[int] = [] # 能保持当前陆地或水路状态的相邻行。
+	for neighbor: int in [lane - 1, lane + 1]: # 当前行的两侧候选。
+		if neighbor >= 0 and neighbor < rows.size() and rows[neighbor].zombie_row_type == curr_zombie_row_type:
+			available.append(neighbor)
+	if available.is_empty():
+		return
+	var next_lane: int = available.pick_random() # 双侧可用时保持原有随机选择。
+	var next_row: ZombieRow = rows[next_lane] # 目标行负责渲染层和战场登记。
+	var row_offset: float = next_row.zombie_create_position.global_position.y \
+		- rows[lane].zombie_create_position.global_position.y # 只改变行距，保留当前斜坡高度。
+	lane = next_lane
 	signal_lane_update.emit()
 
-	## 禁用攻击组件
+	# 换行时禁用攻击；移动组件完成换行后解除这一原因。
 	attack_component.disable_component(ComponentNormBase.E_IsEnableFactor.Garlic)
 	is_changing_lane = true
-	reparent(Global.main_game.zombie_manager.all_zombie_rows[lane])
+	reparent(next_row)
 	is_changing_lane = false
-	var tween:Tween = create_tween()
-	tween.tween_property(self, ^"position:y", Global.main_game.zombie_manager.all_zombie_rows[lane].zombie_create_position.position.y, 1)
-	tween.tween_callback(attack_component.enable_component.bind(ComponentNormBase.E_IsEnableFactor.Garlic))
+	var finish: Callable = attack_component.enable_component.bind(ComponentNormBase.E_IsEnableFactor.Garlic) # 恢复大蒜暂时关闭的攻击。
+	if not move_component.apply_forced_displacement(Vector2(0.0, row_offset), 1.0, 0.0, finish):
+		finish.call()
 
 #endregion
 

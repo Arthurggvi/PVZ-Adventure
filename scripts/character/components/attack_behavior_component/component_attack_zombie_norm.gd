@@ -43,7 +43,7 @@ func update_attack_value(value:float, influence_factor:E_AttackValueFactor):
 	curr_attack_value_per_min = int(init_attack_value_per_min * res_product)
 
 func _physics_process(delta: float) -> void:
-	if is_enabling and is_attack_res and not owner.is_stunned():
+	if is_enabling and is_attack_res and not owner.is_action_suspended():
 		frame_counter = wrapi(frame_counter + 1, 0, 8)
 		if not is_instance_valid(detect_component.enemy_can_be_attacked):
 			return
@@ -71,7 +71,7 @@ func _apply_bite(target: Character000Base, damage: int) -> void:
 
 ## 攻击一次发亮，动画调用
 func attack_once():
-	if owner.is_stunned():
+	if owner.is_action_suspended():
 		return
 	if is_instance_valid(detect_component.enemy_can_be_attacked) and not owner.is_death:
 		detect_component.enemy_can_be_attacked.be_zombie_eat_once(owner)

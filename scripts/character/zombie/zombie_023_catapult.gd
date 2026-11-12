@@ -98,8 +98,8 @@ func hp_stage_zamboni_change(curr_hp_stage:int):
 			update_speed_factor(0.5, E_Influence_Speed_Factor.ZamboniHp)
 			## 抖动
 			var tween = create_tween()
-			tween.tween_property(body, "position", body.position + Vector2(1, 1), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-			tween.tween_property(body, "position", body.position, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.tween_property(body, ^"pose_position", body.pose_position + Vector2(1, 1), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.tween_property(body, ^"pose_position", body.pose_position, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 			tween.set_loops()
 		3:
 			zamboni_death_effect()

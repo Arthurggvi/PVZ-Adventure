@@ -67,6 +67,7 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 	var resolved: Dictionary = Promotions.effects(record)
 	var wallnut_events: Array[Dictionary] = []
 	var potato_events: Array[Dictionary] = []
+	var cherry_events: Array[Dictionary] = [] # 交给樱桃炸弹本身冻结，等原版引信结算。
 	for event: Dictionary in resolved.events:
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
@@ -83,6 +84,14 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 					wallnut_events.append(event)
 				elif kind.begins_with("potato_"):
 					potato_events.append(event)
+				elif kind.begins_with("cherry_"):
+					cherry_events.append(event)
+	if not cherry_events.is_empty():
+		var cherry: Plant003CherryBomb = plant as Plant003CherryBomb # 仅真实樱桃可接管原版爆炸。
+		if cherry == null:
+			push_error("樱桃炸弹转职事件需要对应的战斗植物")
+			return false
+		cherry.configure_promotions(record.uid, cherry_events)
 	if not potato_events.is_empty():
 		var mine: Plant005PotatoMine = plant as Plant005PotatoMine
 		if mine == null:

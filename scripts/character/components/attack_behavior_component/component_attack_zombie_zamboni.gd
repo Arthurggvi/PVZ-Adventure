@@ -11,7 +11,7 @@ const CRUSH_EXEMPT := [
 
 ## [param _delta] 为本次物理步长；碾压按重叠判定，与步长无关。
 func _physics_process(_delta: float) -> void:
-	if not is_enabling or owner.is_death or owner.is_stunned():
+	if not is_enabling or owner.is_death or owner.is_action_suspended():
 		return
 	# targets 是车头范围内可攻击的同行角色，地刺优先扎破轮胎。
 	var targets: Array[Character000Base] = detect_component.get_all_enemy_can_be_attacked()

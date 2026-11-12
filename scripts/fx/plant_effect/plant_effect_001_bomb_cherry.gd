@@ -3,12 +3,16 @@ class_name BombEffectCherryBomb
 
 ## 原版 POWIE 的烟团纹理，两层共用。
 const CLOUD_TEXTURE := preload("res://assets/image/particles/ExplosionCloud.png")
+## 原版主爆时叠加的果肉迸裂声。
+const BURST_SFX := preload("res://assets/audio/sounds/juicy.ogg")
 ## 原版粒子参数按 100 Hz 推进。
 const TICKS_PER_SECOND := 100.0
 ## 每层以每秒 150 颗的速度发射，达到上限后停止。
 const CLOUDS_PER_SECOND := 150.0
 ## 单层烟团发射上限。
 const CLOUD_LIMIT := 14
+## 小爆炸的单层烟团上限，连锁触发时保持可读性。
+const SMALL_CLOUD_LIMIT := 4
 ## POWIE 字样停留的原版粒子帧数。
 const WORD_TICKS := 50
 
@@ -43,6 +47,8 @@ var _launched := 0
 var _ticks := 0
 ## 累积的战斗秒数，用于将引擎帧换算为粒子帧。
 var _elapsed := 0.0
+## 恶果等小爆炸只播放缩小烟团，不发送震屏事件。
+var small_burst: bool = false
 
 ## 只在爆炸后驱动粒子。
 func _ready() -> void:
@@ -54,7 +60,10 @@ func activate_bomb_effect() -> void:
 	_rng.randomize()
 	_emit_cloud_pair()
 	queue_redraw()
-	EventBus.push_event(MainGameCamera.SHAKE_EVENT, [Vector2(3, 4), 0.12])
+	explosive_font.visible = not small_burst
+	if not small_burst:
+		SoundManager.play_sfx_with_pool(BURST_SFX)
+		EventBus.push_event(MainGameCamera.SHAKE_EVENT, [Vector2(3, 4), 0.12])
 	set_process(true)
 
 ## [param delta] 自上一帧经过的战斗秒数。
@@ -62,15 +71,17 @@ func _process(delta: float) -> void:
 	_elapsed += delta
 	# 第一对烟团在爆炸当帧出现，后续按原版发射节拍追加。
 	var target_tick := 1 + floori(_elapsed * TICKS_PER_SECOND)
+	# 恶果的烟团更少，也不显示原爆炸的大字样。
+	var cloud_limit: int = SMALL_CLOUD_LIMIT if small_burst else CLOUD_LIMIT
 	while _ticks < target_tick:
 		_ticks += 1
 		_advance_clouds(_small_clouds, 0.15)
 		_advance_clouds(_large_clouds, 0.12)
 		# 150 颗/秒在 100 Hz 下交替发射一颗和两颗，直到达到单层上限。
-		var expected := mini(CLOUD_LIMIT, floori(_ticks * CLOUDS_PER_SECOND / TICKS_PER_SECOND))
+		var expected := mini(cloud_limit, floori(_ticks * CLOUDS_PER_SECOND / TICKS_PER_SECOND))
 		while _launched < expected:
 			_emit_cloud_pair()
-	explosive_font.visible = _elapsed < WORD_TICKS / TICKS_PER_SECOND
+	explosive_font.visible = not small_burst and _elapsed < WORD_TICKS / TICKS_PER_SECOND
 	queue_redraw()
 	if not explosive_font.visible and _small_clouds.is_empty() and _large_clouds.is_empty():
 		queue_free()
