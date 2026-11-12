@@ -1,5 +1,8 @@
 # 主菜单全景静态受光与统一时段｜第 4 阶段
 
+> 本文保留 S4 全景时段基线。当前地表组织与局部照明候选见 [静态收口管线](main_menu_static_finish_pipeline.md)；不要覆盖本阶段基线。
+
+
 ## 先看预览
 - previews/day.jpg、dusk.jpg、night.jpg：全景白天、黄昏、夜晚。
 - previews/day_dusk_night.jpg：三种时段纵向对照。
