@@ -90,7 +90,7 @@ static func _enemies(phase: StagePhaseDefinition) -> Array[Dictionary]:
 		})
 	return rows
 
-## Boss 单独成行，登场时机取自遭遇配置，不把召唤援军混进普通敌人。
+## 返回 [param phase] 的 Boss 行，登场时机取自遭遇配置，击败掉落取自该遭遇的事件。
 static func _bosses(phase: StagePhaseDefinition) -> Array[Dictionary]:
 	var rows: Array[Dictionary] = []
 	for encounter: BossEncounterDefinition in phase.boss_encounters:
@@ -101,7 +101,18 @@ static func _bosses(phase: StagePhaseDefinition) -> Array[Dictionary]:
 			"type": int(encounter.boss_type),
 			"title": _boss_name(int(encounter.boss_type)),
 			"timing": _timing_text(encounter),
+			"drops": _boss_drops(phase.events, encounter.encounter_id),
 		})
+	return rows
+
+## 从 [param events] 中读取仅在击败 [param encounter_id] 时触发的掉落，沿用波次掉落的图标字段。
+static func _boss_drops(events: Array[StageEventDefinition], encounter_id: StringName) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = [] # 同一遭遇可能配置多个独立掉落事件。
+	for event: StageEventDefinition in events: # 只投影配置，不执行事件。
+		if event != null and event.trigger == StageEventDefinition.Trigger.BOSS_EXITED \
+				and event.encounter_id == encounter_id and event.action == StageEventDefinition.Action.REQUEST_DROP \
+				and event.boss_exit_reason == StageEventDefinition.BossExitReason.DEFEATED:
+			rows.append_array(_drops(event.action_drop_table))
 	return rows
 
 ## 掉落条目按“配方 → 肥料 → 其他”分组展示，同组内保持资源声明顺序。
@@ -123,6 +134,7 @@ static func _drops(table: DropTable) -> Array[Dictionary]:
 				"backing": ItemArt.backing_uri(item_id),
 				"plant_type": int(Recipes.definition(item_id).get("plant_type", 0)) if is_recipe else 0,
 				"count": entry.quantity_min,
+				"cap": entry.quantity_max if entry.cap_quantity_at_max else 0,
 			}
 			if is_recipe:
 				recipes.append(row)

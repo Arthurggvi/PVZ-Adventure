@@ -28,6 +28,19 @@ func _run() -> void:
 		# 肥料只属于噩梦池，普通池不发放。
 		assert(drops.has("fertilizer_lv1") == (phase == nightmare))
 		assert(drops.has("fertilizer_lv2") == (phase == nightmare))
+	# 闪电芦苇的材料来自没落营地噩梦，配方来自黑将军的击败事件。
+	var camp_stage: StageDefinition = AdventureStageCatalog.load_stage(2) # 配方及材料的新来源关卡。
+	var camp_nightmare: StagePhaseDefinition = AdventureStageCatalog.find_phase(
+		camp_stage, StagePhaseDefinition.Kind.NIGHTMARE) # 波次与 Boss 掉落都引用此阶段的配置。
+	assert(camp_nightmare.drop_table.validate().is_empty())
+	var crystal_chance: float = -1.0 # 电荷晶核未配置时保留非法概率作为哨兵。
+	for item: DropEntryDefinition in camp_nightmare.drop_table.entries: # 仅遍历波次掉落。
+		if item.asset_id == &"charge_crystal":
+			crystal_chance = item.chance
+		assert(item.asset_id != &"recipe_p050")
+	assert(is_equal_approx(crystal_chance, 0.35))
+	var boss_event: StageEventDefinition = camp_nightmare.events[0] # 黑将军的击败掉落事件。
+	assert(boss_event.action_drop_table.entries[0].asset_id == &"recipe_p050")
 	assert(stage.nightmare_key_id == &"lawn_nightmare_key")
 	assert(stage.nightmare_key_use == StageDefinition.KeyUse.CONSUME)
 	var state := AdventureState.new()

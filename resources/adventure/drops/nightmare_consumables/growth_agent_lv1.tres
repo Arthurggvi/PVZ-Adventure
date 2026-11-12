@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="DropEntryDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="Entry"]
+
+[resource]
+script = ExtResource("Entry")
+entry_id = &"nightmare.consumable.growth_agent_lv1"
+rule = 1
+asset_kind = 1
+asset_id = &"growth_agent_lv1"
+quantity_min = 1
+quantity_max = 2
+cap_quantity_at_max = true
+chance = 0.1

@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="DropTable" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="Table"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="Entry"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/aquatic_fiber.tres" id="aquatic_fiber"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/plant_fiber.tres" id="plant_fiber"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/plant_starch.tres" id="plant_starch"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/sun_nectar.tres" id="sun_nectar"]
+
+[sub_resource type="Resource" id="recipe_p017"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.sewer.normal.drops.recipe_p017"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p017"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="recipe_p036"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.sewer.normal.drops.recipe_p036"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p036"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[resource]
+script = ExtResource("Table")
+table_id = &"zombie_island.sewer.normal.drops"
+entries = Array[ExtResource("Entry")]([
+SubResource("recipe_p017"),
+SubResource("recipe_p036"),
+ExtResource("aquatic_fiber"),
+ExtResource("plant_fiber"),
+ExtResource("plant_starch"),
+ExtResource("sun_nectar")
+])
+min_material_count = 6
+min_recipe_count = 1
+weighted_draw_count = 1
+weighted_selection = 1

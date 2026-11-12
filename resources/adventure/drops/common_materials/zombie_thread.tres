@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="DropEntryDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="Entry"]
+
+[resource]
+script = ExtResource("Entry")
+entry_id = &"material.common.zombie_thread"
+rule = 3
+asset_kind = 1
+asset_id = &"zombie_thread"
+quantity_min = 1
+quantity_max = 1

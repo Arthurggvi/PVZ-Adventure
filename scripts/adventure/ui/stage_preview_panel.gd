@@ -203,7 +203,7 @@ func _build_placeholder(hint: String) -> void:
 	_text(frame, hint, Rect2(Vector2(20, 300), Vector2(_content.size.x - 40.0, 110.0)), 26,
 		Color("b9c9bf"), HORIZONTAL_ALIGNMENT_CENTER)
 
-## 单个阶段：波次摘要、敌人、Boss 与掉落。
+## 绘制 [param block] 的波次摘要、敌人与奖励，击败奖励按 Boss 分开显示。
 func _build_block(block: Dictionary) -> void:
 	_content.add_child(_block_header(block))
 	var enemies: Array = block.get("enemies", [])
@@ -218,11 +218,16 @@ func _build_block(block: Dictionary) -> void:
 		for boss: Dictionary in bosses:
 			_content.add_child(_boss_row(boss))
 	var drops: Array = block.get("drops", [])
-	_content.add_child(_caption("掉落"))
+	_content.add_child(_caption("波次掉落"))
 	if drops.is_empty():
 		_content.add_child(_line("本阶段没有配置掉落。", 20, Color("9fb3a6")))
 	else:
 		_content.add_child(_drop_grid(drops))
+	for boss: Dictionary in bosses: # 标明每组击败奖励对应的 Boss。
+		var boss_drops: Array = boss.get("drops", []) # 击败该 Boss 后追加的掉落条目。
+		if not boss_drops.is_empty():
+			_content.add_child(_caption("击败%s掉落" % str(boss.get("title", ""))))
+			_content.add_child(_drop_grid(boss_drops))
 	_content.add_child(_spacer(BLOCK_GAP))
 
 ## 阶段标题行：普通/噩梦与波次摘要。
@@ -278,7 +283,7 @@ func _drop_grid(drops: Array) -> Control:
 		grid.add_child(_drop_tile(drop))
 	return grid
 
-## 单个掉落格：背包槽位、底图、图标、配方头像与蜡封，数量大于 1 时补角标。
+## 绘制 [param drop] 的图标与数量角标，硬上限优先于基础数量。
 func _drop_tile(drop: Dictionary) -> Control:
 	var cell := Control.new()
 	cell.custom_minimum_size = Vector2(DROP_TILE, DROP_TILE)
@@ -297,8 +302,11 @@ func _drop_tile(drop: Dictionary) -> Control:
 	var wax := ItemArt.recipe_overlay_uri(str(drop.get("id", "")))
 	if not wax.is_empty():
 		Art.image(cell, wax, Vector2(8, 8) + Vector2(35, 39) * icon_scale, Vector2(20, 20) * icon_scale)
-	var count := int(drop.get("count", 1))
-	if count >= 2:
+	var count := int(drop.get("count", 1)) # 固定数量或随机区间的下限。
+	var cap := int(drop.get("cap", 0)) # 0 表示条目没有装备加成后的硬上限。
+	if cap > 0:
+		Art.count_badge(cell, "≤%d" % cap, cell.custom_minimum_size, Color("fff4d6"), 14)
+	elif count >= 2:
 		Art.count_badge(cell, "×%d" % count, cell.custom_minimum_size, Color("fff4d6"), 14)
 	return cell
 

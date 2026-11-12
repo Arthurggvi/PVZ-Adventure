@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="profile"]
 [ext_resource type="AudioStream" path="res://resources/adventure/audio/mus_delicious_island_night_pre.mp3" id="normal_music"]
 [ext_resource type="AudioStream" path="res://resources/adventure/audio/mus_delicious_island_night_elite.mp3" id="nightmare_music"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/sewer/normal.tres" id="NormalDrops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/sewer/nightmare.tres" id="NightmareDrops"]
 
 [sub_resource type="Resource" id="NormalOpening"]
 script = ExtResource("band")
@@ -489,6 +491,8 @@ daytime_override = 0
 daytime_sun_override = 0
 normal_wave_profile = SubResource("NormalProfile")
 nightmare_wave_profile = SubResource("NightmareProfile")
+normal_drop_table = ExtResource("NormalDrops")
+nightmare_drop_table = ExtResource("NightmareDrops")
 replace_nightmare_bosses = true
 normal_battle_music = ExtResource("normal_music")
 nightmare_battle_music = ExtResource("nightmare_music")

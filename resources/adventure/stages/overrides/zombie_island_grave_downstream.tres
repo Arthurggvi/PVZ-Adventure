@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="AdventureStageOverride" load_steps=64 format=3]
+[gd_resource type="Resource" script_class="AdventureStageOverride" load_steps=59 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/adventure_stage_override.gd" id="1_override"]
 [ext_resource type="Texture2D" path="res://assets/adventure/environments/battle_backgrounds/04_graveyard_downstream_night.jpg" id="battlebg"]
@@ -13,9 +13,9 @@
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_spawn_group.gd" id="5_spawn"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="6_event"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/boss_encounter_definition.gd" id="7_boss"]
-[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="9_drop_class"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/charge_crystal.tres" id="10_charge_crystal"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/lightning_reed_recipe.tres" id="11_lightning_reed_recipe"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/grave_downstream/normal.tres" id="NormalDrops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/grave_downstream/nightmare.tres" id="NightmareDrops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/grave_downstream/boss.tres" id="BossDrops"]
 
 [sub_resource type="Resource" id="NaturalGravestones"]
 script = ExtResource("2_graves")
@@ -592,10 +592,10 @@ normal_gravestone_rules = SubResource("NaturalGravestones")
 nightmare_gravestone_rules = SubResource("NaturalGravestones")
 normal_wave_profile = SubResource("NormalProfile")
 nightmare_wave_profile = SubResource("NightmareProfile")
-additional_normal_drops = Array[ExtResource("9_drop_class")]([ExtResource("10_charge_crystal"), ExtResource("11_lightning_reed_recipe")])
-additional_nightmare_drops = Array[ExtResource("9_drop_class")]([ExtResource("10_charge_crystal"), ExtResource("11_lightning_reed_recipe")])
+normal_drop_table = ExtResource("NormalDrops")
+nightmare_drop_table = ExtResource("NightmareDrops")
 additional_normal_events = Array[ExtResource("6_event")]([SubResource("NormalStartGraves")])
-additional_nightmare_events = Array[ExtResource("6_event")]([SubResource("NightmareStartGraves"), SubResource("NightmareWave30Graves"), SubResource("NightmareWave40Graves")])
+additional_nightmare_events = Array[ExtResource("6_event")]([SubResource("NightmareStartGraves"), SubResource("NightmareWave30Graves"), SubResource("NightmareWave40Graves"), ExtResource("BossDrops")])
 replace_nightmare_bosses = true
 nightmare_bosses = Array[ExtResource("7_boss")]([SubResource("NightmareWhiteDuke")])
 normal_battle_music = ExtResource("3_music_normal")

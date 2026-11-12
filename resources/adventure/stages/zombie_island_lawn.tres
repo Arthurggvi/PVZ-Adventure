@@ -4,124 +4,16 @@
 [ext_resource type="Script" path="res://scripts/adventure/adventure_battle_environment.gd" id="2_g3gx0"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/stage_phase_definition.gd" id="2_rx0cf"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_spawn_group.gd" id="3_spawn"]
-[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="4_g1pq0"]
-[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="5_dgljq"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="7_qif7b"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="8_4ulqo"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/stage_definition.gd" id="9_s56om"]
 [ext_resource type="AudioStream" path="res://resources/adventure/audio/mus_delicious_island_daytime_pre.mp3" id="Music_daytime"]
 [ext_resource type="AudioStream" path="res://resources/adventure/audio/mus_delicious_island_daytime_elite.mp3" id="Music_elite"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/lawn/normal.tres" id="NormalDrops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/lawn/nightmare.tres" id="NightmareDrops"]
 
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/pea_stem.tres" id="Material_pea_stem"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/pea_pod.tres" id="Material_pea_pod"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/sun_nectar.tres" id="Material_sun_nectar"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/fungal_spores.tres" id="Material_fungal_spores"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/frost_crystal.tres" id="Material_frost_crystal"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/ember_resin.tres" id="Material_ember_resin"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/aquatic_fiber.tres" id="Material_aquatic_fiber"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/plant_fiber.tres" id="Material_plant_fiber"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/thorn_spine.tres" id="Material_thorn_spine"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/flower_pollen.tres" id="Material_flower_pollen"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/fruit_pulp.tres" id="Material_fruit_pulp"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/launch_vine.tres" id="Material_launch_vine"]
-[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/leaf_membrane.tres" id="Material_leaf_membrane"]
 [sub_resource type="Resource" id="Resource_mw5ds"]
 script = ExtResource("2_g3gx0")
-
-[sub_resource type="Resource" id="Resource_rehtx"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.unsaturated_fat"
-rule = 3
-asset_kind = 1
-asset_id = &"unsaturated_fat"
-quantity_min = 2
-quantity_max = 2
-
-[sub_resource type="Resource" id="Resource_rx0cf"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.nut_fragments"
-rule = 3
-asset_kind = 1
-asset_id = &"nut_fragments"
-quantity_min = 2
-quantity_max = 2
-
-[sub_resource type="Resource" id="Resource_g3gx0"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.explosive_seed"
-rule = 3
-asset_kind = 1
-asset_id = &"explosive_seed"
-quantity_min = 1
-quantity_max = 1
-
-[sub_resource type="Resource" id="Resource_g1pq0"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.plant_starch"
-rule = 3
-asset_kind = 1
-asset_id = &"plant_starch"
-quantity_min = 1
-quantity_max = 1
-
-[sub_resource type="Resource" id="Resource_dgljq"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.recipe_wall_nut"
-rule = 2
-asset_kind = 1
-asset_id = &"recipe_wall_nut"
-quantity_min = 1
-quantity_max = 1
-weight = 1
-
-[sub_resource type="Resource" id="Resource_6xuwk"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.recipe_potato_mine"
-rule = 2
-asset_kind = 1
-asset_id = &"recipe_potato_mine"
-quantity_min = 1
-quantity_max = 1
-weight = 1
-
-[sub_resource type="Resource" id="Resource_recipe_p001"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.recipe_peashooter"
-rule = 2
-asset_kind = 1
-asset_id = &"recipe_p001"
-quantity_min = 1
-quantity_max = 1
-weight = 1
-
-[sub_resource type="Resource" id="Resource_recipe_p002"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.recipe_sunflower"
-rule = 2
-asset_kind = 1
-asset_id = &"recipe_p002"
-quantity_min = 1
-quantity_max = 1
-weight = 1
-
-[sub_resource type="Resource" id="Resource_recipe_bloomerang"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.recipe_bloomerang"
-rule = 1
-asset_kind = 1
-asset_id = &"recipe_p051"
-quantity_min = 1
-quantity_max = 1
-chance = 0.3
-
-[sub_resource type="Resource" id="Resource_4ulqo"]
-script = ExtResource("5_dgljq")
-table_id = &"zombie_island.lawn.normal"
-entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_recipe_p001"), SubResource("Resource_recipe_p002"), SubResource("Resource_recipe_bloomerang"), SubResource("Resource_dgljq"), SubResource("Resource_6xuwk"), SubResource("Resource_rehtx"), SubResource("Resource_rx0cf"), SubResource("Resource_g3gx0"), SubResource("Resource_g1pq0"), ExtResource("Material_pea_stem"), ExtResource("Material_pea_pod"), ExtResource("Material_sun_nectar"), ExtResource("Material_flower_pollen"), ExtResource("Material_plant_fiber")])
-min_material_count = 6
-min_recipe_count = 1
-weighted_draw_count = 1
-weighted_selection = 1
 
 [sub_resource type="Resource" id="Resource_s56om"]
 script = ExtResource("7_qif7b")
@@ -184,7 +76,7 @@ phase_id = &"zombie_island.lawn.normal"
 kind = 1
 battle_music = ExtResource("Music_daytime")
 wave_profile = SubResource("Resource_xfh5m")
-drop_table = SubResource("Resource_4ulqo")
+drop_table = ExtResource("NormalDrops")
 first_clear_items = Dictionary[StringName, int]({
 &"nut_fragments": 1,
 &"recipe_potato_mine": 1,
@@ -192,36 +84,6 @@ first_clear_items = Dictionary[StringName, int]({
 &"unsaturated_fat": 1,
 &"plant_fiber": 1
 })
-
-[sub_resource type="Resource" id="Resource_fert_lv1"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.fertilizer_lv1"
-rule = 1
-asset_kind = 1
-asset_id = &"fertilizer_lv1"
-quantity_min = 1
-quantity_max = 1
-chance = 0.1
-
-[sub_resource type="Resource" id="Resource_fert_lv2"]
-script = ExtResource("4_g1pq0")
-entry_id = &"lawn.drop.fertilizer_lv2"
-rule = 1
-asset_kind = 1
-asset_id = &"fertilizer_lv2"
-quantity_min = 1
-quantity_max = 1
-chance = 0.05
-
-[sub_resource type="Resource" id="Resource_elkku"]
-script = ExtResource("5_dgljq")
-table_id = &"zombie_island.lawn.nightmare"
-entries = Array[ExtResource("4_g1pq0")]([SubResource("Resource_recipe_p001"), SubResource("Resource_recipe_p002"), SubResource("Resource_recipe_bloomerang"), SubResource("Resource_dgljq"), SubResource("Resource_6xuwk"), SubResource("Resource_rehtx"), SubResource("Resource_rx0cf"), SubResource("Resource_g3gx0"), SubResource("Resource_g1pq0"), ExtResource("Material_pea_stem"), ExtResource("Material_pea_pod"), ExtResource("Material_sun_nectar"), ExtResource("Material_flower_pollen"), ExtResource("Material_plant_fiber"), SubResource("Resource_fert_lv1"), SubResource("Resource_fert_lv2")])
-min_material_count = 8
-min_recipe_count = 2
-min_distinct_materials = 8
-weighted_draw_count = 1
-weighted_selection = 1
 
 [sub_resource type="Resource" id="NightmareFirstFlag"]
 script = ExtResource("3_spawn")
@@ -363,7 +225,7 @@ phase_id = &"zombie_island.lawn.nightmare"
 kind = 2
 battle_music = ExtResource("Music_elite")
 wave_profile = SubResource("Resource_acfi4")
-drop_table = SubResource("Resource_elkku")
+drop_table = ExtResource("NightmareDrops")
 
 [resource]
 script = ExtResource("9_s56om")

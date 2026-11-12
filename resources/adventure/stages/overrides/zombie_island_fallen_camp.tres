@@ -10,6 +10,10 @@
 [ext_resource type="AudioStream" path="res://resources/adventure/audio/mus_delicious_island_daytime_boss.mp3" id="8_music_boss"]
 
 [ext_resource type="Texture2D" path="res://assets/adventure/environments/battle_backgrounds/02_fallen_camp_day.jpg" id="battlebg_camp"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/fallen_camp/normal.tres" id="NormalDrops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/fallen_camp/nightmare.tres" id="NightmareDrops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/fallen_camp/boss.tres" id="BossDrops"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="DropEvent"]
 
 [sub_resource type="Resource" id="NormalOpening"]
 script = ExtResource("2_band")
@@ -341,10 +345,13 @@ script = ExtResource("1_override")
 battle_background_texture = ExtResource("battlebg_camp")
 normal_wave_profile = SubResource("NormalProfile")
 nightmare_wave_profile = SubResource("NightmareProfile")
+normal_drop_table = ExtResource("NormalDrops")
+nightmare_drop_table = ExtResource("NightmareDrops")
 normal_battle_music = ExtResource("6_music_normal")
 nightmare_battle_music = ExtResource("7_music_nightmare")
 nightmare_boss_music = ExtResource("8_music_boss")
 replace_normal_events = true
 replace_nightmare_events = true
+nightmare_events = Array[ExtResource("DropEvent")]([ExtResource("BossDrops")])
 replace_nightmare_bosses = true
 nightmare_bosses = Array[ExtResource("5_boss")]([SubResource("BlackGeneralEncounter")])

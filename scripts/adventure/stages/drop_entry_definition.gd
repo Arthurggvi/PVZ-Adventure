@@ -18,6 +18,8 @@ enum AssetKind { UNSET, ITEM, KEY }
 @export var quantity_min: int = 0
 ## 最多数量，不得小于最少数量；固定发放必须与最少数量相等。
 @export var quantity_max: int = 0
+## 开启时，装备加成后的单条掉落数量仍不得超过 [member quantity_max]。
+@export var cap_quantity_at_max: bool = false
 ## 仅 CHANCE 使用 0–1；-1 表示该参数不适用于当前规则。
 @export var chance: float = -1.0
 ## 仅 WEIGHTED 使用正整数；不是概率，不要求总和为 1。

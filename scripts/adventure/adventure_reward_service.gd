@@ -50,11 +50,12 @@ static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEf
 		return {"ok": false}
 	return {"ok": true, "items": items}
 
-## 抽取 [param entry] 数量并应用 [param effects]；[param rng] 沿用同次奖励随机源，溢出返回 -1。
+## 用 [param rng] 抽取 [param entry] 数量并应用 [param effects]，最后执行条目上限；溢出返回 -1。
 static func _random_quantity(entry: DropEntryDefinition, rng: RandomNumberGenerator, effects: PlayerEffects) -> int:
 	var quantity: int = rng.randi_range(entry.quantity_min, entry.quantity_max) # 每个条目只抽一次。
-	return PlayerEffects.scale_amount(quantity, float(effects.loot_multiplier)) \
-		if effects != null and PlayerEffects.is_random_loot(str(entry.asset_id)) else quantity
+	if effects != null and PlayerEffects.is_random_loot(str(entry.asset_id)):
+		quantity = PlayerEffects.scale_amount(quantity, float(effects.loot_multiplier))
+	return mini(quantity, entry.quantity_max) if entry.cap_quantity_at_max else quantity
 
 static func _fill_floor(items: Dictionary, table: DropTable, rng: RandomNumberGenerator) -> bool:
 	var material_ids: Array[String] = []

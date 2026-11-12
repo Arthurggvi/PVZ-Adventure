@@ -176,6 +176,11 @@
       "icon": "materials/frost_crystal.png",
       "backing_group": "elemental"
     },
+    "charge_crystal": {
+      "category": "material",
+      "icon": "materials/charge_crystal.png",
+      "backing_group": "elemental"
+    },
     "aquatic_fiber": {
       "category": "material",
       "icon": "materials/aquatic_fiber.png",

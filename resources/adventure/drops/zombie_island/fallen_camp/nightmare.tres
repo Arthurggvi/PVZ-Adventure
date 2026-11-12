@@ -1,0 +1,72 @@
+[gd_resource type="Resource" script_class="DropTable" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="Table"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="Entry"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/pea_stem.tres" id="pea_stem"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/pea_pod.tres" id="pea_pod"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/sun_nectar.tres" id="sun_nectar"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/flower_pollen.tres" id="flower_pollen"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/explosive_seed.tres" id="explosive_seed"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/ember_resin.tres" id="ember_resin"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/fruit_pulp.tres" id="fruit_pulp"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/aquatic_fiber.tres" id="aquatic_fiber"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/charge_crystal.tres" id="charge_crystal"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/nightmare_consumables/fertilizer_lv1.tres" id="fertilizer_lv1"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/nightmare_consumables/fertilizer_lv2.tres" id="fertilizer_lv2"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/nightmare_consumables/growth_agent_lv1.tres" id="growth_agent_lv1"]
+
+[sub_resource type="Resource" id="recipe_p001"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.fallen_camp.nightmare.drops.recipe_p001"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p001"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="recipe_p002"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.fallen_camp.nightmare.drops.recipe_p002"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p002"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="recipe_p003"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.fallen_camp.nightmare.drops.recipe_p003"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p003"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[resource]
+script = ExtResource("Table")
+table_id = &"zombie_island.fallen_camp.nightmare.drops"
+entries = Array[ExtResource("Entry")]([
+SubResource("recipe_p001"),
+SubResource("recipe_p002"),
+SubResource("recipe_p003"),
+ExtResource("pea_stem"),
+ExtResource("pea_pod"),
+ExtResource("sun_nectar"),
+ExtResource("flower_pollen"),
+ExtResource("explosive_seed"),
+ExtResource("ember_resin"),
+ExtResource("fruit_pulp"),
+ExtResource("aquatic_fiber"),
+ExtResource("charge_crystal"),
+ExtResource("fertilizer_lv1"),
+ExtResource("fertilizer_lv2"),
+ExtResource("growth_agent_lv1")
+])
+min_material_count = 8
+min_recipe_count = 2
+min_distinct_materials = 8
+weighted_draw_count = 1
+weighted_selection = 1

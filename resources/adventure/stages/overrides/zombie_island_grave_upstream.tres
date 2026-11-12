@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="3_band"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="4_profile"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_spawn_group.gd" id="5_spawn"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/grave_upstream/normal.tres" id="NormalDrops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/grave_upstream/nightmare.tres" id="NightmareDrops"]
 
 [sub_resource type="Resource" id="NaturalGravestones"]
 script = ExtResource("2_graves")
@@ -272,4 +274,6 @@ daytime_sun_override = 1
 normal_gravestone_rules = SubResource("NaturalGravestones")
 nightmare_gravestone_rules = SubResource("NaturalGravestones")
 nightmare_wave_profile = SubResource("NightmareProfile")
+normal_drop_table = ExtResource("NormalDrops")
+nightmare_drop_table = ExtResource("NightmareDrops")
 replace_nightmare_bosses = true
