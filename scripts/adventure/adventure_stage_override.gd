@@ -41,11 +41,9 @@ class_name AdventureStageOverride
 @export var normal_battle_music: AudioStream
 @export var nightmare_battle_music: AudioStream
 @export var nightmare_boss_music: AudioStream
-@export var normal_first_clear_coin: int = -1
-@export var nightmare_first_clear_coin: int = -1
 
 func apply(stage: StageDefinition) -> bool:
-	if stage == null or normal_first_clear_coin < -1 or nightmare_first_clear_coin < -1 \
+	if stage == null \
 			or daytime_override not in [-1, 0, 1] or daytime_sun_override not in [-1, 0, 1] \
 			or rain_override not in [-1, 0, 1]:
 		return false
@@ -115,8 +113,4 @@ func apply(stage: StageDefinition) -> bool:
 		nightmare.battle_music = nightmare_battle_music
 	if nightmare_boss_music != null:
 		nightmare.boss_music = nightmare_boss_music
-	if normal_first_clear_coin >= 0:
-		normal.first_clear_coin = normal_first_clear_coin
-	if nightmare_first_clear_coin >= 0:
-		nightmare.first_clear_coin = nightmare_first_clear_coin
 	return true

@@ -15,8 +15,7 @@ enum Kind { UNSET, NORMAL, NIGHTMARE }
 @export var wave_profile: WaveProfile
 ## 独立掉落表；此处只引用，不执行奖励。
 @export var drop_table: DropTable
-## 阶段首次达成指定条件时一次性奖励，与重复通关掉落独立。
-@export var first_clear_coin: int = 0
+## 阶段首次达成指定条件时附送的物品，与首通实体钱币、重复通关掉落独立。
 @export var first_clear_items: Dictionary[StringName, int] = {}
 ## 噩梦 Boss 被击败才发放首通 Boss 奖励；逃跑仍可完成普通波次。
 @export var first_clear_requires_boss_kill: bool = false
@@ -46,8 +45,6 @@ func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 		errors.append("阶段缺少独立 DropTable。")
 	else:
 		errors.append_array(drop_table.validate())
-	if first_clear_coin < 0 or first_clear_coin > PlantCardInstance.MAX_JSON_INTEGER:
-		errors.append("首通金币数量无效。")
 	for item_id: StringName in first_clear_items:
 		if not ItemRegistry.has_item(str(item_id)) or first_clear_items[item_id] < 1:
 			errors.append("首通道具配置非法：" + str(item_id))

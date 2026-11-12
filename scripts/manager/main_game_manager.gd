@@ -605,6 +605,8 @@ func _settle_cheat_adventure_victory() -> void:
 		return
 	if AdventureSession.challenge_state == AdventureSession.ChallengeState.NORMAL_COMPLETE:
 		AdventureSession.complete_normal_challenge()
+	# 同一战场从普通续战时，先前已生成的钱堆也须在一键通关离场前结清。
+	drop_item_manager.finish_victory_collection()
 	SoundManager.play_other_SFX(&"winmusic")
 	AdventureSession.finish_victory()
 
@@ -652,11 +654,15 @@ func _finish_round_victory(glo_pos: Vector2) -> void:
 
 	print("=======================游戏结束，您获胜了=======================")
 	# 本轮唯一奖杯，由已接受的胜利请求创建。
-	if AdventureSession.owns_battle(game_para) and not AdventureSession.settle_victory():
-		main_game_progress = E_MainGameProgress.GAME_OVER
-		zombie_manager.zombie_wave_manager.stop_wave_refresh()
-		AdventureSession.prompt_victory_retry(_finish_round_victory.bind(glo_pos))
-		return
+	if AdventureSession.owns_battle(game_para):
+		if not AdventureSession.settle_victory():
+			main_game_progress = E_MainGameProgress.GAME_OVER
+			zombie_manager.zombie_wave_manager.stop_wave_refresh()
+			AdventureSession.prompt_victory_retry(_finish_round_victory.bind(glo_pos))
+			return
+		# 普通钱堆已在续战选择之前生成；噩梦在最终奖杯旁生成自己的钱堆。
+		if AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE:
+			drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase, glo_pos)
 	var trophy = SceneRegistry.TROPHY.instantiate()
 	canvas_layer_temp.add_child(trophy)
 	trophy.global_position = glo_pos

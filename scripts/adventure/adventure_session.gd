@@ -362,7 +362,13 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 	var before_regions: Dictionary = state.regions.duplicate(true)
 	var before_coin: int = Global.global_game_state.coin_value
 	var reward_items: Dictionary = pending_reward["items"]
-	var reward_coin: int = int(pending_reward["coin"])
+	var phase_claim_id: String = RewardService.first_clear_claim_id(phase) # 当前阶段在存档中的稳定领取 ID。
+	var claim_id: String = str(pending_reward["claim_id"]) # 非空表示这次结算首次取得奖励资格。
+	var first_clear_coins: Dictionary = pending_reward["first_clear_coins"] # 新取得的钱堆，尚未生成实体。
+	if claim_id.is_empty():
+		first_clear_coins = RewardService.pending_first_clear_coins(state, phase_claim_id)
+	# 一键通关直接返回地图，只有这条路径在结算事务内兑现当前阶段的钱堆。
+	var reward_coin: int = RewardService.first_clear_coin_total(first_clear_coins) if skip_combat_checks else 0
 	if not RewardService.apply(reward_items, reward_coin,
 			state, Global.adventure_inventory, Global.global_game_state):
 		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
@@ -372,9 +378,12 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 	var before_quests: Dictionary = state.quests.to_dict()
 	AdventureQuestService.record_event(state, "stage_cleared", "%s/%s" % [stage.stage_id,
 		"normal" if active_phase_kind == StagePhaseDefinition.Kind.NORMAL else "nightmare"], AdventureQuestService.today())
-	var claim_id: String = str(pending_reward["claim_id"])
 	if not claim_id.is_empty():
 		state.claimed_rewards[claim_id] = true
+		if not skip_combat_checks:
+			RewardService.set_pending_first_clear_coins(state, claim_id, first_clear_coins)
+	if skip_combat_checks and not first_clear_coins.is_empty():
+		RewardService.set_pending_first_clear_coins(state, phase_claim_id, {})
 	if active_stage_number == 1 and active_phase_kind == StagePhaseDefinition.Kind.NORMAL and not progress.record_victory():
 		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
 		error_message = "草坪胜利进度无法更新。"
@@ -397,9 +406,8 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 	error_message = ""
 	challenge_state = ChallengeState.NORMAL_COMPLETE if active_phase_kind == StagePhaseDefinition.Kind.NORMAL else ChallengeState.COMPLETE
 	var phase_name: String = "普通" if active_phase_kind == StagePhaseDefinition.Kind.NORMAL else "噩梦"
-	notice = "%s%s阶段通关！奖励：%s种物品，金币+%d。" % [
-		AdventureStageRegistry.display_name(active_stage_number), phase_name,
-		reward_items.size(), reward_coin]
+	notice = "%s%s阶段通关！结算获得 %d 种物品。" % [
+		AdventureStageRegistry.display_name(active_stage_number), phase_name, reward_items.size()]
 	if challenge_state == ChallengeState.COMPLETE:
 		battle_finished.emit(active_stage_number, "victory")
 	return true
@@ -410,10 +418,15 @@ func _active_runtime() -> AdventureBattleRuntime:
 		return null
 	return game.adventure_runtime
 
-## 奖杯按钮仅确认已落盘的结算结果，不能进行第二次抽奖或修改资产。
+## 保存奖杯收取后的钱包和背包，再返回地图；写盘失败时保留本局并重试保存。
 func finish_victory() -> void:
-	if challenge_state == ChallengeState.COMPLETE:
-		return_to_map()
+	if challenge_state != ChallengeState.COMPLETE:
+		return
+	if not Global.save_service.save_now():
+		error_message = "拾取奖励保存失败，可重试保存。"
+		prompt_victory_retry(finish_victory)
+		return
+	return_to_map()
 
 func _restore_reward_snapshot(items: Dictionary, claims: Dictionary,
 		regions: Dictionary, coin: int) -> void:

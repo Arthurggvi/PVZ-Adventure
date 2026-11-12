@@ -22,6 +22,7 @@ func complete_normal(glo_pos: Vector2) -> void:
 	if not AdventureSession.settle_victory():
 		AdventureSession.prompt_victory_retry(complete_normal.bind(glo_pos))
 		return
+	game.drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase, glo_pos)
 	if AdventureSession.can_offer_nightmare():
 		_show_offer(glo_pos)
 	else:

@@ -126,7 +126,6 @@ phase_id = &"zombie_island.default.normal"
 kind = 1
 wave_profile = SubResource("Resource_a2g6r")
 drop_table = SubResource("Resource_dkgv7")
-first_clear_coin = 2000
 
 [sub_resource type="Resource" id="Resource_4pwy7"]
 script = ExtResource("3_nblmh")
@@ -297,7 +296,6 @@ phase_id = &"zombie_island.default.nightmare"
 kind = 2
 wave_profile = SubResource("Resource_d7hvt")
 drop_table = SubResource("Resource_sejao")
-first_clear_coin = 10000
 first_clear_requires_boss_kill = true
 boss_encounters = Array[ExtResource("3_nblmh")]([SubResource("Resource_4pwy7")])
 

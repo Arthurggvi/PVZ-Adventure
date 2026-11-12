@@ -185,7 +185,6 @@ kind = 1
 battle_music = ExtResource("Music_daytime")
 wave_profile = SubResource("Resource_xfh5m")
 drop_table = SubResource("Resource_4ulqo")
-first_clear_coin = 2000
 first_clear_items = Dictionary[StringName, int]({
 &"nut_fragments": 1,
 &"recipe_potato_mine": 1,
@@ -365,7 +364,6 @@ kind = 2
 battle_music = ExtResource("Music_elite")
 wave_profile = SubResource("Resource_acfi4")
 drop_table = SubResource("Resource_elkku")
-first_clear_coin = 10000
 
 [resource]
 script = ExtResource("9_s56om")

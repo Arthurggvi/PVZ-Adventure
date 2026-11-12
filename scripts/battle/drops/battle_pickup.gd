@@ -12,7 +12,7 @@ signal collected(pickup: BattlePickup)
 @export var landing_sound: StringName = &""
 ## 开始收集时播放的音效键；留空时收集无声。
 @export var pickup_sound: StringName = &"coin"
-## 未被拾取时的存在时间（秒），超时淡出。
+## 未被拾取时的存在时间（秒）；小于等于零时常驻战场。
 @export var exist_time: float = 10.0
 ## 抛出到落地的飞行时间（秒）。
 @export var duration: float = 0.55
@@ -30,6 +30,10 @@ var _expiry_tween: Tween
 var tween: Tween
 ## 是否已被收集。
 var is_get := false
+## 是否允许自动拾取装备在落地时收取本掉落物。
+var auto_collect_on_landing := true
+## 入账是否已处理；奖杯可接管正在飞行的掉落物，但只能入账一次。
+var _grant_attempted := false
 ## 生成时绑定的档案；飞行动画结束不能向新玩家入账。
 var _owner_state: AdventureState
 ## 生成时所属战斗节点，花园等非战斗拾取不绑定。
@@ -63,8 +67,9 @@ func _ready() -> void:
 		if is_instance_valid(Global.main_game) and Global.main_game.game_para.is_hammer:
 			button.mouse_entered.connect(Global.main_game.mouse_appear_have_hammer)
 			button.mouse_exited.connect(Global.main_game.mouse_disappear_have_hammer)
-	await get_tree().create_timer(exist_time, false).timeout
-	fade_and_delete()
+	if exist_time > 0.0:
+		await get_tree().create_timer(exist_time, false).timeout
+		fade_and_delete()
 
 ## 仅未收集的掉落物超时淡出，收集中的由收集流程清理。
 func fade_and_delete() -> void:
@@ -102,7 +107,7 @@ func launch(relative_target: Vector2) -> void:
 	is_anim = true
 	if not landing_sound.is_empty():
 		SoundManager.play_other_SFX(landing_sound)
-	if BattleCollectionPolicy.allows(false):
+	if auto_collect_on_landing and BattleCollectionPolicy.allows(false):
 		collect()
 
 ## 外部中断抛出动画（如场景切换）。
@@ -111,23 +116,23 @@ func _on_interrupt_triggered() -> void:
 		tween.kill()
 		tween = null
 
-## 为本次收集占用掉落物并播放对应音效；重复请求返回 false。
-func _begin_collection() -> bool:
+## 为本次收集占用掉落物；[param play_sound] 控制拾取音效，重复请求返回 false。
+func _begin_collection(play_sound: bool = true) -> bool:
 	if is_get or is_queued_for_deletion():
 		return false
 	is_get = true
 	if _expiry_tween != null:
 		_expiry_tween.kill()
 		modulate.a = 1.0
-	if not pickup_sound.is_empty():
+	if play_sound and not pickup_sound.is_empty():
 		SoundManager.play_other_SFX(pickup_sound)
 	_on_interrupt_triggered()
 	_on_collect_start()
 	return true
 
-## 点击或自动收集时，掉落物飞向锚点再入账。
-func collect() -> void:
-	if not _begin_collection():
+## 飞向锚点后入账；[param flight_time] 是飞行秒数，[param play_sound] 控制拾取音效。
+func collect(flight_time: float = 0.5, play_sound: bool = true) -> void:
+	if not _begin_collection(play_sound):
 		return
 	if button != null:
 		button.queue_free()
@@ -139,16 +144,25 @@ func collect() -> void:
 		if is_instance_valid(target):
 			var screen_target: Vector2 = target.get_global_transform_with_canvas().origin # 每帧读取锚点的视口坐标。
 			global_position = start_position.lerp(get_canvas_transform().affine_inverse() * screen_target, weight)
-	, 0.0, 1.0, 0.5)
+	, 0.0, 1.0, flight_time)
 	await click_tween.finished
-	if _can_grant() and _grant():
-		collected.emit(self)
+	_finish_grant()
 	click_tween = create_tween()
 	click_tween.set_parallel()
 	click_tween.tween_property(self, "modulate:a", 0, 0.5)
 	click_tween.tween_property(self, "scale", Vector2(0.5, 0.5), 0.5)
 
 	await click_tween.finished
+	queue_free()
+
+## 奖杯整批收取时立即入账并清除实体，包含此前已经开始飞行的掉落物。
+func collect_now() -> void:
+	if is_queued_for_deletion():
+		return
+	if not is_get:
+		_begin_collection(false)
+	_finish_grant()
+	hide()
 	queue_free()
 
 ## 吸金磁收集时飞向 [param target_global_pos]，到达后入账。
@@ -159,8 +173,7 @@ func be_attract_gold_magnet(target_global_pos: Vector2) -> void:
 	var attract_tween: Tween = create_tween()
 	attract_tween.tween_property(self, "global_position", target_global_pos, 0.5)
 	await attract_tween.finished
-	if _can_grant() and _grant():
-		collected.emit(self)
+	_finish_grant()
 	attract_tween = create_tween()
 	attract_tween.set_parallel()
 	attract_tween.tween_property(self, "modulate:a", 0, 0.5)
@@ -168,6 +181,14 @@ func be_attract_gold_magnet(target_global_pos: Vector2) -> void:
 
 	await attract_tween.finished
 	queue_free()
+
+## 仅在首次入账尝试成功时发出收集信号。
+func _finish_grant() -> void:
+	if _grant_attempted:
+		return
+	_grant_attempted = true
+	if _can_grant() and _grant():
+		collected.emit(self)
 
 ## 验证生成时的档案与场景身份；过期的异步动画不能修改当前玩家。
 func _can_grant() -> bool:

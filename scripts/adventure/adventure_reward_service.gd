@@ -3,6 +3,11 @@
 extends RefCounted
 class_name AdventureRewardService
 
+## 首通钱币沿用战场银币、金币与钻石的面额，且不受装备加成。
+const FIRST_CLEAR_COIN_VALUES := {"diamond": 1000, "gold": 50, "silver": 10}
+## 地区存档中按领取 ID 保存尚未拾取的各面额钱币数量。
+const PENDING_FIRST_CLEAR_COINS := "pending_first_clear_coins"
+
 ## 抽取 [param table]；[param effects] 仅修正随机材料/消耗品，固定与补齐奖励保持原配置。
 static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEffects = null) -> Dictionary:
 	if table == null or rng == null or not table.validate().is_empty():
@@ -95,16 +100,63 @@ static func prepare(phase: StagePhaseDefinition, table: DropTable,
 	var result: Dictionary = roll(table, rng, effects)
 	if not result.get("ok", false):
 		return {"ok": false}
-	var claim_id: String = "first_clear/" + str(phase.phase_id)
+	var claim_id: String = first_clear_claim_id(phase) # 沿用已有存档的首通领取标记。
 	var qualified: bool = not phase.first_clear_requires_boss_kill or boss_defeated
 	var first: bool = qualified and not claimed.get(claim_id, false)
 	var items: Dictionary = result["items"]
 	if first:
 		for id: StringName in phase.first_clear_items:
 			_add(items, str(id), phase.first_clear_items[id])
-	result["coin"] = phase.first_clear_coin if first else 0
+	result["first_clear_coins"] = {"diamond": 9 if phase.kind == StagePhaseDefinition.Kind.NIGHTMARE else 4,
+		"gold": 19, "silver": 5} if first else {}
 	result["claim_id"] = claim_id if first else ""
 	return result
+
+## 返回 [param phase] 对应的历史领取 ID，用于查重和定位未拾取钱币。
+static func first_clear_claim_id(phase: StagePhaseDefinition) -> String:
+	return "first_clear/" + str(phase.phase_id)
+
+## 返回 [param state] 中 [param claim_id] 未拾取的钱币数量副本；没有记录时返回空字典。
+static func pending_first_clear_coins(state: AdventureState, claim_id: String) -> Dictionary:
+	var region: Dictionary = state.regions.get(AdventureStageCatalog.REGION_ID, {}) # 钱币属于当前地区的关卡记录。
+	var pending: Dictionary = region.get(PENDING_FIRST_CLEAR_COINS, {}) # 按首通领取 ID 索引的余量。
+	var coins: Dictionary = pending.get(claim_id, {}) # 仅返回本阶段的钱堆。
+	return coins.duplicate()
+
+## 把 [param state] 中 [param claim_id] 的余量更新为 [param coins]；收完时清理记录。
+static func set_pending_first_clear_coins(state: AdventureState, claim_id: String, coins: Dictionary) -> void:
+	var region: Dictionary = state.regions.get(AdventureStageCatalog.REGION_ID, {}) # 与通关进度一起写入全局存档。
+	var pending: Dictionary = region.get(PENDING_FIRST_CLEAR_COINS, {}) # 保留其他阶段的未拾取钱币。
+	if coins.is_empty():
+		pending.erase(claim_id)
+	else:
+		pending[claim_id] = coins.duplicate()
+	if pending.is_empty():
+		region.erase(PENDING_FIRST_CLEAR_COINS)
+	else:
+		region[PENDING_FIRST_CLEAR_COINS] = pending
+	state.regions[AdventureStageCatalog.REGION_ID] = region
+
+## 从 [param state] 的 [param claim_id] 中扣除一枚 [param denomination]；没有余量时返回 false。
+## 调用方在成功后立即更新钱包，使自动存档同时观察到这两项变化。
+static func take_first_clear_coin(state: AdventureState, claim_id: String, denomination: String) -> bool:
+	var coins: Dictionary = pending_first_clear_coins(state, claim_id) # 当前钱堆的独立余量。
+	var count: int = int(coins.get(denomination, 0)) # 此面额尚未领取的枚数。
+	if count <= 0:
+		return false
+	if count == 1:
+		coins.erase(denomination)
+	else:
+		coins[denomination] = count - 1
+	set_pending_first_clear_coins(state, claim_id, coins)
+	return true
+
+## 计算 [param coins] 的总面额，供跳过奖杯演出的一键通关结算。
+static func first_clear_coin_total(coins: Dictionary) -> int:
+	var total := 0 # 钱包使用的统一金币单位。
+	for denomination: String in FIRST_CLEAR_COIN_VALUES: # 只统计三种已知面额。
+		total += int(coins.get(denomination, 0)) * int(FIRST_CLEAR_COIN_VALUES[denomination])
+	return total
 
 ## 整体预检成功才写入内存；失败时由调用方恢复事务快照。
 static func apply(items: Dictionary, coin: int, state: AdventureState,
