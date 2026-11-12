@@ -20,10 +20,13 @@ func apply_degradation(fraction: float) -> void:
 ## Damage dealt by a degraded entity. At >=100% reduction, damage is zero.
 func outgoing_damage(amount: int) -> int:
 	return maxi(0, roundi(float(amount) * maxf(0.0, 1.0 - degradation_fraction)))
-## Timed immunity sources coexist with existing scripted invulnerability.
+## 当前生效的限时无敌来源，按来源 ID 记录，可与脚本无敌叠加。
 var _immunity_sources: Dictionary[int, bool] = {}
 ## 角色控制的无敌窗口；直接生命调整仍可通过专用旁路执行。
 var damage_immune: bool = false
+	set(value): # value 为脚本设置的无敌开关。
+		damage_immune = value
+		_update_damage_immunity_tint()
 ## 直接处决/存档恢复等非战斗扣血绕过格挡，避免改变原有语义。
 var _bypass_damage_block: bool = false
 
@@ -74,6 +77,9 @@ signal combat_hp_damaged(amount: int)
 
 func _ready() -> void:
 	damage_block.changed.connect(_on_damage_block_changed)
+	# 所属角色就绪后才能使用其 Body 引用，补同步入树前设置的无敌状态。
+	owner_character.ready.connect(_update_damage_immunity_tint, CONNECT_ONE_SHOT)
+	owner_character.signal_character_death.connect(_update_damage_immunity_tint)
 	curr_hp = max_hp
 	## 出战角色连接信号，显示血量
 	if owner_character.character_init_type == Character000Base.E_CharacterInitType.IsNorm:
@@ -192,14 +198,24 @@ func resolve_damage(damage: int) -> int:
 		return 0
 	return damage_reduction.reduce(damage_block.reduce(maxi(0, roundi(float(damage) * (1.0 + degradation_fraction)))))
 
+## [param source_id] 无敌效果的来源 ID；[param enabled] 为 true 时添加该来源，为 false 时移除。
 func set_immunity_source(source_id: int, enabled: bool) -> void:
 	if enabled:
 		_immunity_sources[source_id] = true
 	else:
 		_immunity_sources.erase(source_id)
+	_update_damage_immunity_tint()
 
+## 返回脚本无敌或任一限时无敌来源是否仍然生效。
 func is_damage_immune() -> bool:
 	return damage_immune or not _immunity_sources.is_empty()
+
+
+## 按角色的实际无敌状态同步本体滤镜，死亡时移除滤镜。
+func _update_damage_immunity_tint() -> void:
+	if not is_instance_valid(owner_character) or not is_instance_valid(owner_character.body):
+		return
+	owner_character.body.set_damage_immunity_tint(is_damage_immune() and not owner_character.is_death)
 
 
 ## [param amount] 有效格挡；独立染色通道避免与冰冻、受击和阶段颜色互相覆盖。

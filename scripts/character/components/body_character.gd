@@ -30,6 +30,7 @@ enum E_ChangeColors{
 	Degradation,	## 铅灰色劣化；独立于冰冻、受击和格挡。
 	BossPhaseTwo,	## Boss 二阶段独立闪黑，保留冰冻与受击颜色。
 	WhiteFlameRevival,	## 复生僵尸的白光呼吸，与受击等状态分别合成。
+	DamageImmunity,	## 伤害免疫期间叠加在身体上的红色滤镜。
 }
 
 ## 二阶段循环补间，与普通明暗交替互不占用。
@@ -102,6 +103,14 @@ func _set_boss_phase_color(brightness: float) -> void:
 
 func owner_be_hypno():
 	set_other_color(E_ChangeColors.HypnoColor, Color(1,0.5,1))
+
+
+## [param enabled] 是否叠加无敌红色滤镜；解除时仅移除该颜色因素。
+func set_damage_immunity_tint(enabled: bool) -> void:
+	if enabled:
+		set_other_color(E_ChangeColors.DamageImmunity, Color(1.0, 0.35, 0.35))
+	elif change_color.erase(E_ChangeColors.DamageImmunity):
+		_update_modulate()
 
 
 ## [param change_name] 要设置的颜色因素，用于与其他状态颜色分别保存并合成。
