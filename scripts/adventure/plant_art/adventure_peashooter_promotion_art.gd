@@ -10,8 +10,10 @@ const SIGHT = preload("res://assets/adventure/plants/peashooter/red_dot_sight.sv
 const CAP = preload("res://assets/adventure/plants/peashooter/field_cap.svg")
 ## 色表读取每帧原贴图，覆盖待机与射击时不同的眨眼贴图。
 const PALETTE_SHADER = preload("res://shaders/adventure/peashooter_promotion_palette.gdshader")
-## 枪灰覆盖脸、嘴和两套眨眼分件。
-const HEAD_PARTS: Array[NodePath] = [^"Anim_face", ^"Idle_mouth", ^"Anim_blink", ^"Idle_shoot_blink"]
+## 脸部的附加高光按头部贴图坐标定位。
+const HEAD_FACE: Array[NodePath] = [^"Anim_face"]
+## 枪灰底色也覆盖嘴和两套眨眼分件。
+const HEAD_DETAILS: Array[NodePath] = [^"Idle_mouth", ^"Anim_blink", ^"Idle_shoot_blink"]
 ## 茎与小叶用迷彩底色，保持与大叶片的分件衔接。
 const CAMO_BASE_PARTS: Array[NodePath] = [
 	^"Backleaf_left_tip", ^"Backleaf_right_tip", ^"Stalk_bottom", ^"Stalk_top",
@@ -19,8 +21,8 @@ const CAMO_BASE_PARTS: Array[NodePath] = [
 ]
 ## 只在有足够面积的叶片上绘制迷彩色块。
 const CAMO_LEAVES: Array[NodePath] = [^"Backleaf", ^"Frontleaf"]
-## 着色器的三种色表模式。
-enum Palette {GUNMETAL, CAMO_BASE, CAMO_LEAF}
+## 着色器的四种色表模式，分别对应其 palette 参数的 0 至 3。
+enum Palette {GUNMETAL, CAMO_BASE, CAMO_LEAF, GUNMETAL_FACE}
 ## 同一色表只创建一份材质，各植株和预览只读共享。
 static var _palettes: Dictionary[int, ShaderMaterial] = {}
 
@@ -56,7 +58,8 @@ static func apply_to_body(body: Node2D, rank: int) -> bool:
 		gear = _add_gear(stem, face)
 	gear.visible = rank >= 1
 	(gear.get_node(^"Cap") as Sprite2D).visible = rank >= 2
-	_color_parts(stem, HEAD_PARTS, Palette.GUNMETAL, rank >= 3)
+	_color_parts(stem, HEAD_FACE, Palette.GUNMETAL_FACE, rank >= 3)
+	_color_parts(stem, HEAD_DETAILS, Palette.GUNMETAL, rank >= 3)
 	_color_parts(body, CAMO_BASE_PARTS, Palette.CAMO_BASE, rank >= 4)
 	_color_parts(body, CAMO_LEAVES, Palette.CAMO_LEAF, rank >= 4)
 	return true
