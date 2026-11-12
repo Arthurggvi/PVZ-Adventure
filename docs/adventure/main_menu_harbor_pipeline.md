@@ -1,73 +1,72 @@
-# 主菜单第 7 阶段｜制作流程封装与港口动态
+# 港口动态返工 S7B｜通道分离、透明边缘与遮挡归属
 
-## 先看手机预览
-- previews/harbor_day_night.gif：白天/夜晚并排的港口动态，6 秒循环。
-- previews/day_harbor_full.mp4、night_harbor_full.mp4：完整场景，24 FPS，各6秒。
-- previews/day_harbor_closeup.mp4、night_harbor_closeup.mp4：原像素港口近景放大；便于检查船体、索具、固定栏杆和波纹。
-- previews/harbor_day_night.jpg、full_day_night.jpg：动态中的静帧，不代替视频验收。
-- previews/day_ui.jpg、night_ui.jpg：沿用真实界面素材与位置的占位检查。
+## 状态与来源
+上一轮 S7 港口动态已被用户退回，不能继续标为通过。本轮在独立目录重做，不覆盖原母图或 S6 已认可静态光照；旧 S7 保留作前后反例。
 
-所有帧均由同一母图在 Godot 实际渲染，没有调用生图工具，没有生成式补帧。静态光照沿用已认可的 S6，未改变整体气氛。
+当前制作目录：`C:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112`。
+权威代码：`tools/art_bake/main_menu`，单入口仍为 `menu.py`。
+唯一母图 SHA256：`71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`，1672×941。
+没有调用生图，也没有新增船、柱子或道具。船体幅度/周期沿用原配置，没有靠降低运动幅度隐藏问题。
 
-## 本轮先完成的封装
-权威代码在工程 `tools/art_bake/main_menu`；统一入口 menu.py。技术贴图、地面、窗灯、浮点受光、时段、港口素材和动态预览各有明确责任。
+## 先看预览
+- `previews/day_harbor_closeup.mp4`、`night_harbor_closeup.mp4`：6秒24FPS实际GPU近景，应优先检查。
+- `previews/day_harbor_full.mp4`、`night_harbor_full.mp4`：全景动态。
+- `previews/rework_before_after.jpg`：上为退回版、下为返工版，比较两个极限相位。
+- `previews/harbor_day_night.gif`、`harbor_day_night.jpg`：昼夜并排循环与静帧；GIF量化不代替MP4验收。
+- `previews/day_phase_review.jpg`、`night_phase_review.jpg`：每个时段8个实际相位及船底放大。
+- `previews/matte_review.png`：黑/灰/白底透明边缘检查，不当作成品背景。
 
-- base_maps：基础明暗/区域/大面法线。
-- ground_emitters：地面与窗灯/光晕；旧十二光斑逻辑已移除。
-- light_field：已认可的统一平方反比浮点光场。
-- harbor_assets：船体、固定遮挡、水域、原像素补底采样映射。
-- scene_host：统一时段受光视口＋有界动态合成视口，UI独立。
-- capture / previews / workfile：分别负责真实导出、手机整理和原生分层副本。
+## 根因与本轮替换
+旧实现的问题不仅是“多边形不够细”：固定层包含船身像素、舷内柱与船运动不一致，最近像素RGB映射把补底拉成条带，透明边缘还混着原海色。
 
-构建缓存检查输入内容与派生文件，不靠文件日期。只调整 motion/time_profile 不重建整套灰度/法线；轮廓/光源/地面改变才重建相应依赖。代码导入不执行构建，局部数组与配置封装在函数中。
+旧的直接最近RGB补底和粗多边形整块回盖已从当前管线删除。替代链路：
+1. 语义区域只限定搜索范围，色差通道负责海水/物体区分，明度辅助细索具。
+2. 封闭船体保留蓝色窗户和涂装；窄trimap估计覆盖率，前景木柱用RGB方向判别，避免红船漆混入固定层。
+3. 透明边缘反解原底色，运行资产使用预乘RGBA32F；颜色与alpha一起过滤。
+4. 根据母图体积关系，舷内木柱归船体；码头前方栏柱和栏绳为独立固定前景，不用大范围遮挡块切船。
+5. 被前柱挡住的有限船身区域，用同一涂色带取样和连续延拓补齐。补底的海水样本与码头样本分开，不让船漆/木柱污染海面。
+6. 接触波纹从移动后的船底轮廓派生，不再用独立椭圆掩盖水线。
 
-## 调参位置
-| 调整 | 配置 |
-|---|---|
-| 浮动大小/轻微摆动 | config/motion.json → boat.heave_px、sway_px、roll_degrees |
-| 速度/周期 | motion.loop_seconds；运行相位与导出长度共用此值 |
-| 水面流动、亮纹、夜间幅度 | motion.water |
-| 接触波纹 | motion.contact |
-| 昼夜光色、灯窗、光晕 | config/time_profile.json |
-| 局部光源位置/范围 | config/attenuation_config.json |
-| 既有地面/窗灯区域 | config/finish_config.json |
-| 轮廓、法线和全景区域 | config/scene_config.json |
-| 船体与固定前景边界、补底和运动包络 | config/harbor_layout.json |
+本轮背景重建仍只服务已限制的微幅运动；不能把 clean_plate 当作完整无船场景。移动幅度显著增加时，需要重新检查缺失区域，不能只放宽上限。
 
-常规运动上限限定在已检查的微幅范围；超出时拒绝渲染，需要重新检查遮挡和补底，不静默放宽。
+## 当前数据/渲染职责
+`harbor_matte.py`：语义trimap、色差/明度/RGB判别、透明度、去底色与遮挡窄带连续延拓。
+`harbor_assets.py`：调用统一选区方法，生成部件、背景、光照参考与预乘浮点纹理。
+`scene_host.gd`：先渲染同一母图的当前受光，再供动态部件取样；UI仍独立。
+`harbor.gdshader`：背景→移动船→固定前景的顺序合成，预乘透明处理；没有分别生成昼/夜船图。
 
-## 本轮港口效果
-船体、桅杆、索具与窗灯同步微浮动；码头、前方立柱和栏绳固定。水面有低幅采样流动和克制亮纹，船边少量波纹随动，夜晚强度降低。没有添加树风、落叶、鸟、烟或新的场景物件。
+资产格式：
+- `boat_premult.rgba32f` / `fixed_premult.rgba32f`：H×W×RGBA小端float32，RGB已乘alpha；不能再乘一次alpha。
+- `boat_light_uv.rgba32f` / `fixed_light_uv.rgba32f`：RG为对应材质的当前受光参考坐标。
+- `clean_light_uv.rgba32f`：RG为海水/码头对应的受光参考坐标，B为补底范围。
+- `clean_plate.png`：连续修补颜色，运行时随对应材质的当前受光比值变化；不直接用最近像素RGB替代背景。
+- `harbor_masks.png`：R船、G固定前景、B水域权重、A补底范围。
+- `boat.png` / `dock_foreground.png`：直通alpha查看/原生编辑版本；运行使用预乘float版本。
 
-受光先由同一母图与S6材质实时计算，动态层随后采样该结果。没有从固定日景/夜景各抠一艘船，因此船舱窗与船体共享同一运动变换和当前时段。
+受光继承是固定视角和微幅移动下的近似；不声称重建完整三维几何或运动后真实阴影。窗灯与船一起变换，不固定在背景坐标。
 
-补底使用邻近已有水面像素，遮挡后的船身使用可见船身像素小范围补齐；目标仅为本轮微幅浮动可能露出的区域。完整隐藏区域并非新绘制的空港口。系缆以有限幅度随船，靠码头端由固定前景遮挡，没有绳索物理模拟；没有真实动态倒影或完整水体模拟。
+## 下次怎么调
+- 运动幅度/周期/水面/接触强度：`config/motion.json`，无需重做法线和地表。
+- 选区范围、通道阈值、前后归属、遮挡区克隆与补底：`config/harbor_layout.json`（schema_version=2），重建港口资产。
+- 昼夜参数：`config/time_profile.json`；其余基础配置仍按原职责。
+- 缓存已包含 harbor_matte.py 源码依赖，调整选区算法不会误复用旧资产。
+- 舊schema_version=1被明确拒绝；不能拿退回版配置运行新链路并误认为复现成功。
 
-## 交付核对
-- 原母图SHA256保持 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。
-- 封装后重建的工作底图、地表、法线、打包控制图、窗灯/光晕、RGBA32F光场与S6逐字节相同。
-- 关闭动态的白天和夜晚，与S6相应GPU截图逐像素相同。
-- 白天和夜晚各144个实际GPU帧，6秒24 FPS；循环同一端点的最大通道差为1/255，固定码头和动态范围外最大差为0。
-- 原生XCF已保存重开：原母图像素与保护锁定保留，四张控制蒙版数值一致。
-- S6 的25个已记录源文件保持不变。
-- 没有新增/运行测试套件；以上是本轮文件、像素、渲染输出和原生文件重开核对，不能称为完整游戏测试通过。
-
-## 原生文件与复现
-`MainMenu_Harbor_Working_v06.xcf` 保存原图保护层、必要部件、补底、控制层、真实静帧和UI。编辑部件前关闭40_GPU_REFERENCES。手工编辑不会自动回写JSON或UV映射，重建前另存。
-
-代码说明见源码 README.md。交付包包含 pipeline_source，可以用包内入口指定解压工作目录：
-
+单入口：
 ```powershell
-python pipeline_source/menu.py all --workspace . --tools-config C:\Dev\Tools\ArtControl\config.json
+$entry='C:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
+$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112'
+$tools='C:\Dev\Tools\ArtControl\config.json'
+python $entry all --workspace $work --tools-config $tools
 ```
 
-当前本机入口：
-```powershell
-python C:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py all --workspace C:\Dev\Tools\ArtControl\runs\main-menu-stage7-harbor-20261112 --tools-config C:\Dev\Tools\ArtControl\config.json
-```
+请先复制资产工作目录保留当前基线。runtime为执行副本，不是另一份权威源码。XCF手工编辑不自动回写JSON/浮点数据，重建前另存。
 
-runtime/是执行副本，不是第二份源码。reports中的缓存/输出核对记录可重新生成。只改参数时仍应在新工作副本保留当前已审版本。
+## 原生文件与审查原则
+`MainMenu_Harbor_Rework_v07.xcf` 保存母图保护层、重做船/码头/补底、透明度/水域控制、实际GPU参考和UI。编辑前关闭参考组；GIMP蒙版继续用Y u8数值读写。
 
-## 当前边界
-尚未替换正式菜单或接入真实入口交互，没有读取玩家存档，没有本机时钟绑定。清晨/昼夜完整日周期及其他环境动态尚待后续。制作代码不会作为生产游戏的绝对路径依赖。
-GIMP 3.0.4 退出时仍有既有 g_object_unref 告警，保存/重开检查成功，未隐藏告警。字体仅用于预览标题栅格化，不打入交付包。
+本轮检查黑/灰/白底、昼夜各8个关键相位、288个实际循环帧的完整性与连续性、固定柱关键位置、关闭动态与S6静态像素一致性、XCF保存重开及母图哈希。具体实测记录见 reports/delivery_checks.json、rework_review.json、workfile.json。
+
+**范围外像素不变或循环数值一致，只能证明操作受控，不能证明拆层正确。** S7此前正是忽略了这一点；后续必须保留透明背景检查和实际遮挡相位复核，不以自动指标替代视觉审查。
+
+未新增/运行游戏测试套件，未替换正式菜单，未读写玩家存档，未push。未新增其他环境动画或本机时间绑定。GIMP既有退出告警保留，保存/重开与数据核对单独记录。

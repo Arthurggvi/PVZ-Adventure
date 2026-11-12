@@ -21,7 +21,7 @@ def build(work: Path, force: bool=False) -> None:
       ('base','base_maps',[work/'master_original.png',work/'config/scene_config.json'],['working_base.png','maps']),
       ('ground','ground_emitters',[work/'config/finish_config.json',work/'working_base.png',work/'maps'],['ground_finished.png','finish_maps']),
       ('light','light_field',[work/'config/attenuation_config.json',work/'config/scene_config.json',work/'master_original.png',work/'maps'],['attenuation_maps']),
-      ('harbor','harbor_assets',[work/'config/harbor_layout.json',work/'master_original.png',work/'ground_finished.png',work/'maps/water.png'],['assets'])]
+      ('harbor','harbor_assets',[work/'config/harbor_layout.json',work/'master_original.png',work/'ground_finished.png',work/'maps/water.png',code/'python/harbor_matte.py'],['assets'])]
     record=[]
     for name,module,inputs,outputs in plan:
         source=code/'python'/f'{module}.py';key=fingerprint(inputs+[source])

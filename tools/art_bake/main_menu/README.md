@@ -1,8 +1,10 @@
 # 主菜单美术制作管线｜单入口、配置驱动、可复现
 
+当前港口为 S7B 返工候选；旧 S7 已被退回，不得继续将旧遮罩与最近RGB映射作为通过基线。
+
 ## 权威入口
 - 代码：本目录。`menu.py` 是唯一命令入口；`python/` 为确定性构建器，`godot/` 为共享受光/动态宿主与捕获代码。`.gdignore` 避免生产游戏自动导入制作工具。
-- 当前资产工作目录：`C:\Dev\Tools\ArtControl\runs\main-menu-stage7-harbor-20261112`。
+- 当前资产工作目录：`C:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112`。
 - 原生工具路径：`C:\Dev\Tools\ArtControl\config.json`，复用现有 `artctl.py`。不安装新服务、不开放端口。
 - `workspace/runtime` 是自动部署的执行副本，不得在里面修改权威源码。交付包将本目录作为 `pipeline_source/` 保存，可指向新的工作目录。
 
@@ -28,7 +30,7 @@
 
 ```powershell
 $entry='C:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
-$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage7-harbor-20261112'
+$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112'
 $tools='C:\Dev\Tools\ArtControl\config.json'
 python $entry build --workspace $work --tools-config $tools
 python $entry render --workspace $work --tools-config $tools
@@ -45,21 +47,23 @@ python $entry all --workspace $work --tools-config $tools
 1. `base_maps.build(workspace)`：母图＋scene_config→基础底图/区域/大面法线。
 2. `ground_emitters.build(workspace)`：finish_config→地表整理/窗灯/光晕；旧十二个门前光斑生成路径已经删除。
 3. `light_field.build(workspace)`：attenuation_config→同源平方反比 RGBA32F 光场，无截顶。
-4. `harbor_assets.build(workspace)`：原母图＋局部标注→船部件、固定前景、水域作用图、真实像素补底UV映射。
+4. `harbor_assets.build(workspace)`：原母图＋局部标注→船部件、固定前景、水域作用图、通道分离/预乘部件/分材质补底。
 5. `scene_host.gd`：先在 lit_view 用已批准材质实时受光，再把该 ViewportTexture 交给港口动态层。船体颜色与窗灯一起采样，不使用三张日/暮/夜船贴图。
 6. `capture.gd`：显式相位/秒数驱动，输出昼夜静帧和真实循环帧；`previews.py` 只裁切、排版及视频/GIF编码，没有生成式补帧。
 7. `workfile.py`：创建原生 XCF，保存重开后检查母图锁定与蒙版数值。
 
 构建模块导入不执行文件操作；各模块只接受工作根，局部数组与配置封装在函数内。生产运行接入尚未进行，游戏不能依赖本机制作目录或完整制作脚本。
 
-## 港口拆层与运动约束
+## 港口拆层与运动约束（S7B）
 
-- 原母图及 S6 光照基线保留。只提取船体、桅杆索具和有限系缆；固定码头、立柱和前方栏绳由独立遮挡层最后回盖。
-- 母图没有真正画出被船/立柱挡住的内容。补底只使用附近原始水面与可见船身像素，保证本轮有限幅度可能露出的窄带；不能把整张 clean_plate 当作已经完成的空港口插画。
-- `assets/clean_lookup.rgba32f` 与 `boat_lookup.rgba32f` 是小端 H×W×RGBA32F：RG=原图采样UV，B=替换权重。它们让补底和隐藏船身跟随当前时段受光，避免固定夜景补丁。
-- `harbor_masks.png`：R=船部件，G=固定遮挡，B=水域内部作用权重，A=补底范围。水域还受既有全景水面范围限制，不扭动岸线、温室玻璃或建筑。
-- 系缆按本轮微幅整体随船，靠码头的端部由固定立柱遮挡；没有独立绳索弹性或物理模拟。增加幅度需要重新审查系缆、遮挡与补底，不自动放宽 limits。
-- 没有制作真实动态反射。画中水面纹理作有限采样扰动，接触波纹克制叠加，夜间强度跟随统一时段降低。
+- `harbor_matte.py` 混合语义trimap、色差通道、明度细线、RGB柱选区与source-over去底色；`harbor_assets.py` 统一生成资产。不是把粗多边形直接当最终边缘。
+- 舷内木柱属于船体组；码头栏柱/栏绳为固定前景。不能将所有柱子统一覆盖在船上，也不能用大区域固定遮罩冻结一块船身。
+- 船与码头前景的运行纹理为预乘RGBA32F，颜色和透明度共同滤波。旧 clean_lookup/boat_lookup 最近RGB映射已删除，不再保留第二条运行路线。
+- 背景按海水/码头材质分别从原图确定性修补；柱后船身只做同材质窄带克隆与连续延拓。仅保证当前微幅包络，不能当作完整的隐藏三维场景。
+- `boat_premult.rgba32f` / `fixed_premult.rgba32f` 是预乘颜色；`boat_light_uv` / `fixed_light_uv` / `clean_light_uv` 只引用对应材质的当前受光，不用于把最近RGB拉成条带。
+- `harbor_masks.png` 仍为R船/G固定前景/B水域/A补底，原图不变。接触波纹改由移动后的下船沿轮廓派生，旧独立椭圆配置已去掉。
+- 普通运动调参仍只改 motion.json，未通过降低幅度掩盖旧边缘问题；需要放大幅度时必须重新审查遮挡与缺失内容。系缆固定端由前柱遮挡，没有新增绳索物理。
+- 验收必须包括黑/灰/白底与极限相位，范围外像素不变、静态回退一致不能证明动态图层分离正确。
 
 ## 原生工作副本与数据所有权
 

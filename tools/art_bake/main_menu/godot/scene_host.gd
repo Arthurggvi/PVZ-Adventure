@@ -80,8 +80,10 @@ func configure(folder: String) -> void:
 	harbor_material.shader = harbor_shader
 	harbor_material.set_shader_parameter("canvas_pixels",Vector2(size))
 	harbor_material.set_shader_parameter("masks",texture_file(folder.path_join("assets/harbor_masks.png")))
-	harbor_material.set_shader_parameter("clean_lookup",float_texture(folder.path_join("assets/clean_lookup.rgba32f"),size))
-	harbor_material.set_shader_parameter("boat_lookup",float_texture(folder.path_join("assets/boat_lookup.rgba32f"),size))
+	harbor_material.set_shader_parameter("master_color",texture_file(folder.path_join("master_original.png")))
+	harbor_material.set_shader_parameter("clean_color",texture_file(folder.path_join("assets/clean_plate.png")))
+	for uniform: String in ["clean_light_uv","boat_premult","boat_light_uv","fixed_premult","fixed_light_uv"]: # 预乘颜色与低频受光参考分别绑定。
+		harbor_material.set_shader_parameter(uniform,float_texture(folder.path_join("assets/"+uniform+".rgba32f"),size))
 	composite.material = harbor_material
 	ui_layer = Node2D.new()
 	output_view.add_child(ui_layer)
@@ -100,7 +102,7 @@ func apply_motion() -> void:
 	assert(absf(motion.boat.roll_degrees) <= motion.limits.max_roll_degrees)
 	assert(absf(motion.boat.sway_px) <= motion.limits.max_sway_px)
 	assert(motion.water.displacement_px <= motion.limits.max_water_displacement_px)
-	var values := {"motion_enabled":motion.enabled,"boat_enabled":motion.boat.enabled,"water_enabled":motion.water.enabled,"contact_enabled":motion.contact.enabled,"pivot":Vector2(motion.boat.pivot[0],motion.boat.pivot[1]),"heave_px":motion.boat.heave_px,"sway_px":motion.boat.sway_px,"roll_radians":deg_to_rad(motion.boat.roll_degrees),"phase_offset":motion.boat.phase_offset,"water_displacement_px":motion.water.displacement_px,"water_glint":motion.water.glint_strength,"wave_lengths":Vector2(motion.water.wave_lengths[0],motion.water.wave_lengths[1]),"contact_center":Vector2(motion.contact.center[0],motion.contact.center[1]),"contact_radii":Vector2(motion.contact.radii[0],motion.contact.radii[1]),"contact_width":motion.contact.width_px,"contact_strength":motion.contact.strength} # 全部运行调参入口。
+	var values := {"motion_enabled":motion.enabled,"boat_enabled":motion.boat.enabled,"water_enabled":motion.water.enabled,"contact_enabled":motion.contact.enabled,"pivot":Vector2(motion.boat.pivot[0],motion.boat.pivot[1]),"heave_px":motion.boat.heave_px,"sway_px":motion.boat.sway_px,"roll_radians":deg_to_rad(motion.boat.roll_degrees),"phase_offset":motion.boat.phase_offset,"water_displacement_px":motion.water.displacement_px,"water_glint":motion.water.glint_strength,"wave_lengths":Vector2(motion.water.wave_lengths[0],motion.water.wave_lengths[1]),"contact_width":motion.contact.width_px,"contact_strength":motion.contact.strength} # 全部运行调参入口。
 	for key: String in values:
 		harbor_material.set_shader_parameter(key,values[key])
 

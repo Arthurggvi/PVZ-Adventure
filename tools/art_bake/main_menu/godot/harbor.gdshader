@@ -1,9 +1,14 @@
 shader_type canvas_item;
 render_mode unshaded;
-// TEXTURE 为同一时段的实时受光结果；船体色彩、法线受光与窗灯一起采样。
+// 真实预乘透明部件：海底补图→活动船→固定码头，颜色与alpha一起过滤。
 uniform sampler2D masks : filter_linear, repeat_disable;
-uniform sampler2D clean_lookup : filter_nearest, repeat_disable;
-uniform sampler2D boat_lookup : filter_nearest, repeat_disable;
+uniform sampler2D master_color : filter_linear, repeat_disable;
+uniform sampler2D clean_color : filter_linear, repeat_disable;
+uniform sampler2D clean_light_uv : filter_nearest, repeat_disable;
+uniform sampler2D boat_premult : filter_linear, repeat_disable;
+uniform sampler2D boat_light_uv : filter_nearest, repeat_disable;
+uniform sampler2D fixed_premult : filter_linear, repeat_disable;
+uniform sampler2D fixed_light_uv : filter_nearest, repeat_disable;
 uniform vec2 canvas_pixels = vec2(1672.0,941.0);
 uniform bool motion_enabled = true;
 uniform bool boat_enabled = true;
@@ -19,48 +24,49 @@ uniform float water_displacement_px = 1.05;
 uniform float water_glint = 0.035;
 uniform vec2 wave_lengths = vec2(82.0,41.0);
 uniform float water_time_gain = 1.0;
-uniform vec2 contact_center = vec2(1567.0,419.0);
-uniform vec2 contact_radii = vec2(85.0,10.5);
 uniform float contact_width = 1.25;
 uniform float contact_strength = 0.12;
-vec4 clean_scene(sampler2D source, vec2 uv) {
-    vec4 lookup=texture(clean_lookup,uv);
-    return texture(source,mix(uv,lookup.rg,lookup.b));
+vec3 light_transfer(sampler2D source,vec2 uv) {
+    return texture(source,uv).rgb/max(texture(master_color,uv).rgb,vec3(0.015));
+}
+vec4 clean_scene(sampler2D source,vec2 uv) {
+    vec4 guide=texture(clean_light_uv,uv);
+    vec3 patched=texture(clean_color,uv).rgb*light_transfer(source,guide.rg);
+    return vec4(mix(texture(source,uv).rgb,patched,guide.b),1.0);
+}
+vec4 relit_part(sampler2D source,sampler2D part,sampler2D guide,vec2 uv) {
+    vec4 pm=texture(part,uv);
+    return vec4(pm.rgb*light_transfer(source,texture(guide,uv).rg),pm.a);
 }
 void fragment() {
-    vec4 untouched=texture(TEXTURE,UV);
+    vec4 original=texture(TEXTURE,UV);
     if (!motion_enabled) {
-        COLOR=untouched;
+        COLOR=original;
     } else {
         float angle=phase*6.28318530718+phase_offset;
         vec2 point=UV*canvas_pixels;
         vec4 region=texture(masks,UV);
         float water=water_enabled?region.b:0.0;
         vec2 drift=vec2(sin(point.y/wave_lengths.x+angle),0.32*sin(point.x/wave_lengths.y-angle*2.0));
-        vec2 surface_uv=UV+drift*water_displacement_px*water/canvas_pixels;
-        vec4 result=clean_scene(TEXTURE,surface_uv);
+        vec2 water_uv=UV+drift*water_displacement_px*water/canvas_pixels;
+        vec4 result=clean_scene(TEXTURE,water_uv);
         float shimmer=sin(point.x/37.0+point.y/9.0+angle*2.0)*sin(point.y/21.0-angle);
         result.rgb*=1.0+water_glint*water*shimmer*water_time_gain;
         vec2 displacement=boat_enabled?vec2(sway_px*sin(angle*2.0),heave_px*sin(angle)):vec2(0.0);
         float turn=boat_enabled?roll_radians*sin(angle):0.0;
+        float cosine=cos(turn),sine=sin(turn);
+        mat2 inverse_rotation=mat2(vec2(cosine,-sine),vec2(sine,cosine));
+        vec2 boat_uv=(inverse_rotation*(point-pivot-displacement)+pivot)/canvas_pixels;
         if (contact_enabled) {
-            vec2 ring_center=contact_center+displacement;
-            vec2 radii=contact_radii+vec2(2.0*(1.0+sin(angle)),0.8*(1.0+sin(angle)));
-            float distance=abs(length((point-ring_center)/radii)-1.0)*radii.y;
-            float band=1.0-smoothstep(0.0,contact_width,distance);
-            band*=smoothstep(ring_center.y-4.0,ring_center.y+2.0,point.y)*region.b;
-            result.rgb*=1.0+band*contact_strength*water_time_gain;
+            float here=texture(boat_premult,boat_uv).a;
+            float above=texture(boat_premult,boat_uv-vec2(0.0,contact_width)/canvas_pixels).a;
+            float rim=max(above-here,0.0)*smoothstep(pivot.y-7.0,pivot.y+6.0,point.y-displacement.y);
+            result.rgb*=1.0+rim*contact_strength*water_time_gain*region.b;
         }
-        float c=cos(turn),s=sin(turn);
-        mat2 inverse_rotation=mat2(vec2(c,-s),vec2(s,c));
-        vec2 boat_point=inverse_rotation*(point-pivot-displacement)+pivot;
-        vec2 boat_uv=boat_point/canvas_pixels;
-        float alpha=texture(masks,boat_uv).r;
-        vec4 boat_sample=texture(boat_lookup,boat_uv);
-        vec4 boat=texture(TEXTURE,mix(boat_uv,boat_sample.rg,boat_sample.b));
-        result=mix(result,boat,alpha);
-        // 码头立柱与前方围栏最后回盖；它们不随船体摇动。
-        result=mix(result,untouched,region.g);
-        COLOR=vec4(clamp(result.rgb,0.0,1.0),untouched.a);
+        vec4 boat=relit_part(TEXTURE,boat_premult,boat_light_uv,boat_uv);
+        result.rgb=boat.rgb+result.rgb*(1.0-boat.a);
+        vec4 fixed=relit_part(TEXTURE,fixed_premult,fixed_light_uv,UV);
+        result.rgb=fixed.rgb+result.rgb*(1.0-fixed.a);
+        COLOR=vec4(clamp(result.rgb,0.0,1.0),original.a);
     }
 }

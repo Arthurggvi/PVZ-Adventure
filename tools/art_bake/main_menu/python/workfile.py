@@ -25,8 +25,8 @@ def build(root: Path) -> None:
     load(image,root/'ground_finished.png','10_APPROVED_GROUND_保留既有地面',visible=False)
     layers=group(image,'20_HARBOR_PARTS_必要活动部件',False)
     load(image,root/'assets/clean_plate.png','01_CLEAN_PLATE_仅有限运动包络可见补底',layers)
-    load(image,root/'assets/boat.png','02_BOAT_原像素_遮挡后小范围补齐',layers)
-    load(image,root/'assets/dock_foreground.png','03_DOCK_FOREGROUND_固定码头与围栏',layers)
+    load(image,root/'assets/boat.png','02_BOAT_通道去底色_遮挡窄带补齐',layers)
+    load(image,root/'assets/dock_foreground.png','03_DOCK_FOREGROUND_独立固定栏柱与栏绳',layers)
     controls=group(image,'30_HARBOR_MASKS_原图坐标控制',False);hashes={}
     for filename in ['boat_alpha.png','fixed_alpha.png','water_weight.png','motion_support.png']:
         layer=load(image,root/'assets'/filename,filename,controls)
@@ -46,7 +46,7 @@ def build(root: Path) -> None:
     checks={l.get_name():hashlib.sha256(data(l.get_mask(),'Y u8')).hexdigest()==hashes[l.get_name()] for l in controls.get_children()}
     report={'source_pixels_unchanged':hashlib.sha256(data(orig)).hexdigest()==original_hash,'source_locked':orig.get_lock_content() and orig.get_lock_position(),
       'mask_checks':checks,'file_bytes':destination.stat().st_size,'canvas':size,
-      'notes':'XCF is editing/inspection view; shaders and config own motion. UV donor maps remain separate float32 source products. Manual edits do not reverse-sync.'}
+      'notes':'XCF is editing/inspection view; shaders and config own motion. Premultiplied layers and material lighting references remain separate float32 products. Manual edits do not reverse-sync.'}
     assert report['source_pixels_unchanged'] and report['source_locked'] and all(checks.values())
     reopened.delete();(root/'reports/workfile.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
     print(json.dumps(report),flush=True)
