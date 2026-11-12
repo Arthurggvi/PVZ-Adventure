@@ -53,20 +53,12 @@ static func profile(type_id: int) -> Dictionary:
 	source.free()
 	return result
 
-## 返回 [param info] 在 [param phase] 的属性文字；阶段不改变最大生命，仅改变行为。
-static func stats(info: Dictionary, phase: int) -> String:
-	var config: Resource = info.config # 源场景配置，避免复制战斗数值。
-	var interval: float = 0.0 # 技能或换行结束到下一动作的等待秒数。
-	var movement: float = 0.0 # 换行速度，单位像素每秒。
+## 返回 [param info] 在 [param phase] 的行动间隔秒数，与实战使用同一份配置。
+static func action_interval(info: Dictionary, phase: int) -> float:
+	var config: Resource = info.config # 只读访问注册场景的行为配置。
 	if config is BlackGeneralConfig:
-		interval = config.phase_two_action_interval if phase == 2 else config.phase_one_action_interval
-		movement = config.lane_change_speed
-	else:
-		var duke := config as WhiteDukeConfig # 白爵士提供统一的分阶段间隔接口。
-		interval = duke.action_delay(phase)
-		movement = duke.lane_change_speed
-	return "最大生命：%d\n二阶段条件：生命%s %s%%\n行动间隔：%s 秒\n换行速度：%s 像素/秒" % [
-		int(info.health), "≤" if info.inclusive else "<", float(info.threshold) * 100.0, interval, movement]
+		return config.phase_two_action_interval if phase == 2 else config.phase_one_action_interval
+	return (config as WhiteDukeConfig).action_delay(phase)
 
 ## 为 [param type_id]、[param phase] 和场景资料 [param info] 返回技能、说明及动画序列。
 ## 多个技能共用施法动作时保留实战对应关系，不虚构其他动作。
@@ -82,7 +74,7 @@ static func skills(type_id: int, phase: int, info: Dictionary) -> Array[Dictiona
 		result.append(_skill("move", "换行", "移动到另一行，改变后续插旗、冲锋和统领的路线；普通技能与换行交替进行。", [&"run"]))
 		result.append(_skill("entrance", "登场", "传送入场并举旗，在第 2、4 路各召唤一名一阶全明星僵尸。", [&"teleport_in", &"raise"]))
 		if second:
-			result.append(_skill("transition", "转阶段", "半血转阶段期间无敌；按第 1、5 路，第 2、4 路，第 3 路的顺序召唤全明星。随后本体与残影扫掠场地，已有令旗升级为二阶段格挡。", [&"raise", &"teleport_out", &"teleport_in", &"windup", &"charge", &"charge_stop", &"teleport_out", &"teleport_in", &"raise"]))
+			result.append(_skill("transition", "转阶段", "达到阶段转换生命阈值后，转阶段期间无敌；按第 1、5 路，第 2、4 路，第 3 路的顺序召唤全明星。随后本体与残影扫掠场地，已有令旗升级为二阶段格挡。", [&"raise", &"teleport_out", &"teleport_in", &"windup", &"charge", &"charge_stop", &"teleport_out", &"teleport_in", &"raise"]))
 	else:
 		var config := info.config as WhiteDukeConfig # 白爵士数值来自场景。
 		result.append(_skill("resurrect", "复生", "生成 %d 块墓碑，从最近 %s 秒内死亡的僵尸中抽取最多同等数量复活，并保留原等阶。墓碑不会放在前 %d 列。" % [config.skill_graves + (config.skill_graves_phase2_bonus if second else 0), config.recent_death_window, config.minimum_grave_column], [&"point"]))
@@ -95,12 +87,16 @@ static func skills(type_id: int, phase: int, info: Dictionary) -> Array[Dictiona
 			result.append(_skill("transition", "转阶段", "在最后 %d 列铺设墓碑，复活最近 %s 秒内最多 %d 名阵亡僵尸，给予 %s 秒的 %s 倍移速和伤害免疫；白爵士在演出期间无敌并传送归位。" % [config.phase_grave_columns, config.recent_death_window, config.phase_revival_limit, config.immunity_seconds, config.fury_speed_multiplier], [&"point", &"teleport_out", &"teleport_in"]))
 	return result
 
-## 返回 [param type_id] 的常驻特性，数值读取 [param info]。
-static func passive(type_id: int, info: Dictionary) -> String:
+## 返回 [param type_id] 在 [param phase] 的当前特性，数值读取 [param info]，不提前混入下一阶段机制。
+static func passive(type_id: int, info: Dictionary, phase: int) -> String:
 	if type_id == GENERAL:
-		return "二阶段：黑焰外观、令旗格挡强化、冲锋无击杀上限，并沿路留下剪影。"
-	var config := info.config as WhiteDukeConfig # 墓碑被动的实际计时参数。
-	return "墓碑复生：每块可用墓碑每 %s 秒尝试复活一名阵亡僵尸；白爵士每 %s 秒额外尝试一次。二阶段召唤会触发彩色聚光灯。" % [config.grave_auto_revive_seconds, config.grave_boss_revive_seconds]
+		var general := info.config as BlackGeneralConfig # 令旗格挡与冲锋上限随阶段变化。
+		if phase == 1:
+			return "令旗提供 %d 点格挡；冲锋击杀 %d 株植物后停止。技能与换行交替进行。" % [general.phase_one_block, general.phase_one_kill_limit]
+		return "黑焰形态，令旗格挡提升至 %d 点。冲锋不限击杀数量，并沿途留下三个剪影。" % general.phase_two_block
+	var config := info.config as WhiteDukeConfig # 墓碑被动在两个阶段均生效。
+	var revival: String = "墓碑每 %s 秒尝试复生，白爵士每 %s 秒额外尝试一次。" % [String.num(config.grave_auto_revive_seconds, 1), String.num(config.grave_boss_revive_seconds, 1)] # 精简单位和重复措辞。
+	return revival + ("召唤强化，并伴随彩色聚光灯。" if phase == 2 else "复活的僵尸保留原等阶。")
 
 ## 将 [param id]、[param title]、[param description]、[param clips] 包装成只读展示条目。
 static func _skill(id: String, title: String, description: String, clips: Array[StringName]) -> Dictionary:

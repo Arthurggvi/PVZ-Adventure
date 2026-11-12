@@ -5,6 +5,8 @@ extends Control
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 ## Boss 属性和分阶段技能目录。
 const Data = preload("res://scripts/adventure/ui/boss_almanac_data.gd")
+## Boss 页面共用的阅读字体、纸面卡片和强调色。
+const PageStyle = preload("res://scripts/adventure/ui/boss_almanac_style.gd")
 ## 与战斗完全分离的动画舞台。
 const Preview = preload("res://scripts/adventure/ui/boss_almanac_preview.gd")
 ## 创建详情前由图鉴指定的 Boss 编号。
@@ -17,8 +19,18 @@ var _info: Dictionary = {}
 var _skills: Array[Dictionary] = []
 ## 当前选中技能的稳定 ID，切阶段时尽量保持选择。
 var _selected_skill: String = ""
-## 属性和常驻特性文字。
-var _stats: Label
+## 当前 Boss 的强调色，贯穿数值、阶段标签与选中技能。
+var _accent: Color
+## 随阶段更新的行动间隔数值。
+var _interval: Label
+## 当前阶段的特性标题。
+var _trait_title: Label
+## 当前阶段的特性说明。
+var _trait: Label
+## 当前演示的技能名称，与效果正文分开排版。
+var _effect_title: Label
+## 演示状态提示。
+var _effect_hint: Label
 ## 技能下方的效果说明。
 var _effect: Label
 ## 切换技能后回到说明开头。
@@ -32,34 +44,54 @@ var _skill_buttons: Array[Button] = []
 ## 动画预览节点，切阶段时只重建其视觉内容。
 var _preview: Preview
 
-## 创建固定排版，长文字使用各自的滚动区，不挤占技能入口。
+## 创建分层档案：左侧舞台，右侧数值和阶段机制，下方为技能与独立效果卡。
 func _ready() -> void:
 	size = Vector2(910, 640)
 	_info = Data.profile(type_id)
-	Art.label(self, str(_info.title), Vector2(18, 3), Vector2(430, 60), 40)
-	for phase: int in range(1, 3): # 独立阶段按钮不与普通僵尸五阶混用。
-		var button: Button = _button("一阶段" if phase == 1 else "二阶段", _choose_phase.bind(phase)) # 固定按钮保留键盘焦点。
-		button.position = Vector2(580 + (phase - 1) * 155, 12)
-		button.size = Vector2(145, 44)
+	_accent = PageStyle.GENERAL_ACCENT if type_id == Data.GENERAL else PageStyle.DUKE_ACCENT
+	PageStyle.label(self, str(_info.title), Rect2(18, 0, 390, 53), 40, PageStyle.INK, false)
+	PageStyle.label(self, "军旗统领 · 冲锋压阵" if type_id == Data.GENERAL else "亡灵乐师 · 墓碑复生", Rect2(21, 51, 390, 24), 17, PageStyle.MUTED)
+	for phase: int in range(1, 3): # 阶段是顶层筛选，与下方技能入口区别排版。
+		var button: Button = _button("一阶段" if phase == 1 else "二阶段", _choose_phase.bind(phase)) # 固定入口保留焦点。
+		button.position = Vector2(595 + (phase - 1) * 150, 12)
+		button.size = Vector2(140, 42)
 		add_child(button)
 		_phase_buttons.append(button)
-	Art.panel(self, "panels/wood_ninepatch.png", Vector2(19, 66), Vector2(874, 4), 2)
 	_preview = Preview.new()
-	_preview.position = Vector2(20, 83)
+	_preview.position = Vector2(20, 89)
 	add_child(_preview)
-	Art.panel(self, "panels/outer_frame_ninepatch.png", Vector2(10, 73), Vector2(410, 320), 24)
-	Art.label(self, "属性与特性", Vector2(438, 78), Vector2(445, 34), 24, Color("824820"))
-	var stats_scroll: ScrollContainer = _scroll(Vector2(438, 119), Vector2(445, 263)) # 属性说明可以滚动，不覆盖预览。
-	_stats = _text(stats_scroll, "", 21)
+	Art.panel(self, "panels/outer_frame_ninepatch.png", Vector2(10, 79), Vector2(410, 320), 24)
+	PageStyle.card(self, Rect2(438, 80, 446, 107))
+	PageStyle.label(self, "最大生命", Rect2(454, 90, 180, 24), 17, PageStyle.MUTED)
+	PageStyle.number(self, String.num_int64(int(_info.health)), Rect2(451, 114, 230, 49), 40, _accent)
+	PageStyle.label(self, "阶段转换", Rect2(697, 101, 166, 24), 16, PageStyle.MUTED)
+	PageStyle.label(self, "生命 %s %s%%" % ["≤" if _info.inclusive else "<", String.num(float(_info.threshold) * 100.0, 1).trim_suffix(".0")], Rect2(697, 130, 175, 28), 21, _accent)
+	PageStyle.card(self, Rect2(438, 197, 218, 76))
+	PageStyle.label(self, "行动间隔", Rect2(454, 206, 180, 22), 16, PageStyle.MUTED)
+	_interval = PageStyle.number(self, "", Rect2(454, 231, 100, 34), 27)
+	PageStyle.label(self, "秒", Rect2(558, 242, 80, 22), 17, PageStyle.MUTED)
+	PageStyle.card(self, Rect2(666, 197, 218, 76))
+	PageStyle.label(self, "换行速度", Rect2(682, 206, 186, 22), 16, PageStyle.MUTED)
+	PageStyle.number(self, String.num(float(_info.config.lane_change_speed), 1).trim_suffix(".0"), Rect2(682, 231, 100, 34), 27)
+	PageStyle.label(self, "像素/秒", Rect2(786, 242, 85, 22), 17, PageStyle.MUTED)
+	PageStyle.card(self, Rect2(438, 283, 446, 116), Color(1, 0.96, 0.85, 0.35))
+	_trait_title = PageStyle.label(self, "", Rect2(454, 292, 410, 30), 22, _accent, false)
+	var trait_scroll: ScrollContainer = _scroll(Vector2(454, 326), Vector2(414, 65)) # 墓碑被动等长机制独立滚动。
+	_trait = _text(trait_scroll, "", 19)
+	PageStyle.label(self, "技能演示", Rect2(18, 410, 220, 28), 24, PageStyle.INK, false)
+	PageStyle.label(self, "点击播放 · 再次点击重播", Rect2(623, 414, 264, 23), 16, PageStyle.MUTED)
 	_skill_grid = GridContainer.new()
-	_skill_grid.position = Vector2(18, 404)
+	_skill_grid.position = Vector2(18, 446)
 	_skill_grid.columns = 4
 	_skill_grid.add_theme_constant_override("h_separation", 10)
 	_skill_grid.add_theme_constant_override("v_separation", 7)
 	add_child(_skill_grid)
-	Art.panel(self, "panels/wood_ninepatch.png", Vector2(18, 504), Vector2(874, 3), 1)
-	_effect_scroll = _scroll(Vector2(20, 515), Vector2(870, 107))
-	_effect = _text(_effect_scroll, "点击上方技能，观看动画并查看对应作用。", 21)
+	PageStyle.card(self, Rect2(18, 543, 874, 95))
+	_effect_title = PageStyle.label(self, "", Rect2(33, 551, 420, 29), 23, _accent, false)
+	_effect_hint = PageStyle.label(self, "", Rect2(635, 556, 242, 22), 15, PageStyle.MUTED)
+	_effect_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_effect_scroll = _scroll(Vector2(34, 584), Vector2(840, 47))
+	_effect = _text(_effect_scroll, "", 20)
 	_rebuild_phase()
 
 ## 在 [param position_value]、[param dimensions] 创建只允许竖向滚动的阅读区。
@@ -73,14 +105,8 @@ func _scroll(position_value: Vector2, dimensions: Vector2) -> ScrollContainer:
 
 ## 在 [param parent] 中显示可换行的 [param caption]，字号为 [param font_size]。
 func _text(parent: Container, caption: String, font_size: int) -> Label:
-	var label := Label.new() # 内容高度由实际文字决定，滚动容器负责裁剪。
-	label.text = caption
+	var label: Label = PageStyle.label(parent, caption, Rect2(), font_size) # 内容高度由文字决定，滚动容器负责裁剪。
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", Color("382719"))
-	label.add_theme_constant_override("line_spacing", 5)
-	parent.add_child(label)
 	return label
 
 ## 创建显示 [param caption] 的选择按钮，并连接 [param action]；添加父节点后由调用者定位。
@@ -90,15 +116,18 @@ func _button(caption: String, action: Callable) -> Button:
 	button.toggle_mode = true
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	button.add_theme_font_size_override("font_size", 22)
-	button.add_theme_color_override("font_color", Color("fff0ce"))
-	button.add_theme_color_override("font_pressed_color", Color("fff6de"))
-	button.add_theme_color_override("font_hover_color", Color("fff6de"))
-	button.add_theme_color_override("font_outline_color", Color("3e2518"))
-	button.add_theme_constant_override("outline_size", 2)
-	button.add_theme_stylebox_override("normal", Art.texture_style("buttons/button_normal.png", 10))
-	button.add_theme_stylebox_override("hover", Art.texture_style("buttons/button_hover.png", 10))
-	button.add_theme_stylebox_override("pressed", Art.texture_style("buttons/button_selected.png", 10))
-	button.add_theme_stylebox_override("hover_pressed", Art.texture_style("buttons/button_selected.png", 10))
+	button.add_theme_color_override("font_color", PageStyle.INK)
+	button.add_theme_color_override("font_pressed_color", Color("fff3d8"))
+	button.add_theme_color_override("font_hover_color", _accent)
+	button.add_theme_color_override("font_hover_pressed_color", Color("fff3d8"))
+	button.add_theme_stylebox_override("normal", PageStyle.card_style(Color(1, 0.96, 0.84, 0.55), Color("a88b5b")))
+	button.add_theme_stylebox_override("hover", PageStyle.card_style(Color("fff0c9"), _accent))
+	button.add_theme_stylebox_override("pressed", PageStyle.card_style(_accent, _accent))
+	button.add_theme_stylebox_override("hover_pressed", PageStyle.card_style(_accent.lightened(0.08), _accent))
+	var focus: StyleBoxFlat = PageStyle.card_style(Color.TRANSPARENT, Color("a87920")) # 键盘焦点独立于选中状态。
+	focus.draw_center = false
+	focus.set_border_width_all(2)
+	button.add_theme_stylebox_override("focus", focus)
 	button.pressed.connect(action)
 	return button
 
@@ -111,11 +140,13 @@ func _choose_phase(phase: int) -> void:
 	_rebuild_phase()
 	SoundManager.play_other_SFX(&"tap")
 
-## 重建分阶段资料；人物描述完整放在右侧滚动区，技能作用始终位于按钮下方。
+## 重建分阶段数值与机制，保留有效的技能选择；人物轶事由外层目录展示。
 func _rebuild_phase() -> void:
-	for index: int in range(_phase_buttons.size()): # 用亮边标记正在查看的阶段。
+	for index: int in range(_phase_buttons.size()): # 用角色强调色标记正在查看的阶段。
 		_phase_buttons[index].set_pressed_no_signal(index + 1 == _phase)
-	_stats.text = Data.stats(_info, _phase) + "\n\n" + Data.passive(type_id, _info) + "\n\n人物介绍\n" + str(_info.story)
+	_interval.text = String.num(Data.action_interval(_info, _phase), 1).trim_suffix(".0")
+	_trait_title.text = ("一阶段 · 军旗压阵" if _phase == 1 else "二阶段 · 黑焰冲锋") if type_id == Data.GENERAL else ("一阶段 · 墓碑复生" if _phase == 1 else "二阶段 · 亡灵狂欢")
+	_trait.text = Data.passive(type_id, _info, _phase)
 	_preview.show_boss(type_id, _phase, _info)
 	for child: Node in _skill_grid.get_children(): # 销毁旧阶段按钮，避免说明和动作错配。
 		_skill_grid.remove_child(child)
@@ -126,21 +157,21 @@ func _rebuild_phase() -> void:
 	for index: int in range(_skills.size()): # 至多七种技能，末格保留给待机按钮。
 		var skill: Dictionary = _skills[index] # 本次按钮捕获稳定索引。
 		var button: Button = _button(str(skill.title), _choose_skill.bind(index)) # 选中项可再次点击重播。
-		button.custom_minimum_size = Vector2(211, 42)
+		button.custom_minimum_size = Vector2(211, 41)
 		button.tooltip_text = "播放%s动画" % skill.title
 		_skill_grid.add_child(button)
 		_skill_buttons.append(button)
 		if str(skill.id) == _selected_skill:
 			selected_index = index
-	var idle: Button = _button("待机", _show_idle) # 用户可主动停止技能演示。
+	var idle: Button = _button("回到待机", _show_idle) # 用户可主动停止技能演示。
 	idle.toggle_mode = false
-	idle.custom_minimum_size = Vector2(211, 42)
+	idle.custom_minimum_size = Vector2(211, 41)
 	_skill_grid.add_child(idle)
 	if selected_index >= 0:
 		_choose_skill(selected_index, false)
 	else:
 		_selected_skill = ""
-		_effect.text = "点击上方技能，观看动画并查看对应作用。\n当前：%s · %s" % [_info.title, "二阶段" if _phase == 2 else "一阶段"]
+		_set_idle_description()
 		_effect_scroll.scroll_vertical = 0
 
 ## 播放 [param index] 对应技能；[param play_sound] 控制切阶段自动刷新时是否重复点击声。
@@ -149,7 +180,9 @@ func _choose_skill(index: int, play_sound: bool = true) -> void:
 	_selected_skill = str(skill.id)
 	for button_index: int in range(_skill_buttons.size()): # 更新选中态，重复点击也保持选中。
 		_skill_buttons[button_index].set_pressed_no_signal(button_index == index)
-	_effect.text = "%s · %s\n%s" % [skill.title, "二阶段" if _phase == 2 else "一阶段", skill.description]
+	_effect_title.text = str(skill.title)
+	_effect_hint.text = "%s · 再次点击可重播" % ("二阶段" if _phase == 2 else "一阶段")
+	_effect.text = str(skill.description)
 	_effect_scroll.scroll_vertical = 0
 	_preview.play_skill(skill.clips, skill.id)
 	if play_sound:
@@ -161,5 +194,11 @@ func _show_idle() -> void:
 	for button: Button in _skill_buttons: # 待机不保留其他技能的选中边框。
 		button.set_pressed_no_signal(false)
 	_preview.play_skill([])
-	_effect.text = "正在展示%s的%s待机。点击技能可重新播放演示。" % [_info.title, "二阶段" if _phase == 2 else "一阶段"]
+	_set_idle_description()
 	_effect_scroll.scroll_vertical = 0
+
+## 待机状态使用独立标题与轻提示，避免重复显示角色名称和阶段。
+func _set_idle_description() -> void:
+	_effect_title.text = "待机展示"
+	_effect_hint.text = "二阶段" if _phase == 2 else "一阶段"
+	_effect.text = "选择上方技能，查看动作演示与对应效果。"

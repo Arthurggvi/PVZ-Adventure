@@ -13,6 +13,8 @@ const Preview = preload("res://scripts/adventure/ui/almanac_preview.gd")
 const BossData = preload("res://scripts/adventure/ui/boss_almanac_data.gd")
 ## Boss 专用阶段与技能详情。
 const BossDetail = preload("res://scripts/adventure/ui/boss_almanac_detail.gd")
+## Boss 故事与详情共用阅读字体和纸面配色。
+const BossSkin = preload("res://scripts/adventure/ui/boss_almanac_style.gd")
 ## 与任务簿相同的设计画布尺寸。
 const DESIGN := Vector2(1480, 830)
 ## 现有中文界面字体。
@@ -45,6 +47,14 @@ var _empty: Label
 var _details: Control
 ## 显示当前已收录数量。
 var _count: Label
+## Boss 目录下方的独立人物轶事，不与战斗属性混排。
+var _boss_story: Control
+## 切换角色时更新故事标题。
+var _story_title: Label
+## 完整保留人物原文，长篇故事支持滚动。
+var _story_body: Label
+## 切换角色后故事回到开头。
+var _story_scroll: ScrollContainer
 ## 分类按钮，通过按下状态强调当前分类。
 var _tabs: Dictionary = {}
 ## 头像卡按钮，用物种编号索引。
@@ -112,6 +122,7 @@ func _ready() -> void:
 	_empty = Art.label(_canvas, "", Vector2(58, 424), Vector2(397, 60), 24, Color("796347"))
 	_empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_count = Art.label(_canvas, "", Vector2(63, 730), Vector2(385, 38), 20, Color("6a5035"))
+	_build_boss_story()
 	_details = Control.new()
 	_details.position = Vector2(515, 128)
 	_details.size = Vector2(910, 520)
@@ -214,12 +225,17 @@ func _choose_tier(tier: int) -> void:
 ## 重建形象和说明；保持阶级选择器节点，切换时保留键盘焦点。
 func _render_detail() -> void:
 	_clear(_details)
+	_boss_story.visible = _kind == "boss" and _selected != 0
+	_directory_scroll.size.y = 150 if _kind == "boss" else 462
 	for type_id: int in _tiles: # 更新头像卡选中状态。
 		_tiles[type_id].set_pressed_no_signal(type_id == _selected)
 	_tier_rail.visible = _selected != 0 and _kind != "boss"
 	if _selected == 0:
 		return
 	if _kind == "boss":
+		_story_title.text = "%s · 轶事" % BossData.title_for(_selected)
+		_story_body.text = str(BossData.STORIES.get(_selected, ""))
+		_story_scroll.scroll_vertical = 0
 		var boss_detail := BossDetail.new() # 独立页面占用原详情和五阶栏的完整高度。
 		boss_detail.type_id = _selected
 		_details.add_child(boss_detail)
@@ -246,6 +262,23 @@ func _render_detail() -> void:
 		Art.label(holder, "无", Vector2(140, 151), Vector2(45, 56), 24)
 	Art.panel(_details, "panels/outer_frame_ninepatch.png", Vector2(17, 90), Vector2(354, 413), 40)
 	_render_sections(Data.detail(_kind, _selected, _tier))
+
+## 利用 Boss 目录下的留白承载故事；普通植物与僵尸目录仍使用完整滚动高度。
+func _build_boss_story() -> void:
+	_boss_story = Control.new()
+	_boss_story.position = Vector2(61, 429)
+	_boss_story.size = Vector2(391, 288)
+	_canvas.add_child(_boss_story)
+	BossSkin.card(_boss_story, Rect2(0, 0, 391, 288), Color(1, 0.96, 0.85, 0.4))
+	_story_title = BossSkin.label(_boss_story, "", Rect2(17, 14, 355, 32), 24, BossSkin.MUTED, false)
+	_story_scroll = ScrollContainer.new()
+	_story_scroll.position = Vector2(18, 58)
+	_story_scroll.size = Vector2(355, 213)
+	_story_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_boss_story.add_child(_story_scroll)
+	_story_body = BossSkin.label(_story_scroll, "", Rect2(), 21)
+	_story_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_story_body.add_theme_constant_override("line_spacing", 7)
 
 ## 用 [param asset] 的普通、悬停和选中素材构造 [param parent] 下的按钮，显示 [param title] 并连接 [param action]。
 func _selection_button(parent: Control, title: String, asset: String, action: Callable) -> Button:
