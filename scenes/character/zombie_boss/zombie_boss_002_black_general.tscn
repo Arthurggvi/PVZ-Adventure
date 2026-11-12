@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/character/zombie_boss/black_general_visual.tscn" id="visual"]
 [ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/z_b_002_black_general.gd" id="boss"]
 [ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/black_general_animation_component.gd" id="anim"]
-[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/parts/armor/helmet.png" id="portrait"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/portrait.png" id="portrait"]
 
 [sub_resource type="CapsuleShape2D" id="boss_hurt"]
 radius = 41.25

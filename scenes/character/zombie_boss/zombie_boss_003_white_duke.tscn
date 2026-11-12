@@ -3,7 +3,7 @@
 [ext_resource type="PackedScene" path="res://scenes/character/zombie_boss/white_duke_visual.tscn" id="visual"]
 [ext_resource type="Script" path="res://scripts/character/zombie_boss/white_duke/z_b_003_white_duke.gd" id="boss"]
 [ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_player.gd" id="anim"]
-[ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/portrait_temp.png" id="portrait"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/portrait.png" id="portrait"]
 
 [sub_resource type="CapsuleShape2D" id="boss_hurt"]
 radius = 28.0
