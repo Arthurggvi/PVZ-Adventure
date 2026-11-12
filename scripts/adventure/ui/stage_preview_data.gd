@@ -6,6 +6,8 @@ extends RefCounted
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 ## 配方掉落要叠植物头像，物种与合成面板读取同一份定义。
 const Recipes = preload("res://scripts/adventure/research/research_recipe_catalog.gd")
+## Boss 名称和头像沿用图鉴从战斗场景读取的资料。
+const BossData = preload("res://scripts/adventure/ui/boss_almanac_data.gd")
 
 ## 两种可见状态：普通未通关（隐藏敌情）、可展示敌情；未解锁关卡不进入预览。
 const STATE_SEALED := "sealed"
@@ -90,16 +92,20 @@ static func _enemies(phase: StagePhaseDefinition) -> Array[Dictionary]:
 		})
 	return rows
 
-## 返回 [param phase] 的 Boss 行，登场时机取自遭遇配置，击败掉落取自该遭遇的事件。
+## 返回 [param phase] 的 Boss 行，身份取自 Boss 图鉴，登场时机与掉落取自遭遇和事件配置。
 static func _bosses(phase: StagePhaseDefinition) -> Array[Dictionary]:
-	var rows: Array[Dictionary] = []
-	for encounter: BossEncounterDefinition in phase.boss_encounters:
+	var rows: Array[Dictionary] = [] # 按阶段遭遇顺序输出可展示的 Boss。
+	for encounter: BossEncounterDefinition in phase.boss_encounters: # 各遭遇独立显示时机与奖励。
 		if encounter == null or encounter.boss_type == CharacterRegistry.ZombieBossType.Null:
 			continue
+		var boss_type: int = int(encounter.boss_type) # 地图行、图鉴和战斗共用的编号。
+		var profile: Dictionary = BossData.profile(boss_type) # 独立图鉴尚未收录的 Boss 返回空字典。
+		var title: String = str(profile.get("title", "")) # 优先采用实战界面使用的名称。
 		rows.append({
 			"card_type": ResourceCardReference.CardType.ZombieBoss,
-			"type": int(encounter.boss_type),
-			"title": _boss_name(int(encounter.boss_type)),
+			"type": boss_type,
+			"title": title if not title.is_empty() else _boss_name(boss_type),
+			"portrait": profile.get("portrait"),
 			"timing": _timing_text(encounter),
 			"drops": _boss_drops(phase.events, encounter.encounter_id),
 		})
@@ -188,7 +194,7 @@ static func _zombie_name(zombie_type: int) -> String:
 	var entry: Dictionary = Global.global_read_data.data_almanac.get("Zombie", {}).get(key, {})
 	return str(entry.get("名字", "僵尸 #%d" % zombie_type))
 
-## 僵王中文名同样来自图鉴，缺少条目时退回编号。
+## 从旧版图鉴查找 [param boss_type] 的名称，供独立 Boss 图鉴尚未收录的角色使用。
 static func _boss_name(boss_type: int) -> String:
 	if Global.character_registry == null or Global.global_read_data == null:
 		return "僵王 #%d" % boss_type

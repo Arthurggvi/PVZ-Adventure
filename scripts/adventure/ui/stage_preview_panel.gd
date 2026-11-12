@@ -310,27 +310,38 @@ func _drop_tile(drop: Dictionary) -> Control:
 		Art.count_badge(cell, "×%d" % count, cell.custom_minimum_size, Color("fff4d6"), 14)
 	return cell
 
-## 图鉴窗口 + 静态缩略图；未注册美术时保留空窗口，不中断整块内容。
+## 在 [param parent] 的 [param pos] 绘制 [param entry] 的头像，依次使用专用预览、图鉴头像和卡牌模板。
 func _portrait(parent: Control, pos: Vector2, entry: Dictionary) -> void:
-	var holder := Control.new()
+	var holder := Control.new() # 裁剪超出图鉴窗口的美术。
 	holder.position = pos
 	holder.size = Vector2(ENEMY_TILE, ENEMY_TILE)
 	holder.clip_contents = true
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(holder)
 	Art.image(holder, ALMANAC_WINDOW, Vector2.ZERO, holder.size)
-	var boss: bool = int(entry.get("card_type", 0)) == ResourceCardReference.CardType.ZombieBoss
-	var role: int = int(entry.get("type", 0))
+	var boss: bool = int(entry.get("card_type", 0)) == ResourceCardReference.CardType.ZombieBoss # 决定卡牌类别与缩放。
+	var role: int = int(entry.get("type", 0)) # 物种在当前类别中的稳定编号。
 	if role <= 0:
 		return
 	if boss and role == CharacterRegistry.ZombieBossType.ZB002BlackGeneral:
 		_black_general_portrait(holder)
 		return
-	var reference := ResourceCardReference.create(
+	var texture := entry.get("portrait") as Texture2D # Boss 图鉴提供的实战头像，可独立于卡牌存在。
+	if texture != null:
+		var portrait := TextureRect.new() # 在边框内等比居中显示头像。
+		portrait.texture = texture
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_child(portrait)
+		portrait.position = Vector2(4, 4)
+		portrait.size = holder.size - Vector2(8, 8)
+		return
+	var reference := ResourceCardReference.create( # 兼容仅提供静态卡牌的角色。
 		ResourceCardReference.CardType.ZombieBoss if boss else ResourceCardReference.CardType.Zombie, role)
 	if AllCards.get_template(reference) == null: # 未注册卡牌模板的物种不打印错误，只留空窗口。
 		return
-	var preview: Node2D = AllCards.create_static_preview(reference)
+	var preview: Node2D = AllCards.create_static_preview(reference) # 卡牌的独立静态副本。
 	if preview == null:
 		return
 	holder.add_child(preview)
