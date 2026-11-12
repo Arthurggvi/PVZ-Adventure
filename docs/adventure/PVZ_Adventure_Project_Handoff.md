@@ -7,7 +7,7 @@
 - **工程与引擎**：`C:\Dev\PvZ\PVZ-Adventure`（Git `develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时优先远程只读审计，获授权后直接施工，避免让用户手工搬运文件。
 - **本交接文档唯一原件**：`C:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。Git 跟踪入口 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 是**同一 NTFS 硬链接**，不应独立编辑/替换。改动需原位写入，并用 `fsutil hardlink list` 验证仍为同一文件。
 - **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `C:\Dev\PvZ\_review\<module>` 用于临时审查；`C:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。
-- **主菜单新美术制作入口**：`docs/adventure/main_menu_art_pipeline.md`（调参表、技术贴图约定、可复现命令）；当前仅研究室局部样板已通过，母图/UI 占位与样板保存在 `C:\Dev\Tools\ArtControl\runs`。正式菜单尚未替换，详见 §5.1。
+- **主菜单新美术制作入口**：`docs/adventure/main_menu_art_pipeline.md`（调参表、技术贴图约定、可复现命令）；研究室基线已通过，全景静态时段预览已完成待审，制作数据保存在 `C:\Dev\Tools\ArtControl\runs`。正式菜单尚未替换，详见 §5.1。
 - **施工顺序**：检查 Git 和连接 → 读本文及权威代码/资源 → 复现并定位根因 → 设计通用接口与状态所有权 → 直接重构旧实现 → Godot 导入/解析检查 → 按 AGENTS.md 在明确获授权时运行测试/实机验收 → 必要时 Catbox 手机验收 → 仅暂存本轮文件并提交。
 - **仓库纪律**：先 `git status --short`、`git log -1`，保护并行工作区；禁止未授权的 `git reset`、`git clean`、`git add .` 和 `git push`。提交前 `git diff --cached --check` 并逐项核对暂存清单。被 `.gitignore` 忽略的新美术资源，必要时定向 `git add -f`。
 - **架构原则**：一条权威数据与状态链；配置描述差异，组件实现机制。禁止针对某一关/植物/僵尸追加并行实现、补丁式坐标修正、冗余管理器或把重复接线留给后续开发者。
@@ -90,16 +90,15 @@
 - **僵尸等阶**：`scripts/adventure/adventure_zombie_tier_catalog.gd` → binding/traits/species installer；美术 `assets/adventure/zombies/tier_art_map.json`。固定格挡、二类防具、额外护甲、技能/抗性需独立算，不能只看总 HP；平衡基于整套植物/僵尸阵容与实战消耗（五阶主要对标十星植物），不要做单卡云比较。
 - **墓碑/Boss**：`StagePhaseDefinition.gravestone_rules` / `AdventureGravestoneDirector` / TombStoneManager，墓碑的刷新/复生必须使用本格实际生成点；常规旗帜刷怪和特定 Boss 复生的规则分别配置。Boss 统一血条/阶段状态，经 `ZB000Base`、ZombieManager、SoundManager 管线；美术封口不等于行为树和实战验收完成。黑将军实体 `scenes/character/zombie_boss/zombie_boss_002_black_general.tscn`，不要把旧策划数值当作工程当前实际配置。
 
-## 5.1｜主菜单母图、灰度控制与法线：制作管线（已通过局部样板）
+## 5.1｜主菜单灰度、法线与全景时段：制作管线
 
-- **详细维护入口**：[主菜单美术管线](main_menu_art_pipeline.md)。参数修改位置、重建依赖、完整复现命令、XCF 原生蒙版约定与交付验证集中维护于该文档，不在多个地方复制数值。
-- **来源与目录**：`C:\Dev\Tools\ArtControl` 为原生 GIMP/Python/Godot 入口；`runs/main-menu-master-stage2-20261112` 保留母图与 UI 工作副本；`runs/main-menu-stage3-lab-20261112` 为已批准研究室样板。母图 1672×941，SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`；误生成的日/暮/夜变体不得进入管线。
-- **权威计算链**：母图 + `annotations.json` → `build_maps.py` → 工作底图/灰度/法线 → `presets.json` + `relight.gdshader` → `capture_lab.gd` 实际 GPU 截图 → `build_previews.py`；`build_lab_xcf.py` 保存/重开 `MainMenu_Lab_Lighting_Working_v02.xcf`。XCF 截图组只作参考，不是实时参数源。
-- **调整节点**：物体边界/表面朝向/受光权重改 annotations；时段、光向、环境色、窗灯/溢光强度改 presets；羽化、基础修整、光斑位置等部分系数仍在 build_maps，灯色在 shader。全景扩展先配置化这些样板常量，不复制每栋建筑的实现。
-- **控制图边界**：九张灰度图用于作用范围、结构强度、环境受光、窗灯、溢光、基础修整、地面、植被及原投影修整，不能称为九层高度或九个独立运行时节点。法线来自明确大面朝向/简化曲面，不由原图明度猜测；只承担当前自定义 shader 的局部受光。
-- **数据保护与复现**：原图层锁定；先复制输入/脚本到新调整目录，保留已批准基线。生成图由 annotations/脚本派生，重建会覆盖输出；手工 XCF 修改必须先另存并明确回写路径，目前没有自动反向同步。GIMP 原生蒙版数值使用 `Y u8`，避免 `Y' u8` 变换造成误差。
-- **验证状态**：已有样板日志记录八项验收、九张原生蒙版重开一致，以及五种状态下范围外 1,430,077 像素不变；这些是该版的历史证据，后续修改应按授权重新核验。局部光向 GIF 与法线开/关对照必须来自同一母图的真实引擎输出。
-- **尚未完成**：全景区域控制、完整昼夜过渡、移动部件补底/风水烟、本机时间绑定、正式菜单替换与交互验收。下一阶段先扩展全景静态受光与统一时态，保留 UI 独立可读；动态与实装随后进行。制作工具的仓外路径不能成为游戏运行时依赖。
+- **当前维护入口**：[全景静态受光与时段管线](main_menu_fullscene_pipeline.md)。已认可的研究室基线仍按 [局部样板管线](main_menu_art_pipeline.md) 复现；不要覆盖历史基线。
+- **权威制作目录**：`C:\Dev\Tools\ArtControl\runs\main-menu-stage4-fullscene-20261112`。唯一母图仍为 1672×941，SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`；未重新生图，画中对象未位移。S2 的布局、S3 的研究室样板保留。
+- **统一配置链**：`scene_config.json` 保存范围、法线、窗灯、羽化、筛选与修整；`time_profile.json` 保存全景关键时段及光色。共享 `build_scene_maps.py` → 贴图 → `time_profile.gd` / `scene_relight.gdshader` → `capture_scene.gd` 实际 GPU 输出 → `assemble_previews.py`，没有按建筑复制脚本。
+- **分层源与所有权**：`MainMenu_FullScene_Lighting_v03.xcf` 包含锁定母图、派生工作底图、九张灰度/原生蒙版、区域与法线、GPU 参考层和独立 UI 组。XCF 手工编辑不会自动回写 JSON；重建前先另存。源数据与截图参考不得混淆，原生蒙版继续按 `Y u8` 数值处理。
+- **本轮完成范围**：完整全景白天/黄昏/夜晚、48 个实际参数过渡帧、法线开/关、窗灯开/关、独立 UI 合成；46 个大面/简化曲面与 28 个窗灯范围由同一配置驱动。全景静态预览已完成，仍待用户确认，不等于正式菜单实装。
+- **实际核对**：原图哈希与 S3 的 28 个基线文件不变；关闭处理时 GPU 输出与母图一致；UI 的 117,819 个全不透明像素在日/夜一致；XCF 重开后原图和九张原生蒙版一致。依工程约定未新增或运行测试套件，不能写成游戏测试通过。证据在 `delivery_checks.json`、`workfile_report.json` 与 `render_report.json`。
+- **效果边界与下一阶段**：当前是手绘大面近似受光，原画投影只做局部可撤销整理；没有真实太阳几何投影、物体移动、水/风/烟动态、本机时钟读取或正式菜单替换。静态观感确认后，再做必要移动部件/补底与环境动态，最后绑定时间和接入交互。仓外制作路径不能成为游戏运行依赖。
 
 ## 6｜验收与交接收口
 
