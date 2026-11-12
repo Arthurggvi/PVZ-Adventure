@@ -169,3 +169,7 @@ func _dave_left() -> void:
 	_dialogue_root = null
 	_conversation = null
 	_shown = ""
+
+## 教学仍允许其真实工具栏目标，但背景场景入口统一停止响应。
+func blocks_scene_entries() -> bool:
+	return visible and ((is_instance_valid(_dialogue_root) and _dialogue_root.visible) or (is_instance_valid(_spotlight) and _spotlight.visible))

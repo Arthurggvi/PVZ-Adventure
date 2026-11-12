@@ -1,10 +1,8 @@
 ## 工具栏宿主与统一模态窗口管理；业务状态始终来自当前玩家档案。
-extends CanvasLayer
+extends "res://scripts/adventure/ui/toolbar_entry_host.gd"
 
 ## 工具栏纯表现及按钮交互。
 const View = preload("res://scripts/adventure/ui/toolbar_view.gd")
-## 功能元数据与地图入口条件。
-const Features = preload("res://scripts/adventure/ui/toolbar_features.gd")
 ## 普通背包窗口。
 const Inventory = preload("res://scripts/adventure/ui/inventory_window.gd")
 ## 研究室场景外壳。
@@ -27,20 +25,8 @@ var _bound_state: AdventureState
 const MapNavigation = preload("res://scripts/adventure/ui/map_navigation.gd")
 ## 只有显式加入该组的场景显示工具栏。
 const HOST_GROUP := &"adventure_toolbar_surface"
-## 常驻工具栏视图。
-var _view: AdventureToolbarView
-## 功能 ID 到解锁判断和打开动作。
-var _hooks: Dictionary = {}
-## 当前宿主是否允许展示工具栏。
-var _host_allowed := false
-## 暂停、导航或宿主阻塞后的实际交互状态。
-var _interactive := false
 ## 当前场景身份，用于切场时释放表现引用。
 var _host_scene: Node
-## 当前唯一模态窗口，所有功能共享互斥与切场清理。
-var _modal: Control
-## 当前模态所属功能，决定再次点击是否关闭。
-var _modal_feature: String = ""
 ## 导航控制节点，不持有玩家资产。
 var _navigation: Node
 
@@ -58,6 +44,7 @@ func _ready() -> void:
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Global.user_manager.signal_users_update.connect(_refresh)
 	Global.quests_changed.connect(_refresh)
+	register_feature("map", Features.can_open_map, Callable(self,"_open_map"))
 	register_feature("inventory", Callable(self, "_can_open_inventory"), Callable(self, "_open_inventory"))
 	register_feature("research", Callable(self, "can_open_research"), Callable(self, "_open_research"))
 	register_feature("quests", Callable(self, "_can_open_quests"), Callable(self, "_open_quests"))
@@ -116,6 +103,10 @@ func _apply_host_scene(scene: Node) -> void:
 
 ## Same navigation entry for the menu ship and any map toolbar.
 func open_map_navigation() -> bool:
+	return request_feature("map")
+
+## 门面校验后的既有地图导航动作。
+func _open_map() -> bool:
 	if not _host_allowed or not is_instance_valid(_host_scene) or is_instance_valid(_modal):
 		return false
 	return _navigation.open_from(_host_scene)
@@ -139,8 +130,7 @@ func can_open_research() -> bool:
 
 ## 教学和普通按钮使用同一研究室入口，不绕过宿主与模态校验。
 func open_research() -> void:
-	if _host_allowed and _interactive and can_open_research():
-		_open_research()
+	request_feature("research")
 
 ## 研究室窗口的构造由此唯一指定。
 func _open_research() -> void:
@@ -170,54 +160,10 @@ func _can_open_settings() -> bool:
 func toggle_settings() -> void:
 	_toggle_modal("settings", Settings)
 
-## 查询 [param feature_id] 的当前窗口；返回 null 表示未打开，不暴露额外生命周期状态。
-func modal_for(feature_id: String) -> Control:
-	return _modal if is_instance_valid(_modal) and _modal_feature == feature_id else null
-
-## [param feature_id] 同功能再次点击关闭；其他模态存在时不抢占。
-## [param screen] 必须提供 closed 信号和 request_close 方法；当前内置窗口遵守同一契约。
-func _toggle_modal(feature_id: String, screen: Script) -> void:
-	if not _host_allowed or not _interactive:
-		return
-	if is_instance_valid(_modal):
-		if _modal_feature == feature_id:
-			_modal.request_close()
-		return
-	var hook: Dictionary = _hooks.get(feature_id, {}) # 打开前重验解锁条件，不能相信上帧图标。
-	if hook.is_empty() or hook.unlock.call() != true:
-		return
-	var window: Control = screen.new() # 当前局部身份被关闭回调捕获，避免旧窗口清空新窗口。
-	_modal = window
-	_modal_feature = feature_id
-	add_child(window)
-	move_child(_view, get_child_count() - 1)
-	window.closed.connect(_release_modal.bind(window))
-	window.tree_exited.connect(_release_modal.bind(window))
-
-## 仅释放 [param window] 自身的引用；切场旧回调不能污染新宿主的窗口。
-func _release_modal(window: Control) -> void:
-	if _modal == window:
-		_modal = null
-		_modal_feature = ""
-
-## Additional modules register a real screen and its actual unlock predicate here.
-## Registration alone never changes a player's stored progress.
-func register_feature(feature_id: String, unlock_check: Callable, open_action: Callable) -> bool:
-	if feature_id == "map" \
-		or not Features.is_known(feature_id) or not unlock_check.is_valid() or not open_action.is_valid():
-		return false
-	_hooks[feature_id] = {"unlock": unlock_check, "open": open_action}
-	_refresh()
-	return true
-
-func unregister_feature(feature_id: String) -> void:
-	_hooks.erase(feature_id)
-	_refresh()
-
 func _refresh() -> void:
 	if not is_instance_valid(_view):
 		return
-	var enabled: Dictionary = {"map": Features.can_open_map()}
+	var enabled: Dictionary = {}
 	for id: String in _hooks:
 		var entry: Dictionary = _hooks[id]
 		if entry.unlock.is_valid() and entry.open.is_valid():
@@ -241,18 +187,6 @@ func close_quests_for_guide() -> void:
 	if quests != null:
 		quests.request_close()
 
-func _on_feature_pressed(feature_id: String) -> void:
-	if not _host_allowed or not _interactive:
-		return
-	# 所有功能共享同一互斥判断，新增角色不增加交叉分支。
-	if is_instance_valid(_modal) and feature_id != _modal_feature:
-		return
-	if feature_id == "map":
-		if Features.can_open_map():
-			open_map_navigation()
-		return
-	if not _hooks.has(feature_id):
-		return
-	var entry: Dictionary = _hooks[feature_id]
-	if entry.unlock.is_valid() and entry.unlock.call() == true and entry.open.is_valid():
-		entry.open.call()
+## 教学遮罩不属于普通模态窗口，但不能透传到背景建筑。
+func scene_entries_blocked() -> bool:
+	return super.scene_entries_blocked() or (is_instance_valid(_onboarding) and _onboarding.blocks_scene_entries())

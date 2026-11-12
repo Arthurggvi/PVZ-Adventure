@@ -49,11 +49,22 @@ def build(root: Path) -> None:
     ui=group(image,'50_UI_OCCUPANCY_独立界面占位',False)
     for filename in ['layer_profile_proposed.png','layer_console_proposed.png','layer_toolbar_expanded.png']:
         load(image,root/'ui'/filename,filename,ui)
+    if (root/'config/entries.json').is_file():
+        definitions=json.loads((root/'config/entries.json').read_text(encoding='utf-8'))
+        entry_group=group(image,'65_ENTRY_VISIBLE_MASKS_建筑可见高亮_非点击边界',False)
+        for definition in definitions['entries']:
+            name='entry_'+definition['id']
+            layer=load(image,root/'entry_assets'/(definition['id']+'_alpha.png'),name,entry_group)
+            values=data(layer,"Y' u8");mask=layer.create_mask(Gimp.AddMaskType.BLACK);layer.add_mask(mask)
+            mask.get_buffer().set(rect,'Y u8',values);layer.set_apply_mask(False)
+            hashes[name]=hashlib.sha256(values).hexdigest()
+        hit_group=group(image,'66_ENTRY_HIT_REVIEW_稳定命中区_只读审阅',False)
+        load(image,root/'previews/entry_hit_review.png','稳定命中轮廓_修改config_entries而非此图',hit_group)
     destination=root/manifest['workfile']
     assert Gimp.file_save(Gimp.RunMode.NONINTERACTIVE,image,file(destination),None)
     image.delete();reopened=Gimp.file_load(Gimp.RunMode.NONINTERACTIVE,file(destination));assert reopened is not None
     top=reopened.get_layers();orig=next(l for l in top if l.get_name().startswith('00_'));controls=next(l for l in top if l.get_name().startswith('30_'))
-    check_groups=[node for node in top if node.get_name().startswith(('30_','31_'))]
+    check_groups=[node for node in top if node.get_name().startswith(('30_','31_','65_'))]
     checks={layer.get_name():hashlib.sha256(data(layer.get_mask(),'Y u8')).hexdigest()==hashes[layer.get_name()] for node in check_groups for layer in node.get_children()}
     report={'source_pixels_unchanged':hashlib.sha256(data(orig)).hexdigest()==original_hash,'source_locked':orig.get_lock_content() and orig.get_lock_position(),
       'mask_checks':checks,'file_bytes':destination.stat().st_size,'canvas':size,

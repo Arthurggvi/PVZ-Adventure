@@ -7,7 +7,7 @@
 - **工程与引擎**：`C:\Dev\PvZ\PVZ-Adventure`（Git `develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时优先远程只读审计，获授权后直接施工，避免让用户手工搬运文件。
 - **本交接文档唯一原件**：`C:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。Git 跟踪入口 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 是**同一 NTFS 硬链接**，不应独立编辑/替换。改动需原位写入，并用 `fsutil hardlink list` 验证仍为同一文件。
 - **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `C:\Dev\PvZ\_review\<module>` 用于临时审查；`C:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。
-- **主菜单新美术制作入口**：`tools/art_bake/main_menu/menu.py` 与同目录README；当前S8统一风场见 `docs/adventure/main_menu_wind_pipeline.md`。S7B港口已通过，S8预览待审；正式菜单未替换。
+- **主菜单新美术制作入口**：`tools/art_bake/main_menu/menu.py` 与同目录README；当前9A建筑悬停/功能入口见 `docs/adventure/main_menu_entries_pipeline.md`。S8已通过，9A候选待审；正式启动菜单尚未替换。
 - **施工顺序**：检查 Git 和连接 → 读本文及权威代码/资源 → 复现并定位根因 → 设计通用接口与状态所有权 → 直接重构旧实现 → Godot 导入/解析检查 → 按 AGENTS.md 在明确获授权时运行测试/实机验收 → 必要时 Catbox 手机验收 → 仅暂存本轮文件并提交。
 - **仓库纪律**：先 `git status --short`、`git log -1`，保护并行工作区；禁止未授权的 `git reset`、`git clean`、`git add .` 和 `git push`。提交前 `git diff --cached --check` 并逐项核对暂存清单。被 `.gitignore` 忽略的新美术资源，必要时定向 `git add -f`。
 - **架构原则**：一条权威数据与状态链；配置描述差异，组件实现机制。禁止针对某一关/植物/僵尸追加并行实现、补丁式坐标修正、冗余管理器或把重复接线留给后续开发者。
@@ -90,16 +90,17 @@
 - **僵尸等阶**：`scripts/adventure/adventure_zombie_tier_catalog.gd` → binding/traits/species installer；美术 `assets/adventure/zombies/tier_art_map.json`。固定格挡、二类防具、额外护甲、技能/抗性需独立算，不能只看总 HP；平衡基于整套植物/僵尸阵容与实战消耗（五阶主要对标十星植物），不要做单卡云比较。
 - **墓碑/Boss**：`StagePhaseDefinition.gravestone_rules` / `AdventureGravestoneDirector` / TombStoneManager，墓碑的刷新/复生必须使用本格实际生成点；常规旗帜刷怪和特定 Boss 复生的规则分别配置。Boss 统一血条/阶段状态，经 `ZB000Base`、ZombieManager、SoundManager 管线；美术封口不等于行为树和实战验收完成。黑将军实体 `scenes/character/zombie_boss/zombie_boss_002_black_general.tscn`，不要把旧策划数值当作工程当前实际配置。
 
-## 5.1｜主菜单美术：统一风场 S8（预览待审）
+## 5.1｜主菜单：建筑悬停与功能入口 9A（候选待审）
 
-- **当前入口**：`tools/art_bake/main_menu/menu.py` 与同目录README；[统一风场交接](main_menu_wind_pipeline.md)为当前维护页。[S7B港口](main_menu_harbor_pipeline.md)已获用户通过，保留为动态基线；旧S7仍为退回版本。
-- **当前资产目录**：`C:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112`。唯一母图1672×941，SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。未生图、未扩景，S7B资产/光照/幅度保持原值。
-- **配置与封装**：wind.json管统一风向/强度/阵风、两树冠/棚/旗的幅度相位和开关；wind_layout.json管区域、通道选择与固定端。wind_assets/cloth_matte只负责新增资产；wind_field.gdshaderinc是唯一风场函数；wind_layer把同一显式秒数传给两个材质。普通风动调参不重建原灰度、法线或港口。
-- **合成关系**：同一实时受光→陆地树冠/棚→既有港口与船局部旗帜→独立UI。树冠只有内部叶片扰动，外轮廓/树干/屋顶固定；棚上边和侧支点固定；旗帜先局部变形再继承船体变换，无双重位移。没有新增烟/叶粒子/鸟或真实布料物理。
-- **分层边缘**：布料使用颜色/trimap/封闭轮廓与预乘浮点透明层；原黑描边归活动布面。棚后只补有限边界窄带，沿原窗结构延拓避免窗框叉色。船旗与无旗船在过滤前分配预乘像素，旧船素材不改。
-- **本轮交付核对**：昼夜各144个实际GPU帧、6秒24FPS；各8相位关闭新增风动后与已通过S7B一致，固定端及作用域外像素差值0，循环端点差值0；20个S7B记录文件未变。XCF重开保留原图锁定及11张原生蒙版。没有新增/运行测试套件，不宣称游戏测试通过。
-- **原生与复现**：`MainMenu_Wind_Working_v08.xcf`包含原图保护、既有港口、新风控制、布料、GPU参考和UI；编辑前关参考组。JSON/浮点资产是计算源，XCF不会自动反向同步，runtime只作执行副本。单入口all可重建与导出。
-- **尚未完成**：S8观感待用户验收；完整清晨/昼夜闭环与本机时钟绑定、正式菜单替换、真实建筑入口/悬停锁定及最终UI整合未实施。未启动生产游戏或读写存档，制作路径不得成为生产运行依赖。
+- **当前入口**：`tools/art_bake/main_menu/menu.py entries`，详见[建筑入口交接](main_menu_entries_pipeline.md)。S8风动已获用户通过，保留为视觉基线；正式启动仍是01StartMenuV8，9B完整日周期/本机时间/最终整合未实施。
+- **当前资产目录**：`C:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112`。母图1672×941，SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。原图、S8港口/风/光参数未改，无生图。
+- **业务唯一入口**：原AdventureToolbar继承toolbar_entry_host，`feature_status/request_feature/scene_entries_blocked`共用原_hooks、解锁条件和模态生命周期；建筑与工具栏不建第二套窗口/存档。地图、图鉴、研究室真实打开；家/商店保持未开放，皮卡不新增功能。
+- **输入与表现分离**：`building_entry_hit/layer.gd`使用稳定原画命中、同目标按下释放、原生GUI遮挡及键盘焦点；hover不打开，拖出取消，鼠标释放时重新核对顶层控件防止捕获穿透。普通模态、导航和教学遮罩都阻断背景入口；只读教学阻塞不妨碍原教学工具栏目标。
+- **配置与动态对齐**：`config/entries.json`分开定义hit/exclude与可见shape，提供feature、名称锚点和过渡/颜色参数；entry_assets生成R可见/G内侧边蒙版。entry_highlight处于同一受光后、已有风/港口变换前，高亮随布料/船体同步且不独立重算运动；高亮关闭与S8同相位逐像素一致。
+- **真实预览与隔离**：native_entries建立独立manifest和`PVZ-Menu9A-Isolated-20261112`用户目录，复用真实游戏代码/资源；临时演示档案显示解锁/锁定。entry_record发送原生GUI事件并截图，不直接调用建筑业务；三类窗口与关闭返回均为实际界面。原用户存档未复制或修改，演示目录会产生自己的数据。头像/功能台仍为占位，不冒充最终UI。
+- **本轮核对**：完整原生输入录像、锁定/未开放拒绝、弹窗/界面阻挡、拖出取消、键盘Enter与两个窗口比例；未高亮的8个昼夜相位与S8像素一致，40个已记录基线文件未变；XCF重开保留原图锁定和16张蒙版。未新增/运行测试套件，不宣称合成事务/关卡实机或全回归通过。证据在reports/entry_record、entry_delivery、final_verification。
+- **复现/原生源**：`menu.py entries`重建并录制，`entries-preview`只整理真实帧；原分层文件`MainMenu_Entries_Working_v09.xcf`保留既有部件及新蒙版/命中审阅层。runtime是执行副本，XCF不自动回写JSON。原生交互预览必须依赖完整游戏工程，不把native_project链接递归打包或作为生产运行路径。
+- **尚未完成**：9A最终观感待用户验收；完整全天闭环/本机时钟、正式主菜单替换、最终档案与功能台按钮、尚未开放建筑业务和生产性能核对仍属后续范围。新场景未变为生产启动入口。
 
 ## 6｜验收与交接收口
 

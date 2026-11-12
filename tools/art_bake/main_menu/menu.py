@@ -24,6 +24,8 @@ def build(work: Path, force: bool=False) -> None:
       ('harbor','harbor_assets',[work/'config/harbor_layout.json',work/'master_original.png',work/'ground_finished.png',work/'maps/water.png',code/'python/harbor_matte.py'],['assets'])]
     if (work/'config/wind_layout.json').is_file():
         plan.append(('wind','wind_assets',[work/'master_original.png',work/'config/wind_layout.json',work/'assets/boat_premult.rgba32f',code/'python/harbor_matte.py',code/'python/cloth_matte.py'],['wind_assets']))
+    if (work/'config/entries.json').is_file():
+        plan.append(('entries','entry_assets',[work/'config/entries.json',work/'master_original.png',work/'assets/boat_alpha.png',work/'assets/fixed_alpha.png'],['entry_assets']))
     record=[]
     for name,module,inputs,outputs in plan:
         source=code/'python'/f'{module}.py';key=fingerprint(inputs+[source])
@@ -57,7 +59,7 @@ def stage_runtime(work: Path) -> None:
 
 def main() -> None:
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action',choices=['build','render','preview','workfile','all'])
+    parser.add_argument('action',choices=['build','render','preview','workfile','all','entries','entries-preview'])
     parser.add_argument('--workspace',type=Path,required=True)
     parser.add_argument('--tools-config',type=Path,required=True)
     parser.add_argument('--force',action='store_true')
@@ -66,8 +68,10 @@ def main() -> None:
     manifest=json.loads((work/'config/pipeline.json').read_text(encoding='utf-8'))
     tools=json.loads(args.tools_config.read_text(encoding='utf-8-sig'))
     assert hashlib.sha256((work/'master_original.png').read_bytes()).hexdigest()==manifest['master_sha256'],'Mother image changed'
-    if args.action in ['build','render','all']:build(work,args.force)
+    if args.action in ['build','render','all','entries']:build(work,args.force)
     stage_runtime(work)
+    if args.action=='entries':importlib.import_module('python.native_entries').run(work,args.tools_config)
+    if args.action in ['entries','entries-preview']:importlib.import_module('python.entry_previews').build(work)
     if args.action in ['render','all']:
         launcher=args.tools_config.parent/'artctl.py'
         subprocess.run([tools['python'],str(launcher),'godot',str(work/'runtime/capture.gd'),'--run-dir',str(work)],check=True)

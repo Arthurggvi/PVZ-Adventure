@@ -1,5 +1,7 @@
 # S8｜统一风场下的树冠、船旗与遮阳棚
 
+> S8已获用户通过，作为后续[9A建筑交互](main_menu_entries_pipeline.md)的视觉基线，不能顺带重调。
+
 ## 先看预览
 - previews/day_wind_full.mp4、night_wind_full.mp4：完整昼夜场景，各6秒、24 FPS。
 - previews/day_wind_details.mp4、night_wind_details.mp4：两处树冠、遮阳棚与旗帜四格近景；没有放大运动幅度，只放大实际裁切。
@@ -73,7 +75,7 @@ python $entry all --workspace $work --tools-config $tools
 
 ## 验收依据与局限
 本轮核对：源图与已通过港口文件哈希、关闭新增风动的同相位对照、两种时段各8个关键相位、固定端与作用域外像素、循环端点、288个实际GPU帧、黑/灰/白底、XCF保存重开。最终记录见reports/delivery_checks.json、wind_assets.json、workfile.json和render.json。
-这些像素指标只能证明操作受控，不能替代对动态观感和边缘的人工审查。当前为待用户验收的动态候选，不提前宣称通过。
+这些像素指标只能证明操作受控，不能替代对动态观感和边缘的人工审查。S8已获用户通过，后续交互需保持关闭新增效果后的同相位基线一致。
 没有新增/运行测试套件，未启动生产游戏、未读写玩家存档；本机时间绑定、完整清晨到夜晚闭环、最终入口UI与交互仍未做。
 GIMP既有退出告警保留，输出保存/重开结果单独记录。没有给原画新增动态阴影、真实风力物理或三维布料；受光随原像素采样保持一致。
 

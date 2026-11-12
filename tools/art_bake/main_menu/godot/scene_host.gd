@@ -19,6 +19,8 @@ var motion: Dictionary
 var time_progress := 0.0
 ## 可选统一风场，只持有本宿主实例。
 var wind_controller: RefCounted
+## 可选入口视觉；没有入口配置时不增加视口。
+var entry_highlight: RefCounted
 
 ## [param path] 是本工作目录图片；不触发生产游戏资源导入。
 func texture_file(path: String) -> ImageTexture:
@@ -74,8 +76,10 @@ func configure(folder: String) -> void:
 		var value: Array = profile.reference[key] # 固定校准参数。
 		light_material.set_shader_parameter(key,Vector3(value[0],value[1],value[2]))
 	base.material = light_material
+	entry_highlight = load(folder.path_join("runtime/entry_highlight.gd")).new()
+	var entry_source: SubViewport = entry_highlight.configure(self,folder,lit_view) # 共用原动态变换，无额外近似运动。
 	wind_controller = load(folder.path_join("runtime/wind_layer.gd")).new()
-	var wind_view: SubViewport = wind_controller.configure(self,folder,lit_view) # 树/棚在船体变换之前处理。
+	var wind_view: SubViewport = wind_controller.configure(self,folder,entry_source) # 树/棚在船体变换之前处理。
 	output_view = make_view(size)
 	var composite := artwork(output_view,wind_view.get_texture()) # 读取真实实时受光结果。
 	var harbor_shader := Shader.new() # 只负责有界动态，不重复计算灯光。
@@ -141,3 +145,13 @@ func set_elapsed(seconds: float) -> void:
 func set_wind_enabled(enabled: bool) -> void:
 	if wind_controller != null:
 		wind_controller.set_enabled(enabled)
+
+## [param id] 指定入口；[param mode] 为可用状态；[param pressed] 只改变短按表现。
+func set_entry_hover(id: String, mode: String, pressed: bool=false) -> void:
+	if entry_highlight != null:
+		entry_highlight.set_target(id,mode,pressed)
+
+## [param delta] 独立推进交互过渡，不重置船或风的计时。
+func advance_entry_hover(delta: float) -> void:
+	if entry_highlight != null:
+		entry_highlight.advance(delta)
