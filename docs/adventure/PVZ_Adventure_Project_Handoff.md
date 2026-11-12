@@ -7,7 +7,7 @@
 - **工程与引擎**：`C:\Dev\PvZ\PVZ-Adventure`（Git `develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时优先远程只读审计，获授权后直接施工，避免让用户手工搬运文件。
 - **本交接文档唯一原件**：`C:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。Git 跟踪入口 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 是**同一 NTFS 硬链接**，不应独立编辑/替换。改动需原位写入，并用 `fsutil hardlink list` 验证仍为同一文件。
 - **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `C:\Dev\PvZ\_review\<module>` 用于临时审查；`C:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。
-- **主菜单新美术制作入口**：`docs/adventure/main_menu_attenuation_pipeline.md`（统一衰减、浮点光场与复现命令）；研究室与全景时段基线保留，地表基线保留，光衰减已统一重调待审，制作数据保存在 `C:\Dev\Tools\ArtControl\runs`。正式菜单尚未替换，详见 §5.1。
+- **主菜单新美术制作入口**：`tools/art_bake/main_menu/menu.py` 与同目录 README；当前港口动态见 `docs/adventure/main_menu_harbor_pipeline.md`。S6静态基线保留，必要拆层与动态预览已完成待审；正式菜单未替换。
 - **施工顺序**：检查 Git 和连接 → 读本文及权威代码/资源 → 复现并定位根因 → 设计通用接口与状态所有权 → 直接重构旧实现 → Godot 导入/解析检查 → 按 AGENTS.md 在明确获授权时运行测试/实机验收 → 必要时 Catbox 手机验收 → 仅暂存本轮文件并提交。
 - **仓库纪律**：先 `git status --short`、`git log -1`，保护并行工作区；禁止未授权的 `git reset`、`git clean`、`git add .` 和 `git push`。提交前 `git diff --cached --check` 并逐项核对暂存清单。被 `.gitignore` 忽略的新美术资源，必要时定向 `git add -f`。
 - **架构原则**：一条权威数据与状态链；配置描述差异，组件实现机制。禁止针对某一关/植物/僵尸追加并行实现、补丁式坐标修正、冗余管理器或把重复接线留给后续开发者。
@@ -90,15 +90,16 @@
 - **僵尸等阶**：`scripts/adventure/adventure_zombie_tier_catalog.gd` → binding/traits/species installer；美术 `assets/adventure/zombies/tier_art_map.json`。固定格挡、二类防具、额外护甲、技能/抗性需独立算，不能只看总 HP；平衡基于整套植物/僵尸阵容与实战消耗（五阶主要对标十星植物），不要做单卡云比较。
 - **墓碑/Boss**：`StagePhaseDefinition.gravestone_rules` / `AdventureGravestoneDirector` / TombStoneManager，墓碑的刷新/复生必须使用本格实际生成点；常规旗帜刷怪和特定 Boss 复生的规则分别配置。Boss 统一血条/阶段状态，经 `ZB000Base`、ZombieManager、SoundManager 管线；美术封口不等于行为树和实战验收完成。黑将军实体 `scenes/character/zombie_boss/zombie_boss_002_black_general.tscn`，不要把旧策划数值当作工程当前实际配置。
 
-## 5.1｜主菜单美术：统一光衰减重调（预览待审）
+## 5.1｜主菜单美术：可复用管线与港口动态（预览待审）
 
-- **当前维护入口**：[统一衰减管线](main_menu_attenuation_pipeline.md)。S5 地表与旧接收光仅作 [历史静态基线](main_menu_static_finish_pipeline.md)；S4/S3 基线保留，不覆盖已确认素材。
-- **当前制作目录**：`C:\Dev\Tools\ArtControl\runs\main-menu-stage6-attenuation-20261112`。母图 1672×941，SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。本轮不生图、不新增物件；地表、窗灯、光晕、时段及 shader 沿用 S5。
-- **统一模型**：`I/(d²+core²) × max(1-(d/range)^4,0)² × max(N·L,0)`。七个位置代理光源同时作用于既有墙面和公共可见地面，取消十二个独立光斑的 center/椭圆范围/门前裁切，以及高比例直射光保底。使用 Filament 同类平方反比与软范围截止，不新增三维或面光系统。
-- **调参与复现**：`attenuation_config.json` 管位置、强度、range、软核心、接收面；`build_attenuation.py` 统一重建；`capture_attenuation.gd` 使用原材质实际渲染；`assemble_previews.py` 整理对照。强度/颜色总控制继续用 time_profile，位置/范围修改需重建光场。禁止靠逐灯补丁或重画母图修衰减。
-- **精度与文件所有权**：运行权威为 `attenuation_maps/receivers.rgba32f`，小端 H×W×RGBA float32，四通道 home/library/shop/research；不截顶到 1，不剪掉弱光尾部。PNG 与 `MainMenu_Attenuation_v05.xcf` 内蒙版只是归一化查看代理，倍率见 attenuation_report，不能覆盖浮点权威源。XCF 内 GPU 图只作参考，无自动 JSON 反向同步。
-- **本轮核对**：关闭处理时原图一致；白天、仅窗灯及旧场重渲染分别与 S5 对应输出逐像素一致；25 个 S5 记录文件不变。浮点峰值约 1.0393，479 个大于 1 的值完整保留；新场范围外及117,819个不透明UI像素保持一致。原生文件重开后原图锁定与四张显示蒙版一致。未运行测试套件，不宣称游戏测试通过。
-- **边界**：仍是固定视角代理距离/大面法线，原画投影保留；没有物理准确三维重建、动态遮挡或全局照明。预览待用户审阅，未替换正式菜单，未加入船/水/风/烟或本机时间，未碰玩家存档。仓外制作路径不得成为生产运行依赖。
+- **权威源码/入口**：`tools/art_bake/main_menu/menu.py`，完整职责与调参表见同目录 README；[港口制作交接](main_menu_harbor_pipeline.md) 记录本轮交付。S6静态光照已认可，保留为[衰减基线](main_menu_attenuation_pipeline.md)，本轮没有重调。
+- **资产目录**：`C:\Dev\Tools\ArtControl\runs\main-menu-stage7-harbor-20261112`。母图1672×941，SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。源码在工程内版本管理，工作目录runtime只是派生执行副本，不能双向维护。
+- **统一构建职责**：base_maps（基础灰度/法线）、ground_emitters（地表/窗灯，旧十二光斑生成已删）、light_field（已认可RGBA32F衰减）、harbor_assets（部件/固定遮挡/补底映射）由menu.py按内容依赖调度。运行期只有scene_host实时受光、harbor材质有界动态、UI独立三层职责，不为各建筑重复实现。
+- **调参节点**：`config/motion.json`管船幅度/周期、水面与接触波纹；`time_profile.json`管统一时态；scene/finish/attenuation配置沿用原职责；`harbor_layout.json`管原像素边界、固定遮挡与补底。普通幅度/周期/灯色修改不重建灰度/法线；超出已核对运动包络要重新审查，不静默扩大。
+- **本轮动态**：微幅船体及索具、水面低幅流动/亮纹、有限接触波纹；固定码头/立柱/前栏绳回盖。船颜色、法线受光结果和窗灯取自同一实时受光视口，同步运动；没有独立日/夜船图。系缆端部由固定前景遮挡，无绳索物理；补底仅针对微幅露出的窄带，不等于完成整张无船海湾。
+- **原生文件与复现**：`MainMenu_Harbor_Working_v06.xcf`含锁定母图、必要部件、控制蒙版、GPU参考与UI。`menu.py all --workspace 工作目录 --tools-config ArtControl/config.json`可重建到预览/原生文件。XCF不自动回写JSON，runtime不作为权威源码；截图组不代表动态参数。
+- **核对记录**：重建后的地表/法线/窗灯/浮点场与S6逐字节一致；关闭动态的日/夜与S6逐像素一致；各144帧、6秒24FPS；固定码头及动态范围外差值0，循环端点最大通道差1/255。XCF重开保留母图锁定与4张蒙版，S6的25个源文件未变。未新增/运行测试套件，不能称完整游戏测试通过。
+- **尚未实施**：生产菜单替换、真实入口交互、其余风/布料/烟等动态、本机时间完整清晨/昼夜绑定、真实动态倒影。港口预览待用户验收；制作目录不能成为生产运行的绝对路径依赖。
 
 ## 6｜验收与交接收口
 

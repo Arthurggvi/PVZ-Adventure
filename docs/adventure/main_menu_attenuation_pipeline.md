@@ -1,5 +1,8 @@
 # 主菜单光衰减重调｜第 6 阶段
 
+> S6静态光照已认可并保留。本轮可复用入口和港口动态见[港口制作管线](main_menu_harbor_pipeline.md)；不要继续在历史目录上叠加新的活动部件实现。
+
+
 ## 手机预览
 - previews/night.jpg：重调后的完整夜景。
 - previews/night_before_after.jpg：上为上一版、下为当前版；相同母图、地表、环境色、窗灯与光晕。
