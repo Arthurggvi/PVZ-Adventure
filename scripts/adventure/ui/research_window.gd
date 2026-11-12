@@ -7,7 +7,7 @@ const Builder = preload("res://scripts/adventure/ui/research_panel_skin.gd")
 const Meta = preload("res://scripts/adventure/ui/research_ui_meta.gd")
 const View = preload("res://scripts/adventure/ui/research_panel_view.gd")
 const Service = preload("res://scripts/adventure/research/research_service.gd")
-## 研究槽位的临时选择状态及候选查询。
+## 研究槽位的选择状态及候选查询。
 const Picker = preload("res://scripts/adventure/ui/research_slot_picker.gd")
 ## 独立绘制操作结果，不把提示混在工作槽刷新逻辑中。
 const Feedback = preload("res://scripts/adventure/ui/research_feedback.gd")
@@ -18,8 +18,10 @@ var with_background := false
 ## 进出动画的共同根节点，由组合窗口在入树前设置。独立窗口默认使用自身。
 var transition_root: CanvasItem
 var ui: Dictionary = {}
-## 当前槽位选择随窗口销毁，不写入玩家状态。
-var _picker: Picker = Picker.new()
+## 每个页签各自维护工作槽和当前候选区的焦点。
+var _pickers: Dictionary[String, Picker] = {}
+## 当前页签的槽位选择，由玩家配置恢复。
+var _picker: Picker
 ## 左侧选择区当前显示的过滤结果。
 var _options: Array[Dictionary] = []
 var _preview: Dictionary = {}
@@ -47,6 +49,7 @@ func _ready() -> void:
 	if _is_current_profile():
 		_service = Service.new(_opened_state, Global.adventure_inventory,
 			Global.global_game_state, Global.save_service.save_now)
+	_select_mode(mode)
 	ui = Builder.build(self, with_background)
 	if Global.global_game_state != null:
 		Global.global_game_state.coin_value_changed.connect(_on_coin_value_changed, CONNECT_DEFERRED)
@@ -80,13 +83,26 @@ func _is_current_profile() -> bool:
 		and Global.global_game_state.adventure_state == _opened_state \
 		and Global.adventure_inventory != null
 
+## 切换到 [param value] 页签，并恢复该页各槽位的选择。
 func choose_mode(value: String) -> void:
 	if _closing or _busy or is_instance_valid(_confirmation) or not Meta.MODES.has(value) or value == mode:
 		return
-	mode = value
-	_picker.reset(mode)
+	_select_mode(value)
 	SoundManager.play_other_SFX(&"buttonclick")
 	_render()
+
+## 激活 [param value] 对应的选择状态，首次进入该页时从当前档案加载。
+func _select_mode(value: String) -> void:
+	mode = value
+	if not _pickers.has(mode):
+		var saved: Dictionary = Global.config_service.get_research_selection(mode) if _is_current_profile() else {} # 只读取当前有效玩家的选择。
+		_pickers[mode] = Picker.new(mode, saved)
+	_picker = _pickers[mode]
+
+## 记住当前页实际填入的槽位，供同一玩家下次打开研究室使用。
+func _remember_selection() -> void:
+	if _is_current_profile():
+		Global.config_service.remember_research_selection(mode, _picker.saved_selection(mode))
 
 ## 把选择区 [param index] 对应的候选填入当前工作槽。
 func choose_entry(index: int) -> void:
@@ -117,6 +133,7 @@ func choose_entry(index: int) -> void:
 	_picker.pick(mode, entry)
 	SoundManager.play_other_SFX(&"seedlift")
 	_render()
+	_remember_selection()
 
 ## 点击 [param slot]、[param index] 后刷新左侧候选，当前填入内容保留到玩家选中替代项。
 func focus_slot(slot: Picker.Slot, index: int) -> void:
@@ -125,25 +142,29 @@ func focus_slot(slot: Picker.Slot, index: int) -> void:
 	SoundManager.play_other_SFX(&"tap")
 	_render()
 
-## 右键清空 [param slot]、[param index] 的临时选择，只改变报价预览。
+## 右键清空 [param slot]、[param index] 的选择，并保存其他槽位的内容。
 func clear_slot(slot: Picker.Slot, index: int) -> void:
 	if not _can_select() or not _picker.focus(mode, slot, index):
 		return
 	_picker.clear_active()
 	SoundManager.play_other_SFX(&"tap2")
 	_render()
+	_remember_selection()
 
 ## 仅当前有效档案能交互，确认弹窗和退出动效期间锁定槽位。
 func _can_select() -> bool:
 	return not _closing and not _busy and not is_instance_valid(_confirmation) \
 		and _service != null and _is_current_profile()
 
+## 依据实时库存重绘当前页，并保留仍可用的工作槽选择。
 func _render() -> void:
 	if ui.is_empty():
 		return
 	var service: AdventureResearchService = _service if _is_current_profile() else null # 切档后不继续读取旧库存。
-	var primary: Array[Dictionary] = service.options(mode) if service != null else [] # 主卡列表包含所有已拥有植物卡。
-	_picker.ensure_primary(mode, primary)
+	var primary: Array[Dictionary] = [] # 当前页的主卡或配方候选。
+	if service != null:
+		primary = service.options(mode, _picker.key_for(Picker.Slot.RECIPE))
+		_picker.refresh_selection(mode, service, primary)
 	_preview = service.quote(mode, _picker.operation_choice(mode)) if service != null \
 		else {"ready": false, "message": "请先加载有效玩家档案。"}
 	_options = _picker.candidates(service, primary, _preview)
@@ -194,6 +215,7 @@ func _confirm_promotion(chosen: Dictionary) -> void:
 	dialog.z_index = _feedback.z_index + 1 # 模态遮罩覆盖仍在淡出的结果提示。
 	SoundManager.play_other_SFX(&"buttonclick")
 
+## 执行 [param operation_mode] 的 [param chosen] 快照，结算后按新库存刷新并保存槽位。
 func _execute_action(operation_mode: String, chosen: Dictionary) -> void:
 	if _busy or _closing:
 		return
@@ -202,7 +224,7 @@ func _execute_action(operation_mode: String, chosen: Dictionary) -> void:
 		return
 	_busy = true
 	ui.action.disabled = true
-	var result: Dictionary = _service.execute(operation_mode, chosen)
+	var result: Dictionary = _service.execute(operation_mode, chosen) # 资产和星级以事务提交结果为准。
 	var committed: bool = result.get("ok", false) # 事务完成不等于强化成功，强化可能正常结算失败。
 	var succeeded: bool = committed # 动效对应玩家看到的实际结果。
 	var detail: String = str(result.get("message", "操作失败。")) # 失败时展示服务给出的具体原因。
@@ -215,11 +237,10 @@ func _execute_action(operation_mode: String, chosen: Dictionary) -> void:
 		elif operation_mode == "upgrade":
 			succeeded = result.get("success", false)
 			detail = "主卡当前为 %d 星。" % int(result.get("stars", 0))
-			_picker.reset(operation_mode, str(chosen.get("uid", "")))
-		if operation_mode != "upgrade":
-			_picker.reset(operation_mode)
 	_busy = false
 	_render()
+	if committed:
+		_remember_selection()
 	_show_result(operation_mode, detail, succeeded)
 
 ## 教学预选 [param recipe_id]，仍由玩家点击真实按钮并通过原合成事务消耗材料。
@@ -229,8 +250,7 @@ func guide_recipe(recipe_id: String) -> Control:
 	if _service.inventory.get_item_count(recipe_id) < 1:
 		return null
 	if mode != "craft" or _picker.key_for(Picker.Slot.RECIPE) != recipe_id:
-		mode = "craft"
-		_picker.reset(mode)
+		_select_mode("craft")
 		_picker.pick(mode, {"id": recipe_id})
 		_render()
 	return ui.action

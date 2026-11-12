@@ -12,6 +12,8 @@ const Enhancement = preload("res://scripts/adventure/research/research_enhanceme
 var active_slot: Slot = Slot.RECIPE
 ## 当前耗材槽的固定位置，其他槽位使用零。
 var active_index: int = 0
+## 曾选中过主卡或配方时，库存变化不再触发默认选择。
+var _primary_chosen := false
 ## 选中的制作书 ID。
 var _recipe_id: String = ""
 ## 选中的独立主卡 UID。
@@ -27,44 +29,89 @@ var _growth_agent: String = ""
 ## 当前填入的转职书 ID。
 var _book_id: String = ""
 
-## 初始化固定槽数，使替换或清空某一槽时其他槽位保持原位。
-func _init() -> void:
+## 初始化 [param mode] 的固定槽位，并恢复 [param selection]。空字典表示首次使用该页。
+func _init(mode: String, selection: Dictionary) -> void:
 	_materials.resize(Enhancement.MAX_MATERIAL_CARDS)
 	_materials.fill("")
-
-## 切换 [param mode] 时重置界面。强化完成可用 [param retained_uid] 保留主卡，消耗槽重新选择。
-func reset(mode: String, retained_uid: String = "") -> void:
 	active_slot = Slot.RECIPE if mode == "craft" else Slot.MAIN_CARD
-	active_index = 0
-	_recipe_id = ""
-	_main_uid = retained_uid
+	_primary_chosen = not selection.is_empty()
+	_recipe_id = str(selection.get("recipe_id", ""))
+	_main_uid = str(selection.get("uid", ""))
+	var use_pot: Variant = selection.get("use_pot", false) # 只接受配置中的布尔值。
+	_use_pot = use_pot is bool and use_pot
+	_fertilizer = str(selection.get("fertilizer", ""))
+	_growth_agent = str(selection.get("growth_agent", ""))
+	_book_id = str(selection.get("book_id", ""))
+	var slots: Variant = selection.get("materials", []) # 保存的耗材数组包含空槽，恢复时保留位置。
+	if slots is Array:
+		for index: int in range(mini(slots.size(), _materials.size())): # 忽略超出当前槽数的旧配置。
+			if slots[index] is String:
+				_materials[index] = slots[index]
+
+## 返回 [param mode] 可写入玩家配置的选择副本，包括固定位置的空耗材槽。
+func saved_selection(mode: String) -> Dictionary:
+	var selection: Dictionary = operation_choice(mode) # 与操作共用稳定的配方、卡片和道具标识。
+	if mode == "upgrade":
+		selection["materials"] = _materials.duplicate()
+	return selection
+
+## 用 [param service] 的实时库存校正 [param mode] 的槽位。只在首次选择时从 [param primary] 取默认项。
+func refresh_selection(mode: String, service: AdventureResearchService, primary: Array[Dictionary]) -> void:
+	if not _primary_chosen:
+		for entry: Dictionary in primary: # 默认选择第一项满足主槽条件的配方或卡片。
+			if str(entry.get("selection_issue", "")).is_empty():
+				_set_primary(mode, str(entry.id if mode == "craft" else entry.uid))
+				break
+	if mode == "craft":
+		# 用完配方后仍保留预览，只有目录中已不存在的配方才失效。
+		if not _recipe_id.is_empty() and AdventureRecipeCatalog.definition(_recipe_id).is_empty():
+			_recipe_id = ""
+		return
+	var main: PlantCardInstance = service.state.cards.get(_main_uid) # 使用更新后的星级及转职阶段。
+	if main == null:
+		if _primary_chosen:
+			_set_primary(mode, "")
+		return
+	if mode == "promotion":
+		if not _book_id.is_empty():
+			var branches: Array[Dictionary] = AdventurePromotionCatalog.options(main) # 转职成功后只允许选择下一阶段的技能书。
+			if service.inventory.get_item_count(_book_id) == 0 \
+					or not branches.any(func(branch: Dictionary) -> bool: return branch.id == _book_id):
+				_book_id = ""
+		return
+	_refresh_upgrade(service, main)
+
+## 依据 [param service] 库存和 [param main] 当前星级，只清除强化中已经失效的槽位。
+func _refresh_upgrade(service: AdventureResearchService, main: PlantCardInstance) -> void:
+	for index: int in range(_materials.size()): # 按原槽位清理，保留其他槽位的位置和焦点。
+		var uid: String = _materials[index] # 耗材是独立实例，消耗后不可替换为同类卡。
+		if not uid.is_empty() and (_materials.find(uid) != index or not Enhancement.validate(
+				service.state, _main_uid, [uid], false, "").is_empty()):
+			_materials[index] = ""
+	var pot_required: int = Enhancement.protection_count(main.stars + 1) # 升降星后按新目标重算用量。
+	if _use_pot and (pot_required == 0 or service.inventory.get_item_count("seedling_pot") < pot_required):
+		_use_pot = false
+	if not _fertilizer.is_empty() and (not Enhancement.FERTILIZERS.has(_fertilizer) \
+			or service.inventory.get_item_count(_fertilizer) == 0):
+		_fertilizer = ""
+	if not _growth_agent.is_empty() and (not Enhancement.growth_agent_matches(main.stars, _growth_agent) \
+			or service.inventory.get_item_count(_growth_agent) == 0):
+		_growth_agent = ""
+
+## 更换 [param mode] 的主选择 [param key]，清除依赖旧主卡的耗材、保护和转职书。
+func _set_primary(mode: String, key: String) -> void:
+	_primary_chosen = true
+	if mode == "craft":
+		_recipe_id = key
+		return
+	_main_uid = key
 	_materials.fill("")
 	_use_pot = false
 	_fertilizer = ""
 	_growth_agent = ""
 	_book_id = ""
-
-## 复用 [param mode] 的默认选择行为，当前主选择消失时从 [param primary] 选第一项。
-func ensure_primary(mode: String, primary: Array[Dictionary]) -> void:
-	var key_field: String = "id" if mode == "craft" else "uid" # 制作书按类型，植物按实例识别。
-	var current: String = _recipe_id if mode == "craft" else _main_uid # 当前主选择。
-	var first: String = "" # 默认选择第一张可用主卡或制作书。
-	for entry: Dictionary in primary:
-		var key: String = str(entry[key_field]) # 主选择的真实库存身份。
-		var available: bool = str(entry.get("selection_issue", "")).is_empty() # 默认只选可以放入的卡。
-		if key == current and (mode != "promotion" or available):
-			return
-		if first.is_empty() and available:
-			first = key
-	_set_primary(mode, first)
-
-## 更换 [param mode] 的主选择 [param key]，清除依赖旧主卡的耗材、保护和转职书。
-func _set_primary(mode: String, key: String) -> void:
-	reset(mode)
-	if mode == "craft":
-		_recipe_id = key
-	else:
-		_main_uid = key
+	active_slot = Slot.MAIN_CARD
+	active_index = 0
 
 ## [param slot] 和 [param index] 在 [param mode] 中可以操作时，返回 true。
 func can_focus(mode: String, slot: Slot, index: int = 0) -> bool:
@@ -91,7 +138,7 @@ func focus(mode: String, slot: Slot, index: int = 0) -> bool:
 func pick(mode: String, row: Dictionary) -> void:
 	match active_slot:
 		Slot.RECIPE:
-			_recipe_id = str(row.id)
+			_set_primary(mode, str(row.id))
 		Slot.MAIN_CARD:
 			if str(row.uid) != _main_uid:
 				_set_primary(mode, str(row.uid))
@@ -152,8 +199,9 @@ func candidates(service: AdventureResearchService, primary: Array[Dictionary], p
 		return rows
 	match active_slot:
 		Slot.RECIPE:
-			for recipe: Dictionary in primary:
-				_append_owned_item(rows, service.inventory, str(recipe.id))
+			for recipe: Dictionary in primary: # 当前配方即使用完也留在原来的目录顺序中。
+				var id: String = str(recipe.id) # 配方卷轴按目录 ID 统计持有量。
+				rows.append(Data.item_row(id, service.inventory.get_item_count(id)))
 		Slot.MAIN_CARD:
 			for card: Dictionary in primary: # 星级及路线条件在点击时反馈。
 				rows.append(Data.plant_row(card))

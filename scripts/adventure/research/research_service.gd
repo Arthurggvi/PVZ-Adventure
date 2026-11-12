@@ -21,17 +21,18 @@ func _init(current: AdventureState, stock: AdventureInventoryService,
 	wallet = currency
 	persist = save_callback
 
-func options(mode: String) -> Array[Dictionary]:
-	var entries: Array[Dictionary] = []
+## 返回 [param mode] 的主槽候选；合成时额外保留 [param selected_recipe] 对应的已登记配方。
+func options(mode: String, selected_recipe: String = "") -> Array[Dictionary]:
+	var entries: Array[Dictionary] = [] # 按目录或背包顺序返回候选快照。
 	if mode == "craft":
-		for id: String in Recipes.all_ids():
-			if inventory.get_item_count(id) > 0:
-				var definition: Dictionary = Recipes.definition(id)
+		for id: String in Recipes.all_ids(): # 用完的已选配方保留在同一目录顺序中。
+			if id == selected_recipe or inventory.get_item_count(id) > 0:
+				var definition: Dictionary = Recipes.definition(id) # 目录返回可供展示补充名称的副本。
 				definition["title"] = ItemRegistry.get_item_definition(id).get("name", id)
 				entries.append(definition)
 	elif mode == "upgrade" or mode == "promotion":
 		entries = inventory.list_cards()
-		for card: Dictionary in entries: # 不剔除不满足操作条件的已拥有卡。
+		for card: Dictionary in entries: # 已拥有的卡均可展示，选入条件由业务规则给出。
 			card["selection_issue"] = main_card_issue(mode, str(card.uid))
 	return entries
 
