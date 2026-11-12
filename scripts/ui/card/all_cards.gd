@@ -2,8 +2,6 @@
 extends Control
 class_name AllCardsClass
 
-const SunflowerArt = preload("res://scripts/adventure/plant_art/adventure_sunflower_promotion_art.gd")
-
 ## 编辑器中的源目录，顺序决定同类卡牌的展示顺序，目录名称不推导内容类别。
 @onready var _source_directories: Array[GridContainer] = [
 	%PlantCards, %PlantCards2, %ZombieCards, %ZombieCards2, %BossCards,
@@ -62,7 +60,7 @@ func create_card(reference: ResourceCardReference, context: Card.CardContext = C
 	return card
 
 
-## 返回 [param reference] 的独立静态缩略图；不会实例化出战角色或启动战斗初始化。
+## 返回 [param reference] 的独立静态缩略图。[param promotion_tier] 是植物的转职次数。
 func create_static_preview(reference: ResourceCardReference, promotion_tier: int = 0) -> Node2D:
 	# 已注册模板持有美术制作完成的静态节点树。
 	var template := get_template(reference)
@@ -71,10 +69,9 @@ func create_static_preview(reference: ResourceCardReference, promotion_tier: int
 		return null
 	# 仅复制静态图像容器，保留模板内部的位置和缩放。
 	var preview := template.character_static.duplicate() as Node2D
-	if reference.card_type == ResourceCardReference.CardType.Plant \
-			and reference.content_id == SunflowerArt.SUNFLOWER_TYPE and promotion_tier > 0:
-		if not SunflowerArt.apply_to_preview(preview, promotion_tier):
-			push_error("Failed to render sunflower static preview tier %d" % promotion_tier)
+	if reference.card_type == ResourceCardReference.CardType.Plant and promotion_tier > 0:
+		if not Card.apply_promotion_appearance(preview, reference.content_id, promotion_tier):
+			push_error("无法生成植物 %d 的第 %d 转缩略图" % [reference.content_id, promotion_tier])
 	if reference.is_imitater:
 		preview.material = Card.IMITATER.duplicate()
 		# 动画等非图像节点不参与材质继承。

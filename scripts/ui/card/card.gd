@@ -30,7 +30,10 @@ var _pea_synergy_count: int = 0
 var _resonance_next_free: bool = false
 var _star_badge: Control = null
 const StarBadge = preload("res://scripts/adventure/ui/star_badge_view.gd")
+## 向日葵转职的分层卡面资源。
 const SunflowerArt = preload("res://scripts/adventure/plant_art/adventure_sunflower_promotion_art.gd")
+## 闪电芦苇转职的统一配色。
+const ReedArt = preload("res://scripts/adventure/plant_art/adventure_lightning_reed_promotion_art.gd")
 
 var battle_card_data: Dictionary:
 	get:
@@ -52,18 +55,25 @@ var plant_spawn_profile: PlantSpawnProfile:
 			_sync_star_badge()
 			_sync_promotion_appearance()
 
-## One rank resolver for this card, static previews and drag/hand previews.
+## 返回卡面、静态缩略图和持卡预览共用的转职次数。
 func promotion_tier() -> int:
-	return SunflowerArt.tier_from_profile(_plant_spawn_profile) if card_reference != null \
-		and card_reference.card_type == ResourceCardReference.CardType.Plant \
-		and card_reference.content_id == SunflowerArt.SUNFLOWER_TYPE else 0
+	return _plant_spawn_profile.promotion_tier() if _plant_spawn_profile != null else 0
 
+## 在 [param preview] 上应用 [param plant_type] 的 [param rank] 转卡面。其余物种直接使用原图。
+static func apply_promotion_appearance(preview: Node2D, plant_type: int, rank: int) -> bool:
+	match plant_type:
+		SunflowerArt.SUNFLOWER_TYPE:
+			return SunflowerArt.apply_to_preview(preview, rank)
+		ReedArt.PLANT_TYPE:
+			return ReedArt.apply_to_preview(preview, rank)
+	return true
+
+## 更新这张卡的独立静态图案。换回无转职快照时恢复原图。
 func _sync_promotion_appearance() -> void:
-	if card_reference == null or card_reference.card_type != ResourceCardReference.CardType.Plant \
-			or card_reference.content_id != SunflowerArt.SUNFLOWER_TYPE:
+	if card_reference == null or card_reference.card_type != ResourceCardReference.CardType.Plant:
 		return
-	if not SunflowerArt.apply_to_preview(character_static, promotion_tier()):
-		push_error("Cannot update sunflower card appearance")
+	if not apply_promotion_appearance(character_static, card_reference.content_id, promotion_tier()):
+		push_error("无法更新植物卡的转职外观：%d" % card_reference.content_id)
 
 ## One UI component for inventory, research and adventure battle cards.
 ## The active spawn profile is the sole star-level authority.

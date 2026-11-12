@@ -36,6 +36,14 @@ func matches_plant_type(plant_type: int) -> bool:
 func snapshot() -> Dictionary:
 	return _snapshot.duplicate(true) if is_valid_profile() else {}
 
+## 返回快照已完成的最高转职次数。零表示原始外观，阶级显示在此值上加一。
+func promotion_tier() -> int:
+	# 从最高转职开始找，取已选分支所在的阶数，与星级无关。
+	for rank: int in range(4, 0, -1):
+		if not str(_snapshot.get("promotion_%d" % rank, "")).is_empty():
+			return rank
+	return 0
+
 func card_stats(base_sun_cost: int, base_cooldown: float) -> Dictionary:
 	if not is_valid_profile():
 		return {}

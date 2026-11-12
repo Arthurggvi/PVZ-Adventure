@@ -62,8 +62,14 @@ static func draw_idle(parent: Control, kind: String, type_id: int, tier: int, bo
 	character.is_idle = true
 	if character is Plant000Base:
 		character.plant_type = type_id as CharacterRegistry.PlantType
-		if type_id == AdventureSunflowerPromotionArt.SUNFLOWER_TYPE and tier > 1:
-			AdventureSunflowerPromotionArt.apply_to_body(character.get_node_or_null("Body/BodyCorrect") as Node2D, tier - 1)
+		if tier > 1:
+			# 二阶对应一转。图鉴用所选阶级创建外观，和战斗共用角色场景。
+			var body := character.get_node_or_null(^"Body/BodyCorrect") as Node2D
+			match type_id:
+				AdventureSunflowerPromotionArt.SUNFLOWER_TYPE:
+					AdventureSunflowerPromotionArt.apply_to_body(body, tier - 1)
+				AdventureLightningReedPromotionArt.PLANT_TYPE:
+					AdventureLightningReedPromotionArt.apply_to_body(body, tier - 1)
 	elif character is Zombie000Base:
 		var id: StringName = Data.tier_id(tier) # 只应用美术和对应色调。
 		character.zombie_type = type_id as CharacterRegistry.ZombieType
