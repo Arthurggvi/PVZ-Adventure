@@ -1,4 +1,4 @@
-## 冒险图鉴模态窗口；按物种发现解锁全部五阶，所有内容实时读取现有玩法目录。
+## 冒险图鉴模态窗口；物种按发现解锁五阶，Boss 使用独立双阶段技能页。
 extends Control
 
 ## 由工具栏统一清理模态引用。
@@ -9,6 +9,10 @@ const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 const Data = preload("res://scripts/adventure/ui/almanac_data.gd")
 ## 无战斗行为的角色形象适配器。
 const Preview = preload("res://scripts/adventure/ui/almanac_preview.gd")
+## 独立 Boss 目录，不与普通僵尸的发现记录和五阶混用。
+const BossData = preload("res://scripts/adventure/ui/boss_almanac_data.gd")
+## Boss 专用阶段与技能详情。
+const BossDetail = preload("res://scripts/adventure/ui/boss_almanac_detail.gd")
 ## 与任务簿相同的设计画布尺寸。
 const DESIGN := Vector2(1480, 830)
 ## 现有中文界面字体。
@@ -17,7 +21,11 @@ const FONT = preload("res://assets/fonts/方正少儿_GBK.ttf")
 const TILE_SIZE := Vector2(121, 140)
 ## 打开时所属档案，切档时不继续展示旧记录。
 var _state: AdventureState
-## 当前分类为 plant 或 zombie，不保存到玩家档案。
+## 旧图鉴索引可以直接打开 Boss 分类；在加入场景树之前设置。
+var initial_kind: String = "plant"
+## 从旧版图鉴打开时只显示 Boss，避免切换为冒险物种发现目录。
+var boss_only: bool = false
+## 当前分类为 plant、zombie 或 boss，不保存到玩家档案。
 var _kind := "plant"
 ## 当前中文名称搜索文本。
 var _search := ""
@@ -51,6 +59,7 @@ var _closing := false
 ## 建立复用素材布局，并绑定档案与发现变化通知。
 func _ready() -> void:
 	_state = Global.global_game_state.adventure_state
+	_kind = "boss" if boss_only else initial_kind
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	theme = Theme.new()
@@ -66,15 +75,17 @@ func _ready() -> void:
 	Art.panel(_canvas, "panels/wood_ninepatch.png", Vector2.ZERO, DESIGN, 35)
 	Art.panel(_canvas, "panels/outer_frame_ninepatch.png", Vector2.ZERO, DESIGN, 42)
 	Art.image(_canvas, "res://assets/adventure/ui/bottom_bar/icons/icon_deck.png", Vector2(38, 27), Vector2(64, 64))
-	Art.label(_canvas, "冒险图鉴", Vector2(112, 29), Vector2(310, 60), 40, Color("ffe8b0"))
+	Art.label(_canvas, "Boss 图鉴" if boss_only else "冒险图鉴", Vector2(112, 29), Vector2(310, 60), 40, Color("ffe8b0"))
 	Art.button(_canvas, "controls/close", Vector2(1364, 28), Vector2(65, 65), request_close)
 	Art.panel(_canvas, "panels/parchment_ninepatch.png", Vector2(35, 112), Vector2(445, 678), 30)
 	Art.panel(_canvas, "panels/parchment_ninepatch.png", Vector2(495, 112), Vector2(950, 678), 30)
-	for index: int in range(2): # 两类物种共享详情布局。
-		var kind: String = "plant" if index == 0 else "zombie" # 绑定值不依赖循环结束后的变量。
-		var tab: Button = _selection_button(_canvas, "植物" if index == 0 else "僵尸", "tabs/tab", _choose_kind.bind(kind)) # 复用背包分类的选中纹理。
-		tab.position = Vector2(58 + index * 201, 133)
-		tab.size = Vector2(191, 51)
+	var kinds: Array[String] = ["boss"] if boss_only else ["plant", "zombie", "boss"] # Boss 详情拥有自己的布局。
+	var titles: Dictionary = {"plant": "植物", "zombie": "僵尸", "boss": "Boss"} # 分类按钮标题。
+	for index: int in range(kinds.size()): # 三类目录沿用现有标签皮肤。
+		var kind: String = kinds[index] # 绑定值不依赖循环结束后的变量。
+		var tab: Button = _selection_button(_canvas, titles[kind], "tabs/tab", _choose_kind.bind(kind)) # 复用背包分类的选中纹理。
+		tab.position = Vector2(58 + index * 135, 133)
+		tab.size = Vector2(126, 51)
 		_tabs[kind] = tab
 	Art.panel(_canvas, "controls/search_field.png", Vector2(59, 198), Vector2(396, 48), 12)
 	Art.image(_canvas, "icons/search_magnifier.png", Vector2(72, 208), Vector2(27, 27))
@@ -146,7 +157,7 @@ func _refresh() -> void:
 	_tiles.clear()
 	for kind: String in _tabs: # 保持分类按钮状态与当前目录一致。
 		_tabs[kind].set_pressed_no_signal(kind == _kind)
-	var entries: Array[Dictionary] = Data.rows(_state, _kind, _search) # 过滤后的目录快照。
+	var entries: Array[Dictionary] = BossData.rows(_search) if _kind == "boss" else Data.rows(_state, _kind, _search) # 过滤后的目录快照。
 	_count.text = ("已收录 %d 种" if _search.strip_edges().is_empty() else "%d 项结果") % entries.size()
 	for entry: Dictionary in entries: # 目录中的预览只使用一阶形象，不产生遇敌记录。
 		var type_id: int = int(entry.type_id) # 稳定物种编号用于选择与高亮。
@@ -155,7 +166,17 @@ func _refresh() -> void:
 		button.custom_minimum_size = TILE_SIZE
 		button.tooltip_text = title
 		button.accessibility_name = title
-		Preview.draw_thumbnail(button, _kind, type_id, Rect2(15, 13, 91, 86))
+		if _kind == "boss":
+			var portrait := TextureRect.new() # Boss 沿用实战头像，不走普通僵尸注册表。
+			portrait.texture = BossData.profile(type_id).portrait
+			portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			button.add_child(portrait)
+			portrait.position = Vector2(15, 13)
+			portrait.size = Vector2(91, 86)
+		else:
+			Preview.draw_thumbnail(button, _kind, type_id, Rect2(15, 13, 91, 86))
 		var caption: Label = Art.label(button, title, Vector2(10, 102), Vector2(101, 26), 18) # 卡片下部统一保留名称区。
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -195,8 +216,13 @@ func _render_detail() -> void:
 	_clear(_details)
 	for type_id: int in _tiles: # 更新头像卡选中状态。
 		_tiles[type_id].set_pressed_no_signal(type_id == _selected)
-	_tier_rail.visible = _selected != 0
+	_tier_rail.visible = _selected != 0 and _kind != "boss"
 	if _selected == 0:
+		return
+	if _kind == "boss":
+		var boss_detail := BossDetail.new() # 独立页面占用原详情和五阶栏的完整高度。
+		boss_detail.type_id = _selected
+		_details.add_child(boss_detail)
 		return
 	for index: int in range(_tier_buttons.size()): # 阶级按钮用统一的亮边区分选中态。
 		_tier_buttons[index].set_pressed_no_signal(index + 1 == _tier)
