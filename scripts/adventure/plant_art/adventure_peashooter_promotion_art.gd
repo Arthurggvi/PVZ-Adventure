@@ -1,19 +1,17 @@
-## 豌豆射手的转职外观，战场、卡面和冒险图鉴使用同一组分件。
+## 豌豆射手的转职外观入口，战场、卡面和冒险图鉴可共用可选分件。
 extends RefCounted
 class_name AdventurePeashooterPromotionArt
 
 ## 普通豌豆射手的物种编号，其他豌豆家族继续使用各自的外观。
 const PLANT_TYPE: int = 1
-## 瞄具与军帽使用原头部贴图的像素坐标。
-const SIGHT = preload("res://assets/adventure/plants/peashooter/red_dot_sight.svg")
-## 军帽与瞄具共用头部锚点，帽檐位于瞄具上沿。
-const CAP = preload("res://assets/adventure/plants/peashooter/field_cap.svg")
-## 色表读取每帧原贴图，覆盖待机与射击时不同的眨眼贴图。
-const PALETTE_SHADER = preload("res://shaders/adventure/peashooter_promotion_palette.gdshader")
-## 脸部的附加高光按头部贴图坐标定位。
-const HEAD_FACE: Array[NodePath] = [^"Anim_face"]
-## 枪灰底色也覆盖嘴和两套眨眼分件。
-const HEAD_DETAILS: Array[NodePath] = [^"Idle_mouth", ^"Anim_blink", ^"Idle_shoot_blink"]
+## 一转起可使用的头部瞄具贴图；未配置时使用原头部。
+const SIGHT: Texture2D = null
+## 二转起可使用的军帽贴图，与瞄具共用头部锚点；未配置时隐藏。
+const CAP: Texture2D = null
+## 可选的分件着色器，读取 palette 参数；未配置时保留原贴图配色。
+const PALETTE_SHADER: Shader = null
+## 头部配色覆盖脸、嘴和两套眨眼分件。
+const HEAD_PARTS: Array[NodePath] = [^"Anim_face", ^"Idle_mouth", ^"Anim_blink", ^"Idle_shoot_blink"]
 ## 茎与小叶用迷彩底色，保持与大叶片的分件衔接。
 const CAMO_BASE_PARTS: Array[NodePath] = [
 	^"Backleaf_left_tip", ^"Backleaf_right_tip", ^"Stalk_bottom", ^"Stalk_top",
@@ -21,8 +19,8 @@ const CAMO_BASE_PARTS: Array[NodePath] = [
 ]
 ## 只在有足够面积的叶片上绘制迷彩色块。
 const CAMO_LEAVES: Array[NodePath] = [^"Backleaf", ^"Frontleaf"]
-## 着色器的四种色表模式，分别对应其 palette 参数的 0 至 3。
-enum Palette {GUNMETAL, CAMO_BASE, CAMO_LEAF, GUNMETAL_FACE}
+## 可选着色器的三种色表模式，分别对应其 palette 参数的 0 至 2。
+enum Palette {GUNMETAL, CAMO_BASE, CAMO_LEAF}
 ## 同一色表只创建一份材质，各植株和预览只读共享。
 static var _palettes: Dictionary[int, ShaderMaterial] = {}
 
@@ -38,10 +36,12 @@ static func apply_to_preview(preview: Node2D, rank: int) -> bool:
 
 
 ## 给 [param body] 中的原分件套用 [param rank] 次转职外观。第 0 次转职显示一阶原图。
-## 返回是否找到原头部锚点并完成应用。
+## 未配置资源时直接保留原图。返回是否完成应用或回退。
 static func apply_to_body(body: Node2D, rank: int) -> bool:
 	if body == null or rank < 0 or rank > 4:
 		return false
+	if SIGHT == null and CAP == null and PALETTE_SHADER == null:
+		return true
 	# 头部动画在此容器中分别驱动脸、嘴与眨眼。
 	var stem := body.get_node_or_null(^"Anim_stem/stem_correct") as Node2D
 	if stem == null:
@@ -52,16 +52,15 @@ static func apply_to_body(body: Node2D, rank: int) -> bool:
 		return false
 	# 配件位于眨眼层之后，重用节点以支持在同一卡面切换转职。
 	var gear := stem.get_node_or_null(^"PeaPromotionGear") as Node2D
-	if gear == null:
-		if rank == 0:
-			return true
+	if gear == null and rank > 0 and (SIGHT != null or CAP != null):
 		gear = _add_gear(stem, face)
-	gear.visible = rank >= 1
-	(gear.get_node(^"Cap") as Sprite2D).visible = rank >= 2
-	_color_parts(stem, HEAD_FACE, Palette.GUNMETAL_FACE, rank >= 3)
-	_color_parts(stem, HEAD_DETAILS, Palette.GUNMETAL, rank >= 3)
-	_color_parts(body, CAMO_BASE_PARTS, Palette.CAMO_BASE, rank >= 4)
-	_color_parts(body, CAMO_LEAVES, Palette.CAMO_LEAF, rank >= 4)
+	if gear != null:
+		gear.visible = rank >= 1
+		(gear.get_node(^"Cap") as Sprite2D).visible = rank >= 2
+	if PALETTE_SHADER != null:
+		_color_parts(stem, HEAD_PARTS, Palette.GUNMETAL, rank >= 3)
+		_color_parts(body, CAMO_BASE_PARTS, Palette.CAMO_BASE, rank >= 4)
+		_color_parts(body, CAMO_LEAVES, Palette.CAMO_LEAF, rank >= 4)
 	return true
 
 
