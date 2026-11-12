@@ -1,12 +1,16 @@
 extends Plant000Base
 class_name Plant002SunFlower
 
+## 生产和掉落阳光的共享组件。
 @onready var create_sun_component: CreateSunComponent = $CreateSunComponent
+## 向日葵本体与阳光共用的外观定义。
 const PromotionArt = preload("res://scripts/adventure/plant_art/adventure_sunflower_promotion_art.gd")
 
+## 为本株设置本体和产出阳光共用的转职外观。
 func _ready() -> void:
 	super()
-	PromotionArt.apply(self)
+	var tier: int = PromotionArt.apply(self) # 只使用成功应用到本体的转职次数。
+	create_sun_component.sun_visual_material = PromotionArt.sun_material_for_tier(tier)
 
 func ready_norm() -> void:
 	super()

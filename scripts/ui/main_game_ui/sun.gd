@@ -18,9 +18,13 @@ func _ready() -> void:
 	if not collected and is_instance_valid(self):
 		_start_fade_out()
 
-func init_sun(curr_sun_value:int, pos:Vector2):
+## 初始化阳光的价值 [param curr_sun_value] 和局部坐标 [param pos]。
+## [param visual_material] 只应用到动画精灵，空值使用场景原色。
+func init_sun(curr_sun_value: int, pos: Vector2, visual_material: Material = null) -> void:
 	sun_value = curr_sun_value
 	position = pos
+	if visual_material != null:
+		$body.material = visual_material
 
 func _sun_scale(new_sun_value:int):
 	var new_scale = new_sun_value/25.0

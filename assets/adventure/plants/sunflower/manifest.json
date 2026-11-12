@@ -23,10 +23,22 @@
     "SunFlower_rightpetal9"
   ],
   "tiers": {
-    "1": "tier_1",
-    "2": "tier_2",
-    "3": "tier_3",
-    "4": "tier_4"
+    "1": {
+      "folder": "tier_1",
+      "sun_palette": { "edge": "#c87920", "main": "#ffc33e", "highlight": "#fff2b6" }
+    },
+    "2": {
+      "folder": "tier_2",
+      "sun_palette": { "edge": "#2868bf", "main": "#53b8f4", "highlight": "#e3f8ff" }
+    },
+    "3": {
+      "folder": "tier_3",
+      "sun_palette": { "edge": "#8439bd", "main": "#cb72ee", "highlight": "#f9dcff" }
+    },
+    "4": {
+      "folder": "tier_4",
+      "sun_palette": { "edge": "#ce9845", "main": "#fff2d3", "highlight": "#fffdf7" }
+    }
   },
   "wink_tier": 3,
   "star_offset": [

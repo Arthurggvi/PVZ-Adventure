@@ -285,6 +285,7 @@ script = ExtResource("1_d4kfy")
 [node name="body" type="Node2D" parent="."]
 
 [node name="Sun3" type="Sprite2D" parent="body"]
+use_parent_material = true
 self_modulate = Color(1, 1, 1, 0.75)
 position = Vector2(47.9247, -52.5026)
 rotation = 1.52705
@@ -293,6 +294,7 @@ texture = ExtResource("0_fuck")
 centered = false
 
 [node name="Sun2" type="Sprite2D" parent="body"]
+use_parent_material = true
 self_modulate = Color(1, 1, 1, 0.651298)
 position = Vector2(-12.8403, -48.4546)
 rotation = 0.513308
@@ -301,6 +303,7 @@ texture = ExtResource("1_fuck")
 centered = false
 
 [node name="Sun1" type="Sprite2D" parent="body"]
+use_parent_material = true
 position = Vector2(-14.2, -14.2)
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("2_fuck")

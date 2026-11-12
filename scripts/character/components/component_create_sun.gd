@@ -27,8 +27,8 @@ var _production_growth_bonus: int = 0
 @export var create_time_range_other:Vector2 = Vector2(23.5,25)
 ## 阳光生产间隔，始终保存正常速度下的动作时间。
 var create_interval :float
-## 创建阳光时的发光颜色
-var create_sun_color: Color = Color(1, 1, 1)
+## 该生产者产出的阳光共用的表现材质。空值使用阳光场景原色。
+var sun_visual_material: Material
 
 
 #region 我是僵尸模式
@@ -115,11 +115,13 @@ func spawn_specific_sun(value: int) -> void:
 	SoundManager.play_character_SFX(&"Throw1")
 	_spawn_sun_value(value)
 
+## 创建一份价值为 [param value] 的阳光。普通产出、额外产出与亡语共用本株外观。
 func _spawn_sun_value(value: int) -> void:
-	var new_sun: Sun = SceneRegistry.SUN.instantiate()
-	new_sun.init_sun(value, Global.main_game.suns.to_local(marker_2d_create_sun.global_position))
+	var new_sun: Sun = SceneRegistry.SUN.instantiate() # 每份阳光独立收集与计时。
+	new_sun.init_sun(value, Global.main_game.suns.to_local(marker_2d_create_sun.global_position),
+		sun_visual_material)
 	Global.main_game.suns.add_child(new_sun)
-	var tween := new_sun.create_tween()
+	var tween := new_sun.create_tween() # 从植株抛出后下落的竖直轨迹。
 	tween.tween_property(new_sun, "position:y", -15.0, 0.3).as_relative().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(new_sun, "position:y", 45.0, 0.6).as_relative().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	new_sun.spawn_sun_tween = get_tree().create_tween()

@@ -10,8 +10,12 @@ const SUNFLOWER_TYPE := 2
 const PETAL_LAYER := "PromotionPetal"
 const HEAD_LAYER := "PromotionFace"
 const STAR_LAYER := "PromotionStar"
+## 把阳光原贴图的亮度映射为各转职的外观色。
+const SUN_PALETTE_SHADER = preload("res://shaders/adventure/sun_palette.gdshader")
 static var _manifest: Dictionary = {}
 static var _texture_cache: Dictionary = {}
+## 同一转职的阳光共用只读材质，每次产出只绑定已有实例。
+static var _sun_materials: Dictionary[int, ShaderMaterial] = {}
 
 static func _catalog() -> Dictionary:
 	if _manifest.is_empty():
@@ -22,22 +26,31 @@ static func _catalog() -> Dictionary:
 			push_error("Sunflower promotion art manifest missing or invalid")
 	return _manifest
 
-## Promotion choices are authoritative, irrespective of current stars.
-static func tier_from_snapshot(snapshot: Dictionary) -> int:
-	var tier := 0
-	for index: int in range(1, 5):
-		if not str(snapshot.get("promotion_%d" % index, "")).is_empty():
-			tier = index
-	return tier
+## 返回 [param tier] 对应的外观配置。未转职时返回空字典。
+static func _tier_config(tier: int) -> Dictionary:
+	return _catalog().get("tiers", {}).get(str(tier), {}) if tier > 0 else {}
 
-static func tier_from_profile(profile: PlantSpawnProfile) -> int:
-	return tier_from_snapshot(profile.snapshot()) if profile != null else 0
+## 返回 [param tier] 对应的阳光材质，零转或未配置时使用阳光场景原色。
+static func sun_material_for_tier(tier: int) -> ShaderMaterial:
+	if _sun_materials.has(tier):
+		return _sun_materials[tier]
+	# 阳光配色和本体分件由同一条转职外观记录提供。
+	var palette: Dictionary = _tier_config(tier).get("sun_palette", {})
+	if palette.is_empty():
+		return null
+	var material := ShaderMaterial.new() # 每阶只创建一次，之后由阳光精灵继承。
+	material.shader = SUN_PALETTE_SHADER
+	material.set_shader_parameter(&"edge_color", Color.html(palette.edge))
+	material.set_shader_parameter(&"main_color", Color.html(palette.main))
+	material.set_shader_parameter(&"highlight_color", Color.html(palette.highlight))
+	_sun_materials[tier] = material
+	return material
 
 static func _asset_set(tier: int) -> Dictionary:
 	if _texture_cache.has(tier):
 		return _texture_cache[tier]
 	var info: Dictionary = _catalog()
-	var subdir: String = str(info.get("tiers", {}).get(str(tier), ""))
+	var subdir: String = str(_tier_config(tier).get("folder", "")) # 本转职的分件目录。
 	if subdir.is_empty():
 		return {}
 	var assets: Dictionary = {}
@@ -127,16 +140,20 @@ static func apply_to_body(body: Node2D, tier: int) -> bool:
 		star.position = Vector2(float(star_pos[0]), float(star_pos[1]))
 	return true
 
-## All battle sunflower instances consume the same frozen profile as their cards.
-static func apply(plant: Plant000Base) -> void:
-	if plant == null or int(plant.plant_type) != SUNFLOWER_TYPE:
-		return
-	var body: Node2D = plant.get_node_or_null("Body/BodyCorrect")
-	if body == null:
-		return
-	var tier: int = tier_from_profile(plant.plant_spawn_profile)
-	if tier > 0 and not apply_to_body(body, tier):
-		push_error("Cannot apply sunflower promotion art to battle plant")
+## 从 [param plant] 的冻结出战快照应用本体外观，返回实际应用的转职次数。
+## 返回 0 时使用原始形象和阳光色。
+static func apply(plant: Plant000Base) -> int:
+	if plant == null or int(plant.plant_type) != SUNFLOWER_TYPE or plant.plant_spawn_profile == null:
+		return 0
+	# 使用卡面和出战共用的转职次数，星级变化不影响外观。
+	var tier: int = plant.plant_spawn_profile.promotion_tier()
+	if tier == 0:
+		return 0
+	var body := plant.get_node_or_null(^"Body/BodyCorrect") as Node2D # 原待机动画的部件容器。
+	if not apply_to_body(body, tier):
+		push_error("无法应用向日葵的出战转职外观")
+		return 0
+	return tier
 
 ## The catalog card and promotion book share this exact static tree adaptation.
 static func apply_to_preview(preview: Node2D, tier: int) -> bool:
