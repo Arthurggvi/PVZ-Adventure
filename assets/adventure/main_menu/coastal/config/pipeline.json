@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "master_sha256": "71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02",
+  "canvas": [
+    1672,
+    941
+  ],
+  "capture": {
+    "fps": 24,
+    "dimensions": [
+      1066,
+      600
+    ],
+    "static_phases": [
+      0,
+      0.125,
+      0.25,
+      0.375,
+      0.5,
+      0.625,
+      0.75,
+      0.875
+    ],
+    "states": [
+      "day",
+      "night"
+    ],
+    "include_ui": true,
+    "animate": false,
+    "duration_seconds": 6.0,
+    "closeups": {
+      "trees": [
+        0,
+        0,
+        470,
+        230
+      ],
+      "awning": [
+        130,
+        575,
+        400,
+        735
+      ],
+      "flag": [
+        1568,
+        177,
+        1644,
+        242
+      ],
+      "harbor": [
+        1390,
+        175,
+        1672,
+        475
+      ],
+      "rear_tree": [
+        745,
+        15,
+        945,
+        240
+      ]
+    }
+  },
+  "preview": {
+    "full_video_crf": 18,
+    "crop": [
+      1390,
+      175,
+      1672,
+      475
+    ],
+    "gif_frames": 48,
+    "gif_scale": 2.0
+  },
+  "workfile": "MainMenu_Entries_Working_v09.xcf",
+  "notes": "Package source at tools/art_bake/main_menu. workspace/runtime is generated. No native clock binding or production scene launch.",
+  "features": {
+    "wind": true
+  }
+}

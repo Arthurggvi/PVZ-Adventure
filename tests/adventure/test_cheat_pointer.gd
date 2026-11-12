@@ -5,7 +5,7 @@ func _ready() -> void:
 	call_deferred("_check")
 
 func _check() -> void:
-	var scene: Control = (load("res://scenes/main/01StartMenuV8.tscn") as PackedScene).instantiate()
+	var scene: Control = (load("res://scenes/main/01StartMenuCoastal.tscn") as PackedScene).instantiate()
 	get_tree().root.add_child(scene)
 	var game_button := Button.new()
 	game_button.text = "Game interaction probe"

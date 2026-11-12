@@ -7,7 +7,7 @@
 - **工程与引擎**：`C:\Dev\PvZ\PVZ-Adventure`（Git `develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时优先远程只读审计，获授权后直接施工，避免让用户手工搬运文件。
 - **本交接文档唯一原件**：`C:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。Git 跟踪入口 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 是**同一 NTFS 硬链接**，不应独立编辑/替换。改动需原位写入，并用 `fsutil hardlink list` 验证仍为同一文件。
 - **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `C:\Dev\PvZ\_review\<module>` 用于临时审查；`C:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。
-- **主菜单新美术制作入口**：`tools/art_bake/main_menu/menu.py` 与同目录README；当前9A建筑悬停/功能入口见 `docs/adventure/main_menu_entries_pipeline.md`。S8已通过，9A候选待审；正式启动菜单尚未替换。
+- **主菜单运行/制作入口**：正式 `scenes/main/01StartMenuCoastal.tscn`；维护 `docs/adventure/main_menu_runtime_pipeline.md`；离线构建/发布/录制统一 `tools/art_bake/main_menu/menu.py`。9B已接当地时间与真实UI，不再使用占位主菜单。
 - **施工顺序**：检查 Git 和连接 → 读本文及权威代码/资源 → 复现并定位根因 → 设计通用接口与状态所有权 → 直接重构旧实现 → Godot 导入/解析检查 → 按 AGENTS.md 在明确获授权时运行测试/实机验收 → 必要时 Catbox 手机验收 → 仅暂存本轮文件并提交。
 - **仓库纪律**：先 `git status --short`、`git log -1`，保护并行工作区；禁止未授权的 `git reset`、`git clean`、`git add .` 和 `git push`。提交前 `git diff --cached --check` 并逐项核对暂存清单。被 `.gitignore` 忽略的新美术资源，必要时定向 `git add -f`。
 - **架构原则**：一条权威数据与状态链；配置描述差异，组件实现机制。禁止针对某一关/植物/僵尸追加并行实现、补丁式坐标修正、冗余管理器或把重复接线留给后续开发者。
@@ -90,17 +90,17 @@
 - **僵尸等阶**：`scripts/adventure/adventure_zombie_tier_catalog.gd` → binding/traits/species installer；美术 `assets/adventure/zombies/tier_art_map.json`。固定格挡、二类防具、额外护甲、技能/抗性需独立算，不能只看总 HP；平衡基于整套植物/僵尸阵容与实战消耗（五阶主要对标十星植物），不要做单卡云比较。
 - **墓碑/Boss**：`StagePhaseDefinition.gravestone_rules` / `AdventureGravestoneDirector` / TombStoneManager，墓碑的刷新/复生必须使用本格实际生成点；常规旗帜刷怪和特定 Boss 复生的规则分别配置。Boss 统一血条/阶段状态，经 `ZB000Base`、ZombieManager、SoundManager 管线；美术封口不等于行为树和实战验收完成。黑将军实体 `scenes/character/zombie_boss/zombie_boss_002_black_general.tscn`，不要把旧策划数值当作工程当前实际配置。
 
-## 5.1｜主菜单：建筑悬停与功能入口 9A（候选待审）
+## 5.1｜正式海滨主菜单 9B：全天时间、档案与建筑入口
 
-- **当前入口**：`tools/art_bake/main_menu/menu.py entries`，详见[建筑入口交接](main_menu_entries_pipeline.md)。S8风动已获用户通过，保留为视觉基线；正式启动仍是01StartMenuV8，9B完整日周期/本机时间/最终整合未实施。
-- **当前资产目录**：`C:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112`。母图1672×941，SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。原图、S8港口/风/光参数未改，无生图。
-- **业务唯一入口**：原AdventureToolbar继承toolbar_entry_host，`feature_status/request_feature/scene_entries_blocked`共用原_hooks、解锁条件和模态生命周期；建筑与工具栏不建第二套窗口/存档。地图、图鉴、研究室真实打开；家/商店保持未开放，皮卡不新增功能。
-- **输入与表现分离**：`building_entry_hit/layer.gd`使用稳定原画命中、同目标按下释放、原生GUI遮挡及键盘焦点；hover不打开，拖出取消，鼠标释放时重新核对顶层控件防止捕获穿透。普通模态、导航和教学遮罩都阻断背景入口；只读教学阻塞不妨碍原教学工具栏目标。
-- **配置与动态对齐**：`config/entries.json`分开定义hit/exclude与可见shape，提供feature、名称锚点和过渡/颜色参数；entry_assets生成R可见/G内侧边蒙版。entry_highlight处于同一受光后、已有风/港口变换前，高亮随布料/船体同步且不独立重算运动；高亮关闭与S8同相位逐像素一致。
-- **真实预览与隔离**：native_entries建立独立manifest和`PVZ-Menu9A-Isolated-20261112`用户目录，复用真实游戏代码/资源；临时演示档案显示解锁/锁定。entry_record发送原生GUI事件并截图，不直接调用建筑业务；三类窗口与关闭返回均为实际界面。原用户存档未复制或修改，演示目录会产生自己的数据。头像/功能台仍为占位，不冒充最终UI。
-- **本轮核对**：完整原生输入录像、锁定/未开放拒绝、弹窗/界面阻挡、拖出取消、键盘Enter与两个窗口比例；未高亮的8个昼夜相位与S8像素一致，40个已记录基线文件未变；XCF重开保留原图锁定和16张蒙版。未新增/运行测试套件，不宣称合成事务/关卡实机或全回归通过。证据在reports/entry_record、entry_delivery、final_verification。
-- **复现/原生源**：`menu.py entries`重建并录制，`entries-preview`只整理真实帧；原分层文件`MainMenu_Entries_Working_v09.xcf`保留既有部件及新蒙版/命中审阅层。runtime是执行副本，XCF不自动回写JSON。原生交互预览必须依赖完整游戏工程，不把native_project链接递归打包或作为生产运行路径。
-- **尚未完成**：9A最终观感待用户验收；完整全天闭环/本机时钟、正式主菜单替换、最终档案与功能台按钮、尚未开放建筑业务和生产性能核对仍属后续范围。新场景未变为生产启动入口。
+- **正式入口/返回**：`res://scenes/main/01StartMenuCoastal.tscn`；project、MainSceneRegistry.StartMenu及地图返回均统一。旧01/V6/V8场景仅重定向，旧V6/V8运行脚本已删除，不再实例化旧环境。详细维护见[正式运行管线](main_menu_runtime_pipeline.md)。
+- **运行所有权**：`scripts/ui/start_menu/coastal/`＋`shaders/ui/main_menu/`＋`assets/adventure/main_menu/coastal/`。制作工具 `tools/art_bake/main_menu/menu.py` 复用同一运行实现；不在玩家运行时调用Python/GIMP或依赖ArtControl绝对目录。
+- **视觉与数据**：既有母图/灰度/法线/地面/港口/风/高亮保持已批准来源，母图SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。31份运行纹理已无损发布为原生.res，texture_catalog为唯一映射；RGBA32F精度保留，asset_store按宿主缓存，不加载多份同一母图。
+- **时间调参**：运行config/daily_cycle.json为24小时环形关键帧：深夜→黎明→清晨→白天→黄昏→夜晚，午夜连续。menu_clock读当地时间并平滑校准，daily_cycle只产显示参数；动画用单调计时，任务/战斗日期不由菜单控制。set_preview_hour/use_local_time是同一路径的制作覆盖，不修改系统时间。
+- **真实UI/业务**：原User选择器提取为scenes/ui/profile_selector.tscn，复用SaveService事务；HUD显示真实头像/等级/名字并在切档后同步。功能台设置共用工具栏入口；帮助更新当前操作；退出确认后保存，失败留在菜单。布局在ui_layout.json，窗口阻塞与建筑/工具栏互斥统一。
+- **建筑入口**：沿用9A稳定命中与动态同步高亮；图书馆→真实图鉴、研究室→原研究功能、港口/船→地图。家/商店仍未开放、皮卡无独立入口。解锁由同一toolbar_entry_host查询/请求，不存于美术配置。
+- **实际核对**：本轮隔离录制含240帧全天、556帧真实档案切换/设置帮助/功能窗口/地图往返/退出保存；午夜前后最大像素差0，旧菜单宿主入地图后释放。原生资源逐份重开像素一致，空工程PCK绘制与正式背景最大差昼0/夜1。最终原生日志无脚本/材质ERROR或退出泄漏报告。
+- **发布与复现**：menu.py publish-runtime / runtime-preview / runtime-preview-images为单入口。交付在 `C:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112`。运行daily_cycle/ui_layout为正式权威，不被旧制作目录覆盖；原生资源包已验证可搬迁，但未安装exe模板、未导出完整游戏exe。
+- **边界**：只操作PVZ-Menu9B-Isolated-20261112演示档案，未读写正式玩家存档；没有进入战斗/验收合成事务，没有物理睡眠唤醒或全平台性能验证。未新增/运行游戏测试套件；旧版本专用美术探针已标明退役，不作为新菜单通过证据。实机短采样数据与详细限制见维护页，不夸大为完整回归或发布保证。
 
 ## 6｜验收与交接收口
 

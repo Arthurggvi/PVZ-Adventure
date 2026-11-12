@@ -1,5 +1,14 @@
 # 主菜单美术制作管线｜单入口、配置驱动、可复现
 
+## 当前正式运行入口（9B）
+
+正式主菜单为 `res://scenes/main/01StartMenuCoastal.tscn`。受光/风/高亮唯一运行源码已迁至 `scripts/ui/start_menu/coastal/`，shader在 `shaders/ui/main_menu/`；本目录只拥有离线构建/原生发布/隔离录制。旧godot/scene_host等仅继承正式代码，不准重复实现。
+
+`menu.py publish-runtime` 从已批准美术工作目录发布原生贴图；`runtime-preview` 使用正式场景录制真实业务，`runtime-preview-images`只整理已有帧。参数均沿用 `--workspace` 和 `--tools-config`。正式时刻/界面位置权威在 `assets/adventure/main_menu/coastal/config/daily_cycle.json` / `ui_layout.json`，不被旧美术工作目录覆盖。
+
+完整当前维护说明：`docs/adventure/main_menu_runtime_pipeline.md`。下方为既有美术构建/参数职责，历史S7/S8/S9A目录仍作基线保留，不代表生产路径。
+
+
 S7B港口与S8风动已通过。当前9A为建筑入口交互候选：真实功能门面和鼠标/键盘输入，正式启动场景尚未替换。旧S7仍为退回版。
 
 ## 权威入口

@@ -1,0 +1,38 @@
+{
+  "enabled": true,
+  "loop_seconds": 6.0,
+  "boat": {
+    "enabled": true,
+    "pivot": [
+      1568,
+      403
+    ],
+    "heave_px": 2.4,
+    "sway_px": 0.35,
+    "roll_degrees": 0.16,
+    "phase_offset": 0.0
+  },
+  "water": {
+    "enabled": true,
+    "displacement_px": 1.05,
+    "glint_strength": 0.035,
+    "wave_lengths": [
+      82.0,
+      41.0
+    ],
+    "night_gain": 0.56
+  },
+  "contact": {
+    "enabled": true,
+    "width_px": 1.25,
+    "strength": 0.12,
+    "model": "transformed lower hull silhouette"
+  },
+  "limits": {
+    "max_heave_px": 4.0,
+    "max_sway_px": 1.0,
+    "max_roll_degrees": 0.3,
+    "max_water_displacement_px": 2.0
+  },
+  "note": "Explicit phase 0..1, no OS time. Small bounded loop; change only this file for motion tuning, no segmentation rebuild."
+}

@@ -4,7 +4,7 @@ extends "res://tests/adventure/test_island_flow.gd"
 func _run() -> void:
 	assert(OS.get_user_data_dir().contains("p2-menu-test"))
 	var username := "p2-phase-%d" % Time.get_ticks_usec()
-	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/01StartMenuCoastal.tscn")
 	await _frames()
 	Global.save_service.stop_autosave()
 	var user: User = get_tree().current_scene.user

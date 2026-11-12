@@ -20,7 +20,7 @@ func _ready() -> void:
 func _run() -> void:
 	# 登录唯一测试用户并记录原版存档快照，确认冒险不会写入原关卡进度。
 	var username := "phase1-flow-%s" % Time.get_ticks_usec()
-	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/01StartMenuCoastal.tscn")
 	await _frames()
 	var native_user: User = get_tree().current_scene.user # 原生档案界面。
 	native_user.panel_create_new_user.line_edit.text = username

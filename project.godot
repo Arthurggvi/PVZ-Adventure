@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="GodotPVZ-Dream"
-run/main_scene="res://scenes/main/01StartMenuV8.tscn"
+run/main_scene="res://scenes/main/01StartMenuCoastal.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="uid://dxvlqvahfmjaa"
 config/windows_native_icon="res://pvz_icon.ico"

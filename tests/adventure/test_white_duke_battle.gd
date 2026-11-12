@@ -2,7 +2,7 @@
 extends "res://tests/adventure/test_island_flow.gd"
 
 func _run() -> void:
-	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/01StartMenuCoastal.tscn")
 	await _frames()
 	Global.save_service.stop_autosave()
 	var username := "white-duke-smoke-%d" % Time.get_ticks_usec()

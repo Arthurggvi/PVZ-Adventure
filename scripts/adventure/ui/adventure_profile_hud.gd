@@ -23,6 +23,10 @@ var _dock_top_left := false
 var _dock_margin := 12.0
 ## 战斗 HUD 允许的最大设计宽度，用于卡在阳光槽左侧。
 var _max_width := 0.0
+## 可选父画布缩放；负值继续使用原来的视口自适配。
+var _canvas_scale := -1.0
+## 动作按钮默认在头像下方，菜单可显式放在右侧。
+var _action_origin := Vector2(12, FRAME_SIZE.y + 10)
 
 ## 创建同一套矩形头像框并绑定档案与角色变化。
 func _ready() -> void:
@@ -69,6 +73,9 @@ func _ready() -> void:
 
 ## 随视口等比调整尺寸，默认左上角由场景根节点的锚点定位。
 func _fit_viewport() -> void:
+	if _canvas_scale > 0.0:
+		scale=Vector2.ONE*_canvas_scale
+		return
 	var viewport_size := get_viewport().get_visible_rect().size # 包含宽屏布局的两侧留空。
 	var factor := minf(viewport_size.x / DESIGN_SIZE.x, viewport_size.y / DESIGN_SIZE.y) # 保持组件内的统一比例。
 	var fitted_scale := factor * HUD_SCALE
@@ -90,7 +97,7 @@ func dock_top_left(max_width: float, margin: float = 12.0) -> void:
 func add_action(caption: String, callback: Callable) -> void:
 	var button_size := Vector2(270, 62) # 与地图原有返回按钮宽度一致。
 	var button := Art.action_button(self, caption, "buttons/action_neutral",
-		Vector2(12, FRAME_SIZE.y + 10), button_size, callback) # 靠左避开地图第一个关卡的标题。
+		_action_origin, button_size, callback) # 靠左避开地图第一个关卡的标题。
 	button.name = "Action"
 	button.add_theme_font_size_override("font_size", 32)
 
@@ -106,3 +113,10 @@ func _refresh() -> void:
 		portrait = PortraitArt.resolve(equipment.rows(EquipmentDefinition.Slot.OUTFIT))
 		_badge.present(int(PlayerProgression.progress(state.experience).level))
 	_avatar.texture = PortraitArt.head_crop(portrait)
+
+## [param factor] 使用宿主原画比例；[param action_position] 为本组件局部按钮位置。
+func configure_canvas_layout(factor: float, action_position: Vector2) -> void:
+	_canvas_scale=factor
+	_action_origin=action_position
+	if is_node_ready():
+		_fit_viewport()

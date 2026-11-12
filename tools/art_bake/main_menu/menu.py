@@ -54,24 +54,34 @@ def stage_runtime(work: Path) -> None:
     for path in source.iterdir():
         if path.suffix not in {'.gd','.gdshader','.gdshaderinc'}:continue
         shutil.copy2(path,target/path.name)
-    (target/'SOURCE_NOTICE.txt').write_text('派生执行副本：不要在此调参或修改源码。源码入口是 tools/art_bake/main_menu。\n',encoding='utf-8')
+    (target/'SOURCE_NOTICE.txt').write_text('派生执行副本：不要在此调参或修改源码。离线入口为 tools/art_bake/main_menu；正式运行算法位于 scripts/ui/start_menu/coastal。\n',encoding='utf-8')
 
 
 def main() -> None:
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action',choices=['build','render','preview','workfile','all','entries','entries-preview'])
+    parser.add_argument('action',choices=['build','render','preview','workfile','all','entries','entries-preview','publish-runtime','runtime-preview','runtime-preview-images'])
     parser.add_argument('--workspace',type=Path,required=True)
     parser.add_argument('--tools-config',type=Path,required=True)
     parser.add_argument('--force',action='store_true')
     args=parser.parse_args();work=args.workspace.resolve(strict=True)
     (work/'reports').mkdir(exist_ok=True)
+    if args.action=='publish-runtime':
+        importlib.import_module('python.runtime_assets').publish(work,args.tools_config)
+        return
+    if args.action=='runtime-preview':
+        importlib.import_module('python.native_runtime').run(work,args.tools_config)
+        importlib.import_module('python.runtime_previews').build(work)
+        return
+    if args.action=='runtime-preview-images':
+        importlib.import_module('python.runtime_previews').build(work)
+        return
     manifest=json.loads((work/'config/pipeline.json').read_text(encoding='utf-8'))
     tools=json.loads(args.tools_config.read_text(encoding='utf-8-sig'))
     assert hashlib.sha256((work/'master_original.png').read_bytes()).hexdigest()==manifest['master_sha256'],'Mother image changed'
     if args.action in ['build','render','all','entries']:build(work,args.force)
     stage_runtime(work)
     if args.action=='entries':importlib.import_module('python.native_entries').run(work,args.tools_config)
-    if args.action in ['entries','entries-preview']:importlib.import_module('python.entry_previews').build(work)
+    if args.action in ['entries','entries-preview','publish-runtime','runtime-preview','runtime-preview-images']:importlib.import_module('python.entry_previews').build(work)
     if args.action in ['render','all']:
         launcher=args.tools_config.parent/'artctl.py'
         subprocess.run([tools['python'],str(launcher),'godot',str(work/'runtime/capture.gd'),'--run-dir',str(work)],check=True)

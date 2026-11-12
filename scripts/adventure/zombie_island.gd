@@ -49,7 +49,7 @@ func is_adventure_toolbar_blocked() -> bool:
 func _ready() -> void:
 	# 编辑器直接运行地图也不得绕过原生档案入口。
 	if AdventureSession.progress == null:
-		get_tree().change_scene_to_file.call_deferred("res://scenes/main/01StartMenuV8.tscn")
+		get_tree().change_scene_to_file.call_deferred(Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu])
 		return
 	AdventureSession.adventure_active = true
 	SoundManager.play_town_bgm()
@@ -130,4 +130,4 @@ func _stage_definition(stage_number: int) -> StageDefinition:
 ## 经复用遮幕返回原有菜单；只增加表现时序，保留进度、音乐和原返回目的地。
 func _return_menu() -> void:
 	AdventureSession.adventure_active = false
-	$SceneTransition.change_scene("res://scenes/main/01StartMenuV8.tscn")
+	$SceneTransition.change_scene(Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu])

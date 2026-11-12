@@ -1,6 +1,6 @@
 shader_type canvas_item;
 render_mode unshaded;
-// WIND_FIELD_INCLUDE
+#include "res://shaders/ui/main_menu/wind_field.gdshaderinc"
 uniform sampler2D boat_without_flag : filter_linear, repeat_disable;
 uniform sampler2D flag_premult : filter_linear, repeat_disable;
 uniform bool flag_enabled = true;

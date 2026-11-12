@@ -3,7 +3,7 @@ extends "res://tests/adventure/test_island_flow.gd"
 
 func _run() -> void:
 	assert(OS.get_user_data_dir().contains("entry-test-user"))
-	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/01StartMenuCoastal.tscn")
 	await _frames()
 	Global.save_service.stop_autosave()
 	Global.user_manager.set_current_user("")

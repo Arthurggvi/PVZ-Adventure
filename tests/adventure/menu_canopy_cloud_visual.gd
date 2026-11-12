@@ -1,3 +1,4 @@
+## 历史V6/V8美术探针：对应场景已退役，当前正式入口与验收见main_menu_runtime_pipeline.md；此脚本不作为新菜单通过证据。
 extends SceneTree
 
 var failed := false

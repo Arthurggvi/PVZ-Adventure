@@ -1,0 +1,57 @@
+{
+  "canvas": [
+    1672,
+    941
+  ],
+  "profile_scale": 0.78375,
+  "profile_action": [
+    402,
+    12
+  ],
+  "console_origin": [
+    1175.625,
+    654.8666667
+  ],
+  "console_scale": 0.8708333333333333,
+  "console_body": [
+    0,
+    0,
+    538,
+    128
+  ],
+  "console_buttons": [
+    {
+      "id": "settings",
+      "caption": "选项",
+      "art": "option",
+      "rect": [
+        45,
+        34,
+        139,
+        68
+      ]
+    },
+    {
+      "id": "help",
+      "caption": "帮助",
+      "art": "help",
+      "rect": [
+        188,
+        34,
+        139,
+        68
+      ]
+    },
+    {
+      "id": "exit",
+      "caption": "退出",
+      "art": "exit",
+      "rect": [
+        330,
+        34,
+        139,
+        68
+      ]
+    }
+  ]
+}

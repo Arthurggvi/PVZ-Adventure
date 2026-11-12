@@ -25,7 +25,7 @@ func _run() -> void:
 		var source: Texture2D = view._icons[id].texture
 		if source == null or not source.resource_path.begins_with("res://assets/adventure/ui/bottom_bar/"):
 			return _fail("Missing real toolbar art: " + id)
-	for path in ["res://scenes/main/01StartMenu.tscn", "res://scenes/main/01StartMenuV8.tscn", AdventureSession.MAP_SCENE]:
+	for path in ["res://scenes/main/01StartMenu.tscn", "res://scenes/main/01StartMenuCoastal.tscn", AdventureSession.MAP_SCENE]:
 		var scene := (load(path) as PackedScene).instantiate()
 		var registered := scene.is_in_group("adventure_toolbar_surface")
 		scene.free()
@@ -43,7 +43,7 @@ func _run() -> void:
 	# F6 launch emits a zero-argument scene_changed notification on some editor paths.
 	bar._on_scene_changed()
 	await get_tree().process_frame
-	var real_menu: Control = (load("res://scenes/main/01StartMenuV8.tscn") as PackedScene).instantiate()
+	var real_menu: Control = (load("res://scenes/main/01StartMenuCoastal.tscn") as PackedScene).instantiate()
 	get_tree().root.add_child(real_menu)
 	bar._apply_host_scene(real_menu)
 	await get_tree().create_timer(0.10).timeout

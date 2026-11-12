@@ -5,7 +5,7 @@ extends "res://tests/adventure/test_island_flow.gd"
 func _run() -> void:
 	assert(OS.get_user_data_dir().contains("picker-test-user"), "必须隔离 APPDATA")
 	assert(ResourceLoader.exists("res://scenes/adventure/AdventureDestinationPicker.tscn"), "首次开发：地区选择场景尚未建立")
-	get_tree().change_scene_to_file("res://scenes/main/01StartMenuV8.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/01StartMenuCoastal.tscn")
 	await _frames()
 	Global.save_service.stop_autosave()
 	assert(get_tree().current_scene.has_node("SceneTransition"), "场景切换遮幕尚未接入")
