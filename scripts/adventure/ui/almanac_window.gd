@@ -79,7 +79,7 @@ func _ready() -> void:
 	Art.button(_canvas, "controls/close", Vector2(1364, 28), Vector2(65, 65), request_close)
 	Art.panel(_canvas, "panels/parchment_ninepatch.png", Vector2(35, 112), Vector2(445, 678), 30)
 	Art.panel(_canvas, "panels/parchment_ninepatch.png", Vector2(495, 112), Vector2(950, 678), 30)
-	var kinds: Array[String] = ["boss"] if boss_only else ["plant", "zombie", "boss"] # Boss 详情拥有自己的布局。
+	var kinds := PackedStringArray(["boss"] if boss_only else ["plant", "zombie", "boss"]) # 将入口对应的分类列表显式转换为字符串数组。
 	var titles: Dictionary = {"plant": "植物", "zombie": "僵尸", "boss": "Boss"} # 分类按钮标题。
 	for index: int in range(kinds.size()): # 三类目录沿用现有标签皮肤。
 		var kind: String = kinds[index] # 绑定值不依赖循环结束后的变量。
