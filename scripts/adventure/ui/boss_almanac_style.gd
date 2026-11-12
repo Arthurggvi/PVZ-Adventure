@@ -1,8 +1,8 @@
 ## Boss 档案的阅读样式；正文、数值与纸面卡片共用配色和字体，标题沿用图鉴字体。
 extends RefCounted
 
-## 随项目分发的宋体用于长段落，避免装饰字体影响阅读。
-const BODY_FONT = preload("res://assets/fonts/SIMSUN.TTC")
+## 正文复用游戏的圆润少儿字体，阅读层级由字号、墨色和留白区分。
+const BODY_FONT = preload("res://assets/fonts/方正少儿_GBK.ttf")
 ## 深色正文墨色。
 const INK := Color("382b22")
 ## 次级标签墨色。
@@ -36,7 +36,7 @@ static func card(parent: Control, rect: Rect2, fill: Color = Color(1, 0.96, 0.85
 	return panel
 
 ## 在 [param parent] 的 [param rect] 添加 [param caption]；[param font_size]、[param ink] 控制层级。
-## [param body] 选择阅读字体；否则继承图鉴的装饰字体。长文本自动换行。
+## [param body] 显式使用游戏正文的圆润字体；否则继承图鉴标题字体。长文本自动换行。
 static func label(parent: Control, caption: String, rect: Rect2, font_size: int, ink: Color = INK, body: bool = true) -> Label:
 	var text := Label.new() # 不使用文字阴影，保证缩放后笔画清楚。
 	text.text = caption
@@ -53,7 +53,7 @@ static func label(parent: Control, caption: String, rect: Rect2, font_size: int,
 	return text
 
 ## 在 [param parent] 的 [param rect] 绘制 [param caption] 数值，使用 [param font_size] 和 [param ink]。
-## 数字使用引擎自带字体，避免宋体数字笔画太细；单位由调用方另行排版。
+## 数字使用引擎自带字体，保证关键数值清晰；单位由调用方另行排版。
 static func number(parent: Control, caption: String, rect: Rect2, font_size: int, ink: Color = INK) -> Label:
 	var text: Label = label(parent, caption, rect, font_size, ink) # 保持数字与说明相同的定位约定。
 	text.add_theme_font_override("font", ThemeDB.fallback_font)
