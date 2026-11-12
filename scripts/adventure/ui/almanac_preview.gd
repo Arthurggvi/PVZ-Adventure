@@ -98,14 +98,17 @@ static func _fit_visual(preview: Node2D, bounds: Rect2) -> bool:
 	return true
 
 ## 将 [param node] 的可见图像范围变换到 [param transform] 所在坐标，收集到 [param result]。
-static func _collect_bounds(node: Node, transform: Transform2D, result: Array[Rect2]) -> void:
+## [param skip_branch] 可排除与本体比例无关的道具节点及其子树。
+static func _collect_bounds(node: Node, transform: Transform2D, result: Array[Rect2], skip_branch: Callable = Callable()) -> void:
+	if skip_branch.is_valid() and skip_branch.call(node):
+		return
 	if node is CanvasItem and not node.visible:
 		return
 	if node is Sprite2D and node.texture != null and node.self_modulate.a > 0.0:
 		result.append(transform * node.get_rect())
 	for child: Node in node.get_children(): # 不依赖角色名称或固定源图片尺寸。
 		var child_transform: Transform2D = transform * child.transform if child is Node2D else transform # 从父坐标累积变换。
-		_collect_bounds(child, child_transform, result)
+		_collect_bounds(child, child_transform, result, skip_branch)
 
 ## 从 [param kind]、[param type_id] 的注册场景提取精灵，缺少源场景时返回 null。
 static func _from_scene(kind: String, type_id: int) -> Node2D:

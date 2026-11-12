@@ -48,6 +48,8 @@ static func profile(type_id: int) -> Dictionary:
 		"config": source.get("config"),
 		"story": STORIES[type_id],
 	} # 资源保持只读引用，临时节点随后释放。
+	if type_id == GENERAL:
+		result["visual_transform"] = (source.get_node("Body/BlackGeneralVisual") as Node2D).transform
 	source.free()
 	return result
 

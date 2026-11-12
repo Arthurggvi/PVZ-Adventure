@@ -4,30 +4,10 @@ class_name ZB002BlackGeneral
 
 ## 令旗战斗实体，纯展示资源继续独立复用。
 const FLAG_SCENE: PackedScene = preload("res://scenes/character/zombie_boss/black_general_flag_entity.tscn")
-## 二阶段沿冲锋路径生成的独立剪影设施。
-const SILHOUETTE_SCENE: PackedScene = preload("res://scenes/character/zombie_boss/black_general_charge_silhouette.tscn")
-## 举旗关键帧从脚下涌起的黑焰。
-const FLAG_FLAME = preload("res://scripts/character/zombie_boss/002_black_general/black_general_flag_flame.gd")
-## 僵王博士践踏动画使用的原音效。
-const STOMP_SOUND: AudioStream = preload("res://assets/audio/SFX/zombie/gargantuar_thump.ogg")
-## 蓄力期间连续践踏的间隔，单位秒。
-const STOMP_INTERVAL: float = 0.22
 ## 转场本体优先从第 3 路出击，内部行号从 0 开始。
 const PHASE_CHARGE_LANE: int = 2
 ## 转场全明星出场顺序，每组内同时召唤。
 const PHASE_SUMMON_ROWS := [[0, 4], [1, 3], [2]]
-## 本体出击后，按组启动的残影行。
-const PHASE_SHADOW_ROWS := [[1, 3], [0, 4]]
-## 本体拖尾比冲锋残影自身的拖尾更实。
-const CHARGE_TRAIL_OPACITY: float = 0.74
-## 本体实际移动时，相邻两次落步震动之间的冲锋秒数。
-const CHARGE_SHAKE_INTERVAL: float = 0.34
-## 落步震屏的横纵幅度，单位像素。
-const CHARGE_SHAKE_AMPLITUDE := Vector2(4.0, 7.0)
-## 单次落步震屏的衰减时长，单位游戏秒。
-const CHARGE_SHAKE_DURATION: float = 0.24
-## 从起点到停止线的距离比例，三个剪影沿路径分布。
-const SILHOUETTE_PATH_FRACTIONS := [0.22, 0.50, 0.78]
 ## 动作执行状态；转阶段与死亡抢占普通动作，不依赖异步等待链。
 enum State { ENTER, OPENING, IDLE, RAISE, WINDUP, CHARGE, STOP,
 	CHANGE_LANE, PHASE_RAISE, PHASE_CHARGE_OUT, PHASE_CHARGE_IN,
@@ -64,18 +44,6 @@ var _phase_summon_interval: float = 0.0
 var _waiting_for_phase_summons: bool = false
 ## 等待起跑或正在扫掠的转场残影。
 var _charge_shadows: Array[BlackGeneralChargeShadow] = []
-## 本体下一次采样拖尾的世界横坐标，按实际移动距离间隔一格。
-var _next_trail_x: float = 0.0
-## 本体冲锋时正在延伸的烟带；收势后由烟带自身耗散。
-var _charge_wake: BlackGeneralChargeWake
-## 本体距下一次冲锋震屏的秒数。
-var _shake_wait: float = 0.0
-## 本次冲锋尚未越过的剪影世界横坐标，按越过顺序存放。
-var _silhouette_marks: Array[float] = []
-## 专用践踏音轨，允许快速重播并在冲锋或中断时立即停止。
-var _stomp_player: AudioStreamPlayer
-## 蓄力中距下次践踏的战斗秒数。
-var _stomp_wait: float = 0.0
 
 ## 入树时连接已接入的动画事件，定位在管理器登记结束后进行。
 func ready_norm() -> void:
@@ -108,6 +76,7 @@ func _start_battle() -> void:
 	var row: Array = _game.plant_cell_manager.all_plant_cells[lane] # 初始行的场地范围。
 	if row.size() < 2:
 		return
+	visual.bind_effects(self, self, _game, _shake_battle_camera)
 	signal_status_update.emit()
 	state = State.ENTER
 	visual.play_action(&"teleport_in")
@@ -121,16 +90,13 @@ func _battle_active() -> bool:
 ## [param delta] 物理秒数；移动和行动等待受角色速度影响，插旗冷却按战斗时间计。
 func _physics_process(delta: float) -> void:
 	if not _battle_active():
-		_stop_windup_sound()
-		_retire_charge_wake()
+		visual.stop_windup_sound()
+		visual.retire_charge_effects()
 		_clear_charge_shadows()
 		return
 	behavior.advance_flag_cooldown(delta)
 	if state == State.WINDUP:
-		_stomp_wait -= delta
-		if _stomp_wait <= 0.0:
-			_stomp_player.play()
-			_stomp_wait += STOMP_INTERVAL
+		visual.advance_windup_sound(delta)
 	var step: float = delta * _speed # 经角色控制效果缩放的逻辑时间。
 	if step <= 0.0:
 		return
@@ -185,9 +151,9 @@ func _apply_boss_visual_phase(phase: int, animated: bool) -> void:
 		_enter_phase_two_look()
 		return
 	boss_target_lane = -1
-	_stop_windup_sound()
+	visual.stop_windup_sound()
 	charge.cancel()
-	_retire_charge_wake()
+	visual.retire_charge_effects()
 	_transitioning = true
 	_set_invulnerable(true)
 	state = State.PHASE_RAISE
@@ -207,79 +173,33 @@ func _begin_windup() -> void:
 	_waiting_for_phase_summons = false
 	state = State.WINDUP
 	visual.play_action(&"windup")
-	if _stomp_player == null:
-		_stomp_player = AudioStreamPlayer.new()
-		_stomp_player.stream = STOMP_SOUND
-		_stomp_player.bus = &"SFX"
-		add_child(_stomp_player)
-	_stomp_wait = STOMP_INTERVAL
-	_stomp_player.play()
-
-## 结束蓄力或中断动作时切断践踏声。
-func _stop_windup_sound() -> void:
-	if is_instance_valid(_stomp_player) and _stomp_player.playing:
-		_stomp_player.stop()
 
 ## 蓄力结束后开始本体冲锋，二阶段沿实际路线布置剪影落点。
 func _begin_charge() -> void:
-	_stop_windup_sound()
 	charge.begin(0 if _transitioning or boss_phase >= 2 else config.phase_one_kill_limit)
 	state = State.CHARGE
-	_next_trail_x = global_position.x
-	_shake_wait = 0.0
-	_silhouette_marks.clear()
-	if boss_phase >= 2:
-		var stop_x: float = charge.stop_line(_game.plant_cell_manager.all_plant_cells[lane]) # 本路冲锋的左侧边界。
-		if stop_x < global_position.x:
-			for fraction: float in SILHOUETTE_PATH_FRACTIONS: # 按实际移动距离均匀散开。
-				_silhouette_marks.append(lerpf(global_position.x, stop_x, fraction))
+	var stop_x: float = charge.stop_line(_game.plant_cell_manager.all_plant_cells[lane]) # 本路冲锋的左侧边界。
+	visual.begin_charge_effects(stop_x, lane)
 	visual.play_action(&"charge")
 	if _transitioning:
 		_begin_charge_shadows()
 
-## 用 [param step] 推进本体冲锋；只有实际移动时产生震屏，并放下已经越过的剪影。
+## 用 [param step] 结算实战扫掠，并将实际位移交给共用演出组件。
 func _advance_charge(step: float) -> void:
-	if global_position.x <= _next_trail_x:
-		BlackGeneralChargeTrail.spawn(visual, self, z_index - 1, CHARGE_TRAIL_OPACITY)
-		_next_trail_x = global_position.x - _cell_width()
+	visual.sample_charge_trail(_cell_width())
 	var feet: Vector2 = global_position # 记录移动前的起点，用于在实际扫过的范围上铺开烟带。
 	var completed: bool = charge.advance(self, _game.plant_cell_manager.all_plant_cells[lane], step) # 伤害可能同步触发阶段中断。
 	if state != State.CHARGE or is_death:
 		return
-	if global_position.x < feet.x:
-		if _charge_wake == null:
-			_charge_wake = BlackGeneralChargeWake.spawn(self, feet, z_index - 2, 1.0)
-			BlackGeneralShadowBurst.erupt(self, feet, z_index - 1, 0.82)
-		_charge_wake.follow(global_position.x)
-		_shake_wait -= step
-		if _shake_wait <= 0.0:
-			EventBus.push_event(MainGameCamera.SHAKE_EVENT, [CHARGE_SHAKE_AMPLITUDE, CHARGE_SHAKE_DURATION])
-			_shake_wait += CHARGE_SHAKE_INTERVAL
-		_place_charge_silhouettes()
+	visual.advance_charge_effects(feet, step)
 	if completed:
-		if _charge_wake != null:
-			BlackGeneralShadowBurst.erupt(self, global_position, z_index + 1, 1.20)
-			EventBus.push_event(MainGameCamera.SHAKE_EVENT, [Vector2(6.0, 10.0), 0.36])
-			_retire_charge_wake()
+		visual.finish_charge_effects()
 		state = State.STOP
 		visual.play_action(&"charge_stop")
 
-## 结束或打断本体冲锋时，将已扫过的烟带留在原路上耗散。
-func _retire_charge_wake() -> void:
-	if is_instance_valid(_charge_wake):
-		_charge_wake.retire(1.44)
-		_charge_wake = null
-
-## 在实际扫过的位置留下独立设施；由战场持有，直到各自生命耗尽。
-func _place_charge_silhouettes() -> void:
-	while not _silhouette_marks.is_empty() and global_position.x <= _silhouette_marks[0]:
-		var x: float = _silhouette_marks.pop_front() # 即使同帧扫过多个落点，也使用各自的精确坐标。
-		var silhouette: BlackGeneralChargeSilhouette = SILHOUETTE_SCENE.instantiate() # 可被植物攻击的剪影实体。
-		silhouette.lane = lane
-		silhouette.z_index = lane * 50 + 34
-		silhouette.position = _game.to_local(Vector2(x, global_position.y))
-		_game.add_child(silhouette)
-		silhouette.imprint(visual, global_position)
+## 将演出的 [param amplitude]（像素）与 [param duration]（秒）转发给战场镜头。
+func _shake_battle_camera(amplitude: Vector2, duration: float) -> void:
+	EventBus.push_event(MainGameCamera.SHAKE_EVENT, [amplitude, duration])
 
 ## 启动各路影子；若本体转去其他路，则由该路原定的影子补上中路。
 func _begin_charge_shadows() -> void:
@@ -288,8 +208,8 @@ func _begin_charge_shadows() -> void:
 	var interval: float = _cell_width() / config.charge_speed # 本体和上一组各领先约一格。
 	var row_count: int = _game.zombie_manager.all_zombie_rows.size() # 过滤非五路场地的无效行。
 	var center_lane: int = mini(PHASE_CHARGE_LANE, row_count - 1) # 本体原定的冲锋行。
-	for group_index: int in range(PHASE_SHADOW_ROWS.size()): # 依次启动内侧组与外侧组。
-		for planned_row: int in PHASE_SHADOW_ROWS[group_index]: # 同组的残影使用同一个延迟。
+	for group_index: int in range(BlackGeneralChargeShadow.ROWS.size()): # 依次启动内侧组与外侧组。
+		for planned_row: int in BlackGeneralChargeShadow.ROWS[group_index]: # 同组的残影使用同一个延迟。
 			if planned_row == center_lane or planned_row >= row_count:
 				continue
 			var row: int = center_lane if planned_row == lane else planned_row # 换位后每路仍最多一影。
@@ -335,7 +255,7 @@ func _on_flag_raised() -> void:
 	if not _battle_active() or _released or state not in [State.OPENING, State.RAISE, State.PHASE_RAISE, State.PHASE_FINISH]:
 		return
 	_released = true
-	FLAG_FLAME.new().ignite(_game, global_position, z_index + 1)
+	visual.play_flag_flame()
 	match state:
 		State.OPENING:
 			SoundManager.play_boss_phase_roar()
@@ -506,8 +426,8 @@ func character_death() -> void:
 		return
 	state = State.DYING
 	charge.cancel()
-	_retire_charge_wake()
-	_stop_windup_sound()
+	visual.retire_charge_effects()
+	visual.stop_windup_sound()
 	_clear_charge_shadows()
 	_clear_flags()
 	super.character_death()

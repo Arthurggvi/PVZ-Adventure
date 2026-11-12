@@ -116,7 +116,7 @@ func _rebuild_phase() -> void:
 	for index: int in range(_phase_buttons.size()): # 用亮边标记正在查看的阶段。
 		_phase_buttons[index].set_pressed_no_signal(index + 1 == _phase)
 	_stats.text = Data.stats(_info, _phase) + "\n\n" + Data.passive(type_id, _info) + "\n\n人物介绍\n" + str(_info.story)
-	_preview.show_boss(type_id, _phase)
+	_preview.show_boss(type_id, _phase, _info)
 	for child: Node in _skill_grid.get_children(): # 销毁旧阶段按钮，避免说明和动作错配。
 		_skill_grid.remove_child(child)
 		child.queue_free()
@@ -151,7 +151,7 @@ func _choose_skill(index: int, play_sound: bool = true) -> void:
 		_skill_buttons[button_index].set_pressed_no_signal(button_index == index)
 	_effect.text = "%s · %s\n%s" % [skill.title, "二阶段" if _phase == 2 else "一阶段", skill.description]
 	_effect_scroll.scroll_vertical = 0
-	_preview.play_skill(skill.clips)
+	_preview.play_skill(skill.clips, skill.id)
 	if play_sound:
 		SoundManager.play_other_SFX(&"tap")
 

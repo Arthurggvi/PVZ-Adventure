@@ -4,6 +4,8 @@ class_name MainGameCamera
 
 ## 主游戏短促震动事件；参数依次为二维幅度、持续游戏秒数和每秒振动次数。
 const SHAKE_EVENT: String = "main_game_camera_shake"
+## 入树前设为 false 时只接收直接调用，供独立演出舞台使用。
+var listen_for_battle_shake: bool = true
 ## 当前震动开始前的相机偏移；重复触发期间不重新取值，避免偏移累积。
 var _shake_base_offset: Vector2 = Vector2.ZERO
 ## 当前震动的横向和纵向最大幅度，单位为相机坐标像素。
@@ -19,12 +21,14 @@ var _shake_frequency: float = 20.0
 ## 监听表现事件；没有震动时关闭逐帧更新，镜头横移 Tween 不受影响。
 func _ready() -> void:
 	set_process(false)
-	EventBus.subscribe(SHAKE_EVENT, shake_once)
+	if listen_for_battle_shake:
+		EventBus.subscribe(SHAKE_EVENT, shake_once)
 
 
 ## 离开关卡时解除事件监听并恢复原偏移，避免重新入树后残留震动位置。
 func _exit_tree() -> void:
-	EventBus.unsubscribe(SHAKE_EVENT, shake_once)
+	if listen_for_battle_shake:
+		EventBus.unsubscribe(SHAKE_EVENT, shake_once)
 	stop_shake()
 
 
