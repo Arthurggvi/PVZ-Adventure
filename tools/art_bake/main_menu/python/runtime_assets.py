@@ -12,11 +12,12 @@ def publish(workspace: Path, tools_config: Path) -> None:
         if not (workspace/relative).is_file():raise FileNotFoundError(workspace/relative)
     destination=repo/'assets/adventure/main_menu/coastal'
     (destination/'config').mkdir(parents=True,exist_ok=True)
+    # 在任何复制前验证所有权，不能让一项同时归制作源和正式运行配置所有。
+    assert not set(spec['configs']).intersection(spec['runtime_owned_configs']), 'Conflicting config ownership'
+    for name in spec['runtime_owned_configs']:
+        if not (destination/'config'/f'{name}.json').is_file():raise FileNotFoundError('Runtime config missing: '+name)
     for name in spec['configs']:
         shutil.copy2(workspace/'config'/f'{name}.json',destination/'config'/f'{name}.json')
-    # daily_cycle/ui_layout属于运行配置，不能被旧工作目录里的归档副本覆盖。
-    for name in ['daily_cycle','ui_layout']:
-        if not (destination/'config'/f'{name}.json').is_file():raise FileNotFoundError('Runtime config missing: '+name)
     report_dir=workspace/'reports';report_dir.mkdir(exist_ok=True)
     request={'source':str(workspace),'output':str(destination),'files':spec['files'],'report':str(report_dir/'native_resources.json')}
     request_path=report_dir/'publish_runtime_request.json'

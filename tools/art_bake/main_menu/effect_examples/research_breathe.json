@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "hover": {},
+  "lights": {
+    "research": {
+      "mode": "breathe",
+      "minimum": 0.2,
+      "maximum": 1.25,
+      "period_seconds": 3.0
+    }
+  },
+  "water": {}
+}

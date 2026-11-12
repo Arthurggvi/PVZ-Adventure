@@ -59,7 +59,7 @@
 ```powershell
 $entry='C:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
 $tools='C:\Dev\Tools\ArtControl\config.json'
-# 从已批准制作目录重新发布31份原生贴图；不会覆盖运行daily_cycle/ui_layout。
+# 从已批准制作目录重新发布31份原生贴图；不会覆盖运行daily_cycle/ui_layout/effect_profile。
 python $entry publish-runtime --workspace C:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112 --tools-config $tools
 # 使用正式场景/真实业务，在独立user目录录制；不修改生产存档。
 python $entry runtime-preview --workspace C:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112 --tools-config $tools
@@ -90,3 +90,9 @@ JSON与shader include已纳入原有导出规则。自定义RGBA原始数据不�
 `daily_cycle.mp4`：10秒完整日周期；`runtime_walkthrough.mp4`：约23秒真实输入流程。
 
 XCF仍归已批准的9A美术工作副本，本轮没有重新绘制图层；新的时间、UI和正式运行状态以配置/源码及实际截图为权威，不另存一个会被误认为实时交互的“成品XCF”。
+
+## 8｜效果算法与时间调制（后续封装）
+
+hover材质替换、四组灯光呼吸/闪烁、水面算法与独立周期统一见 [效果接口索引](main_menu_effects_api.md)。当前默认effect_profile为空对象，原观感不改变。即时重载入口为菜单reload_visual_effects/host.reload_effects；普通几何、命中、风动参数的加载周期仍按索引区分。
+
+日周期只提交实际relight参数，water_time_gain显式路由到港口材质；local/emission/halo组倍率由效果控制器拥有，不得在daily_cycle内重复维护。新运行profile已加入发布保护，旧制作目录不会覆盖它。

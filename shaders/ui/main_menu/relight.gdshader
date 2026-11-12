@@ -20,6 +20,8 @@ uniform float halo_strength = 0.0;
 uniform float legacy_spill_strength = 0.0;
 uniform float emission_balance = 1.0;
 uniform vec4 local_group_energy = vec4(1.0);
+uniform vec4 emission_group_energy = vec4(1.0);
+uniform vec4 halo_group_energy = vec4(1.0);
 uniform vec3 local_color = vec3(1.0,0.66,0.33);
 uniform vec3 halo_color = vec3(1.0,0.64,0.26);
 uniform vec3 reference_light = vec3(-0.45,0.60,0.66);
@@ -70,13 +72,13 @@ void fragment() {
         // 接收光乘以原表面颜色，保留材质纹理；位置/遮挡支持范围来自配置。
         float local_field=dot(texture(local_receiver_data,UV),local_group_energy);
         lit+=base_linear*local_color*local_field*local_strength;
-        float grouped=dot(texture(local_emission_data,UV),vec4(1.0));
+        float grouped=dot(texture(local_emission_data,UV),emission_group_energy);
         float other=max(control.b-texture(old_group_emission_data,UV).r,0.0);
         float emission=mix(control.b,grouped+other,emission_balance);
         lit+=window_color*window_energy*emission;
         lit+=spill_color*spill_energy*texture(spill_data,UV).r*spill_scale*legacy_spill_strength;
         // 仅少量灯源光晕，不替代墙面与地面受光；可单独归零。
-        lit+=halo_color*dot(texture(source_halo_data,UV),vec4(1.0))*halo_strength;
+        lit+=halo_color*dot(texture(source_halo_data,UV),halo_group_energy)*halo_strength;
         vec3 result=to_srgb(lit);
         float altitude=clamp(UV.y/max(sky_height_uv,0.001),0.0,1.0);
         vec3 sky=mix(sky_top,sky_horizon,smoothstep(0.0,1.0,altitude));

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "hover": {
+    "shader": "res://shaders/ui/main_menu/entry_sweep.gdshader",
+    "parameters": {
+      "fill_gain": 0.035,
+      "sweep_gain": 0.28,
+      "period_seconds": 2.0
+    }
+  },
+  "lights": {},
+  "water": {}
+}

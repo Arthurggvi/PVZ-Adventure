@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "hover": {},
+  "lights": {
+    "research": {
+      "mode": "flicker",
+      "minimum": 0.65,
+      "maximum": 1.15,
+      "period_seconds": 2.0
+    }
+  },
+  "water": {}
+}

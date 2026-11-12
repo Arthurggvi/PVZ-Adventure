@@ -1,6 +1,7 @@
 shader_type canvas_item;
 render_mode unshaded;
 #include "res://shaders/ui/main_menu/wind_field.gdshaderinc"
+#include "res://shaders/ui/main_menu/water_surface.gdshaderinc"
 uniform sampler2D boat_without_flag : filter_linear, repeat_disable;
 uniform sampler2D flag_premult : filter_linear, repeat_disable;
 uniform bool flag_enabled = true;
@@ -57,10 +58,10 @@ void fragment() {
         vec2 point=UV*canvas_pixels;
         vec4 region=texture(masks,UV);
         float water=water_enabled?region.b:0.0;
-        vec2 drift=vec2(sin(point.y/wave_lengths.x+angle),0.32*sin(point.x/wave_lengths.y-angle*2.0));
+        vec2 drift=water_surface_offset(point,wave_lengths);
         vec2 water_uv=UV+drift*water_displacement_px*water/canvas_pixels;
         vec4 result=clean_scene(TEXTURE,water_uv);
-        float shimmer=sin(point.x/37.0+point.y/9.0+angle*2.0)*sin(point.y/21.0-angle);
+        float shimmer=water_surface_shimmer(point);
         result.rgb*=1.0+water_glint*water*shimmer*water_time_gain;
         vec2 displacement=boat_enabled?vec2(sway_px*sin(angle*2.0),heave_px*sin(angle)):vec2(0.0);
         float turn=boat_enabled?roll_radians*sin(angle):0.0;

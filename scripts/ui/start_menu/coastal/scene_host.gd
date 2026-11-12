@@ -21,6 +21,12 @@ var time_progress := 0.0
 var wind_controller: RefCounted
 ## 可选入口视觉；没有入口配置时不增加视口。
 var entry_highlight: RefCounted
+## hover/光行为/水面效果的统一可调用门面；没有反向持有宿主。
+var effects := preload("res://scripts/ui/start_menu/coastal/effect_controls.gd").new()
+## 可显式重载的效果配置地址，制作目录未提供时使用中性默认。
+var effect_profile_path := ""
+## 缓存真实光照uniform声明；日周期不能写入由效果控制器拥有的倍率。
+var _light_uniform_types: Dictionary={}
 ## 单实例纹理存储，避免同一母图重复占用显存。
 var assets := preload("res://scripts/ui/start_menu/coastal/asset_store.gd").new()
 
@@ -67,6 +73,8 @@ func configure(folder: String, include_preview_ui: bool=true) -> void:
 	light_shader.code = load("res://shaders/ui/main_menu/relight.gdshader").code
 	light_material = ShaderMaterial.new()
 	light_material.shader = light_shader
+	for declaration: Dictionary in light_shader.get_shader_uniform_list(): # 仅构建时枚举一次。
+		_light_uniform_types[str(declaration.name)]=int(declaration.type)
 	var inputs := {"base_working":"working_base.png","ground_finished":"ground_finished.png","normal_data":"maps/normal.png","control_data":"maps/controls.png","environment_data":"maps/environment.png","spill_data":"maps/spill.png","local_emission_data":"finish_maps/local_emission.png","source_halo_data":"finish_maps/source_halo.png","old_group_emission_data":"finish_maps/base_group_emission.png"} # 共用受光输入。
 	for key: String in inputs:
 		light_material.set_shader_parameter(key,texture_file(folder.path_join(inputs[key])))
@@ -103,10 +111,18 @@ func configure(folder: String, include_preview_ui: bool=true) -> void:
 			ui_layer.add_child(rect)
 	ui_layer.hide()
 	apply_motion()
+	effects.configure(entry_highlight,light_material,harbor_material,motion)
+	effect_profile_path=folder.path_join("config/effect_profile.json")
+	if FileAccess.file_exists(effect_profile_path):
+		var result: Dictionary=effects.reload_file(effect_profile_path) # 错误配置不提交半个场景。
+		assert(result.ok,str(result.get("error","Invalid effect profile")))
 	set_time(0.0)
 
 ## 将本实例的配置施加到共享 shader；越过已核对包络即拒绝。
 func apply_motion() -> void:
+	assert(is_finite(float(motion.loop_seconds)) and float(motion.loop_seconds)>0.0)
+	effects.water.default_period=float(motion.loop_seconds) # 未单独配置水周期时，热调motion后仍正确继承。
+	effects.water.default_phase=float(motion.boat.phase_offset)
 	assert(absf(motion.boat.heave_px) <= motion.limits.max_heave_px)
 	assert(absf(motion.boat.roll_degrees) <= motion.limits.max_roll_degrees)
 	assert(absf(motion.boat.sway_px) <= motion.limits.max_sway_px)
@@ -121,16 +137,22 @@ func set_time(progress: float) -> void:
 	var values: Dictionary = sampler.sample(profile,time_progress) # 全景同一时段。
 	apply_uniforms(values,lerpf(1.0,float(motion.water.night_gain),time_progress))
 
-## [param values] 为统一场景参数；[param water_gain] 为水面夜间权重，不改变动作时间。
-func apply_uniforms(values: Dictionary, water_gain: float) -> void:
+## [param values] 为统一场景参数；[param water_gain] 为水面夜间权重；完整验证成功返回true，失败不提交，不改变动作时间。
+func apply_uniforms(values: Dictionary, water_gain: float) -> bool:
+	var converted: Dictionary=preload("res://scripts/ui/start_menu/coastal/effect_uniforms.gd").scene_values(values,_light_uniform_types) # 先验证整个提交。
+	if not converted.ok or not is_finite(water_gain):
+		push_error(str(converted.get("error","Invalid water gain")))
+		return false
 	light_material.set_shader_parameter("enabled",true)
-	for key: String in values: # 同一参数提交路径。
-		light_material.set_shader_parameter(key,values[key])
+	for key: String in converted["values"]: # 只更新日周期拥有的参数。
+		light_material.set_shader_parameter(key,converted["values"][key])
 	harbor_material.set_shader_parameter("water_time_gain",water_gain)
+	return true
 
 ## [param phase] 为可重复的周期进度；不读取系统时钟。
 func set_phase(phase: float) -> void:
 	harbor_material.set_shader_parameter("phase",phase)
+	effects.set_elapsed(phase*float(motion.loop_seconds))
 	if wind_controller != null:
 		wind_controller.set_elapsed(phase*float(motion.loop_seconds))
 
@@ -142,6 +164,7 @@ func set_motion_enabled(enabled: bool) -> void:
 func set_elapsed(seconds: float) -> void:
 	assert(float(motion.loop_seconds) > 0.0)
 	harbor_material.set_shader_parameter("phase",fposmod(seconds/float(motion.loop_seconds),1.0))
+	effects.set_elapsed(seconds)
 	if wind_controller != null:
 		wind_controller.set_elapsed(seconds)
 
@@ -159,3 +182,7 @@ func set_entry_hover(id: String, mode: String, pressed: bool=false) -> void:
 func advance_entry_hover(delta: float) -> void:
 	if entry_highlight != null:
 		entry_highlight.advance(delta)
+
+## 从当前数据根重载效果配置；失败保留原状态并返回error，不修改文件。
+func reload_effects() -> Dictionary:
+	return effects.reload_file(effect_profile_path)

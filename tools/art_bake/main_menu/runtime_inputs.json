@@ -40,5 +40,10 @@
     "wind",
     "wind_layout",
     "entries"
+  ],
+  "runtime_owned_configs": [
+    "daily_cycle",
+    "ui_layout",
+    "effect_profile"
   ]
 }

@@ -110,3 +110,11 @@ https://docs.godotengine.org/en/stable/classes/class_viewporttexture.html
 - 原生预览使用独立user目录与原游戏资源；临时演示档案明确标注。native_project是资源链接和派生manifest，不是独立可发布包，禁止递归打包或对其额外执行editor导入。
 - 当前资产目录为 `C:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112`。新原生交互需要完整原工程；原all/render仍是离线美术捕获，不伪装为可点击窗口。
 - 详细职责、已开放入口与未完成边界见 `docs/adventure/main_menu_entries_pipeline.md`。图鉴/研究室/地图真实打开，家/商店未开放，最终功能台/档案按钮仍待9B整合。
+
+## 效果可替换性与案例入口
+
+权威说明：`docs/adventure/main_menu_effects_api.md`。运行effect_profile只持有hover算法、灯组时间调制和水面算法/独立周期，默认中性；原几何、常规幅度、时态和业务仍归原配置。制作示例在effect_examples，不自动覆盖正式美术。
+
+`python menu.py effects-preview --workspace <独立交付目录> --tools-config <ArtControl/config.json>` 复制当前菜单代码/资源到无autoload空工程，直接调用正式接口演示，输出144帧案例及恢复默认的截图。没有加载玩家存档，也不重建原母图/灰度/法线。案例不是默认效果替换决定。
+
+publish-runtime遵守runtime_inputs.json的runtime_owned_configs，保留daily_cycle/ui_layout/effect_profile。自定义hover shader通过uniform契约绑定；水面算法扩展写在water_surface include，不复制整个harbor shader。

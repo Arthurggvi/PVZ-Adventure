@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "hover": {},
+  "lights": {},
+  "water": {
+    "pattern": "ripples",
+    "period_seconds": 2.0,
+    "ripple_spacing": 21.0,
+    "ripple_center": [
+      1480.0,
+      340.0
+    ]
+  }
+}

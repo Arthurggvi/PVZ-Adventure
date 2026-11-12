@@ -3,6 +3,7 @@ render_mode unshaded;
 // 高亮在原受光后、既有风/船变换前；只用内侧边缘，不把外描边留在静止水面。
 uniform sampler2D entry_mask : filter_linear, repeat_disable;
 uniform float strength = 0.0;
+uniform float effect_seconds = 0.0; // 契约保留：默认效果不依赖时间。
 uniform float fill_gain = 0.13;
 uniform float inner_edge_gain = 0.34;
 uniform vec3 accent = vec3(1.0,0.86,0.58);

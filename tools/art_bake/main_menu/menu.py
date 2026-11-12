@@ -59,12 +59,15 @@ def stage_runtime(work: Path) -> None:
 
 def main() -> None:
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action',choices=['build','render','preview','workfile','all','entries','entries-preview','publish-runtime','runtime-preview','runtime-preview-images'])
+    parser.add_argument('action',choices=['build','render','preview','workfile','all','entries','entries-preview','publish-runtime','runtime-preview','runtime-preview-images','effects-preview'])
     parser.add_argument('--workspace',type=Path,required=True)
     parser.add_argument('--tools-config',type=Path,required=True)
     parser.add_argument('--force',action='store_true')
     args=parser.parse_args();work=args.workspace.resolve(strict=True)
     (work/'reports').mkdir(exist_ok=True)
+    if args.action=='effects-preview':
+        importlib.import_module('python.native_effects').run(work,args.tools_config)
+        return
     if args.action=='publish-runtime':
         importlib.import_module('python.runtime_assets').publish(work,args.tools_config)
         return

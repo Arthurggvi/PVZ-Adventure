@@ -102,6 +102,17 @@
 - **发布与复现**：menu.py publish-runtime / runtime-preview / runtime-preview-images为单入口。交付在 `C:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112`。运行daily_cycle/ui_layout为正式权威，不被旧制作目录覆盖；原生资源包已验证可搬迁，但未安装exe模板、未导出完整游戏exe。
 - **边界**：只操作PVZ-Menu9B-Isolated-20261112演示档案，未读写正式玩家存档；没有进入战斗/验收合成事务，没有物理睡眠唤醒或全平台性能验证。未新增/运行游戏测试套件；旧版本专用美术探针已标明退役，不作为新菜单通过证据。实机短采样数据与详细限制见维护页，不夸大为完整回归或发布保证。
 
+## 5.2｜主菜单效果：参数可达、算法替换与重载
+
+- **权威索引**：[效果调参与扩展接口](main_menu_effects_api.md)，按各阶段列出“配置→方法→材质→重建/发布”。正式效果文件为 `assets/adventure/main_menu/coastal/config/effect_profile.json`，默认三个空对象，保留已通过观感；示例只放在 tools/art_bake/main_menu/effect_examples。
+- **明确方法**：菜单 `reload_visual_effects()`；宿主 `reload_effects()`；`host.effects.set_hover_effect / set_light_behavior / set_water_effect / apply_profile / snapshot / describe`。错误输入不半更新，返回error且保留上次有效状态，不碰档案/入口权限。
+- **hover替换**：entry_highlight维持命中反馈和过渡，Shader按entry_mask/strength/accent/effect_seconds契约替换，参数按真实uniform名称/类型验证；内置entry_sweep示例不默认启用。不再为换高亮算法修改输入控制器。
+- **灯光行为**：light_behavior按home/library/shop/research四组支持steady/breathe/flicker/off，窗口、接收光、光晕共用倍率；日周期不能覆写倍率，显式动作秒数决定波形。独立到单扇窗或新增灯组仍需重建通道资产，不虚构任意命名光源。
+- **水面扩展**：water_surface.gdshaderinc只拥有表面位移/亮纹；water_effect负责drift/ripples/still与独立周期，保留岸线/遮挡和船体合成。水速改变不改船phase；普通幅度在motion.water，接触波纹仍独立。
+- **所有权与生效**：effect_profile与daily_cycle/ui_layout是运行所有，发布旧制作资产时不得覆盖。参数索引明确区分即时重载、重进菜单、重建蒙版/浮点场、显式发布；风/几何/业务不因本次例子扩张重构。
+- **实际核对**：正式宿主空工程完成三个案例、错误配置保留状态、文件重载恢复默认及全天参数提交不覆盖灯光调制。默认夜景/hover与基线像素完全一致，白天只有1像素相差1/255；不写成全图位一致。未新增/运行游戏测试套件、未加载玩家服务。
+- **复现**：`menu.py effects-preview --workspace <独立目录> --tools-config <原生工具配置>`；本轮证据目录 `C:\Dev\Tools\ArtControl\runs\main-menu-effects-access-20261112`。制作预览复用正式组件，不维护第二套效果算法。
+
 ## 6｜验收与交接收口
 
 - 核对**真实运行链路**：关卡启动、参数投影、有效场景格子、真正的卡槽扣费与冷却、入水触发、屏幕绘制。原版泳池与下水道两处均需回归。尤其关注承托植物种植/铲除/读档和跨行错位。

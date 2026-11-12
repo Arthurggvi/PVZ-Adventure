@@ -158,3 +158,7 @@ func _notification(what: int) -> void:
 
 func _exit_tree() -> void:
 	get_tree().auto_accept_quit=_old_auto_quit
+
+## 调参工具的显式入口；不重新加载档案、重建场景或改变动作计时。
+func reload_visual_effects() -> Dictionary:
+	return host.reload_effects() if initialized else {"ok":false,"error":"菜单尚未完成初始化"}
