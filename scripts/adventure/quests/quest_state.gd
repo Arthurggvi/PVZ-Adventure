@@ -26,6 +26,12 @@ static func from_dict(data: Variant) -> AdventureQuestState:
 			return null
 		if record.has("awarded_experience") and not _integer(record.awarded_experience, 0):
 			return null
+		if record.has("collected_items"):
+			if not record.collected_items is Array:
+				return null
+			for item_id: Variant in record.collected_items: # 保留合法历史 ID，内容目录调整后仍能读档。
+				if not item_id is String or item_id.is_empty():
+					return null
 	var result := AdventureQuestState.new() # 创建独立状态，避免共享输入容器。
 	result.day = data.day
 	result.records = data.records.duplicate(true)

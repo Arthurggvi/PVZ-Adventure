@@ -45,7 +45,7 @@ static func eligible(state: AdventureState, task: Dictionary) -> bool:
 	return checks.has(true) if task.activation_mode == "any" else not checks.has(false)
 
 ## 在 [param day] 刷新周期并按前置依赖收敛生效状态；返回是否修改了存档数据。
-## 空事件任务按当前等级判定；其余任务仅在生效后计数，历史通关补记须显式启用 accept_history。
+## 收集任务分别记录已找到的物品；历史通关补记须显式启用 accept_history。
 static func synchronize(state: AdventureState, day: String) -> bool:
 	var before: Dictionary = state.quests.to_dict() # 比较完整任务域以通知调用方保存。
 	state.quests.day = day if day > state.quests.day else state.quests.day
@@ -60,7 +60,11 @@ static func synchronize(state: AdventureState, day: String) -> bool:
 					"status": "active", "progress": 0}
 				changed = true
 			var record: Dictionary = state.quests.records.get(task.id, {}) # 在权威记录上补记已满足的目标。
-			if record.get("status") == "active" and _objective_met(state, task):
+			if record.get("status") != "active":
+				continue
+			if task.has("collect_items"):
+				_update_collection(state, task.collect_items, record)
+			if _objective_met(state, task, record):
 				record.progress = task.count
 				record.status = "complete"
 				changed = true
@@ -68,17 +72,45 @@ static func synchronize(state: AdventureState, day: String) -> bool:
 			break
 	return before != state.quests.to_dict()
 
-## 根据 [param state] 中可直接核实的事实判定 [param task]，不修改任务记录。
-static func _objective_met(state: AdventureState, task: Dictionary) -> bool:
+## 根据 [param state] 及 [param record] 中可直接核实的事实判定 [param task]。
+static func _objective_met(state: AdventureState, task: Dictionary, record: Dictionary) -> bool:
+	if task.has("collect_items"):
+		return int(record.progress) >= int(task.count)
 	if str(task.event).is_empty():
 		return state.player_level >= int(task.get("completion_level", 0))
-	if not task.accept_history or task.event != "stage_cleared":
+	if not task.accept_history:
 		return false
-	var target: PackedStringArray = str(task.target).split("/") # 前段为关卡 ID，后段为阶段。
+	if task.has("history_claim"):
+		return state.claimed_rewards.get(task.history_claim, false) == true
+	return task.event == "stage_cleared" and _was_stage_cleared(state, task.target)
+
+## 将 [param target_id] 中的关卡和阶段映射到 [param state] 的永久通关记录。
+static func _was_stage_cleared(state: AdventureState, target_id: String) -> bool:
+	var target: PackedStringArray = target_id.split("/") # 前段为关卡 ID，后段为阶段。
 	if target.size() != 2:
 		return false
-	var phase: int = StagePhaseDefinition.Kind.NORMAL if target[1] == "normal" else StagePhaseDefinition.Kind.NIGHTMARE # 与现有通关记录口径一致。
-	return AdventureStageCatalog.is_cleared(state, StringName(target[0]), phase)
+	var stage_id := StringName(target[0]) # 使用与关卡目录一致的稳定身份。
+	match target[1]:
+		"normal":
+			return AdventureStageCatalog.is_cleared(state, stage_id, StagePhaseDefinition.Kind.NORMAL)
+		"nightmare":
+			return AdventureStageCatalog.is_cleared(state, stage_id, StagePhaseDefinition.Kind.NIGHTMARE)
+		"terminal":
+			return AdventureStageCatalog.is_cleared(state, stage_id, StagePhaseDefinition.Kind.TERMINAL)
+	return false
+
+## 把 [param state] 的持有或使用证据记到 [param record]；[param goals] 映射物品 ID 到对应通关证据。
+static func _update_collection(state: AdventureState, goals: Dictionary, record: Dictionary) -> void:
+	var previous: Array = record.get("collected_items", []) # 每种物品独立记录，后续消费不会丢掉进度。
+	var collected: Array[String] = [] # 只计入当前目标中的物品，每种只计一次。
+	for id: String in goals: # 目标值可为空，表示仅以库存或已记录的收集为证。
+		var evidence: String = goals[id] # 兼容已经使用钥匙并通关相应阶段的存档。
+		if id in previous or int(state.items.get(id, 0)) > 0 \
+				or (not evidence.is_empty() and _was_stage_cleared(state, evidence)):
+			collected.append(id)
+	if collected != previous:
+		record["collected_items"] = collected
+		record.progress = collected.size()
 
 ## 接收 [param event]、[param target]，按 [param day] 计入当时已生效的任务；自身不写磁盘。
 ## [param played_plants] 为本次获胜阶段中实际使用的植物卡物种；其他事件留空。

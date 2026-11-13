@@ -233,6 +233,7 @@ func _on_boss_hp_changed(encounter_id: StringName, ratio: float) -> void:
 			_fired[event.event_id] = true
 			_apply_action(event)
 
+## 记录 [param encounter_id] 的 [param reason]；仅当前冒险的真实击败计入指定 Boss 任务。
 func _on_boss_exit(encounter_id: StringName, reason: int) -> void:
 	AdventureSession.boss_exit_results[encounter_id] = reason
 	for encounter: BossEncounterDefinition in phase.boss_encounters: # 必杀遭遇不可用撤退完成。
@@ -249,6 +250,9 @@ func _on_boss_exit(encounter_id: StringName, reason: int) -> void:
 			continue
 		_fired[event.event_id] = true
 		_apply_action(event)
+	if reason == StageEventDefinition.BossExitReason.DEFEATED and not _battle_ended \
+			and AdventureSession.get_active_phase(zombies.main_game.game_para) == phase:
+		Global.record_quest_event("adventure_boss_defeated", str(encounter_id))
 
 func has_pending_bosses() -> bool:
 	return is_instance_valid(_boss_director) and _boss_director.has_pending()
