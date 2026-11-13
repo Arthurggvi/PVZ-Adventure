@@ -45,16 +45,6 @@ quantity_min = 1
 quantity_max = 1
 weight = 1
 
-[sub_resource type="Resource" id="recipe_p052"]
-script = ExtResource("Entry")
-entry_id = &"zombie_island.fallen_camp.nightmare.drops.recipe_p052"
-rule = 2
-asset_kind = 1
-asset_id = &"recipe_p052"
-quantity_min = 1
-quantity_max = 1
-weight = 1
-
 [resource]
 script = ExtResource("Table")
 table_id = &"zombie_island.fallen_camp.nightmare.drops"
@@ -62,7 +52,6 @@ entries = Array[ExtResource("Entry")]([
 SubResource("recipe_p001"),
 SubResource("recipe_p002"),
 SubResource("recipe_p003"),
-SubResource("recipe_p052"),
 ExtResource("pea_stem"),
 ExtResource("pea_pod"),
 ExtResource("sun_nectar"),
