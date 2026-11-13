@@ -35,7 +35,8 @@ func _init(state: AdventureState, inventory: AdventureInventoryService, wallet: 
 func is_current() -> bool:
 	return _state != null and _state.shop != null and _wallet != null and _wallet.adventure_state == _state \
 		and _inventory != null and _inventory.owns_state(_state) and _persist.is_valid() \
-		and _clock.is_valid() and _guard.is_valid() and _guard.call() == true
+		and _clock.is_valid() and _guard.is_valid() and _guard.call() == true \
+		and AdventureQuestService.feature_unlocked(_state, "shop")
 
 ## 返回 [param id] 的实时只读报价；浏览不写档，跨日计数在下一次成交时一起提交。
 func quote(id: String) -> Dictionary:

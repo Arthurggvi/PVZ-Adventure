@@ -24,7 +24,8 @@ func feature_status(feature_id: String) -> Dictionary:
 	var reason := "" # 给场景入口的简短原因，不形成新状态。
 	if not unlocked:
 		var loaded: bool = Global.save_service != null and Global.save_service.is_current_profile_loaded() # 当前真实档案状态。
-		var requirements := {"research": "领取「初次远征」奖励后开放", "library": "完成「千锤百炼」后开放"} # 按功能说明进度条件。
+		var requirements := {"research": "领取「初次远征」奖励后开放", "library": "完成「千锤百炼」后开放",
+			"shop": "完成「直捣黄龙」并与戴夫交谈后开放"} # 按功能说明进度条件。
 		reason = requirements.get(feature_id, "尚未解锁") if loaded else "请先选择存档"
 	var allowed: bool = _host_allowed and _interactive and unlocked and (not is_instance_valid(_modal) or _modal_feature == feature_id) # 所有来源共用。
 	return {"known":true,"unlocked":unlocked,"allowed":allowed,"reason":reason}

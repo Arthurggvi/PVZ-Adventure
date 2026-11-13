@@ -185,6 +185,8 @@ func _render_details(task: Dictionary) -> void:
 		Art.label(_details, "领取后解锁研究室", Vector2(624, 454), Vector2(335, 38), 23, Color("596b31"))
 	if "library" in task.unlocks:
 		Art.label(_details, "完成任务解锁图书馆", Vector2(624, 454), Vector2(335, 38), 23, Color("596b31"))
+	if "shop" in task.unlocks:
+		Art.label(_details, "与戴夫谈完后解锁商店", Vector2(624, 454), Vector2(335, 38), 23, Color("596b31"))
 	if not task.items.is_empty():
 		Art.label(_details, "道具", Vector2(40, 504), Vector2(150, 34), 22)
 		for index: int in 5: # 奖励统一展示五个空槽，已有物品填入对应位置。

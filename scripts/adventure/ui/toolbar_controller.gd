@@ -55,7 +55,7 @@ func _ready() -> void:
 	register_feature("almanac", Callable(self, "_can_open_inventory"), Callable(self, "_open_almanac"))
 	register_feature("library", Callable(self, "_can_open_library"), Callable(self, "_open_library"))
 	register_feature("player", Callable(self, "_can_open_player"), Callable(self, "_open_player"))
-	register_feature("shop", Callable(self, "_can_open_player"), Callable(self, "_open_shop"))
+	register_feature("shop", Callable(self, "_can_open_shop"), Callable(self, "_open_shop"))
 	register_feature("settings", Callable(self, "_can_open_settings"), toggle_settings)
 	_onboarding = Onboarding.new()
 	_onboarding.toolbar = self
@@ -159,7 +159,11 @@ func _can_open_library() -> bool:
 func _open_library() -> void:
 	_toggle_modal("library", Library)
 
-## 主菜单商店建筑进入全屏戴夫页面；权限与其他角色资产操作一致。
+## 商店需要当前档案完成开店剧情，且当前不在冒险战斗中。
+func _can_open_shop() -> bool:
+	return _can_open_player() and AdventureQuestService.feature_unlocked(Global.global_game_state.adventure_state, "shop")
+
+## 主菜单商店建筑进入全屏戴夫页面。
 func _open_shop() -> void:
 	_toggle_modal("shop", Shop)
 

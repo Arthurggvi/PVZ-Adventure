@@ -99,12 +99,15 @@ static func record_event(state: AdventureState, event: String, target: String, d
 	synchronize(state, day)
 	return before != state.quests.to_dict()
 
-## 返回 [param feature] 是否已被永久任务解锁；默认需领奖，可配置为完成即开放。
+## 返回 [param feature] 是否已被 [param state] 中的永久任务解锁；可要求完成、领奖或领奖后的剧情。
 static func feature_unlocked(state: AdventureState, feature: String) -> bool:
 	if state == null:
 		return false
 	for task: Dictionary in AdventureQuestCatalog.TASKS: # 不保存平行解锁开关。
 		if task.daily or feature not in task.unlocks:
+			continue
+		var required_step: String = task.get("unlock_after_step", "") # 有剧情前置时也必须完成指定节点。
+		if not required_step.is_empty() and not state.tutorial_steps.get(required_step, false):
 			continue
 		if claimed(state, task.id) or (task.get("unlock_on_completion", false) and completed(state, task.id)):
 			return true

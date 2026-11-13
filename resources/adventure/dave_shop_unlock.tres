@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="CrazyDaveDialogResource" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/crazy_dave_dialog_resource.gd" id="dialog"]
+[ext_resource type="Script" path="res://scripts/resources/crazy_dave_dialog_detail_resource.gd" id="line"]
+
+[sub_resource type="Resource" id="Line0"]
+script = ExtResource("line")
+text = "什么......."
+
+[sub_resource type="Resource" id="Line1"]
+script = ExtResource("line")
+text = "你说你没见到埃德加......？！"
+
+[sub_resource type="Resource" id="Line2"]
+script = ExtResource("line")
+text = "他一定是藏在某处了。"
+
+[sub_resource type="Resource" id="Line3"]
+script = ExtResource("line")
+text = "好在你找到了这些钥匙。"
+
+[sub_resource type="Resource" id="Line4"]
+script = ExtResource("line")
+text = "用这些钥匙去看看那些关卡的门后有什么，或许你会收获线索......"
+
+[sub_resource type="Resource" id="Line5"]
+script = ExtResource("line")
+text = "我的商店钥匙也找到了，你可以随时来城镇找我。"
+
+[sub_resource type="Resource" id="Line6"]
+script = ExtResource("line")
+text = "我的大门永远为你敞开"
+is_crazy = true
+
+[resource]
+script = ExtResource("dialog")
+dialog_detail_list = Array[ExtResource("line")]([SubResource("Line0"), SubResource("Line1"), SubResource("Line2"), SubResource("Line3"), SubResource("Line4"), SubResource("Line5"), SubResource("Line6")])

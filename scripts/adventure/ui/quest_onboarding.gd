@@ -9,6 +9,8 @@ const Spotlight = preload("res://scripts/adventure/ui/tutorial_spotlight.gd")
 const Conversation = preload("res://scripts/ui/native_dave_conversation.gd")
 ## 用户指定的六句台词，末句运行原版发疯动画。
 const DIALOGUE = preload("res://resources/adventure/dave_research_intro.tres")
+## 直捣黄龙的领奖剧情，最后一句复用原版发疯动作。
+const SHOP_DIALOGUE = preload("res://resources/adventure/dave_shop_unlock.tres")
 ## 图书馆教学依次介绍真实页签和可执行的操作。
 const LIBRARY_PAGES := [
 	{"mode": "today", "text": "今日书籍\n每天免费换一批书，用金币购买。\n也可以花金币立即刷新书架。"},
@@ -83,7 +85,9 @@ func _process(_delta: float) -> void:
 	var step: String = Progress.next_step(_state) # 功能解锁和教学观看分别建模。
 	var quests: Control = context.get("quests") # 当前任务窗口可能被用户关闭。
 	var research: Control = context.get("research") # 研究室入口仍由工具栏校验。
-	if step.is_empty() or (_library_postponed if step == "library_tour" else _postponed):
+	# 旧教学的暂缓不拦截戴夫的领奖剧情。
+	var postponed: bool = _library_postponed if step == "library_tour" else _postponed and step != "shop_dave"
+	if step.is_empty() or postponed:
 		_spotlight.hide()
 		_shown = ""
 		return
@@ -104,7 +108,7 @@ func _process(_delta: float) -> void:
 		"research_dave":
 			toolbar.close_quests_for_guide()
 			_spotlight.hide()
-			_show_dave()
+			_show_dave(DIALOGUE, step, {0: 0.3, 3: 0.5})
 		"research":
 			if is_instance_valid(quests):
 				toolbar.close_quests_for_guide()
@@ -117,6 +121,12 @@ func _process(_delta: float) -> void:
 				return
 			toolbar.close_quests_for_guide()
 			_show_library(context.get("library"))
+		"shop_dave":
+			if is_instance_valid(research) or is_instance_valid(context.get("library")):
+				return
+			toolbar.close_quests_for_guide()
+			_spotlight.hide()
+			_show_dave(SHOP_DIALOGUE, step, {0: 0.5})
 
 ## 先显示解锁公告，再通过 [param library] 定位和介绍当前页签。
 func _show_library(library: Control) -> void:
@@ -175,8 +185,8 @@ func _save_step(step: String) -> bool:
 	return Global.save_service.is_current_profile_loaded() and Progress.mark_step(
 		_state, Global.global_game_state, Global.save_service.save_now, step)
 
-## 戴夫展示独立于奖励事务；奖励已入账后即使中断，对话也能重开。
-func _show_dave() -> void:
+## 展示 [param dialogue]，最后一句保存 [param step]；[param holds] 为零基句号到停顿秒数的映射。
+func _show_dave(dialogue: CrazyDaveDialogResource, step: String, holds: Dictionary) -> void:
 	_dialogue_root = Control.new()
 	_dialogue_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_dialogue_root)
@@ -188,7 +198,7 @@ func _show_dave() -> void:
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_conversation = Conversation.new()
 	_conversation.suppress_bgm = true
-	_conversation.configure(DIALOGUE, _finish_dave, {0: 0.3, 3: 0.5})
+	_conversation.configure(dialogue, _finish_dave.bind(step), holds)
 	_conversation.finished.connect(_dave_left)
 	_dialogue_root.add_child(_conversation)
 	_error = Label.new()
@@ -210,14 +220,15 @@ func _fit_dave() -> void:
 	_conversation.scale = Vector2.ONE * factor
 	_conversation.position = (dimensions - Conversation.NATIVE_SIZE * factor) * 0.5
 
-## 原版最后一句点击先保存；失败留在气泡中等待重试。
-func _finish_dave() -> bool:
-	if _save_step("research_dave"):
+## 原版最后一句点击先保存 [param step]；失败留在气泡中等待重试。
+func _finish_dave(step: String) -> bool:
+	if _save_step(step):
+		Global.quests_changed.emit()
 		return true
 	_error.text = "保存失败，请再次点击对话重试。"
 	return false
 
-## 等原生离场完成后才开始研究室引导。
+## 原版离场后恢复输入，并允许下一个教学节点出现。
 func _dave_left() -> void:
 	_dialogue_root.queue_free()
 	_dialogue_root = null
