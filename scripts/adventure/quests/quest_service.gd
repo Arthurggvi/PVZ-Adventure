@@ -17,9 +17,9 @@ static func completed(state: AdventureState, id: String) -> bool:
 static func claimed(state: AdventureState, id: String) -> bool:
 	return state.quests.records.get(id, {}).get("status", "") == "claimed"
 
-## 任务入口在首关普通阶段通关后开放；历史档案也可从永久通关记录恢复。
+## 查询 [param state] 的任务入口是否已由首关进度或修改器开放。
 static func quests_unlocked(state: AdventureState) -> bool:
-	return completed(state, "first_expedition") or AdventureStageCatalog.is_cleared(
+	return state.facilities_unlocked_by_cheat or completed(state, "first_expedition") or AdventureStageCatalog.is_cleared(
 		state, &"zombie_island.lawn", StagePhaseDefinition.Kind.NORMAL)
 
 ## 查询 [param state] 是否存在当前周期可领取奖励；调用方先同步日常周期。
@@ -131,13 +131,15 @@ static func record_event(state: AdventureState, event: String, target: String, d
 	synchronize(state, day)
 	return before != state.quests.to_dict()
 
-## 返回 [param feature] 是否已被 [param state] 中的永久任务解锁；可要求完成、领奖或领奖后的剧情。
+## 返回 [param feature] 是否已由 [param state] 的任务、剧情或修改器开放。
 static func feature_unlocked(state: AdventureState, feature: String) -> bool:
 	if state == null:
 		return false
-	for task: Dictionary in AdventureQuestCatalog.TASKS: # 不保存平行解锁开关。
+	for task: Dictionary in AdventureQuestCatalog.TASKS: # 只识别任务目录中配置过的设施。
 		if task.daily or feature not in task.unlocks:
 			continue
+		if state.facilities_unlocked_by_cheat:
+			return true
 		var required_step: String = task.get("unlock_after_step", "") # 有剧情前置时也必须完成指定节点。
 		if not required_step.is_empty() and not state.tutorial_steps.get(required_step, false):
 			continue
@@ -168,26 +170,40 @@ static func rows(state: AdventureState) -> Array[Dictionary]:
 		result.append(row)
 	return result
 
-## 领取 [param id] 在 [param period] 的奖励；即时复核档案及周期，保存失败完整回滚。
+## 通过 [param persist] 保存 [param id] 在 [param period] 的奖励，成功返回空字符串。
+## [param state]、[param inventory] 和 [param wallet] 必须属于同一档案。[param day] 为当前自然日。
+## [param force] 仅供修改器使用，跳过前置和完成条件，仍按当前周期防止重复领取。
 static func claim(state: AdventureState, inventory: AdventureInventoryService, wallet: GlobalGameState,
-		persist: Callable, id: String, period: String, day: String) -> String:
+		persist: Callable, id: String, period: String, day: String, force: bool = false) -> String:
 	if _claiming:
 		return "正在领取奖励，请稍候。"
 	_claiming = true
-	var issue := _commit_claim(state, inventory, wallet, persist, id, period, day) # 同步事务无 await。
+	var issue := _commit_claim(state, inventory, wallet, persist, id, period, day, force) # 同步事务无 await。
 	_claiming = false
 	return issue
 
 ## 在 [param state] 的 [param period] 内提交 [param id] 奖励，通过 [param persist] 保存。
 ## [param inventory] 和 [param wallet] 必须绑定同一档案，[param day] 用于重验周期。
+## [param force] 允许直接创建当前周期的领取记录，保存失败同时恢复任务进度和资产。
 static func _commit_claim(state: AdventureState, inventory: AdventureInventoryService, wallet: GlobalGameState,
-		persist: Callable, id: String, period: String, day: String) -> String:
+		persist: Callable, id: String, period: String, day: String, force: bool) -> String:
 	if state == null or wallet == null or inventory == null or wallet.adventure_state != state or not inventory.owns_state(state) or not persist.is_valid():
 		return "玩家档案已变化，请重新打开任务。"
-	synchronize(state, day)
+	if not force:
+		synchronize(state, day)
 	var task: Dictionary = AdventureQuestCatalog.definition(id) # 权威奖励定义。
+	if task.is_empty():
+		return "任务不存在。" if force else "任务尚未完成、已领取，或日常任务已经刷新。"
 	var record: Dictionary = state.quests.records.get(id, {}) # 实时进度和周期。
-	if task.is_empty() or record.get("status", "") != "complete" or record.get("period", "") != period:
+	var claim_period: String = period # 普通领取复核窗口周期，强制领取使用当前档案周期。
+	if force:
+		var current_day: String = day if day > state.quests.day else state.quests.day # 回拨时钟时保留已见最大日期。
+		claim_period = current_day if task.daily else ""
+		if task.daily and record.get("period", "") != claim_period:
+			record = {}
+		if record.get("status", "") == "claimed":
+			return "本期任务奖励已领取。"
+	elif record.get("status", "") != "complete" or record.get("period", "") != claim_period:
 		return "任务尚未完成、已领取，或日常任务已经刷新。"
 	var effects: PlayerEffects = PlayerEffects.resolve(state.equipment) # 任务经验读取领取时装备，物品与金币不享受战场加成。
 	var experience: int = PlayerEffects.scale_amount(int(task.exp), effects.experience_multiplier) # 单次确定本次奖励经验。
@@ -221,7 +237,11 @@ static func _commit_claim(state: AdventureState, inventory: AdventureInventorySe
 			state.player_level = before_level
 			wallet.coin_value = before_coin
 			return "装备发放失败，请重试。"
-	record.status = "claimed"
+	if force:
+		record["period"] = claim_period
+		record["progress"] = task.count
+		state.quests.records[id] = record
+	record["status"] = "claimed"
 	record["awarded_experience"] = experience
 	synchronize(state, day)
 	if persist.call() != true:

@@ -32,6 +32,8 @@ var player_level: int = 1
 var equipment: PlayerEquipmentState = PlayerEquipmentState.new()
 ## 任务进度和日常周期随同一档案保存。
 var quests: AdventureQuestState = AdventureQuestState.new()
+## 修改器为当前档案开放设施；默认按正常任务和教学条件解锁。
+var facilities_unlocked_by_cheat: bool = false
 ## 已完成的教学步骤；只保存业务节点，不保存窗口、动画或临时选择。
 var tutorial_steps: Dictionary[String, bool] = {}
 ## 永久发现的物种键（plant:编号 / zombie:编号）；不保存阶级或界面状态。
@@ -70,6 +72,8 @@ func to_dict() -> Dictionary:
 		"card_order_uids": card_order_uids.duplicate(), "next_card_id": next_card_id, "regions": regions.duplicate(true),
 		"claimed_rewards": claimed_rewards.duplicate(true)} # 所有嵌套容器独立于运行态。
 	data["quests"] = quests.to_dict()
+	if facilities_unlocked_by_cheat:
+		data["facilities_unlocked_by_cheat"] = true
 	data["experience"] = experience
 	data["player_level"] = player_level
 	data["equipment"] = equipment.to_dict()
@@ -138,6 +142,10 @@ static func from_dict(data: Variant) -> AdventureState:
 		state.quests = AdventureQuestState.from_dict(data.quests)
 		if state.quests == null:
 			return null
+	var facilities_override: Variant = data.get("facilities_unlocked_by_cheat", false) # 旧档沿用正常解锁规则。
+	if not facilities_override is bool:
+		return null
+	state.facilities_unlocked_by_cheat = facilities_override
 	state.next_card_id = int(data.next_card_id)
 	for card_uid: Variant in data.cards: # UID 必须规范、与卡内一致，并小于下一个分配编号。
 		var number: int = PlantCardInstance.uid_number(card_uid) # 当前已有卡的编号。

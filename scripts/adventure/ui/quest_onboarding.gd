@@ -76,6 +76,11 @@ func _process(_delta: float) -> void:
 	if current != _state:
 		reset()
 		_state = current
+	if _state != null and _state.facilities_unlocked_by_cheat:
+		if not _shown.is_empty() or is_instance_valid(_dialogue_root):
+			reset(false) # 解锁时若已有引导，立即释放遮罩和对话音频。
+		visible = false
+		return
 	if not context.get("ready", false) or _state == null:
 		visible = false
 		return
