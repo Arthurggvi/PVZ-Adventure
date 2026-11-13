@@ -87,6 +87,7 @@ var curr_plant :Array[CharacterRegistry.PlantType]= [
 	CharacterRegistry.PlantType.P047SpikeRock,
 	CharacterRegistry.PlantType.P048CobCannon,
 	CharacterRegistry.PlantType.P049PeaShooterDoubleReverse,
+	CharacterRegistry.PlantType.P050LightningReed,
 	CharacterRegistry.PlantType.P051Bloomerang,
 	CharacterRegistry.PlantType.P052ElectricPeashooter,
 	CharacterRegistry.PlantType.P1001WallNutBowling,
