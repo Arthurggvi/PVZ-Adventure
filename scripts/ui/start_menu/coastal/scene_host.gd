@@ -93,6 +93,7 @@ func configure(folder: String, include_preview_ui: bool=true) -> void:
 	harbor_shader.code = wind_controller.shader_source(folder,"harbor.gdshader")
 	harbor_material = ShaderMaterial.new()
 	harbor_material.shader = harbor_shader
+	harbor_material.set_shader_parameter("scene_color", composite.texture)
 	harbor_material.set_shader_parameter("canvas_pixels",Vector2(size))
 	harbor_material.set_shader_parameter("masks",texture_file(folder.path_join("assets/harbor_masks.png")))
 	if entry_highlight.masks.has("harbor"):

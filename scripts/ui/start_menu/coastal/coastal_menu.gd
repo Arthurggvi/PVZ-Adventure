@@ -79,10 +79,12 @@ func _ready() -> void:
 	SoundManager.setup_ui_start_menu_sound(self)
 	_last_ticks=Time.get_ticks_usec()
 	initialized=true
-	for frame in range(3): # 等待四级离屏合成获得第一帧；不会暴露默认白天。
-		await get_tree().process_frame
-	if is_inside_tree():
-		show()
+	var tree := get_tree() # 保存此菜单开始预热时的场景树，等待期间允许切换场景。
+	for frame in range(3): # 等待四级离屏合成获得第一帧。
+		await tree.process_frame
+		if not is_inside_tree():
+			return
+	show()
 
 func _fit() -> void:
 	if canvas==null:
