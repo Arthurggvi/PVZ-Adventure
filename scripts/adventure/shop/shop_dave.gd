@@ -12,11 +12,13 @@ var actor: CrazyDave
 ## 原版开场白推进完毕后才能调用外部对话接口。
 var _ready_to_talk := false
 ## 进场期间收到的最新商品介绍，不排队播放过时选择。
-var _pending_text := "欢迎来到戴夫的小店！挑件宝贝，让我给你讲讲！"
+var _pending_text := "来点好东西？"
 ## 发疯期间不允许普通介绍覆盖动作。
 var _celebrating := false
 ## 当前组件启动的语音资源，退出时仅清理自身声音。
 var _voice: AudioStream
+## 每次换句只淡入气泡，不用逐字动画拖延阅读。
+var _bubble_motion: Tween
 
 ## 原版进场自动启动开场白；商店不要求额外点击一次欢迎语。
 func _ready() -> void:
@@ -25,11 +27,11 @@ func _ready() -> void:
 	dialogue.is_long_time_dave = true
 	dialogue.is_enter_up = true
 	dialogue.dialog_detail_list.append(_detail(_pending_text))
-	dialogue.dialog_detail_long_time_idle_list.append(_detail("不买也欢迎看看，平底锅不卖！"))
+	dialogue.dialog_detail_long_time_idle_list.append(_detail("平底锅不卖！"))
 	actor = SceneRegistry.CRAZY_DAVE.instantiate() as CrazyDave
 	actor.init_dave(dialogue)
-	actor.position = Vector2(102, 340)
-	actor.scale = Vector2.ONE * 0.82
+	actor.position = Vector2(57, 181)
+	actor.scale = Vector2.ONE * 0.94
 	actor.dialog_line_started.connect(_greeting_started)
 	actor.talk_end_signal.connect(_talk_ended)
 	add_child(actor)
@@ -37,16 +39,16 @@ func _ready() -> void:
 	_ignore_input(actor)
 	actor.dave_dialog_mouse_press_panel.advance_guard = func() -> bool: return false
 	var bubble_root: Control = actor.get_node("SpeechBubble") # 气泡仍由原版说话逻辑显示和隐藏。
-	bubble_root.position = Vector2(-70, -208)
-	actor.bubble_2.size = Vector2(466, 250)
-	actor.bubble_2.add_theme_stylebox_override("panel", Style.Art.texture_style("panels/parchment_ninepatch.png", 22))
+	bubble_root.position = Vector2(-27, 491)
+	actor.bubble_2.size = Vector2(318, 106)
+	actor.bubble_2.add_theme_stylebox_override("panel", Style.box(Color("f3e9cd"), Color("d6bd83"), 18))
 	var margin: MarginContainer = actor.get_node("SpeechBubble/Bubble2/MarginContainer") # 自适应到固定气泡尺寸。
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side: String in ["left", "top", "right", "bottom"]: # 给气泡文字保留足够内边距。
-		margin.add_theme_constant_override("margin_" + side, 22)
+		margin.add_theme_constant_override("margin_" + side, 18)
 	actor.speech_text_label.custom_minimum_size = Vector2.ZERO
 	actor.speech_text_label.add_theme_font_override("font", Style.FONT)
-	actor.speech_text_label.add_theme_font_size_override("font_size", 27)
+	actor.speech_text_label.add_theme_font_size_override("font_size", 24)
 	actor.speech_text_label.add_theme_color_override("font_color", Style.INK)
 	actor.animation_tree.active = true
 
@@ -81,13 +83,18 @@ func say(text: String) -> void:
 	actor.long_time_dave_start_dialog()
 	actor.external_trigger_dialog(_detail(text))
 	_voice = SoundManager.crazy_dave_player.stream
+	if is_instance_valid(_bubble_motion):
+		_bubble_motion.kill()
+	actor.bubble_2.modulate.a = 0.35
+	_bubble_motion = create_tween()
+	_bubble_motion.tween_property(actor.bubble_2, "modulate:a", 1.0, 0.16)
 
 ## 成交成功后触发完整原版发疯动作；不得用于尚未保存的交易。
 func celebrate() -> void:
 	if not _ready_to_talk or _celebrating:
 		return
 	_celebrating = true
-	var line: CrazyDaveDialogDetailResource = _detail("成交啦！歪比巴卜——我的平底锅都高兴飞了！") # 疯言疯语走原版动作与音效。
+	var line: CrazyDaveDialogDetailResource = _detail("歪比巴卜！！") # 疯言疯语走原版动作与音效。
 	line.is_crazy = true
 	actor.long_time_dave_start_dialog()
 	actor.external_trigger_dialog(line)

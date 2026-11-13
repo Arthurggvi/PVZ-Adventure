@@ -97,12 +97,12 @@ func _render() -> void:
 		"offer": _service.quote(_selected), "coins": Global.global_game_state.coin_value,
 		"locked": _busy or _celebrating or not _actor_available or not _pending.is_empty(), "notice": _notice})
 
-## 描述当前选择；限购及槽位说明使用同一次实时投影。
+## 用一句短台词描述当前选择；完整规则由商品悬停展示。
 func _describe() -> void:
 	var offer: Dictionary = _service.quote(_selected) # 不用上一次点击时的余量或价格。
 	if offer.is_empty():
 		return
-	_view.dave.say(str(offer.speech) + ("\n" + str(offer.status) if offer.sold or offer.kind == "slots" else ""))
+	_view.dave.say(str(offer.speech) if not offer.sold else ("这件你已经有啦。" if offer.get("unique", false) else "这件卖完啦。"))
 
 ## 解释 [param action] 和 [param id]；确认期间不接受商品与页签切换。
 func _on_action(action: String, id: String) -> void:
@@ -141,13 +141,14 @@ func _on_action(action: String, id: String) -> void:
 			_begin_confirmation()
 	_render()
 
-## 生成不可变确认凭据，戴夫明确说明本次价格并询问成交。
+## 生成不可变确认凭据；确认单呈现价格，戴夫只询问成交。
 func _begin_confirmation() -> void:
 	var offer: Dictionary = _service.quote(_selected) # 点击购买时重新核对余额和库存。
 	if offer.is_empty() or not offer.can_buy:
 		return
+	_notice = ""
 	_pending = offer.token.duplicate()
-	_view.dave.say("%s，%s金币。成交？" % [offer.title, Style.money(int(offer.price))])
+	_view.dave.say("成交？")
 	_view.show_confirmation(offer)
 
 ## 取消不扣款；恢复当前商品介绍与焦点。
@@ -171,8 +172,7 @@ func _confirm_purchase() -> void:
 		return
 	if result.ok:
 		_celebrating = true
-		var product: Dictionary = Catalog.product(str(result.id)) # 交付去向只用于用户提示。
-		_notice = "已购买 %s · %s" % [result.title, "已永久扩容" if product.kind == "slots" else ("请到角色页装备" if product.kind == "equipment" else "已放入背包")]
+		_notice = "已购入 · %s" % result.title
 		Global.player_changed.emit()
 		_view.dave.celebrate()
 	else:
@@ -209,7 +209,7 @@ func _check_day() -> void:
 	if not _pending.is_empty():
 		_pending.clear()
 		_view.hide_confirmation()
-	_notice = "日期已变化，限购数量已更新。"
+	_notice = "已补货"
 	if not _celebrating:
 		_describe()
 	_render()
