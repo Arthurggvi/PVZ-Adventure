@@ -859,10 +859,10 @@
       "feature": "map",
       "name": "港口",
       "title": "冒险地图",
-      "label": "港口",
+      "label": "启程",
       "label_anchor": [1450, 428],
-      "resting_label": false,
-      "primary": false,
+      "resting_label": true,
+      "primary": true,
       "anchor": [
         1450,
         569

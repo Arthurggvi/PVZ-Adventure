@@ -140,8 +140,6 @@
 - **发布与复现**：menu.py publish-runtime / runtime-preview / runtime-preview-images为单入口。交付在 `C:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112`。运行daily_cycle/ui_layout为正式权威，不被旧制作目录覆盖；原生资源包已验证可搬迁，但未安装exe模板、未导出完整游戏exe。
 - **边界**：只操作PVZ-Menu9B-Isolated-20261112演示档案，未读写正式玩家存档；没有进入战斗/验收合成事务，没有物理睡眠唤醒或全平台性能验证。未新增/运行游戏测试套件；旧版本专用美术探针已标明退役，不作为新菜单通过证据。实机短采样数据与详细限制见维护页，不夸大为完整回归或发布保证。
 
-- **当前菜单：植物远征营地（2026-11-13第二版）**：用户授权大幅重设计后，新增透明 `coastal/foreground/expedition_camp.png`，豌豆射手/向日葵/地图木车占据原空广场；`expedition_camp.gd` 与对应shader接同一日周期/elapsed，局部植物轻摆与夜间灯笼/脸部补光，木车与命中不摇动。主木牌“开始冒险”走原地图门面，港口降为悬停次级入口，`camp_title.gd` 原生绘制标题。ui_layout持有前景位置/比例，焦点环接入木牌与存档。toolbar_view显式海滨模式为右下五入口，文字在真实按钮范围内；保留研究图标兼容教学，其他场景恢复旧工具栏。生成方式、原始提示词见新素材目录provenance.json；新PNG/.import须随工程发布，不依赖生成缓存。隔离核对 `C:\Dev\PvZ\_review\menu_camp_20261113` 已完成五时段、原生鼠标/键盘主入口、设置文字点击、真实地图往返及144帧动作录制，最终日志无脚本/材质错误；未运行测试套件、未进入战斗或操作正式存档。
-
 ## 5.2｜主菜单效果：参数可达、算法替换与重载
 
 - **权威索引**：[效果调参与扩展接口](main_menu_effects_api.md)，按各阶段列出“配置→方法→材质→重建/发布”。正式效果文件为 `assets/adventure/main_menu/coastal/config/effect_profile.json`，正式默认已启用低幅错相灯光和独立水周期；空hover使用当前内侧暖边高亮。强变化示例只放在 tools/art_bake/main_menu/effect_examples。
