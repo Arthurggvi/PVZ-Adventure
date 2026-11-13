@@ -17,6 +17,9 @@ bus = &"SFX"
 [node name="RainPlayer" type="AudioStreamPlayer" parent="SFXAll" unique_id=1706528639]
 bus = &"SFX"
 
+[node name="StormRainPlayer" type="AudioStreamPlayer" parent="SFXAll"]
+bus = &"SFX"
+
 [node name="BossPhaseRoar" type="AudioStreamPlayer" parent="SFXAll"]
 stream = ExtResource("2_boss_roar")
 bus = &"SFX"

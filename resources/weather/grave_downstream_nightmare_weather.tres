@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="WeatherSequence" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="WeatherSequence" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/weather/weather_sequence.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/weather/weather_keyframe.gd" id="2"]
 [ext_resource type="Resource" path="res://resources/weather/grave_downstream_storm_visual.tres" id="3_visual"]
+[ext_resource type="Resource" path="res://resources/weather/storm_rain_audio.tres" id="4_audio"]
 
 [sub_resource type="Resource" id="MistStart"]
 script = ExtResource("2")
@@ -38,4 +39,5 @@ lens = 1.0
 script = ExtResource("1")
 rain_particle_ratio_at_full = 0.68
 rain_visual_profile = ExtResource("3_visual")
+rain_audio_profile = ExtResource("4_audio")
 frames = Array[ExtResource("2")]([SubResource("MistStart"), SubResource("Drizzle"), SubResource("SteadyRain"), SubResource("HeavyRain"), SubResource("StormHold")])

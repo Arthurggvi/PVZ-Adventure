@@ -9,12 +9,15 @@ const CAPACITY: int = 20
 var _drops: Array[Dictionary] = []
 ## 可重复的水滴状态随机源。
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+## 上次有效鼠标采样，供连续线段擦除水珠；离开视口后为 INF。
+var _previous_mouse: Vector2 = Vector2.INF
 
 
 ## 重置动态水珠；[param seed_value] 决定可重复的预览序列。
 func reset(seed_value: int = 20261110) -> void:
     _rng.seed = seed_value
     _drops.clear()
+    _previous_mouse = Vector2.INF
     for index: int in range(CAPACITY):
         _respawn(index)
 
@@ -26,6 +29,10 @@ func reset(seed_value: int = 20261110) -> void:
 ## [param wipe_radius] 鼠标清除半径（像素）。
 ## [param viewport_size] 当前视口尺寸（像素）。
 func advance(delta: float, speed_factor: float, mouse_position: Vector2, wipe_radius: float, viewport_size: Vector2) -> void:
+    var mouse_valid: bool = mouse_position.is_finite() and Rect2(Vector2.ZERO, viewport_size).has_point(mouse_position) # 有效交互范围。
+    var wipe_start: Vector2 = _previous_mouse if _previous_mouse.is_finite() else mouse_position # 当前笔画起点。
+    var wiping: bool = mouse_valid and (not _previous_mouse.is_finite() or mouse_position != _previous_mouse) # 停止移动时允许重新附着水珠。
+    _previous_mouse = mouse_position if mouse_valid else Vector2.INF
     for index: int in range(_drops.size()):
         var drop: Dictionary = _drops[index] # 单水珠物理状态。
         var hold: float = float(drop["hold"]) - delta # 剩余附着时间。
@@ -42,8 +49,10 @@ func advance(delta: float, speed_factor: float, mouse_position: Vector2, wipe_ra
         if uv.y > 1.04 or uv.x < -0.05 or uv.x > 1.05:
             _respawn(index)
             continue
-        if mouse_position.is_finite() and (uv * viewport_size).distance_to(mouse_position) < wipe_radius * 0.67:
-            _respawn(index)
+        if wiping:
+            var nearest: Vector2 = Geometry2D.get_closest_point_to_segment(uv * viewport_size, wipe_start, mouse_position) # 水珠到笔画的最近点。
+            if (uv * viewport_size).distance_to(nearest) < wipe_radius * 0.67:
+                _respawn(index)
 
     # 水珠接触后按二维截面积合并，促使较大水珠提前失稳。
     for i: int in range(_drops.size()):

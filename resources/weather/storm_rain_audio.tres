@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RainAudioProfile" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/weather/rain_audio_profile.gd" id="1_profile"]
+[ext_resource type="AudioStream" path="res://resources/audio/sfx/storm_rain.ogg" id="2_storm"]
+
+[sub_resource type="Curve" id="StormMixCurve"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.4, 0), 0.0, 0.0, 0, 0, Vector2(0.92, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 4
+
+[resource]
+script = ExtResource("1_profile")
+storm_stream = ExtResource("2_storm")
+storm_mix_curve = SubResource("StormMixCurve")
+base_gain_at_full_mix = 0.25
+storm_gain_at_full_mix = 1.0

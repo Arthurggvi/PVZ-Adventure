@@ -19,10 +19,9 @@ uniform float haze_strength : hint_range(0.0, 0.5) = 0.23;
 uniform vec4 haze_color : source_color = vec4(0.67, 0.76, 0.85, 1.0);
 uniform float droplet_strength : hint_range(0.0, 1.0) = 0.89;
 uniform float refraction_strength : hint_range(0.0, 2.0) = 1.0;
-uniform float wipe_radius = 65.0;
 uniform float wipe_recovery_seconds = 2.6;
 uniform float lightning = 0.0;
-uniform vec4 wipe_points[24]; // xy: screen UV; z: birth time; w: enabled.
+uniform sampler2D wipe_mask : repeat_disable, filter_linear; // R 为水膜擦除的等效时间，不作颜色解码。
 uniform vec4 drops[20]; // xy: screen UV; z: radius pixel; w: fall factor.
 
 float rain_haze(vec2 uv) {
@@ -32,17 +31,8 @@ float rain_haze(vec2 uv) {
 }
 
 float wipe_coverage(vec2 uv) {
-    float cleared = 0.0;
-    for (int i = 0; i < 24; i++) {
-        vec4 mark = wipe_points[i];
-        if (mark.w < 0.5) { continue; }
-        float age = max(0.0, clock_seconds - mark.z);
-        float fade = exp(-age / max(0.2, wipe_recovery_seconds));
-        float dist = length((uv - mark.xy) * viewport_size);
-        float brush = 1.0 - smoothstep(wipe_radius * 0.30, wipe_radius, dist);
-        cleared = max(cleared, brush * fade);
-    }
-    return clamp(cleared, 0.0, 1.0);
+    float stamp = texture(wipe_mask, uv).r;
+    return exp(min(0.0, (stamp - clock_seconds) / max(0.2, wipe_recovery_seconds)));
 }
 
 // 各水珠沿用独立模拟器的运动学状态，此处只重建局部法线与高光。
@@ -84,8 +74,8 @@ void fragment() {
         water_alpha / max(viewport_size, vec2(1.0)), vec2(0.001), vec2(0.999));
 
     vec3 original = textureLod(screen_texture, sample_uv, 0.0).rgb;
-    vec3 soft = textureLod(screen_texture, sample_uv, 3.1).rgb;
-    vec3 soft_wide = textureLod(screen_texture, sample_uv, 5.0).rgb;
+    vec3 soft = textureLod(screen_texture, sample_uv, 4.2).rgb;
+    vec3 soft_wide = textureLod(screen_texture, sample_uv, 5.5).rgb;
     vec3 illumination = has_light_field ? texture(light_field, sample_uv).rgb : vec3(0.0);
     float illumination_luma = dot(illumination, vec3(0.2126, 0.7152, 0.0722));
     float haze_noise = rain_haze(uv);
@@ -96,7 +86,7 @@ void fragment() {
 
     // 镜头水膜可擦除；真实空气中的雨雾不会被鼠标擦除。
     float air_haze = clamp(haze_strength * haze_noise * 0.45, 0.0, 0.19);
-    float lens_haze = clamp(haze_strength * haze_noise * 0.43 * water, 0.0, 0.19);
+    float lens_haze = clamp(haze_strength * haze_noise * 0.90 * water, 0.0, 0.30);
     color = mix(color, haze_color.rgb, air_haze + lens_haze);
 
     if (has_light_field) {
@@ -108,7 +98,7 @@ void fragment() {
         float high_light_protect = 1.0 - 0.40 * smoothstep(0.72, 0.98, image_brightness);
         color += glow * bloom_strength * high_light_protect * (0.86 + 0.14 * water);
         // 带运动密度场的二维屏幕空间空气散射，不随擦拭消失。
-        color += illumination * (0.17 + 0.60 * haze_noise) *
+        color += (illumination * 0.65 + wide * 0.35) * (0.17 + 0.60 * haze_noise) *
             air_scatter_gain * haze_strength * 1.10;
     } else {
         // 其它未配置地图光源的雨关兼容老版本基于画面亮度的轻微泛光。
@@ -122,8 +112,6 @@ void fragment() {
     color += vec3(0.24, 0.28, 0.32) * drop.z * water_alpha;
     color += vec3(0.068, 0.078, 0.089) * drop.w * water_alpha;
     color += illumination * droplet_light_gain * (drop.z * 0.35 + drop.w * 0.08) * water_alpha;
-    float rim = 4.0 * wiped * (1.0 - wiped);
-    color += vec3(0.025, 0.04, 0.047) * rim;
 
     color += vec3(0.43, 0.49, 0.68) * clamp(lightning, 0.0, 1.0) *
         (0.32 + 0.25 * illumination_luma);

@@ -8,6 +8,8 @@ class_name WeatherSequence
 @export_range(0.01, 1.0, 0.01) var rain_particle_ratio_at_full: float = 0.162
 ## 可选分层雨幕配置。其它雨关未配置时继续沿用中雨预设。
 @export var rain_visual_profile: RainVisualProfile
+## 可选降雨混音预设，与雨幕使用同一时间轴强度；空值只播放原版雨声。
+@export var rain_audio_profile: RainAudioProfile
 
 ## 校验持续时间、顺序及数值是否合法，不依赖具体关卡。
 func validate() -> PackedStringArray:

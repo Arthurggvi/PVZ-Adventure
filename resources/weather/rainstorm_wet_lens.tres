@@ -5,14 +5,14 @@
 
 [resource]
 script = ExtResource("1")
-soft_focus = 0.47
-bloom_strength = 0.70
-haze_strength = 0.23
-haze_color = Color(0.67, 0.76, 0.85, 1)
+soft_focus = 0.88
+bloom_strength = 0.82
+haze_strength = 0.34
+haze_color = Color(0.66, 0.73, 0.87, 1)
 light_profile = ExtResource("2_lights")
 droplet_strength = 0.89
 droplet_speed = 0.86
 refraction_strength = 1.0
-wipe_radius = 65.0
-wipe_recovery_seconds = 2.6
+wipe_radius = 88.0
+wipe_recovery_seconds = 5.5
 lightning_strength = 0.72

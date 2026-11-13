@@ -6,7 +6,10 @@ enum Bus {MASTER, BGM, SFX}
 @onready var bgm_play: AudioStreamPlayer = $BGMPlay
 @onready var sfx_all: Node = $SFXAll
 @onready var crazy_dave_player: AudioStreamPlayer = $SFXAll/CrazyDavePlayer
+## 原版雨声底层，沿用 SFX 总线与音量设置。
 @onready var rain_player: AudioStreamPlayer = $SFXAll/RainPlayer
+## 暴雨补充层，与原版雨声独立循环并按雨势混入。
+@onready var storm_rain_player: AudioStreamPlayer = $SFXAll/StormRainPlayer
 ## Boss 阶段咆哮播放器，独立于短音效的重复播放过滤。
 @onready var boss_phase_roar_player: AudioStreamPlayer = $SFXAll/BossPhaseRoar
 
@@ -353,22 +356,36 @@ func play_crazy_dave_SFX(option:StringName):
 	crazy_dave_player.stream = sfx_selected
 	crazy_dave_player.play()
 
-func play_rain_SFX():
-	var RAIN = load("uid://dmjld1k8ieh1g")
-	rain_player.stream = RAIN
+## 启动原版雨声循环，使用独立流以保留原素材的导入设置。
+func play_rain_SFX() -> void:
+	if rain_player.stream == null:
+		var rain_loop := load("res://assets/audio/sounds/rain.ogg").duplicate() as AudioStreamOggVorbis # 仅供雨景播放器使用的流。
+		rain_loop.loop = true
+		rain_player.stream = rain_loop
 	rain_player.play()
 
-## 为已有雨声设置渐变强度，避免重复启动或播放其它音效。
-## [param intensity] 雨势 0-1；0 仅静音，雨场景释放时停止。
-func set_rain_intensity(intensity: float) -> void:
-	var level: float = clampf(intensity, 0.0, 1.0)
-	if level > 0.001 and not rain_player.playing:
+## 应用天气提供的雨声混音，已在循环的音轨保留播放进度。
+## [param gains] x 为原版雨声、y 为暴雨音轨的线性增益，0 时静音。
+## [param storm_audio] 已开启循环的暴雨音轨；空值时释放暴雨层。
+func set_rain_mix(gains: Vector2, storm_audio: AudioStream = null) -> void:
+	rain_player.volume_db = linear_to_db(maxf(gains.x, 0.0001))
+	if gains.x > 0.001 and not rain_player.playing:
 		play_rain_SFX()
-	rain_player.volume_db = linear_to_db(maxf(level, 0.0001))
 
-func stop_rain_SFX():
+	if storm_rain_player.stream != storm_audio:
+		storm_rain_player.stop()
+		storm_rain_player.stream = storm_audio
+	# 先设增益再启动，避免第一帧以默认音量播放。
+	storm_rain_player.volume_db = linear_to_db(maxf(gains.y, 0.0001))
+	if gains.y > 0.0 and storm_audio != null and not storm_rain_player.playing:
+		storm_rain_player.play()
+
+## 停止本场雨的两层循环并释放关卡提供的暴雨素材引用。
+func stop_rain_SFX() -> void:
 	rain_player.stop()
 	rain_player.volume_db = 0.0
+	storm_rain_player.stop()
+	storm_rain_player.stream = null
 #endregion
 
 #region 其余音效

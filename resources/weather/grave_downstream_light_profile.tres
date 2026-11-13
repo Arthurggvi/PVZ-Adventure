@@ -46,8 +46,8 @@ flicker = 0.09
 [resource]
 script = ExtResource("1")
 sources = Array[ExtResource("2")]([SubResource("Moon"), SubResource("Window"), SubResource("Lantern"), SubResource("CandlesLeft"), SubResource("CandlesRight")])
-bloom_wide = 0.52
-bloom_tight = 0.35
-air_scatter = 0.43
-rain_response = 0.72
-droplet_response = 0.66
+bloom_wide = 0.78
+bloom_tight = 0.40
+air_scatter = 0.60
+rain_response = 0.88
+droplet_response = 0.78
