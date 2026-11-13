@@ -1,10 +1,10 @@
 ## Focused catalog and capped production growth checks. No save or combat scene writes.
-extends SceneTree
+extends Node
 
 const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
 
-func _initialize() -> void:
-	create_timer(15.0, true, false, true).timeout.connect(func(): quit(1))
+func _ready() -> void:
+	get_tree().create_timer(15.0, true, false, true).timeout.connect(func(): get_tree().quit(1))
 	_run.call_deferred()
 
 func _run() -> void:
@@ -38,4 +38,4 @@ func _run() -> void:
 		func(event: Dictionary): return event.kind)
 	assert(kinds.has("card_resonance") and kinds.has("adjacent_aura"))
 	print("SUNFLOWER_PROMOTIONS_CATALOG_PASS (four books and both tier branches)")
-	quit(0)
+	get_tree().quit(0)

@@ -7,7 +7,7 @@ func _run() -> void:
 	get_tree().change_scene_to_file("res://scenes/main/01StartMenuCoastal.tscn")
 	await _frames()
 	Global.save_service.stop_autosave()
-	var user: User = get_tree().current_scene.user
+	var user: User = _profile_selector()
 	user.panel_create_new_user.line_edit.text = username
 	user.panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username)

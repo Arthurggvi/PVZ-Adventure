@@ -29,7 +29,7 @@ func _run() -> void:
 		assert(not str(m["ids"][id].get("backing_group", "")).is_empty())
 		assert(not Asset.backing_uri(id).is_empty())
 		assert(load(Asset.backing_uri(id)) is Texture2D)
-	assert(materials.size() == 21)
+	assert(materials.size() == 22)
 	assert(Asset.backing_uri("pea_stem") == Asset.backing_uri("plant_fiber"))
 	assert(Asset.backing_uri("fungal_spores") != Asset.backing_uri("grave_moss"))
 	assert(Asset.backing_uri("ember_resin") == Asset.backing_uri("frost_crystal"))

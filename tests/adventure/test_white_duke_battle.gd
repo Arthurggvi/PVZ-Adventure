@@ -6,7 +6,7 @@ func _run() -> void:
 	await _frames()
 	Global.save_service.stop_autosave()
 	var username := "white-duke-smoke-%d" % Time.get_ticks_usec()
-	var user: User = get_tree().current_scene.user
+	var user: User = _profile_selector()
 	user.panel_create_new_user.line_edit.text = username
 	user.panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username)

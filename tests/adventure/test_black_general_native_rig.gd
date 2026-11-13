@@ -1,8 +1,8 @@
-extends SceneTree
+extends Node
 ## Native animation QA. Copy only visual Sprite2D nodes, never gameplay components.
 const FOOTBALL: PackedScene = preload("res://scenes/character/zombie/zombie_008_football.tscn")
-const OUTPUT := "C:/Dev/PvZ/_review/black_general/native_football_reference"
-func _initialize() -> void:
+const OUTPUT := "user://native_football_reference"
+func _ready() -> void:
 	call_deferred("_run")
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(OUTPUT)
@@ -59,23 +59,23 @@ func _run() -> void:
 	vp.size = Vector2i(480,360)
 	vp.transparent_bg = true
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	root.add_child(vp)
+	get_tree().root.add_child(vp)
 	vp.add_child(host)
 	host.position = Vector2(230,285)
 	donor.free()
 	f.store_string("VIEWPORT_READY\n")
 	f.flush()
-	await process_frame
+	await get_tree().process_frame
 	for action in [&"Zombie_football_walk",&"Zombie_football_idle"]:
 		ap.play(action)
 		var anim: Animation = ap.get_animation(action)
 		for k in range(12):
 			ap.seek(anim.length*float(k)/12.0,true)
-			await process_frame
-			await process_frame
+			await get_tree().process_frame
+			await get_tree().process_frame
 			var path := "%s/%s_%02d.png" % [OUTPUT,action,k]
 			vp.get_texture().get_image().save_png(path)
 	f.store_string("BLACK_GENERAL_NATIVE_REFERENCE_OK\n")
 	f.flush()
 	print("BLACK_GENERAL_NATIVE_REFERENCE_OK")
-	quit()
+	get_tree().quit()

@@ -1,9 +1,9 @@
 ## 单一 AdventureState 内存中的僵尸岛进度，不再测试独立磁盘文件。
-extends SceneTree
+extends Node
 
 const Progress = preload("res://scripts/adventure/island_progress.gd")
 
-func _initialize() -> void:
+func _ready() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
@@ -22,4 +22,4 @@ func _run() -> void:
 	assert(resumed.started and resumed.intro_completed and resumed.stage_1_cleared)
 	assert(not FileAccess.file_exists("user://phase1_tests/old_zombie_island.json"))
 	print("PASS: in-memory island progress and AdventureState JSON")
-	quit(0)
+	get_tree().quit(0)

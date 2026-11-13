@@ -7,7 +7,7 @@ func _run() -> void:
 	get_tree().change_scene_to_file("res://scenes/main/01StartMenuCoastal.tscn")
 	await _frames()
 	Global.save_service.stop_autosave()
-	var user: User = get_tree().current_scene.user
+	var user: User = _profile_selector()
 	user.panel_create_new_user.line_edit.text = username
 	user.panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username)
@@ -79,8 +79,7 @@ func _run() -> void:
 		var card: Card = cards[index]
 		var cell: PlantCell = battle.plant_cell_manager.all_plant_cells[2][index]
 		battle.hand_manager._click_card(card)
-		battle.hand_manager._on_cell_mouse_enter(cell)
-		battle.hand_manager._on_click_cell(cell)
+		await _click_battle_cell(cell)
 		await _frames()
 		var plant: Plant000Base = cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]
 		assert(plant != null and plant.battle_card_data["uid"] == selected[index])

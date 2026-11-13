@@ -1,13 +1,13 @@
 ## Focused in-memory research acceptance, no user save writes or scene traversal.
-extends SceneTree
+extends Node
 const Recipes = preload("res://scripts/adventure/research/research_recipe_catalog.gd")
 const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
 const Enhancement = preload("res://scripts/adventure/research/research_enhancement_rules.gd")
 const Research = preload("res://scripts/adventure/research/research_service.gd")
 var save_ok := true
 
-func _initialize() -> void:
-	create_timer(10.0, true, false, true).timeout.connect(func(): quit(1))
+func _ready() -> void:
+	get_tree().create_timer(10.0, true, false, true).timeout.connect(func(): get_tree().quit(1))
 	_run.call_deferred()
 
 func _persist() -> bool:
@@ -30,7 +30,7 @@ func _chance(star: int, amount: int, fodder_star: int, type_id: int = 1,
 
 func _run() -> void:
 	assert(OS.get_user_data_dir().contains("research-core-test"))
-	assert(Recipes.all_ids().size() == 50)
+	assert(Recipes.all_ids().size() == 51)
 	var three_material_plants: Array[int] = [3, 5, 6, 8, 13, 15, 16, 19, 20, 21, 23, 24, 28, 40, 49]
 	for plant_type: int in range(1, 50):
 		if plant_type > 40 and plant_type < 49:
@@ -157,5 +157,7 @@ func _run() -> void:
 		assert(inventory.get_card(uid).is_empty())
 	assert(inventory.get_item_count("fertilizer_lv1") == 0)
 	assert(wallet.coin_value == coins_before_upgrade - Enhancement.COST)
-	print("RESEARCH_CORE_PASS 50 recipes, promotions, rollback, enhancement curve and settlement")
-	quit(0)
+	print("RESEARCH_CORE_PASS recipes=", Recipes.all_ids().size(), ", promotions, rollback, enhancement curve and settlement")
+	service = null
+	wallet.free()
+	get_tree().quit(0)

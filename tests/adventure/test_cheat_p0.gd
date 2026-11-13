@@ -10,12 +10,17 @@ func _run() -> void:
 	Global.user_manager.curr_user_name = test_profile_name
 	assert(Global.reload_session_for_current_user())
 	assert(PVZCheat.implementation != null)
-	var f9 := InputEventKey.new()
-	f9.physical_keycode = KEY_F9
-	f9.pressed = true
-	get_viewport().push_input(f9)
+	for code: Key in [KEY_TAB, KEY_O]: # 用实际的调试快捷键打开窗口。
+		var key := InputEventKey.new() # 在测试视口注入键盘按下。
+		key.physical_keycode = code
+		key.pressed = true
+		get_viewport().push_input(key)
 	await get_tree().process_frame
-	assert(PVZCheat.is_open(), "F9 popup toggle failed")
+	for code: Key in [KEY_O, KEY_TAB]: # 归还测试持有的两个按键。
+		var key := InputEventKey.new() # 发出与按下一一对应的释放事件。
+		key.physical_keycode = code
+		get_viewport().push_input(key)
+	assert(PVZCheat.is_open(), "Tab+O popup toggle failed")
 	var screen: Control = PVZCheat.implementation.window
 	for section: String in ["cards", "items", "coins", "stages", "saves"]:
 		screen.select_section(section)

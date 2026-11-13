@@ -12,9 +12,10 @@ func _run() -> void:
 	# 原生创建和选择玩家后记录身份与完整全局存档基线。
 	var menu: Control = get_tree().current_scene # 关闭后必须保留的同一菜单。
 	var username := "picker-%s" % Time.get_ticks_usec() # 唯一隔离玩家。
-	menu.user.panel_create_new_user.line_edit.text = username
-	menu.user.panel_create_new_user.button_ok.pressed.emit()
+	_profile_selector().panel_create_new_user.line_edit.text = username
+	_profile_selector().panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username)
+	await _frames()
 	Global.save_service.save_now()
 	var path := "user://%s/adventure/zombie_island_v1.json" % username # 废弃格式哨兵：新流程不得再写此文件。
 	var native_path := "user://%s/GlobalSaveGame.json" % username # 原全局文件。
@@ -31,8 +32,8 @@ func _run() -> void:
 	await get_tree().create_timer(transition.cover_seconds + transition.reveal_seconds + 0.15).timeout
 	assert(not transition.busy and not transition.curtain.visible, "成功返回却未切场景时必须揭幕恢复")
 	# 快速取消可打断入场；动画期间的程序选择同样不能抢跑或创建进度。
-	menu.get_node("ArtCanvas/ship_button").pressed.emit()
-	var opening: Control = menu.get_node("AdventureDestinationPicker") # 尚未展开的纸图。
+	_harbor_entry().activated.emit("harbor")
+	var opening: Control = _destination_picker() # 尚未展开的纸图。
 	assert(opening.is_animating() and not opening.is_presented())
 	opening._select_destination("zombie_island")
 	opening.destination_selected.emit("zombie_island")
@@ -49,14 +50,13 @@ func _run() -> void:
 	cancel.pressed = false
 	Input.parse_input_event(cancel)
 	await _frames()
-	assert(not menu.has_node("AdventureDestinationPicker"))
+	assert(_destination_picker() == null)
 	assert(not FileAccess.file_exists(path))
 	get_tree().root.size = Vector2i(1066, 600)
 	for cycle: int in range(2): # X、ESC各验证一次，并检查单实例和重复信号。
-		await _mouse_click(menu.get_node("ArtCanvas/ship_button"))
-		menu.get_node("ArtCanvas/ship_button").pressed.emit()
+		_harbor_entry().activated.emit("harbor")
 		await _frames()
-		var cycle_picker: Control = menu.get_node("AdventureDestinationPicker") # 本次打开的独立场景。
+		var cycle_picker: Control = _destination_picker() # 本次打开的独立场景。
 		assert(cycle_picker.has_node("ModalMotion"), "纸图开关动效尚未接入")
 		assert(cycle_picker.is_presented() and not cycle_picker.is_animating())
 		assert(cycle_picker.get_node("MotionRoot").scale == Vector2.ONE)
@@ -82,11 +82,11 @@ func _run() -> void:
 		await _key(KEY_TAB)
 		assert(cycle_island.has_focus())
 		if cycle == 0:
-			# 模拟旧入口已置会话锁但没有离场；必须解除界面和会话锁，错误能关闭后重试。
-			cycle_picker.set_navigation_pending(true)
-			AdventureSession.adventure_active = true
-			assert(transition.run(func() -> bool: return true))
+			# 选择器已打开时模拟当前档案失效，以走正式导航的失败和恢复分支。
+			Global.user_manager.curr_user_name = ""
+			cycle_island.pressed.emit()
 			await _frames()
+			Global.user_manager.curr_user_name = username
 			assert(not AdventureSession.adventure_active and not cycle_picker.get_node("InputShield").visible)
 			assert(cycle_picker.get_node("EntryError").visible)
 			cycle_picker.get_node("EntryError").hide()
@@ -99,7 +99,7 @@ func _run() -> void:
 				assert(cycle_picker.get_global_rect().encloses(item.get_global_rect()))
 		get_tree().root.size = Vector2i(1066, 600)
 		await _frames()
-		await _mouse_click(menu.get_node("ArtCanvas/options_button"))
+		assert(not AdventureToolbar.request_feature("settings"))
 		assert(AdventureToolbar.modal_for("settings") == null)
 		await _mouse_click(locked)
 		get_viewport().gui_release_focus()
@@ -115,16 +115,16 @@ func _run() -> void:
 		else:
 			await _key(KEY_ESCAPE)
 		await _frames()
-		assert(not menu.has_node("AdventureDestinationPicker"))
-		assert(menu.get_node("ArtCanvas/ship_button").has_focus())
+		assert(_destination_picker() == null)
+		assert(_harbor_entry().input_allowed, "关闭后港口应重新接收输入")
 		assert(Global.user_manager.curr_user_name == username)
 		assert(FileAccess.get_file_as_bytes(native_path) == native_bytes)
 		assert(FileAccess.get_file_as_bytes("user://current_user.ini") == identity_bytes)
 		assert(player == SoundManager.bgm_play and player.stream == town and player.get_playback_position() >= before)
 	# 鼠标真实悬停、按下层和释放进入首次地图；之前不能初始化。
-	menu.get_node("ArtCanvas/ship_button").pressed.emit()
+	_harbor_entry().activated.emit("harbor")
 	await _frames()
-	var picker: Control = menu.get_node("AdventureDestinationPicker") # 首次实际进入的选择器。
+	var picker: Control = _destination_picker() # 首次实际进入的选择器。
 	var island: TextureButton = picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island") # 开放地区卡片。
 	await _mouse_click(island)
 	await _frames()
@@ -137,10 +137,11 @@ func _run() -> void:
 	var saved := FileAccess.get_file_as_bytes(native_path) # 已赠卡、已解锁的字节基线。
 	get_tree().current_scene._return_menu()
 	await _frames()
+	await _postpone_quest_notice()
 	menu = get_tree().current_scene
-	menu.get_node("ArtCanvas/ship_button").pressed.emit()
+	_harbor_entry().activated.emit("harbor")
 	await _frames()
-	picker = menu.get_node("AdventureDestinationPicker")
+	picker = _destination_picker()
 	island = picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island")
 	island.grab_focus()
 	await _key(KEY_ENTER)

@@ -1,11 +1,11 @@
 ## Isolated progression math contract. No scene, global session or save writes.
-extends SceneTree
+extends Node
 
 const Tiers = preload("res://scripts/adventure/adventure_zombie_tier_catalog.gd")
 const Growth = preload("res://scripts/adventure/adventure_plant_growth_catalog.gd")
 
-func _initialize() -> void:
-	create_timer(6.0, true, false, true).timeout.connect(func(): quit(1))
+func _ready() -> void:
+	get_tree().create_timer(6.0, true, false, true).timeout.connect(func(): get_tree().quit(1))
 	_run.call_deferred()
 
 func _run() -> void:
@@ -39,4 +39,4 @@ func _run() -> void:
 		24.0 / 1.15))
 	assert(Growth.modifiers(11).is_empty())
 	print("GROWTH_CURVES_PASS 5 tiers, HP/armor/bite and stars 0/1/3/6/10")
-	quit(0)
+	get_tree().quit(0)

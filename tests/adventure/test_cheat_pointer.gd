@@ -7,6 +7,14 @@ func _ready() -> void:
 func _check() -> void:
 	var scene: Control = (load("res://scenes/main/01StartMenuCoastal.tscn") as PackedScene).instantiate()
 	get_tree().root.add_child(scene)
+	var menu_user: User = scene.dialogs.selector # 档案窗口会截获正常菜单输入；先完成测试档的真实登录。
+	var username := "pointer-%s" % Time.get_ticks_usec() # 每次运行创建独立测试档。
+	menu_user.panel_create_new_user.line_edit.text = username
+	menu_user.panel_create_new_user.button_ok.pressed.emit()
+	assert(menu_user.all_user_button.size() == 1)
+	menu_user.all_user_button[0].pressed.emit()
+	menu_user.texture_button_ok.pressed.emit()
+	assert(Global.save_service.is_current_profile_loaded() and not scene.dialogs.is_open())
 	var game_button := Button.new()
 	game_button.text = "Game interaction probe"
 	game_button.position = Vector2(14, 300)

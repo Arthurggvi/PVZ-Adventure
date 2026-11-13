@@ -18,14 +18,13 @@ func _run() -> void:
 	for id in ["quests"]:
 		if view._available.get(id, false) != bar._can_open_quests():
 			return _fail("Quest gate must reflect first normal stage clear: " + id)
-	for id in ["empty"]:
-		if view._available.get(id, true):
-			return _fail("Unregistered module became available: " + id)
+	if view._available.has("empty") or view._available.get("settings", true):
+		return _fail("Unexpected reserved slot or settings available without a host")
 	for id: String in view._icons:
 		var source: Texture2D = view._icons[id].texture
 		if source == null or not source.resource_path.begins_with("res://assets/adventure/ui/bottom_bar/"):
 			return _fail("Missing real toolbar art: " + id)
-	for path in ["res://scenes/main/01StartMenu.tscn", "res://scenes/main/01StartMenuCoastal.tscn", AdventureSession.MAP_SCENE]:
+	for path in ["res://scenes/main/01StartMenuCoastal.tscn", AdventureSession.MAP_SCENE]:
 		var scene := (load(path) as PackedScene).instantiate()
 		var registered := scene.is_in_group("adventure_toolbar_surface")
 		scene.free()
@@ -45,18 +44,28 @@ func _run() -> void:
 	await get_tree().process_frame
 	var real_menu: Control = (load("res://scenes/main/01StartMenuCoastal.tscn") as PackedScene).instantiate()
 	get_tree().root.add_child(real_menu)
+	get_tree().current_scene = real_menu
+	var login: User = real_menu.dialogs.selector # 地图入口要求合法的已加载档案。
+	var username := "toolbar-%s" % Time.get_ticks_usec() # 隔离测试档，避免污染开发档案。
+	login.panel_create_new_user.line_edit.text = username
+	login.panel_create_new_user.button_ok.pressed.emit()
+	assert(login.all_user_button.size() == 1)
+	login.all_user_button[0].pressed.emit()
+	login.texture_button_ok.pressed.emit()
+	await real_menu.get_node("SceneTransition").revealed
 	bar._apply_host_scene(real_menu)
-	await get_tree().create_timer(0.10).timeout
+	await get_tree().process_frame
 	if not bar.visible or not bar._interactive:
-		return _fail("Live V8 map entry did not show the persistent toolbar")
-	real_menu._on_button_1_pressed()
+		return _fail("Coastal menu map entry did not show the persistent toolbar")
+	real_menu.entry_layer.controls["harbor"].activated.emit("harbor")
 	await get_tree().create_timer(0.10).timeout
 	if not bar._navigation.is_open() or not bar.visible or bar._interactive:
 		return _fail("The shared destination picker must block toolbar input without hiding it")
 	bar._navigation.close()
 	await get_tree().create_timer(0.10).timeout
 	if not bar.visible or not bar._interactive:
-		return _fail("Live V8 modal close did not restore toolbar input")
+		return _fail("Coastal menu modal close did not restore toolbar input")
+	get_tree().current_scene = null
 	real_menu.queue_free()
 	await get_tree().process_frame
 	var holder := Control.new()

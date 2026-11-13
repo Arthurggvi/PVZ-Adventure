@@ -1,9 +1,9 @@
 ## 冒险数据核心的纯内存验收；不调用玩家存档、场景或业务入口。
-extends SceneTree
+extends Node
 
 ## 延迟到引擎初始化完成，失败断言由短超时以非零退出兜底。
-func _initialize() -> void:
-	create_timer(5.0, true, false, true).timeout.connect(func(): quit(1))
+func _ready() -> void:
+	get_tree().create_timer(5.0, true, false, true).timeout.connect(func(): get_tree().quit(1))
 	_run.call_deferred()
 
 ## 验证身份、库存、出战列表、JSON 边界与不同状态的隔离。
@@ -152,4 +152,4 @@ func _run() -> void:
 	state.regions["bad"] = RefCounted.new()
 	assert(state.to_dict().is_empty()) # 不让对象混入序列化输出。
 	print("PASS: inventory core UID/deck/items/copy/JSON/validation/profile isolation")
-	quit(0)
+	get_tree().quit(0)

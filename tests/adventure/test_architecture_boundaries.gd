@@ -79,7 +79,7 @@ func _run() -> void:
 	legacy_bar.queue_free()
 
 	# 冒险物种不能被原版随机名单悄悄过滤；地形不相容必须在开战前拒绝。
-	var adversarial_stage: StageDefinition = AdventureStageCatalog.load_stage(2)
+	var adversarial_stage: StageDefinition = AdventureStageCatalog.load_stage(1) # 草坪无第二关的固定行预排，单独验证水陆资格。
 	var adversarial_phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(
 		adversarial_stage, StagePhaseDefinition.Kind.NORMAL)
 	var adversarial_band: WaveBandDefinition = adversarial_phase.wave_profile.bands[0]
@@ -87,6 +87,7 @@ func _run() -> void:
 	adversarial_band.zombie_weights[CharacterRegistry.ZombieType.Z012Snorkle] = 1
 	assert(not AdventureBattleEnvironmentAdapter.validate_terrain(adversarial_stage).is_empty())
 	adversarial_stage.environment.scene = MainSceneRegistry.MainScenes.MainGameBack
+	adversarial_stage.environment.terrain_rows.clear() # 改用泳池场景自身的行配置。
 	assert(AdventureBattleEnvironmentAdapter.validate_terrain(adversarial_stage).is_empty())
 	adversarial_band.zombie_weights.clear()
 	adversarial_band.zombie_weights[CharacterRegistry.ZombieType.Z011Duckytube] = 1
