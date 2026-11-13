@@ -29,6 +29,9 @@ class_name AdventureStageOverride
 @export var nightmare_wave_profile: WaveProfile
 @export var normal_drop_table: DropTable
 @export var nightmare_drop_table: DropTable
+## Extra drop entries extend the inherited regional pool without copying the entire table.
+@export var additional_normal_drops: Array[DropEntryDefinition] = []
+@export var additional_nightmare_drops: Array[DropEntryDefinition] = []
 @export var replace_normal_events := false
 @export var normal_events: Array[StageEventDefinition] = []
 @export var additional_normal_events: Array[StageEventDefinition] = []
@@ -98,6 +101,14 @@ func apply(stage: StageDefinition) -> bool:
 		normal.drop_table = normal_drop_table.duplicate(true) as DropTable
 	if nightmare_drop_table != null:
 		nightmare.drop_table = nightmare_drop_table.duplicate(true) as DropTable
+	if not additional_normal_drops.is_empty():
+		if normal.drop_table == null:
+			return false
+		normal.drop_table.entries.append_array(additional_normal_drops.duplicate(true))
+	if not additional_nightmare_drops.is_empty():
+		if nightmare.drop_table == null:
+			return false
+		nightmare.drop_table.entries.append_array(additional_nightmare_drops.duplicate(true))
 	if replace_normal_events:
 		normal.events = normal_events.duplicate(true)
 	if replace_nightmare_events:

@@ -55,7 +55,7 @@ func _test() -> void:
 			_require(rules.regular_interval == 3 and rules.regular_count == Vector2i(1, 2),
 				"natural graves every three waves")
 			_require(rules.flag_summons_one_per_grave == bool(spec["banner"]),
-				"flag zombies from the existing graves in both grave stages")
+				"flag-wave zombies from existing graves on both grave stages")
 			var expected_flag: Vector2i = Vector2i(2, 3) if int(spec["stage"]) == 3 else Vector2i.ZERO
 			_require(rules.flag_count == expected_flag, "banner grave quantities")
 			for number: int in range(1, 11):
@@ -73,9 +73,16 @@ func _test() -> void:
 			var level: ResourceLevelData = AdventureBattleEnvironmentAdapter.build(stage, phase)
 			_require(level != null and not level.is_day and level.is_day_sun == bool(spec["sun"]),
 				"battle environment projection")
+			var fixed_graves: Array[StageEventDefinition] = [] # 本阶段主动生成墓碑的事件。
 			for event: StageEventDefinition in phase.events:
-				_require(event.action != StageEventDefinition.Action.SPAWN_TOMBSTONES,
-					"no duplicate fixed-start tombstones")
+				if event.action == StageEventDefinition.Action.SPAWN_TOMBSTONES:
+					fixed_graves.append(event)
+			# Both grave stages have scripted placement events; these add tombstones,
+			# not zombies. Only a flag wave may make the stones release zombies.
+			var expected_fixed: int = 1 if phase.kind == StagePhaseDefinition.Kind.NORMAL else 3
+			_require(fixed_graves.size() == expected_fixed, "fixed tombstone event count")
+			for event: StageEventDefinition in fixed_graves:
+				_require(event.action_count > 0, "fixed tombstone placement amount")
 	# Placement candidates must skip plants, special blockers and existing tombstones.
 	var grid := PlantCellManager.new()
 	var cells: Array = []
