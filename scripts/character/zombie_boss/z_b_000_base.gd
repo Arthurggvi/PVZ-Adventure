@@ -161,11 +161,15 @@ func _can_receive_damage() -> bool:
 ## [param is_drop] 是否允许掉落表现；[param trigger_be_attack_SFX] 是否播放受击音效。
 ## 致死伤害仅通过血量组件启动僵王死亡状态机，不套用普通僵尸的直接删除逻辑。
 ## [param bonus_damage] 同次命中的附伤；[param bonus_cap] 为劣化放大后的附伤上限，-1 不限制。
+## [param receipt] 可选伤害回执；受击窗口关闭时仍明确回报零损失。
+## [param hit_scope] 可选结算群组，只有通过僵王受击窗口才进入共同资格判定。
 func be_attacked_bullet(attack_value: int, bullet_mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm,
-		is_drop: bool = true, trigger_be_attack_SFX := true, bonus_damage: int = 0, bonus_cap: int = -1):
+		is_drop: bool = true, trigger_be_attack_SFX := true, bonus_damage: int = 0, bonus_cap: int = -1,
+		receipt: Variant = null, hit_scope: CombatHitScope = null):
+	HpComponent.reset_hit_receipt(receipt, self)
 	if not _can_receive_damage():
 		return
-	super.be_attacked_bullet(attack_value, bullet_mode, is_drop, trigger_be_attack_SFX, bonus_damage, bonus_cap)
+	super.be_attacked_bullet(attack_value, bullet_mode, is_drop, trigger_be_attack_SFX, bonus_damage, bonus_cap, receipt, hit_scope)
 
 
 ## 先发出原有死亡信号供管理器扣数，再关闭受击；重复调用不重复触发亡语或计数。

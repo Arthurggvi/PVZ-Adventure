@@ -92,6 +92,7 @@ enum E_InitParasAttr{
 	Enemy,				## 子弹选中的敌人
 	EnemyGloPos,		## 敌人位置(发射子弹时敌人若已经消失,抛物线依旧可以攻击)
 	AttackContext,		## 可选植物攻击上下文；追加枚举值以保留既有参数序号。
+	AttackValidity,		## 可选来源门禁，随火炬等弹体变换传递；追加值不改变旧枚举序号。
 
 }
 
@@ -109,6 +110,9 @@ func init_bullet(bullet_paras:Dictionary):
 	self.can_attack_plant_status = bullet_paras.get(E_InitParasAttr.CanAttackPlantState, can_attack_plant_status)
 	self.can_attack_zombie_status = bullet_paras.get(E_InitParasAttr.CanAttackZombieState, can_attack_zombie_status)
 	attack_context = bullet_paras.get(E_InitParasAttr.AttackContext) as PlantAttackContext
+	var validity: Variant = bullet_paras.get(E_InitParasAttr.AttackValidity, attack_validity) # 变换保留同一来源门禁，未传参数保持原配置。
+	if validity is Callable:
+		attack_validity = validity
 	source_damage_multiplier = float(bullet_paras.get(E_InitParasAttr.DamageMultiplier, 1.0))
 	attack_value = maxi(0, roundi(float(attack_value) * source_damage_multiplier))
 	var splash: SpatterComponent = get_node_or_null("SpatterComponent") as SpatterComponent
@@ -127,6 +131,7 @@ func get_bullet_paras()->Dictionary[E_InitParasAttr,Variant]:
 		E_InitParasAttr.CanAttackZombieState : self.can_attack_zombie_status,
 		E_InitParasAttr.DamageMultiplier : self.source_damage_multiplier,
 		E_InitParasAttr.AttackContext : self.attack_context,
+		E_InitParasAttr.AttackValidity : self.attack_validity,
 	}
 
 ## 伤害上下文与额外战场门禁同时有效才允许命中；未配置时保持原生行为。

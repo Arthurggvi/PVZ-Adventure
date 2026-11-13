@@ -1,4 +1,4 @@
-## 中毒与灼烧共用的持续伤害节拍；状态实例各自独立，重复施加只续时。
+## 中毒、灼烧与缠怨共用的持续伤害节拍；状态独立，重复施加只续时或保留永久标记。
 extends Node
 class_name AdventurePeriodicDamageEffect
 
@@ -16,8 +16,10 @@ var _game: MainGameManager
 var _round: int = -1
 ## 冒险普通与噩梦可复用轮次，需额外冻结阶段身份。
 var _phase: StagePhaseDefinition
-## 剩余战斗秒数，零表示休眠节点。
+## 限时状态的剩余战斗秒数；零且没有永久标记时表示休眠节点。
 var _remaining: float = 0.0
+## 永久状态显式登记，不用无限大秒数冒充；死亡、魅惑、跨战局仍会结束。
+var _permanent: bool = false
 ## 距下一跳的战斗秒数，活跃状态刷新时保留其相位。
 var _until_tick: float = TICK_SECONDS
 ## 最新来源的真实击杀回调，不绑定即将销毁的弹体或母株。
@@ -25,13 +27,15 @@ var _on_kill: Callable = Callable()
 
 ## 为 [param target] 授予 [param duration] 秒状态；[param on_kill] 接收真实死亡者。
 ## [param effect_name] 区分独立状态；[param effect_script] 是本类的具体子类。
+## [param permanent] 为 true 时持续到目标或本战局结束，duration 可为零，重施不会增加跳伤。
 ## 同种状态复用节点，跨阶段首次重施先清旧状态；失效目标或战斗返回false。
 static func grant(target: Character000Base, duration: float, on_kill: Callable,
-		effect_name: StringName, effect_script: GDScript) -> bool:
-	if not is_instance_valid(target) or target.is_death or target.is_hypno \
+		effect_name: StringName, effect_script: GDScript, permanent: bool = false) -> bool:
+	if not is_instance_valid(target) or not target.can_receive_negative_effects() \
+			or target.is_death or target.is_hypno \
 			or target.is_queued_for_deletion() or not target.is_inside_tree() \
 			or target.character_init_type != Character000Base.E_CharacterInitType.IsNorm \
-			or not is_finite(duration) or duration <= 0.0 \
+			or not is_finite(duration) or duration < 0.0 or (not permanent and duration <= 0.0) \
 			or not is_instance_valid(target.hp_component) or target.hp_component.max_hp <= 0:
 		return false
 	var game: MainGameManager = Global.main_game # 来源只能落在当前正式战斗的真实角色上。
@@ -53,7 +57,7 @@ static func grant(target: Character000Base, duration: float, on_kill: Callable,
 	effect._game = game
 	effect._round = game.curr_game_round
 	effect._phase = AdventureSession.get_active_phase(game.game_para)
-	effect.refresh(duration, on_kill)
+	effect.refresh(duration, on_kill, permanent)
 	return true
 
 ## 节拍继承场景暂停；死亡和魅惑同步结束，子类只补充视觉钩子。
@@ -63,11 +67,12 @@ func _ready() -> void:
 	_target.signal_character_be_hypno.connect(clear)
 
 ## [param duration] 与剩余时长取较大值；[param on_kill] 接管未来跳伤归属。
-## 不叠加伤害、不推迟下一跳，休眠状态重新授予才从半秒开始。
-func refresh(duration: float, on_kill: Callable) -> void:
-	var was_inactive: bool = _remaining <= 0.0 # 新激活才启动一次表现，不因每次命中重新建节点。
+## [param permanent] 只升级永久标记；不叠加伤害、不推迟下一跳，休眠后才重新起始节拍。
+func refresh(duration: float, on_kill: Callable, permanent: bool = false) -> void:
+	var was_inactive: bool = not is_effect_active() # 新激活才启动表现，重施保留当前节拍和视觉相位。
 	if was_inactive:
-		_until_tick = TICK_SECONDS
+		_until_tick = _tick_seconds()
+	_permanent = _permanent or permanent
 	_remaining = maxf(_remaining, duration)
 	_on_kill = on_kill
 	set_physics_process(true)
@@ -79,13 +84,14 @@ func _physics_process(delta: float) -> void:
 	if not _battle_active():
 		clear()
 		return
-	var active_delta: float = minf(_remaining, delta) # 帧余量不能越过持续时间产生额外伤害。
-	_remaining -= active_delta
+	var active_delta: float = delta if _permanent else minf(_remaining, delta) # 限时状态不消费到期后的余量。
+	if not _permanent:
+		_remaining -= active_delta
 	_until_tick -= active_delta
 	while _until_tick <= TIME_EPSILON and _battle_active():
-		_until_tick += TICK_SECONDS
+		_until_tick += _tick_seconds()
 		_deal_tick()
-	if _remaining <= TIME_EPSILON:
+	if not _permanent and _remaining <= TIME_EPSILON:
 		clear()
 
 ## 当前目标、场景、轮次和冒险阶段都必须保持；结束或续战界面不结算迟到伤害。
@@ -111,7 +117,7 @@ func _deal_tick() -> void:
 	var hp: HpComponent = _target.hp_component # 分母只取本体最大生命。
 	if not is_instance_valid(hp) or hp.is_death:
 		return
-	var damage: int = maxi(0, roundi(float(hp.max_hp) * MAX_HEALTH_FRACTION)) # 沿用整数伤害取整规则。
+	var damage: int = maxi(0, roundi(float(hp.max_hp) * _max_health_fraction())) # 沿用整数伤害取整规则。
 	if damage <= 0:
 		return
 	var callback: Callable = _on_kill # 扣血可同步清除状态，先保存本次来源。
@@ -128,7 +134,8 @@ func _deal_tick() -> void:
 ## 结束状态并释放延迟来源；保留休眠节点供该角色后续复用。
 func clear() -> void:
 	_remaining = 0.0
-	_until_tick = TICK_SECONDS
+	_permanent = false
+	_until_tick = _tick_seconds()
 	_on_kill = Callable()
 	set_physics_process(false)
 	_on_effect_cleared()
@@ -147,3 +154,15 @@ func _exit_tree() -> void:
 			and (_target as Zombie000Base).is_changing_lane:
 		return
 	clear()
+
+## 返回是否仍有时限或永久标记，供纯视觉子类判断自身生命周期。
+func is_effect_active() -> bool:
+	return _permanent or _remaining > 0.0
+
+## 子类可替换伤害间隔；默认严格保留中毒、灼烧的半秒节拍。
+func _tick_seconds() -> float:
+	return TICK_SECONDS
+
+## 子类可替换最大生命比例；默认两种旧状态均为每跳 2%。
+func _max_health_fraction() -> float:
+	return MAX_HEALTH_FRACTION

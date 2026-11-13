@@ -13,6 +13,7 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 	var fume_events: Array[Dictionary] = [] # 大喷的范围、持续喷涌和命中规则按攻击冻结。
 	var lily_events: Array[Dictionary] = [] # 睡莲仅维护真实承托植物的周期效果。
 	var bloomerang_events: Array[Dictionary] = [] # 回旋镖由原株单时钟发射，弹体各自保存飞行规则。
+	var repeater_events: Array[Dictionary] = [] # 双发只追加本轮总发数，每颗独立抽取一种变种。
 	for event: Dictionary in events: # 每本书的事件只进入对应机制，不复制运行时状态。
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
@@ -46,6 +47,15 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 					lily_events.append(event)
 				elif kind.begins_with("bloomerang_"):
 					bloomerang_events.append(event)
+				elif kind.begins_with("repeater_"):
+					repeater_events.append(event)
+	if not repeater_events.is_empty():
+		if not plant is Plant008PeaShooterDouble:
+			push_error("双发射手转职事件需要对应的战斗植物")
+			return false
+		var repeater_controller := AdventureRepeaterPromotionEffects.new() # 入树前冻结书目，原株就绪后连接原攻击链。
+		repeater_controller.configure(plant as Plant008PeaShooterDouble, repeater_events)
+		plant.add_child(repeater_controller)
 	if not bloomerang_events.is_empty():
 		if not plant is Plant051Bloomerang:
 			push_error("回旋镖转职事件需要对应的战斗植物")

@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/bullet/bullet_001_pea.tscn" id="1_native"]
+[ext_resource type="Script" path="res://scripts/bullet/repeater_pea_projectile.gd" id="2_runtime"]
+
+[node name="RepeaterPeaProjectile" instance=ExtResource("1_native")]
+script = ExtResource("2_runtime")
+is_can_up = false

@@ -9,12 +9,15 @@ var damage_reduction := DamageReductionEffect.new()
 var degradation_fraction: float = 0.0
 ## 可叠加劣化的独立累计强度；不改写或被原有不可叠加通道覆盖。
 var stacked_degradation_fraction: float = 0.0
+## 有独立上限的具名劣化；同族来源共用上限，不截断旧的无限叠加通道。
+var _capped_degradation: Dictionary[StringName, float] = {}
 
 ## [param fraction] 本次非负劣化比例；非有限值与非正数不生效。
 ## [param stackable] 为 true 时仅累加独立通道，否则保持原有取最强值规则。
 ## 两种通道均持续至本次角色结束，最终战斗修正相加。
 func apply_degradation(fraction: float, stackable: bool = false) -> void:
-	if not is_finite(fraction) or fraction <= 0.0:
+	if not is_finite(fraction) or fraction <= 0.0 \
+			or (is_instance_valid(owner_character) and not owner_character.can_receive_negative_effects()):
 		return
 	# 当前请求只读取所选通道，旧劣化与叠加劣化不会互相吞掉。
 	var current: float = stacked_degradation_fraction if stackable else degradation_fraction
@@ -30,9 +33,31 @@ func apply_degradation(fraction: float, stackable: bool = false) -> void:
 		owner_character.body.set_other_color(BodyCharacter.E_ChangeColors.Degradation,
 			Color(0.55, 0.57, 0.58) if total_degradation_fraction() > 0.0 else Color.WHITE)
 
-## 返回两种独立劣化通道共同产生的比例，仅用于结算和表现，不反写任一通道。
+## 为 [param family] 累加 [param fraction] 点比例，并仅把本族限制在 [param cap]。
+## 家族名与正有限数值必须有效；既有不可叠加和无限叠加通道保持原值。
+func apply_capped_degradation(fraction: float, cap: float, family: StringName) -> void:
+	if family.is_empty() or not is_finite(fraction) or fraction <= 0.0 \
+			or not is_finite(cap) or cap <= 0.0 \
+			or (is_instance_valid(owner_character) and not owner_character.can_receive_negative_effects()):
+		return
+	var current: float = _capped_degradation.get(family, 0.0) # 只累计本效果族的贡献。
+	_capped_degradation[family] = maxf(current, minf(cap, current + fraction))
+	if is_instance_valid(owner_character) and is_instance_valid(owner_character.body):
+		owner_character.body.set_other_color(BodyCharacter.E_ChangeColors.Degradation, Color(0.55, 0.57, 0.58))
+
+## 返回各独立劣化通道的总比例，仅用于结算和表现，不反写任一通道。
 func total_degradation_fraction() -> float:
-	return degradation_fraction + stacked_degradation_fraction
+	var total: float = degradation_fraction + stacked_degradation_fraction # 旧两通道保持原有含义。
+	for contribution: float in _capped_degradation.values(): # 具名上限不影响其他家族。
+		total += contribution
+	return total
+
+## 清空显式传入的 [param receipt]，并以 [param recipient] 初始化本次命中的回执。
+## 省略或传非字典时不保存状态；拒绝伤害也必须返回零，不能沿用调用方的旧值。
+static func reset_hit_receipt(receipt: Variant, recipient: Character000Base) -> void:
+	if receipt is Dictionary:
+		receipt.clear()
+		receipt.merge({"recipient": recipient, "actual_loss": 0, "body_loss": 0, "casualty": null})
 
 ## [param amount] 修正前的输出伤害；总劣化达到 100% 时输出降至零，永不产生负伤害。
 func outgoing_damage(amount: int) -> int:
@@ -143,6 +168,12 @@ func set_spawn_max_health(new_max: int) -> void:
 func get_all_hp():
 	return curr_hp
 
+## 返回距原生死亡阈值的剩余生命比例，范围0至1；不含防具或临时护甲。
+## 默认零阈值与普通生命比例一致，头部掉落即判死的僵尸仍拥有可达的处决区间。
+func living_health_fraction() -> float:
+	var living_max: int = maxi(0, max_hp - death_hp) # 扣除不能继续存活的原生保留血量。
+	return clampf(float(curr_hp - death_hp) / float(living_max), 0.0, 1.0) if living_max > 0 else 0.0
+
 ## Reusable HP restoration: clamp to the active combat maximum and notify
 ## observers without inventing damage or allowing resurrection.
 func heal(amount: int) -> int:
@@ -167,9 +198,17 @@ func heal(amount: int) -> int:
 ## [param trigger_be_attack_SFX] 是否播放本次受击音效，false 时只处理扣血及相关信号。
 ## [param is_drop_2] 掉落的额外允许条件，需与死亡掉落选项同时满足。
 ## [param bonus_damage] 同一次命中的非负附伤；[param bonus_cap] 限制劣化放大后的附伤，-1 不限制。
+## [param receipt] 可选字典，报告本次实际受击者、全部血池/本体损失和实际死者；默认不记录。
+## [param hit_scope] 可选群组命中资格；同一实际受击者重复命中在伤害事件前拒绝。
 func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm,
 		is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true,
-		bonus_damage: int = 0, bonus_cap: int = -1):
+		bonus_damage: int = 0, bonus_cap: int = -1, receipt: Variant = null,
+		hit_scope: CombatHitScope = null):
+	reset_hit_receipt(receipt, owner_character)
+	if hit_scope != null and not hit_scope.try_claim(owner_character):
+		return false
+	var actual_loss: int = 0 # 只记录本次攻击真实消耗的血池，脚本生命调整不计入。
+	var body_loss: int = 0 # 在扣血前采样，后续死亡/治疗回调不能改写本击损失。
 	var was_alive: bool = not is_death # 尸体后续扣血不能重复触发战斗损失收益。
 	var raw_damage: int = attack_value + maxi(0, bonus_damage) # 主伤与附伤只发出一次原始攻击事件。
 	# 保留原始攻击事件，护甲和格挡不能将“正在被攻击”伪装成脱战。
@@ -180,12 +219,17 @@ func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletReg
 	if combat:
 		var before_armor: int = attack_value # 已减伤但尚未被临时护甲吸收的本次容量。
 		attack_value = absorb_temporary_armor(attack_value)
+		body_loss = mini(attack_value, curr_hp) if was_alive else 0
 		if attack_value > 0:
 			combat_hp_damaged.emit(mini(attack_value, curr_hp))
-		var actual_loss: int = maxi(0, before_armor - attack_value) + mini(attack_value, curr_hp) # 只统计真正消耗的护甲和本体。
+		actual_loss = maxi(0, before_armor - attack_value) + mini(attack_value, curr_hp) if was_alive else 0
 		if was_alive and actual_loss > 0:
 			combat_health_lost.emit(actual_loss)
 	curr_hp -= attack_value
+	if receipt is Dictionary:
+		receipt["actual_loss"] = actual_loss
+		receipt["body_loss"] = body_loss
+		receipt["casualty"] = owner_character if was_alive and is_death else null
 	# 本次血量变化是否允许触发掉落表现，由死亡掉落选项和额外条件共同决定。
 	var is_drop = not (owner.is_death and not is_drop_on_death) and is_drop_2
 	signal_hp_loss.emit(curr_hp, is_drop)

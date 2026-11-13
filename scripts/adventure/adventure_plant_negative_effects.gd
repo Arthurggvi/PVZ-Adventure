@@ -17,17 +17,20 @@ enum Kind {
 	FEAR, ## 限时反向逃跑，保持阵营并独立抑制攻击。
 	SILENCE, ## 限时禁用等阶能力，保留基础成长及原生行为。
 	SUN_INFUSION, ## 阳光豆式受伤产光，一次赋予一层实伤转换。
+	DETONATION_CHARGE, ## 目标累积十点后清零，并交给来源快照引爆一格。
+	RESENTMENT, ## 永久且不叠伤的每秒损血，黑白滤镜独立于其他状态。
 }
 
 ## [param target] 目标角色；[param kind] 为已登记状态；[param source_id] 用于独立解除无效化。
 ## [param amount] 为劣化比例或限时效果秒数；[param followup] 是冰冻结束后的减速秒数。
-## [param context] 的 stackable 仅令劣化写入独立叠加通道，默认保留原有最强值规则；
+## [param context] 的 stackable 令劣化叠加；family 与 cap 可给指定效果族单独封顶，旧通道不受影响。
+## on_detonate 接收世界位置与行号，由来源快照安排延迟引爆；同目标十点只回调一次。
 ## on_kill 是持续伤害的击杀回调，接收实际死亡者；调用方应保存可脱离母株的来源快照。
 ## 返回是否接受请求；死亡、非法状态或对应状态免疫返回 false，伤害无敌不等同于状态免疫。
 static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 		amount: float = 0.0, followup: float = 0.0, context: Dictionary = {}) -> bool:
 	if not is_instance_valid(target) or target.is_death or target.is_queued_for_deletion() \
-			or not is_finite(amount):
+			or not is_finite(amount) or not target.can_receive_negative_effects():
 		return false
 	var plant: Plant000Base = target as Plant000Base # 植物沿用原有负面效果总免疫。
 	var zombie: Zombie000Base = target as Zombie000Base # 眩晕仅支持普通僵尸的独立行动计时。
@@ -42,7 +45,16 @@ static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 		Kind.DEGRADATION:
 			if not is_instance_valid(target.hp_component) or amount <= 0.0:
 				return false
-			target.hp_component.apply_degradation(amount, bool(context.get("stackable", false)))
+			if context.has("family") or context.has("cap"):
+				var family: Variant = context.get("family", &"") # 家族必须显式命名，不能误封顶旧的全局叠加池。
+				var cap: Variant = context.get("cap", 0.0) # 上限沿用比例单位，0.5 表示 50%。
+				if not (family is String or family is StringName) or StringName(family).is_empty() \
+						or not (cap is float or cap is int) or not is_finite(float(cap)) or float(cap) <= 0.0 \
+						or not bool(context.get("stackable", false)):
+					return false
+				target.hp_component.apply_capped_degradation(amount, float(cap), StringName(family))
+			else:
+				target.hp_component.apply_degradation(amount, bool(context.get("stackable", false)))
 		Kind.NULLIFICATION:
 			if plant == null or source_id == 0:
 				return false
@@ -69,6 +81,16 @@ static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 				else AdventureBurnEffect.apply_to(target, amount, on_kill)
 		Kind.FREEZE_CHARGE:
 			return AdventureFreezeChargeEffect.apply_to(target, amount)
+		Kind.DETONATION_CHARGE:
+			var on_detonate: Variant = context.get("on_detonate", Callable()) # 必须冻结来源回调，状态自身不依赖弹体。
+			if not on_detonate is Callable:
+				return false
+			return AdventureDetonationChargeEffect.apply_to(target, amount, on_detonate)
+		Kind.RESENTMENT:
+			var resentment_kill: Variant = context.get("on_kill", Callable()) # 永久跳伤仍沿用真实击杀归属。
+			if not resentment_kill is Callable:
+				return false
+			return AdventureResentmentEffect.apply_to(target, resentment_kill)
 		Kind.FEAR:
 			return AdventureFearEffect.apply_to(target, amount)
 		Kind.SILENCE:

@@ -248,9 +248,13 @@ func character_death_disappear():
 ## [param is_drop] 是否允许本次伤害触发掉落表现。
 ## [param trigger_be_attack_SFX] 是否播放本次受击音效，false 时只处理扣血及相关信号。
 ## [param bonus_damage] 同次命中的附伤；[param bonus_cap] 为劣化放大后的附伤上限，-1 不限制。
+## [param receipt] 可选实际伤害回执，省略时沿用原有受击路径。
+## [param hit_scope] 可选结算群组，由生命组件在实际承伤位置消费。
 func be_attacked_bullet(attack_value:int, bullet_mode:BulletRegistry.AttackMode=BulletRegistry.AttackMode.Norm,
-		is_drop:bool=true, trigger_be_attack_SFX:=true, bonus_damage: int = 0, bonus_cap: int = -1):
-	hp_component.Hp_loss(attack_value, bullet_mode, is_drop, trigger_be_attack_SFX, true, bonus_damage, bonus_cap)
+		is_drop:bool=true, trigger_be_attack_SFX:=true, bonus_damage: int = 0, bonus_cap: int = -1,
+		receipt: Variant = null, hit_scope: CombatHitScope = null):
+	HpComponent.reset_hit_receipt(receipt, self)
+	hp_component.Hp_loss(attack_value, bullet_mode, is_drop, trigger_be_attack_SFX, true, bonus_damage, bonus_cap, receipt, hit_scope)
 	body.body_light()
 
 ## 被锤子攻击(伤害值不生效)
@@ -299,6 +303,10 @@ func be_flattened():
 
 
 #region 速度修改相关
+## 返回角色是否属于可受负面状态的实体；敌方设施统一覆盖为 false。
+func can_receive_negative_effects() -> bool:
+	return true
+
 ## 返回物种是否接受寒冷；原生免疫物种覆盖此能力，冻结值不得绕过它。
 func can_receive_cold() -> bool:
 	return true

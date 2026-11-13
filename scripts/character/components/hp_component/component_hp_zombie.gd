@@ -84,13 +84,16 @@ func _absorb_bonus_armor(amount: int) -> int:
 ## [param drop]、[param sfx] 和 [param extra_drop] 保留原伤害的表现开关。
 ## [param armor_multiplier] 同原始攻击传给保护者；返回本次实际击杀的僵尸。
 ## [param bonus_damage] 保留原目标命中前冻结的附伤；[param bonus_cap] 上限交给实际承伤者结算，-1 不限制。
+## [param receipt] 可选回执字典，沿同一转移链报告保护者的实际损失。
+## [param hit_scope] 原样传递结算群组，只在最终承伤者处消费资格。
 func accept_transferred_hit(amount: int, mode: BulletRegistry.AttackMode,
 		drop: bool, sfx: bool, extra_drop: bool, armor_multiplier: float = 1.0,
-		bonus_damage: int = 0, bonus_cap: int = -1) -> Zombie000Base:
+		bonus_damage: int = 0, bonus_cap: int = -1, receipt: Variant = null,
+		hit_scope: CombatHitScope = null) -> Zombie000Base:
 	var previous: bool = _handling_transferred_hit # 内层伤害不能提前解除外层保护者的转移锁。
 	_handling_transferred_hit = true
 	# 主伤与附伤作为同一个转移命中结算，不能重新采样保护者的已损生命。
-	var casualty: Zombie000Base = apply_hit(amount, mode, drop, sfx, extra_drop, armor_multiplier, bonus_damage, bonus_cap)
+	var casualty: Zombie000Base = apply_hit(amount, mode, drop, sfx, extra_drop, armor_multiplier, bonus_damage, bonus_cap, receipt, hit_scope)
 	_handling_transferred_hit = previous
 	return casualty
 
@@ -176,15 +179,19 @@ func _physics_process(delta: float) -> void:
 func get_all_hp():
 	return bonus_armor + curr_hp_armor1 + curr_hp_armor2 + curr_hp
 
-## Forced elimination bypasses bonuses but must not leave a dead entity with
-## phantom HP. Partial scripted gear removal still preserves the bonus pool.
+## [param amount] 为强制调整量；[param mode] 决定分流，[param drop]、[param sfx]、[param extra_drop] 保留表现开关。
+## 全量强制致死清除旧护甲及破甲回调中新授的护甲；部分卸甲和未死亡者保留原有护甲规则。
 func apply_unblocked_loss(amount: int,
 		mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm,
 		drop: bool = true, sfx: bool = true, extra_drop: bool = true) -> void:
-	if amount >= get_all_hp() and bonus_armor > 0:
+	var full_elimination: bool = amount >= get_all_hp() # 必须在回调授甲前冻结本次是否请求清空全部血池。
+	if full_elimination and bonus_armor > 0:
 		bonus_armor = 0
 		bonus_armor_changed.emit(0)
 	super.apply_unblocked_loss(amount, mode, drop, sfx, extra_drop)
+	if full_elimination and is_death and bonus_armor > 0:
+		bonus_armor = 0 # 报纸破损可能在本次旁路中授甲；死亡后不能留下幽灵生命池。
+		bonus_armor_changed.emit(0)
 
 
 ## [attack_value:int] 掉血的值
@@ -195,19 +202,26 @@ func apply_unblocked_loss(amount: int,
 ## [param attack_value] 主伤；[param bullet_mode] 分流模式；[param is_drop_on_death] 致死掉落开关。
 ## [param trigger_be_attack_SFX] 受击音效；[param is_drop_2] 额外掉落条件。
 ## [param bonus_damage] 同击附伤；[param bonus_cap] 为劣化放大后的附伤上限，-1 不限制。
+## [param receipt] 可选本次伤害回执，不持久保存到生命组件。
+## [param hit_scope] 可选结算群组；没有传入时保持原有逐击行为。
 func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm,
 		is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true,
-		bonus_damage: int = 0, bonus_cap: int = -1):
-	apply_hit(attack_value, bullet_mode, is_drop_on_death, trigger_be_attack_SFX, is_drop_2, 1.0, bonus_damage, bonus_cap)
+		bonus_damage: int = 0, bonus_cap: int = -1, receipt: Variant = null,
+		hit_scope: CombatHitScope = null):
+	apply_hit(attack_value, bullet_mode, is_drop_on_death, trigger_be_attack_SFX, is_drop_2, 1.0, bonus_damage, bonus_cap, receipt, hit_scope)
 
 ## 结算 [param attack_value] 点伤害和 [param bullet_mode] 分流。
 ## [param is_drop_on_death]、[param trigger_be_attack_SFX] 和 [param is_drop_2] 沿用普通命中表现。
 ## [param armor_multiplier] 仅放大装备防具损伤，默认一倍；临时生命池与本体沿用原伤害。
 ## [param bonus_damage] 普通、穿透或背击携带的同击附伤；[param bonus_cap] 为放大后上限，-1 不限制。
+## [param receipt] 可选字典，报告实际承伤者及损失；无敌、旧尸体和强制生命调整均记零战斗损失。
+## [param hit_scope] 在保护者转移完成后、发出受击事件前消费，重复承伤回报零损失。
 ## 返回本次从存活变死亡的实际受击者；转移伤害时可返回保护者。
 func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 		is_drop_on_death: bool, trigger_be_attack_SFX: bool, is_drop_2: bool = true,
-		armor_multiplier: float = 1.0, bonus_damage: int = 0, bonus_cap: int = -1) -> Zombie000Base:
+		armor_multiplier: float = 1.0, bonus_damage: int = 0, bonus_cap: int = -1,
+		receipt: Variant = null, hit_scope: CombatHitScope = null) -> Zombie000Base:
+	reset_hit_receipt(receipt, owner_character)
 	# A protector receives the raw hit and re-runs its own block -> DR -> armor.
 	# Scripted forced loss and nested transfers never redirect.
 	if not _bypass_damage_block and not _handling_transferred_hit and not is_damage_immune() \
@@ -216,7 +230,10 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 		if protector != null:
 			var protector_hp: HpComponentZombie = protector.hp_component as HpComponentZombie
 			return protector_hp.accept_transferred_hit(attack_value, bullet_mode,
-					is_drop_on_death, trigger_be_attack_SFX, is_drop_2, armor_multiplier, bonus_damage, bonus_cap)
+					is_drop_on_death, trigger_be_attack_SFX, is_drop_2, armor_multiplier, bonus_damage, bonus_cap, receipt, hit_scope)
+	# 转移先决定真正承伤者；不能在原接触目标提前占用资格。
+	if hit_scope != null and not hit_scope.try_claim(owner_character):
+		return null
 	# 只有本次受击产生的状态变化算击杀，已死亡的角色不重复回报。
 	var was_alive: bool = not is_death
 	var raw_damage: int = attack_value + maxi(0, bonus_damage) # 附伤不另发攻击事件，也不另扣一次脆弱防具。
@@ -240,7 +257,7 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 			resolved = maxi(1, resolved)
 		attack_value = _absorb_bonus_armor(resolved)
 	## 掉血标志, 1:本体 2:一类防具 4:二类防具
-	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value, armor_multiplier)
+	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value, armor_multiplier, receipt)
 
 	var res_hp = get_all_hp()
 	# A gear-loss trigger can award armor in this impact. The received-hit
@@ -248,6 +265,10 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 	var loss_hp: int = maxi(0, ori_hp - res_hp + _armor_granted_in_hit)
 	_resolving_hit = false
 	_armor_granted_in_hit = 0
+	if receipt is Dictionary:
+		receipt["actual_loss"] = loss_hp if combat_loss else 0
+		receipt["body_loss"] = int(receipt.get("body_loss", 0)) if combat_loss else 0
+		receipt["casualty"] = owner_character if was_alive and is_death else null
 
 	var is_drop = not (owner.is_death and not is_drop_on_death) and is_drop_2
 
