@@ -63,6 +63,7 @@ func set_age(seconds: float) -> void:
 	_age = clampf(seconds, 0.0, _duration)
 	visible = _age < _duration
 	_cloud_ink.set_shader_parameter(&"age", _age)
+	_cloud_ink.set_shader_parameter(&"quality", RepeaterVisualBudget.quality())
 	queue_redraw()
 
 ## 单枚星核轨迹：先沿弹道右侧猛烈飞散，再被卷入旋臂，最后向中心坍缩。
@@ -90,55 +91,71 @@ func positions_at(seconds: float) -> PackedVector2Array:
 		result[i] = _position(_cores[i], i % 3, seconds)
 	return result
 
-## 带有极短能量压缩、穿透放射、成臂残响和最终反向坍缩的四阶段绘制。
+## 银白星核始终绘制全部24枚，预算只影响闪芒、装饰细丝与尘星。
 func _draw() -> void:
-	var remaining: float = _duration - _age # 所有装饰在寿命内结束。
-	var fade: float = RepeaterVisualPalette.smooth(remaining / 0.26)
-	var quality: int = RepeaterVisualBudget.quality() # 高负载跳过非碰撞星点。
-	var splash: float = 1.0 - RepeaterVisualPalette.smooth((_age - 0.035) / 0.24)
+	var remaining: float = _duration - _age # 所有装饰在战斗寿命内结束。
+	var fade: float = RepeaterVisualPalette.smooth(remaining / 0.26) # 尾声柔和收光。
+	var quality: int = RepeaterVisualBudget.quality() # 只减少非碰撞装饰。
+	var splash: float = 1.0 - RepeaterVisualPalette.smooth(_age / 0.21) # 初始闪光保持紧凑，避免与命中效果叠亮。
 	if splash > 0.0:
 		_draw_burst(splash)
-	var points: PackedVector2Array = positions_at(_age) # 真正伤害和实际可见星星共享几何。
-	var stride: int = 1 if quality == RepeaterVisualBudget.FULL else (2 if quality == RepeaterVisualBudget.MEDIUM else 4)
-	for i: int in range(0, points.size(), stride):
-		var core: Vector4 = _cores[i] # 不同核心半径与闪烁相位固定，不会随机跳点。
-		var peak: float = pow(maxf(sin(_age * (6.4 + core.w * 3.2) + core.z), 0.0), 8.0)
-		var hue: Color = COLORS[(i * 5 + i / 3) % COLORS.size()]
-		var intensity: float = fade * (0.65 + 0.35 * peak)
-		var size: float = 1.35 + core.w * 1.5
-		draw_circle(points[i], size, Color(hue, intensity))
-		draw_circle(points[i], size * 0.40, Color(1.0, 0.97, 1.0, intensity))
-		if i % 4 == 0 and peak > 0.10:
-			var ray: float = (3.0 + peak * 6.0) * core.w # 瞬时星芒只在少数核出现。
-			draw_line(points[i] - Vector2(ray, 0), points[i] + Vector2(ray, 0), Color(hue, peak * fade * 0.70), 0.9, true)
-			draw_line(points[i] - Vector2(0, ray), points[i] + Vector2(0, ray), Color(hue, peak * fade * 0.85), 0.9, true)
+	if quality != RepeaterVisualBudget.CHEAP:
+		_draw_filaments(fade, quality)
+	var points: PackedVector2Array = positions_at(_age) # 实际可见星核与真实伤害位置完全一致。
+	var sparkle_stride: int = 3 if quality == RepeaterVisualBudget.FULL else 6 # 只减少星芒，星核永不抽样隐藏。
+	for i: int in range(points.size()): # 全部24枚核心的冷色晶芒。
+		var core: Vector4 = _cores[i] # 出生时固定的轨道与闪烁参数。
+		var peak: float = pow(maxf(sin(_age * (4.4 + core.w * 2.4) + core.z), 0.0), 6.0) # 短促闪烁，保留安静间隔。
+		var hue: Color = COLORS[(i * 5 + i / 3) % COLORS.size()] # 同一颗星保持稳定色相。
+		var intensity: float = fade * (0.76 + peak * 0.24) # 主核始终可辨识。
+		var size: float = 1.6 + core.w * 1.25 # 真实半径五像素内的晶体亮心。
+		var crystal := PackedVector2Array([points[i] + Vector2(0.0, -size * 1.45), points[i] + Vector2(size, 0.0), points[i] + Vector2(0.0, size * 1.45), points[i] + Vector2(-size, 0.0)]) # 窄菱形比彩色圆点更像恒星。
+		draw_colored_polygon(crystal, Color(hue, intensity))
+		draw_circle(points[i], 0.75 + core.w * 0.35, Color(0.96, 0.99, 1.0, intensity))
+		if i % sparkle_stride == 0:
+			var ray: float = (3.6 + peak * 5.5) * core.w # 错相恒星衍射芒。
+			draw_line(points[i] - Vector2(ray * 0.72, 0.0), points[i] + Vector2(ray * 0.72, 0.0), Color(hue, fade * (0.20 + peak * 0.50)), 0.8, true)
+			draw_line(points[i] - Vector2(0.0, ray), points[i] + Vector2(0.0, ray), Color(hue, fade * (0.30 + peak * 0.56)), 0.8, true)
 	_draw_dust(quality, fade)
 
-## 强压缩亮核与定向冲击环让银河先像攻击而不是星云贴图入场。
-func _draw_burst(alpha: float) -> void:
-	var impulse: float = RepeaterVisualPalette.out_cubic(_age / 0.22) # 爆发圈迅速张开且柔和收尾。
-	var radius: float = 6.0 + impulse * 42.0
-	draw_circle(Vector2.ZERO, 7.0 * (1.0 - impulse) + 1.0, Color(0.94, 0.97, 1.0, alpha))
-	draw_arc(Vector2.ZERO, radius, -PI * 0.43, PI * 0.43, 24, Color(0.76, 0.87, 1.0, alpha * 0.93), 2.3, true)
-	draw_arc(Vector2.ZERO, radius * 0.76, PI * 0.59, PI * 1.48, 17, Color(0.60, 0.27, 1.0, alpha * 0.70), 1.6, true)
-	for i: int in range(6): # 向前偏转的高速星束，不使用粒子节点。
-		var angle: float = (float(i) - 2.5) * 0.38
-		var direction: Vector2 = Vector2.from_angle(angle)
-		var tip: Vector2 = direction * (12.0 + impulse * (25.0 + float(i % 3) * 7.0))
-		draw_line(tip - direction * (10.0 + 15.0 * impulse), tip,
-			Color(COLORS[i], alpha * 0.89), 1.4, true)
-
-## 细尘按三种颜色批量绘制，最多108枚并随预算减少到27枚。
-func _draw_dust(quality: int, fade: float) -> void:
-	var stride: int = 1 if quality == RepeaterVisualBudget.FULL else (2 if quality == RepeaterVisualBudget.MEDIUM else 4)
-	for group: int in range(3): # 三次多线段指令取代旧版每粒一次draw_circle。
-		var segments := PackedVector2Array()
-		for i: int in range(group, DUST_COUNT, 3 * stride):
-			var mote: Vector4 = _dust[i] # 这颗星的一次局部解析采样。
-			var point: Vector2 = _position(mote, i % 3, _age)
-			var blink: float = pow(maxf(sin(_age * (5.0 + mote.w * 4.0) + mote.z), 0.0), 5.0)
-			var length: float = 0.45 + mote.w * (0.8 + 1.4 * blink)
-			segments.append(point - Vector2(length, 0))
-			segments.append(point + Vector2(length, 0))
+## [param fade] 控制尾声透明度，[param quality] 决定旋臂细丝的固定采样数。
+func _draw_filaments(fade: float, quality: int) -> void:
+	var forming: float = RepeaterVisualPalette.smooth((_age - 0.12) / 0.45) # 成形后才出现微弱旋臂脊线。
+	var count: int = 26 if quality == RepeaterVisualBudget.FULL else 16 # 单臂固定预算。
+	for arm: int in range(3): # 每条曲线直接采样同一轨道公式，保证与碰撞核同臂。
+		var segments := PackedVector2Array() # 外臂断续细丝，避免几何完整圆环。
+		for index: int in range(count): # 少量短线段模仿电离星云中的纤维。
+			var radius: float = lerpf(0.18, 0.82, float(index) / float(count)) # 气体旋臂内外半径。
+			if index % 5 == 3:
+				continue
+			segments.append(_position(Vector4(radius, -0.09, 0.0, 0.0), arm, _age))
+			segments.append(_position(Vector4(radius + 0.018, -0.09, 0.0, 0.0), arm, _age))
 		if segments.size() >= 2:
-			draw_multiline(segments, Color(COLORS[group * 2 + 1], fade * 0.58), 1.0, true)
+			draw_multiline(segments, Color(0.33, 0.69, 0.98, fade * forming * 0.30), 0.8, true)
+
+## [param alpha] 是命中第一拍的剩余亮度；紧凑六向晶芒与正式命中爆发分工。
+func _draw_burst(alpha: float) -> void:
+	var impulse: float = RepeaterVisualPalette.out_cubic(_age / 0.18) # 短促放射，不画另一层冲击圆。
+	var radius: float = lerpf(5.0, 26.0, impulse) # 晶芒限制在半格以内。
+	for index: int in range(6): # 六枚细长尖瓣形成星核裂开。
+		var heading: Vector2 = Vector2.from_angle(float(index) * TAU / 6.0 + 0.16) # 固定爆发方向。
+		var normal: Vector2 = heading.orthogonal() # 细瓣的横向宽度。
+		var petal := PackedVector2Array([heading * 2.0, heading * radius * 0.42 + normal * 1.5 * alpha, heading * radius, heading * radius * 0.42 - normal * 1.5 * alpha]) # 尖瓣自然收束。
+		draw_colored_polygon(petal, Color(0.57, 0.78, 1.0, alpha * 0.72))
+	draw_circle(Vector2.ZERO, lerpf(4.0, 1.0, impulse), Color(0.96, 0.98, 1.0, alpha))
+
+## [param quality] 控制装饰数量，[param fade] 保证尘星与场寿命同步，三批线段保持成本有界。
+func _draw_dust(quality: int, fade: float) -> void:
+	var stride: int = 1 if quality == RepeaterVisualBudget.FULL else (2 if quality == RepeaterVisualBudget.MEDIUM else 4) # 只抽样无碰撞尘星。
+	for group: int in range(3): # 蓝、紫、青三种星尘错开闪烁。
+		var segments := PackedVector2Array() # 本色的一次批量提交。
+		for i: int in range(group, DUST_COUNT, 3 * stride): # 参数序列与旧版完全相同。
+			var mote: Vector4 = _dust[i] # 出生时固定的装饰轨道。
+			var point: Vector2 = _position(mote, i % 3, _age) # 尘星沿真实旋臂同向运动。
+			var blink: float = pow(maxf(sin(_age * (4.0 + mote.w * 3.0) + mote.z), 0.0), 5.0) # 局部闪亮并非全体呼吸。
+			var extent: float = 0.30 + mote.w * (0.35 + blink * 0.70) # 微尘比实际星核细小。
+			var direction: Vector2 = Vector2.from_angle(mote.z) # 微尘不再齐整地沿水平排布。
+			segments.append(point - direction * extent)
+			segments.append(point + direction * extent)
+		if segments.size() >= 2:
+			draw_multiline(segments, Color(COLORS[group * 2 + 1], fade * 0.66), 1.0, true)

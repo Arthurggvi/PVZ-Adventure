@@ -25,10 +25,10 @@ static func colors(kind: StringName, index: int = 0) -> PackedColorArray:
 		&"ember": palette = PackedColorArray([Color("#3c0410"), Color("#df2435"), Color("#ff6977")])
 		&"shock": palette = PackedColorArray([Color("#090b11"), Color("#444957"), Color("#b1bbc6")])
 		&"detonation": palette = PackedColorArray([Color("#30020b"), Color("#b70e35"), Color("#ff7b8b")])
-		&"morning": palette = PackedColorArray([Color("#090510"), Color("#3f173f"), Color("#de96e3")])
-		&"hell": palette = PackedColorArray([Color("#050308"), Color("#321040"), Color("#ad57d4")])
-		&"kaguya": palette = PackedColorArray([Color("#030307"), Color("#111019"), Color("#ffd87b")])
-		&"hades": palette = PackedColorArray([Color("#3b3d48"), Color("#b8bfcb"), Color("#f5f8ff")])
+		&"morning": palette = PackedColorArray([Color("#21113b"), Color("#c7904d"), Color("#fff3d0")])
+		&"hell": palette = PackedColorArray([Color("#170813"), Color("#b72e24"), Color("#ffd596")])
+		&"kaguya": palette = PackedColorArray([Color("#080b20"), Color("#323b75"), Color("#b3eeff")])
+		&"hades": palette = PackedColorArray([Color("#10111e"), Color("#596275"), Color("#e5efff")])
 		&"star_dark":
 			var shade: Color = DARK_STARS[posmod(index, DARK_STARS.size())] # 同轮深色分裂保留区分度。
 			palette = PackedColorArray([shade.darkened(0.78), shade, shade.lightened(0.52)])
@@ -47,7 +47,7 @@ static func make_material(kind: StringName, index: int = 0, phase: float = 0.0) 
 	result.set_shader_parameter(&"body_color", palette[1])
 	result.set_shader_parameter(&"light_color", palette[2])
 	result.set_shader_parameter(&"phase", phase)
-	result.set_shader_parameter(&"surface_brightness", 0.43 if kind == &"morning" else 1.0)
+	result.set_shader_parameter(&"surface_brightness", 0.90 if kind == &"morning" else 1.0)
 	result.set_shader_parameter(&"red_source", kind in [&"ember", &"hell"])
 	var mode: int = 0 # 只在对应材质开启细节，避免每种子弹都同样闪烁。
 	if kind == &"morning" or kind == &"star_dark" or kind == &"star_light":

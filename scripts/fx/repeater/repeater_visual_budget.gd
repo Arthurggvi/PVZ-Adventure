@@ -13,7 +13,7 @@ const CHEAP: int = 2
 static var _galaxies: int = 0
 ## 当前仍在场景树里的黑洞场。
 static var _vortices: int = 0
-## 正在绘制的冥弹飞行尾迹。
+## 正在绘制的冥弹、地狱、晨星与辉夜专属飞行尾迹。
 static var _trails: int = 0
 ## 短命打击、爆发与吸收链数量。
 static var _impacts: int = 0

@@ -71,7 +71,7 @@ func _distance_units(age: float) -> float:
 func _on_impact(target: Character000Base, position: Vector2) -> void:
 	if shot == null or not shot.is_same_battle():
 		return
-	RepeaterImpactVisual.spawn(shot.game.bullets, kind, position, direction)
+	RepeaterImpactVisual.spawn(shot.game.bullets, kind, position, direction, z_index) # 分裂星跨行飞行时仍沿用当前弹体绘制深度。
 	if not shot.is_active():
 		return
 	if generation == 1 and is_instance_valid(target):

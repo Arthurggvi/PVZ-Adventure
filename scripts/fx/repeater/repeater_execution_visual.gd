@@ -1,4 +1,4 @@
-## 冥弹处决的纯姿势副本：渐白、分片、飘散；不复制任何角色或战斗组件。
+## 冥弹处决的纯姿势副本：银光定格、幽影裂解、魂屑升散；不复制角色或战斗组件。
 extends Node2D
 class_name RepeaterExecutionVisual
 
@@ -30,7 +30,7 @@ class Part:
 
 ## 已采集的纯图像部件。
 var _parts: Array[Part] = []
-## 白化材质只由本次演出使用。
+## 幽影破碎材质只由本次演出使用。
 var _ink: ShaderMaterial
 ## 表现经过的秒数。
 var _age: float = 0.0
@@ -60,6 +60,8 @@ static func capture(parent: Node, body: Node2D) -> Node2D:
 	result._ink = ShaderMaterial.new()
 	result._ink.shader = SILHOUETTE_SHADER
 	result._ink.set_shader_parameter(&"phase", fposmod(body.global_position.x * 0.13, 71.0))
+	result._ink.set_shader_parameter(&"soul_origin", result._anchor + result._bounds.get_center())
+	result._ink.set_shader_parameter(&"soul_height", maxf(1.0, result._bounds.size.y))
 	result._copy_clipping(body)
 	result.material = result._ink
 	parent.add_child(result)
@@ -144,7 +146,7 @@ func _depth_of(item: CanvasItem) -> int:
 			depth += cursor.z_index
 	return depth
 
-## [param delta] 是受暂停控制的秒数；先白化后瓦解，二者平滑重叠。
+## [param delta] 是受暂停控制的秒数；先短促银光定格，再沿全身连续裂纹瓦解。
 func _process(delta: float) -> void:
 	_age += delta
 	if _age >= DURATION:
@@ -152,6 +154,7 @@ func _process(delta: float) -> void:
 		return
 	_ink.set_shader_parameter(&"whitening", RepeaterVisualPalette.smooth(_age / 0.22))
 	_ink.set_shader_parameter(&"dissolve", RepeaterVisualPalette.smooth((_age - 0.18) / 0.67))
+	_ink.set_shader_parameter(&"execution_seconds", _age)
 	global_position = _anchor + Vector2(0.0, -7.0) * RepeaterVisualPalette.smooth((_age - 0.24) / 0.66)
 	queue_redraw()
 	_dust.queue_redraw()
@@ -163,12 +166,18 @@ func _draw() -> void:
 		draw_texture_rect_region(part.texture, part.rect, part.region, part.color)
 	draw_set_transform(Vector2.ZERO)
 
-## 瓦解中后段散出很细的白星，速度以三次曲线衰减。
+## 魂屑沿细长弧线向上升散；[member _bounds] 只用于视觉分布，不读取尸体或发起伤害。
 func _draw_dust() -> void:
 	var t: float = clampf((_age - 0.20) / 0.70, 0.0, 1.0) # 星尘晚于轮廓白化出现。
 	var fade: float = sin(t * PI) * (1.0 - t) # 中段亮起后无硬切地退出。
-	for index: int in range(22): # 固定数量、解析运动，不创建单粒子节点。
+	var quality: int = RepeaterVisualBudget.quality() # 密集处决只降低无碰撞魂屑数量。
+	var count: int = 20 if quality == RepeaterVisualBudget.FULL else (12 if quality == RepeaterVisualBudget.MEDIUM else 6) # 所有质量档均保留核心处决剪影。
+	for index: int in range(count): # 固定数量、解析运动，不创建单粒子节点。
 		var phase: float = float(index) * 2.399963 # 黄金角分布避开整齐喷射。
-		var point: Vector2 = _bounds.get_center() + Vector2(cos(phase), sin(phase)) * _bounds.size * 0.42 # 从轮廓附近起飞。
-		point += Vector2(cos(phase) * 20.0, -24.0 - float(index % 5) * 3.0) * RepeaterVisualPalette.out_cubic(t)
-		_dust.draw_texture_rect(RepeaterVisualPalette.STAR_TEXTURE, Rect2(point - Vector2.ONE * 2.0, Vector2.ONE * 4.0), false, Color(0.80, 0.87, 1.0, fade * 0.8))
+		var origin: Vector2 = _bounds.get_center() + Vector2(cos(phase), sin(phase)) * _bounds.size * 0.36 # 轮廓周围各片独立起点。
+		var travel: float = RepeaterVisualPalette.out_cubic(t) # 魂屑先快后慢地脱离实体。
+		var point: Vector2 = origin + Vector2(sin(phase + t * 2.0) * 23.0, -32.0 - float(index % 5) * 5.0) * travel # 向上弯曲，不是整齐散开的卡通小星。
+		var size: float = (1.3 + float(index % 3) * 0.5) * (1.0 - t * 0.6) # 每片碎光不断缩小。
+		var vertices := PackedVector2Array([point + Vector2(0, -size * 3.4), point + Vector2(size, 0), point + Vector2(0, size * 2.1), point - Vector2(size, 0)]) # 凸菱形灵魂碎片，无自交多边形。
+		_dust.draw_colored_polygon(vertices, Color(0.66, 0.83, 1.0, fade * 0.82))
+		_dust.draw_line(point, point + Vector2(-sin(phase + t * 2.0) * 3.0, 6.0 + size * 2.0), Color(0.50, 0.52, 0.78, fade * 0.38), 0.7, true)

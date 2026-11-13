@@ -22,7 +22,7 @@ func _ready() -> void:
 func _on_impact(target: Character000Base, position: Vector2) -> void:
 	if shot == null or not shot.is_same_battle():
 		return
-	RepeaterImpactVisual.spawn(shot.game.bullets, kind, position, direction)
+	RepeaterImpactVisual.spawn(shot.game.bullets, kind, position, direction, z_index) # 命中爆发跟随本行弹体层级，避免被后排角色遮住。
 	if not shot.is_active():
 		return
 	RepeaterProjectileEffects.impact(kind, target, position, shot)

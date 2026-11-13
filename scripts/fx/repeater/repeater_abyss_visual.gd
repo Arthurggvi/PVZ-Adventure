@@ -1,32 +1,39 @@
-## 地狱弹的单层空间吸力视觉；黑色核心、体积环流和崩塌均由解析战斗时间驱动。
+## 地狱弹的熔火裂隙；单张GPU画布表现黑核与前后吸积盘，少量余烬沿曲线吞入。
 extends Node2D
 class_name RepeaterAbyssVisual
 
-## GPU解析黑洞替代两套循环翻页的低帧传送贴图。
+## 不读取屏幕纹理的解析裂隙，兼容项目的GL渲染器。
 const ABYSS_SHADER: Shader = preload("res://shaders/repeater/repeater_abyss_vortex.gdshader")
-## 一张小画布即可完整承载漩涡；像素面积与真实棋盘格距相关。
+## 熔火与黑核共用的局部画布，尺寸由格距决定。
 var _disk: Sprite2D
-## 本场独立材质只接收秒数和视觉预算。
+## 私有材质避免多个裂隙相互覆盖时间。
 var _ink: ShaderMaterial
-## 当前可见战斗时间，冻结画面不会自行转动。
+## 当前可暂停战斗年龄，单位秒。
 var _age: float = 0.0
-## 结束时向内坍缩，不让动画无限循环。
+## 场的真实寿命，视觉结束不能延长伤害。
 var _lifetime: float = 5.0
+## 余烬运动的横纵半径，与GPU画布保持同一尺度。
+var _extent: Vector2 = Vector2(76.0, 80.0)
+## 每个裂隙独立错相，不使用全局战斗随机流。
+var _phase: float = 0.0
 
-## [param pitch] 决定本场画布尺寸，[param lifetime] 和战斗场寿命严格一致。
+## [param pitch] 是真实棋盘格距；[param lifetime] 是战斗场寿命，单位秒。
 func configure(pitch: Vector2, lifetime: float) -> void:
 	_lifetime = maxf(0.01, lifetime)
+	_extent = Vector2(maxf(112.0, pitch.x * 1.90), maxf(128.0, pitch.y * 1.60)) * 0.5
+	_phase = float(get_instance_id() % 101) * 0.06221
 	_disk = Sprite2D.new()
-	_disk.texture = RepeaterVisualPalette.halo_texture() # 共用UV载体，不重复生成纹理。
-	_disk.scale = Vector2(maxf(96.0, pitch.x * 1.65), maxf(112.0, pitch.y * 1.36)) / _disk.texture.get_size()
+	_disk.texture = RepeaterVisualPalette.halo_texture()
+	_disk.scale = _extent * 2.0 / _disk.texture.get_size()
 	_ink = ShaderMaterial.new()
 	_ink.shader = ABYSS_SHADER
 	_disk.material = _ink
 	add_child(_disk)
 	_ink.set_shader_parameter(&"lifetime", _lifetime)
+	_ink.set_shader_parameter(&"phase", _phase)
 	set_age(0.0)
 
-## 只更新两个着色器标量，视觉质量变化不重新创建材质或节点。
+## [param seconds] 由战斗场传入；暂停时光流和余烬一同冻结，结束时隐藏整场。
 func set_age(seconds: float) -> void:
 	_age = clampf(seconds, 0.0, _lifetime)
 	visible = _age < _lifetime
@@ -34,25 +41,34 @@ func set_age(seconds: float) -> void:
 	_ink.set_shader_parameter(&"quality", RepeaterVisualBudget.quality())
 	queue_redraw()
 
-## 短促黑紫裂隙与吸入碎屑：近场8条解析曲线，低预算自动关闭。
+## 在一次绘制内表现开裂尖光与向心余烬；最多六条短曲线，不创建粒子节点。
 func _draw() -> void:
-	var t: float = _age # 使用场的唯一生命周期。
-	if t < 0.21:
-		var slash: float = 1.0 - RepeaterVisualPalette.smooth(t / 0.21) # 先撕裂后扩张。
-		var half: float = 8.0 + RepeaterVisualPalette.out_cubic(t / 0.21) * 46.0
-		draw_line(Vector2(0, -half), Vector2(0, half), Color(0.65, 0.16, 0.95, slash), 2.5, true)
-		draw_line(Vector2(-3, -half * 0.7), Vector2(3, half * 0.7), Color(1.0, 0.61, 0.82, slash * 0.85), 1.2, true)
-		return
-	var quality: int = RepeaterVisualBudget.quality() # 高负载不画无碰撞的灰烬。
+	var onset: float = RepeaterVisualPalette.smooth(_age / 0.32) # 先开裂后吸入。
+	var ending: float = RepeaterVisualPalette.smooth((_lifetime - _age) / 0.55) # 与GPU共用坍缩节奏。
+	if _age < 0.25:
+		var flash: float = sin(clampf(_age / 0.25, 0.0, 1.0) * PI) # 闪光只在开裂阶段短促出现。
+		var half_length: float = lerpf(8.0, _extent.y * 0.84, RepeaterVisualPalette.out_cubic(_age / 0.25)) # 裂口纵向拉长。
+		draw_texture_rect(RepeaterVisualPalette.halo_texture(), Rect2(-15.0, -half_length, 30.0, half_length * 2.0), false, Color(1.0, 0.23, 0.06, flash * 0.42))
+		var outer_cut := PackedVector2Array([Vector2(-3.0, -half_length), Vector2(1.0, -half_length * 0.32), Vector2(5.0, -half_length * 0.08), Vector2(1.2, half_length * 0.37), Vector2(3.0, half_length), Vector2(-2.5, half_length * 0.29), Vector2(-5.0, half_length * 0.05), Vector2(-1.4, -half_length * 0.35)]) # 变宽与偏折的裂口两边均收尖。
+		draw_colored_polygon(outer_cut, Color(1.0, 0.37, 0.08, flash * 0.90))
+		var inner_cut := PackedVector2Array([Vector2(-2.0, -half_length * 0.89), Vector2(1.6, -half_length * 0.07), Vector2(2.0, half_length * 0.84), Vector2(-1.6, half_length * 0.05)]) # 白热尖心没有矩形端盖。
+		draw_colored_polygon(inner_cut, Color(1.0, 0.94, 0.72, flash))
+	var quality: int = RepeaterVisualBudget.quality() # 高负载只保留GPU主轮廓。
 	if quality == RepeaterVisualBudget.CHEAP:
 		return
-	var count: int = 8 if quality == RepeaterVisualBudget.FULL else 4 # 单节点多线段而非独立粒子。
-	var ending: float = RepeaterVisualPalette.smooth((_lifetime - t) / 0.48)
-	for i: int in range(count):
-		var phase: float = float(i) * TAU / float(count) + t * 0.40 # 缓慢的吸入轨道。
-		var fraction: float = fposmod(t * (0.18 + float(i % 3) * 0.02) + float(i) * 0.13, 1.0)
-		var radius: float = 42.0 * (1.0 - RepeaterVisualPalette.smooth(fraction)) # 灰烬逐渐向内加速。
-		var point: Vector2 = Vector2(cos(phase + fraction * 1.45) * radius, sin(phase + fraction * 1.45) * radius * 0.72)
-		var inward: Vector2 = (Vector2.ZERO - point).normalized()
-		draw_line(point - inward * 6.0, point + inward * 3.0,
-			Color(0.53, 0.22, 0.68, ending * (1.0 - fraction) * 0.62), 1.0, true)
+	var count: int = 6 if quality == RepeaterVisualBudget.FULL else 3 # 曲线条数随预算收敛。
+	for index: int in range(count): # 每条流线错开出生与吸入时机。
+		var progress: float = fposmod(_age * (0.48 + float(index % 3) * 0.055) + float(index) * 0.173, 1.0) # 一次吸入周期。
+		var opacity: float = sin(progress * PI) * onset * ending # 两端透明避免轨道跳变。
+		var angle: float = float(index) * 2.39996 + _phase # 黄金角让余烬分布自然。
+		var points := PackedVector2Array() # 固定四段短尾，最多五个点。
+		for step: int in range(5): # 尾端沿历史轨道回溯，始终指向吸入方向。
+			var fraction: float = maxf(0.0, progress - float(4 - step) * 0.015) # 短尾的解析历史时刻。
+			var radius: float = lerpf(0.91, 0.28, pow(fraction, 1.65)) * ending # 越接近黑核越快。
+			var turn: float = angle + fraction * 2.5 + _age * 0.22 # 向内旋转而非直线收缩。
+			points.append(Vector2(cos(turn), sin(turn) * 0.69) * _extent * radius)
+		draw_polyline(points, Color(0.40, 0.035, 0.10, opacity * 0.48), 2.0, true)
+		draw_polyline(points, Color(1.0, 0.31 + progress * 0.32, 0.08, opacity * 0.78), 0.8, true)
+		var tip: Vector2 = points[points.size() - 1] # 最靠近黑核的白热尖端。
+		var heading: Vector2 = (tip - points[points.size() - 2]).normalized() # 尖端顺着曲线而非朝固定方向。
+		draw_line(tip - heading * 1.8, tip + heading * 0.5, Color(1.0, 0.91, 0.62, opacity), 1.5, true)

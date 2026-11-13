@@ -1,4 +1,4 @@
-## 普通变种命中碎光和黑红吸取链；单画布、固定寿命、限并发，无粒子节点。
+## 变种命中碎光、晨星五向爆发与地狱撕裂；单画布、固定寿命、限并发。
 extends Node2D
 class_name RepeaterImpactVisual
 
@@ -6,6 +6,8 @@ class_name RepeaterImpactVisual
 const DURATION: float = 0.64
 ## 原版星纹理仍用于非冥弹的瞬时命中。
 const STAR: Texture2D = preload("res://assets/image/projectile/Projectile_star.png")
+## 晨星与地狱使用同一解析画布，独立材质随节点一起进入场景池。
+const CELESTIAL_SHADER: Shader = preload("res://shaders/repeater/repeater_celestial_impact.gdshader")
 
 ## 可暂停效果年龄，控制进退与生命周期。
 var _age: float = 0.0
@@ -23,6 +25,10 @@ var _chain_end: Vector2 = Vector2.INF
 var _last_draw_age: float = -1.0
 ## 所属战斗宿主的池；不允许跨战斗保留缓存。
 var _pool: RepeaterVisualPool
+## 此节点缓存的私有爆发材质；复用为普通命中或吸血链时解除挂载。
+var _burst_ink: ShaderMaterial
+## 当前爆发的局部画布半径；分裂星只保留紧凑碎芒，避免二代铺满屏幕。
+var _burst_radius: float = 76.0
 
 ## 在 [param parent] 中播放命中；[param z] 保证与本行弹体处在同一绘制层。
 static func spawn(parent: Node, kind: StringName, position: Vector2,
@@ -43,7 +49,9 @@ static func spawn(parent: Node, kind: StringName, position: Vector2,
 	fx._kind = kind
 	fx._palette = RepeaterVisualPalette.colors(kind)
 	fx._direction = direction.normalized() if not direction.is_zero_approx() else Vector2.RIGHT
-	fx._seed_shards()
+	fx._configure_burst()
+	if fx.material == null:
+		fx._seed_shards()
 	fx._mount(parent, position, z)
 	return fx
 
@@ -62,10 +70,32 @@ static func chain(parent: Node, from: Vector2, to: Vector2, z: int = 5) -> Node2
 	fx._last_draw_age = -1.0
 	fx._shards.clear()
 	fx._kind = &"chain"
+	fx.material = null # 同一对象池可能取到上次播放晨星的节点，吸血链必须恢复普通画布。
 	fx._palette = PackedColorArray([Color("#08040d"), Color("#a51a40"), Color("#ff999c")])
 	fx._chain_end = to - from
 	fx._mount(parent, from, z)
 	return fx
+
+## 为地狱、晨星及两代星弹选择解析爆发；其余弹种清除旧材质并沿用原绘制。
+func _configure_burst() -> void:
+	material = null
+	if _kind not in [&"morning", &"hell", &"kaguya", &"star_dark", &"star_light"]:
+		return
+	if _burst_ink == null:
+		_burst_ink = ShaderMaterial.new()
+		_burst_ink.shader = CELESTIAL_SHADER
+	var daughter: bool = _kind in [&"star_dark", &"star_light"] # 子星保留主爆发形态，缩小覆盖面积。
+	_burst_radius = 30.0 if daughter else 76.0
+	if _kind == &"star_light":
+		_burst_radius = 22.0
+	material = _burst_ink
+	_burst_ink.set_shader_parameter(&"age", 0.0)
+	_burst_ink.set_shader_parameter(&"infernal", _kind == &"hell")
+	_burst_ink.set_shader_parameter(&"lunar", _kind == &"kaguya")
+	_burst_ink.set_shader_parameter(&"daughter", daughter)
+	_burst_ink.set_shader_parameter(&"heading", _direction.angle())
+	_burst_ink.set_shader_parameter(&"quality", RepeaterVisualBudget.quality())
+	_burst_ink.set_shader_parameter(&"seed_phase", float(get_instance_id() % 101) * 0.271)
 
 ## 命中碎片短寿命且有限额，退出场景自动释放预算。
 func _enter_tree() -> void:
@@ -75,7 +105,7 @@ func _enter_tree() -> void:
 func _exit_tree() -> void:
 	RepeaterVisualBudget.leave(&"impact")
 
-## 一次挂载只生成单个画布；不创建旧版私有ShaderMaterial和额外光节点。
+## [param parent] 挂载单个画布到 [param at]，并按 [param z] 设置绝对深度；私有材质随池复用。
 func _mount(parent: Node, at: Vector2, z: int) -> void:
 	top_level = true
 	z_as_relative = false
@@ -103,12 +133,19 @@ func _process(delta: float) -> void:
 		return
 	if _last_draw_age < 0.0 or _age - _last_draw_age >= RepeaterVisualBudget.interval():
 		_last_draw_age = _age
+		if material == _burst_ink and _burst_ink != null:
+			_burst_ink.set_shader_parameter(&"age", _age)
+			_burst_ink.set_shader_parameter(&"quality", RepeaterVisualBudget.quality())
 		queue_redraw()
 
 ## 命中闪光、冲击环与有界星屑共享唯一绘制指令流。
 func _draw() -> void:
 	if _chain_end.is_finite():
 		_draw_chain()
+		return
+	if material == _burst_ink and _burst_ink != null:
+		draw_texture_rect(RepeaterVisualPalette.halo_texture(),
+			Rect2(Vector2.ONE * -_burst_radius, Vector2.ONE * _burst_radius * 2.0), false)
 		return
 	var quality: int = RepeaterVisualBudget.quality()
 	var stride: int = 1 if quality == RepeaterVisualBudget.FULL else (2 if quality == RepeaterVisualBudget.MEDIUM else 3)
