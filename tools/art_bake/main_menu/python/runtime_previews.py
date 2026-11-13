@@ -12,8 +12,9 @@ def build(workspace: Path) -> None:
     resource=json.loads((root/'reports/native_resources.json').read_text(encoding='utf-8'))
     assert resource['texture_count']==31 and all(x['pixels_equal'] for x in resource['entries'])
     events={e['name']:e for e in report['events']}
-    for name in ['real_almanac','real_settings','real_help_blocking','profile_B_research_locked','profile_A_real_research','actual_map_entered','returned_to_new_menu','exit_confirmation']:
+    for name in ['real_almanac','real_settings','profile_B_research_locked','profile_A_real_research','actual_map_entered','returned_to_new_menu','exit_confirmation']:
         assert name in events,name
+    assert events['real_settings']['modal']=='settings' and events['exit_confirmation']['dialogs']=='exit'
     assert events['profile_B_research_locked']['research']['unlocked'] is False
     assert events['profile_A_real_research']['modal']=='research'
     assert events['returned_to_new_menu']['scene']=='res://scenes/main/01StartMenuCoastal.tscn'
@@ -37,10 +38,10 @@ def build(workspace: Path) -> None:
         canvas.save(out/filename,quality=95,subsampling=0,optimize=True)
     board([('cycle_dawn.png','06:00 黎明'),('cycle_morning.png','07:30 清晨'),('cycle_day.png','12:00 白天'),('cycle_dusk.png','18:30 黄昏'),('cycle_night.png','21:30 夜晚'),('cycle_midnight.png','00:00 午夜')],
           '完整日周期 · 正式菜单实际截图','同一母图与动态管线；示例时刻是可编辑美术配置，不是天文日出。','daily_cycle_overview.jpg')
-    board([('profile_selector_B.png','原档案选择器'),('profile_B_research_locked.png','切换档案后：真实锁定条件'),('real_settings.png','原设置窗口'),('real_help_blocking.png','当前菜单操作帮助'),('actual_map_entered.png','实际进入僵尸岛地图'),('returned_to_new_menu.png','返回新主菜单')],
+    board([('profile_selector_B.png','原档案选择器'),('profile_B_research_locked.png','切换档案后：真实锁定条件'),('real_settings.png','桌面设置窗口'),('exit_confirmation.png','系统窗口退出确认'),('actual_map_entered.png','实际进入僵尸岛地图'),('returned_to_new_menu.png','返回新主菜单')],
           '真实功能与返回流程','使用隔离演示档案录制，未读取或改写正式玩家存档。','runtime_ui_overview.jpg')
     board([('cycle_morning.png','清晨'),('cycle_night.png','夜晚')],
-          '新主菜单 · 清晨与夜晚','已接入真实档案和功能台，建筑保持悬停高亮／点击进入。','morning_night.jpg')
+          '新主菜单 · 清晨与夜晚','档案入口和工具栏均可交互，建筑支持悬停高亮与点击进入。','morning_night.jpg')
     for name in ['cycle_dawn','cycle_morning','cycle_day','cycle_dusk','cycle_night','local_time_runtime','morning_library_hover','returned_to_new_menu','exit_confirmation']:
         image(name+'.png').save(out/(name+'.jpg'),quality=96,subsampling=0,optimize=True)
     ffmpeg=shutil.which('ffmpeg');assert ffmpeg

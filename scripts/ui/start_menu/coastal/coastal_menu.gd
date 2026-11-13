@@ -8,7 +8,6 @@ const Clock=preload("res://scripts/ui/start_menu/coastal/menu_clock.gd")
 const Entries=preload("res://scripts/ui/start_menu/building_entry_layer.gd")
 const Profile=preload("res://scripts/adventure/ui/adventure_profile_hud.gd")
 const Dialogs=preload("res://scripts/ui/start_menu/coastal/menu_dialogs.gd")
-const Console=preload("res://scripts/ui/start_menu/coastal/utility_console.gd")
 const FONT=preload("res://assets/fonts/方正少儿_GBK.ttf")
 ## 只作为交付核对钩子，实际功能通过同一门面。
 signal feature_requested(entry_id: String, accepted: bool)
@@ -19,7 +18,6 @@ var clock := Clock.new()
 var canvas: Control
 var entry_layer: Control
 var profile_hud: Control
-var console: Control
 var dialogs: CanvasLayer
 ## 单调动作计时；不读取系统日期决定风和船的位置。
 var elapsed := 0.0
@@ -69,10 +67,6 @@ func _ready() -> void:
 	canvas.add_child(profile_hud)
 	profile_hud.add_action("存档",_open_profiles)
 	profile_hud.mouse_filter=Control.MOUSE_FILTER_STOP
-	console=Console.new()
-	canvas.add_child(console)
-	console.configure(layout)
-	console.action_requested.connect(_utility_action)
 	var transition := preload("res://scenes/ui/transitions/SceneTransition.tscn").instantiate() # 地图导航共享原过渡服务。
 	transition.name="SceneTransition"
 	add_child(transition)
@@ -129,15 +123,6 @@ func _open_profiles() -> void:
 	if not _entries_blocked():
 		dialogs.open_profiles()
 
-## [param action] 为功能台入口，复用设置门面，其他顶层窗口相互排斥。
-func _utility_action(action: String) -> void:
-	if _entries_blocked():
-		return
-	if action=="settings":
-		AdventureToolbar.request_feature("settings")
-	else:
-		dialogs.open_panel(action)
-
 func _confirm_exit() -> void:
 	if not Global.user_manager.curr_user_name.is_empty():
 		if not Global.save_service.is_current_profile_loaded() or not Global.save_service.save_now():
@@ -154,7 +139,8 @@ func _notification(what: int) -> void:
 		clock.resync(false)
 		_last_ticks=Time.get_ticks_usec()
 	elif what==NOTIFICATION_WM_CLOSE_REQUEST:
-		_utility_action("exit")
+		if not _entries_blocked():
+			dialogs.open_exit_confirmation()
 
 func _exit_tree() -> void:
 	get_tree().auto_accept_quit=_old_auto_quit

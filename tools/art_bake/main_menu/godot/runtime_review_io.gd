@@ -88,7 +88,7 @@ func snapshot(name: String) -> void:
 	var row := {"name":name,"frame":frame_index,"scene":scene.scene_file_path,"profile":Global.user_manager.curr_user_name,"profile_loaded":Global.save_service.is_current_profile_loaded(),"modal":AdventureToolbar._modal_feature,"research":AdventureToolbar.feature_status("research"),"nodes":Performance.get_monitor(Performance.OBJECT_NODE_COUNT),"texture_bytes":Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED)}
 	if scene.has_method("set_preview_hour"):
 		row["hour"]=scene.clock.current_hour
-		row["dialogs"]=scene.dialogs.mode
+		row["dialogs"]="exit" if scene.dialogs.panel.visible else ""
 		row["selector_visible"]=scene.dialogs.selector.visible
 		row["displayed_name"]=scene.profile_hud.get_node("PlayerName").text
 		row["hovered"]=scene.entry_layer.hovered_id

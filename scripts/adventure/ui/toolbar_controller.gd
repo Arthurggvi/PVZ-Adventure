@@ -9,7 +9,7 @@ const Inventory = preload("res://scripts/adventure/ui/inventory_window.gd")
 const Research = preload("res://scripts/adventure/ui/research_lab_stage.gd")
 ## 角色窗口接入同一模态生命周期。
 const Player = preload("res://scripts/adventure/ui/player_window.gd")
-## 主菜单与工具栏共用设置窗口，并参与工具栏模态互斥。
+## 设置窗口参与工具栏模态互斥。
 const Settings = preload("res://scripts/ui/game_settings_window.gd")
 ## 任务面板复用工具栏模态窗口入口。
 const Quests = preload("res://scripts/adventure/ui/quest_window.gd")
@@ -156,7 +156,7 @@ func _open_player() -> void:
 func _can_open_settings() -> bool:
 	return _host_allowed
 
-## 主菜单按钮和工具栏齿轮共用入口、互斥与关闭行为。
+## 从工具栏齿轮打开设置，沿用模态互斥和关闭行为。
 func toggle_settings() -> void:
 	_toggle_modal("settings", Settings)
 

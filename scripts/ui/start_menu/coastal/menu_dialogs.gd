@@ -1,5 +1,5 @@
 extends CanvasLayer
-## 菜单独有档案/帮助/退出窗口；业务档案仍由原User和SaveService负责。
+## 菜单独有的档案和退出窗口；业务档案仍由原 User 和 SaveService 负责。
 ## 退出确认通过宿主处理，不在UI中直接销毁游戏树。
 signal exit_confirmed
 ## 原有完整档案选择器。
@@ -14,8 +14,6 @@ var selector: Control
 var panel: Panel
 var message: Label
 var confirm: Button
-## 当前小窗口类型，空值表示没有帮助/退出窗口。
-var mode := ""
 
 func _ready() -> void:
 	layer=65
@@ -53,7 +51,7 @@ func _ready() -> void:
 
 ## 返回当前顶层状态，供工具栏和建筑输入同源阻断。
 func is_open() -> bool:
-	return is_instance_valid(selector) and (selector.visible or not mode.is_empty())
+	return is_instance_valid(selector) and (selector.visible or (is_instance_valid(panel) and panel.visible))
 
 ## 打开原有档案流程；不创建、修改或切换任何档案，直到用户实际操作。
 func open_profiles() -> void:
@@ -62,19 +60,17 @@ func open_profiles() -> void:
 	selector.show()
 	_sync()
 
-## [param kind] 为help或exit；文本与按钮依模式配置，不改变功能解锁。
-func open_panel(kind: String) -> void:
+## 响应系统窗口关闭请求，进入原有的确认和保存流程。
+func open_exit_confirmation() -> void:
 	if is_open():
 		return
-	mode=kind
-	message.text="操作帮助\n\n鼠标移到建筑上查看名称与状态，左键点击进入。\n图书馆：图鉴；研究室：合成、强化、转职；港口：地图。\n左上角可切换存档，右下工具栏可打开已有功能。\n未解锁入口会显示条件；家园与商店尚未开放。" if kind=="help" else "退出游戏\n\n退出前会保存当前已成功加载的档案。\n保存失败时将留在菜单，不会覆盖无效档案。"
-	confirm.visible=kind=="exit"
+	message.text="退出游戏\n\n退出前会保存当前已成功加载的档案。\n保存失败时将留在菜单，不会覆盖无效档案。"
+	confirm.show()
 	panel.show()
 	_sync()
 
 ## 仅关闭当前小窗口；原档案选择器由自己的确认/取消事务关闭。
 func close_panel() -> void:
-	mode=""
 	panel.hide()
 	_sync()
 
@@ -92,7 +88,7 @@ func _sync() -> void:
 
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") and is_open():
-		if not mode.is_empty():
+		if panel.visible:
 			close_panel()
 		elif selector.visible:
 			selector._on_button_cancel_pressed() # 原选择器保持未选择档案时的拒绝逻辑。
