@@ -67,13 +67,14 @@ func change_item(id: String, amount: int) -> Dictionary:
 		state.items[id] = before
 	return result(false, "保存失败，库存已回滚。")
 
+## 给当前玩家发放 [param category] 下每种已注册物品各 [param amount] 件；发放或保存失败时恢复原库存。
 func grant_category(category: String, amount: int) -> Dictionary:
-	if not available() or category not in ["material", "recipe", "key", "consumable"] or amount < 1 or amount > 100:
+	if not available() or category not in ["material", "recipe", "promotion_book", "key", "consumable"] or amount < 1 or amount > 100:
 		return result(false, "类别或数量无效（每种最多100）。")
-	var state: AdventureState = Global.global_game_state.adventure_state
-	var previous: Dictionary = state.items.duplicate(true)
-	var total := 0
-	for id: String in ItemRegistry.ITEMS:
+	var state: AdventureState = Global.global_game_state.adventure_state # 本次发放与回滚都作用于当前存档。
+	var previous: Dictionary = state.items.duplicate(true) # 保留批量发放前的完整库存以便回滚。
+	var total := 0 # 已成功添加的物品种类数。
+	for id: String in ItemRegistry.ITEMS: # 直接遍历正式目录，自动覆盖后续登记的同类物品。
 		if str(ItemRegistry.get_item_definition(id).get("category", "")) != category:
 			continue
 		if not Global.adventure_inventory.add_item(id, amount):

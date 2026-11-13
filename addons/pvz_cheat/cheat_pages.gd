@@ -196,14 +196,13 @@ static func _items(root: VBoxContainer, service: RefCounted, report: Callable) -
 			report.call({"ok": false, "message": "请先选择物品。"})
 		else:
 			report.call(service.change_item(str(choice.get_meta(&"item_id")), -int(count.value))))
-	_note(root, "一键资源（统一进入真实库存）")
-	var quick := _row(root)
-	for entry: Dictionary in [{"label": "全部材料×10", "category": "material", "count": 10},
-		{"label": "全部配方×1", "category": "recipe", "count": 1},
-		{"label": "全部钥匙×1", "category": "key", "count": 1}]:
-		var category: String = entry.category
-		var amount: int = entry.count
-		_button(quick, entry.label, func(): report.call(service.grant_category(category, amount)))
+	_note(root, "一键资源（转职书和钥匙每种 +1）")
+	var quick := _row(root) # 材料和配方保留各自的批量发放数量。
+	_button(quick, "全部材料×10", func(): report.call(service.grant_category("material", 10)))
+	_button(quick, "全部配方×1", func(): report.call(service.grant_category("recipe", 1)))
+	var books_and_keys := _row(root) # 单独一行容纳转职书和钥匙的完整按钮文案。
+	_button(books_and_keys, "一键获得所有转职书", func(): report.call(service.grant_category("promotion_book", 1)))
+	_button(books_and_keys, "一键获得所有钥匙", func(): report.call(service.grant_category("key", 1)))
 	_equipment(root, service, report)
 
 ## 角色调试入口只调用正式命令；[param root] 为页面容器，[param service] 提交事务，[param report] 显示结果。
