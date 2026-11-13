@@ -15,6 +15,8 @@ const Settings = preload("res://scripts/ui/game_settings_window.gd")
 const Quests = preload("res://scripts/adventure/ui/quest_window.gd")
 ## 冒险图鉴复用同一模态生命周期，独立于原版图鉴场景。
 const Almanac = preload("res://scripts/adventure/ui/almanac_window.gd")
+## 图书馆建筑使用独立书籍面板，复用相同模态生命周期。
+const Library = preload("res://scripts/adventure/ui/library_window.gd")
 ## 首关后教学编排使用独立表现层，不占用任务或研究服务职责。
 const Onboarding = preload("res://scripts/adventure/ui/quest_onboarding.gd")
 ## 教学层随当前宿主销毁表现，业务节点随档案保存。
@@ -49,6 +51,7 @@ func _ready() -> void:
 	register_feature("research", Callable(self, "can_open_research"), Callable(self, "_open_research"))
 	register_feature("quests", Callable(self, "_can_open_quests"), Callable(self, "_open_quests"))
 	register_feature("almanac", Callable(self, "_can_open_inventory"), Callable(self, "_open_almanac"))
+	register_feature("library", Callable(self, "_can_open_inventory"), Callable(self, "_open_library"))
 	register_feature("player", Callable(self, "_can_open_player"), Callable(self, "_open_player"))
 	register_feature("settings", Callable(self, "_can_open_settings"), toggle_settings)
 	_onboarding = Onboarding.new()
@@ -143,6 +146,10 @@ func _open_quests() -> void:
 ## 图鉴按当前已加载档案的发现记录展示，不增加任务或阶级门槛。
 func _open_almanac() -> void:
 	_toggle_modal("almanac", Almanac)
+
+## 图书馆无额外解锁门槛；当前有效档案才能购买或处理技能书。
+func _open_library() -> void:
+	_toggle_modal("library", Library)
 
 ## 角色无需独立解锁进度；有效档案且不在冒险战斗时可以访问。
 func _can_open_player() -> bool:

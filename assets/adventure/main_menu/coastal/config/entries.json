@@ -175,10 +175,10 @@
     },
     {
       "id": "library",
-      "feature": "almanac",
+      "feature": "library",
       "name": "图书馆",
-      "title": "图鉴",
-      "label": "图鉴",
+      "title": "图书馆",
+      "label": "图书馆",
       "label_anchor": [655, 232],
       "resting_label": true,
       "anchor": [
