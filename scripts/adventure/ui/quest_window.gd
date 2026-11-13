@@ -157,6 +157,10 @@ func _select_task(id: String) -> void:
 
 ## 绘制 [param task] 的说明与奖励，按钮状态由真实任务进度决定。
 func _render_details(task: Dictionary) -> void:
+	if task.get("letter", false):
+		_render_letter(task)
+		_render_claim_button(task)
+		return
 	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2.ZERO, Vector2(1000, 364), 30)
 	Art.label(_details, str(task.group) + "  /  僵尸岛", Vector2(38, 24), Vector2(800, 32), 20, Color("79613d"))
 	Art.label(_details, task.title, Vector2(38, 60), Vector2(920, 65), 43)
@@ -195,7 +199,41 @@ func _render_details(task: Dictionary) -> void:
 				if not backing.is_empty():
 					Art.slot_frame(_details, pos, Vector2(80, 80))
 				Art.count_badge(_details, "×%d" % reward.count, pos + Vector2(77, 77))
-	# 领取前仍会再次核验当前档案和任务周期。
+	_render_claim_button(task)
+
+## 展示 [param task] 的活动信和时装奖励；正文可滚动，奖励与领取按钮保持可见。
+func _render_letter(task: Dictionary) -> void:
+	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2.ZERO, Vector2(1000, 491), 30)
+	Art.label(_details, task.group, Vector2(48, 22), Vector2(900, 34), 22, Color("24685b"))
+	Art.label(_details, task.title, Vector2(46, 56), Vector2(904, 68), 50, Color("8d3725"))
+	var letter := RichTextLabel.new() # 大段正文独立滚动，末句用 Godot 内置彩虹动效。
+	letter.position = Vector2(50, 129)
+	letter.size = Vector2(900, 345)
+	letter.bbcode_enabled = true
+	letter.add_theme_font_override("normal_font", FONT)
+	letter.add_theme_font_size_override("normal_font_size", 25)
+	letter.add_theme_constant_override("line_separation", 3)
+	letter.add_theme_color_override("default_color", Color("483525"))
+	letter.text = task.description
+	letter.meta_clicked.connect(_open_author_profile)
+	_details.add_child(letter)
+	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2(0, 507), Vector2(1000, 171), 30)
+	Art.label(_details, "活动奖励", Vector2(39, 520), Vector2(270, 38), 26, Color("24685b"))
+	var outfit: EquipmentDefinition = EquipmentCatalog.definition(task.outfit_reward) # 用角色面板中的原时装素材。
+	if outfit != null:
+		Art.image(_details, "slots/item_slot_normal.png", Vector2(39, 565), Vector2(82, 82))
+		Art.image(_details, outfit.icon.resource_path, Vector2(47, 573), Vector2(66, 66))
+		Art.label(_details, task.outfit_label, Vector2(141, 567), Vector2(510, 42), 33, Color("185f8c"))
+		Art.label(_details, outfit.display_name, Vector2(143, 610), Vector2(510, 34), 24)
+
+## 将活动信中点击的 [param meta] 与作者主页核对后交给系统浏览器。
+func _open_author_profile(meta: Variant) -> void:
+	if str(meta) == Catalog.AUTHOR_PROFILE_URL:
+		OS.shell_open(Catalog.AUTHOR_PROFILE_URL)
+
+## 为 [param task] 绘制共用的领奖入口；实际点击时重新核验档案和周期。
+func _render_claim_button(task: Dictionary) -> void:
+	# 固定位置与新手引导和礼盒演出的坐标对齐。
 	var claim := Art.action_button(_details, "已领取" if task.status == "claimed" else "领取奖励", "buttons/action_confirm", Vector2(695, 551), Vector2(260, 74), _claim_reward)
 	_claim_button = claim
 	claim.disabled = task.status != "complete"
@@ -208,7 +246,7 @@ func _claim_reward() -> void:
 	if Global.global_game_state.adventure_state != _opened_state or not Global.save_service.is_current_profile_loaded():
 		request_close()
 		return
-	# 服务一次提交物品、金币、经验和领取状态。
+	# 服务一次提交物品、装备、金币、经验和领取状态。
 	var issue := AdventureQuestService.claim(_opened_state, Global.adventure_inventory, Global.global_game_state,
 		Global.save_service.save_now, _selected, _period, AdventureQuestService.today())
 	if issue.is_empty():

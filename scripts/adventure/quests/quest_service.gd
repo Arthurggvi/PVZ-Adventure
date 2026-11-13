@@ -43,7 +43,7 @@ static func eligible(state: AdventureState, task: Dictionary) -> bool:
 	return checks.has(true) if task.activation_mode == "any" else not checks.has(false)
 
 ## 在 [param day] 刷新周期并按前置依赖收敛生效状态；返回是否修改了存档数据。
-## 生效是单向状态；事件目标仅在生效之后计数。历史通关补记必须显式启用 accept_history。
+## 空事件任务生效即完成；其余任务仅在生效后计数，历史通关补记须显式启用 accept_history。
 static func synchronize(state: AdventureState, day: String) -> bool:
 	var before: Dictionary = state.quests.to_dict() # 比较完整任务域以通知调用方保存。
 	state.quests.day = day if day > state.quests.day else state.quests.day
@@ -54,7 +54,9 @@ static func synchronize(state: AdventureState, day: String) -> bool:
 		var changed := false # 无新生效或完成时立即停止。
 		for task: Dictionary in AdventureQuestCatalog.TASKS: # 每个任务最多从缺失进入生效再完成。
 			if not state.quests.records.has(task.id) and eligible(state, task):
-				state.quests.records[task.id] = {"period": state.quests.day if task.daily else "", "status": "active", "progress": 0}
+				var ready_to_claim: bool = str(task.event).is_empty() # 无额外玩法要求的任务直接开放领奖。
+				state.quests.records[task.id] = {"period": state.quests.day if task.daily else "",
+					"status": "complete" if ready_to_claim else "active", "progress": task.count if ready_to_claim else 0}
 				changed = true
 			if state.quests.records.has(task.id) and task.accept_history and task.event == "stage_cleared":
 				var target: PackedStringArray = str(task.target).split("/") # 稳定关卡 ID 与阶段类型。
@@ -139,6 +141,7 @@ static func _commit_claim(state: AdventureState, inventory: AdventureInventorySe
 	var before_exp: int = state.experience # 玩家经验与任务奖励同步提交。
 	var before_level: int = state.player_level # 升级和新任务解锁必须随领奖一同回滚。
 	var before_coin: int = wallet.coin_value # 金币回滚值。
+	var before_equipment_id: int = state.equipment.next_id # 保存失败时复原尚未成功发放的装备序号。
 	var rewards: Dictionary = {} # 将配置奖励转换为库存服务接受的数量映射。
 	for item: Dictionary in task.items: # 同种道具合并数量。
 		rewards[item.id] = int(rewards.get(item.id, 0)) + int(item.count)
@@ -150,10 +153,24 @@ static func _commit_claim(state: AdventureState, inventory: AdventureInventorySe
 		state.items.assign(before_items)
 		wallet.coin_value = before_coin
 		return "经验入账失败，奖励已撤销。"
+	var outfit_id: String = task.get("outfit_reward", "") # 时装走角色装备域，不能作为普通道具入库。
+	var outfit_uid := "" # 只记录本次实际发放的实例，已有同款时直接保留。
+	var equipment := PlayerEquipmentService.new(state.equipment) # 和任务记录共用这次存档事务。
+	if not outfit_id.is_empty() and not state.equipment.owned.values().has(outfit_id):
+		outfit_uid = equipment.grant(StringName(outfit_id))
+		if outfit_uid.is_empty():
+			state.items.assign(before_items)
+			state.experience = before_exp
+			state.player_level = before_level
+			wallet.coin_value = before_coin
+			return "时装发放失败，请重试。"
 	record.status = "claimed"
 	record["awarded_experience"] = experience
 	synchronize(state, day)
 	if persist.call() != true:
+		if not outfit_uid.is_empty():
+			equipment.remove(outfit_uid)
+			state.equipment.next_id = before_equipment_id
 		state.items.assign(before_items)
 		state.quests = AdventureQuestState.from_dict(before_quests)
 		state.experience = before_exp

@@ -4,7 +4,20 @@ class_name AdventureQuestCatalog
 
 ## 目录展示顺序。
 const GROUPS := ["主线任务", "支线任务", "日常任务", "活动任务", "已完成"]
+## 作者主页是活动信中唯一允许跳转到浏览器的链接。
+const AUTHOR_PROFILE_URL := "https://space.bilibili.com/487448115"
+## 活动信使用富文本强调提示、保留作者主页并为祝福语添加流动彩虹色。
+const THANK_YOU_LETTER := """[font_size=34][color=#a4452c]感谢你下载这个游戏！[/color][/font_size]
+目前游戏仍处于测试阶段，由于作者只会 [color=#24685b]vibe coding[/color]，
+如果你遇到任何问题，欢迎及时向我反馈！
+当前版本尚未做任何平衡调整，未来可能会对部分内容进行平衡。
+
+我是士兵02，B 站 [url=%s][color=#185f8c]%s[/color][/url]
+偶尔直播展示开发流程。
+[color=#24685b]这是完全免费开源的二创作品[/color]，如果你是付费下载，请立刻举报商家！ [color=#a4452c](≧▽≦)[/color]
+[center][font_size=37][outline_size=6][outline_color=#3b2d31][rainbow freq=1.0 sat=0.70 val=1.0 speed=0.35]祝你游玩愉快！！[/rainbow][/outline_color][/outline_size][/font_size][/center]""" % [AUTHOR_PROFILE_URL, AUTHOR_PROFILE_URL]
 ## 稳定 ID 与业务规则；accept_history 仅用于可从现有永久状态恢复的目标。
+## 空 event 表示达成前置条件后可直接领奖，无须额外玩法事件。
 const TASKS: Array[Dictionary] = [
 	{"id": "first_expedition", "group": "主线任务", "title": "初次远征",
 	"description": "通过草坪的普通关卡。\n\n领取奖励后解锁研究室功能，并开启主线任务「初次制卡」。", "objective": "通过草坪的普通关卡",
@@ -22,7 +35,13 @@ const TASKS: Array[Dictionary] = [
 	"description": "击败任意一个 BOSS。\n\n每天零点刷新，按本机日期计算。请在刷新前领取奖励。", "objective": "击败任意一个 BOSS",
 	"event": "boss_defeated", "target": "", "daily": true, "accept_history": false,
 	"requires_completed": [], "min_level": 0, "activation_mode": "all", "count": 1,
-	"exp": 5000, "coins": 2000, "unlocks": [], "items": [{"id": "fertilizer_lv3", "count": 1}]},
+	"exp": 5000, "coins": 2000, "unlocks": [], "items": [{"id": "fertilizer_lv3", "count": 1},
+		{"id": "growth_agent_lv3", "count": 1}, {"id": "seedling_pot", "count": 1}]},
+	{"id": "thank_you", "group": "活动任务", "title": "感谢有你！", "description": THANK_YOU_LETTER,
+	"letter": true, "event": "", "target": "", "daily": false, "accept_history": false,
+	"requires_completed": ["first_expedition"], "min_level": 0, "activation_mode": "all", "count": 1,
+	"exp": 0, "coins": 0, "unlocks": [], "items": [], "outfit_reward": "deepseek_whale",
+	"outfit_label": "DeepSeek 鲸鱼娘时装"},
 ]
 
 ## 返回 [param id] 的独立定义，未知 ID 返回空字典。
