@@ -73,6 +73,8 @@ enum PlantType {
 	P048CobCannon,
 
 	P049PeaShooterDoubleReverse,
+	## 闪电芦苇，保留现有植物的存档编号。
+	P050LightningReed = 50,
 
 	## 回旋镖射手的存档编号。
 	P051Bloomerang = 51,
@@ -530,6 +532,14 @@ const PlantInfo = {
 		PlantInfoAttribute.SunCost: 200,
 		PlantInfoAttribute.PlantConditionResource : preload("res://resources/character_resource/plant_condition/000_common_plant_land.tres"),
 		PlantInfoAttribute.PlantScenes : preload("res://scenes/character/plant/plant_049_pea_shooter_double_reverse.tscn")
+		},
+
+	PlantType.P050LightningReed: {
+		PlantInfoAttribute.PlantName: "LightningReed",
+		PlantInfoAttribute.CoolTime: 5.0,
+		PlantInfoAttribute.SunCost: 125,
+		PlantInfoAttribute.PlantConditionResource: preload("res://resources/character_resource/plant_condition/000_common_plant_land.tres"),
+		PlantInfoAttribute.PlantScenes: preload("res://scenes/character/plant/plant_050_lightning_reed.tscn"),
 		},
 
 	PlantType.P051Bloomerang: {

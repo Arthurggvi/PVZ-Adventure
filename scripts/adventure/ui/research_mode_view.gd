@@ -18,7 +18,8 @@ const BLAST_PLANTS := [CharacterRegistry.PlantType.P003CherryBomb, CharacterRegi
 	CharacterRegistry.PlantType.P016DoomShroom, CharacterRegistry.PlantType.P021Jalapeno, CharacterRegistry.PlantType.P048CobCannon]
 ## 直接在植物脚本调用战斗伤害结算、不经通用攻击组件的植物。
 const DIRECT_DAMAGE_PLANTS := [CharacterRegistry.PlantType.P007Chomper, CharacterRegistry.PlantType.P018Squash,
-	CharacterRegistry.PlantType.P020TangleKelp, CharacterRegistry.PlantType.P022Caltrop, CharacterRegistry.PlantType.P047SpikeRock, CharacterRegistry.PlantType.P052ElectricPeashooter]
+	CharacterRegistry.PlantType.P020TangleKelp, CharacterRegistry.PlantType.P022Caltrop, CharacterRegistry.PlantType.P047SpikeRock,
+	CharacterRegistry.PlantType.P050LightningReed, CharacterRegistry.PlantType.P052ElectricPeashooter]
 
 ## 转职工作槽按原始宽高的 60% 绘制。
 const PROMOTION_SLOT_SCALE: float = 0.60
@@ -159,6 +160,7 @@ static func promotion(owner: Control, parent: Control, preview: Dictionary,
 	var effect: Label = Art.label(parent, effect_text, bounds.position + Vector2(0, 100),
 		Vector2(bounds.size.x, bounds.size.y - 248), 26, Color("24558c")) # 技能效果在两条分割线之间自动换行。
 	effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	effect.size.x = bounds.size.x # 恢复被单行文字的最小尺寸撑大的宽度。
 	effect.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_divider(parent, Vector2(bounds.position.x, bounds.end.y - 128), bounds.size.x)
 	price(parent, Rect2(bounds.position, bounds.size - Vector2(0, 46)),

@@ -1,0 +1,3150 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/plants/lightning_reed/lightning_reed_atlas.png" id="1_atlas"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_00"]
+atlas = ExtResource("1_atlas")
+region = Rect2(2, 1052, 190, 55)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_01"]
+atlas = ExtResource("1_atlas")
+region = Rect2(2, 651, 191, 82)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_02"]
+atlas = ExtResource("1_atlas")
+region = Rect2(197, 651, 190, 81)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_03"]
+atlas = ExtResource("1_atlas")
+region = Rect2(2, 1111, 191, 49)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_04"]
+atlas = ExtResource("1_atlas")
+region = Rect2(256, 1164, 2, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_05"]
+atlas = ExtResource("1_atlas")
+region = Rect2(251, 737, 78, 78)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_06"]
+atlas = ExtResource("1_atlas")
+region = Rect2(2, 2, 104, 169)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_07"]
+atlas = ExtResource("1_atlas")
+region = Rect2(192, 2, 122, 126)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_08"]
+atlas = ExtResource("1_atlas")
+region = Rect2(2, 737, 190, 81)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_09"]
+atlas = ExtResource("1_atlas")
+region = Rect2(2, 541, 190, 106)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_10"]
+atlas = ExtResource("1_atlas")
+region = Rect2(2, 175, 272, 118)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_11"]
+atlas = ExtResource("1_atlas")
+region = Rect2(113, 822, 182, 72)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_12"]
+atlas = ExtResource("1_atlas")
+region = Rect2(2, 297, 272, 118)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_13"]
+atlas = ExtResource("1_atlas")
+region = Rect2(299, 822, 182, 72)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_14"]
+atlas = ExtResource("1_atlas")
+region = Rect2(2, 419, 272, 118)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_15"]
+atlas = ExtResource("1_atlas")
+region = Rect2(2, 903, 182, 72)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_16"]
+atlas = ExtResource("1_atlas")
+region = Rect2(278, 419, 167, 110)
+filter_clip = true
+
+[sub_resource type="Animation" id="Animation_RESET"]
+resource_name = "RESET"
+length = 0.033333333
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer02:visible")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer03:visible")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer04:visible")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer05:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer06:visible")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer07:visible")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer08:visible")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer09:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer10:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer11:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_plant_food_cloud_attack"]
+resource_name = "plant_food_cloud_attack"
+length = 0.166666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333),
+"update": 1,
+"values": [true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_15")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [Transform2D(0.78022, 0, 0, 0.777778, -72.1, -93.75)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333),
+"update": 1,
+"values": [true, false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_14")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [Transform2D(0.000621, -0.779412, 0.779661, 0.000621, -39.963699, 128.780863)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer04:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer05:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer06:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer07:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer08:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer09:visible")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer10:visible")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer11:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_plant_food_cloud_attack_2"]
+resource_name = "plant_food_cloud_attack_2"
+length = 0.166666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333),
+"update": 1,
+"values": [true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_15")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [Transform2D(0.78022, 0, 0, 0.777778, -72.1, -93.75)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333),
+"update": 1,
+"values": [true, false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_14")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333),
+"update": 1,
+"values": [Transform2D(-0.144784, 0.784335, 0.502123, -0.065194, -3.495825, -73.648535), Transform2D(-0.142655, 0.784264, 0.502052, -0.06423, -3.962134, -73.720874)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer04:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer05:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer06:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer07:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer08:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer09:visible")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer10:visible")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer11:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_plant_food_cloud_attack_01"]
+resource_name = "plant_food_cloud_attack_01"
+length = 0.666666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333, 0.166666667, 0.633333333),
+"update": 1,
+"values": [true, false, true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_11")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [Transform2D(0.78022, 0, 0, 0.777778, -72.1, -93.75)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 1), Color(1, 1, 1, 0.933333), Color(1, 1, 1, 0.858824), Color(1, 1, 1, 0.788235), Color(1, 1, 1, 0.717647), Color(1, 1, 1, 0.647059), Color(1, 1, 1, 0.572549), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.431373), Color(1, 1, 1, 0.356863), Color(1, 1, 1, 0.286275), Color(1, 1, 1, 0.215686), Color(1, 1, 1, 0.145098), Color(1, 1, 1, 0.070588)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333, 0.166666667, 0.633333333),
+"update": 1,
+"values": [true, false, true, false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_10")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000, 0.166666667, 0.200000000),
+"update": 1,
+"values": [Transform2D(0.000621, -0.779412, 0.779661, 0.000621, -39.963699, 128.780863), Transform2D(-0.144784, 0.784335, 0.502123, -0.065194, -3.495825, -73.648535), Transform2D(-0.142655, 0.784264, 0.502052, -0.06423, -3.962134, -73.720874)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 1), Color(1, 1, 1, 0.933333), Color(1, 1, 1, 0.858824), Color(1, 1, 1, 0.788235), Color(1, 1, 1, 0.717647), Color(1, 1, 1, 0.647059), Color(1, 1, 1, 0.572549), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.431373), Color(1, 1, 1, 0.356863), Color(1, 1, 1, 0.286275), Color(1, 1, 1, 0.215686), Color(1, 1, 1, 0.145098), Color(1, 1, 1, 0.070588)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer04:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer05:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer06:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer07:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer08:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer09:visible")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer10:visible")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer11:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_plant_food_cloud_attack_02"]
+resource_name = "plant_food_cloud_attack_02"
+length = 0.666666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333, 0.166666667, 0.633333333),
+"update": 1,
+"values": [true, false, true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_13")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [Transform2D(0.78022, 0, 0, 0.777778, -72.1, -93.75)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 1), Color(1, 1, 1, 0.933333), Color(1, 1, 1, 0.858824), Color(1, 1, 1, 0.788235), Color(1, 1, 1, 0.717647), Color(1, 1, 1, 0.647059), Color(1, 1, 1, 0.572549), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.431373), Color(1, 1, 1, 0.356863), Color(1, 1, 1, 0.286275), Color(1, 1, 1, 0.215686), Color(1, 1, 1, 0.145098), Color(1, 1, 1, 0.070588)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333, 0.166666667, 0.633333333),
+"update": 1,
+"values": [true, false, true, false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_12")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.166666667),
+"update": 1,
+"values": [Transform2D(-0.144784, 0.784335, 0.502123, -0.065194, -3.495825, -73.648535), Transform2D(-0.142655, 0.784264, 0.502052, -0.06423, -3.962134, -73.720874), Transform2D(0.000621, -0.779412, 0.779661, 0.000621, -39.963699, 128.780863)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 1), Color(1, 1, 1, 0.933333), Color(1, 1, 1, 0.858824), Color(1, 1, 1, 0.788235), Color(1, 1, 1, 0.717647), Color(1, 1, 1, 0.647059), Color(1, 1, 1, 0.572549), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.431373), Color(1, 1, 1, 0.356863), Color(1, 1, 1, 0.286275), Color(1, 1, 1, 0.215686), Color(1, 1, 1, 0.145098), Color(1, 1, 1, 0.070588)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer04:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer05:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer06:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer07:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer08:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer09:visible")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer10:visible")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer11:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_plant_food_cloud_plant"]
+resource_name = "plant_food_cloud_plant"
+length = 1.000000000
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.100000000),
+"update": 1,
+"values": [false, true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.100000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667),
+"update": 1,
+"values": [Transform2D(0.778443, 0, 0, 0.781818, -60.35, -25.55), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.860416, -41.504614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.060416, -43.254614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.310416, -45.554614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.560416, -48.454614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.860416, -52.154614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.160416, -56.804614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.460416, -62.654614), Transform2D(0.764261, 0.172149, -0.177405, 0.787616, -54.816971, -70.215076), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.010416, -79.154614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.210416, -90.804614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.460416, -105.004614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.760416, -120.054614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.010416, -133.604614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.160416, -144.454614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.260416, -152.954614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.310416, -159.504614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.310416, -164.504614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.310416, -168.454614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.260416, -171.504614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.210416, -173.804614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.110416, -175.504614), Transform2D(0.798137, 0, 0, 0.801597, -66.368542, -167.387262), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.660416, -178.104614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.310416, -179.054614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.960416, -179.704614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.560416, -180.054614)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.100000000, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667),
+"update": 1,
+"values": [Color(1, 1, 1, 0.003922), Color(1, 1, 1, 0.011765), Color(1, 1, 1, 0.023529), Color(1, 1, 1, 0.035294), Color(1, 1, 1, 0.058824), Color(1, 1, 1, 0.094118), Color(1, 1, 1, 0.141176), Color(1, 1, 1, 0.207843), Color(1, 1, 1, 0.254902), Color(1, 1, 1, 0.301961), Color(1, 1, 1, 0.356863), Color(1, 1, 1, 0.403922), Color(1, 1, 1, 0.427451), Color(1, 1, 1, 0.423529), Color(1, 1, 1, 0.403922), Color(1, 1, 1, 0.364706), Color(1, 1, 1, 0.317647), Color(1, 1, 1, 0.262745), Color(1, 1, 1, 0.2), Color(1, 1, 1, 0.137255), Color(1, 1, 1, 0.066667), Color(1, 1, 1, 0.760784), Color(1, 1, 1, 0.078431), Color(1, 1, 1, 0.164706), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 0.333333)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333),
+"update": 1,
+"values": [false, true]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.133333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667),
+"update": 1,
+"values": [Transform2D(-0.778443, 0, 0, 0.781818, 61.25, -26.7), Transform2D(0.785499, 0, 0, 0.788904, -60.561951, -28.821613), Transform2D(0.786912, 0, 0, 0.790324, -60.62453, -31.04606), Transform2D(0.788326, 0, 0, 0.791744, -60.787109, -33.970508), Transform2D(0.789739, 0, 0, 0.793163, -60.899689, -37.644955), Transform2D(0.791153, 0, 0, 0.794583, -61.062268, -42.219403), Transform2D(0.792566, 0, 0, 0.796002, -61.224847, -47.993851), Transform2D(0.79398, 0, 0, 0.797422, -61.437427, -55.518298), Transform2D(0.795393, 0, 0, 0.798842, -61.800006, -65.042746), Transform2D(0.796807, 0, 0, 0.800261, -62.162585, -77.167194), Transform2D(0.798208, 0, 0, 0.801669, -62.574219, -91.841016), Transform2D(0.799622, 0, 0, 0.803089, -63.036798, -107.315463), Transform2D(0.801035, 0, 0, 0.804508, -63.449377, -121.289911), Transform2D(0.802449, 0, 0, 0.805928, -63.811957, -132.664359), Transform2D(0.803862, 0, 0, 0.807348, -64.074536, -141.588806), Transform2D(0.803055, 0, 0, 0.806536, -64.460205, -148.396265), Transform2D(0.802235, 0, 0, 0.805713, -64.894928, -153.703098), Transform2D(0.801403, 0, 0, 0.804878, -65.178705, -157.909305), Transform2D(0.800584, 0, 0, 0.804055, -65.463428, -161.216138), Transform2D(0.799764, 0, 0, 0.803232, -65.848151, -163.822971), Transform2D(0.798945, 0, 0, 0.802409, -66.082874, -165.879803), Transform2D(-0.778443, 0, 0, 0.781818, 64.95, -165), Transform2D(0.797317, 0, 0, 0.800774, -66.603265, -168.494095), Transform2D(0.796486, 0, 0, 0.799939, -66.837042, -169.200302), Transform2D(0.795666, 0, 0, 0.799116, -67.071765, -169.707135), Transform2D(0.794847, 0, 0, 0.798293, -67.306488, -169.863968)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.133333333, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667),
+"update": 1,
+"values": [Color(1, 1, 1, 0.003922), Color(1, 1, 1, 0.011765), Color(1, 1, 1, 0.019608), Color(1, 1, 1, 0.035294), Color(1, 1, 1, 0.058824), Color(1, 1, 1, 0.086275), Color(1, 1, 1, 0.12549), Color(1, 1, 1, 0.180392), Color(1, 1, 1, 0.254902), Color(1, 1, 1, 0.352941), Color(1, 1, 1, 0.470588), Color(1, 1, 1, 0.592157), Color(1, 1, 1, 0.701961), Color(1, 1, 1, 0.807843), Color(1, 1, 1, 0.827451), Color(1, 1, 1, 0.831373), Color(1, 1, 1, 0.819608), Color(1, 1, 1, 0.807843), Color(1, 1, 1, 0.784314), Color(1, 1, 1, 0.988235), Color(1, 1, 1, 0.737255), Color(1, 1, 1, 0.709804), Color(1, 1, 1, 0.678431), Color(1, 1, 1, 0.647059)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333),
+"update": 1,
+"values": [false, true]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer03:texture")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.133333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer03:transform")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667),
+"update": 1,
+"values": [Transform2D(0.778443, 0, 0, 0.781818, -60.35, -26.8), Transform2D(-0.778443, 0, 0, 0.781818, 61.6, -28.4), Transform2D(-0.778443, 0, 0, 0.781818, 61.9, -30.55), Transform2D(-0.778443, 0, 0, 0.781818, 62.2, -33.35), Transform2D(-0.778443, 0, 0, 0.781818, 62.45, -36.9), Transform2D(-0.778443, 0, 0, 0.781818, 62.75, -41.45), Transform2D(-0.778443, 0, 0, 0.781818, 62.95, -47.15), Transform2D(-0.778443, 0, 0, 0.781818, 63.15, -54.5), Transform2D(-0.778443, 0, 0, 0.781818, 63.2, -63.95), Transform2D(-0.778443, 0, 0, 0.781818, 63.25, -76.05), Transform2D(-0.778443, 0, 0, 0.781818, 63.2, -90.6), Transform2D(-0.778443, 0, 0, 0.781818, 63.2, -106), Transform2D(-0.778443, 0, 0, 0.781818, 63.15, -119.9), Transform2D(-0.778443, 0, 0, 0.781818, 63.2, -131), Transform2D(-0.778443, 0, 0, 0.781818, 63.3, -139.7), Transform2D(-0.778443, 0, 0, 0.781818, 63.45, -146.45), Transform2D(-0.778443, 0, 0, 0.781818, 63.65, -151.7), Transform2D(-0.778443, 0, 0, 0.781818, 63.8, -155.85), Transform2D(-0.778443, 0, 0, 0.781818, 64.1, -159.1), Transform2D(-0.778443, 0, 0, 0.781818, 64.35, -161.6), Transform2D(-0.778443, 0, 0, 0.781818, 64.65, -163.55), Transform2D(0.778443, 0, 0, 0.781818, -60.7, -163.05), Transform2D(-0.778443, 0, 0, 0.781818, 65.3, -166.05), Transform2D(-0.778443, 0, 0, 0.781818, 65.6, -166.75), Transform2D(-0.778443, 0, 0, 0.781818, 65.95, -167.15), Transform2D(-0.778443, 0, 0, 0.781818, 66.25, -167.25)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer03:self_modulate")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000),
+"update": 1,
+"values": [Color(1, 1, 1, 0.011765), Color(1, 1, 1, 0.007843), Color(1, 1, 1, 0.015686), Color(1, 1, 1, 0.023529), Color(1, 1, 1, 0.043137), Color(1, 1, 1, 0.062745), Color(1, 1, 1, 0.098039), Color(1, 1, 1, 0.141176), Color(1, 1, 1, 0.203922), Color(1, 1, 1, 0.286275), Color(1, 1, 1, 0.4), Color(1, 1, 1, 0.529412), Color(1, 1, 1, 0.666667), Color(1, 1, 1, 0.745098), Color(1, 1, 1, 0.807843), Color(1, 1, 1, 0.854902), Color(1, 1, 1, 0.894118), Color(1, 1, 1, 0.921569), Color(1, 1, 1, 0.945098), Color(1, 1, 1, 0.964706), Color(1, 1, 1, 0.976471), Color(1, 1, 1, 0.529412), Color(1, 1, 1, 0.996078), Color(1, 1, 1, 1)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer04:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000, 0.166666667, 0.833333333, 0.866666667),
+"update": 1,
+"values": [false, true, false, true]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer04:texture")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.166666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer04:transform")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000, 0.733333333, 0.766666667, 0.800000000, 0.866666667, 0.900000000, 0.933333333, 0.966666667),
+"update": 1,
+"values": [Transform2D(0.778443, 0, 0, 0.781818, -60.4, -28.5), Transform2D(0.778443, 0, 0, 0.781818, -60.45, -30.65), Transform2D(0.778443, 0, 0, 0.781818, -60.55, -33.5), Transform2D(0.778443, 0, 0, 0.781818, -60.65, -37.1), Transform2D(0.778443, 0, 0, 0.781818, -60.75, -41.65), Transform2D(0.778443, 0, 0, 0.781818, -60.9, -47.4), Transform2D(0.778443, 0, 0, 0.781818, -61.1, -54.75), Transform2D(0.778443, 0, 0, 0.781818, -61.4, -64.25), Transform2D(0.778443, 0, 0, 0.781818, -61.75, -76.3), Transform2D(0.778443, 0, 0, 0.781818, -62.15, -90.9), Transform2D(0.778443, 0, 0, 0.781818, -62.25, -105.95), Transform2D(0.778443, 0, 0, 0.781818, -62.3, -119.55), Transform2D(0.778443, 0, 0, 0.781818, -62.3, -130.45), Transform2D(0.778443, 0, 0, 0.781818, -62.2, -139), Transform2D(0.778443, 0, 0, 0.781818, -62.1, -145.55), Transform2D(0.778443, 0, 0, 0.781818, -61.9, -150.65), Transform2D(0.778443, 0, 0, 0.781818, -61.75, -154.6), Transform2D(0.778443, 0, 0, 0.781818, -61.5, -157.65), Transform2D(0.778443, 0, 0, 0.781818, -61.25, -160), Transform2D(0.778443, 0, 0, 0.781818, -61, -161.75), Transform2D(0.778443, 0, 0, 0.781818, -60.4, -163.9), Transform2D(0.778443, 0, 0, 0.781818, -60.1, -164.45), Transform2D(0.778443, 0, 0, 0.781818, -59.8, -164.65), Transform2D(0.778443, 0, 0, 0.781818, -60.2, -164.5)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer04:self_modulate")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.700000000, 0.733333333, 0.766666667, 0.800000000, 0.866666667, 0.900000000, 0.933333333, 0.966666667),
+"update": 1,
+"values": [Color(1, 1, 1, 0.023529), Color(1, 1, 1, 0.039216), Color(1, 1, 1, 0.054902), Color(1, 1, 1, 0.078431), Color(1, 1, 1, 0.105882), Color(1, 1, 1, 0.141176), Color(1, 1, 1, 0.188235), Color(1, 1, 1, 0.247059), Color(1, 1, 1, 0.317647), Color(1, 1, 1, 0.407843), Color(1, 1, 1, 0.486275), Color(1, 1, 1, 0.54902), Color(1, 1, 1, 0.588235), Color(1, 1, 1, 0.611765), Color(1, 1, 1, 0.623529), Color(1, 1, 1, 0.611765), Color(1, 1, 1, 0.596078), Color(1, 1, 1, 0.576471), Color(1, 1, 1, 0.556863), Color(1, 1, 1, 0.498039), Color(1, 1, 1, 0.470588), Color(1, 1, 1, 0.443137), Color(1, 1, 1, 0.47451)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer05:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer06:visible")
+tracks/17/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer07:visible")
+tracks/18/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer08:visible")
+tracks/19/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer09:visible")
+tracks/20/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer10:visible")
+tracks/21/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer11:visible")
+tracks/22/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_plant_food_cloud_idle"]
+resource_name = "plant_food_cloud_idle"
+length = 1.666666667
+loop_mode = 1
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667, 1.000000000, 1.033333333, 1.066666667, 1.100000000, 1.133333333, 1.166666667, 1.200000000, 1.233333333, 1.266666667, 1.300000000, 1.333333333, 1.366666667, 1.400000000, 1.433333333, 1.466666667, 1.500000000, 1.533333333, 1.566666667, 1.600000000, 1.633333333),
+"update": 1,
+"values": [Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.210416, -179.504614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.860416, -179.754614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.460416, -180.004614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.110416, -180.254614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.760416, -180.504614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.360416, -180.754614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.010416, -181.004614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -51.610416, -181.254614), Transform2D(0.764261, 0.172149, -0.177405, 0.787616, -51.216971, -181.615076), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -51.610416, -181.254614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.010416, -181.004614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.360416, -180.754614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.760416, -180.504614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.110416, -180.254614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.460416, -180.004614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.860416, -179.754614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.210416, -179.504614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.610416, -179.254614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.960416, -179.004614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.360416, -178.754614), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -164.2), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.910416, -178.754614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.060416, -179.054614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.260416, -179.304614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.460416, -179.604614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.610416, -179.854614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.810416, -180.154614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.960416, -180.404614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -57.160416, -180.704614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -57.360416, -180.954614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -57.510416, -181.254614), Transform2D(0.764261, 0.172149, -0.177405, 0.787616, -57.666971, -181.615076), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -57.560416, -181.254614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -57.410416, -181.004614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -57.260416, -180.804614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -57.160416, -180.604614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -57.010416, -180.404614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.860416, -180.154614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.710416, -179.954614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.560416, -179.754614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.410416, -179.504614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.260416, -179.304614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.160416, -179.104614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -56.010416, -178.904614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.860416, -178.654614), Transform2D(0.798137, 0, 0, 0.801597, -66.068542, -169.087262), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.360416, -178.754614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.960416, -179.004614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.610416, -179.254614)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667, 1.000000000, 1.033333333, 1.066666667, 1.100000000, 1.133333333, 1.166666667, 1.200000000, 1.233333333, 1.266666667, 1.300000000, 1.333333333, 1.366666667, 1.400000000, 1.433333333, 1.466666667, 1.500000000, 1.533333333, 1.566666667, 1.600000000, 1.633333333),
+"update": 1,
+"values": [Color(1, 1, 1, 0.333333), Color(1, 1, 1, 0.419608), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.584314), Color(1, 1, 1, 0.670588), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.835294), Color(1, 1, 1, 0.921569), Color(1, 1, 1, 1), Color(1, 1, 1, 0.921569), Color(1, 1, 1, 0.835294), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.670588), Color(1, 1, 1, 0.584314), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.419608), Color(1, 1, 1, 0.333333), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 0.168627), Color(1, 1, 1, 0.082353), Color(1, 1, 1, 1), Color(1, 1, 1, 0.090196), Color(1, 1, 1, 0.184314), Color(1, 1, 1, 0.27451), Color(1, 1, 1, 0.364706), Color(1, 1, 1, 0.454902), Color(1, 1, 1, 0.54902), Color(1, 1, 1, 0.639216), Color(1, 1, 1, 0.729412), Color(1, 1, 1, 0.819608), Color(1, 1, 1, 0.913725), Color(1, 1, 1, 1), Color(1, 1, 1, 0.933333), Color(1, 1, 1, 0.858824), Color(1, 1, 1, 0.788235), Color(1, 1, 1, 0.717647), Color(1, 1, 1, 0.647059), Color(1, 1, 1, 0.572549), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.431373), Color(1, 1, 1, 0.356863), Color(1, 1, 1, 0.286275), Color(1, 1, 1, 0.215686), Color(1, 1, 1, 0.145098), Color(1, 1, 1, 0.070588), Color(1, 1, 1, 0.776471), Color(1, 1, 1, 0.082353), Color(1, 1, 1, 0.168627), Color(1, 1, 1, 0.25098)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000, 0.666666667, 0.733333333),
+"update": 1,
+"values": [true, false, true]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667, 1.000000000, 1.033333333, 1.066666667, 1.100000000, 1.133333333, 1.166666667, 1.200000000, 1.233333333, 1.266666667, 1.300000000, 1.333333333, 1.366666667, 1.400000000, 1.433333333, 1.466666667, 1.500000000, 1.533333333, 1.566666667, 1.600000000, 1.633333333),
+"update": 1,
+"values": [Transform2D(0.794847, 0, 0, 0.798293, -66.956488, -169.313968), Transform2D(0.794039, 0, 0, 0.797482, -67.192157, -169.371426), Transform2D(0.793219, 0, 0, 0.796659, -67.37688, -169.478259), Transform2D(0.792388, 0, 0, 0.795824, -67.610657, -169.584467), Transform2D(0.791568, 0, 0, 0.795, -67.84538, -169.591299), Transform2D(0.790737, 0, 0, 0.794165, -68.079156, -169.647507), Transform2D(0.789917, 0, 0, 0.793342, -68.313879, -169.70434), Transform2D(0.78911, 0, 0, 0.792531, -68.549548, -169.811798), Transform2D(0.78829, 0, 0, 0.791708, -68.684271, -169.868631), Transform2D(0.787459, 0, 0, 0.790873, -68.968048, -169.924838), Transform2D(0.786639, 0, 0, 0.79005, -69.202771, -169.981671), Transform2D(0.785819, 0, 0, 0.789226, -69.387494, -170.088504), Transform2D(0.785012, 0, 0, 0.788415, -69.673163, -170.145963), Transform2D(0.784192, 0, 0, 0.787592, -69.857886, -170.202795), Transform2D(0.783361, 0, 0, 0.786757, -70.041663, -170.259003), Transform2D(0.782541, 0, 0, 0.785934, -70.326385, -170.365836), Transform2D(0.781721, 0, 0, 0.785111, -70.511108, -170.422668), Transform2D(0.780902, 0, 0, 0.784288, -70.745831, -170.429501), Transform2D(0.780094, 0, 0, 0.783476, -70.9815, -170.48696), Transform2D(0.779275, 0, 0, 0.782653, -71.166223, -170.643793), Transform2D(0.779857, 0, 0, 0.783238, -63.962579, -164.424448), Transform2D(0.78127, 0, 0, 0.784657, -64.025159, -164.698895), Transform2D(0.782684, 0, 0, 0.786077, -64.037738, -164.923343), Transform2D(0.784097, 0, 0, 0.787497, -64.100317, -165.147791), Transform2D(0.785499, 0, 0, 0.788904, -64.111951, -165.421613), Transform2D(0.786912, 0, 0, 0.790324, -64.12453, -165.64606), Transform2D(0.788326, 0, 0, 0.791744, -64.187109, -165.920508), Transform2D(0.789739, 0, 0, 0.793163, -64.199689, -166.194955), Transform2D(0.791153, 0, 0, 0.794583, -64.262268, -166.369403), Transform2D(0.792566, 0, 0, 0.796002, -64.274847, -166.593851), Transform2D(0.79398, 0, 0, 0.797422, -64.287427, -166.918298), Transform2D(0.795393, 0, 0, 0.798842, -64.350006, -167.142746), Transform2D(0.796807, 0, 0, 0.800261, -64.362585, -167.367194), Transform2D(0.798208, 0, 0, 0.801669, -64.374219, -167.641016), Transform2D(0.799622, 0, 0, 0.803089, -64.436798, -167.865463), Transform2D(0.801035, 0, 0, 0.804508, -64.449377, -168.089911), Transform2D(0.802449, 0, 0, 0.805928, -64.511957, -168.364359), Transform2D(0.803862, 0, 0, 0.807348, -64.524536, -168.588806), Transform2D(0.803055, 0, 0, 0.806536, -64.710205, -168.646265), Transform2D(0.802235, 0, 0, 0.805713, -64.994928, -168.703098), Transform2D(0.801403, 0, 0, 0.804878, -65.128705, -168.759305), Transform2D(0.800584, 0, 0, 0.804055, -65.363428, -168.816138), Transform2D(0.799764, 0, 0, 0.803232, -65.648151, -168.922971), Transform2D(0.798945, 0, 0, 0.802409, -65.832874, -169.029803), Transform2D(-0.778443, 0, 0, 0.781818, 65.25, -166.7), Transform2D(0.797317, 0, 0, 0.800774, -66.303265, -169.144095), Transform2D(0.796486, 0, 0, 0.799939, -66.487042, -169.150302), Transform2D(0.795666, 0, 0, 0.799116, -66.721765, -169.257135)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667, 1.000000000, 1.033333333, 1.066666667, 1.100000000, 1.133333333, 1.166666667, 1.200000000, 1.233333333, 1.266666667, 1.300000000, 1.333333333, 1.366666667, 1.400000000, 1.433333333, 1.466666667, 1.500000000, 1.533333333, 1.566666667, 1.600000000, 1.633333333),
+"update": 1,
+"values": [Color(1, 1, 1, 0.647059), Color(1, 1, 1, 0.615686), Color(1, 1, 1, 0.584314), Color(1, 1, 1, 0.54902), Color(1, 1, 1, 0.517647), Color(1, 1, 1, 0.486275), Color(1, 1, 1, 0.454902), Color(1, 1, 1, 0.419608), Color(1, 1, 1, 0.388235), Color(1, 1, 1, 0.356863), Color(1, 1, 1, 0.32549), Color(1, 1, 1, 0.290196), Color(1, 1, 1, 0.258824), Color(1, 1, 1, 0.227451), Color(1, 1, 1, 0.196078), Color(1, 1, 1, 0.160784), Color(1, 1, 1, 0.129412), Color(1, 1, 1, 0.098039), Color(1, 1, 1, 0.066667), Color(1, 1, 1, 0.031373), Color(1, 1, 1, 0.054902), Color(1, 1, 1, 0.109804), Color(1, 1, 1, 0.168627), Color(1, 1, 1, 0.223529), Color(1, 1, 1, 0.278431), Color(1, 1, 1, 0.333333), Color(1, 1, 1, 0.392157), Color(1, 1, 1, 0.447059), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.556863), Color(1, 1, 1, 0.611765), Color(1, 1, 1, 0.670588), Color(1, 1, 1, 0.72549), Color(1, 1, 1, 0.780392), Color(1, 1, 1, 0.835294), Color(1, 1, 1, 0.894118), Color(1, 1, 1, 0.94902), Color(1, 1, 1, 1), Color(1, 1, 1, 0.972549), Color(1, 1, 1, 0.937255), Color(1, 1, 1, 0.905882), Color(1, 1, 1, 0.87451), Color(1, 1, 1, 0.843137), Color(1, 1, 1, 0.807843), Color(1, 1, 1, 1), Color(1, 1, 1, 0.745098), Color(1, 1, 1, 0.713725), Color(1, 1, 1, 0.678431)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000, 0.666666667, 0.733333333),
+"update": 1,
+"values": [true, false, true]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer03:texture")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer03:transform")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667, 1.000000000, 1.033333333, 1.066666667, 1.100000000, 1.133333333, 1.166666667, 1.200000000, 1.233333333, 1.266666667, 1.300000000, 1.333333333, 1.366666667, 1.400000000, 1.433333333, 1.466666667, 1.500000000, 1.533333333, 1.566666667, 1.600000000, 1.633333333),
+"update": 1,
+"values": [Transform2D(-0.778443, 0, 0, 0.781818, 66.6, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 66.95, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 67.3, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 67.65, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 67.4, -166.95), Transform2D(-0.778443, 0, 0, 0.781818, 67.2, -167.15), Transform2D(-0.778443, 0, 0, 0.781818, 66.95, -167.4), Transform2D(-0.778443, 0, 0, 0.781818, 66.7, -167.65), Transform2D(-0.778443, 0, 0, 0.781818, 66.45, -167.9), Transform2D(-0.778443, 0, 0, 0.781818, 66.25, -168.1), Transform2D(-0.778443, 0, 0, 0.781818, 66, -168.35), Transform2D(-0.778443, 0, 0, 0.781818, 65.75, -168.6), Transform2D(-0.778443, 0, 0, 0.781818, 65.55, -168.8), Transform2D(-0.778443, 0, 0, 0.781818, 65.3, -169.05), Transform2D(-0.778443, 0, 0, 0.781818, 65.05, -169.3), Transform2D(-0.778443, 0, 0, 0.781818, 64.85, -169.5), Transform2D(-0.778443, 0, 0, 0.781818, 64.6, -169.75), Transform2D(-0.778443, 0, 0, 0.781818, 64.35, -170), Transform2D(-0.778443, 0, 0, 0.781818, 64.1, -170.25), Transform2D(-0.778443, 0, 0, 0.781818, 63.9, -170.45), Transform2D(-0.778443, 0, 0, 0.781818, 56.55, -164.35), Transform2D(-0.778443, 0, 0, 0.781818, 56.9, -164.5), Transform2D(-0.778443, 0, 0, 0.781818, 57.3, -164.65), Transform2D(-0.778443, 0, 0, 0.781818, 57.65, -164.8), Transform2D(-0.778443, 0, 0, 0.781818, 58.05, -165), Transform2D(-0.778443, 0, 0, 0.781818, 58.4, -165.15), Transform2D(-0.778443, 0, 0, 0.781818, 58.8, -165.3), Transform2D(-0.778443, 0, 0, 0.781818, 59.15, -165.45), Transform2D(-0.778443, 0, 0, 0.781818, 59.55, -165.6), Transform2D(-0.778443, 0, 0, 0.781818, 59.9, -165.75), Transform2D(-0.778443, 0, 0, 0.781818, 60.3, -165.9), Transform2D(-0.778443, 0, 0, 0.781818, 60.65, -166.05), Transform2D(-0.778443, 0, 0, 0.781818, 61.05, -166.25), Transform2D(-0.778443, 0, 0, 0.781818, 61.4, -166.4), Transform2D(-0.778443, 0, 0, 0.781818, 61.8, -166.55), Transform2D(-0.778443, 0, 0, 0.781818, 62.15, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 62.5, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 62.85, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 63.2, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 63.55, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 63.85, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 64.2, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 64.55, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 64.9, -166.7), Transform2D(0.778443, 0, 0, 0.781818, -60.4, -164.75), Transform2D(-0.778443, 0, 0, 0.781818, 65.6, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 65.95, -166.7), Transform2D(-0.778443, 0, 0, 0.781818, 66.3, -166.7)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer03:self_modulate")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667, 1.000000000, 1.033333333, 1.066666667, 1.100000000, 1.133333333, 1.166666667, 1.200000000, 1.233333333, 1.533333333, 1.566666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.945098), Color(1, 1, 1, 0.886275), Color(1, 1, 1, 0.827451), Color(1, 1, 1, 0.768627), Color(1, 1, 1, 0.709804), Color(1, 1, 1, 0.65098), Color(1, 1, 1, 0.592157), Color(1, 1, 1, 0.533333), Color(1, 1, 1, 0.470588), Color(1, 1, 1, 0.411765), Color(1, 1, 1, 0.352941), Color(1, 1, 1, 0.294118), Color(1, 1, 1, 0.235294), Color(1, 1, 1, 0.176471), Color(1, 1, 1, 0.117647), Color(1, 1, 1, 0.058824), Color(1, 1, 1, 0.062745), Color(1, 1, 1, 0.12549), Color(1, 1, 1, 0.188235), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 0.313725), Color(1, 1, 1, 0.376471), Color(1, 1, 1, 0.439216), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.564706), Color(1, 1, 1, 0.627451), Color(1, 1, 1, 0.690196), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.815686), Color(1, 1, 1, 0.878431), Color(1, 1, 1, 0.941176), Color(1, 1, 1, 1), Color(1, 1, 1, 0.541176), Color(1, 1, 1, 1)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer04:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000, 0.666666667, 0.733333333, 1.533333333, 1.566666667),
+"update": 1,
+"values": [true, false, true, false, true]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer04:texture")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer04:transform")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667, 1.000000000, 1.033333333, 1.066666667, 1.100000000, 1.133333333, 1.166666667, 1.200000000, 1.233333333, 1.266666667, 1.300000000, 1.333333333, 1.366666667, 1.400000000, 1.433333333, 1.466666667, 1.500000000, 1.566666667, 1.600000000, 1.633333333),
+"update": 1,
+"values": [Transform2D(0.778443, 0, 0, 0.781818, -59.85, -163.95), Transform2D(0.778443, 0, 0, 0.781818, -60.25, -163.75), Transform2D(0.778443, 0, 0, 0.781818, -60.7, -163.5), Transform2D(0.778443, 0, 0, 0.781818, -61.1, -163.3), Transform2D(0.778443, 0, 0, 0.781818, -61.5, -163.05), Transform2D(0.778443, 0, 0, 0.781818, -61.9, -162.85), Transform2D(0.778443, 0, 0, 0.781818, -62.3, -162.6), Transform2D(0.778443, 0, 0, 0.781818, -62.7, -162.4), Transform2D(0.778443, 0, 0, 0.781818, -63.15, -162.15), Transform2D(0.778443, 0, 0, 0.781818, -63.55, -161.95), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -161.7), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -161.95), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -162.2), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -162.45), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -162.7), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -162.95), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -163.2), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -163.45), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -163.7), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -163.95), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -164.4), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -164.55), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -164.75), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -164.9), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -165.1), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -165.25), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -165.45), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -165.65), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -165.8), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -166), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -166.15), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -166.35), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -166.5), Transform2D(0.778443, 0, 0, 0.781818, -63.95, -166.7), Transform2D(0.778443, 0, 0, 0.781818, -63.65, -166.5), Transform2D(0.778443, 0, 0, 0.781818, -63.3, -166.35), Transform2D(0.778443, 0, 0, 0.781818, -63, -166.15), Transform2D(0.778443, 0, 0, 0.781818, -62.65, -166), Transform2D(0.778443, 0, 0, 0.781818, -62.35, -165.8), Transform2D(0.778443, 0, 0, 0.781818, -62, -165.65), Transform2D(0.778443, 0, 0, 0.781818, -61.7, -165.45), Transform2D(0.778443, 0, 0, 0.781818, -61.4, -165.25), Transform2D(0.778443, 0, 0, 0.781818, -61.05, -165.1), Transform2D(0.778443, 0, 0, 0.781818, -60.75, -164.9), Transform2D(0.778443, 0, 0, 0.781818, -60.1, -164.55), Transform2D(0.778443, 0, 0, 0.781818, -59.75, -164.4), Transform2D(0.778443, 0, 0, 0.781818, -59.45, -164.2)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer04:self_modulate")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.733333333, 0.766666667, 0.800000000, 0.833333333, 0.866666667, 0.900000000, 0.933333333, 0.966666667, 1.000000000, 1.033333333, 1.066666667, 1.100000000, 1.133333333, 1.166666667, 1.200000000, 1.233333333, 1.266666667, 1.300000000, 1.333333333, 1.366666667, 1.400000000, 1.433333333, 1.466666667, 1.500000000, 1.566666667, 1.600000000, 1.633333333),
+"update": 1,
+"values": [Color(1, 1, 1, 0.47451), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.533333), Color(1, 1, 1, 0.564706), Color(1, 1, 1, 0.592157), Color(1, 1, 1, 0.623529), Color(1, 1, 1, 0.65098), Color(1, 1, 1, 0.682353), Color(1, 1, 1, 0.713725), Color(1, 1, 1, 0.741176), Color(1, 1, 1, 0.772549), Color(1, 1, 1, 0.796078), Color(1, 1, 1, 0.819608), Color(1, 1, 1, 0.843137), Color(1, 1, 1, 0.866667), Color(1, 1, 1, 0.890196), Color(1, 1, 1, 0.909804), Color(1, 1, 1, 0.933333), Color(1, 1, 1, 0.956863), Color(1, 1, 1, 0.980392), Color(1, 1, 1, 0.996078), Color(1, 1, 1, 0.988235), Color(1, 1, 1, 0.980392), Color(1, 1, 1, 0.972549), Color(1, 1, 1, 0.964706), Color(1, 1, 1, 0.956863), Color(1, 1, 1, 0.94902), Color(1, 1, 1, 0.941176), Color(1, 1, 1, 0.933333), Color(1, 1, 1, 0.92549), Color(1, 1, 1, 0.917647), Color(1, 1, 1, 0.909804), Color(1, 1, 1, 0.901961), Color(1, 1, 1, 0.894118), Color(1, 1, 1, 0.862745), Color(1, 1, 1, 0.831373), Color(1, 1, 1, 0.796078), Color(1, 1, 1, 0.764706), Color(1, 1, 1, 0.733333), Color(1, 1, 1, 0.701961), Color(1, 1, 1, 0.670588), Color(1, 1, 1, 0.635294), Color(1, 1, 1, 0.603922), Color(1, 1, 1, 0.572549), Color(1, 1, 1, 0.505882), Color(1, 1, 1, 0.47451), Color(1, 1, 1, 0.443137)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer05:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer06:visible")
+tracks/17/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer07:visible")
+tracks/18/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer08:visible")
+tracks/19/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer09:visible")
+tracks/20/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer10:visible")
+tracks/21/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer11:visible")
+tracks/22/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_plant_food_cloud_die"]
+resource_name = "plant_food_cloud_die"
+length = 0.633333333
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.560416, -180.054614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.210416, -180.304614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.810416, -180.554614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.460416, -180.804614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.110416, -181.054614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.710416, -181.304614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.360416, -181.554614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -51.960416, -181.804614), Transform2D(0.764261, 0.172149, -0.177405, 0.787616, -51.566971, -182.165076), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -51.960416, -181.804614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.360416, -181.554614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -52.710416, -181.304614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.110416, -181.054614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.460416, -180.804614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -53.810416, -180.554614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.210416, -180.304614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.560416, -180.054614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -54.960416, -179.804614), Transform2D(0.76413, 0.170213, -0.175425, 0.787497, -55.310416, -179.554614)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Color(1, 1, 1, 0.333333), Color(1, 1, 1, 0.396078), Color(1, 1, 1, 0.447059), Color(1, 1, 1, 0.490196), Color(1, 1, 1, 0.52549), Color(1, 1, 1, 0.552941), Color(1, 1, 1, 0.568627), Color(1, 1, 1, 0.580392), Color(1, 1, 1, 0.482353), Color(1, 1, 1, 0.392157), Color(1, 1, 1, 0.317647), Color(1, 1, 1, 0.243137), Color(1, 1, 1, 0.184314), Color(1, 1, 1, 0.129412), Color(1, 1, 1, 0.086275), Color(1, 1, 1, 0.05098), Color(1, 1, 1, 0.023529), Color(1, 1, 1, 0.007843)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [true]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Transform2D(0.794847, 0, 0, 0.798293, -67.306488, -169.863968), Transform2D(0.794039, 0, 0, 0.797482, -67.542157, -169.921426), Transform2D(0.793219, 0, 0, 0.796659, -67.72688, -170.028259), Transform2D(0.792388, 0, 0, 0.795824, -67.960657, -170.134467), Transform2D(0.791568, 0, 0, 0.795, -68.19538, -170.141299), Transform2D(0.790737, 0, 0, 0.794165, -68.429156, -170.197507), Transform2D(0.789917, 0, 0, 0.793342, -68.663879, -170.25434), Transform2D(0.78911, 0, 0, 0.792531, -68.899548, -170.361798), Transform2D(0.78829, 0, 0, 0.791708, -69.034271, -170.418631), Transform2D(0.787459, 0, 0, 0.790873, -69.318048, -170.474838), Transform2D(0.786639, 0, 0, 0.79005, -69.552771, -170.531671), Transform2D(0.785819, 0, 0, 0.789226, -69.737494, -170.638504), Transform2D(0.785012, 0, 0, 0.788415, -70.023163, -170.695963), Transform2D(0.784192, 0, 0, 0.787592, -70.207886, -170.752795), Transform2D(0.783361, 0, 0, 0.786757, -70.391663, -170.809003), Transform2D(0.782541, 0, 0, 0.785934, -70.676385, -170.915836), Transform2D(0.781721, 0, 0, 0.785111, -70.861108, -170.972668), Transform2D(0.780902, 0, 0, 0.784288, -71.095831, -170.979501), Transform2D(-0.778443, 0, 0, 0.781818, 63.75, -170.8)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Color(1, 1, 1, 0.647059), Color(1, 1, 1, 0.584314), Color(1, 1, 1, 0.521569), Color(1, 1, 1, 0.462745), Color(1, 1, 1, 0.407843), Color(1, 1, 1, 0.356863), Color(1, 1, 1, 0.309804), Color(1, 1, 1, 0.262745), Color(1, 1, 1, 0.223529), Color(1, 1, 1, 0.184314), Color(1, 1, 1, 0.152941), Color(1, 1, 1, 0.121569), Color(1, 1, 1, 0.094118), Color(1, 1, 1, 0.070588), Color(1, 1, 1, 0.05098), Color(1, 1, 1, 0.031373), Color(1, 1, 1, 0.019608), Color(1, 1, 1, 0.007843), Color(1, 1, 1, 0.003922)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [true]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer03:texture")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer03:transform")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Transform2D(-0.778443, 0, 0, 0.781818, 66.25, -167.25), Transform2D(-0.778443, 0, 0, 0.781818, 66.6, -167.25), Transform2D(-0.778443, 0, 0, 0.781818, 66.95, -167.25), Transform2D(-0.778443, 0, 0, 0.781818, 67.3, -167.25), Transform2D(-0.778443, 0, 0, 0.781818, 67.05, -167.5), Transform2D(-0.778443, 0, 0, 0.781818, 66.85, -167.7), Transform2D(-0.778443, 0, 0, 0.781818, 66.6, -167.95), Transform2D(-0.778443, 0, 0, 0.781818, 66.35, -168.2), Transform2D(-0.778443, 0, 0, 0.781818, 66.1, -168.45), Transform2D(-0.778443, 0, 0, 0.781818, 65.9, -168.65), Transform2D(-0.778443, 0, 0, 0.781818, 65.65, -168.9), Transform2D(-0.778443, 0, 0, 0.781818, 65.4, -169.15), Transform2D(-0.778443, 0, 0, 0.781818, 65.2, -169.35), Transform2D(-0.778443, 0, 0, 0.781818, 64.95, -169.6), Transform2D(-0.778443, 0, 0, 0.781818, 64.7, -169.85), Transform2D(-0.778443, 0, 0, 0.781818, 64.5, -170.05), Transform2D(-0.778443, 0, 0, 0.781818, 64.25, -170.3), Transform2D(-0.778443, 0, 0, 0.781818, 64, -170.55), Transform2D(0.778443, 0, 0, 0.781818, -64.3, -164.25)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer03:self_modulate")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.952941), Color(1, 1, 1, 0.898039), Color(1, 1, 1, 0.847059), Color(1, 1, 1, 0.745098), Color(1, 1, 1, 0.65098), Color(1, 1, 1, 0.564706), Color(1, 1, 1, 0.486275), Color(1, 1, 1, 0.407843), Color(1, 1, 1, 0.341176), Color(1, 1, 1, 0.278431), Color(1, 1, 1, 0.223529), Color(1, 1, 1, 0.172549), Color(1, 1, 1, 0.129412), Color(1, 1, 1, 0.090196), Color(1, 1, 1, 0.058824), Color(1, 1, 1, 0.035294), Color(1, 1, 1, 0.015686), Color(1, 1, 1, 0.047059)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer04:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000, 0.600000000),
+"update": 1,
+"values": [true, false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer04:texture")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_16")]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer04:transform")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667),
+"update": 1,
+"values": [Transform2D(0.778443, 0, 0, 0.781818, -60.2, -164.5), Transform2D(0.778443, 0, 0, 0.781818, -60.6, -164.3), Transform2D(0.778443, 0, 0, 0.781818, -61.05, -164.05), Transform2D(0.778443, 0, 0, 0.781818, -61.45, -163.85), Transform2D(0.778443, 0, 0, 0.781818, -61.85, -163.6), Transform2D(0.778443, 0, 0, 0.781818, -62.25, -163.4), Transform2D(0.778443, 0, 0, 0.781818, -62.65, -163.15), Transform2D(0.778443, 0, 0, 0.781818, -63.05, -162.95), Transform2D(0.778443, 0, 0, 0.781818, -63.5, -162.7), Transform2D(0.778443, 0, 0, 0.781818, -63.9, -162.5), Transform2D(0.778443, 0, 0, 0.781818, -64.3, -162.25), Transform2D(0.778443, 0, 0, 0.781818, -64.3, -162.5), Transform2D(0.778443, 0, 0, 0.781818, -64.3, -162.75), Transform2D(0.778443, 0, 0, 0.781818, -64.3, -163), Transform2D(0.778443, 0, 0, 0.781818, -64.3, -163.25), Transform2D(0.778443, 0, 0, 0.781818, -64.3, -163.5), Transform2D(0.778443, 0, 0, 0.781818, -64.3, -163.75), Transform2D(0.778443, 0, 0, 0.781818, -64.3, -164)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer04:self_modulate")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667),
+"update": 1,
+"values": [Color(1, 1, 1, 0.47451), Color(1, 1, 1, 0.466667), Color(1, 1, 1, 0.458824), Color(1, 1, 1, 0.443137), Color(1, 1, 1, 0.431373), Color(1, 1, 1, 0.411765), Color(1, 1, 1, 0.388235), Color(1, 1, 1, 0.364706), Color(1, 1, 1, 0.333333), Color(1, 1, 1, 0.298039), Color(1, 1, 1, 0.266667), Color(1, 1, 1, 0.223529), Color(1, 1, 1, 0.184314), Color(1, 1, 1, 0.141176), Color(1, 1, 1, 0.098039)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer05:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer06:visible")
+tracks/17/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer07:visible")
+tracks/18/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer08:visible")
+tracks/19/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer09:visible")
+tracks/20/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer10:visible")
+tracks/21/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer11:visible")
+tracks/22/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_plant_food_bolt"]
+resource_name = "plant_food_bolt"
+length = 0.666666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.633333333),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_08")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.033333333, 0.100000000, 0.200000000, 0.300000000),
+"update": 1,
+"values": [Transform2D(0.77824, 0.001413, 0, 0.777072, 0, -34.984278), Transform2D(0.77824, 0.001413, 0, -0.777072, 0, 27.815722), Transform2D(0.77824, 0.001413, 0, 0.777072, 0, -34.984278), Transform2D(0.77824, 0.001413, 0, -0.777072, 0, 27.815722)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.901961), Color(1, 1, 1, 0.803922), Color(1, 1, 1, 0.701961), Color(1, 1, 1, 0.603922), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.4), Color(1, 1, 1, 0.301961), Color(1, 1, 1, 0.2), Color(1, 1, 1, 0.101961)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer03:visible")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer04:visible")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer05:visible")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer06:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer07:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer08:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer09:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer10:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer11:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_plant_food_bolt_2"]
+resource_name = "plant_food_bolt_2"
+length = 0.666666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.200000000, 0.233333333, 0.633333333),
+"update": 1,
+"values": [false, true, false, true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_09")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.033333333, 0.100000000, 0.233333333, 0.300000000),
+"update": 1,
+"values": [Transform2D(0.77824, 0.001413, 0, 0.782308, 0, -49.384278), Transform2D(0.77824, 0.001413, 0, -0.782308, 0, 42.215722), Transform2D(0.77824, 0.001413, 0, 0.782308, 0, -49.384278), Transform2D(0.77824, 0.001413, 0, -0.782308, 0, 42.215722)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.233333333, 0.266666667, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.901961), Color(1, 1, 1, 0.803922), Color(1, 1, 1, 0.701961), Color(1, 1, 1, 0.603922), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.4), Color(1, 1, 1, 0.301961), Color(1, 1, 1, 0.2), Color(1, 1, 1, 0.101961)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer03:visible")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer04:visible")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer05:visible")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer06:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer07:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer08:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer09:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer10:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer11:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_plant_food_bolt_3"]
+resource_name = "plant_food_bolt_3"
+length = 0.666666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.200000000, 0.233333333, 0.633333333),
+"update": 1,
+"values": [false, true, false, true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_09")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.033333333, 0.100000000, 0.233333333, 0.300000000),
+"update": 1,
+"values": [Transform2D(-0.77824, 0.001413, 0, 0.782308, 147.9, -49.384278), Transform2D(-0.77824, 0.001413, 0, -0.782308, 147.9, 42.215722), Transform2D(-0.77824, 0.001413, 0, 0.782308, 147.9, -49.384278), Transform2D(-0.77824, 0.001413, 0, -0.782308, 147.9, 42.215722)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.233333333, 0.266666667, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000),
+"update": 1,
+"values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.901961), Color(1, 1, 1, 0.803922), Color(1, 1, 1, 0.701961), Color(1, 1, 1, 0.603922), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.4), Color(1, 1, 1, 0.301961), Color(1, 1, 1, 0.2), Color(1, 1, 1, 0.101961)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer03:visible")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer04:visible")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer05:visible")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer06:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer07:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer08:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer09:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer10:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer11:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_bolt"]
+resource_name = "bolt"
+length = 0.466666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333),
+"update": 1,
+"values": [false, true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_03")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.033333333, 0.100000000),
+"update": 1,
+"values": [Transform2D(0.779396, 0.001415, 0, 0.774806, 0, -20.234278), Transform2D(0.779396, 0.001415, 0, -0.774806, 0, 15.065722)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333),
+"update": 1,
+"values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.913725), Color(1, 1, 1, 0.819608), Color(1, 1, 1, 0.729412), Color(1, 1, 1, 0.639216), Color(1, 1, 1, 0.54902), Color(1, 1, 1, 0.454902), Color(1, 1, 1, 0.364706), Color(1, 1, 1, 0.27451), Color(1, 1, 1, 0.184314), Color(1, 1, 1, 0.090196)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer03:visible")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer04:visible")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer05:visible")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer06:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer07:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer08:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer09:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer10:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer11:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_bolt_2"]
+resource_name = "bolt_2"
+length = 0.500000000
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.466666667),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_02")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.033333333, 0.100000000),
+"update": 1,
+"values": [Transform2D(0.77824, 0.001413, 0, 0.777072, 0.5, -48.88337), Transform2D(0.77824, 0.001413, 0, -0.777072, 0.5, 43.71663)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333),
+"update": 1,
+"values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.913725), Color(1, 1, 1, 0.819608), Color(1, 1, 1, 0.729412), Color(1, 1, 1, 0.639216), Color(1, 1, 1, 0.54902), Color(1, 1, 1, 0.454902), Color(1, 1, 1, 0.364706), Color(1, 1, 1, 0.27451), Color(1, 1, 1, 0.184314), Color(1, 1, 1, 0.090196)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer03:visible")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer04:visible")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer05:visible")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer06:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer07:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer08:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer09:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer10:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer11:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_bolt_3"]
+resource_name = "bolt_3"
+length = 0.500000000
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.466666667),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_02")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.033333333, 0.100000000),
+"update": 1,
+"values": [Transform2D(-0.77824, 0.001413, 0, 0.777072, 147.7, -48.88337), Transform2D(-0.77824, 0.001413, 0, -0.777072, 147.7, 43.71663)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333),
+"update": 1,
+"values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.913725), Color(1, 1, 1, 0.819608), Color(1, 1, 1, 0.729412), Color(1, 1, 1, 0.639216), Color(1, 1, 1, 0.54902), Color(1, 1, 1, 0.454902), Color(1, 1, 1, 0.364706), Color(1, 1, 1, 0.27451), Color(1, 1, 1, 0.184314), Color(1, 1, 1, 0.090196)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer03:visible")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer04:visible")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer05:visible")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer06:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer07:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer08:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer09:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer10:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer11:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_bolt_default"]
+resource_name = "bolt_default"
+length = 0.466666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333),
+"update": 1,
+"values": [false, true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_00")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.033333333, 0.100000000),
+"update": 1,
+"values": [Transform2D(0.77824, 0.001413, 0, 0.781108, 0, -24.984278), Transform2D(0.77824, 0.001413, 0, -0.781108, 0, 19.815722)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333),
+"update": 1,
+"values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.913725), Color(1, 1, 1, 0.819608), Color(1, 1, 1, 0.729412), Color(1, 1, 1, 0.639216), Color(1, 1, 1, 0.54902), Color(1, 1, 1, 0.454902), Color(1, 1, 1, 0.364706), Color(1, 1, 1, 0.27451), Color(1, 1, 1, 0.184314), Color(1, 1, 1, 0.090196)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer03:visible")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer04:visible")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer05:visible")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer06:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer07:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer08:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer09:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer10:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer11:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_bolt_default_2"]
+resource_name = "bolt_default_2"
+length = 0.500000000
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.466666667),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_01")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.033333333, 0.100000000),
+"update": 1,
+"values": [Transform2D(0.779396, 0.001415, 0, 0.779779, -0.1, -49.08446), Transform2D(0.779396, 0.001415, 0, -0.779779, -0.1, 43.91554)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333),
+"update": 1,
+"values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.913725), Color(1, 1, 1, 0.819608), Color(1, 1, 1, 0.729412), Color(1, 1, 1, 0.639216), Color(1, 1, 1, 0.54902), Color(1, 1, 1, 0.454902), Color(1, 1, 1, 0.364706), Color(1, 1, 1, 0.27451), Color(1, 1, 1, 0.184314), Color(1, 1, 1, 0.090196)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer03:visible")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer04:visible")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer05:visible")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer06:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer07:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer08:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer09:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer10:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer11:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_bolt_default_3"]
+resource_name = "bolt_default_3"
+length = 0.500000000
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.466666667),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_01")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.033333333, 0.100000000),
+"update": 1,
+"values": [Transform2D(-0.779396, 0.001415, 0, 0.779779, 148.3, -49.08446), Transform2D(-0.779396, 0.001415, 0, -0.779779, 148.3, 43.91554)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333),
+"update": 1,
+"values": [Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.913725), Color(1, 1, 1, 0.819608), Color(1, 1, 1, 0.729412), Color(1, 1, 1, 0.639216), Color(1, 1, 1, 0.54902), Color(1, 1, 1, 0.454902), Color(1, 1, 1, 0.364706), Color(1, 1, 1, 0.27451), Color(1, 1, 1, 0.184314), Color(1, 1, 1, 0.090196)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer03:visible")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer04:visible")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer05:visible")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer06:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer07:visible")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer08:visible")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer09:visible")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer10:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer11:visible")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_hit"]
+resource_name = "hit"
+length = 0.766666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_06"), SubResource("AtlasTexture_05")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000, 0.733333333),
+"update": 1,
+"values": [Transform2D(0, -0.901837, 0.634172, 0, -82.611914, 89.142139), Transform2D(0, -0.901826, 0.63416, 0, -82.611726, 89.141951), Transform2D(0.234939, 0, 0, 0.234939, -9.26966, -12.470932), Transform2D(0.21398, 0, 0, 0.21398, -7.224236, -33.858698), Transform2D(0.194634, 0, 0, 0.194634, -2.336154, -53.128186), Transform2D(0.176905, 0, 0, 0.176905, 5.594565, -69.67948), Transform2D(0.16078, 0, 0, 0.16078, 19.067979, -78.962332), Transform2D(0.146273, 0, 0, 0.146273, 32.68403, -70.87699), Transform2D(0.133374, 0, 0, 0.133374, 39.542757, -57.823288), Transform2D(0.122092, 0, 0, 0.122092, 43.644122, -45.851392), Transform2D(0.112419, 0, 0, 0.112419, 46.138163, -35.211136), Transform2D(0.104359, 0, 0, 0.104359, 47.57486, -26.352603), Transform2D(0.090069, 0, 0, 0.090069, 54.28992, -38.971545), Transform2D(0.07578, 0, 0, 0.07578, 69.00498, -40.440488), Transform2D(0.06149, 0, 0, 0.06149, 78.670039, -27.50943), Transform2D(0.113714, 0, 0, 0.113714, 79.032269, 48.413403), Transform2D(0.108146, 0, 0, 0.108146, 82.307618, 42.62291), Transform2D(0.102579, 0, 0, 0.102579, 87.982967, 38.882416), Transform2D(0.097011, 0, 0, 0.097011, 94.908315, 37.941922), Transform2D(0.091439, 0, 0, 0.091439, 101.733683, 39.201511), Transform2D(0.085872, 0, 0, 0.085872, 107.909032, 42.811017), Transform2D(0.080304, 0, 0, 0.080304, 112.53438, 48.220523)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 0.290196), Color(1, 1, 1, 0.827451), Color(1, 1, 1, 1)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [true]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_05"), SubResource("AtlasTexture_04")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000, 0.733333333),
+"update": 1,
+"values": [Transform2D(0.78205, 0, 0, 0.78205, -30.160619, -33.931876), Transform2D(1.12441, 0, 0, 1.12441, -42.919362, -46.865643), Transform2D(0.427864, 0, 0, 0.427864, -16.115485, -18.674961), Transform2D(0.389694, 0, 0, 0.389694, -13.459343, -39.509264), Transform2D(0.354462, 0, 0, 0.354462, -8.007541, -58.26788), Transform2D(0.322174, 0, 0, 0.322174, 0.43978, -74.351004), Transform2D(0.292809, 0, 0, 0.292809, 14.383042, -83.208056), Transform2D(0.266388, 0, 0, 0.266388, 28.421823, -74.739615), Transform2D(0.242897, 0, 0, 0.242897, 35.656405, -61.345295), Transform2D(0.222351, 0, 0, 0.222351, 40.086505, -49.075482), Transform2D(0.204735, 0, 0, 0.204735, 42.862406, -38.17979), Transform2D(0.190056, 0, 0, 0.190056, 44.533967, -29.108413), Transform2D(0.164032, 0, 0, 0.164032, 51.665408, -41.350009), Transform2D(0.138008, 0, 0, 0.138008, 66.79685, -42.441605), Transform2D(0.111984, 0, 0, 0.111984, 76.878291, -29.133202), Transform2D(0.207092, 0, 0, 0.207092, 75.718793, 45.410565), Transform2D(0.196953, 0, 0, 0.196953, 79.156373, 39.767094), Transform2D(0.186813, 0, 0, 0.186813, 84.993953, 36.173622), Transform2D(0.176674, 0, 0, 0.176674, 92.081533, 35.380151), Transform2D(0.166527, 0, 0, 0.166527, 99.069254, 36.786872), Transform2D(0.156387, 0, 0, 0.156387, 105.406834, 40.543401), Transform2D(0.146248, 0, 0, 0.146248, 110.194415, 46.099929)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000, 0.733333333),
+"update": 1,
+"values": [true, false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer03:texture")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04"), SubResource("AtlasTexture_05")]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer03:transform")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000),
+"update": 1,
+"values": [Transform2D(1.424248, 0, 0, 1.424248, -52.948583, -54.583468), Transform2D(2.047745, 0, 0, 2.047745, -75.683278, -76.557942), Transform2D(0.254783, 0, 0, 0.254783, -10.110011, -5.911249), Transform2D(0.238923, 0, 0, 0.238923, -6.287799, -22.249292), Transform2D(0.2239, 0, 0, 0.2239, 4.730598, -34.103815), Transform2D(0.209707, 0, 0, 0.209707, 20.545219, -36.274652), Transform2D(0.196351, 0, 0, 0.196351, 35.156026, -31.761969), Transform2D(0.18383, 0, 0, 0.18383, 47.363036, -23.565683), Transform2D(0.172146, 0, 0, 0.172146, 56.866232, -13.585876), Transform2D(0.161291, 0, 0, 0.161291, 64.115652, -3.172385), Transform2D(0.151275, 0, 0, 0.151275, 69.761256, 6.874628), Transform2D(0.142092, 0, 0, 0.142092, 74.053065, 16.505243), Transform2D(0.133747, 0, 0, 0.133747, 76.94106, 25.619379), Transform2D(0.126231, 0, 0, 0.126231, 78.525278, 34.0172), Transform2D(0.119558, 0, 0, 0.119558, 78.955662, 41.648459), Transform2D(0.113714, 0, 0, 0.113714, 78.432269, 48.263403), Transform2D(0.14758, 0, 0, 0.14758, -77.921921, 16.697302), Transform2D(0.14259, 0, 0, 0.14259, -79.299204, 25.595438), Transform2D(0.137965, 0, 0, 0.137965, -80.428147, 33.936404), Transform2D(0.133688, 0, 0, 0.133688, -81.308673, 41.620532), Transform2D(0.129771, 0, 0, 0.129771, -81.940839, 48.747574), Transform2D(0.12621, 0, 0, 0.12621, -82.374627, 55.267612)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer03:self_modulate")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer04:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.733333333),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer04:texture")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04")]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer04:transform")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000),
+"update": 1,
+"values": [Transform2D(0.464005, 0, 0, 0.464005, -17.534084, -12.639314), Transform2D(0.43512, 0, 0, 0.43512, -13.249713, -28.558527), Transform2D(0.407761, 0, 0, 0.407761, -1.793571, -40.016344), Transform2D(0.381912, 0, 0, 0.381912, 14.434624, -41.812379), Transform2D(0.35759, 0, 0, 0.35759, 29.43459, -36.94702), Transform2D(0.334785, 0, 0, 0.334785, 42.006469, -28.420072), Transform2D(0.313507, 0, 0, 0.313507, 51.850119, -18.131729), Transform2D(0.293739, 0, 0, 0.293739, 59.415823, -7.431605), Transform2D(0.275497, 0, 0, 0.275497, 65.353297, 2.879915), Transform2D(0.258774, 0, 0, 0.258774, 69.912685, 12.753023), Transform2D(0.243576, 0, 0, 0.243576, 73.043843, 22.087526), Transform2D(0.229889, 0, 0, 0.229889, 74.847055, 30.68381), Transform2D(0.217735, 0, 0, 0.217735, 75.471897, 38.491297), Transform2D(0.207092, 0, 0, 0.207092, 75.118793, 45.260565), Transform2D(0.268768, 0, 0, 0.268768, -82.222214, 12.800162), Transform2D(0.259682, 0, 0, 0.259682, -83.454111, 21.830053), Transform2D(0.251259, 0, 0, 0.251259, -84.448289, 30.293151), Transform2D(0.243469, 0, 0, 0.243469, -85.204181, 38.090228), Transform2D(0.236336, 0, 0, 0.236336, -85.722211, 45.320705), Transform2D(0.229851, 0, 0, 0.229851, -86.052239, 51.934776)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer04:self_modulate")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer05:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.533333333),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer05:texture")
+tracks/17/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_05")]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer05:transform")
+tracks/18/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000),
+"update": 1,
+"values": [Transform2D(0.254783, 0, 0, 0.254783, -10.960011, -11.911249), Transform2D(0.244813, 0, 0, 0.244813, -14.114616, -28.765143), Transform2D(0.23519, 0, 0, 0.23519, -17.770805, -44.525876), Transform2D(0.225936, 0, 0, 0.225936, -22.178671, -59.54386), Transform2D(0.21703, 0, 0, 0.21703, -28.088121, -73.318683), Transform2D(0.208484, 0, 0, 0.208484, -38.049211, -83.500592), Transform2D(0.200289, 0, 0, 0.200289, -50.561903, -76.739423), Transform2D(0.192455, 0, 0, 0.192455, -57.576236, -63.735339), Transform2D(0.184978, 0, 0, 0.184978, -62.54219, -50.73826), Transform2D(0.177852, 0, 0, 0.177852, -66.459746, -37.948102), Transform2D(0.171086, 0, 0, 0.171086, -69.578942, -25.61503), Transform2D(0.164676, 0, 0, 0.164676, -72.29976, -14.088962), Transform2D(0.158619, 0, 0, 0.158619, -74.422179, -3.069815), Transform2D(0.152921, 0, 0, 0.152921, -76.346239, 7.192245)]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer05:self_modulate")
+tracks/19/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer06:visible")
+tracks/20/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.533333333),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer06:texture")
+tracks/21/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04")]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer06:transform")
+tracks/22/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000),
+"update": 1,
+"values": [Transform2D(0.464005, 0, 0, 0.464005, -18.384084, -18.639314), Transform2D(0.445847, 0, 0, 0.445847, -21.248161, -35.229918), Transform2D(0.428322, 0, 0, 0.428322, -24.623954, -50.736543), Transform2D(0.411469, 0, 0, 0.411469, -28.762167, -65.510153), Transform2D(0.395248, 0, 0, 0.395248, -34.412096, -79.049785), Transform2D(0.379684, 0, 0, 0.379684, -44.124162, -89.006017), Transform2D(0.364761, 0, 0, 0.364761, -56.398085, -82.028462), Transform2D(0.350494, 0, 0, 0.350494, -63.184146, -68.817508), Transform2D(0.336876, 0, 0, 0.336876, -67.932204, -55.622961), Transform2D(0.323898, 0, 0, 0.323898, -71.642119, -42.644627), Transform2D(0.311577, 0, 0, 0.311577, -74.564172, -30.132894), Transform2D(0.299904, 0, 0, 0.299904, -77.098222, -18.437568), Transform2D(0.288872, 0, 0, 0.288872, -79.044128, -7.258456), Transform2D(0.278496, 0, 0, 0.278496, -80.802172, 3.154057)]
+}
+tracks/23/type = "value"
+tracks/23/path = NodePath("Rig/Layer06:self_modulate")
+tracks/23/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/24/type = "value"
+tracks/24/path = NodePath("Rig/Layer07:visible")
+tracks/24/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.533333333),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/25/type = "value"
+tracks/25/path = NodePath("Rig/Layer07:texture")
+tracks/25/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_05")]
+}
+tracks/26/type = "value"
+tracks/26/path = NodePath("Rig/Layer07:transform")
+tracks/26/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000),
+"update": 1,
+"values": [Transform2D(0.192711, 0, 0, 0.192711, -8.077399, -8.590366), Transform2D(0.180202, 0, 0, 0.180202, -2.720446, -24.394327), Transform2D(0.16835, 0, 0, 0.16835, 5.483513, -37.861224), Transform2D(0.157157, 0, 0, 0.157157, 15.934477, -48.541058), Transform2D(0.146621, 0, 0, 0.146621, 28.382447, -55.533829), Transform2D(0.136746, 0, 0, 0.136746, 41.727403, -58.339618), Transform2D(0.12753, 0, 0, 0.12753, 54.469365, -57.658344), Transform2D(0.118967, 0, 0, 0.118967, 65.858351, -53.889923), Transform2D(0.111066, 0, 0, 0.111066, 75.244324, -47.884521), Transform2D(0.103823, 0, 0, 0.103823, 82.777302, -40.892056), Transform2D(0.097242, 0, 0, 0.097242, 88.607266, -33.76261), Transform2D(0.091314, 0, 0, 0.091314, 92.934255, -26.646017), Transform2D(0.086048, 0, 0, 0.086048, 96.108231, -19.992444), Transform2D(0.08144, 0, 0, 0.08144, 98.479211, -10.751807)]
+}
+tracks/27/type = "value"
+tracks/27/path = NodePath("Rig/Layer07:self_modulate")
+tracks/27/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/28/type = "value"
+tracks/28/path = NodePath("Rig/Layer08:visible")
+tracks/28/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.533333333),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/29/type = "value"
+tracks/29/path = NodePath("Rig/Layer08:texture")
+tracks/29/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04")]
+}
+tracks/30/type = "value"
+tracks/30/path = NodePath("Rig/Layer08:transform")
+tracks/30/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000),
+"update": 1,
+"values": [Transform2D(0.35096, 0, 0, 0.35096, -13.692756, -13.679282), Transform2D(0.328178, 0, 0, 0.328178, -7.971301, -29.152914), Transform2D(0.306595, 0, 0, 0.306595, 0.577995, -42.30685), Transform2D(0.286209, 0, 0, 0.286209, 11.355132, -52.69109), Transform2D(0.267021, 0, 0, 0.267021, 24.110108, -59.405636), Transform2D(0.249039, 0, 0, 0.249039, 37.742784, -61.950679), Transform2D(0.232254, 0, 0, 0.232254, 50.7533, -61.026027), Transform2D(0.21666, 0, 0, 0.21666, 62.391798, -57.031487), Transform2D(0.202271, 0, 0, 0.202271, 72.007996, -50.817444), Transform2D(0.189079, 0, 0, 0.189079, 79.752033, -43.633706), Transform2D(0.177094, 0, 0, 0.177094, 85.77377, -36.330466), Transform2D(0.166298, 0, 0, 0.166298, 90.273489, -29.057337), Transform2D(0.156708, 0, 0, 0.156708, 93.600906, -22.264706), Transform2D(0.148315, 0, 0, 0.148315, 96.106165, -12.90238)]
+}
+tracks/31/type = "value"
+tracks/31/path = NodePath("Rig/Layer08:self_modulate")
+tracks/31/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/32/type = "value"
+tracks/32/path = NodePath("Rig/Layer09:visible")
+tracks/32/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.500000000),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/33/type = "value"
+tracks/33/path = NodePath("Rig/Layer09:texture")
+tracks/33/keys = {
+"times": PackedFloat32Array(0.066666667, 0.200000000, 0.300000000, 0.333333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_06"), SubResource("AtlasTexture_07"), SubResource("AtlasTexture_06"), SubResource("AtlasTexture_07")]
+}
+tracks/34/type = "value"
+tracks/34/path = NodePath("Rig/Layer09:transform")
+tracks/34/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.200000000, 0.233333333, 0.300000000, 0.333333333, 0.400000000),
+"update": 1,
+"values": [Transform2D(0, -0.901837, 0.634172, 0, -82.611914, 89.142139), Transform2D(0, -0.901826, 0.63416, 0, -82.611726, 89.141951), Transform2D(0, -0.901655, 0.631502, 0, -36.261914, -5.107861), Transform2D(0, -0.901643, 0.631491, 0, -36.261726, -5.108049), Transform2D(-0.167588, -0.414047, -0.417147, 0.342397, 89.077399, -26.432986), Transform2D(-0.610709, -0.233366, 0.163451, -0.869902, 3.785635, 127.249004), Transform2D(-0.610441, -0.23207, 0.161841, -0.86968, 3.857219, 127.174605)]
+}
+tracks/35/type = "value"
+tracks/35/path = NodePath("Rig/Layer09:self_modulate")
+tracks/35/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 1), Color(1, 1, 1, 0.670588), Color(1, 1, 1, 0.333333), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.290196), Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098)]
+}
+tracks/36/type = "value"
+tracks/36/path = NodePath("Rig/Layer10:visible")
+tracks/36/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.200000000, 0.333333333, 0.466666667),
+"update": 1,
+"values": [false, true, false, true, false]
+}
+tracks/37/type = "value"
+tracks/37/path = NodePath("Rig/Layer10:texture")
+tracks/37/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.333333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_05"), SubResource("AtlasTexture_07"), SubResource("AtlasTexture_06")]
+}
+tracks/38/type = "value"
+tracks/38/path = NodePath("Rig/Layer10:transform")
+tracks/38/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.333333333, 0.366666667),
+"update": 1,
+"values": [Transform2D(1.4668, 0, 0, 1.4668, -55.928238, -59.799988), Transform2D(0, -0.901655, 0.631502, 0, -36.261914, -5.107861), Transform2D(0, -0.901643, 0.631491, 0, -36.261726, -5.108049), Transform2D(-0.16781, -0.414514, -0.417311, 0.34358, 89.083592, -26.494435), Transform2D(-0.167588, -0.414047, -0.417147, 0.342397, 89.077399, -26.432986)]
+}
+tracks/39/type = "value"
+tracks/39/path = NodePath("Rig/Layer10:self_modulate")
+tracks/39/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.333333333, 0.366666667, 0.400000000, 0.433333333),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.290196), Color(1, 1, 1, 0.529412), Color(1, 1, 1, 0.764706), Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098)]
+}
+tracks/40/type = "value"
+tracks/40/path = NodePath("Rig/Layer11:visible")
+tracks/40/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.100000000),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/41/type = "value"
+tracks/41/path = NodePath("Rig/Layer11:texture")
+tracks/41/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04")]
+}
+tracks/42/type = "value"
+tracks/42/path = NodePath("Rig/Layer11:transform")
+tracks/42/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Transform2D(2.671295, 0, 0, 2.671295, -98.668961, -98.533768)]
+}
+tracks/43/type = "value"
+tracks/43/path = NodePath("Rig/Layer11:self_modulate")
+tracks/43/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_hit_2"]
+resource_name = "hit_2"
+length = 0.833333333
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_05"), SubResource("AtlasTexture_07"), SubResource("AtlasTexture_05")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000, 0.733333333, 0.766666667, 0.800000000),
+"update": 1,
+"values": [Transform2D(-0.78205, 0, 0, 0.78205, 28.460619, -33.931876), Transform2D(-0.626905, 0, 0, 0.889823, -4.173857, -47.218719), Transform2D(-0.234939, 0, 0, 0.234939, 7.56966, -12.470932), Transform2D(-0.21398, 0, 0, 0.21398, 5.524236, -33.858698), Transform2D(-0.194634, 0, 0, 0.194634, 0.636154, -53.128186), Transform2D(-0.176905, 0, 0, 0.176905, -7.294565, -69.67948), Transform2D(-0.16078, 0, 0, 0.16078, -20.767979, -78.962332), Transform2D(-0.146273, 0, 0, 0.146273, -34.38403, -70.87699), Transform2D(-0.133374, 0, 0, 0.133374, -41.242757, -57.823288), Transform2D(-0.122092, 0, 0, 0.122092, -45.344122, -45.851392), Transform2D(-0.112419, 0, 0, 0.112419, -47.838163, -35.211136), Transform2D(-0.104359, 0, 0, 0.104359, -49.27486, -26.352603), Transform2D(-0.133747, 0, 0, 0.133747, -78.64106, 25.619379), Transform2D(-0.126231, 0, 0, 0.126231, -80.225278, 34.0172), Transform2D(-0.119558, 0, 0, 0.119558, -80.655662, 41.648459), Transform2D(-0.113714, 0, 0, 0.113714, -80.132269, 48.263403), Transform2D(-0.113714, 0, 0, 0.113714, -80.732269, 48.413403), Transform2D(-0.108146, 0, 0, 0.108146, -84.007618, 42.62291), Transform2D(-0.102579, 0, 0, 0.102579, -89.682967, 38.882416), Transform2D(-0.097011, 0, 0, 0.097011, -96.608315, 37.941922), Transform2D(-0.091439, 0, 0, 0.091439, -103.433683, 39.201511), Transform2D(-0.085872, 0, 0, 0.085872, -109.609032, 42.811017), Transform2D(-0.080304, 0, 0, 0.080304, -114.23438, 48.220523), Transform2D(-0.074737, 0, 0, 0.074737, -117.059729, 54.680029), Transform2D(-0.78205, 0, 0, 0.78205, 28.460619, -33.931876)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.290196), Color(1, 1, 1, 1)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [true]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04"), SubResource("AtlasTexture_05"), SubResource("AtlasTexture_04")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000, 0.733333333, 0.766666667, 0.800000000),
+"update": 1,
+"values": [Transform2D(-1.424248, 0, 0, 1.424248, 51.248583, -54.583468), Transform2D(-1.12441, 0, 0, 1.12441, 41.219362, -46.865643), Transform2D(-0.427864, 0, 0, 0.427864, 14.415485, -18.674961), Transform2D(-0.389694, 0, 0, 0.389694, 11.759343, -39.509264), Transform2D(-0.354462, 0, 0, 0.354462, 6.307541, -58.26788), Transform2D(-0.322174, 0, 0, 0.322174, -2.13978, -74.351004), Transform2D(-0.292809, 0, 0, 0.292809, -16.083042, -83.208056), Transform2D(-0.266388, 0, 0, 0.266388, -30.121823, -74.739615), Transform2D(-0.242897, 0, 0, 0.242897, -37.356405, -61.345295), Transform2D(-0.222351, 0, 0, 0.222351, -41.786505, -49.075482), Transform2D(-0.204735, 0, 0, 0.204735, -44.562406, -38.17979), Transform2D(-0.190056, 0, 0, 0.190056, -46.233967, -29.108413), Transform2D(-0.243576, 0, 0, 0.243576, -74.743843, 22.087526), Transform2D(-0.229889, 0, 0, 0.229889, -76.547055, 30.68381), Transform2D(-0.217735, 0, 0, 0.217735, -77.171897, 38.491297), Transform2D(-0.207092, 0, 0, 0.207092, -76.818793, 45.260565), Transform2D(-0.207092, 0, 0, 0.207092, -77.418793, 45.410565), Transform2D(-0.196953, 0, 0, 0.196953, -80.856373, 39.767094), Transform2D(-0.186813, 0, 0, 0.186813, -86.693953, 36.173622), Transform2D(-0.176674, 0, 0, 0.176674, -93.781533, 35.380151), Transform2D(-0.166527, 0, 0, 0.166527, -100.769254, 36.786872), Transform2D(-0.156387, 0, 0, 0.156387, -107.106834, 40.543401), Transform2D(-0.146248, 0, 0, 0.146248, -111.894415, 46.099929), Transform2D(-0.136108, 0, 0, 0.136108, -114.881995, 52.706458), Transform2D(-1.424248, 0, 0, 1.424248, 51.248583, -54.583468)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.733333333),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer03:texture")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04"), SubResource("AtlasTexture_05")]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer03:transform")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000),
+"update": 1,
+"values": [Transform2D(-2.047745, 0, 0, 2.047745, 73.983278, -76.557942), Transform2D(-0.254783, 0, 0, 0.254783, 8.410011, -5.911249), Transform2D(-0.238923, 0, 0, 0.238923, 4.587799, -22.249292), Transform2D(-0.2239, 0, 0, 0.2239, -6.430598, -34.103815), Transform2D(-0.209707, 0, 0, 0.209707, -22.245219, -36.274652), Transform2D(-0.196351, 0, 0, 0.196351, -36.856026, -31.761969), Transform2D(-0.18383, 0, 0, 0.18383, -49.063036, -23.565683), Transform2D(-0.172146, 0, 0, 0.172146, -58.566232, -13.585876), Transform2D(-0.161291, 0, 0, 0.161291, -65.815652, -3.172385), Transform2D(-0.151275, 0, 0, 0.151275, -71.461256, 6.874628), Transform2D(-0.142092, 0, 0, 0.142092, -75.753065, 16.505243), Transform2D(-0.171086, 0, 0, 0.171086, 67.878942, -25.61503), Transform2D(-0.164676, 0, 0, 0.164676, 70.59976, -14.088962), Transform2D(-0.158619, 0, 0, 0.158619, 72.722179, -3.069815), Transform2D(-0.152921, 0, 0, 0.152921, 74.646239, 7.192245), Transform2D(-0.14758, 0, 0, 0.14758, 76.221921, 16.697302), Transform2D(-0.14259, 0, 0, 0.14259, 77.599204, 25.595438), Transform2D(-0.137965, 0, 0, 0.137965, 78.728147, 33.936404), Transform2D(-0.133688, 0, 0, 0.133688, 79.608673, 41.620532), Transform2D(-0.129771, 0, 0, 0.129771, 80.240839, 48.747574), Transform2D(-0.12621, 0, 0, 0.12621, 80.674627, 55.267612)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer03:self_modulate")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer04:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.733333333),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer04:texture")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04")]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer04:transform")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000, 0.533333333, 0.566666667, 0.600000000, 0.633333333, 0.666666667, 0.700000000),
+"update": 1,
+"values": [Transform2D(-0.464005, 0, 0, 0.464005, 15.834084, -12.639314), Transform2D(-0.43512, 0, 0, 0.43512, 11.549713, -28.558527), Transform2D(-0.407761, 0, 0, 0.407761, 0.093571, -40.016344), Transform2D(-0.381912, 0, 0, 0.381912, -16.134624, -41.812379), Transform2D(-0.35759, 0, 0, 0.35759, -31.13459, -36.94702), Transform2D(-0.334785, 0, 0, 0.334785, -43.706469, -28.420072), Transform2D(-0.313507, 0, 0, 0.313507, -53.550119, -18.131729), Transform2D(-0.293739, 0, 0, 0.293739, -61.115823, -7.431605), Transform2D(-0.275497, 0, 0, 0.275497, -67.053297, 2.879915), Transform2D(-0.258774, 0, 0, 0.258774, -71.612685, 12.753023), Transform2D(-0.311577, 0, 0, 0.311577, 72.864172, -30.132894), Transform2D(-0.299904, 0, 0, 0.299904, 75.398222, -18.437568), Transform2D(-0.288872, 0, 0, 0.288872, 77.344128, -7.258456), Transform2D(-0.278496, 0, 0, 0.278496, 79.102172, 3.154057), Transform2D(-0.268768, 0, 0, 0.268768, 80.522214, 12.800162), Transform2D(-0.259682, 0, 0, 0.259682, 81.754111, 21.830053), Transform2D(-0.251259, 0, 0, 0.251259, 82.748289, 30.293151), Transform2D(-0.243469, 0, 0, 0.243469, 83.504181, 38.090228), Transform2D(-0.236336, 0, 0, 0.236336, 84.022211, 45.320705), Transform2D(-0.229851, 0, 0, 0.229851, 84.352239, 51.934776)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer04:self_modulate")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer05:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.533333333),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer05:texture")
+tracks/17/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_05")]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer05:transform")
+tracks/18/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000),
+"update": 1,
+"values": [Transform2D(-0.254783, 0, 0, 0.254783, 9.260011, -11.911249), Transform2D(-0.244813, 0, 0, 0.244813, 12.414616, -28.765143), Transform2D(-0.23519, 0, 0, 0.23519, 16.070805, -44.525876), Transform2D(-0.225936, 0, 0, 0.225936, 20.478671, -59.54386), Transform2D(-0.21703, 0, 0, 0.21703, 26.388121, -73.318683), Transform2D(-0.208484, 0, 0, 0.208484, 36.349211, -83.500592), Transform2D(-0.200289, 0, 0, 0.200289, 48.861903, -76.739423), Transform2D(-0.192455, 0, 0, 0.192455, 55.876236, -63.735339), Transform2D(-0.184978, 0, 0, 0.184978, 60.84219, -50.73826), Transform2D(-0.177852, 0, 0, 0.177852, 64.759746, -37.948102), Transform2D(-0.097242, 0, 0, 0.097242, -90.307266, -33.76261), Transform2D(-0.091314, 0, 0, 0.091314, -94.634255, -26.646017), Transform2D(-0.086048, 0, 0, 0.086048, -97.808231, -19.992444), Transform2D(-0.08144, 0, 0, 0.08144, -100.179211, -10.751807)]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer05:self_modulate")
+tracks/19/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer06:visible")
+tracks/20/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.533333333),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer06:texture")
+tracks/21/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04")]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer06:transform")
+tracks/22/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000, 0.433333333, 0.466666667, 0.500000000),
+"update": 1,
+"values": [Transform2D(-0.464005, 0, 0, 0.464005, 16.684084, -18.639314), Transform2D(-0.445847, 0, 0, 0.445847, 19.548161, -35.229918), Transform2D(-0.428322, 0, 0, 0.428322, 22.923954, -50.736543), Transform2D(-0.411469, 0, 0, 0.411469, 27.062167, -65.510153), Transform2D(-0.395248, 0, 0, 0.395248, 32.712096, -79.049785), Transform2D(-0.379684, 0, 0, 0.379684, 42.424162, -89.006017), Transform2D(-0.364761, 0, 0, 0.364761, 54.698085, -82.028462), Transform2D(-0.350494, 0, 0, 0.350494, 61.484146, -68.817508), Transform2D(-0.336876, 0, 0, 0.336876, 66.232204, -55.622961), Transform2D(-0.323898, 0, 0, 0.323898, 69.942119, -42.644627), Transform2D(-0.177094, 0, 0, 0.177094, -87.47377, -36.330466), Transform2D(-0.166298, 0, 0, 0.166298, -91.973489, -29.057337), Transform2D(-0.156708, 0, 0, 0.156708, -95.300906, -22.264706), Transform2D(-0.148315, 0, 0, 0.148315, -97.806165, -12.90238)]
+}
+tracks/23/type = "value"
+tracks/23/path = NodePath("Rig/Layer06:self_modulate")
+tracks/23/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/24/type = "value"
+tracks/24/path = NodePath("Rig/Layer07:visible")
+tracks/24/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.466666667),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/25/type = "value"
+tracks/25/path = NodePath("Rig/Layer07:texture")
+tracks/25/keys = {
+"times": PackedFloat32Array(0.066666667, 0.400000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_05"), SubResource("AtlasTexture_07")]
+}
+tracks/26/type = "value"
+tracks/26/path = NodePath("Rig/Layer07:transform")
+tracks/26/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667, 0.400000000),
+"update": 1,
+"values": [Transform2D(-0.192711, 0, 0, 0.192711, 6.377399, -8.590366), Transform2D(-0.180202, 0, 0, 0.180202, 1.020446, -24.394327), Transform2D(-0.16835, 0, 0, 0.16835, -7.183513, -37.861224), Transform2D(-0.157157, 0, 0, 0.157157, -17.634477, -48.541058), Transform2D(-0.146621, 0, 0, 0.146621, -30.082447, -55.533829), Transform2D(-0.136746, 0, 0, 0.136746, -43.427403, -58.339618), Transform2D(-0.12753, 0, 0, 0.12753, -56.169365, -57.658344), Transform2D(-0.118967, 0, 0, 0.118967, -67.558351, -53.889923), Transform2D(-0.111066, 0, 0, 0.111066, -76.944324, -47.884521), Transform2D(-0.103823, 0, 0, 0.103823, -84.477302, -40.892056), Transform2D(-0.160244, -0.860353, -0.604373, 0.229535, 57.700938, -6.7653)]
+}
+tracks/27/type = "value"
+tracks/27/path = NodePath("Rig/Layer07:self_modulate")
+tracks/27/keys = {
+"times": PackedFloat32Array(0.066666667, 0.400000000, 0.433333333),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098)]
+}
+tracks/28/type = "value"
+tracks/28/path = NodePath("Rig/Layer08:visible")
+tracks/28/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.400000000),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/29/type = "value"
+tracks/29/path = NodePath("Rig/Layer08:texture")
+tracks/29/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04")]
+}
+tracks/30/type = "value"
+tracks/30/path = NodePath("Rig/Layer08:transform")
+tracks/30/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667),
+"update": 1,
+"values": [Transform2D(-0.35096, 0, 0, 0.35096, 11.992756, -13.679282), Transform2D(-0.328178, 0, 0, 0.328178, 6.271301, -29.152914), Transform2D(-0.306595, 0, 0, 0.306595, -2.277995, -42.30685), Transform2D(-0.286209, 0, 0, 0.286209, -13.055132, -52.69109), Transform2D(-0.267021, 0, 0, 0.267021, -25.810108, -59.405636), Transform2D(-0.249039, 0, 0, 0.249039, -39.442784, -61.950679), Transform2D(-0.232254, 0, 0, 0.232254, -52.4533, -61.026027), Transform2D(-0.21666, 0, 0, 0.21666, -64.091798, -57.031487), Transform2D(-0.202271, 0, 0, 0.202271, -73.707996, -50.817444), Transform2D(-0.189079, 0, 0, 0.189079, -81.452033, -43.633706)]
+}
+tracks/31/type = "value"
+tracks/31/path = NodePath("Rig/Layer08:self_modulate")
+tracks/31/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/32/type = "value"
+tracks/32/path = NodePath("Rig/Layer09:visible")
+tracks/32/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.400000000),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/33/type = "value"
+tracks/33/path = NodePath("Rig/Layer09:texture")
+tracks/33/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_07")]
+}
+tracks/34/type = "value"
+tracks/34/path = NodePath("Rig/Layer09:transform")
+tracks/34/keys = {
+"times": PackedFloat32Array(0.066666667, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.333333333, 0.366666667),
+"update": 1,
+"values": [Transform2D(-0.626905, 0, 0, 0.889811, -4.173857, -47.268532), Transform2D(-0.626905, 0, 0, 0.889823, -4.173857, -47.218719), Transform2D(-0.626905, 0, 0, 0.889811, -4.173857, -47.268532), Transform2D(0.500677, -0.039854, -0.028004, -0.71065, -5.946661, 90.776094), Transform2D(-0.162253, -0.860505, -0.604828, 0.230305, 57.84054, -6.775247), Transform2D(-0.160244, -0.860353, -0.604373, 0.229535, 57.700938, -6.7653), Transform2D(-0.162253, -0.860505, -0.604828, 0.230305, 57.84054, -6.775247), Transform2D(-0.160244, -0.860353, -0.604373, 0.229535, 57.700938, -6.7653)]
+}
+tracks/35/type = "value"
+tracks/35/path = NodePath("Rig/Layer09:self_modulate")
+tracks/35/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000, 0.333333333, 0.366666667),
+"update": 1,
+"values": [Color(1, 1, 1, 0.529412), Color(1, 1, 1, 0.764706), Color(1, 1, 1, 1), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.290196), Color(1, 1, 1, 0.529412), Color(1, 1, 1, 0.764706), Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941)]
+}
+tracks/36/type = "value"
+tracks/36/path = NodePath("Rig/Layer10:visible")
+tracks/36/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.200000000, 0.233333333, 0.333333333),
+"update": 1,
+"values": [false, true, false, true, false]
+}
+tracks/37/type = "value"
+tracks/37/path = NodePath("Rig/Layer10:texture")
+tracks/37/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.233333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_05"), SubResource("AtlasTexture_07"), SubResource("AtlasTexture_06")]
+}
+tracks/38/type = "value"
+tracks/38/path = NodePath("Rig/Layer10:transform")
+tracks/38/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.233333333, 0.266666667, 0.300000000),
+"update": 1,
+"values": [Transform2D(-1.4668, 0, 0, 1.4668, 54.228238, -59.799988), Transform2D(0.500677, -0.039854, -0.028004, -0.71065, -5.946661, 90.776094), Transform2D(0.50056, -0.039527, -0.027945, -0.710569, -5.945723, 90.769525), Transform2D(-0.287781, -0.236006, 0.238025, -0.587543, -18.989584, 97.30726), Transform2D(-0.288201, -0.23645, 0.23888, -0.588, -19.046529, 97.421712), Transform2D(-0.287781, -0.236006, 0.238025, -0.587543, -18.989584, 97.30726)]
+}
+tracks/39/type = "value"
+tracks/39/path = NodePath("Rig/Layer10:self_modulate")
+tracks/39/keys = {
+"times": PackedFloat32Array(0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.233333333, 0.266666667, 0.300000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.121569), Color(1, 1, 1, 0.415686), Color(1, 1, 1, 0.709804), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 1), Color(1, 1, 1, 0.501961)]
+}
+tracks/40/type = "value"
+tracks/40/path = NodePath("Rig/Layer11:visible")
+tracks/40/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.100000000, 0.233333333, 0.333333333),
+"update": 1,
+"values": [false, true, false, true, false]
+}
+tracks/41/type = "value"
+tracks/41/path = NodePath("Rig/Layer11:texture")
+tracks/41/keys = {
+"times": PackedFloat32Array(0.066666667, 0.233333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_04"), SubResource("AtlasTexture_07")]
+}
+tracks/42/type = "value"
+tracks/42/path = NodePath("Rig/Layer11:transform")
+tracks/42/keys = {
+"times": PackedFloat32Array(0.066666667, 0.233333333),
+"update": 1,
+"values": [Transform2D(-2.671295, 0, 0, 2.671295, 96.968961, -98.533768), Transform2D(0.50056, -0.039527, -0.027945, -0.710569, -5.945723, 90.769525)]
+}
+tracks/43/type = "value"
+tracks/43/path = NodePath("Rig/Layer11:self_modulate")
+tracks/43/keys = {
+"times": PackedFloat32Array(0.066666667, 0.233333333, 0.266666667, 0.300000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098)]
+}
+
+[sub_resource type="Animation" id="Animation_hit_3"]
+resource_name = "hit_3"
+length = 0.366666667
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.333333333),
+"update": 1,
+"values": [true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000, 0.200000000),
+"update": 1,
+"values": [SubResource("AtlasTexture_06"), SubResource("AtlasTexture_07")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.200000000, 0.266666667, 0.300000000),
+"update": 1,
+"values": [Transform2D(-0.627032, 0, 0, 0.893584, 55.376143, -126.468719), Transform2D(-0.627032, 0, 0, 0.893572, 55.376143, -126.468532), Transform2D(-0.627032, 0, 0, 0.893584, 55.376143, -126.468719), Transform2D(-0.627032, 0, 0, 0.893572, 55.376143, -126.468532), Transform2D(-0.626905, 0, 0, 0.889811, 9.826143, -47.268532), Transform2D(-0.08237, 0.883112, 0.620737, 0.116914, -45.214766, -127.575433), Transform2D(-0.081459, 0.882925, 0.620609, 0.115573, -45.327341, -127.500847)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000),
+"update": 1,
+"values": [Color(1, 1, 1, 0.290196), Color(1, 1, 1, 0.827451), Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.25098), Color(1, 1, 1, 1), Color(1, 1, 1, 0.501961)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000, 0.300000000),
+"update": 1,
+"values": [true, false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_05"), SubResource("AtlasTexture_07")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.266666667),
+"update": 1,
+"values": [Transform2D(-0.78205, 0, 0, 0.78205, 28.460619, -33.931876), Transform2D(-1.12441, 0, 0, 1.12441, 41.219362, -46.865643), Transform2D(-0.626905, 0, 0, 0.889823, 9.826143, -47.218719), Transform2D(-0.626905, 0, 0, 0.889811, 9.826143, -47.268532), Transform2D(-0.626905, 0, 0, 0.889823, 9.826143, -47.218719), Transform2D(-0.626905, 0, 0, 0.889811, 9.826143, -47.268532), Transform2D(-0.081459, 0.882925, 0.620609, 0.115573, -45.327341, -127.500847), Transform2D(0.50056, -0.039527, -0.027945, -0.710569, -5.895723, 102.769525)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.290196), Color(1, 1, 1, 0.647059), Color(1, 1, 1, 1), Color(1, 1, 1, 0.752941), Color(1, 1, 1, 0.333333), Color(1, 1, 1, 0.670588), Color(1, 1, 1, 0.333333)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000, 0.100000000, 0.133333333, 0.266666667),
+"update": 1,
+"values": [true, false, true, false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer03:texture")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.133333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_04"), SubResource("AtlasTexture_05"), SubResource("AtlasTexture_07")]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer03:transform")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.133333333, 0.166666667, 0.200000000, 0.233333333),
+"update": 1,
+"values": [Transform2D(-1.424248, 0, 0, 1.424248, 51.248583, -54.583468), Transform2D(-2.047745, 0, 0, 2.047745, 73.983278, -76.557942), Transform2D(-1.4668, 0, 0, 1.4668, 54.228238, -59.799988), Transform2D(0.500677, -0.039854, -0.028004, -0.71065, -5.946661, 102.776094), Transform2D(0.50056, -0.039527, -0.027945, -0.710569, -5.895723, 102.769525), Transform2D(0.500677, -0.039854, -0.028004, -0.71065, -5.946661, 102.776094), Transform2D(0.50056, -0.039527, -0.027945, -0.710569, -5.895723, 102.769525)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer03:self_modulate")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.000000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.121569), Color(1, 1, 1, 0.564706), Color(1, 1, 1, 1), Color(1, 1, 1, 0.670588)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer04:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.100000000),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer04:texture")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04")]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer04:transform")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Transform2D(-2.671295, 0, 0, 2.671295, 96.968961, -98.533768)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer04:self_modulate")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer05:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer06:visible")
+tracks/17/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer07:visible")
+tracks/18/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer08:visible")
+tracks/19/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer09:visible")
+tracks/20/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer10:visible")
+tracks/21/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer11:visible")
+tracks/22/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="Animation" id="Animation_hit_4"]
+resource_name = "hit_4"
+length = 0.400000000
+step = 0.033333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer01:visible")
+tracks/0/keys = {
+"times": PackedFloat32Array(0.000000000, 0.333333333),
+"update": 1,
+"values": [true, false]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer01:texture")
+tracks/1/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.166666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_05"), SubResource("AtlasTexture_06"), SubResource("AtlasTexture_07")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer01:transform")
+tracks/2/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.266666667, 0.300000000),
+"update": 1,
+"values": [Transform2D(-0.78205, 0, 0, 0.78205, 28.460619, -33.931876), Transform2D(0, -0.901837, -0.634172, 0, 80.911914, 89.142139), Transform2D(0, -0.901826, -0.63416, 0, 80.911726, 89.141951), Transform2D(0, -0.901837, -0.634172, 0, 80.911914, 89.142139), Transform2D(0, -0.901826, -0.63416, 0, 80.911726, 89.141951), Transform2D(-0.487435, 0.529204, 0.384822, 0.327216, -33.107961, -19.321248), Transform2D(-0.62666, -0.116794, -0.082297, 0.892564, 91.546494, -64.185619), Transform2D(-0.626742, -0.118464, -0.082973, 0.892809, 91.608693, -64.112721), Transform2D(-0.62666, -0.116794, -0.082297, 0.892564, 91.546494, -64.185619)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer01:self_modulate")
+tracks/3/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.166666667, 0.200000000, 0.233333333, 0.266666667, 0.300000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.290196), Color(1, 1, 1, 0.827451), Color(1, 1, 1, 1), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.670588), Color(1, 1, 1, 0.333333), Color(1, 1, 1, 0.670588), Color(1, 1, 1, 1), Color(1, 1, 1, 0.501961)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer02:visible")
+tracks/4/keys = {
+"times": PackedFloat32Array(0.000000000, 0.166666667, 0.200000000, 0.233333333),
+"update": 1,
+"values": [true, false, true, false]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer02:texture")
+tracks/5/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333),
+"update": 1,
+"values": [SubResource("AtlasTexture_04"), SubResource("AtlasTexture_07")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer02:transform")
+tracks/6/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.200000000),
+"update": 1,
+"values": [Transform2D(-1.424248, 0, 0, 1.424248, 51.248583, -54.583468), Transform2D(0, -0.901655, -0.631502, 0, 34.561914, -5.107861), Transform2D(0, -0.901643, -0.631491, 0, 34.561726, -5.108049), Transform2D(0, -0.901655, -0.631502, 0, 34.561914, -5.107861), Transform2D(0, -0.901643, -0.631491, 0, 34.561726, -5.108049), Transform2D(-0.487435, 0.529204, 0.384822, 0.327216, -33.107961, -19.321248)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer02:self_modulate")
+tracks/7/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.066666667, 0.100000000, 0.133333333, 0.200000000),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.290196), Color(1, 1, 1, 0.647059), Color(1, 1, 1, 1), Color(1, 1, 1, 0.501961), Color(1, 1, 1, 0.333333)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer03:visible")
+tracks/8/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.166666667),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer03:texture")
+tracks/9/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_05"), SubResource("AtlasTexture_07")]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer03:transform")
+tracks/10/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.100000000, 0.133333333),
+"update": 1,
+"values": [Transform2D(-1.12441, 0, 0, 1.12441, 41.219362, -46.865643), Transform2D(-0.489186, 0.529204, 0.385113, 0.328138, -32.9845, -19.336075), Transform2D(-0.487435, 0.529204, 0.384822, 0.327216, -33.107961, -19.321248), Transform2D(-0.489186, 0.529204, 0.385113, 0.328138, -32.9845, -19.336075)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer03:self_modulate")
+tracks/11/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667, 0.100000000, 0.133333333),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.121569), Color(1, 1, 1, 0.564706), Color(1, 1, 1, 1)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer04:visible")
+tracks/12/keys = {
+"times": PackedFloat32Array(0.000000000, 0.033333333, 0.100000000),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer04:texture")
+tracks/13/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04"), SubResource("AtlasTexture_05")]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer04:transform")
+tracks/14/keys = {
+"times": PackedFloat32Array(0.033333333, 0.066666667),
+"update": 1,
+"values": [Transform2D(-2.047745, 0, 0, 2.047745, 73.983278, -76.557942), Transform2D(-1.4668, 0, 0, 1.4668, 54.228238, -59.799988)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer04:self_modulate")
+tracks/15/keys = {
+"times": PackedFloat32Array(0.033333333),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer05:visible")
+tracks/16/keys = {
+"times": PackedFloat32Array(0.000000000, 0.066666667, 0.100000000),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer05:texture")
+tracks/17/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [SubResource("AtlasTexture_04")]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer05:transform")
+tracks/18/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Transform2D(-2.671295, 0, 0, 2.671295, 96.968961, -98.533768)]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer05:self_modulate")
+tracks/19/keys = {
+"times": PackedFloat32Array(0.066666667),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer06:visible")
+tracks/20/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer07:visible")
+tracks/21/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer08:visible")
+tracks/22/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/23/type = "value"
+tracks/23/path = NodePath("Rig/Layer09:visible")
+tracks/23/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/24/type = "value"
+tracks/24/path = NodePath("Rig/Layer10:visible")
+tracks/24/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+tracks/25/type = "value"
+tracks/25/path = NodePath("Rig/Layer11:visible")
+tracks/25/keys = {
+"times": PackedFloat32Array(0.000000000),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_reed"]
+_data = {
+&"RESET": SubResource("Animation_RESET"),
+&"plant_food_cloud_attack": SubResource("Animation_plant_food_cloud_attack"),
+&"plant_food_cloud_attack_2": SubResource("Animation_plant_food_cloud_attack_2"),
+&"plant_food_cloud_attack_01": SubResource("Animation_plant_food_cloud_attack_01"),
+&"plant_food_cloud_attack_02": SubResource("Animation_plant_food_cloud_attack_02"),
+&"plant_food_cloud_plant": SubResource("Animation_plant_food_cloud_plant"),
+&"plant_food_cloud_idle": SubResource("Animation_plant_food_cloud_idle"),
+&"plant_food_cloud_die": SubResource("Animation_plant_food_cloud_die"),
+&"plant_food_bolt": SubResource("Animation_plant_food_bolt"),
+&"plant_food_bolt_2": SubResource("Animation_plant_food_bolt_2"),
+&"plant_food_bolt_3": SubResource("Animation_plant_food_bolt_3"),
+&"bolt": SubResource("Animation_bolt"),
+&"bolt_2": SubResource("Animation_bolt_2"),
+&"bolt_3": SubResource("Animation_bolt_3"),
+&"bolt_default": SubResource("Animation_bolt_default"),
+&"bolt_default_2": SubResource("Animation_bolt_default_2"),
+&"bolt_default_3": SubResource("Animation_bolt_default_3"),
+&"hit": SubResource("Animation_hit"),
+&"hit_2": SubResource("Animation_hit_2"),
+&"hit_3": SubResource("Animation_hit_3"),
+&"hit_4": SubResource("Animation_hit_4")
+}
+
+[node name="LightningReedEffects" type="Node2D"]
+
+[node name="Rig" type="Node2D" parent="."]
+scale = Vector2(0.7, 0.7)
+
+[node name="Layer01" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer02" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer03" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer04" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer05" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer06" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer07" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer08" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer09" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer10" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer11" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_reed")
+}

@@ -13,6 +13,19 @@ assets/adventure/*
 assets/adventure/ui/*
 !assets/adventure/ui/player/
 
+# 闪电芦苇场景所用的贴图、音效和素材来源。
+!assets/adventure/plants/
+assets/adventure/plants/*
+!assets/adventure/plants/lightning_reed/
+assets/adventure/plants/lightning_reed/*
+!assets/adventure/plants/lightning_reed/lightning_reed_atlas.png
+!assets/adventure/plants/lightning_reed/lightning_reed_card.png
+!assets/adventure/plants/lightning_reed/README.md
+!assets/adventure/plants/lightning_reed/sfx/
+assets/adventure/plants/lightning_reed/sfx/*
+!assets/adventure/plants/lightning_reed/sfx/*.wav
+!assets/adventure/plants/lightning_reed/sfx/*.tres
+
 # 本批新增设置图标；仅放行该文件，不重新跟踪整个工具栏资源目录。
 !assets/adventure/ui/bottom_bar/
 assets/adventure/ui/bottom_bar/*

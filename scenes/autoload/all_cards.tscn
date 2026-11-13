@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
 [ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/explorer/explorer_card.png" id="explorer_portrait"]
+[ext_resource type="Texture2D" path="res://assets/adventure/plants/lightning_reed/lightning_reed_card.png" id="lightning_reed_card"]
 [ext_resource type="Texture2D" path="res://assets/adventure/plants/bloomerang/bloomerang.png" id="bloomerang_art"]
 [ext_resource type="Texture2D" path="res://assets/adventure/plants/electric_peashooter/card.png" id="electric_peashooter_card"]
 [ext_resource type="Texture2D" uid="uid://cy3xu8ug3gd2" path="res://assets/reanim/PeaShooter_backleaf.png" id="3_xm6ba"]
@@ -1175,6 +1176,11 @@ content_id = 1003
 script = ExtResource("card_reference")
 card_type = 1
 content_id = 49
+
+[sub_resource type="Resource" id="CardReference_1_50"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 50
 
 [sub_resource type="Resource" id="CardReference_1_51"]
 script = ExtResource("card_reference")
@@ -6788,6 +6794,22 @@ centered = false
 
 [node name="Marker2DBullet" type="Marker2D" parent="PlantCards2/Card4/CardBg/CharacterStatic/Plant008PeaShooterDoubleReverse/Body/BodyCorrect/Anim_stem/stem_correct" unique_id=1386366275]
 position = Vector2(60.9452, 30.6411)
+
+[node name="Card5" parent="PlantCards2" instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_50")
+
+[node name="CardBg" parent="PlantCards2/Card5" index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="LightningReed" type="Node2D" parent="PlantCards2/Card5/CardBg/CharacterStatic" index="0"]
+position = Vector2(8, 18)
+scale = Vector2(0.48, 0.48)
+
+[node name="Artwork" type="Sprite2D" parent="PlantCards2/Card5/CardBg/CharacterStatic/LightningReed"]
+position = Vector2(-18.375, -41.125)
+scale = Vector2(0.5833333, 0.5833333)
+texture = ExtResource("lightning_reed_card")
 
 [node name="BloomerangCard" parent="PlantCards2" instance=ExtResource("2_5pqky")]
 layout_mode = 2
@@ -12597,6 +12619,7 @@ position = Vector2(142.5, 178)
 [editable path="PlantCards2/Card2"]
 [editable path="PlantCards2/Card3"]
 [editable path="PlantCards2/Card4"]
+[editable path="PlantCards2/Card5"]
 [editable path="PlantCards2/BloomerangCard"]
 [editable path="PlantCards2/ElectricPeashooterCard"]
 [editable path="ZombieCards/Card1"]
