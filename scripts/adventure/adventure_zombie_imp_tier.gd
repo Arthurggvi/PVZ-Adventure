@@ -1,4 +1,4 @@
-extends Node
+extends AdventureZombieTierAbility
 class_name AdventureZombieImpTier
 
 var _imp: Zombie025Imp
@@ -7,6 +7,7 @@ var _death_imps := 0
 var _child_tier: StringName = &"tier4"
 
 func setup(imp: Zombie025Imp, rule: Dictionary) -> void:
+    bind_tier(imp)
     _imp = imp
     _degradation = float(rule.get("degradation", 0.0))
     _death_imps = int(rule.get("death_imps", 0))
@@ -24,11 +25,15 @@ func setup(imp: Zombie025Imp, rule: Dictionary) -> void:
         imp.signal_character_death.connect(_on_death)
 
 func _on_bite(target: Node, _amount: int) -> void:
+    if not tier_can_trigger():
+        return
     var plant: Plant000Base = target as Plant000Base
     if is_instance_valid(plant) and not plant.is_death:
         AdventurePlantNegativeEffects.apply(plant, AdventurePlantNegativeEffects.Kind.DEGRADATION, _imp.get_instance_id(), _degradation)
 
 func _on_death() -> void:
+    if not tier_can_trigger(true):
+        return
     if not is_instance_valid(_imp) or not is_instance_valid(Global.main_game):
         return
     var manager: ZombieManager = Global.main_game.zombie_manager
@@ -48,8 +53,9 @@ func _on_death() -> void:
     # dying imp component (which is queued for deletion with its parent).
     var origin: Vector2 = _imp.global_position
     for i in range(_death_imps):
-        manager.create_norm_zombie.call_deferred(
-                CharacterRegistry.ZombieType.Z025Imp,
-                manager.all_zombie_rows[lane], attrs,
+        AdventureZombieTierAbility.spawn_child_if_current.call_deferred(
+                Global.main_game, Global.main_game.curr_game_round,
+                AdventureSession.get_active_phase(Global.main_game.game_para),
+                CharacterRegistry.ZombieType.Z025Imp, attrs,
                 origin + Vector2((float(i) - float(_death_imps - 1) / 2.0) * 18.0, 0.0),
-                Callable(), AdventureZombieTierBinding.new(_child_tier))
+                AdventureZombieTierBinding.new(_child_tier))

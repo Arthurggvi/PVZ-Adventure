@@ -42,9 +42,18 @@ func start_ladder(plant:Plant000Base):
 
 ## 搭梯子,同时搭梯子动画结束
 func ladder_once():
+	# 动画期间可能被沉默，末端重新验证原生目标资格，不能把普通梯子搭在任意植物上。
+	if not are_tier_skills_active() and is_instance_valid(plant_ladder) \
+			and is_instance_valid(plant_ladder.plant_cell) \
+			and plant_ladder.plant_cell.get_plant_ladder() != plant_ladder:
+		is_fail_ladder = true
+		is_place_ladder = false
+		(attack_component as AttackComponentZombieLadder).is_can_ladder = not is_drop_ladder
+		attack_component.update_is_attack_factors(true, AttackComponentBase.E_IsAttackFactors.Anim)
+		return
 	if is_instance_valid(plant_ladder) and not plant_ladder.plant_cell.ladder and not is_drop_ladder:
 		var placed: Ladder = plant_ladder.plant_cell.be_ladder(
-				adventure_tier_id, plant_ladder)
+				adventure_tier_id if are_tier_skills_active() else &"", plant_ladder)
 		if is_instance_valid(placed):
 			ladder_placed.emit(plant_ladder, placed)
 		hp_component.apply_unblocked_loss(hp_component.curr_hp_armor2, BulletRegistry.AttackMode.Norm, false, false, false)

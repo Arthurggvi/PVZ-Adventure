@@ -1,5 +1,5 @@
 ## Local bucket aura; reconcile movement and fresh spawns while maintaining source IDs.
-extends Node
+extends AdventureZombieTierAbility
 class_name AdventureZombieTierField
 
 const INTERVAL := 0.12
@@ -12,6 +12,7 @@ var _elapsed := 0.0
 var _tracked: Dictionary[int, WeakRef] = {}
 
 func setup(source: Zombie000Base, manager: ZombieManager, rule: Dictionary) -> void:
+    bind_tier(source)
     _source = source
     _manager = manager
     _neighbor_dr = float(rule.get("reduction", 0.0))
@@ -40,8 +41,14 @@ func _width() -> float:
 
 
 func _refresh() -> void:
+    if not tier_enabled():
+        _remove_all_sources()
+        return
     if not is_instance_valid(_source) or not is_instance_valid(_manager) \
-            or _source.is_death or _source.is_hypno:
+            or not _source.is_inside_tree() or _source.is_queued_for_deletion() \
+            or not is_instance_valid(_manager.main_game) or _manager.main_game != Global.main_game \
+            or not _manager.main_game.is_inside_tree() or _manager.main_game.is_queued_for_deletion() \
+            or not _manager.main_game.is_ancestor_of(_source) or _source.is_death or _source.is_hypno:
         clear()
         return
     var width := _width()
@@ -79,8 +86,21 @@ func clear() -> void:
     set_process(false)
     if is_instance_valid(_manager) and _manager.signal_zombie_created.is_connected(_on_spawned):
         _manager.signal_zombie_created.disconnect(_on_spawned)
-    for id: int in _tracked.keys():
+    _remove_all_sources()
+
+## 只撤销输出，不断开出生监听或重置刷新计时，供沉默临时使用。
+func _remove_all_sources() -> void:
+    for id: int in _tracked.keys(): # 来源键快照允许边遍历边撤销。
         _remove(id)
 
+## [param active] 恢复时立即按当前邻居重算，不沿用沉默前的过期范围快照。
+func _tier_state_changed(active: bool) -> void:
+    if active:
+        _refresh()
+    else:
+        _remove_all_sources()
+
 func _exit_tree() -> void:
+    if is_instance_valid(_source) and _source.is_changing_lane:
+        return
     clear()

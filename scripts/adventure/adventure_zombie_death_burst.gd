@@ -1,5 +1,5 @@
 ## Reusable death explosion trigger; targeting and damage belong to CombatExplosion.
-extends Node
+extends AdventureZombieTierAbility
 class_name AdventureZombieDeathBurst
 
 var _zombie: Zombie000Base
@@ -17,6 +17,7 @@ func arm() -> void:
 
 func setup(zombie: Zombie000Base, damage: int, profile: CombatExplosionProfile,
         on_death: bool = true, hit_all_characters: bool = false) -> void:
+    bind_tier(zombie)
     _zombie = zombie
     _damage = damage
     _profile = profile
@@ -28,6 +29,8 @@ func trigger_once() -> void:
     _on_death()
 
 func _on_death() -> void:
+    if not tier_can_trigger(true):
+        return
     if _exploded or not _armed or _damage <= 0 or not is_instance_valid(_zombie):
         return
     _exploded = true
@@ -39,11 +42,13 @@ func _on_death() -> void:
     var charmed: bool = _zombie.is_hypno
     var source_id: int = _zombie.get_instance_id()
     reparent(game.bombs if is_instance_valid(game.bombs) else game)
-    _detonate.call_deferred(game, origin, lane, charmed, source_id)
+    _detonate.call_deferred(game, origin, lane, charmed, source_id,
+            game.curr_game_round, AdventureSession.get_active_phase(game.game_para))
 
 func _detonate(game: MainGameManager, origin: Vector2,
-        lane: int, charmed: bool, source_id: int) -> void:
-    if not is_instance_valid(game):
+        lane: int, charmed: bool, source_id: int, round_id: int, phase: StagePhaseDefinition) -> void:
+    if not AdventureZombieTierAbility.battle_context_active(game, round_id, phase) \
+            or (is_instance_valid(_zombie) and not _zombie.are_tier_skills_active()):
         queue_free()
         return
     var areas: Array[Area2D] = CombatExplosion.query_areas(

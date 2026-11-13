@@ -12,12 +12,17 @@ enum Kind {
 	STUN, ## 使可受控的僵尸暂停行动，重复命中刷新时长。
 	POISON, ## 每半秒造成本体最大生命 2% 的普通伤害，层数按秒数解释。
 	CHARM, ## 调用角色原有魅惑入口，保留物种与僵王的魅惑免疫。
+	BURN, ## 独立半秒灼烧，层数表示持续秒数；共享原生火豆命中视觉。
+	FREEZE_CHARGE, ## 累积冻结值，仅降低移动速度，满十点调用原生冰冻。
+	FEAR, ## 限时反向逃跑，保持阵营并独立抑制攻击。
+	SILENCE, ## 限时禁用等阶能力，保留基础成长及原生行为。
+	SUN_INFUSION, ## 阳光豆式受伤产光，一次赋予一层实伤转换。
 }
 
 ## [param target] 目标角色；[param kind] 为已登记状态；[param source_id] 用于独立解除无效化。
 ## [param amount] 为劣化比例或限时效果秒数；[param followup] 是冰冻结束后的减速秒数。
 ## [param context] 的 stackable 仅令劣化写入独立叠加通道，默认保留原有最强值规则；
-## on_kill 是毒伤击杀回调，接收实际死亡的角色，调用方应保存可脱离母株的来源快照。
+## on_kill 是持续伤害的击杀回调，接收实际死亡者；调用方应保存可脱离母株的来源快照。
 ## 返回是否接受请求；死亡、非法状态或对应状态免疫返回 false，伤害无敌不等同于状态免疫。
 static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 		amount: float = 0.0, followup: float = 0.0, context: Dictionary = {}) -> bool:
@@ -43,24 +48,33 @@ static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 				return false
 			AdventurePlantNullification.grant(plant, source_id)
 		Kind.ICE_SLOW:
-			if amount <= 0.0:
+			if amount <= 0.0 or not target.can_receive_cold():
 				return false
 			target.be_ice_decelerate(amount)
 			return target.influence_speed_factors.get(
 				Character000Base.E_Influence_Speed_Factor.IceDecelerateSpeed, 1.0) < 1.0
 		Kind.ICE_FREEZE:
-			if plant == null or amount <= 0.0 or not is_finite(followup):
+			if amount <= 0.0 or not is_finite(followup) or not target.can_receive_cold():
 				return false
-			plant.be_ice_freeze(amount, maxf(0.0, followup))
+			target.be_ice_freeze(amount, maxf(0.0, followup))
 		Kind.STUN:
 			if zombie == null or amount <= 0.0:
 				return false
 			zombie.be_stunned(amount)
-		Kind.POISON:
+		Kind.POISON, Kind.BURN:
 			var on_kill: Variant = context.get("on_kill", Callable()) # 非法回调不能进入延迟状态。
 			if not on_kill is Callable:
 				return false
-			return AdventurePoisonEffect.apply_to(target, amount, on_kill)
+			return AdventurePoisonEffect.apply_to(target, amount, on_kill) if kind == Kind.POISON \
+				else AdventureBurnEffect.apply_to(target, amount, on_kill)
+		Kind.FREEZE_CHARGE:
+			return AdventureFreezeChargeEffect.apply_to(target, amount)
+		Kind.FEAR:
+			return AdventureFearEffect.apply_to(target, amount)
+		Kind.SILENCE:
+			return AdventureSilenceEffect.apply_to(target, amount)
+		Kind.SUN_INFUSION:
+			return AdventureSunBeanEffect.apply_to(target)
 		Kind.CHARM:
 			if plant != null:
 				return false

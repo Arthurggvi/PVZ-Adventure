@@ -210,6 +210,7 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 					is_drop_on_death, trigger_be_attack_SFX, is_drop_2, armor_multiplier)
 	# 只有本次受击产生的状态变化算击杀，已死亡的角色不重复回报。
 	var was_alive: bool = not is_death
+	var combat_loss: bool = was_alive and attack_value > 0 and not _bypass_damage_block # 只允许实际战斗血池损失产光，卸甲与处决不算。
 	# Ordinary hits are mitigated once before any health-pool routing.
 	if attack_value > 0 and not is_death and not _bypass_damage_block:
 		received_attack.emit(attack_value)
@@ -240,6 +241,8 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 
 	var is_drop = not (owner.is_death and not is_drop_on_death) and is_drop_2
 
+	if combat_loss and loss_hp > 0:
+		combat_health_lost.emit(loss_hp) # 已扣除减伤、过量伤害并补回本击新授护甲，保护者在自己的组件报告。
 	## 组件发射掉血信号,僵尸发射僵尸掉血信号给僵尸管理器处理残半刷新
 	signal_zombie_hp_loss.emit(loss_hp)
 	if flag_loss & 1:

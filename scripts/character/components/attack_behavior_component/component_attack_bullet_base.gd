@@ -18,6 +18,10 @@ var _attack_rate_multiplier: float = 1.0
 var _has_attack_animation_rate: bool = false
 ## 就绪时读取一次的攻击分支原始倍率，刷新或重挂不会重复乘算。
 var _attack_animation_base: float = 1.0
+## 持续范围攻击的单次执行入口，空值使用原生动画发射；不创建额外计时器。
+var _continuous_attack: Callable
+## 持续模式的固定战斗秒周期，不受正向角色速度或攻击专用倍率影响。
+var _continuous_interval: float = 0.5
 
 ## 可攻击的植物状态位，初始化时继承检测组件设置。
 var can_attack_plant_status: int = 1
@@ -87,17 +91,41 @@ func set_attack_rate_source(source_id: int, bonus: float) -> void:
 func _refresh_attack_rate() -> void:
 	if not is_instance_valid(bullet_attack_cd_timer):
 		return
-	bullet_attack_cd_timer.set_speed_scale(_owner_speed_product * _attack_rate_multiplier)
+	var rate: float = _owner_speed_product * _attack_rate_multiplier # 普通攻击保留既有速度来源合成。
+	if _continuous_attack.is_valid():
+		rate = 1.0 if _owner_speed_product > 0.0 else 0.0
+	bullet_attack_cd_timer.set_speed_scale(rate)
 	if _has_attack_animation_rate:
 		animation_tree.set(ATTACK_ANIMATION_RATE_PROPERTY, _attack_animation_base * _attack_rate_multiplier)
 
-## 开始原生攻击；首次随机等待和后续完整周期使用同一可变速计时器。
+## [param interval] 是正的固定战斗秒周期；[param callback] 为空时恢复原生动画攻击。
+## 切换模式才重置进度；持续攻击仍由同一个SpeedTimer保持暂停、零速和离树语义。
+func configure_continuous_attack(interval: float, callback: Callable) -> void:
+	if callback.is_valid() and (not is_finite(interval) or interval <= 0.0):
+		push_error("持续攻击周期必须为有限正数")
+		return
+	_continuous_attack = callback
+	_continuous_interval = interval
+	bullet_attack_cd_timer.stop()
+	bullet_attack_cd_timer.base_wait_time = interval if callback.is_valid() else attack_cd
+	_refresh_attack_rate()
+	set_requires_target(not callback.is_valid())
+
+## 仅归还 [param callback] 对应的持续模式，旧控制器离场不能覆盖后来安装的回调。
+func clear_continuous_attack(callback: Callable) -> void:
+	if _continuous_attack == callback:
+		configure_continuous_attack(attack_cd, Callable())
+
+## 开始原生攻击；持续模式完整等待固定周期，普通模式保留首次随机等待。
 func attack_start():
 	super()
 	if bullet_attack_cd_timer.is_stopped():
-		bullet_attack_cd_timer.start_scaled(maxf(randf_range(0, attack_cd / 3.0), 0.001))
-		# 修改后续基础周期不会重置当前短等待，也不会留下可迟到重启的协程。
-		bullet_attack_cd_timer.base_wait_time = attack_cd
+		if _continuous_attack.is_valid():
+			bullet_attack_cd_timer.start_scaled(_continuous_interval)
+		else:
+			bullet_attack_cd_timer.start_scaled(maxf(randf_range(0, attack_cd / 3.0), 0.001))
+			# 修改后续基础周期不会重置当前短等待，也不会留下迟到重启的协程。
+			bullet_attack_cd_timer.base_wait_time = attack_cd
 
 ## 结束原生攻击并取消当前等待，不清除角色或技能来源倍率。
 func attack_end():
@@ -105,8 +133,12 @@ func attack_end():
 	bullet_attack_cd_timer.stop()
 	set_cancel_attack()
 
-## 原生攻击间隔完成时请求攻击动画，实际发射仍由动画方法轨道调用。
+## 同一时钟只执行一种攻击：持续脉冲直接结算，普通发射仍等待动画方法轨道。
 func _on_bullet_attack_cd_timer_timeout() -> void:
+	if _continuous_attack.is_valid():
+		if is_enabling and is_attack_res:
+			_continuous_attack.call()
+		return
 	animation_tree.set(attack_para, AnimationNodeOneShot.ONE_SHOT_REQUEST_FIRE)
 
 ## 保留物种覆盖的取消入口，基础组件不强制打断正在播放的攻击动画。
@@ -115,6 +147,8 @@ func set_cancel_attack():
 
 ## 动画调用的一次射击；暂停行动的僵尸不发射，物种齐射覆盖仍使用原入口。
 func _shoot_bullet():
+	if _continuous_attack.is_valid():
+		return
 	if owner is Zombie000Base and owner.is_action_suspended():
 		return
 	if shoot_override.is_valid():

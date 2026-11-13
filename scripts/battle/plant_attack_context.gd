@@ -94,16 +94,7 @@ func resolve_kill(casualty: Character000Base) -> void:
 			or not _game.suns.is_inside_tree() or _game.suns.is_queued_for_deletion():
 		return
 	_rewarded_ids[identity] = true
-	var sun: Sun = SceneRegistry.SUN.instantiate() as Sun # 使用原生收集与存在期限，不直接增加余额。
-	if sun == null:
-		return
-	sun.init_sun(KILL_SUN_VALUE, _game.suns.to_local(casualty.global_position))
-	_game.suns.add_child(sun)
-	var motion: Tween = sun.create_tween() # 复用击杀阳光的短抛落，完成后交给既有自动收集策略。
-	motion.tween_property(sun, "position:y", -24.0, 0.23).as_relative().set_trans(Tween.TRANS_QUAD)
-	motion.tween_property(sun, "position:y", 28.0, 0.37).as_relative().set_trans(Tween.TRANS_QUAD)
-	sun.spawn_sun_tween = motion
-	motion.finished.connect(sun.on_sun_tween_finished)
+	BattleSunDrop.spawn(_game, casualty.global_position, KILL_SUN_VALUE)
 
 ## 只允许原轮次、原阶段的正式战斗开始新命中；结算资格不会放宽此伤害门禁。
 func is_active() -> bool:

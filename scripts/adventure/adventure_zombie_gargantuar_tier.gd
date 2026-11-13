@@ -1,4 +1,4 @@
-extends Node
+extends AdventureZombieTierAbility
 class_name AdventureZombieGargantuarTier
 
 var _giant: Zombie024Gargantuar
@@ -8,17 +8,18 @@ var _crush := false
 var _profile: CombatExplosionProfile
 
 func setup(giant: Zombie024Gargantuar, rule: Dictionary) -> void:
+    bind_tier(giant)
     _giant = giant
     _each_smash_imps = int(rule.get("imp_each_smash", 0))
     _blast = int(rule.get("smash_blast", 0))
     _crush = bool(rule.get("death_crush", false))
-    giant.throw_imp_count = int(rule.get("imp_per_throw", 1))
-    giant.fallback_throw_column = int(rule.get("fallback_col", -1))
-    giant.preserve_death_animation_after_blast = _crush
-    giant.update_speed_factor(float(rule.get("speed", 1.0)),
-            Character000Base.E_Influence_Speed_Factor.AdventureTierStance)
-    (giant.hp_component as HpComponentZombie).grant_bonus_armor(
-            int(rule.get("spawn_armor", 0)))
+    set_tier_property(giant, &"throw_imp_count", int(rule.get("imp_per_throw", 1)))
+    set_tier_property(giant, &"fallback_throw_column", int(rule.get("fallback_col", -1)))
+    set_tier_property(giant, &"preserve_death_animation_after_blast", _crush)
+    set_tier_speed(float(rule.get("speed", 1.0)))
+    if tier_can_grant_entry():
+        (giant.hp_component as HpComponentZombie).grant_bonus_armor(
+                int(rule.get("spawn_armor", 0)))
     var smash: AttackComponentZombieGargantuar = (
             giant.attack_component as AttackComponentZombieGargantuar)
     if smash != null and (_blast > 0 or _each_smash_imps > 0):
@@ -45,24 +46,25 @@ func _install_smash_only_speed(multiplier: float) -> void:
     branch.connect_node(&"output", 0, &"SmashSpeed")
     machine.replace_node(&"Zombie_gargantuar_smash", branch)
     tree.tree_root = root
-    tree.set("parameters/StateMachine/Zombie_gargantuar_smash/SmashSpeed/scale",
-            multiplier)
+    set_tier_property(tree, &"parameters/StateMachine/Zombie_gargantuar_smash/SmashSpeed/scale", multiplier)
 
 func _on_smash(target: Character000Base) -> void:
+    if not tier_can_trigger():
+        return
     if not is_instance_valid(_giant) or _giant.is_death:
         return
     if _blast > 0 and is_instance_valid(Global.main_game):
         var origin: Vector2 = (
             target.global_position if is_instance_valid(target)
             else _giant.global_position + Vector2(-65, 0))
-        CombatExplosion.detonate.call_deferred(Global.main_game,
-                origin, _giant.lane, _giant.get_instance_id(),
-                _giant.is_hypno, _blast, _profile)
+        queue_tier_explosion(origin, _giant.lane, _blast, _profile)
     if not _giant.is_hypno and is_instance_valid(Global.main_game):
         for i in range(_each_smash_imps):
             _giant.create_imp()
 
 func _on_death() -> void:
+    if not tier_can_trigger(true):
+        return
     if not is_instance_valid(_giant) or not is_instance_valid(Global.main_game):
         return
     var grid: Array[Array] = Global.main_game.plant_cell_manager.all_plant_cells

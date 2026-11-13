@@ -71,11 +71,12 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 	var puff_events: Array[Dictionary] = [] # 孢子的射击与命中能力按单株冻结。
 	var sunshroom_events: Array[Dictionary] = [] # 阳光菇的成长、光环与储蓄按实际植株执行。
 	var scaredy_events: Array[Dictionary] = [] # 攻击专用词条和共享来源按单株冻结。
+	var fume_events: Array[Dictionary] = [] # 大喷的范围、持续喷涌和命中规则按攻击冻结。
 	for event: Dictionary in resolved.events:
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
 				plant.battle_negative_effect_immune = true
-			"puff_day_awake", "sunshroom_day_awake":
+			"puff_day_awake", "sunshroom_day_awake", "fume_day_awake":
 				# 出生修饰发生在入树前，耐日技能从一开始就不进入睡眠状态。
 				plant.is_sleep_in_day = false
 			"wallnut_hit_cap":
@@ -98,6 +99,15 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 					sunshroom_events.append(event)
 				elif kind.begins_with("scaredy_"):
 					scaredy_events.append(event)
+				elif kind.begins_with("fume_"):
+					fume_events.append(event)
+	if not fume_events.is_empty():
+		if not plant is Plant011FumeShroom:
+			push_error("大喷菇转职事件需要对应的战斗植物")
+			return false
+		var fume_controller := AdventureFumePromotionEffects.new() # 只扩展原生喷射与攻击门禁。
+		fume_controller.configure(plant as Plant011FumeShroom, fume_events)
+		plant.add_child(fume_controller)
 	if not scaredy_events.is_empty() and not AdventureScaredyTraits.install(plant, scaredy_events):
 		return false
 	if not sunshroom_events.is_empty():

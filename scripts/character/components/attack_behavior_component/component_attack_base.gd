@@ -21,11 +21,25 @@ var is_attack_factors:Dictionary[E_IsAttackFactors, bool] = {
 }
 ## 是否可以攻击的结果
 var is_attack_res := false
+## 持续范围攻击可跳过目标因素，仍保留组件、动画与角色自身禁用条件。
+var _requires_target: bool = true
 
-## 更新是否可以攻击的影响因素,true表示可以攻击
+## [param value] 更新 [param factor] 对攻击的许可；所有有效因素都通过才可攻击。
 func update_is_attack_factors(value:bool, factor:E_IsAttackFactors):
 	is_attack_factors[factor] = value
-	is_attack_res = is_attack_factors.values().all(func(v): return v)
+	_refresh_attack_state()
+
+## [param required] 为假时只忽略无目标，不绕过睡眠、禁用、动画和角色条件。
+func set_requires_target(required: bool) -> void:
+	_requires_target = required
+	_refresh_attack_state()
+
+## 统一合成真实组件状态，离树后不能因恢复配置而重新启动攻击时钟。
+func _refresh_attack_state() -> void:
+	is_attack_res = is_enabling and is_inside_tree()
+	for factor: E_IsAttackFactors in is_attack_factors: # 只允许持续模式排除原生目标因素。
+		if factor != E_IsAttackFactors.RayEnemy or _requires_target:
+			is_attack_res = is_attack_res and is_attack_factors[factor]
 	if is_attack_res:
 		attack_start()
 	else:
@@ -48,7 +62,7 @@ func enable_component(is_enable_factor:E_IsEnableFactor):
 	super(is_enable_factor)
 	if is_instance_valid(detect_component):
 		detect_component.enable_component(is_enable_factor)
-	update_is_attack_factors(true, E_IsAttackFactors.Enbale)
+	update_is_attack_factors(is_enabling, E_IsAttackFactors.Enbale)
 
 ## 禁用组件
 func disable_component(is_enable_factor:E_IsEnableFactor):

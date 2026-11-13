@@ -17,7 +17,12 @@ static func handles(effect: StringName) -> bool:
 
 ## Called after native zombie _ready: paper, dance and attack children are now initialized.
 static func install(zombie: Zombie000Base, rule: Dictionary) -> void:
-    if not is_instance_valid(zombie) or zombie.is_death or zombie.is_queued_for_deletion():
+    if not is_instance_valid(zombie) or zombie.is_death or zombie.is_hypno \
+            or zombie.is_queued_for_deletion() or not zombie.is_inside_tree():
+        return
+    var game: MainGameManager = Global.main_game # 永久能力只绑定当前战场里的来源，保留跨续战阶段重算。
+    if not is_instance_valid(game) or not game.is_inside_tree() or game.is_queued_for_deletion() \
+            or not game.is_ancestor_of(zombie):
         return
     match StringName(rule.get("effect", &"")):
         &"paper_rage":
@@ -28,9 +33,10 @@ static func install(zombie: Zombie000Base, rule: Dictionary) -> void:
             zombie.add_child(effect)
             effect.setup(paper, rule)
         &"armor2_reduction":
-            var hp: HpComponentZombie = zombie.hp_component as HpComponentZombie
-            hp.armor2_reduction.set_source(zombie.get_instance_id(),
-                    float(rule.get("reduction", 0.0)))
+            var ability := AdventureZombieTierAbility.new() # 仅拥有二类防具减伤的持续能力。
+            zombie.add_child(ability)
+            ability.bind_tier(zombie)
+            ability.set_tier_defense(&"armor2_reduction", float(rule.get("reduction", 0.0)))
         &"football_growth":
             var effect := AdventureZombieFootballGrowth.new()
             zombie.add_child(effect)
@@ -50,8 +56,9 @@ static func install(zombie: Zombie000Base, rule: Dictionary) -> void:
             zombie.add_child(burst)
             burst.setup(dancer, int(rule.get("death_explosion", 0)),
                     preload("res://resources/combat/jackbox_explosion_profile.tres"))
-            AdventureZombieTimedCombatBuff.grant_immunity(
-                    dancer, float(rule.get("entry_immunity", 0.0)), true)
+            if burst.tier_can_grant_entry():
+                AdventureZombieTimedCombatBuff.grant_immunity(
+                        dancer, float(rule.get("entry_immunity", 0.0)), true, true)
 
         &"snorkel_dive":
             var snorkel: Zombie012Snorkle = zombie as Zombie012Snorkle
@@ -86,8 +93,10 @@ static func install(zombie: Zombie000Base, rule: Dictionary) -> void:
             zombie.add_child(effect)
             effect.setup(rider, rule)
         &"permanent_species_speed":
-            zombie.update_speed_factor(float(rule.get("multiplier", 1.0)),
-                    Character000Base.E_Influence_Speed_Factor.AdventureTierStance)
+            var ability := AdventureZombieTierAbility.new() # 永久物种速度也接受统一沉默启停。
+            zombie.add_child(ability)
+            ability.bind_tier(zombie)
+            ability.set_tier_speed(float(rule.get("multiplier", 1.0)))
         &"jackbox_tier":
             var jackbox: Zombie016Jackbox = zombie as Zombie016Jackbox
             if jackbox == null:

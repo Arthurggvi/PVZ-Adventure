@@ -140,3 +140,8 @@ func be_butter(_butter_time: float = 4.0) -> void:
 ## 造冰车不会改变行驶阵营。
 func be_hypno() -> void:
 	pass
+
+
+## 原生寒冷免疫同时约束冻结值；不得经独立移速来源绕过物种规则。
+func can_receive_cold() -> bool:
+	return false

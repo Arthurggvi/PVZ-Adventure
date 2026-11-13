@@ -16,8 +16,12 @@ var max_jumps: int = 1
 var completed_jumps: int = 0
 var jump_distance_cells: int = 0
 
+## 剩余次数保留真实消费历史；沉默期间只开放原生的一次跳跃，不覆盖高坚果中断记录。
 func has_remaining_jumps() -> bool:
-	return completed_jumps < max_jumps
+	var limit: int = max_jumps # 原规则拥有的最大次数可能已被高坚果永久截断。
+	if is_instance_valid(owner_zombie) and not owner_zombie.are_tier_skills_active():
+		limit = mini(limit, 1)
+	return completed_jumps < limit
 
 func _configured_distance() -> float:
 	if jump_distance_cells <= 0 or not is_instance_valid(Global.main_game):
@@ -88,7 +92,8 @@ func disable_component(is_enable_factor:E_IsEnableFactor):
 ## [is_jump_compensate:bool]是否有跳跃补偿
 ## [global_pos_x:float]跳跃补偿对应植物位置
 func jump_start(curr_is_jump_compensate:bool, global_pos_x:float=0):
-	if not has_remaining_jumps() or is_jumping or is_landing or not is_enabling:
+	if not has_remaining_jumps() or is_jumping or is_landing or not is_enabling \
+			or owner_zombie.is_action_suspended():
 		return
 	self.is_jump_compensate = curr_is_jump_compensate
 	is_jumping = true

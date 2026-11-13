@@ -87,4 +87,9 @@ func _set_block(target: Character000Base, amount: int) -> void:
 
 ## 场景卸载不留下任何目标染色或减伤。
 func _exit_tree() -> void:
+	var ancestor: Node = get_parent() # 光环可能位于等阶子节点内，向上寻找实际角色。
+	while is_instance_valid(ancestor):
+		if ancestor is Zombie000Base and (ancestor as Zombie000Base).is_changing_lane:
+			return # 大蒜换行保留监听与来源，目标离场复核仍按原生命周期执行。
+		ancestor = ancestor.get_parent()
 	clear()

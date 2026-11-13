@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="AnimationLibrary" path="res://resources/fx/fire_pea_impact.tres" id="1_animation"]
+[ext_resource type="Texture2D" path="res://assets/reanim/fire4.png" id="2_fire"]
+
+[node name="FirePeaImpact" type="Node2D"]
+
+[node name="Body" type="Node2D" parent="."]
+position = Vector2(-5.96046e-08, -26)
+scale = Vector2(0.33, 0.33)
+
+[node name="Anim_flame" type="Sprite2D" parent="Body"]
+visible = false
+centered = false
+
+[node name="Anim_done" type="Sprite2D" parent="Body"]
+centered = false
+
+[node name="Layer 1" type="Sprite2D" parent="Body"]
+position = Vector2(-41.8, 26.4)
+scale = Vector2(0.8, 0.844)
+texture = ExtResource("2_fire")
+centered = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": ExtResource("1_animation")
+}

@@ -91,6 +91,8 @@ signal signal_hp_component_death
 signal combat_attack_received(raw_damage: int)
 ## 本次真实损失的本体生命，已扣除减伤、护甲和单次伤害上限。
 signal combat_hp_damaged(amount: int)
+## 本次真实战斗损失的全部可消耗血池，含临时护甲；排除过量伤害与脚本强制操作。
+signal combat_health_lost(amount: int)
 
 func _ready() -> void:
 	damage_block.changed.connect(_on_damage_block_changed)
@@ -165,15 +167,20 @@ func heal(amount: int) -> int:
 ## [param trigger_be_attack_SFX] 是否播放本次受击音效，false 时只处理扣血及相关信号。
 ## [param is_drop_2] 掉落的额外允许条件，需与死亡掉落选项同时满足。
 func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm, is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true):
+	var was_alive: bool = not is_death # 尸体后续扣血不能重复触发战斗损失收益。
 	# 保留原始攻击事件，护甲和格挡不能将“正在被攻击”伪装成脱战。
 	var combat: bool = attack_value > 0 and not _bypass_damage_block and not is_damage_immune()
 	if combat:
 		combat_attack_received.emit(attack_value)
 	attack_value = resolve_damage(attack_value)
 	if combat:
+		var before_armor: int = attack_value # 已减伤但尚未被临时护甲吸收的本次容量。
 		attack_value = absorb_temporary_armor(attack_value)
 		if attack_value > 0:
 			combat_hp_damaged.emit(mini(attack_value, curr_hp))
+		var actual_loss: int = maxi(0, before_armor - attack_value) + mini(attack_value, curr_hp) # 只统计真正消耗的护甲和本体。
+		if was_alive and actual_loss > 0:
+			combat_health_lost.emit(actual_loss)
 	curr_hp -= attack_value
 	# 本次血量变化是否允许触发掉落表现，由死亡掉落选项和额外条件共同决定。
 	var is_drop = not (owner.is_death and not is_drop_on_death) and is_drop_2

@@ -1,5 +1,5 @@
 ## Jackson-specific lifecycle. Existing JacksonManager remains the only summon loop.
-extends Node
+extends AdventureZombieTierAbility
 class_name AdventureZombieJacksonCommand
 
 var _leader: Zombie009Jackson
@@ -9,6 +9,7 @@ var _heal_clock := 0.0
 var _summoned := false
 
 func setup(leader: Zombie009Jackson, rule: Dictionary) -> void:
+    bind_tier(leader)
     _leader = leader
     _rule = rule
     leader.dance_manager_replaced.connect(_on_manager_replaced)
@@ -16,9 +17,9 @@ func setup(leader: Zombie009Jackson, rule: Dictionary) -> void:
     if _manager == null:
         return
     var hp: HpComponentZombie = leader.hp_component as HpComponentZombie
-    hp.grant_bonus_armor(int(rule.get("spawn_armor", 0)))
-    hp.damage_reduction.set_source(get_instance_id(),
-            float(rule.get("pre_summon_dr", 0.0)))
+    if tier_can_grant_entry():
+        hp.grant_bonus_armor(int(rule.get("spawn_armor", 0)))
+    set_tier_defense(&"damage_reduction", float(rule.get("pre_summon_dr", 0.0)))
     leader.signal_character_death.connect(_on_death)
     set_process(int(rule.get("heal_per_second", 0)) > 0)
 
@@ -27,7 +28,7 @@ func _on_manager_replaced(manager: JacksonManager) -> void:
         _manager.reinforcements_called.disconnect(_on_reinforcements)
     _manager = manager
     if is_instance_valid(_manager):
-        _manager.configure_summon_policy(_rule)
+        set_tier_property(_manager, &"summon_policy", _rule.duplicate(true))
         _manager.reinforcements_called.connect(_on_reinforcements)
 
 func _on_reinforcements() -> void:
@@ -35,7 +36,7 @@ func _on_reinforcements() -> void:
         return
     _summoned = true
     if is_instance_valid(_leader):
-        _leader.hp_component.damage_reduction.set_source(get_instance_id(), 0.0)
+        set_tier_defense(&"damage_reduction", 0.0)
 
 func _process(delta: float) -> void:
     if not is_instance_valid(_leader) or _leader.is_death:
@@ -48,6 +49,8 @@ func _process(delta: float) -> void:
         hp.heal(int(_rule.get("heal_per_second", 0)))
 
 func _on_death() -> void:
+    if not tier_can_trigger(true):
+        return
     set_process(false)
     if not bool(_rule.get("death_dancer", false)):
         return
@@ -74,5 +77,7 @@ func _mark_death_summon(zombie: Zombie010Dancer) -> void:
     zombie.init_independent_reinforcement()
 
 func _exit_tree() -> void:
+    if is_instance_valid(_leader) and _leader.is_changing_lane:
+        return
     if is_instance_valid(_leader) and is_instance_valid(_leader.hp_component):
-        _leader.hp_component.damage_reduction.set_source(get_instance_id(), 0.0)
+        set_tier_defense(&"damage_reduction", 0.0)

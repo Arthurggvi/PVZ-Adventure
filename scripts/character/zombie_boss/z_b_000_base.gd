@@ -252,3 +252,8 @@ func _fade_and_remove() -> void:
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 1.0)
 	tween.tween_callback(queue_free)
+
+
+## 原生寒冷免疫同时约束冻结值；不得经独立移速来源绕过物种规则。
+func can_receive_cold() -> bool:
+	return false

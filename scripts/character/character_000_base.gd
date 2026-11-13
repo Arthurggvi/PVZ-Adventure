@@ -22,6 +22,7 @@ enum E_TimerType{
 	IceFreeze,		## 冰冻停滞
 	Butter,			## 黄油
 	Stun,			## 眩晕
+	IceChargeRecovery, ## 真实冰冻结束后一秒的冻结值保护期。
 }
 ## 减速相关计时器(第一次使用时创建)
 var all_timer:Dictionary[E_TimerType, Timer] = {
@@ -29,6 +30,7 @@ var all_timer:Dictionary[E_TimerType, Timer] = {
 	E_TimerType.IceFreeze:null,
 	E_TimerType.Butter:null,
 	E_TimerType.Stun:null,
+	E_TimerType.IceChargeRecovery:null,
 }
 #endregion
 
@@ -72,6 +74,8 @@ enum E_Influence_Speed_Factor{
 }
 ## 是否被魅惑
 var is_hypno:bool = false
+## 真实冰冻结束后禁止施加冻结值的战斗秒数。
+const ICE_CHARGE_RECOVERY_SECONDS: float = 1.0
 ## 冰冻结束后的减速持续秒数，每次被冰冻时由传入参数更新。
 var time_ice_end_decelerate := 5.0
 ## 冰冻特效
@@ -82,6 +86,8 @@ var is_can_death_language:=true
 
 ## 速度改变信号 speed_factor_product: 速度系数乘积
 signal signal_update_speed(speed_factor_product:float)
+## 真正由冻结恢复时发出，原生到期与火焰提前解冻共用一次通知。
+signal signal_ice_freeze_ended()
 
 @export_group("动画状态")
 ## 角色逻辑死亡标记；进入死亡流程时置为 true，供行为和受击逻辑拒绝后续操作。
@@ -291,6 +297,16 @@ func be_flattened():
 
 
 #region 速度修改相关
+## 返回物种是否接受寒冷；原生免疫物种覆盖此能力，冻结值不得绕过它。
+func can_receive_cold() -> bool:
+	return true
+
+## 返回当前是否冻住或处于真实解冻后一秒保护期；尚无冻结值节点时也生效。
+func is_ice_charge_blocked() -> bool:
+	var recovery: Timer = all_timer.get(E_TimerType.IceChargeRecovery) as Timer # 所有冻结共用的恢复窗口。
+	return influence_speed_factors.get(E_Influence_Speed_Factor.IceFreezeSpeed, 1.0) <= 0.0 \
+		or (is_instance_valid(recovery) and recovery.time_left > 0.0)
+
 ## 被冰冻减速
 ## [param time] 本次冰冻减速持续时间，单位为秒。
 func be_ice_decelerate(time:float):
@@ -312,6 +328,8 @@ func _on_ice_decelerate_timer_timeout() -> void:
 func be_ice_freeze(time:float, new_time_ice_end_decelerate:float):
 	## 被冰冻掉20血
 	hp_component.Hp_loss(20,BulletRegistry.AttackMode.Real, true, false)
+	if is_death or is_queued_for_deletion():
+		return
 
 	self.time_ice_end_decelerate = new_time_ice_end_decelerate
 	update_speed_factor(0.0, E_Influence_Speed_Factor.IceFreezeSpeed)
@@ -329,12 +347,24 @@ func be_ice_freeze(time:float, new_time_ice_end_decelerate:float):
 	ice_effect = SceneRegistry.ICE_EFFECT.instantiate()
 	add_child(ice_effect)
 	ice_effect.global_position = shadow.global_position
-	ice_effect.start_ice_effect(time)
+	ice_effect.start_ice_effect(all_timer[E_TimerType.IceFreeze].time_left)
 
-## 冰冻控制计时器结束
+## 原生到期与提前解冻共用结束口；只在真实离开冻结状态时开始一秒恢复窗口。
 func _on_ice_freeze_timer_timeout() -> void:
+	var was_frozen: bool = influence_speed_factors.get(E_Influence_Speed_Factor.IceFreezeSpeed, 1.0) <= 0.0 # 防止重复结束通知刷新保护期。
 	update_speed_factor(1.0, E_Influence_Speed_Factor.IceFreezeSpeed)
+	if is_death or is_queued_for_deletion():
+		return
 	be_ice_decelerate(time_ice_end_decelerate)
+	if not was_frozen:
+		return
+	if not is_instance_valid(all_timer[E_TimerType.IceChargeRecovery]):
+		var recovery: Timer = Timer.new() # 即使尚未被施加冻结值，所有原生冰冻结束都登记保护期。
+		recovery.one_shot = true
+		add_child(recovery)
+		all_timer[E_TimerType.IceChargeRecovery] = recovery
+	all_timer[E_TimerType.IceChargeRecovery].start(ICE_CHARGE_RECOVERY_SECONDS)
+	signal_ice_freeze_ended.emit()
 
 ## 取消冰冻减速(火焰豌豆\辣椒)
 func cancel_ice():

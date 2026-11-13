@@ -17,12 +17,16 @@ var curr_attack_num:=0
 var _hit_boss_ids: Dictionary[int, bool] = {}
 ## 穿透弹各次命中的伤害系数，空数组保持原版单次攻击逻辑。
 var promotion_hit_factors: PackedFloat32Array = PackedFloat32Array()
+## 穿透喷雾按目标实例只命中一次，不以伤害衰减数组冒充去重开关。
+var unique_target_hits: bool = false
 ## 穿透弹已命中的目标实例，避免同一目标多个受击框反复扣血。
 var _promotion_hit_ids: Dictionary[int, bool] = {}
 ## 最近一次真实命中的伤害数值，供命中事件的额外效果按比例计算。
 var last_impact_damage: int = 0
 ## 本次攻击的来源快照，可在弹体变换后继续使用；空值保持原生伤害。
 var attack_context: PlantAttackContext
+## 可选的冻结战场门禁；即使没有共享伤害词条也能阻止跨轮、跨阶段旧弹继续攻击。
+var attack_validity: Callable
 ## 当前命中实际杀死的角色；保护者代伤时可以与直接命中目标不同。
 var last_impact_casualty: Character000Base
 ## One post-impact hook for projectile perks, after normal hit/umbrella routing.
@@ -41,6 +45,8 @@ var source_damage_multiplier: float = 1.0
 @export var max_distance := 2000.0
 ## 子弹初始位置
 var start_pos: Vector2
+## 首次入树就绪时的世界发射原点，射程判定不与局部初始化坐标混用。
+var start_world_position: Vector2
 ## 默认是否激活行属性，激活后只能攻击本行的僵尸
 @export var default_is_activate_lane:=true
 var is_activate_lane:bool
@@ -64,6 +70,7 @@ var lane :int = -1
 
 
 func _ready() -> void:
+	start_world_position = global_position
 	body.rotation = direction.angle()
 
 	if is_rotate:
@@ -122,10 +129,15 @@ func get_bullet_paras()->Dictionary[E_InitParasAttr,Variant]:
 		E_InitParasAttr.AttackContext : self.attack_context,
 	}
 
+## 伤害上下文与额外战场门禁同时有效才允许命中；未配置时保持原生行为。
+func is_attack_active() -> bool:
+	return (attack_context == null or attack_context.is_active()) \
+		and (not attack_validity.is_valid() or bool(attack_validity.call()))
+
 ## 子弹与敌人碰撞
 func _on_area_2d_attack_area_entered(area: Area2D) -> void:
 	# 梯子分支不调用 attack_once，因此碰撞入口也拒绝已经跨轮的来源。
-	if attack_context != null and not attack_context.is_active():
+	if not is_attack_active():
 		queue_free()
 		return
 	var ladder_entity: Ladder = area.owner as Ladder
@@ -231,10 +243,10 @@ func attack_once(enemy:Character000Base):
 	if is_queued_for_deletion():
 		return
 	# 有来源的旧弹跨轮后直接退出，不能以零伤害继续消耗命中或触发受击。
-	if attack_context != null and not attack_context.is_active():
+	if not is_attack_active():
 		queue_free()
 		return
-	if enemy != null and not promotion_hit_factors.is_empty():
+	if is_instance_valid(enemy) and (unique_target_hits or not promotion_hit_factors.is_empty()):
 		if _promotion_hit_ids.has(enemy.get_instance_id()):
 			return
 		_promotion_hit_ids[enemy.get_instance_id()] = true

@@ -127,7 +127,7 @@ func _finish_bounce() -> void:
 	_bounce_elapsed = 0.0
 	# target 是检测区内离僵尸最近的同行植物，已越过的植物不再参与。
 	var target: Plant000Base
-	if not is_hypno:
+	if not is_hypno and not move_component.is_fleeing():
 		# enemy 是前方检测区内可交互的存活角色。
 		for enemy: Character000Base in detect_component_pogo.get_all_enemy_can_be_attacked():
 			if (
@@ -235,6 +235,14 @@ func be_butter(butter_time: float = 4.0) -> void:
 		_height = STICK_GROUND_OFFSET
 		body_correct.position.y = _grounded_body_position.y - _height
 	super(butter_time)
+
+## 恐惧合成朝向后终止已锁定的向前跨越，改用普通移动真正向反方向逃跑。
+func refresh_flee_direction() -> void:
+	super()
+	if is_pogo and is_instance_valid(move_component) and move_component.is_fleeing():
+		_bounce = Bounce.Travel
+		_blocking_nut = null
+		move_component.update_only_move_speed()
 
 ## 被魅惑后掉头弹跳，终止已经锁定的跨越路线。
 func be_hypno() -> void:

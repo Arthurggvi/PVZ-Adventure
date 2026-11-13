@@ -48,6 +48,56 @@ func apply_projectile_knockback(distance: float) -> void:
 var curr_wave:=-1
 ## 本局冒险自然波次分配的独立等阶标识；原版/技能僵尸为空。
 var adventure_tier_id: StringName = &""
+## 沉默按来源独立计数，任一来源存在时等阶技能暂停。
+var _tier_suppressors: Dictionary[int, bool] = {}
+## 死亡过程开始后冻结等阶资格，清理负面状态不能重新激活亡语。
+var _tier_death_state_set := false
+## 死亡瞬间的等阶技能资格，和基础生命/攻击成长无关。
+var _tier_active_at_death := true
+## 原生行为期望的根朝向；0 表示尚未捕获场景的初始朝向。
+var _native_direction_x_root: int = 0
+## 持续能力据此撤销或恢复自己的输出，禁止重建初始化奖励。
+signal signal_tier_skills_changed(active: bool)
+
+## 设置 [param source_id] 的沉默 [param suppressed]，死亡期间只清理登记而不改变冻结资格。
+func set_tier_suppressed(source_id: int, suppressed: bool) -> void:
+	var before: bool = are_tier_skills_active() # 只在总资格改变时广播。
+	if suppressed:
+		_tier_suppressors[source_id] = true
+	else:
+		_tier_suppressors.erase(source_id)
+	if not _tier_death_state_set and before != are_tier_skills_active():
+		signal_tier_skills_changed.emit(are_tier_skills_active())
+
+## 返回等阶能力资格；基础星级生命与伤害倍率始终保留。
+func are_tier_skills_active() -> bool:
+	return _tier_active_at_death if _tier_death_state_set else _tier_suppressors.is_empty()
+
+## 在任何死亡信号前记录沉默，避免负面节点的死亡清理顺序改变亡语结果。
+func _capture_tier_death_state() -> void:
+	if not _tier_death_state_set:
+		_tier_active_at_death = _tier_suppressors.is_empty()
+		_tier_death_state_set = true
+
+## 返回是否仍为载具整体；散架后的单个雪橇僵尸属于普通僵尸。
+func is_vehicle() -> bool:
+	return zombie_type in [CharacterRegistry.ZombieType.Z013Zamboni,
+		CharacterRegistry.ZombieType.Z014Bobsled, CharacterRegistry.ZombieType.Z023Catapult]
+
+## [param direction_x] 是原生行为期望的朝向，恐惧只在最终方向上额外取反。
+func update_direction_x_root(direction_x: int) -> void:
+	_native_direction_x_root = direction_x
+	refresh_flee_direction()
+
+## 重新合成原生朝向与恐惧，不恢复旧快照；恐惧期间魅惑、矿工转身仍可改变原生朝向。
+func refresh_flee_direction() -> void:
+	if _native_direction_x_root == 0:
+		_native_direction_x_root = direction_x_root
+	var reversed: bool = is_instance_valid(move_component) and move_component.is_fleeing() # 恐惧不写 is_hypno。
+	super.update_direction_x_root(_native_direction_x_root * (-1 if reversed else 1))
+	if is_instance_valid(move_component):
+		move_component.update_previous_ground_global_x()
+
 ## 向右击退越过清场边界后，允许仍在向战场移动的僵尸走回来。
 var nonlethal_displacement_exile := false
 ## Original combat spawn modifier; used to derive explicit child-spawn policy.
@@ -374,6 +424,7 @@ func change_is_swimming(value:bool):
 #region 僵尸受伤、死亡、
 ## 角色死亡
 func character_death():
+	_capture_tier_death_state()
 	super()
 	hurt_box_component.disable_component(ComponentNormBase.E_IsEnableFactor.Death)
 	swim_box_component._on_owner_is_death()
@@ -391,6 +442,7 @@ func character_death_not_disappear():
 
 ## 死亡直接消失
 func character_death_disappear():
+	_capture_tier_death_state()
 	is_death = true
 	is_can_death_language = false
 	hp_component.Hp_loss_death(false)
@@ -546,9 +598,10 @@ func is_stunned() -> bool:
 	return influence_speed_factors.get(E_Influence_Speed_Factor.Stun, 1.0) == 0.0
 
 
-## 返回是否因眩晕或被抛起而暂停动作，供不依赖动画速度的行为判断。
+## 返回是否因眩晕、恐惧或抛起暂停攻击行为；移动只检查眩晕和强制轨迹，恐惧仍能逃跑。
 func is_action_suspended() -> bool:
-	return is_stunned() or (is_instance_valid(move_component) and move_component.is_forced_airborne())
+	return is_stunned() or (is_instance_valid(move_component) and (
+		move_component.is_forced_airborne() or move_component.is_fleeing()))
 
 
 ## [param duration] 为负面效果入口验证过的游戏秒数；连续命中只延长当前剩余时间。
@@ -624,6 +677,9 @@ func update_lane() -> void:
 		return
 	if not is_instance_valid(game.zombie_manager) or not is_instance_valid(move_component):
 		return
+	# 在修改行号和父节点前校验，载具被拒绝位移时也不会留下错误战场登记。
+	if not move_component.can_receive_forced_displacement():
+		return
 	var rows: Array[ZombieRow] = game.zombie_manager.all_zombie_rows # 行索引与战斗登记一致。
 	if lane < 0 or lane >= rows.size():
 		return
@@ -642,12 +698,41 @@ func update_lane() -> void:
 
 	# 换行时禁用攻击；移动组件完成换行后解除这一原因。
 	attack_component.disable_component(ComponentNormBase.E_IsEnableFactor.Garlic)
-	is_changing_lane = true
-	reparent(next_row)
-	is_changing_lane = false
+	_reparent_with_action_timers(next_row)
 	var finish: Callable = attack_component.enable_component.bind(ComponentNormBase.E_IsEnableFactor.Garlic) # 恢复大蒜暂时关闭的攻击。
 	if not move_component.apply_forced_displacement(Vector2(0.0, row_offset), 1.0, 0.0, finish):
 		finish.call()
+
+## [param next_row] 为已验证的新行；可逆换父节点时保留动作计时器进度和手动暂停意图。
+## SpeedTimer 的真正离树仍会停止；这里只恢复本次换行前实际在运行的计时器。
+func _reparent_with_action_timers(next_row: ZombieRow) -> void:
+	var saved: Array[Dictionary] = [] # 原生引信和攻击冷却使用正常倍率下的剩余动作秒数。
+	for node: Node in find_children("*", "Timer", true, false): # 只收集 SpeedTimer，不改变普通场景计时器。
+		var timer: SpeedTimer = node as SpeedTimer # 普通 Timer 不会执行自定义离树 stop。
+		if timer != null and not timer.is_stopped():
+			saved.append({"timer": timer, "remaining": timer.get_base_time_left(),
+				"period": timer.base_wait_time, "paused": timer.manual_paused})
+	is_changing_lane = true
+	reparent(next_row)
+	is_changing_lane = false
+	for entry: Dictionary in saved: # 只恢复这次换行亲自暂停的任务，已经停止的动作不重启。
+		var timer: SpeedTimer = entry["timer"] as SpeedTimer # 原节点仍属于本角色，不重建计时器。
+		if not is_instance_valid(timer) or not timer.is_inside_tree() or is_death:
+			continue
+		var component: Node = timer.get_parent() # 迁移期间已禁用的攻击或爆炸组件不可被恢复计时重新启动。
+		var disabled := false # 只尊重真实组件禁用，不把计时器自身的手动暂停误当作停止。
+		while is_instance_valid(component) and component != self:
+			if component is ComponentNormBase and not (component as ComponentNormBase).is_enabling:
+				disabled = true
+				break
+			component = component.get_parent()
+		if disabled:
+			continue
+		var remaining: float = float(entry["remaining"]) # 到期任务不以零秒错误重启整个周期。
+		if remaining > 0.0:
+			timer.manual_paused = bool(entry["paused"])
+			timer.start_scaled(remaining)
+			timer.base_wait_time = float(entry["period"])
 
 #endregion
 

@@ -51,6 +51,12 @@ enum E_LadderState{
 var curr_speed :float = DEFAULT_ORI_SPEED
 var curr_speed_product :float
 var curr_speed_move :float = 1
+## 只影响实际位移的来源倍率，不改变动画、啃咬或攻击冷却。
+var _move_rate_sources: Dictionary[int, float] = {}
+## 当前所有移动专属倍率的乘积；没有来源时为 1。
+var _move_rate: float = 1.0
+## 恐惧来源独立于魅惑阵营；任一来源存活时反向行走。
+var _flee_sources: Dictionary[int, bool] = {}
 
 ## 根据ground移动
 ## 上一帧的ground节点位置
@@ -127,14 +133,54 @@ func is_forced_moving() -> bool:
 	return is_forced_airborne() or _forced_motions.has(E_ForcedMotion.Push)
 
 
+## [param source_id] 的移动倍率更新为 [param multiplier]；1 撤销，0 停止位移但不停止啃咬。
+func set_move_rate_source(source_id: int, multiplier: float) -> void:
+	if not is_finite(multiplier) or multiplier < 0.0:
+		return
+	if is_equal_approx(multiplier, 1.0):
+		_move_rate_sources.erase(source_id)
+	else:
+		_move_rate_sources[source_id] = multiplier
+	_move_rate = 1.0
+	for rate: float in _move_rate_sources.values(): # 不同来源独立组合，恢复其中一个不会清除其他减速。
+		_move_rate *= rate
+	update_previous_ground_global_x()
+
+
+## 设置 [param source_id] 的恐惧 [param enabled]；只改变行走方向和攻击资格，不改变阵营。
+func set_flee_source(source_id: int, enabled: bool) -> void:
+	var was_fleeing: bool = is_fleeing() # 仅在总开关变化时翻转，重复命中不会来回转向。
+	if enabled:
+		_flee_sources[source_id] = true
+	else:
+		_flee_sources.erase(source_id)
+	if was_fleeing == is_fleeing() or not is_instance_valid(owner_zombie):
+		return
+	owner_zombie.refresh_flee_direction()
+	if is_instance_valid(owner_zombie.attack_component):
+		owner_zombie.attack_component.change_is_enabling(not is_fleeing(),
+			ComponentNormBase.E_IsEnableFactor.Fear)
+	update_previous_ground_global_x()
+
+
+## 返回是否有有效恐惧来源；移动处理仍可运行。
+func is_fleeing() -> bool:
+	return not _flee_sources.is_empty()
+
+
+## 强制位移的公共资格门禁；载具不接受击退、抛起和换行，保留自身原生移动。
+func can_receive_forced_displacement() -> bool:
+	return is_inside_tree() and is_instance_valid(owner_zombie) and not owner_zombie.is_death \
+		and not owner_zombie.is_queued_for_deletion() and not owner_zombie.is_vehicle()
+
+
 ## 将存活角色移动 [param offset] 世界像素，X 向右，Y 向下。
 ## [param seconds] 为 0 时立即移动。[param height] 为抛物线高度，纯换行和吹动可与抛起叠加。
 ## [param landed] 在完成位移时调用。连续抛起保留剩余位移和回调，死亡时取消。
 ## 返回是否接受本次位移。离场、死亡或无效参数返回 false。
 func apply_forced_displacement(offset: Vector2, seconds: float = 0.0,
 		height: float = 0.0, landed: Callable = Callable()) -> bool:
-	if not is_inside_tree() or not is_instance_valid(owner_zombie) or owner_zombie.is_death \
-			or owner_zombie.is_queued_for_deletion() or not offset.is_finite() \
+	if not can_receive_forced_displacement() or not offset.is_finite() \
 			or not is_finite(seconds) or seconds < 0.0 or not is_finite(height) or height < 0.0:
 		return false
 	if seconds == 0.0:
@@ -276,14 +322,14 @@ func _process(delta: float) -> void:
 					_walk()
 
 			E_MoveMode.Speed:
-				var move_x = delta * curr_speed * owner_zombie.direction_x_root
+				var move_x: float = delta * curr_speed * _move_rate * owner_zombie.direction_x_root # 冻结值等仅缩放实际位移。
 				owner_zombie.position.x -= move_x
 
 				move_y_correct(move_x)
 
 func _walk():
 	# 计算ground的全局坐标变化量
-	var ground_global_offset = _ground.global_position.x - _previous_ground_global_x
+	var ground_global_offset: float = (_ground.global_position.x - _previous_ground_global_x) * _move_rate # 动画步幅与速度模式共用移动专属倍率。
 	# 反向调整zombie的position.x以抵消ground的移动
 	owner_zombie.position.x -= ground_global_offset
 	# 更新记录值

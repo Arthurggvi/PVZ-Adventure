@@ -30,6 +30,7 @@ enum E_IsEnableFactor{
 	DownGround,	## 矿工在地下禁用攻击组件
 	Garlic,		## 大蒜禁用攻击组件
 	GameMode,	## 游戏模式，我是僵尸禁用生产组件
+	Fear,		## 恐惧期间禁用攻击，独立于魅惑、睡眠及死亡。
 }
 
 ## 按原因记录的启用开关；所有已记录因素都为 true 时组件才可启用。

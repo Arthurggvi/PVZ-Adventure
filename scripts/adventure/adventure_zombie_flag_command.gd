@@ -1,5 +1,5 @@
 ## Flag aura: additive fixed block plus periodic global bite pulses and entry burst.
-extends Node
+extends AdventureZombieTierAbility
 class_name AdventureZombieFlagCommand
 
 var _flag: Zombie000Base
@@ -9,13 +9,17 @@ var _pulse_interval := 0.0
 var _bite_multiplier := 1.0
 var _bite_duration := 0.0
 var _timer := 0.0
+## 保存光环的原始格挡值，沉默期间暂时写零而保留来源登记。
+var _block: int = 0
 
 func setup(flag: Zombie000Base, manager: ZombieManager, rule: Dictionary) -> void:
+    bind_tier(flag)
     _flag = flag
     _manager = manager
     _aura = ZombieBlockAura.new()
     add_child(_aura)
-    _aura.setup(manager, int(rule.get("block", 0)), true)
+    _block = int(rule.get("block", 0))
+    _aura.setup(manager, _block if tier_enabled() else 0, true)
     _pulse_interval = float(rule.get("interval", 0.0))
     _bite_multiplier = float(rule.get("bite_multiplier", 1.0))
     _bite_duration = float(rule.get("bite_duration", 0.0))
@@ -24,11 +28,11 @@ func setup(flag: Zombie000Base, manager: ZombieManager, rule: Dictionary) -> voi
     _flag.signal_character_be_hypno.connect(clear)
     var spawn_speed: float = float(rule.get("spawn_speed", 1.0))
     var spawn_immunity: float = float(rule.get("spawn_immunity", 0.0))
-    if spawn_speed > 1.0 or spawn_immunity > 0.0:
+    if tier_can_grant_entry() and (spawn_speed > 1.0 or spawn_immunity > 0.0):
         _for_all(func(z: Character000Base) -> void:
             if spawn_speed > 1.0:
-                AdventureZombieTimedSpeedBoost.apply_to(z, spawn_speed, spawn_immunity)
-            AdventureZombieTimedCombatBuff.grant_immunity(z, spawn_immunity)
+                AdventureZombieTimedSpeedBoost.apply_to(z, spawn_speed, spawn_immunity, z == _flag)
+            AdventureZombieTimedCombatBuff.grant_immunity(z, spawn_immunity, false, z == _flag)
         )
 
 ## [param delta] 为本帧游戏秒数，行动受控时暂停主动发出的号令。
@@ -44,10 +48,12 @@ func _process(delta: float) -> void:
         pulse()
 
 func pulse() -> void:
+    if not tier_can_trigger():
+        return
     if _bite_multiplier <= 1.0:
         return
     _for_all(func(z: Character000Base) -> void:
-        AdventureZombieTimedCombatBuff.grant_bite(z, _bite_multiplier, _bite_duration)
+        AdventureZombieTimedCombatBuff.grant_bite(z, _bite_multiplier, _bite_duration, z == _flag)
     )
 
 func _for_all(callback: Callable) -> void:
@@ -60,10 +66,17 @@ func _for_all(callback: Callable) -> void:
         if is_instance_valid(boss) and not boss.is_death and not boss.is_hypno:
             callback.call(boss)
 
+## [param active] 撤销或恢复格挡，保留号令计时且不再次授予入场奖励。
+func _tier_state_changed(active: bool) -> void:
+    if is_instance_valid(_aura):
+        _aura.set_amount(_block if active and is_instance_valid(_flag) and not _flag.is_death and not _flag.is_hypno else 0)
+
 func clear() -> void:
     set_process(false)
     if is_instance_valid(_aura):
         _aura.clear()
 
 func _exit_tree() -> void:
+    if is_instance_valid(_flag) and _flag.is_changing_lane:
+        return
     clear()

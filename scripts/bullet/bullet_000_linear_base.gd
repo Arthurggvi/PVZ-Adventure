@@ -18,14 +18,14 @@ func _attack_zombie(zombie:Zombie000Base):
 
 func _physics_process(delta: float) -> void:
 	# 同场景切换冒险阶段后，旧来源弹体在恢复物理处理时立即回收。
-	if attack_context != null and not attack_context.is_active():
+	if not is_attack_active():
 		queue_free()
 		return
 	## 调用移动组件控制移动
 	movement_component.physics_process_bullet_move(delta)
 
 	## 移动超过最大距离后销毁，部分子弹有限制
-	if global_position.distance_to(start_pos) > max_distance:
+	if global_position.distance_to(start_world_position) > max_distance:
 		queue_free()
 
 ## 改变y位置(三线调用)

@@ -49,6 +49,10 @@ enum E_ChangeColors{
 	BossPhaseTwo,	## Boss 二阶段独立闪黑，保留冰冻与受击颜色。
 	WhiteFlameRevival,	## 复生僵尸的白光呼吸，与受击等状态分别合成。
 	DamageImmunity,	## 伤害免疫期间叠加在身体上的红色滤镜。
+	FreezeCharge, ## 冻结值的独立深蓝滤镜，不覆盖原生冰冻与减速颜色。
+	Fear, ## 恐惧的独立黑色滤镜，结束时仅清除此因素。
+	Silence, ## 沉默的独立灰色明度滤镜，保留其他状态颜色。
+	SunInfusion, ## 光能的独立黄色状态标记，不覆盖其他颜色来源。
 }
 
 ## 二阶段循环补间，与普通明暗交替互不占用。
