@@ -1,0 +1,191 @@
+[gd_resource type="Resource" script_class="WaveProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="profile"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="band"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_spawn_group.gd" id="spawn"]
+
+[sub_resource type="Resource" id="Opening"]
+script = ExtResource("band")
+band_id = &"zombie_island.edgar_temple.nightmare.opening"
+first_wave = 1
+last_wave = 10
+minimum_regular_power = 38
+zombie_weights = Dictionary[int, int]({
+1: 8,
+3: 6,
+4: 3,
+5: 3,
+6: 3,
+7: 3,
+8: 2,
+9: 2,
+24: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[sub_resource type="Resource" id="Second"]
+script = ExtResource("band")
+band_id = &"zombie_island.edgar_temple.nightmare.second"
+first_wave = 11
+last_wave = 20
+minimum_regular_power = 58
+zombie_weights = Dictionary[int, int]({
+1: 8,
+3: 6,
+4: 3,
+5: 3,
+6: 3,
+7: 3,
+8: 2,
+9: 2,
+24: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[sub_resource type="Resource" id="Third"]
+script = ExtResource("band")
+band_id = &"zombie_island.edgar_temple.nightmare.third"
+first_wave = 21
+last_wave = 30
+minimum_regular_power = 88
+zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 5,
+4: 3,
+5: 4,
+6: 4,
+7: 4,
+8: 3,
+9: 3,
+24: 2
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[sub_resource type="Resource" id="Fourth"]
+script = ExtResource("band")
+band_id = &"zombie_island.edgar_temple.nightmare.fourth"
+first_wave = 31
+last_wave = 40
+minimum_regular_power = 135
+zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 5,
+4: 3,
+5: 4,
+6: 4,
+7: 4,
+8: 3,
+9: 3,
+24: 2
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[sub_resource type="Resource" id="Late"]
+script = ExtResource("band")
+band_id = &"zombie_island.edgar_temple.nightmare.late"
+first_wave = 41
+last_wave = 49
+minimum_regular_power = 220
+zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 5,
+4: 3,
+5: 4,
+6: 4,
+7: 4,
+8: 3,
+9: 3,
+24: 2
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[sub_resource type="Resource" id="Final"]
+script = ExtResource("band")
+band_id = &"zombie_island.edgar_temple.nightmare.final"
+first_wave = 50
+last_wave = 50
+minimum_regular_power = 300
+zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 5,
+4: 3,
+5: 4,
+6: 4,
+7: 4,
+8: 3,
+9: 3,
+24: 2
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[sub_resource type="Resource" id="Flag10"]
+script = ExtResource("spawn")
+wave = 10
+zombie_weights = Dictionary[int, int]({
+2: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[sub_resource type="Resource" id="Flag20"]
+script = ExtResource("spawn")
+wave = 20
+zombie_weights = Dictionary[int, int]({
+2: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[sub_resource type="Resource" id="Flag30"]
+script = ExtResource("spawn")
+wave = 30
+zombie_weights = Dictionary[int, int]({
+2: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[sub_resource type="Resource" id="Flag40"]
+script = ExtResource("spawn")
+wave = 40
+zombie_weights = Dictionary[int, int]({
+2: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[sub_resource type="Resource" id="Flag50"]
+script = ExtResource("spawn")
+wave = 50
+zombie_weights = Dictionary[int, int]({
+2: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+
+[resource]
+script = ExtResource("profile")
+profile_id = &"zombie_island.edgar_temple.nightmare.waves"
+wave_count = 50
+use_classic_spawn_timing = true
+classic_opening_protection = false
+flag_waves = Array[int]([10, 20, 30, 40])
+scheduled_spawns = Array[ExtResource("spawn")]([SubResource("Flag10"), SubResource("Flag20"), SubResource("Flag30"), SubResource("Flag40"), SubResource("Flag50")])
+bands = Array[ExtResource("band")]([SubResource("Opening"), SubResource("Second"), SubResource("Third"), SubResource("Fourth"), SubResource("Late"), SubResource("Final")])

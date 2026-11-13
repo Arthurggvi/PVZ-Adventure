@@ -1,9 +1,9 @@
-## 单个 normal/nightmare 阶段的静态契约；选卡和僵尸预览始终必需。
+## 单个普通、噩梦或终末阶段的静态契约。
 extends Resource
 class_name StagePhaseDefinition
 
 ## 阶段身份必须显式指定，不由名字或数组位置推断。
-enum Kind { UNSET, NORMAL, NIGHTMARE }
+enum Kind { UNSET, NORMAL, NIGHTMARE, TERMINAL }
 ## 阶段只有战斗内容；钥匙/卡槽/预览属于整关入口契约。
 @export var phase_id: StringName = &""
 @export var kind: Kind = Kind.UNSET
@@ -11,7 +11,7 @@ enum Kind { UNSET, NORMAL, NIGHTMARE }
 @export var battle_music: AudioStream
 ## 本阶段存在存活 Boss 时的战斗曲目；未配置时沿用默认 Boss 音乐。
 @export var boss_music: AudioStream
-## 自然波次与分波段物种/等阶权重。
+## 自然波次与分波段物种/等阶权重；无波次的终末阶段留空。
 @export var wave_profile: WaveProfile
 ## 独立掉落表；此处只引用，不执行奖励。
 @export var drop_table: DropTable
@@ -33,10 +33,18 @@ func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 	var errors := PackedStringArray()
 	if str(phase_id).strip_edges().is_empty():
 		errors.append("阶段缺少稳定 ID。")
-	if kind not in [Kind.NORMAL, Kind.NIGHTMARE]:
-		errors.append("阶段类型必须为 normal 或 nightmare。")
+	if kind not in [Kind.NORMAL, Kind.NIGHTMARE, Kind.TERMINAL]:
+		errors.append("阶段类型必须为普通、噩梦或终末。")
 	var wave_count := 0 # 用于子资源的波次边界校验，缺配置仍继续收集其他错误。
-	if wave_profile == null:
+	if kind == Kind.TERMINAL:
+		if wave_profile != null:
+			errors.append("终末阶段不使用自然波次。")
+		# 胜利由唯一的开场博士遭遇击杀判定。
+		var final_boss: BossEncounterDefinition = boss_encounters[0] if boss_encounters.size() == 1 else null
+		if final_boss == null or final_boss.boss_type != CharacterRegistry.ZombieBossType.ZB001Doctor \
+				or final_boss.timing != BossEncounterDefinition.Timing.PHASE_START or not final_boss.require_defeat:
+			errors.append("终末阶段必须配置一个开场且必须击败的博士遭遇。")
+	elif wave_profile == null:
 		errors.append("阶段缺少 WaveProfile。")
 	else:
 		wave_count = wave_profile.wave_count
@@ -48,8 +56,8 @@ func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 	for item_id: StringName in first_clear_items:
 		if not ItemRegistry.has_item(str(item_id)) or first_clear_items[item_id] < 1:
 			errors.append("首通道具配置非法：" + str(item_id))
-	if first_clear_requires_boss_kill and (kind != Kind.NIGHTMARE or boss_encounters.is_empty()):
-		errors.append("首通击杀奖励需要噩梦 Boss。")
+	if first_clear_requires_boss_kill and (kind == Kind.NORMAL or boss_encounters.is_empty()):
+		errors.append("首通击杀奖励需要噩梦或终末 Boss。")
 	if gravestone_rules != null:
 		errors.append_array(gravestone_rules.validate())
 	if weather_sequence != null:

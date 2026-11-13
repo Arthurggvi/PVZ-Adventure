@@ -303,7 +303,8 @@ func _release_action() -> void:
 	var lane: int = _current_entry.lane
 	if zombie_type == CharacterRegistry.ZombieType.Z014Bobsled and not _has_ice_road(manager, lane):
 		return
-	manager.create_skill_zombie(zombie_type, lane, spawn_marker.global_position.x)
+	var doctor: ZB001Doctor = owner as ZB001Doctor # 技能所属博士持有本次遭遇的援军等阶。
+	manager.create_skill_zombie(zombie_type, lane, spawn_marker.global_position.x, doctor.encounter_summon_tier(&""))
 
 
 ## 返回 [param zombie_type] 在 [param manager] 场地中的候选行权重。[br]

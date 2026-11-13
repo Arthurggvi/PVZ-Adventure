@@ -115,7 +115,7 @@ const BASE_ITEMS: Dictionary = {
 	"zombie_island.edgar_temple.nightmare_key": {"name": "埃德加钥匙（上）", "category": "key",
 		"description": "击败没落营地的黑将军可获得。可以开启埃德加神殿的噩梦挑战。"},
 	"zombie_island.edgar_temple.nightmare_key_lower": {"name": "埃德加钥匙（下）", "category": "key",
-		"description": "埃德加钥匙的下半部分。击败墓地下游的白爵士可获得。"},
+		"description": "击败墓地下游的白爵士可获得。埃德加神殿噩梦通关后可消耗它开启终末阶段。"},
 	"seedling_pot": {"name": "育苗花盆", "category": "consumable",
 		"description": "在研究室强化时使用。强化失败后保留主卡原有星级。"},
 	"growth_agent_lv1": {"growth_agent_level": 1, "category": "consumable"},

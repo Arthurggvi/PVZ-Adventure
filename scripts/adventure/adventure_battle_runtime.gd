@@ -59,7 +59,7 @@ func setup(wave_manager: ZombieWaveManager, zombie_manager: ZombieManager,
 	set_process(requires_tick)
 
 func _ready() -> void:
-	waves.adventure_battle_started.connect(_on_battle_start)
+	waves.adventure_battle_started.connect(start_phase)
 	waves.adventure_wave_before.connect(_on_wave_before)
 	waves.adventure_wave_started.connect(_on_wave_started)
 	_gravestones = AdventureGravestoneDirector.new()
@@ -91,7 +91,8 @@ func _ready() -> void:
 		for cell: PlantCell in row:
 			cell.signal_plant_create.connect(_on_plant_placed)
 
-func _on_battle_start() -> void:
+## 开始本阶段的开场事件和遭遇；终末阶段直接调用，无需生成第一波。
+func start_phase() -> void:
 	_fire(StageEventDefinition.Trigger.BATTLE_START)
 	_begin_matching_boss(BossEncounterDefinition.Timing.PHASE_START, 0)
 
@@ -186,10 +187,21 @@ func _apply_action(event: StageEventDefinition) -> void:
 				_ending_requested = true
 				zombies.main_game.request_adventure_event_result.call_deferred(event.action_battle_result)
 
+## 返回 [param wave_number] 是否必须先清空该波，才能触发配置在清场边界的 Boss。
+func has_wave_clear_encounter(wave_number: int) -> bool:
+	for encounter: BossEncounterDefinition in phase.boss_encounters: # 每条配置属于当前阶段。
+		if encounter.timing == BossEncounterDefinition.Timing.WAVE_CLEARED and encounter.wave == wave_number:
+			return true
+	return false
+
+## 批量开始符合 [param timing] 和 [param wave_number] 的遭遇，让同组 Boss 同时入场。
 func _begin_matching_boss(timing: int, wave_number: int) -> void:
-	for encounter: BossEncounterDefinition in phase.boss_encounters:
+	var matching: Array[BossEncounterDefinition] = [] # 一次提交同一个触发点的全部配置。
+	for encounter: BossEncounterDefinition in phase.boss_encounters: # 保留资源声明的入场顺序。
 		if encounter.timing == timing and (wave_number == 0 or encounter.wave == wave_number):
-			_begin_boss(encounter)
+			matching.append(encounter)
+	if not matching.is_empty():
+		_boss_director.enqueue_batch(matching)
 
 func _begin_boss(encounter: BossEncounterDefinition) -> void:
 	_boss_director.enqueue(encounter)
@@ -209,6 +221,11 @@ func _on_boss_hp_changed(encounter_id: StringName, ratio: float) -> void:
 
 func _on_boss_exit(encounter_id: StringName, reason: int) -> void:
 	AdventureSession.boss_exit_results[encounter_id] = reason
+	for encounter: BossEncounterDefinition in phase.boss_encounters: # 必杀遭遇不可用撤退完成。
+		if encounter.encounter_id == encounter_id and encounter.require_defeat and reason != StageEventDefinition.BossExitReason.DEFEATED:
+			push_error("必须击败的 Boss 提前离场：" + str(encounter_id))
+			zombies.main_game.request_adventure_event_result.call_deferred(StageEventDefinition.BattleResult.DEFEAT)
+			return
 	for event: StageEventDefinition in _ordered_events:
 		if event.trigger != StageEventDefinition.Trigger.BOSS_EXITED or event.encounter_id != encounter_id:
 			continue
@@ -223,10 +240,8 @@ func has_pending_bosses() -> bool:
 	return is_instance_valid(_boss_director) and _boss_director.has_pending()
 
 func _on_boss_idle() -> void:
-	if waves.curr_wave != waves.max_wave - 1 or zombies.curr_zombie_num != 0:
-		return
 	if AdventureSession.can_accept_victory() and zombies.is_game_running():
-		var game: MainGameManager = zombies.main_game
+		var game: MainGameManager = zombies.main_game # 普通及噩梦仍须清场，终末在博士击败后立即进入结算。
 		game.create_trophy.call_deferred(game.camera_2d.get_screen_center_position())
 
 func _on_boss_failed(id: StringName) -> void:

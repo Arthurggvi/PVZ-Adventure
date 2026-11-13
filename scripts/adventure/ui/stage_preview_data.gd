@@ -23,39 +23,35 @@ static func build(stage: StageDefinition, title: String, normal_cleared: bool) -
 	if not normal_cleared or stage == null:
 		return {"state": STATE_SEALED}
 	Global.global_read_data.ensure_almanac_loaded() # 中文名与图鉴共用同一份数据，首次读取时加载。
-	var blocks: Array[Dictionary] = [] # 按界面顺序组织普通、噩梦阶段的情报。
+	var blocks: Array[Dictionary] = [] # 按普通、噩梦、终末的顺序组织情报。
 	for phase: StagePhaseDefinition in _ordered_phases(stage): # 每个可展示阶段生成一块情报。
 		blocks.append(_block(phase))
 	return {"state": STATE_READY, "title": title, "blocks": blocks}
 
-## 普通阶段在前、噩梦在后，不依赖资源里的数组顺序。
+## 按 [param stage] 的挑战顺序列出已配置阶段。
 static func _ordered_phases(stage: StageDefinition) -> Array[StagePhaseDefinition]:
-	var normal: StagePhaseDefinition = null
-	var nightmare: StagePhaseDefinition = null
-	for phase: StagePhaseDefinition in stage.phases:
-		if phase == null:
-			continue
-		if phase.kind == StagePhaseDefinition.Kind.NORMAL:
-			normal = phase
-		elif phase.kind == StagePhaseDefinition.Kind.NIGHTMARE:
-			nightmare = phase
-	var result: Array[StagePhaseDefinition] = []
-	if normal != null:
-		result.append(normal)
-	if nightmare != null:
-		result.append(nightmare)
+	var result: Array[StagePhaseDefinition] = [] # 仅包含关卡实际配置的阶段。
+	for kind: int in [StagePhaseDefinition.Kind.NORMAL, StagePhaseDefinition.Kind.NIGHTMARE, StagePhaseDefinition.Kind.TERMINAL]: # 续战顺序。
+		var phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, kind) # 阶段可独立缺省。
+		if phase != null:
+			result.append(phase)
 	return result
 
-## 单个阶段的展示块：波次摘要、敌人、Boss 与掉落。
+## 返回 [param phase] 的波次摘要、敌人、Boss 与掉落。
 static func _block(phase: StagePhaseDefinition) -> Dictionary:
-	var nightmare: bool = phase.kind == StagePhaseDefinition.Kind.NIGHTMARE
-	var profile: WaveProfile = phase.wave_profile
-	var wave_text: String = "波次配置无效"
+	var label: String = "普通阶段" # 预览分组的中文标题。
+	var wave_text: String = "波次配置无效" # 波次或终末的胜利条件。
+	if phase.kind == StagePhaseDefinition.Kind.NIGHTMARE:
+		label = "噩梦阶段"
+	elif phase.kind == StagePhaseDefinition.Kind.TERMINAL:
+		label = "终末阶段"
+		wave_text = "持续出怪 · 击败僵王博士"
+	var profile: WaveProfile = phase.wave_profile # 终末阶段无波次表。
 	if profile != null:
 		wave_text = "%d 波 · 旗帜 %d 次" % [profile.wave_count, _flag_count(profile)]
 	return {
-		"phase": "nightmare" if nightmare else "normal",
-		"label": "噩梦阶段" if nightmare else "普通阶段",
+		"phase": AdventureStageCatalog.phase_slug(phase.kind),
+		"label": label,
 		"wave_text": wave_text,
 		"enemies": _enemies(phase),
 		"bosses": _bosses(phase),

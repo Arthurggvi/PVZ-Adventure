@@ -54,6 +54,15 @@ func spawn_first_clear_coins(phase: StagePhaseDefinition, origin: Vector2) -> vo
 	var screen_origin: Vector2 = (canvas_to_screen * origin).clamp(
 		viewport.position + Vector2(50, 80), viewport.end - Vector2(50, 50)) # 避免屏外 Boss 生成看不到的抛洒。
 	var center_x: float = 0.67 if phase.kind == StagePhaseDefinition.Kind.NIGHTMARE else 0.33 # 两阶段的钱堆并排。
+	if AdventureSession.active_stage != null and not AdventureSession.active_stage.terminal_key_id.is_empty():
+		# 有终末阶段时为三组首通钱堆留出位置，避免续战后叠在一起。
+		match phase.kind:
+			StagePhaseDefinition.Kind.NORMAL:
+				center_x = 0.17
+			StagePhaseDefinition.Kind.NIGHTMARE:
+				center_x = 0.50
+			StagePhaseDefinition.Kind.TERMINAL:
+				center_x = 0.83
 	var center: Vector2 = viewport.position + viewport.size * Vector2(center_x, 0.65) # 钱堆中心落在战场下半部。
 	var spacing: Vector2 = viewport.size * Vector2(0.051, 0.072) # 相邻落点的屏幕间距。
 	var row_count: int = ceili(float(denominations.size()) / FIRST_CLEAR_COLUMNS) # 末行可能未排满。

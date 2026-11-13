@@ -1,10 +1,186 @@
-[gd_resource type="Resource" script_class="AdventureStageOverride" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="AdventureStageOverride" format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/adventure_stage_override.gd" id="1_override"]
 [ext_resource type="Texture2D" path="res://assets/adventure/environments/battle_backgrounds/06_edgar_temple_night.jpg" id="battlebg"]
 [ext_resource type="Resource" path="res://resources/adventure/stages/boards/zombie_island_edgar_temple.tres" id="board"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/boss_encounter_definition.gd" id="boss"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_phase_definition.gd" id="phase"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/waves/zombie_island_edgar_temple_normal.tres" id="normal"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/waves/zombie_island_edgar_temple_nightmare.tres" id="nightmare"]
+
+[sub_resource type="Resource" id="BlackGeneralRetreat"]
+script = ExtResource("boss")
+encounter_id = &"zombie_island.edgar_temple.nightmare.black_general_retreat"
+boss_type = 2
+timing = 4
+wave = 20
+natural_waves = 2
+summon_rule = 2
+summon_while_paused = 1
+summon_end = 1
+summon_interval_seconds = 6.0
+summon_count = 3
+max_alive_periodic_summons = 12
+summon_zombie_weights = Dictionary[int, int]({
+1: 8,
+3: 6,
+4: 3,
+5: 3,
+6: 3,
+7: 3,
+8: 2,
+9: 2,
+24: 1
+})
+summon_tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+wait_for_death_presentation = true
+retreat_after_phase_two = true
+skill_summon_tier = &"elite"
+
+[sub_resource type="Resource" id="WhiteDukeRetreat"]
+script = ExtResource("boss")
+encounter_id = &"zombie_island.edgar_temple.nightmare.white_duke_retreat"
+boss_type = 3
+timing = 4
+wave = 40
+natural_waves = 2
+summon_rule = 2
+summon_while_paused = 1
+summon_end = 1
+summon_interval_seconds = 5.0
+summon_count = 4
+max_alive_periodic_summons = 16
+summon_zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 5,
+4: 3,
+5: 4,
+6: 4,
+7: 4,
+8: 3,
+9: 3,
+24: 2
+})
+summon_tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+wait_for_death_presentation = true
+retreat_after_phase_two = true
+skill_summon_tier = &"elite"
+
+[sub_resource type="Resource" id="BlackGeneralFinal"]
+script = ExtResource("boss")
+encounter_id = &"zombie_island.edgar_temple.nightmare.black_general_final"
+boss_type = 2
+timing = 4
+wave = 50
+natural_waves = 2
+summon_rule = 2
+summon_while_paused = 1
+summon_end = 1
+summon_interval_seconds = 5.0
+summon_count = 3
+max_alive_periodic_summons = 12
+summon_zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 5,
+4: 3,
+5: 4,
+6: 4,
+7: 4,
+8: 3,
+9: 3,
+24: 2
+})
+summon_tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+wait_for_death_presentation = true
+require_defeat = true
+parallel_group = &"edgar_duo"
+initial_health_ratio = 0.5
+skill_summon_tier = &"elite"
+
+[sub_resource type="Resource" id="WhiteDukeFinal"]
+script = ExtResource("boss")
+encounter_id = &"zombie_island.edgar_temple.nightmare.white_duke_final"
+boss_type = 3
+timing = 4
+wave = 50
+natural_waves = 2
+summon_rule = 2
+summon_while_paused = 1
+summon_end = 1
+summon_interval_seconds = 5.0
+summon_count = 3
+max_alive_periodic_summons = 12
+summon_zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 5,
+4: 3,
+5: 4,
+6: 4,
+7: 4,
+8: 3,
+9: 3,
+24: 2
+})
+summon_tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+wait_for_death_presentation = true
+require_defeat = true
+parallel_group = &"edgar_duo"
+initial_health_ratio = 0.5
+skill_summon_tier = &"elite"
+
+[sub_resource type="Resource" id="TerminalDoctor"]
+script = ExtResource("boss")
+encounter_id = &"zombie_island.edgar_temple.terminal.doctor"
+boss_type = 1
+timing = 1
+natural_waves = 2
+summon_rule = 2
+summon_while_paused = 1
+summon_end = 1
+summon_interval_seconds = 5.0
+summon_count = 4
+max_alive_periodic_summons = 20
+summon_zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 5,
+4: 3,
+5: 4,
+6: 4,
+7: 4,
+8: 3,
+9: 3,
+24: 2
+})
+summon_tier_weights = Dictionary[StringName, int]({
+&"elite": 1
+})
+wait_for_death_presentation = true
+require_defeat = true
+skill_summon_tier = &"elite"
+
+[sub_resource type="Resource" id="TerminalPhase"]
+script = ExtResource("phase")
+phase_id = &"zombie_island.edgar_temple.terminal"
+kind = 3
+boss_encounters = Array[ExtResource("boss")]([SubResource("TerminalDoctor")])
 
 [resource]
 script = ExtResource("1_override")
 board_definition = ExtResource("board")
 battle_background_texture = ExtResource("battlebg")
+daytime_override = 0
+daytime_sun_override = 0
+normal_wave_profile = ExtResource("normal")
+nightmare_wave_profile = ExtResource("nightmare")
+replace_nightmare_bosses = true
+nightmare_bosses = Array[ExtResource("boss")]([SubResource("BlackGeneralRetreat"), SubResource("WhiteDukeRetreat"), SubResource("BlackGeneralFinal"), SubResource("WhiteDukeFinal")])
+terminal_key_id = &"zombie_island.edgar_temple.nightmare_key_lower"
+terminal_phase = SubResource("TerminalPhase")

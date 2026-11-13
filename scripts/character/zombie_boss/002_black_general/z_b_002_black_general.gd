@@ -335,6 +335,10 @@ func _on_animation_finished(animation: StringName) -> void:
 					_finish_action()
 		State.PHASE_OUT:
 			if animation == &"teleport_out":
+				if retreat_after_phase_two:
+					_clear_charge_shadows()
+					queue_free()
+					return
 				_return_to_home()
 				state = State.PHASE_IN
 				visual.play_action(&"teleport_in")
@@ -383,14 +387,15 @@ func _command() -> void:
 	for index: int in range(count): # 每名援军各抽取一次。
 		types.append(config.command_types.pick_random())
 	SoundManager.play_boss_phase_roar()
-	_game.zombie_manager.zombie_wave_manager.spawn_support_flag_wave(self, types, &"veteran" if boss_phase >= 2 else &"base")
+	_game.zombie_manager.zombie_wave_manager.spawn_support_flag_wave(self, types,
+		encounter_summon_tier(&"veteran" if boss_phase >= 2 else &"base"))
 
 ## [param type] 物种；[param row] 零起始行；[param tier] 等阶；[param x] 可选世界横坐标。
 func _summon(type: CharacterRegistry.ZombieType, row: int, tier: StringName, x: float = INF) -> void:
 	if not _battle_active() or row < 0 or row >= _game.zombie_manager.all_zombie_rows.size():
 		return
 	var zombie: Zombie000Base = _game.zombie_manager.zombie_wave_manager.zombie_wave_create_manager.wave_create_zombie(
-		type, row, -1, Callable(), false, AdventureZombieTierBinding.new(tier)) # 统一登记与等阶初始化。
+		type, row, -1, Callable(), false, AdventureZombieTierBinding.new(encounter_summon_tier(tier))) # 统一登记与等阶初始化。
 	if is_instance_valid(zombie) and is_finite(x):
 		zombie.global_position.x = x
 

@@ -147,6 +147,10 @@ func init_manager() -> void:
 		ConstLevelData.E_MonsterMode.Null:
 			check_zombie_end_wave_timer.start()
 			zombie_wave_manager.flag_progress_bar.hide()
+			# 终末阶段重开时仍须初始化独立援军的选行。
+			if AdventureSession.owns_battle(game_para):
+				zombie_refresh_types = game_para.zombie_refresh_types
+				zombie_wave_manager.zombie_wave_create_manager.zombie_choose_row_system.init_zombie_choose_row_system(all_zombie_rows)
 
 		ConstLevelData.E_MonsterMode.Norm:
 			## 如果游戏是多轮游戏
@@ -168,15 +172,19 @@ func init_manager() -> void:
 			## 波次刷新时判断是否为最后一波，删除多余魅惑僵尸
 			hammer_zombie_manager.signal_wave_refresh.connect(wave_refresh)
 
-## 冒险阶段切换的唯一战场预检，必须先于钥匙消费。
-func can_begin_adventure_phase(profile: WaveProfile) -> bool:
-	return is_game_running() and is_end_wave and curr_zombie_num == 0 \
-		and profile != null and profile.wave_count >= 2
+## 进入 [param phase] 前校验战场已清空且阶段配置可启动，必须先于钥匙消费。
+func can_begin_adventure_phase(phase: StagePhaseDefinition) -> bool:
+	if not is_game_running() or not is_end_wave or curr_zombie_num != 0 or phase == null:
+		return false
+	if phase.kind == StagePhaseDefinition.Kind.TERMINAL:
+		return phase.wave_profile == null
+	return phase.wave_profile != null and phase.wave_profile.wave_count >= 2
 
-## 确认预检及钥匙事务后同步提交战场；过程无额外失败分支。
+## 确认预检及钥匙事务后同步进入 [param phase]；过程无额外失败分支。
 ## 植物、阳光与卡组仍属于同一战场。
-func begin_adventure_phase(profile: WaveProfile) -> void:
-	assert(can_begin_adventure_phase(profile))
+func begin_adventure_phase(phase: StagePhaseDefinition) -> void:
+	assert(can_begin_adventure_phase(phase))
+	_round_generation += 1
 	if is_instance_valid(check_zombie_end_wave_timer):
 		check_zombie_end_wave_timer.stop()
 	if is_instance_valid(multi_round_end_wave_timer):
@@ -188,7 +196,17 @@ func begin_adventure_phase(profile: WaveProfile) -> void:
 	if death_archive != null:
 		death_archive.clear_history()
 	is_end_wave = false
-	zombie_wave_manager.begin_adventure_phase(profile)
+	monster_mode = game_para.monster_mode
+	if phase.kind == StagePhaseDefinition.Kind.TERMINAL:
+		zombie_wave_manager.stop_wave_refresh()
+		zombie_wave_manager.zombie_wave_create_manager.adventure_wave_profile = null
+		zombie_wave_manager.curr_wave = -1
+		zombie_wave_manager.max_wave = 0
+		zombie_wave_manager.max_wave_one_round = 0
+		zombie_wave_manager.flag_progress_bar.hide()
+		check_zombie_end_wave_timer.start()
+	else:
+		zombie_wave_manager.begin_adventure_phase(phase.wave_profile)
 
 ## 开始第一波
 func start_game():
@@ -204,6 +222,8 @@ func start_game():
 			return
 	match monster_mode:
 		ConstLevelData.E_MonsterMode.Null:
+			if AdventureSession.owns_battle(game_para):
+				main_game.adventure_runtime.start_phase()
 			return
 
 		ConstLevelData.E_MonsterMode.Norm:
@@ -266,13 +286,20 @@ func try_create_boss_from_card(boss_type: CharacterRegistry.ZombieBossType,
 	return _create_boss_instance(boss_type, spawn_position)
 
 
+## [param encounter] 已验证的遭遇配置；创建并初始化 Boss，失败时返回 null。
+func try_create_adventure_boss(encounter: BossEncounterDefinition) -> ZB000Base:
+	return _create_boss_instance(encounter.boss_type, Vector2.INF, true, -1, INF, encounter)
+
+
 ## [param boss_type] 注册类型；[param spawn_position] 为僵王根节点下的本地位置，INF 使用关卡配置。[br]
 ## [param count_as_new] 恢复存档时为 false，避免累计生成数重复增加。[br]
 ## [param restored_hp] 为正数时恢复存活血量，-1 沿用满血。[br]
 ## [param restored_home_x] 为存档中的本地待机横坐标，INF 表示旧存档未保存该值。
+## [param encounter] 为冒险遭遇登场设置，在音乐和血条同步之前应用。
 ## 成功返回新实例，失败返回 null。
 func _create_boss_instance(boss_type: CharacterRegistry.ZombieBossType, spawn_position: Vector2 = Vector2.INF,
-	count_as_new: bool = true, restored_hp: int = -1, restored_home_x: float = INF) -> ZB000Base:
+	count_as_new: bool = true, restored_hp: int = -1, restored_home_x: float = INF,
+	encounter: BossEncounterDefinition = null) -> ZB000Base:
 	if not can_summon_boss(boss_type) or (spawn_position != Vector2.INF and not spawn_position.is_finite()):
 		return null
 	# 资格检查已确认该注册场景可以实例化。
@@ -318,6 +345,9 @@ func _create_boss_instance(boss_type: CharacterRegistry.ZombieBossType, spawn_po
 	# 子节点已初始化，状态机尚未执行延迟启动；恢复血量不会重放上轮技能中间状态。
 	if restored_hp > 0:
 		boss.restore_boss_hp(restored_hp)
+	if encounter != null:
+		boss.configure_adventure_encounter(encounter.initial_health_ratio,
+			encounter.retreat_after_phase_two, encounter.skill_summon_tier)
 	# 登记发生在入树前，音乐通知必须等入树完成，存活快照才能包含本次实例。
 	signal_living_bosses_changed.emit()
 	_refresh_boss_progress()
@@ -659,7 +689,9 @@ func can_spawn_zombie_in_lane(zombie_type: CharacterRegistry.ZombieType, lane: i
 ## [param zombie_type] 本次准备阶段锁定的僵尸类型。[br]
 ## [param lane] 本次准备阶段锁定的目标行号，从 0 开始。[br]
 ## [param spawn_x] 释放瞬间的全局 X 坐标；非法坐标或关卡已结束时返回 null。
-func create_skill_zombie(zombie_type: CharacterRegistry.ZombieType, lane: int, spawn_x: float) -> Zombie000Base:
+## [param tier_id] 非空时在入树前应用指定等阶。
+func create_skill_zombie(zombie_type: CharacterRegistry.ZombieType, lane: int, spawn_x: float,
+		tier_id: StringName = &"") -> Zombie000Base:
 	if not is_game_running() or not is_finite(spawn_x) or not can_spawn_zombie_in_lane(zombie_type, lane):
 		return null
 	# 新僵尸挂载到实际目标行，继续沿用该行的绘制层级和后续换行规则。
@@ -675,7 +707,8 @@ func create_skill_zombie(zombie_type: CharacterRegistry.ZombieType, lane: int, s
 		Zombie000Base.E_ZInitAttr.CurrWave: -1,
 		Zombie000Base.E_ZInitAttr.ParticipatesNaturalRefresh: false,
 	}
-	return create_norm_zombie(zombie_type, row, init_parameters, spawn_position)
+	var modifier: ZombieSpawnModifier = null if tier_id.is_empty() else AdventureZombieTierBinding.new(tier_id) # 冒险遭遇可统一技能援军的等阶。
+	return create_norm_zombie(zombie_type, row, init_parameters, spawn_position, Callable(), modifier)
 
 
 ## 创建技能召唤的蹦极僵尸，目标在入树前注入；失败时返回 null。[br]

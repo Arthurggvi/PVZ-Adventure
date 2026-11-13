@@ -8,19 +8,20 @@ class_name AdventureStageRoster
 ## ``tiers`` 只含正权重等阶，``waves`` 为合并后的闭区间，空数组表示没有固定波次（Boss/事件召唤）。
 static func entries(phase: StagePhaseDefinition) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	if phase == null or phase.wave_profile == null:
+	if phase == null:
 		return result
-	var profile: WaveProfile = phase.wave_profile
-	for band: WaveBandDefinition in profile.bands: # 波段池：出现区间由波段本身给出。
-		if band == null:
-			continue
-		_merge_pool(result, band.zombie_weights, band.tier_weights,
-			Vector2i(band.first_wave, band.last_wave))
-	for group: WaveSpawnGroup in profile.scheduled_spawns: # 预排出怪：展示其覆盖的波次区间。
-		if group == null:
-			continue
-		_merge_pool(result, group.zombie_weights, group.tier_weights,
-			Vector2i(group.wave, group.end_wave()))
+	var profile: WaveProfile = phase.wave_profile # 终末仅展示独立援军和事件生成。
+	if profile != null:
+		for band: WaveBandDefinition in profile.bands: # 波段池：出现区间由波段本身给出。
+			if band == null:
+				continue
+			_merge_pool(result, band.zombie_weights, band.tier_weights,
+				Vector2i(band.first_wave, band.last_wave))
+		for group: WaveSpawnGroup in profile.scheduled_spawns: # 预排出怪：展示其覆盖的波次区间。
+			if group == null:
+				continue
+			_merge_pool(result, group.zombie_weights, group.tier_weights,
+				Vector2i(group.wave, group.end_wave()))
 	for encounter: BossEncounterDefinition in phase.boss_encounters: # Boss 援军不属于固定波次。
 		if encounter == null:
 			continue

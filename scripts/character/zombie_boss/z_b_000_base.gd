@@ -25,6 +25,14 @@ signal signal_boss_phase_changed(phase: int)
 
 var boss_phase: int = 1
 var _phase_restore_silent: bool = false
+## 遭遇要求二阶段演出结束后离场；普通召唤与读档实例默认完整战斗。
+var retreat_after_phase_two: bool = false
+## 角色技能生成援军使用的等阶覆盖；空值使用技能本身指定的等阶。
+var skill_summon_tier: StringName = &""
+
+## [param fallback] 为角色技能默认等阶，返回本遭遇实际使用的援军等阶。
+func encounter_summon_tier(fallback: StringName) -> StringName:
+	return fallback if skill_summon_tier.is_empty() else skill_summon_tier
 
 ## 本体相邻两行之间的相对层级差，给各自的部件和演出留出空间。
 const BOSS_ROW_Z_STEP := 50.0
@@ -122,12 +130,29 @@ func _on_shared_boss_hp_loss(remaining_hp: int, _is_drop: bool) -> void:
 		return
 	if not phase_two_threshold_inclusive and float(remaining_hp) / float(hp_component.max_hp) >= phase_two_threshold_ratio:
 		return
+	_enter_phase_two(not _phase_restore_silent)
+
+## [param animated] 控制是否播放转阶段演出及对外发送阶段变化通知。
+func _enter_phase_two(animated: bool) -> void:
 	boss_phase = 2
 	body.set_boss_phase_pulse(true)
-	_apply_boss_visual_phase(2, not _phase_restore_silent)
-	# Snapshot restore initializes phase before HUD binds; never replay transition SFX.
-	if not _phase_restore_silent:
+	_apply_boss_visual_phase(2, animated)
+	if animated:
 		signal_boss_phase_changed.emit(2)
+
+## [param ratio] 为本次遭遇登场血量比例；包含二阶段门槛，静默切换外观。
+## [param retreat] 启用本次转阶段撤退，并保证正式攻击无法在演出前打死本体。
+## [param summon_tier] 为技能援军覆盖等阶，空值沿用技能默认值。
+func configure_adventure_encounter(ratio: float, retreat: bool, summon_tier: StringName) -> void:
+	retreat_after_phase_two = retreat
+	skill_summon_tier = summon_tier
+	if retreat:
+		# 严格低于门槛的 Boss 也必须在血量下限触发转换。
+		hp_component.combat_minimum_hp = maxi(1, ceili(hp_component.max_hp * phase_two_threshold_ratio) - 1)
+	if ratio < 1.0:
+		restore_boss_hp(maxi(1, floori(hp_component.max_hp * ratio)))
+		if ratio <= phase_two_threshold_ratio and boss_phase < 2:
+			_enter_phase_two(false)
 
 
 ## Game-save HP restoration must set visual phase without replaying SFX or phase animation.

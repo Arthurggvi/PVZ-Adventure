@@ -37,6 +37,10 @@ class_name AdventureStageOverride
 @export var additional_nightmare_events: Array[StageEventDefinition] = []
 @export var replace_nightmare_bosses := false
 @export var nightmare_bosses: Array[BossEncounterDefinition] = []
+## 可选的终末阶段；未指定独立掉落表时沿用普通掉落。
+@export var terminal_phase: StagePhaseDefinition
+## 从噩梦进入终末时消耗的钥匙。
+@export var terminal_key_id: StringName = &""
 ## 单关音乐只覆盖对应阶段；留空时沿用地区默认曲目。
 @export var normal_battle_music: AudioStream
 @export var nightmare_battle_music: AudioStream
@@ -113,4 +117,15 @@ func apply(stage: StageDefinition) -> bool:
 		nightmare.battle_music = nightmare_battle_music
 	if nightmare_boss_music != null:
 		nightmare.boss_music = nightmare_boss_music
+	if terminal_phase != null:
+		# 每个战斗会话拥有自己的阶段及掉落快照。
+		var terminal: StagePhaseDefinition = terminal_phase.duplicate(true) as StagePhaseDefinition
+		if terminal.kind != StagePhaseDefinition.Kind.TERMINAL:
+			return false
+		if terminal.drop_table == null:
+			terminal.drop_table = normal.drop_table.duplicate(true) as DropTable
+		stage.terminal_key_id = terminal_key_id
+		stage.phases.append(terminal)
+	elif not terminal_key_id.is_empty():
+		return false
 	return true

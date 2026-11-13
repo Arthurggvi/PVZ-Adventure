@@ -126,6 +126,9 @@ func _on_animation_finished(action: StringName) -> void:
 				visual.play_teleport_out()
 		State.PHASE_OUT:
 			if action == &"teleport_out":
+				if retreat_after_phase_two:
+					queue_free()
+					return
 				_return_home()
 				state = State.PHASE_IN
 				visual.play_teleport_in()

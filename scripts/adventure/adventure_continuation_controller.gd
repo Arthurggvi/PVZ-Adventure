@@ -1,4 +1,4 @@
-## 同一战斗场景内普通清场与噩梦续战的唯一调度器。
+## 同一战斗场景内普通、噩梦及终末续战的唯一调度器。
 ## 负责结算检查点、暂停期间的玩家选择、运行时交接；原版多轮流程完全隔离。
 extends Node
 class_name AdventureContinuationController
@@ -14,26 +14,30 @@ func setup(battle: MainGameManager) -> void:
 	game = battle
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
-## 主战斗的清场请求已通过统一胜利判定后，普通阶段从这里完成独立结算。
-func complete_normal(glo_pos: Vector2) -> void:
+## [param glo_pos] 为清场位置；先保存本阶段奖励，再询问是否续战。
+func complete_checkpoint(glo_pos: Vector2) -> void:
 	game.zombie_manager.zombie_wave_manager.stop_wave_refresh()
 	if not TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.AdventureContinue, false):
 		TreePauseManager.start_tree_pause(TreePauseManager.E_PauseFactor.AdventureContinue)
 	if not AdventureSession.settle_victory():
-		AdventureSession.prompt_victory_retry(complete_normal.bind(glo_pos))
+		AdventureSession.prompt_victory_retry(complete_checkpoint.bind(glo_pos))
 		return
 	game.drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase, glo_pos)
-	if AdventureSession.can_offer_nightmare():
+	if _can_offer_followup():
 		_show_offer(glo_pos)
 	else:
-		_finish_normal(glo_pos)
+		_finish_challenge(glo_pos)
 
 ## 显示当前钥匙规则和最近一次失败原因；[param glo_pos] 用于结束挑战时生成奖杯。
 func _show_offer(glo_pos: Vector2) -> void:
 	_dispose_dialog()
-	var prompt: String = "消耗钥匙来继续挑战吗？" # 与现有关卡确认时的扣除行为一致。
-	if AdventureSession.active_stage.nightmare_key_use == StageDefinition.KeyUse.KEEP:
-		prompt = "使用钥匙来继续挑战吗？"
+	var terminal: bool = AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE # 从噩梦续战时使用下半钥匙。
+	var stage: StageDefinition = AdventureSession.active_stage # 当前关卡的钥匙配置。
+	var key_id: StringName = stage.terminal_key_id if terminal else stage.nightmare_key_id # 本次续战实际使用的物品。
+	var key_name: String = str(ItemRegistry.get_item_definition(str(key_id)).get("name", "钥匙")) # 使用背包显示名。
+	var action: String = "消耗" if terminal or stage.nightmare_key_use == StageDefinition.KeyUse.CONSUME else "使用" # 显示实际扣除规则。
+	var next_phase: String = "终末" if terminal else "噩梦" # 确认按钮对应的目标阶段。
+	var prompt: String = "%s%s来开启%s阶段吗？" % [action, key_name, next_phase] # 明确提示钥匙与阶段。
 	if not AdventureSession.error_message.is_empty():
 		prompt += "\n" + AdventureSession.error_message
 	dialog = InventoryDialog.new()
@@ -41,37 +45,35 @@ func _show_offer(glo_pos: Vector2) -> void:
 	dialog.animated_feedback = true
 	dialog.process_mode = Node.PROCESS_MODE_ALWAYS
 	dialog.confirmed.connect(_continue.bind(glo_pos))
-	dialog.canceled.connect(_finish_normal.bind(glo_pos))
+	dialog.canceled.connect(_finish_challenge.bind(glo_pos))
 	game.canvas_layer_ui.add_child(dialog)
 
-func _finish_normal(glo_pos: Vector2) -> void:
+## [param glo_pos] 为奖杯位置；结束已保存的当前阶段。
+func _finish_challenge(glo_pos: Vector2) -> void:
 	_dispose_dialog()
-	if not AdventureSession.complete_normal_challenge():
+	if not AdventureSession.complete_checkpoint_challenge():
 		return
 	TreePauseManager.end_tree_pause(TreePauseManager.E_PauseFactor.AdventureContinue)
 	game._finish_round_victory(glo_pos)
 
 ## [param _quantity] 是共用弹窗的固定确认值；实际钥匙数量来自关卡配置。
-## [param glo_pos] 用于续战资格失效时完成普通关卡结算。
+## [param glo_pos] 用于续战资格失效时完成已保存的阶段结算。
 func _continue(_quantity: int, glo_pos: Vector2) -> void:
 	_dispose_dialog()
 	# 这两个条件来自本阶段自然清场边界，钥匙再次查询当前库存。
-	if not AdventureSession.can_offer_nightmare():
-		_finish_normal(glo_pos)
+	if not _can_offer_followup():
+		_finish_challenge(glo_pos)
 		return
-	if game.main_game_progress != MainGameManager.E_MainGameProgress.MAIN_GAME \
-			or not game.zombie_manager.is_end_wave or game.zombie_manager.curr_zombie_num != 0:
-		push_error("冒险连续阶段的战场清空前置条件失效。")
-		_finish_normal(glo_pos)
-		return
-	var nightmare: StagePhaseDefinition = AdventureStageCatalog.find_phase(
-		AdventureSession.active_stage, StagePhaseDefinition.Kind.NIGHTMARE)
+	var terminal: bool = AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE # 噩梦清场后进入终末。
+	var next_kind: StagePhaseDefinition.Kind = StagePhaseDefinition.Kind.TERMINAL if terminal else StagePhaseDefinition.Kind.NIGHTMARE # 关卡中的目标阶段类型。
+	var next_phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(AdventureSession.active_stage, next_kind) # 已通过入场校验的阶段快照。
 	# 先完成不会改变资产的战场预检；成功后本次同步交接不再包含可失败步骤。
-	if nightmare == null or not game.zombie_manager.can_begin_adventure_phase(nightmare.wave_profile):
-		push_error("噩梦阶段的战场前置条件无效。")
-		_finish_normal(glo_pos)
+	if next_phase == null or not game.zombie_manager.can_begin_adventure_phase(next_phase):
+		push_error("冒险连续阶段的战场前置条件无效。")
+		_finish_challenge(glo_pos)
 		return
-	if not AdventureSession.begin_nightmare():
+	var entered: bool = AdventureSession.begin_terminal() if terminal else AdventureSession.begin_nightmare() # 校验并提交钥匙事务。
+	if not entered:
 		_show_offer(glo_pos)
 		return
 	# 先卸载旧阶段全部事件监听，再配置下一阶段；植物与卡牌维持原状。
@@ -80,10 +82,10 @@ func _continue(_quantity: int, glo_pos: Vector2) -> void:
 		game.remove_child(game.adventure_runtime)
 		game.adventure_runtime.free()
 		game.adventure_runtime = null
-	game.zombie_manager.begin_adventure_phase(AdventureSession.active_wave_profile)
 	# 旧 ResourceLevelData 是投影，所有阶段动态读取应以 Session.active_phase 为准。
 	AdventureBattleEnvironmentAdapter.project_phase(game.game_para, AdventureSession.active_phase)
 	game.zombie_manager.zombie_refresh_types = game.game_para.zombie_refresh_types
+	game.zombie_manager.begin_adventure_phase(next_phase)
 	game.adventure_runtime = AdventureBattleRuntime.new()
 	game.adventure_runtime.setup(game.zombie_manager.zombie_wave_manager,
 		game.zombie_manager, AdventureSession.active_phase)
@@ -93,7 +95,14 @@ func _continue(_quantity: int, glo_pos: Vector2) -> void:
 	TreePauseManager.end_tree_pause(TreePauseManager.E_PauseFactor.AdventureContinue)
 	game.refresh_battle_bgm()
 	game.background_manager.apply_phase_weather(AdventureSession.active_phase)
-	game.zombie_manager.zombie_wave_manager.start_first_wave()
+	if terminal:
+		game.adventure_runtime.start_phase()
+	else:
+		game.zombie_manager.zombie_wave_manager.start_first_wave()
+
+## 只对本次已保存且符合钥匙条件的关卡检查点提供续战。
+func _can_offer_followup() -> bool:
+	return AdventureSession.can_offer_nightmare() or AdventureSession.can_offer_terminal()
 
 func _dispose_dialog() -> void:
 	if is_instance_valid(dialog):

@@ -72,6 +72,6 @@ func _spawn(zombie_type: CharacterRegistry.ZombieType,
 		return
 	# 白爵士直接叫来的援军共用墓碑复生外观。
 	var zombie: Zombie000Base = game.zombie_manager.zombie_wave_manager.zombie_wave_create_manager.wave_create_zombie(
-		zombie_type,row,-1,Callable(),false,AdventureZombieTierBinding.new(tier))
+		zombie_type,row,-1,Callable(),false,AdventureZombieTierBinding.new(boss.encounter_summon_tier(tier))) # 统一应用遭遇等阶。
 	if is_instance_valid(zombie):
 		zombie.body.start_white_flame_revival()

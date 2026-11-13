@@ -13,9 +13,13 @@ var active := false
 var summon_timer: Timer
 var _summons: Dictionary[int, WeakRef] = {}
 var _rng := RandomNumberGenerator.new()
+## 直接启动时控制暂停；编排器批量启动时由编排器管理整组的暂停。
+var _manage_wave_pause: bool = true
 
+## 启动 [param encounter]；[param waves] 提供波次调度，[param manager] 负责登记 Boss。
+## [param known_tiers] 是等阶目录；[param manage_wave_pause] 为 false 时调用者负责挂起与恢复。
 func begin(encounter: BossEncounterDefinition, waves: ZombieWaveManager,
-		manager: ZombieManager, known_tiers: Array[StringName]) -> bool:
+		manager: ZombieManager, known_tiers: Array[StringName], manage_wave_pause: bool = true) -> bool:
 	if active or encounter == null or waves == null or manager == null:
 		return false
 	if not encounter.validate(waves.max_wave_one_round, known_tiers).is_empty():
@@ -23,12 +27,15 @@ func begin(encounter: BossEncounterDefinition, waves: ZombieWaveManager,
 	config = encounter
 	wave_manager = waves
 	zombie_manager = manager
+	_manage_wave_pause = manage_wave_pause
 	_rng.randomize()
-	wave_manager.suspend_advancement()
+	if _manage_wave_pause:
+		wave_manager.suspend_advancement()
 	# 使用已有 Boss 注册、死亡统计和音乐接口，原版提前胜利保持关闭。
-	boss = zombie_manager.try_create_boss_from_card(config.boss_type)
+	boss = zombie_manager.try_create_adventure_boss(config)
 	if boss == null:
-		wave_manager.resume_advancement()
+		if _manage_wave_pause:
+			wave_manager.resume_advancement()
 		return false
 	active = true
 	boss.signal_character_death.connect(_on_boss_defeated)
@@ -120,7 +127,8 @@ func _finish(reason: int) -> void:
 		summon_timer.stop()
 		summon_timer.queue_free()
 		summon_timer = null
-	if is_instance_valid(wave_manager) and is_instance_valid(zombie_manager) and zombie_manager.is_game_running():
+	if _manage_wave_pause and is_instance_valid(wave_manager) \
+			and is_instance_valid(zombie_manager) and zombie_manager.is_game_running():
 		wave_manager.resume_advancement()
 	encounter_exited.emit(config.encounter_id, reason)
 	_summons.clear()

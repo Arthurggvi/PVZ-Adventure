@@ -203,6 +203,12 @@ func start_next_wave() -> void:
 	if is_advancement_suspended:
 		_pending_advancement = true
 		return
+	var runtime: AdventureBattleRuntime = zombie_manager.main_game.adventure_runtime # 当前阶段的清场遭遇配置。
+	if curr_wave >= 0 and is_instance_valid(runtime) and runtime.has_wave_clear_encounter(curr_wave + 1) \
+			and zombie_manager.get_natural_wave_count(curr_wave) > 0:
+		# 计时到点也必须等目标波清空；遭遇结束后发放这次推进。
+		_pending_advancement = true
+		return
 	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile
 	var next_wave_index: int = curr_wave + 1
 	if profile != null:

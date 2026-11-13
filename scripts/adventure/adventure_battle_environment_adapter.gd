@@ -4,7 +4,9 @@ extends RefCounted
 class_name AdventureBattleEnvironmentAdapter
 
 static func build(stage: StageDefinition, phase: StagePhaseDefinition) -> ResourceLevelData:
-	if stage == null or stage.environment == null or phase == null or phase.wave_profile == null:
+	if stage == null or stage.environment == null or phase == null:
+		return null
+	if phase.wave_profile == null and phase.kind != StagePhaseDefinition.Kind.TERMINAL:
 		return null
 	var env: AdventureBattleEnvironment = stage.environment
 	if not env.validate().is_empty() or not CardSlotRules.is_valid_capacity(stage.max_selected_cards):
@@ -29,9 +31,7 @@ static func build(stage: StageDefinition, phase: StagePhaseDefinition) -> Resour
 	level.boss_spawn_position = env.boss_spawn_position
 	level.is_shovel = env.shovel_enabled
 	level.all_pre_plant_data = env.preplanted.duplicate(true)
-	level.max_wave = phase.wave_profile.wave_count
 	level.max_choosed_card_num = stage.max_selected_cards
-	level.monster_mode = ConstLevelData.E_MonsterMode.Norm
 	level.card_mode = ConstLevelData.E_CardMode.Norm
 	level.look_show_zombie = true
 	level.can_choosed_card = true
@@ -41,14 +41,17 @@ static func build(stage: StageDefinition, phase: StagePhaseDefinition) -> Resour
 	level.boss_spawn_wave = 0
 	level.prechosen_cards.clear()
 	level.save_game_data_main_game = null
-	level.zombie_refresh_types = preview_zombies(phase)
+	project_phase(level, phase)
+	if phase.kind == StagePhaseDefinition.Kind.TERMINAL:
+		return level
 	return level if level.max_wave >= 2 and not level.zombie_refresh_types.is_empty() else null
 
 ## 原版 ResourceLevelData 只作为适配投影；阶段内容的唯一权威仍是 Session.active_phase。
 ## 噩梦切换时同步所有遗留读取者所需的阶段投影，不为其再建第二份阶段状态。
 static func project_phase(level: ResourceLevelData, phase: StagePhaseDefinition) -> void:
-	assert(level != null and phase != null and phase.wave_profile != null)
-	level.max_wave = phase.wave_profile.wave_count
+	assert(level != null and phase != null)
+	level.max_wave = phase.wave_profile.wave_count if phase.wave_profile != null else 0
+	level.monster_mode = ConstLevelData.E_MonsterMode.Norm if phase.wave_profile != null else ConstLevelData.E_MonsterMode.Null
 	level.zombie_refresh_types = preview_zombies(phase)
 
 ## 汇总 [param phase] 的随机池、预排出怪、Boss 援军和事件突袭，供预览与地形校验使用。
@@ -82,7 +85,7 @@ static func validate_terrain(stage: StageDefinition) -> PackedStringArray:
 			return errors
 	var terrain: CharacterRegistry.ZombieRowType = ResourceLevelData.resolve_terrain_type(scene, rows)
 	for phase: StagePhaseDefinition in stage.phases:
-		if phase == null or phase.wave_profile == null:
+		if phase == null:
 			continue
 		for zombie_type: CharacterRegistry.ZombieType in preview_zombies(phase):
 			if not Global.character_registry.ZombieInfo.has(zombie_type):
@@ -91,6 +94,8 @@ static func validate_terrain(stage: StageDefinition) -> PackedStringArray:
 			var zombie_terrain: CharacterRegistry.ZombieRowType = Global.character_registry.ZombieInfo[zombie_type][CharacterRegistry.ZombieInfoAttribute.ZombieRowType]
 			if not ZombieRow.supports_spawn(zombie_terrain, terrain):
 				errors.append("阶段 %s 僵尸 %s 与地图地形不兼容。" % [phase.phase_id, zombie_type])
+		if phase.wave_profile == null:
+			continue
 		for group: WaveSpawnGroup in phase.wave_profile.scheduled_spawns: # 随机选行的组只需上面的场景地形校验。
 			if group == null or group.row <= 0:
 				continue

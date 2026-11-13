@@ -164,7 +164,7 @@ func _drain() -> void:
 		if task["buff"]:
 			on_created = _grant_phase_buff
 		var zombie: Zombie000Base = stone.spawn_from_grave(record["type"],
-			AdventureZombieTierBinding.new(record["tier"]), 0.5, on_created, false)
+			AdventureZombieTierBinding.new(_boss.encounter_summon_tier(record["tier"])), 0.5, on_created, false)
 		_pending.remove_at(i)
 		if is_instance_valid(zombie):
 			spawned += 1

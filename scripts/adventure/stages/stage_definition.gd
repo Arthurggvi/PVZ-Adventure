@@ -1,4 +1,4 @@
-## 一关恰好包含 normal/nightmare 两阶段，只保存 Resource 配置与静态引用。
+## 一关包含普通、噩梦与可选终末阶段，只保存资源配置与静态引用。
 extends Resource
 class_name StageDefinition
 
@@ -16,6 +16,8 @@ enum KeyUse { KEEP, CONSUME }
 @export var nightmare_key_id: StringName = &""
 @export_range(1, 99) var nightmare_key_count: int = 1
 @export var nightmare_key_use: KeyUse = KeyUse.KEEP
+## 可选终末阶段的消耗钥匙；每次从噩梦续战时扣除一把。
+@export var terminal_key_id: StringName = &""
 @export var phases: Array[StagePhaseDefinition] = []
 
 ## [param known_tier_ids]、[param known_key_ids] 为已存在定义的 ID 集合；不读取进度或执行解锁。
@@ -27,8 +29,6 @@ func validate(known_tier_ids: Array[StringName] = [], known_key_ids: Array[Strin
 		errors.append("关卡缺少冒险环境配置。")
 	else:
 		errors.append_array(environment.validate())
-	if phases.size() != 2:
-		errors.append("一关必须恰好包含 normal 和 nightmare 两个阶段。")
 	if not CardSlotRules.is_valid_capacity(max_selected_cards):
 		errors.append("整关初始选卡槽数必须为 %d 到 %d。" % [CardSlotRules.MIN_CAPACITY, CardSlotRules.MAX_CAPACITY])
 	if not known_key_ids.has(nightmare_key_id) or nightmare_key_count < 1 \
@@ -49,4 +49,9 @@ func validate(known_tier_ids: Array[StringName] = [], known_key_ids: Array[Strin
 		errors.append_array(phase.validate(known_tier_ids))
 	if not kinds.has(StagePhaseDefinition.Kind.NORMAL) or not kinds.has(StagePhaseDefinition.Kind.NIGHTMARE):
 		errors.append("关卡必须分别声明 normal 与 nightmare。")
+	if kinds.has(StagePhaseDefinition.Kind.TERMINAL):
+		if terminal_key_id == nightmare_key_id or not known_key_ids.has(terminal_key_id):
+			errors.append("终末阶段必须配置独立的续战钥匙。")
+	elif not terminal_key_id.is_empty():
+		errors.append("终末续战钥匙必须对应终末阶段。")
 	return errors

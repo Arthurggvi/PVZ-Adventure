@@ -20,6 +20,16 @@ enum SummonEnd { UNSET, BOSS_EXIT, PHASE_END }
 @export var timing: Timing = Timing.UNSET
 ## 波次型触发的目标波次；非波次型必须为 0。
 @export var wave: int = 0
+## 同一触发批次中，共用此非空 ID 的遭遇会同帧登场；其余遭遇依次运行。
+@export var parallel_group: StringName = &""
+## 登场时占最大血量的比例；低于或等于阶段门槛时静默进入二阶段。
+@export_range(0.01, 1.0, 0.01) var initial_health_ratio: float = 1.0
+## 完成二阶段转换演出后撤离，仅适用于黑将军和白爵士。
+@export var retreat_after_phase_two: bool = false
+## 必须击败本次遭遇的 Boss 才能结算阶段。
+@export var require_defeat: bool = false
+## 角色主动召唤的统一等阶；空值沿用 Boss 技能自身的等阶。
+@export var skill_summon_tier: StringName = &""
 ## 自然波次在遭遇期间的行为。
 @export var natural_waves: NaturalWaves = NaturalWaves.UNSET
 ## 周期召唤规则，不沿用 Boss AI 内部默认值。
@@ -57,6 +67,13 @@ func validate(wave_count: int = 0, known_tier_ids: Array[StringName] = []) -> Pa
 			errors.append("Boss 遭遇触发波次越界。")
 	elif wave != 0:
 		errors.append("非波次 Boss 遭遇不能填写 wave。")
+	if not is_finite(initial_health_ratio) or initial_health_ratio <= 0.0 or initial_health_ratio > 1.0:
+		errors.append("Boss 登场血量比例必须大于零且不超过一。")
+	if retreat_after_phase_two and (require_defeat or initial_health_ratio <= 0.5 \
+			or boss_type not in [CharacterRegistry.ZombieBossType.ZB002BlackGeneral, CharacterRegistry.ZombieBossType.ZB003WhiteDuke]):
+		errors.append("转阶段撤退要求黑将军或白爵士从一阶段登场，并且不能要求击败。")
+	if skill_summon_tier != &"" and not known_tier_ids.has(skill_summon_tier):
+		errors.append("Boss 技能召唤引用了未定义的等阶。")
 	if natural_waves != NaturalWaves.PAUSE_UNTIL_BOSS_EXIT:
 		errors.append("冒险 Boss 出现后必须挂起自然波次，离场后恢复。")
 	if summon_rule not in [SummonRule.PERIODIC, SummonRule.NONE]:

@@ -603,8 +603,8 @@ func _settle_cheat_adventure_victory() -> void:
 	if not AdventureSession.settle_victory(true):
 		AdventureSession.prompt_victory_retry(_settle_cheat_adventure_victory)
 		return
-	if AdventureSession.challenge_state == AdventureSession.ChallengeState.NORMAL_COMPLETE:
-		AdventureSession.complete_normal_challenge()
+	if AdventureSession.challenge_state in [AdventureSession.ChallengeState.NORMAL_COMPLETE, AdventureSession.ChallengeState.NIGHTMARE_COMPLETE]:
+		AdventureSession.complete_checkpoint_challenge()
 	# 同一战场从普通续战时，先前已生成的钱堆也须在一键通关离场前结清。
 	drop_item_manager.finish_victory_collection()
 	SoundManager.play_other_SFX(&"winmusic")
@@ -625,9 +625,11 @@ func request_adventure_event_result(result: int) -> void:
 func create_trophy(glo_pos: Vector2) -> void:
 	if not try_claim_round_end():
 		return
-	if AdventureSession.owns_battle(game_para) \
-			and AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NORMAL:
-		adventure_continuation.complete_normal(glo_pos)
+	# 普通和带终末入口的噩梦先结算，再决定是否继续同一战场。
+	if AdventureSession.owns_battle(game_para) and (AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NORMAL \
+			or (AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE \
+				and not AdventureSession.active_stage.terminal_key_id.is_empty())):
+		adventure_continuation.complete_checkpoint(glo_pos)
 	else:
 		_finish_round_victory(glo_pos)
 
@@ -660,8 +662,10 @@ func _finish_round_victory(glo_pos: Vector2) -> void:
 			zombie_manager.zombie_wave_manager.stop_wave_refresh()
 			AdventureSession.prompt_victory_retry(_finish_round_victory.bind(glo_pos))
 			return
-		# 普通钱堆已在续战选择之前生成；噩梦在最终奖杯旁生成自己的钱堆。
-		if AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE:
+		# 已经过续战检查点的阶段在选择前生成钱堆，其余阶段在奖杯旁生成。
+		if AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.TERMINAL \
+				or (AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE \
+					and AdventureSession.active_stage.terminal_key_id.is_empty()):
 			drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase, glo_pos)
 	var trophy = SceneRegistry.TROPHY.instantiate()
 	canvas_layer_temp.add_child(trophy)

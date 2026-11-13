@@ -92,6 +92,8 @@ var is_death := false
 
 ## 死亡判定阈值；当前血量不高于该值时首次触发死亡信号，默认 0。
 var death_hp:int = 0
+## 战斗攻击不能把本体生命降到此值以下；直接处决和存档恢复不受限。
+var combat_minimum_hp: int = 0
 ## 当前生命值；写入时限制为非负数、刷新 UI，并在达到阈值时触发死亡。
 var curr_hp:int:
 	# value 是调用方写入该属性的新值，需经过下方处理再更新内部状态。
@@ -219,6 +221,8 @@ func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletReg
 	if combat:
 		var before_armor: int = attack_value # 已减伤但尚未被临时护甲吸收的本次容量。
 		attack_value = absorb_temporary_armor(attack_value)
+		if combat_minimum_hp > 0:
+			attack_value = mini(attack_value, maxi(0, curr_hp - combat_minimum_hp))
 		body_loss = mini(attack_value, curr_hp) if was_alive else 0
 		if attack_value > 0:
 			combat_hp_damaged.emit(mini(attack_value, curr_hp))

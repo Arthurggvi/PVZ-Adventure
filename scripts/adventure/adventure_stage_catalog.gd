@@ -13,11 +13,10 @@ static func tier_threat_costs() -> Dictionary:
 	return AdventureZombieTierCatalog.threat_costs()
 
 static func key_ids() -> Array[StringName]:
-	var result: Array[StringName] = []
-	for stage_number: int in range(1, AdventureStageRegistry.SLUGS.size() + 1):
-		var key: StringName = AdventureStageRegistry.key_id(stage_number)
-		if ItemRegistry.has_item(str(key)):
-			result.append(key)
+	var result: Array[StringName] = [] # 普通续战和终末续战都使用物品目录的钥匙定义。
+	for item_id: String in ItemRegistry.ITEMS: # 跳过配方、道具等非钥匙物品。
+		if ItemRegistry.ITEMS[item_id].get("category", "") == "key":
+			result.append(StringName(item_id))
 	return result
 
 static func load_stage(stage_number: int) -> StageDefinition:
@@ -50,9 +49,19 @@ static func mark_cleared(state: AdventureState, stage_id: StringName, kind: int)
 		region["stage_1_cleared"] = true
 	state.regions[REGION_ID] = region
 
+## 将 [param kind] 投影为通关记录和任务事件使用的稳定阶段后缀。
+static func phase_slug(kind: int) -> String:
+	match kind:
+		StagePhaseDefinition.Kind.NORMAL:
+			return "normal"
+		StagePhaseDefinition.Kind.NIGHTMARE:
+			return "nightmare"
+		StagePhaseDefinition.Kind.TERMINAL:
+			return "terminal"
+	return ""
+
 static func _clear_id(stage_id: StringName, kind: int) -> String:
-	var suffix := "normal" if kind == StagePhaseDefinition.Kind.NORMAL else "nightmare"
-	return "%s/%s" % [stage_id, suffix]
+	return "%s/%s" % [stage_id, phase_slug(kind)]
 
 static func is_unlocked(stage_number: int, state: AdventureState) -> bool:
 	if AdventureStageRegistry.stage_id(stage_number) == &"":
@@ -86,7 +95,9 @@ static func entry_error(stage_number: int, kind: int, state: AdventureState,
 	if kind != StagePhaseDefinition.Kind.NORMAL:
 		return "只能从普通阶段开始关卡；噩梦需要在本次普通阶段清场后继续。"
 	# 普通入口必须同时验证后续噩梦配置，禁止玩家到达检查点后才发现非法阶段。
-	for candidate: StagePhaseDefinition in stage.phases:
+	for candidate: StagePhaseDefinition in stage.phases: # 仅有波次的阶段需要校验战力预算。
+		if candidate.wave_profile == null:
+			continue
 		var budget_errors: PackedStringArray = AdventureWavePlanner.validate_affordability(
 			candidate.wave_profile, stage.environment.zombie_power_multiplier, tier_threat_costs())
 		if not budget_errors.is_empty():
