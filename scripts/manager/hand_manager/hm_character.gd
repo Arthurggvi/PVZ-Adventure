@@ -184,6 +184,10 @@ func click_cell(plant_cell: PlantCell) -> void:
 		return
 	if is_mode_column and curr_card.card_reference.card_type != ResourceCardReference.CardType.ZombieBoss:
 		_click_cell_column(plant_cell)
+	# 模式专属附加种植只响应本次玩家主操作，内部复制不重复通知或结算。
+	if curr_card.card_reference.card_type == ResourceCardReference.CardType.Plant \
+			and curr_card.plant_spawn_profile != null:
+		curr_card.plant_spawn_profile.player_placement_committed(plant_cell)
 	curr_card.signal_card_use_end.emit(curr_card)
 
 ## 在 [param plant_cell] 创建植物或普通僵尸，僵王使用所属关卡的固定位置；返回创建成功与否。

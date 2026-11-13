@@ -1,6 +1,6 @@
 # PVZ-Adventure｜唯一权威项目交接
 
-更新：2026-11-12。**只记录权威路径、可复用管线、实施方法、有效约束和未关闭的验收边界。** 源码与实际资源优先于本文；“接入”“自动化通过”“实机视觉通过”必须分别表述。
+更新：2026-11-13。**只记录权威路径、可复用管线、实施方法、有效约束和未关闭的验收边界。** 源码与实际资源优先于本文；“接入”“自动化通过”“实机视觉通过”必须分别表述。
 
 ## 0｜权威入口、施工纪律（先读）
 
@@ -73,6 +73,17 @@
 - `res://tests/adventure/test_ground_support_transaction.tscn`：预提交无副作用、成功/重复种植、释放后恢复条件、可重种、屋顶花盆。
 - `res://tests/adventure/test_lily_pad_support_layout.tscn`：荷叶 + 西瓜投手正式放置、上层/壳体锚点、尺寸变化、随动、拆除及花盆复用。
 - 已做真实工程素材的孤立场景前后烘焙对比；**尚不可代替下水道五行完整战斗画面的人工终验**。特别观察跨行、荷叶遮挡、第一/五路、西瓜投手与南瓜壳的稳定对齐。
+
+## 3.1｜植物转职书、技能生成与负面状态
+
+- **书目唯一来源**：`scripts/adventure/research/research_promotion_catalog.gd` 汇总 `research_existing_promotion_books.gd` 与 `research_puff_promotion_books.gd`；`ItemRegistry` 自动把目录中的书注册为道具，不再双处手填。书封、植物头像与研究室选项仍复用 `promotion_book_visual.gd` 和冻结卡牌快照。
+- **小喷菇出生/射击**：`AdventureResearchBattleEffects.apply` 入树前应用白昼耐心，挂载 `AdventurePuffPromotionEffects`；控制器等植物就绪后取得攻击组件与来源配方，再按路径加载派生弹体场景；禁止在全局类静态预加载该场景，避免与注册表形成资源加载环。`bullet_003_puff_adventure.tscn` 继承原孢子场景，由 `AdventurePuffProjectileEffects` 补充距离伤害、实际击杀与命中异常。全行同时扩索敌与弹体射程，按当前棋盘几何更新；孢涌按发射时格距区分半格内二倍、一格内原伤、之外半伤。
+- **玩家扩种钩子**：成功的 `HMCharacter.click_cell` → `PlantSpawnProfile.player_placement_committed` → `PlantSpawnModifier` 所属模式 → `AdventurePuffPropagation`。主格只结算一次费用/冷却；十字子株、感染与恢复都不再次触发该钩子。子株继承不可变来源的 UID、星级与已选分支，不能再乘母株已经计算的战斗倍率。
+- **技能生成事务**：`PlantCell.PlacementOrigin.Spawned` 与玩家放置共用完整资格预检与提交前复核；占格、地形、承托、墓碑和具名禁种均生效。感染经 `BoardRuntime.cell_at_ground_point` 按实际脚点/攻击行找格，不能把盘外或稀疏空洞吸附到最近格；延迟提交复核同战场/棋盘/轮次和活动战斗，结算或续战询问期间不生成。
+- **击杀与弹体生命周期**：直接命中与毒伤都读取 `HpComponentZombie.apply_hit` 的实际死亡返回，包含保护者代伤；不要订阅目标将来的任意死亡来猜归属。礼物固定8～12颗径向孢子，孢涌不会把亡语弹数再次倍增；来源规则和配方由弹体独立持有，母株死亡不取消已发射能力。
+- **统一负面入口**：`scripts/adventure/adventure_plant_negative_effects.gd` 的 `apply(..., context)` 登记中毒/魅惑并复用原减速、眩晕、免疫与伤害路由。中毒的 amount 表示持续秒数：5层即5秒，每0.5战斗秒造成本体最大生命2%的基础毒伤；重施刷新时长，保留跳伤相位，不叠加每跳倍率。通用计时归 `AdventurePoisonEffect`，暂停、死亡、魅惑和退场按角色生命周期清理。
+- **劣化必须分通道**：`HpComponent.degradation_fraction` 只保存原不可叠加最强值；`stacked_degradation_fraction` 单独累计新劣化，每次尸变追加0.05。`total_degradation_fraction()` 只汇总结算，不反写或覆盖任一通道。尸变先判60%，再按毒/劣化/减速/眩晕/魅惑的2/2/2/2/1权重只取一种；默认减速5秒，眩晕0.5秒。
+- **验证边界**：本轮只做静态审查和Godot导入/解析，不运行测试套件；真实战斗中散射可读性、连锁感染与多状态长时间叠加仍需实机验收。正式冒险退出即放弃战斗、续战保留实体，本次不改造原版逐株中途存档。
 
 ## 4｜天气、光场、雨声：当前需要维护的接口
 

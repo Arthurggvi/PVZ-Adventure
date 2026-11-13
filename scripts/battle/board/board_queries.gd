@@ -39,6 +39,27 @@ static func nearest(board: BoardRuntime, point: Vector2, lane: int = -1) -> Plan
 			result = cell
 	return result
 
+## 在 [param board] 的 [param lane] 内精确匹配世界脚点 [param point]，失败返回 null。
+## 底边闭合以兼容地块生成脚点；水平边界保持左闭右开，不跨空洞寻找邻格。
+static func cell_at_ground_point(board: BoardRuntime, point: Vector2, lane: int) -> PlantCell:
+	var result: PlantCell = null # 重叠地块按现有 GUI 场景树顺序选取。
+	if lane < 0 or not point.is_finite():
+		return null
+	for cell: PlantCell in board.row_cells(lane): # 即时查询当前地块，不缓存平台运动前的几何。
+		if not is_instance_valid(cell) or cell.is_queued_for_deletion() \
+				or not cell.is_visible_in_tree() or board.cell_by_id(cell.cell_id) != cell:
+			continue
+		var local_point: Vector2 = cell.get_global_transform().affine_inverse() * point # 当前地块局部脚点。
+		if local_point.x < 0.0 or local_point.x >= cell.size.x \
+				or local_point.y < 0.0 or local_point.y > cell.size.y:
+			continue
+		if cell.board_definition != null and not cell.board_definition.hit_polygon.is_empty() \
+				and not Geometry2D.is_point_in_polygon(local_point, cell.board_definition.hit_polygon):
+			continue
+		if result == null or cell.is_greater_than(result):
+			result = cell
+	return result
+
 ## 返回 [param cells] 的世界包围矩形；空结果为零矩形。
 static func bounds(cells: Array[PlantCell]) -> Rect2:
 	var result := Rect2() # 当前合并包围盒。

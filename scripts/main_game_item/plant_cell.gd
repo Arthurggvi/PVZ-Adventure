@@ -173,9 +173,15 @@ func imitater_create_plant(plant_type:CharacterRegistry.PlantType, is_plant_star
 	var plant = create_plant(plant_type, false, is_plant_start_effect, true, false,
 		spawn_profile, PlacementOrigin.Transformation)
 	return plant
-## Explicit placement purpose separates player eligibility from setup/restore.
-## Every path uses the same registered footprint and lifetime ownership rules.
-enum PlacementOrigin { Player, LevelSetup, SaveRestore, Transformation }
+## 放置来源区分玩家操作、关卡配置、恢复及转化；全部共用占格与生命周期事务。
+## 技能生成使用 Spawned，仍须通过完整地形和占用资格，不能冒充玩家操作。
+enum PlacementOrigin {
+	Player, ## 玩家成功使用卡片的主种植。
+	LevelSetup, ## 关卡声明的预种植，可绕过玩家地形限制。
+	SaveRestore, ## 已整体预检的存档恢复。
+	Transformation, ## 模仿者等已有占用的实体转化。
+	Spawned, ## 战斗技能生成，按玩家资格校验但不消费卡片。
+}
 
 func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 		is_plant_start_effect := true, is_imitater_material := false,

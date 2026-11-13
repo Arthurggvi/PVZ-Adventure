@@ -49,6 +49,12 @@ func card_stats(base_sun_cost: int, base_cooldown: float) -> Dictionary:
 		return {}
 	return _modifier.card_stats(_snapshot.duplicate(true), base_sun_cost, base_cooldown)
 
+## 将玩家已成功种植的 [param cell] 交给所属模式；仅手持卡确认入口调用一次。
+## 技能生成、转化、预种植和读档不会调用此通知，也不会再次扣费。
+func player_placement_committed(cell: PlantCell) -> void:
+	if is_valid_profile() and is_instance_valid(cell):
+		_modifier.player_placement_committed(cell, self)
+
 func apply(plant: Plant000Base, plant_type: int) -> bool:
 	if plant == null or not matches_plant_type(plant_type):
 		return false

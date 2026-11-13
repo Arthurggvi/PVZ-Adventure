@@ -9,8 +9,8 @@ const PROMOTION_NAMES := ["一转", "二转", "三转", "四转"]
 const GROWTH_AGENT_IDS := ["growth_agent_lv1", "growth_agent_lv2", "growth_agent_lv3",
 	"growth_agent_lv4", "growth_agent_lv5"]
 
-## 第一阶段静态道具目录；稳定 ID 不随显示名称改变，不持有玩家数量。
-const ITEMS: Dictionary = {
+## 基础物品定义，不持有玩家数量；技能书自动从转职目录汇总，无须在此重复登记。
+const BASE_ITEMS: Dictionary = {
 	"unsaturated_fat": {"name": "不饱和脂肪", "category": "material",
 		"description": "从坚果中提取的油脂，常用来调和植物配方。"},
 	"nut_fragments": {"name": "坚果碎块", "category": "material",
@@ -106,54 +106,6 @@ const ITEMS: Dictionary = {
 	"recipe_p049": {"subject": "反向双发射手", "category": "recipe"},
 	"recipe_p050": {"subject": "闪电芦苇", "category": "recipe"},
 	"recipe_p051": {"subject": "回旋镖射手", "category": "recipe"},
-	"promotion_cherry_bomb_spark": {"category": "promotion_book"},
-	"promotion_cherry_bomb_combustion": {"category": "promotion_book"},
-	"promotion_cherry_bomb_red_core": {"category": "promotion_book"},
-	"promotion_cherry_bomb_shock_blast": {"category": "promotion_book"},
-	"promotion_cherry_bomb_double_blast": {"category": "promotion_book"},
-	"promotion_cherry_bomb_fusion": {"category": "promotion_book"},
-	"promotion_cherry_bomb_fruit_of_fear": {"category": "promotion_book"},
-	"promotion_cherry_bomb_bad_fruit": {"category": "promotion_book"},
-	"promotion_peashooter_tempering": {"category": "promotion_book"},
-	"promotion_peashooter_photosynthesis": {"category": "promotion_book"},
-	"promotion_peashooter_piercing": {"category": "promotion_book"},
-	"promotion_peashooter_synergy": {"category": "promotion_book"},
-	"promotion_peashooter_hot_blood": {"category": "promotion_book"},
-	"promotion_peashooter_multishot": {"category": "promotion_book"},
-	"promotion_peashooter_splash": {"category": "promotion_book"},
-	"promotion_peashooter_shock": {"category": "promotion_book"},
-	"promotion_potato_harmony": {"category": "promotion_book"},
-	"promotion_potato_charge": {"category": "promotion_book"},
-	"promotion_potato_instant": {"category": "promotion_book"},
-	"promotion_potato_regrow": {"category": "promotion_book"},
-	"promotion_potato_spread": {"category": "promotion_book"},
-	"promotion_potato_frenzy": {"category": "promotion_book"},
-	"promotion_potato_energy": {"category": "promotion_book"},
-	"promotion_potato_coupling": {"category": "promotion_book"},
-	"promotion_wallnut_rolling": {"category": "promotion_book"},
-	"promotion_wallnut_tenacity": {"category": "promotion_book"},
-	"promotion_wallnut_fortress": {"category": "promotion_book"},
-	"promotion_wallnut_veteran": {"category": "promotion_book"},
-	"promotion_wallnut_armor_growth": {"category": "promotion_book"},
-	"promotion_wallnut_breakthrough": {"category": "promotion_book"},
-	"promotion_wallnut_guardian": {"category": "promotion_book"},
-	"promotion_wallnut_last_stand": {"category": "promotion_book"},
-	"promotion_sunflower_light_conversion": {"category": "promotion_book"},
-	"promotion_sunflower_photosynthesis": {"category": "promotion_book"},
-	"promotion_sunflower_radiance": {"category": "promotion_book"},
-	"promotion_sunflower_synergy": {"category": "promotion_book"},
-	"promotion_sunflower_stellar": {"category": "promotion_book"},
-	"promotion_sunflower_resonance": {"category": "promotion_book"},
-	"promotion_sunflower_holy_war": {"category": "promotion_book"},
-	"promotion_sunflower_flower_field": {"category": "promotion_book"},
-	"promotion_lightning_reed_quick_burst": {"category": "promotion_book"},
-	"promotion_lightning_reed_overload": {"category": "promotion_book"},
-	"promotion_lightning_reed_splash": {"category": "promotion_book"},
-	"promotion_lightning_reed_paralysis": {"category": "promotion_book"},
-	"promotion_lightning_reed_dual_strike": {"category": "promotion_book"},
-	"promotion_lightning_reed_warp": {"category": "promotion_book"},
-	"promotion_lightning_reed_split": {"category": "promotion_book"},
-	"promotion_lightning_reed_ion_refraction": {"category": "promotion_book"},
 	"lawn_nightmare_key": {"subject": "草坪", "category": "key"},
 	"zombie_island.fallen_camp.nightmare_key": {"subject": "没落营地", "category": "key"},
 	"zombie_island.grave_upstream.nightmare_key": {"subject": "墓地上游", "category": "key"},
@@ -173,6 +125,16 @@ const ITEMS: Dictionary = {
 	"fertilizer_lv4": {"fertilizer_level": 4, "category": "consumable"},
 	"fertilizer_lv5": {"fertilizer_level": 5, "category": "consumable"},
 }
+
+## 基础物品与转职书共用同一物品目录；转职书自动取自权威技能目录。
+static var ITEMS: Dictionary = _build_items()
+
+## 返回含全部转职书的目录，后续新书不再重复手工登记。
+static func _build_items() -> Dictionary:
+	var items: Dictionary = BASE_ITEMS.duplicate(true) # 构造时复制，保留基础物品定义不变。
+	for book_id: String in AdventurePromotionCatalog.BOOKS: # 技能书存在即能被背包、研究室和修改器识别。
+		items[book_id] = {"category": "promotion_book"}
+	return items
 
 ## 返回 [param item_id] 是否属于当前静态目录，不读取或创建库存。
 static func has_item(item_id: String) -> bool:

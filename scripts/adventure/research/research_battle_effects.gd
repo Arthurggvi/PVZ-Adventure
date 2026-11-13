@@ -68,10 +68,14 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 	var wallnut_events: Array[Dictionary] = []
 	var potato_events: Array[Dictionary] = []
 	var cherry_events: Array[Dictionary] = [] # 交给樱桃炸弹本身冻结，等原版引信结算。
+	var puff_events: Array[Dictionary] = [] # 孢子的射击与命中能力按单株冻结。
 	for event: Dictionary in resolved.events:
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
 				plant.battle_negative_effect_immune = true
+			"puff_day_awake":
+				# 出生修饰发生在入树前，使白昼耐心从一开始就不进入睡眠状态。
+				plant.is_sleep_in_day = false
 			"wallnut_hit_cap":
 				var hp: HpComponentPlant = plant.get_node_or_null("HpComponent") as HpComponentPlant
 				if hp == null:
@@ -86,6 +90,15 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 					potato_events.append(event)
 				elif kind.begins_with("cherry_"):
 					cherry_events.append(event)
+				elif kind.begins_with("puff_"):
+					puff_events.append(event)
+	if not puff_events.is_empty():
+		if not plant is Plant009Puff:
+			push_error("小喷菇转职事件需要对应的战斗植物")
+			return false
+		var puff_controller := AdventurePuffPromotionEffects.new() # 随植株管理发射，弹体单独保存命中规则。
+		puff_controller.configure(plant, puff_events)
+		plant.add_child(puff_controller)
 	if not cherry_events.is_empty():
 		var cherry: Plant003CherryBomb = plant as Plant003CherryBomb # 仅真实樱桃可接管原版爆炸。
 		if cherry == null:
@@ -129,6 +142,11 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 					plant.signal_character_death.connect(
 						func(): component.spawn_specific_sun(reward), CONNECT_ONE_SHOT)
 	return true
+
+## 主格种植成功后处理 [param cell] 的扩种能力；[param profile] 是本次冻结卡牌资料。
+## 自动生成与恢复不会进入玩家提交钩子，额外植株不重复结算卡片费用或冷却。
+func player_placement_committed(cell: PlantCell, profile: PlantSpawnProfile) -> void:
+	AdventurePuffPropagation.expand_player_placement(cell, profile)
 
 ## 为入树前的出战植物 [param plant] 挂载 [param rank] 星角标；零星无需显示。
 func _attach_root_badge(plant: Plant000Base, rank: int) -> void:

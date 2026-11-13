@@ -108,6 +108,11 @@ func pick_cell(point: Vector2) -> PlantCell:
 func nearest_cell(point: Vector2, lane: int = -1) -> PlantCell:
 	return BoardQueries.nearest(self, point, lane)
 
+## 按 [param lane] 和当前世界脚点 [param point] 精确找格；空洞或盘外返回 null。
+## 允许格子底边脚点，保留自定义命中多边形；不把击杀位置吸附到最近远格。
+func cell_at_ground_point(point: Vector2, lane: int) -> PlantCell:
+	return BoardQueries.cell_at_ground_point(self, point, lane)
+
 ## 从地形目录切换 [param cell_id]；[param keep_occupants] 必须显式允许保留不兼容植物。
 ## 默认有植物/障碍则拒绝，失败不改动现有状态，不自动铲除或退款。
 func set_cell_terrain(cell_id: StringName, terrain_id: StringName, keep_occupants: bool = false) -> bool:

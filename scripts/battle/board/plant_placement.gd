@@ -48,7 +48,8 @@ static func prepare(target: PlantCell, species: CharacterRegistry.PlantType,
 	plan.footprint = plan.condition.placement_cells(target)
 	if plan.footprint.is_empty() or not plan._valid_geometry():
 		return null
-	if placement_origin == PlantCell.PlacementOrigin.Player and not plan.condition.judge_is_can_plant(target, species):
+	if placement_origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.Spawned] \
+			and not plan.condition.judge_is_can_plant(target, species):
 		return null
 	if plan.condition.is_purple_card and placement_origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.LevelSetup]:
 		plan.claims = plan.condition.get_upgrade_claims(target, species)
@@ -85,7 +86,7 @@ func can_commit() -> bool:
 	if committed or not is_instance_valid(plant) or plant.get_parent() != null \
 			or not _valid_geometry() or condition.placement_cells(cell) != footprint:
 		return false
-	if origin == PlantCell.PlacementOrigin.Player \
+	if origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.Spawned] \
 			and not condition.judge_is_can_plant(cell, species):
 		return false
 	if not claims.is_empty():

@@ -5,21 +5,38 @@ class_name HpComponent
 var damage_block := DamageBlockEffect.new()
 ## Applied after fixed block and before all armor/HP routing.
 var damage_reduction := DamageReductionEffect.new()
-## Strongest degradation wins; never add two sources by summation.
+## 原有不可叠加劣化的最强强度；永久保留，0.05 表示增伤及减攻各 5%。
 var degradation_fraction: float = 0.0
+## 可叠加劣化的独立累计强度；不改写或被原有不可叠加通道覆盖。
+var stacked_degradation_fraction: float = 0.0
 
-func apply_degradation(fraction: float) -> void:
-	var next_value: float = maxf(degradation_fraction, maxf(0.0, fraction))
-	if is_equal_approx(next_value, degradation_fraction):
+## [param fraction] 本次非负劣化比例；非有限值与非正数不生效。
+## [param stackable] 为 true 时仅累加独立通道，否则保持原有取最强值规则。
+## 两种通道均持续至本次角色结束，最终战斗修正相加。
+func apply_degradation(fraction: float, stackable: bool = false) -> void:
+	if not is_finite(fraction) or fraction <= 0.0:
 		return
-	degradation_fraction = next_value
+	# 当前请求只读取所选通道，旧劣化与叠加劣化不会互相吞掉。
+	var current: float = stacked_degradation_fraction if stackable else degradation_fraction
+	# 叠加按百分点相加；不可叠加效果仍只接受更强的来源。
+	var next_value: float = current + fraction if stackable else maxf(current, fraction)
+	if not is_finite(next_value) or is_equal_approx(next_value, current):
+		return
+	if stackable:
+		stacked_degradation_fraction = next_value
+	else:
+		degradation_fraction = next_value
 	if is_instance_valid(owner_character) and is_instance_valid(owner_character.body):
 		owner_character.body.set_other_color(BodyCharacter.E_ChangeColors.Degradation,
-			Color(0.55, 0.57, 0.58) if next_value > 0.0 else Color.WHITE)
+			Color(0.55, 0.57, 0.58) if total_degradation_fraction() > 0.0 else Color.WHITE)
 
-## Damage dealt by a degraded entity. At >=100% reduction, damage is zero.
+## 返回两种独立劣化通道共同产生的比例，仅用于结算和表现，不反写任一通道。
+func total_degradation_fraction() -> float:
+	return degradation_fraction + stacked_degradation_fraction
+
+## [param amount] 修正前的输出伤害；总劣化达到 100% 时输出降至零，永不产生负伤害。
 func outgoing_damage(amount: int) -> int:
-	return maxi(0, roundi(float(amount) * maxf(0.0, 1.0 - degradation_fraction)))
+	return maxi(0, roundi(float(amount) * maxf(0.0, 1.0 - total_degradation_fraction())))
 ## 当前生效的限时无敌来源，按来源 ID 记录，可与脚本无敌叠加。
 var _immunity_sources: Dictionary[int, bool] = {}
 ## 角色控制的无敌窗口；直接生命调整仍可通过专用旁路执行。
@@ -196,7 +213,7 @@ func resolve_damage(damage: int) -> int:
 		return maxi(0, damage)
 	if is_damage_immune():
 		return 0
-	return damage_reduction.reduce(damage_block.reduce(maxi(0, roundi(float(damage) * (1.0 + degradation_fraction)))))
+	return damage_reduction.reduce(damage_block.reduce(maxi(0, roundi(float(damage) * (1.0 + total_degradation_fraction())))))
 
 ## [param source_id] 无敌效果的来源 ID；[param enabled] 为 true 时添加该来源，为 false 时移除。
 func set_immunity_source(source_id: int, enabled: bool) -> void:
