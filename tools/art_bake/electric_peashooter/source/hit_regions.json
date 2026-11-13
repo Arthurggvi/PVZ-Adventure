@@ -1,0 +1,102 @@
+{
+  "type": "simple",
+  "id": "PlantLightningReedHit_1536",
+  "res": "1536",
+  "parent": "PlantLightningReedHit",
+  "resources": [
+    {
+      "type": "Image",
+      "slot": 2595,
+      "id": "ATLASIMAGE_ATLAS_PLANTLIGHTNINGREEDHIT_1536_00",
+      "path": [
+        "atlases",
+        "PlantLightningReedHit_1536_00"
+      ],
+      "atlas": true,
+      "runtime": true,
+      "width": 256,
+      "height": 256,
+      "time": "1495754166"
+    },
+    {
+      "type": "Image",
+      "slot": 12378,
+      "id": "IMAGE_EFFECTS_LIGHTNINGREED_HIT_LIGHTNINGREED_HIT_1X1",
+      "path": [
+        "images",
+        "1536",
+        "initial",
+        "effects",
+        "lightningreed_hit",
+        "lightningreed_hit_1x1"
+      ],
+      "parent": "ATLASIMAGE_ATLAS_PLANTLIGHTNINGREEDHIT_1536_00",
+      "ax": 231,
+      "ay": 1,
+      "aw": 2,
+      "ah": 2,
+      "aflags": 15,
+      "time": "1495753762"
+    },
+    {
+      "type": "Image",
+      "slot": 12379,
+      "id": "IMAGE_EFFECTS_LIGHTNINGREED_HIT_LIGHTNINGREED_HIT_61X61",
+      "path": [
+        "images",
+        "1536",
+        "initial",
+        "effects",
+        "lightningreed_hit",
+        "lightningreed_hit_61x61"
+      ],
+      "parent": "ATLASIMAGE_ATLAS_PLANTLIGHTNINGREEDHIT_1536_00",
+      "ax": 107,
+      "ay": 129,
+      "aw": 78,
+      "ah": 78,
+      "aflags": 15,
+      "time": "1495753762"
+    },
+    {
+      "type": "Image",
+      "slot": 12380,
+      "id": "IMAGE_EFFECTS_LIGHTNINGREED_HIT_LIGHTNINGREED_HIT_81X132",
+      "path": [
+        "images",
+        "1536",
+        "initial",
+        "effects",
+        "lightningreed_hit",
+        "lightningreed_hit_81x132"
+      ],
+      "parent": "ATLASIMAGE_ATLAS_PLANTLIGHTNINGREEDHIT_1536_00",
+      "ax": 1,
+      "ay": 1,
+      "aw": 104,
+      "ah": 169,
+      "aflags": 15,
+      "time": "1495753762"
+    },
+    {
+      "type": "Image",
+      "slot": 12381,
+      "id": "IMAGE_EFFECTS_LIGHTNINGREED_HIT_LIGHTNINGREED_HIT_95X98",
+      "path": [
+        "images",
+        "1536",
+        "initial",
+        "effects",
+        "lightningreed_hit",
+        "lightningreed_hit_95x98"
+      ],
+      "parent": "ATLASIMAGE_ATLAS_PLANTLIGHTNINGREEDHIT_1536_00",
+      "ax": 107,
+      "ay": 1,
+      "aw": 122,
+      "ah": 126,
+      "aflags": 15,
+      "time": "1495753762"
+    }
+  ]
+}

@@ -43,6 +43,8 @@ const PeaArt = preload("res://scripts/adventure/plant_art/adventure_peashooter_p
 const SunflowerArt = preload("res://scripts/adventure/plant_art/adventure_sunflower_promotion_art.gd")
 ## 闪电芦苇转职的统一配色。
 const ReedArt = preload("res://scripts/adventure/plant_art/adventure_lightning_reed_promotion_art.gd")
+## 电能豌豆复用闪电芦苇色表，卡面与出战特效按同一转职次数换色。
+const ElectricPeaArt = preload("res://scripts/adventure/plant_art/adventure_electric_peashooter_promotion_art.gd")
 
 var battle_card_data: Dictionary:
 	get:
@@ -81,6 +83,8 @@ static func apply_promotion_appearance(preview: Node2D, plant_type: int, rank: i
 			return SunflowerArt.apply_to_preview(preview, rank)
 		ReedArt.PLANT_TYPE:
 			return ReedArt.apply_to_preview(preview, rank)
+		ElectricPeaArt.PLANT_TYPE:
+			return ElectricPeaArt.apply_to_preview(preview, rank)
 	return true
 
 ## 更新这张卡的独立静态图案。换回无转职快照时恢复原图。

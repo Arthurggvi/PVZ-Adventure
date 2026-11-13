@@ -18,7 +18,7 @@ const BLAST_PLANTS := [CharacterRegistry.PlantType.P003CherryBomb, CharacterRegi
 	CharacterRegistry.PlantType.P016DoomShroom, CharacterRegistry.PlantType.P021Jalapeno, CharacterRegistry.PlantType.P048CobCannon]
 ## 直接在植物脚本调用战斗伤害结算、不经通用攻击组件的植物。
 const DIRECT_DAMAGE_PLANTS := [CharacterRegistry.PlantType.P007Chomper, CharacterRegistry.PlantType.P018Squash,
-	CharacterRegistry.PlantType.P020TangleKelp, CharacterRegistry.PlantType.P022Caltrop, CharacterRegistry.PlantType.P047SpikeRock]
+	CharacterRegistry.PlantType.P020TangleKelp, CharacterRegistry.PlantType.P022Caltrop, CharacterRegistry.PlantType.P047SpikeRock, CharacterRegistry.PlantType.P052ElectricPeashooter]
 
 ## 转职工作槽按原始宽高的 60% 绘制。
 const PROMOTION_SLOT_SCALE: float = 0.60

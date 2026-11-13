@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/plant/plant_000_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/plant/plant_052_electric_peashooter.gd" id="2_plant"]
+[ext_resource type="PackedScene" path="res://scenes/character/plant/electric_peashooter_visual.tscn" id="3_visual"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_player.gd" id="4_anim"]
+[ext_resource type="Script" path="res://scripts/character/components/detect_component/component_detect.gd" id="5_detect"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_detect"]
+resource_local_to_scene = true
+size = Vector2(2400, 80)
+
+[node name="Plant052ElectricPeashooter" node_paths=PackedStringArray("node2d_detect_in_slope") instance=ExtResource("1_base")]
+script = ExtResource("2_plant")
+plant_type = 52
+random_speed_range = Vector2(1, 1)
+node2d_detect_in_slope = [NodePath("HurtBoxComponent/HurtBoxDetection"), NodePath("DetectComponent")]
+
+[node name="ElectricPeashooterVisual" parent="Body/BodyCorrect" index="0" instance=ExtResource("3_visual")]
+
+[node name="Launch" type="Marker2D" parent="Body/BodyCorrect" index="1"]
+position = Vector2(45, -58)
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("4_anim")
+animation_player_path = NodePath("../Body/BodyCorrect/ElectricPeashooterVisual/AnimationPlayer")
+
+[node name="DetectComponent" type="Node2D" parent="." index="8"]
+script = ExtResource("5_detect")
+can_attack_zombie_status = 11
+
+[node name="Area2D" type="Area2D" parent="DetectComponent"]
+position = Vector2(1200, -26)
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectComponent/Area2D"]
+shape = SubResource("RectangleShape2D_detect")

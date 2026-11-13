@@ -77,6 +77,9 @@ enum PlantType {
 	## 回旋镖射手的存档编号。
 	P051Bloomerang = 51,
 
+	## 电能豌豆的稳定存档编号，不改变已有植物身份。
+	P052ElectricPeashooter = 52,
+
 	## 模仿者
 	P999Imitater = 999,
 	## 发芽
@@ -535,6 +538,14 @@ const PlantInfo = {
 		PlantInfoAttribute.SunCost: 175,
 		PlantInfoAttribute.PlantConditionResource: preload("res://resources/character_resource/plant_condition/000_common_plant_land.tres"),
 		PlantInfoAttribute.PlantScenes: preload("res://scenes/character/plant/plant_051_bloomerang.tscn"),
+		},
+
+	PlantType.P052ElectricPeashooter: {
+		PlantInfoAttribute.PlantName: "ElectricPeashooter",
+		PlantInfoAttribute.CoolTime: 5.0,
+		PlantInfoAttribute.SunCost: 200,
+		PlantInfoAttribute.PlantConditionResource: preload("res://resources/character_resource/plant_condition/000_common_plant_land.tres"),
+		PlantInfoAttribute.PlantScenes: preload("res://scenes/character/plant/plant_052_electric_peashooter.tscn"),
 		},
 
 	## 模仿者

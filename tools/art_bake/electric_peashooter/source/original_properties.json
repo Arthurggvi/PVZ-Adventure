@@ -1,0 +1,618 @@
+{
+  "PLANTLEVELS.json": [
+    {
+      "aliases": [
+        "electricpeashooter"
+      ],
+      "objclass": "PlantLevelStats",
+      "objdata": {
+        "FloatStats": [
+          {
+            "Name": "Cost",
+            "Values": [
+              200,
+              200,
+              200,
+              200,
+              200,
+              175,
+              175,
+              175,
+              175,
+              150
+            ]
+          },
+          {
+            "Name": "PacketCooldown",
+            "Values": [
+              5,
+              5,
+              4.5,
+              4.5,
+              4,
+              4,
+              3.5,
+              3.5,
+              3,
+              3
+            ]
+          },
+          {
+            "Name": "Hitpoints",
+            "Values": [
+              300,
+              350,
+              400,
+              450,
+              550,
+              600,
+              650,
+              700,
+              800,
+              900
+            ]
+          },
+          {
+            "Name": "ActionDamagePlantfoodProjectile",
+            "SubType": "1",
+            "Type": "ActionDamage",
+            "Values": [
+              350,
+              400,
+              400,
+              400,
+              400,
+              450,
+              450,
+              450,
+              450,
+              500
+            ]
+          },
+          {
+            "Name": "ActionDamagePlantfoodSubProjectile",
+            "SubType": "2",
+            "Type": "ActionDamage",
+            "Values": [
+              20,
+              20,
+              25,
+              25,
+              30,
+              30,
+              35,
+              35,
+              40,
+              40
+            ]
+          },
+          {
+            "Name": "ActionDamageNormal",
+            "SubType": "0",
+            "Type": "ActionDamage",
+            "Values": [
+              5,
+              10,
+              15,
+              20,
+              25,
+              30,
+              35,
+              40,
+              45,
+              50
+            ]
+          },
+          {
+            "Name": "ActionXVelocity",
+            "SubType": "0",
+            "Type": "ActionXVelocity",
+            "Values": [
+              180,
+              180,
+              180,
+              180,
+              180,
+              180,
+              180,
+              180,
+              180,
+              180
+            ]
+          },
+          {
+            "Name": "ActionXVelocityPF",
+            "SubType": "1",
+            "Type": "ActionXVelocity",
+            "Values": [
+              450,
+              450,
+              550,
+              550,
+              550,
+              550,
+              650,
+              650,
+              650,
+              650
+            ]
+          },
+          {
+            "Name": "ActionXVelocityPFSub",
+            "SubType": "2",
+            "Type": "ActionXVelocity",
+            "Values": [
+              250,
+              250,
+              350,
+              350,
+              350,
+              350,
+              450,
+              450,
+              450,
+              450
+            ]
+          },
+          {
+            "Name": "ElectricPeashooter_BoltDamage",
+            "Values": [
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29
+            ]
+          },
+          {
+            "Name": "ElectricPeashooter_BoltCount",
+            "Values": [
+              2,
+              2,
+              3,
+              3,
+              3,
+              3,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          {
+            "Name": "ElectricPeashooter_PFProjectileSpawnCount",
+            "Values": [
+              3,
+              3,
+              3,
+              4,
+              4,
+              4,
+              4,
+              5,
+              5,
+              5
+            ]
+          },
+          {
+            "Name": "ElectricPeashooter_PFSubProjectileSpawnCount",
+            "Values": [
+              6,
+              6,
+              8,
+              8,
+              10,
+              10,
+              12,
+              12,
+              14,
+              14
+            ]
+          },
+          {
+            "Name": "ElectricPeashooter_BoltRange",
+            "Values": [
+              2,
+              2,
+              2.25,
+              2.25,
+              2.25,
+              2.25,
+              2.5,
+              2.5,
+              2.5,
+              2.5
+            ]
+          },
+          {
+            "Name": "ElectricPeashooter_BoltFrequency",
+            "Values": [
+              0.5,
+              0.5,
+              0.45,
+              0.45,
+              0.45,
+              0.45,
+              0.4,
+              0.4,
+              0.4,
+              0.4
+            ]
+          }
+        ],
+        "LevelCap": 6,
+        "LevelCoins": [
+          1000,
+          5000,
+          10000,
+          20000,
+          30000,
+          40000,
+          50000,
+          60000,
+          75000
+        ],
+        "LevelXP": [
+          10,
+          75,
+          200,
+          400,
+          750,
+          1000,
+          1000,
+          1500,
+          2000
+        ],
+        "PlantTier": [
+          1,
+          1,
+          2,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          3
+        ],
+        "StringStats": [
+          {
+            "Name": "Range",
+            "Values": [
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ]
+          }
+        ],
+        "TypeName": "electricpeashooter"
+      }
+    }
+  ],
+  "PLANTPROPERTIES.json": [
+    {
+      "objclass": "ElectricPeashooterProps",
+      "aliases": [
+        "ElectricPeashooterDefault"
+      ],
+      "objdata": {
+        "Cost": 200,
+        "Hitpoints": 300.0,
+        "PacketCooldown": 5.0,
+        "PlantGridType": "ground",
+        "PlantFoodPlayCount": 1,
+        "BoltDamage": 20.0,
+        "BoltRange": 2.0,
+        "BoltFrequency": 0.5,
+        "BoltCount": 2,
+        "PFProjectileSpawnCount": 3,
+        "PFSubProjectileSpawnCount": 6,
+        "PlantFoodActivationSound": "Play_Plant_ElectricPeashooter_PlantFood_Start",
+        "Actions": [
+          {
+            "Type": "projectile",
+            "Projectile": "RTID(ElectricPeaDefault@ProjectileTypes)",
+            "InitialMinCooldownTime": 0,
+            "CooldownTimeMin": 2.25,
+            "CooldownTimeMax": 2.4,
+            "SpawnOffset": {
+              "x": 35.0,
+              "y": -32.0
+            }
+          },
+          {
+            "Type": "projectile",
+            "Projectile": "RTID(ElectricPeaPlantfoodDefault@ProjectileTypes)",
+            "InitialMinCooldownTime": 0,
+            "CooldownTimeMin": 2.55,
+            "CooldownTimeMax": 2.7,
+            "SpawnOffset": {
+              "x": 35.0,
+              "y": -32.0
+            },
+            "TriggerType": "allfront"
+          },
+          {
+            "Type": "projectile",
+            "Projectile": "RTID(ElectricPeaPlantfoodSub@ProjectileTypes)",
+            "InitialMinCooldownTime": 0,
+            "CooldownTimeMin": 1.35,
+            "CooldownTimeMax": 1.5
+          }
+        ],
+        "ArtCenter": {
+          "x": 99,
+          "y": 115
+        },
+        "PlantStats": [
+          {
+            "Type": "damage",
+            "Value": "damage3"
+          },
+          {
+            "Type": "range",
+            "Value": "multilane"
+          },
+          {
+            "Type": "recharge",
+            "Value": "recharge4"
+          }
+        ],
+        "ZenGardenSproutWeight": 25,
+        "ZenGardenBoostCost": 12,
+        "ZenGardenSmallDurationOverrideSeconds": 1800,
+        "ZenGardenPlantDurationOverrideSeconds": 10800,
+        "Boosts": [
+          {
+            "PlantBoostProps": "RTID(BoostFirstStrike@PropertySheets)",
+            "Value": 1,
+            "CooldownDurationSeconds": 28800
+          }
+        ],
+        "IdleAnimationWeights": {
+          "idle": 49,
+          "idle2": 49,
+          "idle3": 2
+        },
+        "SuggestionAlts": [
+          "firepeashooter",
+          "kernelpult",
+          "cabbagepult"
+        ]
+      }
+    }
+  ],
+  "PLANTTYPES.json": [
+    {
+      "objclass": "PlantType",
+      "aliases": [
+        "electricpeashooter"
+      ],
+      "objdata": {
+        "TypeName": "electricpeashooter",
+        "PlantFramework": "PlantElectricPeashooter",
+        "PlantResourceGroups": [
+          "PlantElectricPeashooter",
+          "PlantLightningReedHit",
+          "PlantElectricPeashooterAudio",
+          "PeaEffects"
+        ],
+        "Properties": "RTID(ElectricPeashooterDefault@PlantProperties)",
+        "AnimRigClass": "PlantAnimRig",
+        "PopAnim": "POPANIM_PLANT_ELECTRIC_PEASHOOTER",
+        "SeedChooserBigVerticalOffset": 0.12,
+        "SeedChooserBigHorizontalOffset": 0.0,
+        "SeedChooserBigScale": 1.7,
+        "AlmanacBackdropName": "premium"
+      }
+    }
+  ],
+  "PROJECTILETYPES.json": [
+    {
+      "objclass": "ProjectilePropertySheet",
+      "aliases": [
+        "ElectricPeaDefault"
+      ],
+      "objdata": {
+        "ClassName": "ElectricPeaProjectile",
+        "BaseDamage": 5,
+        "DamageFlags": [
+          "lightning",
+          "shooter"
+        ],
+        "CollisionFlags": [
+          "griditems",
+          "ground_zombies",
+          "off_ground_zombies"
+        ],
+        "InitialVelocity": [
+          {
+            "Min": 333.0,
+            "Max": 333.0
+          },
+          {
+            "Min": 0.0,
+            "Max": 0.0
+          },
+          {
+            "Min": 0.0,
+            "Max": 0.0
+          }
+        ],
+        "InitialScale": {
+          "Min": 1.0,
+          "Max": 1.0
+        },
+        "AttachedPAM": "POPANIM_EFFECTS_ELECTRIC_PEASHOOTER_ELECTROBALL",
+        "AttachedPAMOffset": {
+          "x": -100,
+          "y": -100
+        },
+        "AttachedPAMAnimationToPlay": [
+          "animation",
+          "animation2",
+          "animation3"
+        ],
+        "CollisionRect": {
+          "mX": -15.0,
+          "mY": -15.0,
+          "mWidth": 30.0,
+          "mHeight": 30.0
+        },
+        "DiesOnImpact": false,
+        "HasShadow": false
+      }
+    },
+    {
+      "objclass": "ProjectilePropertySheet",
+      "aliases": [
+        "ElectricPeaPlantfoodDefault"
+      ],
+      "objdata": {
+        "ClassName": "ElectricPeaPlantfoodProjectile",
+        "BaseDamage": 350,
+        "DamageFlags": [
+          "lightning",
+          "shooter"
+        ],
+        "HasShadow": false,
+        "CollisionFlags": [
+          "griditems",
+          "ground_zombies",
+          "off_ground_zombies"
+        ],
+        "InitialVelocity": [
+          {
+            "Min": 333.0,
+            "Max": 333.0
+          },
+          {
+            "Min": 0.0,
+            "Max": 0.0
+          },
+          {
+            "Min": 0.0,
+            "Max": 0.0
+          }
+        ],
+        "InitialScale": {
+          "Min": 1.0,
+          "Max": 1.0
+        },
+        "AttachedPAM": "POPANIM_EFFECTS_ELECTRIC_PEASHOOTER_ELECTROBALL",
+        "AttachedPAMOffset": {
+          "x": -100,
+          "y": -100
+        },
+        "AttachedPAMAnimationToPlay": [
+          "animation6"
+        ],
+        "CollisionRect": {
+          "mX": -17.5,
+          "mY": -17.5,
+          "mWidth": 35.0,
+          "mHeight": 35.0
+        },
+        "DiesOnImpact": true,
+        "ImpactSoundEvent": "Play_Splat",
+        "ImpactPAM": "POPANIM_EFFECTS_ELECTRIC_PEASHOOTER_ELECTROBALL_EFFECTS",
+        "ImpactPAMAnimationToPlay": [
+          "animation2"
+        ],
+        "ImpactOffset": [
+          {
+            "Min": 0.0,
+            "Max": 0.0
+          },
+          {
+            "Min": 0.0,
+            "Max": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "objclass": "ElectricPeaPlantfoodSubProps",
+      "aliases": [
+        "ElectricPeaPlantfoodSub"
+      ],
+      "objdata": {
+        "ClassName": "ElectricPeaPlantfoodSubProjectile",
+        "BaseDamage": 20,
+        "DamageFlags": [
+          "lightning",
+          "shooter"
+        ],
+        "SlowDownPercentage": 0.2,
+        "SlowDownTime": 0.5,
+        "CollisionFlags": [
+          "griditems",
+          "ground_zombies",
+          "off_ground_zombies"
+        ],
+        "HasShadow": false,
+        "RotateToMatchVelocity": true,
+        "InitialVelocity": [
+          {
+            "Min": 333.0,
+            "Max": 333.0
+          },
+          {
+            "Min": 0.0,
+            "Max": 0.0
+          },
+          {
+            "Min": 0.0,
+            "Max": 0.0
+          }
+        ],
+        "InitialScale": {
+          "Min": 1.0,
+          "Max": 1.0
+        },
+        "AttachedPAM": "POPANIM_EFFECTS_ELECTRIC_PEASHOOTER_ELECTROBALL",
+        "AttachedPAMOffset": {
+          "x": -97,
+          "y": -97
+        },
+        "AttachedPAMAnimationToPlay": [
+          "animation5"
+        ],
+        "CollisionRect": {
+          "mX": -10.0,
+          "mY": -10.0,
+          "mWidth": 20.0,
+          "mHeight": 20.0
+        },
+        "DiesOnImpact": true,
+        "ImpactSoundEvent": "Play_Splat",
+        "ImpactPAM": "POPANIM_EFFECTS_ELECTRIC_PEASHOOTER_ELECTROBALL_EFFECTS",
+        "ImpactPAMAnimationToPlay": [
+          "animation3"
+        ],
+        "ImpactOffset": [
+          {
+            "Min": 0.0,
+            "Max": 0.0
+          },
+          {
+            "Min": 0.0,
+            "Max": 0.0
+          }
+        ]
+      }
+    }
+  ]
+}

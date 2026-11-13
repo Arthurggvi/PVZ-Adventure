@@ -106,6 +106,7 @@ const BASE_ITEMS: Dictionary = {
 	"recipe_p049": {"subject": "反向双发射手", "category": "recipe"},
 	"recipe_p050": {"subject": "闪电芦苇", "category": "recipe"},
 	"recipe_p051": {"subject": "回旋镖射手", "category": "recipe"},
+	"recipe_p052": {"subject": "电能豌豆", "category": "recipe"},
 	"lawn_nightmare_key": {"subject": "草坪", "category": "key"},
 	"zombie_island.fallen_camp.nightmare_key": {"subject": "没落营地", "category": "key"},
 	"zombie_island.grave_upstream.nightmare_key": {"subject": "墓地上游", "category": "key"},
