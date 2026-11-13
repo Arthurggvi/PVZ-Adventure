@@ -4,6 +4,9 @@
     941
   ],
   "profile_scale": 1.0,
+  "camp_position": [450, 420],
+  "camp_scale": 0.95,
+  "title_position": [724, 421],
   "profile_position": [22, 22],
   "profile_action": [
     208,

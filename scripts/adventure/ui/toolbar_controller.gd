@@ -86,6 +86,7 @@ func _on_scene_changed(_signal_scene: Node = null) -> void:
 func _sync_scene_from_tree() -> void:
 	_apply_host_scene(get_tree().current_scene)
 
+## [param scene] 为当前真实宿主；清理旧表现后读取其显式停靠偏好，不改变功能注册或解锁条件。
 func _apply_host_scene(scene: Node) -> void:
 	if is_instance_valid(_onboarding):
 		_onboarding.reset()
@@ -95,6 +96,9 @@ func _apply_host_scene(scene: Node) -> void:
 	_modal = null
 	_modal_feature = ""
 	_host_scene = scene
+	var coastal: bool = is_instance_valid(scene) and scene.has_method("uses_coastal_dock") \
+		and bool(scene.call("uses_coastal_dock")) # 只有宿主显式启用海滨停靠，其余地图和战斗保持原样。
+	_view.set_coastal_presentation(coastal)
 	_view.reset_for_scene()
 	_host_allowed = is_instance_valid(scene) and scene.is_in_group(HOST_GROUP)
 	visible = _host_allowed

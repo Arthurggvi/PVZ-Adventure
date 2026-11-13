@@ -9,6 +9,10 @@ const Entries=preload("res://scripts/ui/start_menu/building_entry_layer.gd")
 const Profile=preload("res://scripts/adventure/ui/adventure_profile_hud.gd")
 const Dialogs=preload("res://scripts/ui/start_menu/coastal/menu_dialogs.gd")
 const FONT=preload("res://assets/fonts/方正少儿_GBK.ttf")
+## 中央出征道具与标题组成独立前景，继续复用真实入口门面。
+const Camp=preload("res://scripts/ui/start_menu/coastal/expedition_camp.gd")
+## 原生字体绘制的主标题，不烘焙进美术贴图。
+const CampTitle=preload("res://scripts/ui/start_menu/coastal/camp_title.gd")
 ## 只作为交付核对钩子，实际功能通过同一门面。
 signal feature_requested(entry_id: String, accepted: bool)
 ## 可复用合成/时钟实例；随菜单退出一起释放。
@@ -19,6 +23,8 @@ var canvas: Control
 var entry_layer: Control
 var profile_hud: Control
 var dialogs: CanvasLayer
+## 中央远征前景；时间和权限均由宿主提供。
+var camp: Control
 ## 单调动作计时；不读取系统日期决定风和船的位置。
 var elapsed := 0.0
 var _last_ticks := 0
@@ -61,6 +67,17 @@ func _ready() -> void:
 	entry_layer.highlight_changed.connect(host.set_entry_hover)
 	entry_layer.action_requested.connect(func(id: String, accepted: bool):feature_requested.emit(id,accepted))
 	var layout: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(PACK+"/config/ui_layout.json")) # 已确认布局，不把UI烘焙进背景。
+	camp=Camp.new()
+	camp.name="ExpeditionCamp"
+	camp.configure(AdventureToolbar.feature_status,AdventureToolbar.request_feature,_entries_blocked,FONT)
+	canvas.add_child(camp)
+	camp.position=Vector2(layout.camp_position[0],layout.camp_position[1])
+	camp.scale=Vector2.ONE*float(layout.camp_scale)
+	camp.action_requested.connect(func(accepted: bool):feature_requested.emit("expedition",accepted))
+	var title := CampTitle.new() # 主标题位于两名植物角色之间，始终穿透输入。
+	title.configure(FONT)
+	title.position=Vector2(layout.title_position[0],layout.title_position[1])
+	canvas.add_child(title)
 	profile_hud=Profile.new()
 	profile_hud.theme=preload("res://scripts/adventure/island_ui.gd").make_theme()
 	profile_hud.configure_coastal_presentation()
@@ -69,6 +86,8 @@ func _ready() -> void:
 	profile_hud.position=Vector2(layout.profile_position[0],layout.profile_position[1])
 	profile_hud.add_action("存档",_open_profiles)
 	profile_hud.mouse_filter=Control.MOUSE_FILTER_STOP
+	_connect_camp_focus()
+	_apply_time()
 	var transition := preload("res://scenes/ui/transitions/SceneTransition.tscn").instantiate() # 地图导航共享原过渡服务。
 	transition.name="SceneTransition"
 	add_child(transition)
@@ -105,6 +124,24 @@ func _process(_delta: float) -> void:
 
 func _apply_time() -> void:
 	host.apply_uniforms(clock.values,float(clock.values.get("water_time_gain",1.0)))
+	if camp!=null:
+		camp.set_environment(clock.values,elapsed)
+
+## 正式菜单使用紧凑功能区，其他地图和战斗继续原工具栏表现。
+func uses_coastal_dock() -> bool:
+	return true
+
+## 将前景和存档动作加入原建筑焦点环，不创建另一套键盘输入路由。
+func _connect_camp_focus() -> void:
+	var harbor: Control=entry_layer.controls["harbor"] # 原建筑环最后一个入口。
+	var home: Control=entry_layer.controls["home"] # 原建筑环第一个入口。
+	var save_action: Control=profile_hud.get_node("Action") # 仍调用原档案选择器。
+	harbor.focus_next=harbor.get_path_to(camp)
+	camp.focus_previous=camp.get_path_to(harbor)
+	camp.focus_next=camp.get_path_to(save_action)
+	save_action.focus_previous=save_action.get_path_to(camp)
+	save_action.focus_next=save_action.get_path_to(home)
+	home.focus_previous=home.get_path_to(save_action)
 
 ## [param hour] 为制作/验收显示覆盖；不修改系统时钟、存档或动作计时。
 func set_preview_hour(hour: float) -> void:
