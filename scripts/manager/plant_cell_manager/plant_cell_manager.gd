@@ -528,7 +528,7 @@ func rebuild_plant_counts() -> void:
 	curr_plant_num.clear()
 	var seen: Dictionary[int, bool] = {} # 按实例身份去重，不按格子数累计。
 	for cell: PlantCell in board.cells(): # 占用仍由格子唯一持有。
-		for reference: Variant in cell.plant_in_cell.values(): # 先检查可能已失效的引用。
+		for reference: Variant in cell.living_plants(): # 先检查可能已失效的引用。
 			if not is_instance_valid(reference):
 				continue
 			var plant := reference as Plant000Base # 已经在场的正式植物。

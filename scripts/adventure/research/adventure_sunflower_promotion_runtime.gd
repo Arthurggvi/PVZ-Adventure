@@ -61,6 +61,8 @@ func _on_card_committed(card: Card, consumed_free: bool) -> void:
 		card.set_card_cool_end()
 		card.arm_resonance_next_free()
 		card.judge_sun_enough(_slots.sun_value)
+	# 阳光菇沿用同一次成功结算；续种标记和减免由实际出战卡持有。
+	AdventureSunShroomCardEffects.on_card_committed(card, consumed_free, _slots)
 
 func _on_board_changed() -> void:
 	if _refresh_pending:
@@ -90,7 +92,7 @@ func _refresh_blessings() -> void:
 		if not has_source:
 			continue
 		for target_cell: PlantCell in game.board.horizontal_neighbors(source_cell): # 前后拓扑邻格。
-			for candidate: Variant in target_cell.plant_in_cell.values(): # 多格植物按实例去重。
+			for candidate: Variant in target_cell.living_plants(): # 普通与伴生活株均受益，多格植物按实例去重。
 				var plant: Plant000Base = candidate as Plant000Base # 当前候选。
 				if _active(plant):
 					next[plant.get_instance_id()] = plant

@@ -96,7 +96,7 @@ func can_commit() -> bool:
 	for cell: PlantCell in board.cells(): # 包含模仿者槽，不用不完整的展示数量判断。
 		if not is_instance_valid(cell) or cell.is_queued_for_deletion():
 			return false
-		for reference: Variant in cell.plant_in_cell.values(): # 任何仍有效的占用均不能被读档隐式覆盖。
+		for reference: Variant in cell.plant_entities(): # 任何仍有效的占用均不能被读档隐式覆盖。
 			if is_instance_valid(reference):
 				return false
 		if is_instance_valid(cell.tombstone) or is_instance_valid(cell.ladder) or is_instance_valid(cell.pot) \

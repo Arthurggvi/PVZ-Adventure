@@ -26,6 +26,8 @@ var _sun_surcharge: int = 0
 ## Battlefield-only, per-card temporary costs; never enter persistent card data.
 ## 本卡下次成功种植时消费的一次性费用减免。
 var _next_planting_discount: int = 0
+## 本卡下次成功种植是否为减免续种；独立于普通减免，阻止续种再次发放自身奖励。
+var _next_planting_followup: bool = false
 ## 协同按场上同种植物数量刷新，仅影响本局费用和后续冷却。
 var _pea_synergy_count: int = 0
 var _resonance_next_free: bool = false
@@ -146,18 +148,27 @@ func add_next_planting_discount(amount: int) -> void:
 	_next_planting_discount += amount
 	_refresh_battle_sun_cost()
 
+## 让本卡下次成功种植减免 [param amount] 点阳光并消费一次续种标记。[br]
+## 结算费用最低为 0；非正数或已经持有续种标记时不叠加，失败放置不消费。
+func arm_next_planting_discount_followup(amount: int) -> void:
+	if amount <= 0 or _next_planting_followup:
+		return
+	_next_planting_followup = true
+	add_next_planting_discount(amount)
+
 func arm_resonance_next_free() -> void:
 	_resonance_next_free = true
 	_refresh_battle_sun_cost()
 
-## Called exactly once AFTER the slot deducts the successfully used card's current cost.
-## Returns whether this placement consumed the one-shot free resonance.
+## 卡槽按当前费用完成成功种植扣费后调用一次，并清空本卡的一次性费用收益。[br]
+## 返回本次是否消费免费或减免续种；普通花田等减免不阻止发放新的续种奖励。
 func consume_adventure_cost_effects() -> bool:
-	var was_free := _resonance_next_free
+	var consumed_followup: bool = _resonance_next_free or _next_planting_followup # 本次已使用的续种奖励。
 	_resonance_next_free = false
+	_next_planting_followup = false
 	_next_planting_discount = 0
 	_refresh_battle_sun_cost()
-	return was_free
+	return consumed_followup
 ## 是否处于冷却中。
 var _is_cooling: bool = false
 ## 当前费用是否已被卡槽判定为足够。
@@ -177,6 +188,14 @@ func adventure_adjust_remaining_cooldown(seconds: float) -> void:
 	if _cool_timer <= 0:
 		_is_cooling = false
 		judge_card_ready()
+
+## 将当前剩余冷却乘以 [param factor]；负数按 0 处理，0 立即结束冷却。[br]
+## 已就绪卡保持原状，不改基础冷却、遮罩最大值或后续冷却的事件倍率。
+func adventure_multiply_remaining_cooldown(factor: float) -> void:
+	if not _is_cooling:
+		return
+	adventure_adjust_remaining_cooldown(_cool_timer * (maxf(0.0, factor) - 1.0))
+
 ## 当前是否可以使用，由冷却、费用和种植条件共同决定。
 var is_can_click: bool = true
 ## 临时卡消失前的闪烁补间；停止时释放引用。

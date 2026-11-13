@@ -22,7 +22,7 @@ static func hit_plants(lane: int, before_x: float, after_x: float,
         if center < minf(before_x, after_x) - cell.size.x * 0.5 \
                 or center > maxf(before_x, after_x) + cell.size.x * 0.5:
             continue
-        for plant: Plant000Base in cell.plant_in_cell.values():
+        for plant: Plant000Base in cell.living_plants(): # 不占种植位的伴生同样参与目标选择或伤害。
             if not is_instance_valid(plant) or plant.is_death or plant.is_queued_for_deletion():
                 continue
             var id: int = plant.get_instance_id()

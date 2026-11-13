@@ -2,10 +2,6 @@ extends ResourcePlantCondition
 class_name ResourcePlantConditionCoffeeBean
 
 
-## 特殊植物种植函数判断是否可以种植，特殊植物重写,如墓碑吞噬者，咖啡豆等
-func _judge_special_plants_condition(plant_cell:PlantCell) -> bool:
-	## 如果norm位置植物在睡觉,可以种植
-	if is_instance_valid(plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]) and plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm].is_sleeping:
-		return true
-	else:
-		return false
+## [param plant_cell] 的普通层或伴生层存在睡眠植物时才可种植，复用实际唤醒的目标查询。
+func _judge_special_plants_condition(plant_cell: PlantCell) -> bool:
+	return is_instance_valid(plant_cell) and plant_cell.sleeping_plant() != null

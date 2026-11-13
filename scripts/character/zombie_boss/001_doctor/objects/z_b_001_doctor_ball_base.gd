@@ -230,8 +230,8 @@ func _can_crush_plant(plant_reference: Variant) -> bool:
 ## 碾压命中格子的全部有效植物层，复用现有压扁外观、死亡信号和格子清理流程。[br]
 ## [param cell] 已通过行号检查的目标格子；植物死亡时允许其字典同步变化。
 func _crush_cell(cell: PlantCell) -> void:
-	# values() 只固定遍历列表，不延长植物的生命周期；其中仍可能含有已释放的引用。
-	var plants: Array = cell.plant_in_cell.values()
+	# 活株副本包括伴生，但不延长植物生命周期；伤害期间仍可能有引用被释放。
+	var plants: Array = cell.living_plants()
 	# 先保留为 Variant，避免已释放引用在进入循环体前赋给 Plant000Base 时直接报错。
 	for plant_reference: Variant in plants:
 		# 植物死亡可能同步触发克制事件并移除本球，此时不能继续碾压下一层植物。

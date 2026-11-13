@@ -186,9 +186,11 @@ func _attack_zombie(zombie:Zombie000Base):
 	zombie.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx)
 
 
-## 对植物敌人造成伤害
+## 对 [param plant] 所在格的有效目标造成伤害；同帧被移除的目标不再调用受击接口。
 func _attack_plant(plant:Plant000Base):
 	plant = get_first_be_hit_plant_in_cell(plant)
+	if not is_instance_valid(plant) or plant.is_death or plant.is_queued_for_deletion():
+		return
 	## 攻击敌人
 	plant.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx)
 

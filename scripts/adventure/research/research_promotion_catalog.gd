@@ -10,17 +10,20 @@ const REQUIREMENTS := [5, 7, 9, 10]
 const ExistingBooks = preload("res://scripts/adventure/research/research_existing_promotion_books.gd")
 ## 小喷菇的定义模块，与既有书目共同组成同一查询目录。
 const PuffBooks = preload("res://scripts/adventure/research/research_puff_promotion_books.gd")
+## 阳光菇的定义模块，沿用相同的转职校验与物品展示入口。
+const SunShroomBooks = preload("res://scripts/adventure/research/research_sunshroom_promotion_books.gd")
 ## 全书目只在类初始化时汇总一次；消费者仍使用原有BOOKS入口。
 static var BOOKS: Dictionary = _build_books()
 
 ## 返回全部合法书目的深副本；重复ID报错，不覆盖已有定义。
 static func _build_books() -> Dictionary:
 	var books: Dictionary = ExistingBooks.BOOKS.duplicate(true) # 汇总结果不共享定义模块内部字典。
-	for id: String in PuffBooks.BOOKS: # 稳定技能书ID也是存档中的选择值。
-		if books.has(id):
-			push_error("重复的转职书ID：%s" % id)
-			continue
-		books[id] = PuffBooks.BOOKS[id].duplicate(true)
+	for module: Dictionary in [PuffBooks.BOOKS, SunShroomBooks.BOOKS]: # 新物种沿用统一的重复ID检查。
+		for id: String in module: # 稳定技能书ID也是存档中的选择值。
+			if books.has(id):
+				push_error("重复的转职书ID：%s" % id)
+				continue
+			books[id] = module[id].duplicate(true)
 	return books
 
 ## 返回 [param id] 的定义副本；未知ID返回空字典。

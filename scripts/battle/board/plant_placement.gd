@@ -1,4 +1,4 @@
-## 植物放置的离树准备对象；玩家、预种植和读档共用构造及占用提交。
+## 植物放置的离树准备对象；占位与伴生共用构造、资格校验和生命周期提交。
 extends RefCounted
 class_name PlantPlacement
 
@@ -35,6 +35,8 @@ static func prepare(target: PlantCell, species: CharacterRegistry.PlantType,
 		return null
 	if profile != null and not profile.matches_plant_type(int(species)):
 		return null
+	if placement_origin == PlantCell.PlacementOrigin.Companion and (is_imitater or zombie_mode):
+		return null
 	var plan := PlantPlacement.new() # 仅持有准备结果，不写入占用字典。
 	plan.cell = target
 	plan.origin = placement_origin
@@ -48,13 +50,13 @@ static func prepare(target: PlantCell, species: CharacterRegistry.PlantType,
 	plan.footprint = plan.condition.placement_cells(target)
 	if plan.footprint.is_empty() or not plan._valid_geometry():
 		return null
-	if placement_origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.Spawned] \
-			and not plan.condition.judge_is_can_plant(target, species):
+	if placement_origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.Spawned, PlantCell.PlacementOrigin.Companion] \
+			and not plan.condition.judge_is_can_plant(target, species, placement_origin == PlantCell.PlacementOrigin.Companion):
 		return null
 	if plan.condition.is_purple_card and placement_origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.LevelSetup]:
 		plan.claims = plan.condition.get_upgrade_claims(target, species)
 	if placement_origin != PlantCell.PlacementOrigin.SaveRestore \
-			and not target._placement_is_available(plan.condition, plan.footprint, plan.claims):
+			and not plan._placement_is_available():
 		return null
 	plan.plant = PlantSceneFactory.create(CharacterRegistry.PlantType.P999Imitater if is_imitater else species)
 	if plan.plant == null:
@@ -86,14 +88,20 @@ func can_commit() -> bool:
 	if committed or not is_instance_valid(plant) or plant.get_parent() != null \
 			or not _valid_geometry() or condition.placement_cells(cell) != footprint:
 		return false
-	if origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.Spawned] \
-			and not condition.judge_is_can_plant(cell, species):
+	if origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.Spawned, PlantCell.PlacementOrigin.Companion] \
+			and not condition.judge_is_can_plant(cell, species, origin == PlantCell.PlacementOrigin.Companion):
 		return false
 	if not claims.is_empty():
 		var current: Array[Dictionary] = condition.get_upgrade_claims(cell,
 			species) # 防止准备后前置被替换。
 		if current != claims:
 			return false
+	return _placement_is_available()
+
+## 普通植物独占种植位；伴生植物只保留同格同物种的唯一实例。
+func _placement_is_available() -> bool:
+	if origin == PlantCell.PlacementOrigin.Companion:
+		return footprint.size() == 1 and cell.can_host_companion(int(species))
 	return cell._placement_is_available(condition, footprint, claims)
 
 ## 检查地块身份、去重与平台边界，不依赖临时矩阵。

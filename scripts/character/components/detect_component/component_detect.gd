@@ -261,27 +261,27 @@ func _on_detect_character(enemy:Character000Base) -> bool:
 	else:
 		return false
 
-## 获取应该被攻击的植物,在当前植物格子中
-func get_first_be_hit_plant_in_cell(plant:Plant000Base)->Plant000Base:
-	## shell
-	#prints("植物是否合法", is_instance_valid(plant), plant.name)
-	if is_instance_valid(plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Shell]):
-		return plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Shell]
-	elif is_instance_valid(plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]):
-		return plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]
-	elif is_instance_valid(plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Imitater]):
-		return plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Imitater]
-	elif is_instance_valid(plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Down]):
-		return plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Down]
-	elif is_instance_valid(plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Float]):
-		if can_attack_plant_status & 2:
-			return plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Float]
-		else:
-			printerr("当前位置有悬浮植物，但角色不攻击悬浮植物")
-			return null
-	else:
-		printerr("当前植物格子没有植物")
+## [param plant] 是实际碰撞植物；壳与普通层仍优先，伴生在承托层之前受击。
+func get_first_be_hit_plant_in_cell(plant: Plant000Base) -> Plant000Base:
+	if not is_instance_valid(plant) or not is_instance_valid(plant.plant_cell):
 		return null
+	var cell: PlantCell = plant.plant_cell # 读取当前格子，不缓存已经移除的目标。
+	for slot: CharacterRegistry.PlacePlantInCell in [CharacterRegistry.PlacePlantInCell.Shell,
+			CharacterRegistry.PlacePlantInCell.Norm, CharacterRegistry.PlacePlantInCell.Imitater]: # 保留既有前排优先级。
+		var candidate: Variant = cell.plant_in_cell.get(slot) # 模仿者槽可能不存在，必须使用安全查询。
+		if is_instance_valid(candidate) and not candidate.is_death and not candidate.is_queued_for_deletion():
+			return candidate as Plant000Base
+	var companion: Plant000Base = cell.first_companion_plant() # 不占位植物仍可被普通僵尸啃食。
+	if companion != null:
+		return companion
+	var support: Variant = cell.plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Down) # 前排为空才攻击承托。
+	if is_instance_valid(support) and not support.is_death and not support.is_queued_for_deletion():
+		return support as Plant000Base
+	var floating: Variant = cell.plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Float) # 保留悬浮状态资格。
+	if is_instance_valid(floating) and not floating.is_death and not floating.is_queued_for_deletion() \
+			and (can_attack_plant_status & 2):
+		return floating as Plant000Base
+	return null
 
 ## 判断敌人状态是否可以被攻击
 func _judge_enemy_is_can_be_attack(enemy:Character000Base)->bool:

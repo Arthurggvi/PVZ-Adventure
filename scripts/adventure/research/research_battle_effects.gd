@@ -69,12 +69,13 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 	var potato_events: Array[Dictionary] = []
 	var cherry_events: Array[Dictionary] = [] # 交给樱桃炸弹本身冻结，等原版引信结算。
 	var puff_events: Array[Dictionary] = [] # 孢子的射击与命中能力按单株冻结。
+	var sunshroom_events: Array[Dictionary] = [] # 阳光菇的成长、光环与储蓄按实际植株执行。
 	for event: Dictionary in resolved.events:
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
 				plant.battle_negative_effect_immune = true
-			"puff_day_awake":
-				# 出生修饰发生在入树前，使白昼耐心从一开始就不进入睡眠状态。
+			"puff_day_awake", "sunshroom_day_awake":
+				# 出生修饰发生在入树前，耐日技能从一开始就不进入睡眠状态。
 				plant.is_sleep_in_day = false
 			"wallnut_hit_cap":
 				var hp: HpComponentPlant = plant.get_node_or_null("HpComponent") as HpComponentPlant
@@ -92,6 +93,15 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 					cherry_events.append(event)
 				elif kind.begins_with("puff_"):
 					puff_events.append(event)
+				elif kind.begins_with("sunshroom_"):
+					sunshroom_events.append(event)
+	if not sunshroom_events.is_empty():
+		if not plant is Plant010SunShroom:
+			push_error("阳光菇转职事件需要对应的战斗植物")
+			return false
+		var sunshroom_controller := AdventureSunShroomPromotionEffects.new() # 成长事件与实际生产共用单株生命周期。
+		sunshroom_controller.configure(plant as Plant010SunShroom, sunshroom_events)
+		plant.add_child(sunshroom_controller)
 	if not puff_events.is_empty():
 		if not plant is Plant009Puff:
 			push_error("小喷菇转职事件需要对应的战斗植物")
@@ -125,7 +135,13 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 	if modifiers.has("sun_production_rate"):
 		var bonus: float = clampf(float(modifiers.sun_production_rate.get("percent", 0.0)), 0.0, 0.15)
 		component.create_time_range_other /= 1.0 + bonus
-	if modifiers.has("sun_value"):
+	if plant is Plant010SunShroom:
+		var sunshroom := plant as Plant010SunShroom # 两个生长阶段保留各自加成后的基础产值。
+		sunshroom.time_grow = Promotions.resolve_stat(sunshroom.time_grow, modifiers.get("growth_time", {}))
+		if modifiers.has("sun_value"):
+			sunshroom.mini_sun_value = roundi(Promotions.resolve_stat(float(sunshroom.mini_sun_value), modifiers.sun_value))
+			sunshroom.norm_sun_value = roundi(Promotions.resolve_stat(float(sunshroom.norm_sun_value), modifiers.sun_value))
+	elif modifiers.has("sun_value"):
 		component.change_sun_value(roundi(Promotions.resolve_stat(
 			float(component.sun_value), modifiers.sun_value)))
 	for event: Dictionary in resolved.events:

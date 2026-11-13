@@ -59,7 +59,7 @@ func advance(boss: ZB002BlackGeneral, cells: Array, delta: float, shadow: Node2D
 		var bounds: Rect2 = cell.get_global_rect() # 格子世界范围；从格内开始冲锋也能命中。
 		if bounds.position.x >= from_x or bounds.end.x <= to_x:
 			continue
-		for candidate: Variant in cell.plant_in_cell.values(): # 可在伤害回调中被删除的植物快照。
+		for candidate: Variant in cell.living_plants(): # 可在伤害回调中被删除的植物快照。
 			if not is_instance_valid(candidate) or not candidate is Plant000Base:
 				continue
 			var plant: Plant000Base = candidate # 已检查类型的活体引用。

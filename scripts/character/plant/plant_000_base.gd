@@ -13,8 +13,10 @@ class_name Plant000Base
 @export var plant_type:CharacterRegistry.PlantType
 ## 植物初始化受击状态（从1[is_norm] 开始）僵尸攻击检测时判断是否可以攻击
 @export var init_be_attack_status :E_BeAttackStatusPlant = E_BeAttackStatusPlant.IsNorm
-## 是否白天睡觉
+## 当前是否遵循日眠；转职可独立关闭此行为，不改变原始蘑菇身份。
 @export var is_sleep_in_day:bool = false
+## 初始化时冻结场景的原生日眠属性；永久或转职唤醒后仍用于蘑菇光环判定。
+var native_day_sleep: bool = false
 ## 植物是否可以挂载梯子(Nrom位置植物使用)
 @export var is_can_ladder := false
 ## 植物当前状态，僵尸攻击检测时判断是否可以攻击
@@ -122,9 +124,11 @@ enum E_PInitAttr{
 	GardenDate,			## 花园数据
 	IsZombieMode,			## 我是僵尸模式
 }
-## 植物初始化相关, 创建植物时 加入场景树之前赋值
+## [param plant_init_para] 提供初始化类型、格子及模式；在入树和出战修饰前调用。
+## 同时冻结场景原生日眠属性，使后续常醒转职不改变蘑菇身份。
 func init_plant(plant_init_para:Dictionary):
-	#init_type:E_CharacterInitType=E_CharacterInitType.IsNorm, plant_cell:PlantCell=null, garden_date:Dictionary={}) -> void:
+	# init_plant 先于冻结出战修饰；保留原始身份，避免一转免睡后被光环遗漏。
+	native_day_sleep = is_sleep_in_day
 	self.character_init_type = plant_init_para[E_PInitAttr.CharacterInitType]
 	self.is_imitater_material = plant_init_para.get(E_PInitAttr.IsImitaterMaterial, false)
 	self.is_zombie_mode = plant_init_para.get(E_PInitAttr.IsZombieMode, false)
@@ -287,13 +291,14 @@ func preplant_purple_body_light_and_dark_end():
 	body.body_light_and_dark_end()
 
 #endregion
-## 睡眠植物被咖啡豆唤醒
+## 咖啡豆沿用一点五秒的原生伸缩动画，完成后授予独立的永久唤醒。
+## 动画期间即使已被月光唤醒，也不会丢失咖啡豆的永久效果。
 func coffee_bean_awake_up():
-	var tween:Tween = create_tween()
+	var tween: Tween = create_tween() # 绑定植物生命周期，离树后不唤醒其他实例。
 	tween.tween_property(body, ^"scale:y", 0.8, 0.5)
 	tween.tween_property(body, ^"scale:y", 1.2, 0.5)
 	tween.tween_property(body, ^"scale:y", 1, 0.5)
-	tween.tween_callback(sleep_component.end_sleep)
+	tween.tween_callback(sleep_component.wake_permanently)
 
 
 ## 植物修改睡眠
@@ -313,19 +318,22 @@ func get_curr_plant_data():
 
 ## 获取植物存档数据
 func gat_save_game_data_plant()->Dictionary:
-	var save_game_data_plant:Dictionary = {}
+	var save_game_data_plant: Dictionary = {} # 基础身份、生命与永久唤醒，不保存临时光环来源。
 	save_game_data_plant["is_sleeping"] = is_sleeping
+	# 临时光环只重建来源，不把保存时的清醒误存成永久咖啡豆效果。
+	save_game_data_plant["is_permanently_awake"] = sleep_component.is_permanently_awake
 	save_game_data_plant["plant_type"] = plant_type
 	save_game_data_plant["curr_hp"] = hp_component.curr_hp
 	save_game_data_plant["is_imitater_material"] = is_imitater_material
 	return save_game_data_plant
 
-## 读档植物数据
+## 恢复 [param save_game_data_plant] 的生命及永久唤醒；临时光环仍由当前场上来源决定。
+## 旧档没有永久字段时，仅将日眠环境中本应睡眠的清醒状态视为咖啡豆效果。
 func load_game_data_plant(save_game_data_plant:Dictionary):
-	## 原本是睡觉，存档不睡觉
-	if is_sleeping and not save_game_data_plant.get("is_sleeping", true):
-		is_sleeping = false
-		sleep_component.end_sleep()
+	var legacy_awake: bool = is_sleep_in_day and sleep_component.is_sleep_environment() \
+		and not bool(save_game_data_plant.get("is_sleeping", true)) # 兼容旧版白天咖啡豆存档。
+	sleep_component.restore_permanent_awake(bool(save_game_data_plant.get(
+		"is_permanently_awake", legacy_awake)))
 
 	hp_component.curr_hp = save_game_data_plant["curr_hp"]
 	hp_component.signal_hp_loss.emit(hp_component.curr_hp, true)
@@ -336,4 +344,5 @@ func accepts_save_state(state: Dictionary) -> bool:
 	return state.get("plant_type") is int and int(state["plant_type"]) == int(plant_type) \
 		and state.get("curr_hp") is int and int(state["curr_hp"]) > 0 \
 		and state.get("is_imitater_material") is bool \
-		and (not state.has("is_sleeping") or state["is_sleeping"] is bool)
+		and (not state.has("is_sleeping") or state["is_sleeping"] is bool) \
+		and (not state.has("is_permanently_awake") or state["is_permanently_awake"] is bool)

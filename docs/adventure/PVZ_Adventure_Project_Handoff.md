@@ -76,14 +76,19 @@
 
 ## 3.1｜植物转职书、技能生成与负面状态
 
-- **书目唯一来源**：`scripts/adventure/research/research_promotion_catalog.gd` 汇总 `research_existing_promotion_books.gd` 与 `research_puff_promotion_books.gd`；`ItemRegistry` 自动把目录中的书注册为道具，不再双处手填。书封、植物头像与研究室选项仍复用 `promotion_book_visual.gd` 和冻结卡牌快照。
+- **书目唯一来源**：`scripts/adventure/research/research_promotion_catalog.gd` 汇总 `research_existing_promotion_books.gd`、`research_puff_promotion_books.gd` 与 `research_sunshroom_promotion_books.gd`；`ItemRegistry` 自动把目录中的书注册为道具，不再双处手填。书封、植物头像与研究室选项仍复用 `promotion_book_visual.gd` 和冻结卡牌快照。
 - **小喷菇出生/射击**：`AdventureResearchBattleEffects.apply` 入树前应用白昼耐心，挂载 `AdventurePuffPromotionEffects`；控制器等植物就绪后取得攻击组件与来源配方，再按路径加载派生弹体场景；禁止在全局类静态预加载该场景，避免与注册表形成资源加载环。`bullet_003_puff_adventure.tscn` 继承原孢子场景，由 `AdventurePuffProjectileEffects` 补充距离伤害、实际击杀与命中异常。全行同时扩索敌与弹体射程，按当前棋盘几何更新；孢涌按发射时格距区分半格内二倍、一格内原伤、之外半伤。
 - **玩家扩种钩子**：成功的 `HMCharacter.click_cell` → `PlantSpawnProfile.player_placement_committed` → `PlantSpawnModifier` 所属模式 → `AdventurePuffPropagation`。主格只结算一次费用/冷却；十字子株、感染与恢复都不再次触发该钩子。子株继承不可变来源的 UID、星级与已选分支，不能再乘母株已经计算的战斗倍率。
 - **技能生成事务**：`PlantCell.PlacementOrigin.Spawned` 与玩家放置共用完整资格预检与提交前复核；占格、地形、承托、墓碑和具名禁种均生效。感染经 `BoardRuntime.cell_at_ground_point` 按实际脚点/攻击行找格，不能把盘外或稀疏空洞吸附到最近格；延迟提交复核同战场/棋盘/轮次和活动战斗，结算或续战询问期间不生成。
+- **阳光菇成长与生产**：`Plant010SunShroom.signal_matured` 仅在首次正常成长发出，恢复成熟状态不补发。潮汐能只改成长基础时长；代谢分别修饰幼体/成年产值，不能在 ready 或成熟时被原值覆盖。`AdventureSunShroomPromotionEffects` 等父株 ready 后读取冻结 profile，成熟逐株触发扩散或蜂群。`CreateSunComponent.production_created(total_value)` 只统计实际创建的生产阳光；储蓄各株独立、上限500，统一死亡通知只提现一次，奖励接口不回流生产事件。高额提现经 `spawn_specific_sun_batch` 拆成每份不超过50的原生阳光。
+- **不占位技能子株**：`PlacementOrigin.Companion` 沿用 `PlantPlacement → PlantCell.commit_prepared_plant`，只为单格普通 Norm 植物跳过普通槽冲突，地形、承托、障碍及禁种仍须通过。伴生由格子独立持有，每格同物种至多一株，不进入升级前置或 `plant_in_cell`；阳光菇扩散取四方向各三格，子株为完整配方的幼体，正常成熟后仍可扩散。普通种植不被伴生挡住；铲除、啃食、弹体、碾压、墓碑、坑洞、咖啡豆及受益光环共用真实实体查询。
+- **实体查询与搬迁**：`PlantCell.plant_entities()` 用于数量及恢复空场预检，`living_plants()` 用于伤害/光环，不能把“在场植物”继续等同于普通种植槽。伴生死亡同步释放；离树延后以物种及实例身份核对，承托容器短暂 reparent 不算死亡。承托搬迁只显式恢复原本活动的 `SpeedTimer` 剩余进度，不改基础周期、倍率或死亡/禁用状态；真实离树仍按计时器原契约终止任务。
+- **日眠与月光**：`SleepComponent` 独立合成原生日眠、咖啡豆永久唤醒与按来源 ID 的临时豁免；状态切换幂等，撤销一个光环不覆盖其他来源。原始蘑菇身份在 `init_plant`、出生修饰之前冻结。月光从实际 `BoardRuntime.neighbors` 范围及 `living_plants()` 取目标，种植同步刷新并低频复核，死亡/无效化撤销；短暂搬迁和真实释放必须分开，静态弱引用回收不能依赖源节点继续存活。存档永久唤醒字段不保存临时光环。
+- **成功用卡与冷却**：卡槽先扣本次显示费用、启动冷却、消费旧一次性收益，再发 `signal_card_committed(card, consumed_followup)`。阳光菇买一赠一经现有运行时委派 `AdventureSunShroomCardEffects`，只给该 UID 卡下一次成功用卡减25并立即清冷却；消费续种的那次不再授予，失败放置不消耗，技能生成不触发。蜂群调用 `halve_remaining_cooldowns`，逐张减半当前剩余时间，不修改基础/最大冷却；续战保留原卡及其待消费收益。
 - **击杀与弹体生命周期**：直接命中与毒伤都读取 `HpComponentZombie.apply_hit` 的实际死亡返回，包含保护者代伤；不要订阅目标将来的任意死亡来猜归属。礼物固定8～12颗径向孢子，孢涌不会把亡语弹数再次倍增；来源规则和配方由弹体独立持有，母株死亡不取消已发射能力。
 - **统一负面入口**：`scripts/adventure/adventure_plant_negative_effects.gd` 的 `apply(..., context)` 登记中毒/魅惑并复用原减速、眩晕、免疫与伤害路由。中毒的 amount 表示持续秒数：5层即5秒，每0.5战斗秒造成本体最大生命2%的基础毒伤；重施刷新时长，保留跳伤相位，不叠加每跳倍率。通用计时归 `AdventurePoisonEffect`，暂停、死亡、魅惑和退场按角色生命周期清理。
 - **劣化必须分通道**：`HpComponent.degradation_fraction` 只保存原不可叠加最强值；`stacked_degradation_fraction` 单独累计新劣化，每次尸变追加0.05。`total_degradation_fraction()` 只汇总结算，不反写或覆盖任一通道。尸变先判60%，再按毒/劣化/减速/眩晕/魅惑的2/2/2/2/1权重只取一种；默认减速5秒，眩晕0.5秒。
-- **验证边界**：本轮只做静态审查和Godot导入/解析，不运行测试套件；真实战斗中散射可读性、连锁感染与多状态长时间叠加仍需实机验收。正式冒险退出即放弃战斗、续战保留实体，本次不改造原版逐株中途存档。
+- **验证边界**：转职实现只做静态审查和Godot导入/解析，不运行测试套件；散射与连锁感染、伴生扩散密度、重叠月光、承托搬迁和长时间战斗仍需实机验收。正式冒险退出即放弃战斗、续战保留实体，本次不改造原版逐株中途存档；伴生不进入旧版按槽序列化格式，恢复空场预检仍必须识别它。
 
 ## 4｜天气、光场、雨声：当前需要维护的接口
 

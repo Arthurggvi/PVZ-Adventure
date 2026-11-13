@@ -48,15 +48,20 @@ func _on_area_2d_attack_area_entered(area: Area2D) -> void:
 		#print("碰撞到角色")
 		super(area)
 
-## 直线子弹先对壳类进行攻击
-func get_first_be_hit_plant_in_cell(plant:Plant000Base)->Plant000Base:
-	## shell
-	if is_instance_valid(plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Shell]):
-		return plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Shell]
-	elif is_instance_valid(plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]):
-		return plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]
-	elif is_instance_valid(plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Down]):
-		return plant.plant_cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Down]
-	else:
-		printerr("当前植物格子没有检测到可以攻击的植物")
+## [param plant] 是实际命中实体；保留普通层优先级并覆盖不占位伴生植物。
+func get_first_be_hit_plant_in_cell(plant: Plant000Base) -> Plant000Base:
+	if not is_instance_valid(plant) or not is_instance_valid(plant.plant_cell):
 		return null
+	var cell: PlantCell = plant.plant_cell # 从当前命中格子解析保护层。
+	for slot: CharacterRegistry.PlacePlantInCell in [CharacterRegistry.PlacePlantInCell.Shell,
+			CharacterRegistry.PlacePlantInCell.Norm]: # 原有两种弹道保留各自的优先顺序。
+		var candidate: Variant = cell.plant_in_cell.get(slot) # 前一回调可能已经移除了该层。
+		if is_instance_valid(candidate) and not candidate.is_death and not candidate.is_queued_for_deletion():
+			return candidate as Plant000Base
+	var companion: Plant000Base = cell.first_companion_plant() # 伴生可被子弹直接命中。
+	if companion != null:
+		return companion
+	var support: Variant = cell.plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Down) # 最后才命中承托物。
+	if is_instance_valid(support) and not support.is_death and not support.is_queued_for_deletion():
+		return support as Plant000Base
+	return null

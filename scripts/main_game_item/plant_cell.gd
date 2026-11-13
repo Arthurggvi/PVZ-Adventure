@@ -71,6 +71,9 @@ var curr_condition:int = 3
 	#CharacterRegistry.PlacePlantInCell.Imitater: null,
 }
 
+## 每个物种最多一株不占种植位的伴生植物；不进入普通层或升级前置。
+var _companion_plants: Dictionary[int, Plant000Base] = {}
+
 ## 在当前格子中对应位置的容器节点
 @onready var plant_container_node:Dictionary =  {
 	CharacterRegistry.PlacePlantInCell.Norm: $PlantNormContainer/Content,
@@ -148,20 +151,23 @@ func init_condition():
 
 #region 伽刚特尔攻击当前植物格子
 func be_gargantuar_attack(zombie_gargantuar:Zombie000Base):
-	for place_plant_in_cell in plant_in_cell:
-		if is_instance_valid(plant_in_cell[place_plant_in_cell]) and plant_in_cell[place_plant_in_cell].hurt_box_component.is_enabling:
-			## 被压扁
-			plant_in_cell[place_plant_in_cell].be_flattened_from_enemy(zombie_gargantuar)
+	for reference: Variant in living_plants(): # 巨人攻击包括同格伴生，但每个实例只结算一次。
+		if not is_instance_valid(reference):
+			continue
+		var plant := reference as Plant000Base # 前一个死亡回调后重新确认当前引用。
+		if is_instance_valid(plant) and not plant.is_death and plant.hurt_box_component.is_enabling:
+			plant.be_flattened_from_enemy(zombie_gargantuar)
 	if is_instance_valid(pot):
 		pot.open_pot_be_gargantuar()
 
 
 func plant_be_flattened():
-	for place_plant_in_cell in plant_in_cell:
-		if is_instance_valid(plant_in_cell[place_plant_in_cell]):
-			## 被压扁
-			plant_in_cell[place_plant_in_cell].be_flattened()
-			print(plant_in_cell[place_plant_in_cell].name, "被压扁")
+	for reference: Variant in living_plants(): # 压平扫描真实植物，不依赖是否占种植位。
+		if not is_instance_valid(reference):
+			continue
+		var plant := reference as Plant000Base # 前一个死亡回调后重新确认当前引用。
+		if is_instance_valid(plant) and not plant.is_death:
+			plant.be_flattened()
 
 #endregion
 
@@ -181,6 +187,7 @@ enum PlacementOrigin {
 	SaveRestore, ## 已整体预检的存档恢复。
 	Transformation, ## 模仿者等已有占用的实体转化。
 	Spawned, ## 战斗技能生成，按玩家资格校验但不消费卡片。
+	Companion, ## 不占种植位的技能子株，仍遵守地形、承托及障碍限制。
 }
 
 func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
@@ -204,11 +211,15 @@ func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Pl
 		plant_container_node[CharacterRegistry.PlacePlantInCell.Imitater].add_child(plant)
 	else:
 		plant_container_node[condition.place_plant_in_cell].add_child(plant)
-	for cell: PlantCell in placement.footprint:
-		cell.plant_in_cell[condition.place_plant_in_cell] = plant
-		plant.signal_character_death.connect(cell.one_plant_free.bind(plant))
-		# 只在实体成功加入场景并正式占用格子后更新承托地形。
-		cell._sync_support_terrain_condition()
+	if placement.origin == PlacementOrigin.Companion:
+		_companion_plants[int(placement.species)] = plant
+		plant.signal_character_death.connect(one_companion_free.bind(plant), CONNECT_ONE_SHOT)
+		plant.tree_exited.connect(_on_companion_tree_exited.bind(int(placement.species), plant.get_instance_id()))
+	else:
+		for cell: PlantCell in placement.footprint: # 普通放置才写入独占层及承托状态。
+			cell.plant_in_cell[condition.place_plant_in_cell] = plant
+			plant.signal_character_death.connect(cell.one_plant_free.bind(plant))
+			cell._sync_support_terrain_condition()
 	var plant_condition: ResourcePlantCondition = condition
 
 	if placement.play_effect:
@@ -231,6 +242,77 @@ func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Pl
 
 	return plant
 
+## [param species] 在本格有独立伴生名额；排队释放期间仍保留名额，避免重复计数。
+func can_host_companion(species: int) -> bool:
+	return not _companion_plants.has(species)
+
+## 返回本格尚未释放的全部实体；恢复预检与数量查询不能忽略排队删除的植物。
+func plant_entities() -> Array[Plant000Base]:
+	var result: Array[Plant000Base] = [] # 保持占位层原顺序，同时按实例去重。
+	for reference: Variant in plant_in_cell.values() + _companion_plants.values(): # 枚举副本不改权威集合。
+		if not is_instance_valid(reference):
+			continue
+		var plant := reference as Plant000Base # 通过引用校验后才转换类型。
+		if plant != null and not result.has(plant):
+			result.append(plant)
+	return result
+
+## 返回本格全部存活实体的副本；占位层与伴生层统一供攻击、光环和清理查询。
+func living_plants() -> Array[Plant000Base]:
+	var result: Array[Plant000Base] = [] # 排除退场和已经结算死亡的实体。
+	for plant: Plant000Base in plant_entities(): # 此只读遍历不会触发删除回调。
+		if plant.is_inside_tree() and not plant.is_death and not plant.is_queued_for_deletion():
+			result.append(plant)
+	return result
+
+## 返回一个可交互的伴生实体，供没有普通层目标时的攻击与铲子查询。
+func first_companion_plant() -> Plant000Base:
+	for reference: Variant in _companion_plants.values(): # 暂时离树或延迟释放的引用不能成为目标。
+		if not is_instance_valid(reference):
+			continue
+		var plant := reference as Plant000Base # 当前候选的真实植株。
+		if plant.is_inside_tree() and not plant.is_death and not plant.is_queued_for_deletion():
+			return plant
+	return null
+
+## [param species] 与 [param instance_id] 冻结离树身份；承托容器搬迁也会触发此通知。
+func _on_companion_tree_exited(species: int, instance_id: int) -> void:
+	_release_departed_companion.call_deferred(species, instance_id)
+
+## 延后区分容器搬迁与真正释放；[param species] 的新实例不会被旧 [param instance_id] 清除。
+func _release_departed_companion(species: int, instance_id: int) -> void:
+	if not _companion_plants.has(species):
+		return
+	var reference: Variant = _companion_plants[species] # 可能已释放，只能先按Variant校验。
+	if is_instance_valid(reference):
+		if reference.get_instance_id() != instance_id or reference.is_inside_tree():
+			return
+	_companion_plants.erase(species)
+	if is_inside_tree() and not is_queued_for_deletion():
+		signal_plant_free.emit(self, species as CharacterRegistry.PlantType)
+
+## [param plant] 死亡或直接离树时只释放自己的伴生记录；不会清除普通种植层。
+func one_companion_free(plant: Plant000Base) -> void:
+	if not is_instance_valid(plant) or _companion_plants.get(int(plant.plant_type)) != plant:
+		return
+	_companion_plants.erase(int(plant.plant_type))
+	signal_plant_free.emit(self, plant.plant_type)
+	if is_inside_tree() and is_instance_valid(button) and is_mouse_in_ui(button):
+		_on_button_mouse_entered()
+
+## 承托物消失后，清除确实失去地形支持的伴生实体，不改变普通植物的既有规则。
+func _clear_unsupported_companions() -> void:
+	for reference: Variant in _companion_plants.values(): # 保存副本，死亡回调可以安全移除记录。
+		if not is_instance_valid(reference):
+			continue
+		var plant := reference as Plant000Base # 有效引用才进入地形资格检查。
+		if plant.is_death or plant.is_queued_for_deletion():
+			continue
+		var condition: ResourcePlantCondition = Global.character_registry.get_plant_info(
+			plant.spawn_species_id(), CharacterRegistry.PlantInfoAttribute.PlantConditionResource) # 原物种地形契约。
+		if condition != null and not (condition.plant_condition & curr_condition):
+			plant.character_death_disappear()
+
 ## Read-only occupancy validation for all cells in a placement footprint.
 func _placement_is_available(condition: ResourcePlantCondition,
 		footprint: Array[PlantCell], claims: Array[Dictionary]) -> bool:
@@ -252,12 +334,18 @@ func _placement_is_available(condition: ResourcePlantCondition,
 			return false
 	return true
 
-## 咖啡豆唤醒在睡眠中的植物
-func coffee_bean_awake_up():
-	if is_instance_valid(plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]):
-		plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm].coffee_bean_awake_up()
-	else:
-		print("没有睡眠植物")
+## 返回本格可被咖啡豆唤醒的真实植物，普通层优先，伴生同样可成为目标。
+func sleeping_plant() -> Plant000Base:
+	for plant: Plant000Base in living_plants(): # 资格与实际唤醒使用同一集合和睡眠状态。
+		if plant.is_sleeping:
+			return plant
+	return null
+
+## 咖啡豆生效时重新确认睡眠目标，死亡或已清醒的植物不会收到重复唤醒。
+func coffee_bean_awake_up() -> void:
+	var target: Plant000Base = sleeping_plant() # 可能与种植时不同，沿用原版生效时查询语义。
+	if target != null:
+		target.coffee_bean_awake_up()
 
 ## 植物锚点始终由格子 Control 管理；只有稳定的 Node2D 内容容器挂入承托物。
 ## [param support] 底层承托植物，移动偏移使用其已有资源参数。
@@ -266,7 +354,7 @@ func _attach_support_layers(support: Plant000DownBase) -> void:
 	for slot: CharacterRegistry.PlacePlantInCell in _support_slot_anchors:
 		var anchor: Control = _support_slot_anchors[slot]
 		var content: Node2D = plant_container_node[slot]
-		content.reparent(support.down_plant_container, true)
+		_reparent_support_content(content, support.down_plant_container, true)
 		content.global_position = anchor.global_position - support.plant_up_position
 
 ## 承托物死亡/铲除时恢复原锚点，避免缓存世界坐标造成跨行漂移。
@@ -274,8 +362,34 @@ func _detach_support_layers() -> void:
 	for slot: CharacterRegistry.PlacePlantInCell in _support_slot_anchors:
 		var anchor: Control = _support_slot_anchors[slot]
 		var content: Node2D = plant_container_node[slot]
-		content.reparent(anchor, false)
+		_reparent_support_content(content, anchor, false)
 		content.position = Vector2.ZERO
+
+## 将 [param content] 搬到 [param target]，按 [param keep_global] 保留世界变换；不重置植物动作进度。
+## SpeedTimer 真实离树仍终止任务，只有本次同步承托搬迁显式恢复原有的活动任务。
+func _reparent_support_content(content: Node2D, target: Node, keep_global: bool) -> void:
+	var clocks: Array[Dictionary] = [] # 原生秒数保留零速冻结时的剩余量，无需再次除以速度。
+	for node: Node in content.find_children("*", "Timer", true, false): # 只捕获声明了离树停止的变速计时器。
+		var timer := node as SpeedTimer # 普通Timer不改变其原有生命周期。
+		if timer != null and not timer.is_stopped() and timer.time_left > 0.0:
+			clocks.append({"timer": weakref(timer), "left": timer.time_left, "period": timer.wait_time,
+				"speed": timer.speed_scale, "base": timer.base_wait_time})
+	content.reparent(target, keep_global)
+	for clock: Dictionary in clocks: # 某些迁移回调可能释放植物，恢复前逐个核验。
+		var timer: SpeedTimer = clock["timer"].get_ref() as SpeedTimer # 弱引用不延长已经死亡的植物寿命。
+		if not is_instance_valid(timer) or not timer.is_inside_tree() or timer.is_queued_for_deletion() \
+				or not content.is_ancestor_of(timer) or not timer.is_stopped():
+			continue
+		var character := timer.owner as Character000Base # 死亡或退场不能被搬迁恢复旧动作。
+		var component := timer.get_parent() as ComponentNormBase # 外部状态已禁用的生产或攻击继续保持停止。
+		if (is_instance_valid(character) and (character.is_death or character.is_queued_for_deletion())) \
+				or (component != null and not component.is_enabling) \
+				or not is_equal_approx(timer.speed_scale, float(clock["speed"])) \
+				or not is_equal_approx(timer.base_wait_time, float(clock["base"])):
+			continue
+		# 还原原生剩余时间后恢复完整周期，保留SpeedTimer内部倍率和手动暂停状态。
+		timer.start(float(clock["left"]))
+		timer.wait_time = float(clock["period"])
 
 ## 获取种植新植物时植物虚影的位置
 func get_new_plant_static_shadow_global_position(place_plant_in_cell:CharacterRegistry.PlacePlantInCell):
@@ -303,6 +417,8 @@ func one_plant_free(plant: Plant000Base) -> void:
 		plant_in_cell[place] = null
 	# 植物死亡释放同样从实际占用推导地形，无需对 8/16 等位进行异或翻转。
 	_sync_support_terrain_condition()
+	if slots.has(CharacterRegistry.PlacePlantInCell.Down):
+		_clear_unsupported_companions()
 	if plant.plant_cell == self:
 		signal_plant_free.emit(self, plant.plant_type)
 	if is_mouse_in_ui(button):
@@ -357,6 +473,10 @@ func get_bungi_target() -> Plant000Base:
 		CharacterRegistry.PlacePlantInCell.Down,
 		CharacterRegistry.PlacePlantInCell.Float
 	]:
+		if place == CharacterRegistry.PlacePlantInCell.Down:
+			var companion: Plant000Base = first_companion_plant() # 伴生先于其下方的承托物被偷取。
+			if companion != null:
+				return companion
 		# 先以 Variant 检查可能已释放的引用，再转换植物类型。
 		var plant_reference: Variant = plant_in_cell[place]
 		if not is_instance_valid(plant_reference):
@@ -365,7 +485,7 @@ func get_bungi_target() -> Plant000Base:
 		var plant := plant_reference as Plant000Base
 		if plant != null and plant.is_inside_tree() and not plant.is_queued_for_deletion() and not plant.is_death:
 			return plant
-	return null
+	return first_companion_plant()
 
 
 ## 偷取当前有效植物并返回其表现复制体；目标消失时返回 null。
@@ -384,20 +504,13 @@ func create_tombstone(tombstone_scene: PackedScene = null) -> TombStone:
 	var prepared: TombStone = prepare_tombstone(tombstone_scene) # 失败在清除植物之前返回。
 	if prepared == null:
 		return null
-	## 被墓碑顶掉的植物
-	var all_place_plant_in_cell_be_tombstone = [
-		CharacterRegistry.PlacePlantInCell.Norm,
-		CharacterRegistry.PlacePlantInCell.Down,
-		CharacterRegistry.PlacePlantInCell.Shell,
-		CharacterRegistry.PlacePlantInCell.Float
-	]
-	## 删除对应位置植物
-	var cleared_plants: Array[Plant000Base] = []
-	for place_plant_in_cell in all_place_plant_in_cell_be_tombstone:
-		var occupying: Plant000Base = plant_in_cell[place_plant_in_cell]
-		if is_instance_valid(occupying) and not occupying.is_death and not cleared_plants.has(occupying):
-			cleared_plants.append(occupying)
-			occupying.character_death()
+	# 墓碑清除所有真实植物，伴生不会因缺少种植位而幸存。
+	for reference: Variant in living_plants(): # 实体副本允许死亡回调释放占用。
+		if not is_instance_valid(reference):
+			continue
+		var plant := reference as Plant000Base # 前一个死亡回调后重新确认当前引用。
+		if is_instance_valid(plant) and not plant.is_death:
+			plant.character_death()
 
 	install_prepared_tombstone(prepared)
 	return prepared
@@ -472,6 +585,13 @@ func _get_crater_type() -> int:
 func _clear_plants_for_crater() -> void:
 	# 保存各层植物引用，避免死亡回调修改格子数据后影响本次清理目标。
 	var plants_to_clear: Dictionary = plant_in_cell.duplicate()
+	for reference: Variant in _companion_plants.values(): # 伴生先于承托层清理，保留其正常死亡通知。
+		if not is_instance_valid(reference):
+			continue
+		var companion := reference as Plant000Base # 死亡回调可能移除后续候选。
+		if not companion.is_death and not companion.is_queued_for_deletion():
+			companion.is_can_death_language = false
+			companion.character_death_disappear()
 	# 当前清理的种植层；底层植物最后处理，模仿者层不存在时会被跳过。
 	for place: CharacterRegistry.PlacePlantInCell in [
 		CharacterRegistry.PlacePlantInCell.Norm,
@@ -573,54 +693,37 @@ func return_plant_be_shovel_look():
 	else:
 		return null
 
-## 如果当前位置没有植物时，返回顺位植物,递归调用，直到返回植物
-## is_loop 表示上次是否判断过是否为norm，shell循环
-## 写代码的时候没有float植物，不确定是否有问题
-func return_plant_null_res(plant_place_be_shovel:CharacterRegistry.PlacePlantInCell, is_loop:=false):
+## 按 [param plant_place_be_shovel] 优先查找普通层，再查伴生；[param _is_loop] 兼容旧调用。
+## 使用有限顺序，避免只有伴生植物时在空的普通层间无限递归。
+func return_plant_null_res(plant_place_be_shovel: CharacterRegistry.PlacePlantInCell, _is_loop := false):
+	var slots: Array = [] # 按鼠标高度保留原有普通层优先级。
 	match plant_place_be_shovel:
 		CharacterRegistry.PlacePlantInCell.Norm:
-			if is_instance_valid(plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]):
-				return plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]
-			else:
-				if is_loop:
-					return return_plant_null_res(CharacterRegistry.PlacePlantInCell.Down, true)
-				else:
-					return return_plant_null_res(CharacterRegistry.PlacePlantInCell.Shell, true)
-
+			slots = [CharacterRegistry.PlacePlantInCell.Norm, CharacterRegistry.PlacePlantInCell.Shell,
+				CharacterRegistry.PlacePlantInCell.Down, CharacterRegistry.PlacePlantInCell.Float]
 		CharacterRegistry.PlacePlantInCell.Shell:
-			if is_instance_valid(plant_in_cell[CharacterRegistry.PlacePlantInCell.Shell]):
-				return plant_in_cell[CharacterRegistry.PlacePlantInCell.Shell]
-			else:
-				if is_loop:
-					return return_plant_null_res(CharacterRegistry.PlacePlantInCell.Down, true)
-				else:
-					return return_plant_null_res(CharacterRegistry.PlacePlantInCell.Norm, true)
-
+			slots = [CharacterRegistry.PlacePlantInCell.Shell, CharacterRegistry.PlacePlantInCell.Norm,
+				CharacterRegistry.PlacePlantInCell.Down, CharacterRegistry.PlacePlantInCell.Float]
 		CharacterRegistry.PlacePlantInCell.Float:
-			if is_instance_valid(plant_in_cell[CharacterRegistry.PlacePlantInCell.Float]):
-				return plant_in_cell[CharacterRegistry.PlacePlantInCell.Float]
-			else:
-				return return_plant_null_res(CharacterRegistry.PlacePlantInCell.Norm)
-
-		CharacterRegistry.PlacePlantInCell.Down:
-			if is_instance_valid(plant_in_cell[CharacterRegistry.PlacePlantInCell.Down]):
-				return plant_in_cell[CharacterRegistry.PlacePlantInCell.Down]
-			else:
-				return return_plant_null_res(CharacterRegistry.PlacePlantInCell.Float)
+			slots = [CharacterRegistry.PlacePlantInCell.Float, CharacterRegistry.PlacePlantInCell.Norm,
+				CharacterRegistry.PlacePlantInCell.Shell, CharacterRegistry.PlacePlantInCell.Down]
+		_:
+			slots = [CharacterRegistry.PlacePlantInCell.Down, CharacterRegistry.PlacePlantInCell.Float,
+				CharacterRegistry.PlacePlantInCell.Norm, CharacterRegistry.PlacePlantInCell.Shell]
+	for slot: CharacterRegistry.PlacePlantInCell in slots: # 普通层仍可准确单独铲除。
+		if slot == CharacterRegistry.PlacePlantInCell.Down and plant_place_be_shovel != slot:
+			var companion: Plant000Base = first_companion_plant() # 中上部点击优先选中承托物上方的伴生。
+			if companion != null:
+				return companion
+		var plant: Plant000Base = plant_in_cell.get(slot) # 当前优先层的真实占用。
+		if is_instance_valid(plant) and not plant.is_death and not plant.is_queued_for_deletion():
+			return plant
+	return first_companion_plant()
 
 ## 铲子进入该shell时，判断当前格子是否有多个植物,蹦极僵尸判断是否有植物
 ## 有多个植物时，会随鼠标移动更新当前被铲子看的植物
 func get_curr_plant_num()->int:
-	var curr_plant_num = 0
-	if is_instance_valid(plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]):
-		curr_plant_num += 1
-	if is_instance_valid(plant_in_cell[CharacterRegistry.PlacePlantInCell.Shell]):
-		curr_plant_num += 1
-	if is_instance_valid(plant_in_cell[CharacterRegistry.PlacePlantInCell.Float]):
-		curr_plant_num += 1
-	if is_instance_valid(plant_in_cell[CharacterRegistry.PlacePlantInCell.Down]):
-		curr_plant_num += 1
-	return curr_plant_num
+	return plant_entities().size()
 
 ## 鼠标移动检测
 #func _input(event):
@@ -716,9 +819,12 @@ func get_save_game_data_plant_cell() -> ResourceSaveGamePlantCell:
 ## 整体读档由 BoardRestoreTransaction 统一准备，禁止逐格解码后立即写入。
 ## 清除当前植物格子数据
 func clear_data_plant_cell():
-	for place_plant_in_cell in plant_in_cell:
-		if is_instance_valid(plant_in_cell[place_plant_in_cell]):
-			plant_in_cell[place_plant_in_cell].character_death_disappear()
+	for reference: Variant in living_plants(): # 清场也覆盖不占位实体，死亡回调只移除自己的记录。
+		if not is_instance_valid(reference):
+			continue
+		var plant := reference as Plant000Base # 前一个死亡回调后重新确认当前引用。
+		if is_instance_valid(plant) and not plant.is_death:
+			plant.character_death_disappear()
 
 
 # 已移除逐条吞错恢复路径；植物创建仍由上方共享放置事务负责。

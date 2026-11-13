@@ -134,7 +134,7 @@ func _choose_plant_in_lane(lane: int, rows: Array[Array]) -> Plant000Base:
         return null
     var best: Plant000Base = null # 无候选时必须返回 null，禁止读取未初始化的目标。
     for cell: PlantCell in rows[lane]:
-        for plant: Plant000Base in cell.plant_in_cell.values():
+        for plant: Plant000Base in cell.living_plants(): # 不占种植位的伴生同样参与目标选择或伤害。
             if not is_instance_valid(plant) or plant.is_death or plant.is_queued_for_deletion():
                 continue
             if is_instance_valid(_car) and plant.global_position.x > _car.global_position.x:

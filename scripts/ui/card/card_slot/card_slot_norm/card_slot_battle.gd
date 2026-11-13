@@ -2,8 +2,9 @@ extends FixedBattleCardSlots
 ## 出战卡槽
 class_name CardSlotBattle
 
-## 普通出战卡成功放置并完成费用结算后发送一次。
-signal signal_card_committed(card: Card, consumed_resonance_free: bool)
+## 普通出战卡成功放置并完成费用和冷却结算后发送一次。[br]
+## [param card] 为实际使用的独立卡；[param consumed_followup] 表示本次已消费免费或减免续种。
+signal signal_card_committed(card: Card, consumed_followup: bool)
 
 @onready var curr_sun_value: Label = $SunLabelControl/CurrSunValue
 @onready var marker_2d_sun_target: Marker2D = %Marker2DSunTarget
@@ -94,9 +95,9 @@ func card_use_end(card:Card):
 	if not cheat_no_cooldown_enabled:
 		card.card_cool()
 	if AdventureSession.owns_battle(Global.game_para):
-		var consumed_free: bool = card.consume_adventure_cost_effects()
+		var consumed_followup: bool = card.consume_adventure_cost_effects() # 扣费后消费本卡的一次性续种标记。
 		card.judge_sun_enough(sun_value)
-		signal_card_committed.emit(card, consumed_free)
+		signal_card_committed.emit(card, consumed_followup)
 
 ## 按 [param uid] 查找当前战斗中的独立植物卡，找不到时返回 null。
 func find_plant_card_by_uid(uid: String) -> Card:

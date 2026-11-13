@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=3 uid="uid://1r7qdfreegf5"]
+[gd_scene load_steps=35 format=3 uid="uid://1r7qdfreegf5"]
 
 [ext_resource type="Script" uid="uid://biw3o2t4rr2yr" path="res://scripts/util/speed_timer.gd" id="speed_timer"]
 [ext_resource type="PackedScene" uid="uid://c5cke4cm02um7" path="res://scenes/character/plant/plant_000_base.tscn" id="1_dqhtu"]
@@ -52,6 +52,7 @@ advance_expression = "is_grow"
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_glqr6"]
 switch_mode = 2
 advance_mode = 2
+advance_expression = "not is_sleeping"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_bkxr5"]
 advance_mode = 2
@@ -60,7 +61,7 @@ advance_expression = "not is_show"
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_rx3yf"]
 xfade_time = 0.2
 advance_mode = 2
-advance_expression = "not is_sleeping"
+advance_expression = "not is_sleeping and not is_grow"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_2je2o"]
 advance_mode = 2
@@ -68,6 +69,26 @@ advance_expression = "is_show"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_qum68"]
 xfade_time = 0.2
+advance_mode = 2
+advance_expression = "is_sleeping"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_adult_sleep"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "is_sleeping"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_adult_awake"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "not is_sleeping"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_sleep_matured"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "is_grow"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_grow_sleep"]
+switch_mode = 2
 advance_mode = 2
 advance_expression = "is_sleeping"
 
@@ -83,7 +104,7 @@ states/SunShroom_idle/node = SubResource("AnimationNodeAnimation_hlh3c")
 states/SunShroom_idle/position = Vector2(518, 79)
 states/SunShroom_sleep/node = SubResource("AnimationNodeAnimation_nf1qf")
 states/SunShroom_sleep/position = Vector2(347, -2)
-transitions = ["SunShroom_idle", "SunShroom_grow", SubResource("AnimationNodeStateMachineTransition_wokip"), "SunShroom_grow", "SunShroom_bigidle", SubResource("AnimationNodeStateMachineTransition_glqr6"), "Start", "SunShroom_sleep", SubResource("AnimationNodeStateMachineTransition_bkxr5"), "SunShroom_sleep", "SunShroom_idle", SubResource("AnimationNodeStateMachineTransition_rx3yf"), "Start", "SunShroom_grow", SubResource("AnimationNodeStateMachineTransition_2je2o"), "SunShroom_idle", "SunShroom_sleep", SubResource("AnimationNodeStateMachineTransition_qum68")]
+transitions = ["SunShroom_idle", "SunShroom_grow", SubResource("AnimationNodeStateMachineTransition_wokip"), "SunShroom_grow", "SunShroom_bigidle", SubResource("AnimationNodeStateMachineTransition_glqr6"), "Start", "SunShroom_sleep", SubResource("AnimationNodeStateMachineTransition_bkxr5"), "SunShroom_sleep", "SunShroom_idle", SubResource("AnimationNodeStateMachineTransition_rx3yf"), "Start", "SunShroom_grow", SubResource("AnimationNodeStateMachineTransition_2je2o"), "SunShroom_idle", "SunShroom_sleep", SubResource("AnimationNodeStateMachineTransition_qum68"), "SunShroom_bigidle", "SunShroom_bigsleep", SubResource("AnimationNodeStateMachineTransition_adult_sleep"), "SunShroom_bigsleep", "SunShroom_bigidle", SubResource("AnimationNodeStateMachineTransition_adult_awake"), "SunShroom_sleep", "SunShroom_bigsleep", SubResource("AnimationNodeStateMachineTransition_sleep_matured"), "SunShroom_grow", "SunShroom_bigsleep", SubResource("AnimationNodeStateMachineTransition_grow_sleep")]
 graph_offset = Vector2(50, -52)
 
 [sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_rikvi"]

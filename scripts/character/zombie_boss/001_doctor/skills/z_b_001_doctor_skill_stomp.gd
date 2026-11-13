@@ -100,8 +100,8 @@ func _has_living_plant(cells: Array[PlantCell]) -> bool:
 	for cell: PlantCell in cells:
 		if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_inside_tree():
 			continue
-		# 字典可能残留已释放的植物引用，公共谓词先验证 Variant，并与攻击阶段保持相同资格。
-		for plant_reference: Variant in cell.plant_in_cell.values():
+		# 在格活株包括伴生，公共谓词与实际攻击保持相同资格。
+		for plant_reference: Variant in cell.living_plants():
 			if ZB001DoctorCellQuery.is_living_normal_plant(plant_reference):
 				return true
 	return false

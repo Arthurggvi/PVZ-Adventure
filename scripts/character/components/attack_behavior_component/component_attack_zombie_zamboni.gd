@@ -38,8 +38,8 @@ func _can_crush(plant: Plant000Base) -> bool:
 func _crush_cell(cell: PlantCell) -> void:
 	if not is_instance_valid(cell):
 		return
-	# plant 是该格当前某一层的植物。
-	for plant: Plant000Base in cell.plant_in_cell.values():
+	# plant 是本格当前的存活实体，包含不占种植位的伴生。
+	for plant: Plant000Base in cell.living_plants():
 		if is_instance_valid(plant) and not plant.is_death and not plant.is_queued_for_deletion():
 			plant.be_flattened_from_enemy(owner)
 

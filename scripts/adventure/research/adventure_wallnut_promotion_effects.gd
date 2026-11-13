@@ -74,7 +74,7 @@ func _grant_neighbors(amount: int, reach: int) -> void:
 		return
 	var seen: Dictionary[int, bool] = {} # 多格占用与多层查询按实例去重。
 	for cell: PlantCell in game.board.horizontal_neighbors(_plant.plant_cell, reach): # 同路拓扑范围。
-		for entry: Variant in cell.plant_in_cell.values(): # 当前实际占用。
+		for entry: Variant in cell.living_plants(): # 所有在格活株，包含不占种植位的伴生。
 			var candidate: Plant000Base = entry as Plant000Base # 存活的受益植物。
 			if not is_instance_valid(candidate) or candidate.is_death \
 					or candidate == _plant or seen.has(candidate.get_instance_id()):

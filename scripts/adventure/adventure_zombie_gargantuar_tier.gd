@@ -78,7 +78,7 @@ func _on_death() -> void:
         var near: bool = cell.global_position.x >= _giant.global_position.x - span * 1.8
         if not (behind and near):
             continue
-        for plant: Plant000Base in cell.plant_in_cell.values():
+        for plant: Plant000Base in cell.living_plants(): # 不占种植位的伴生同样参与目标选择或伤害。
             if is_instance_valid(plant) and not plant.is_death:
                 var id: int = plant.get_instance_id()
                 if not seen.has(id):

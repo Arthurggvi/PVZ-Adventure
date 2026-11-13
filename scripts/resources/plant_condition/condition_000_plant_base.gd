@@ -62,12 +62,17 @@ func get_upgrade_claims(cell: PlantCell, plant_type: CharacterRegistry.PlantType
 		claims.append({"cell": target, "slot": source_slot, "plant": predecessor})
 	return claims
 
-## All planting entrypoints use the same conditions before mutating the board.
-func judge_is_can_plant(plant_cell: PlantCell, curr_plant_type: CharacterRegistry.PlantType) -> bool:
+## 在 [param plant_cell] 预检 [param curr_plant_type]；[param companion] 仅为单格普通植物跳过种植位冲突。
+## 伴生仍遵守地形、承托、障碍与禁种，不适用于升级、特殊植物或承托层。
+func judge_is_can_plant(plant_cell: PlantCell, curr_plant_type: CharacterRegistry.PlantType,
+		companion: bool = false) -> bool:
 	if not is_instance_valid(plant_cell):
 		return false
 	var footprint: Array[PlantCell] = placement_cells(plant_cell) # 预览与事务使用同一占用声明。
 	if footprint.is_empty():
+		return false
+	if companion and (is_purple_card or is_special_plants or footprint.size() != 1 \
+			or place_plant_in_cell != CharacterRegistry.PlacePlantInCell.Norm):
 		return false
 	for target: PlantCell in footprint: # 所有占用地块共享固有地形限制。
 		if not is_instance_valid(target) or target.board != plant_cell.board:
@@ -96,7 +101,7 @@ func judge_is_can_plant(plant_cell: PlantCell, curr_plant_type: CharacterRegistr
 		return judge_special_plants_condition(plant_cell)
 	if not plant_cell.can_common_plant or not (plant_condition & plant_cell.curr_condition):
 		return false
-	if is_instance_valid(plant_cell.plant_in_cell[place_plant_in_cell]):
+	if not companion and is_instance_valid(plant_cell.plant_in_cell[place_plant_in_cell]):
 		return false
 	## A shell cannot cover a plant occupying multiple cells, regardless of species.
 	if place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Shell:

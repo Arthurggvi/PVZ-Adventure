@@ -31,8 +31,8 @@ func _release_action() -> void:
 		var cell := cell_reference as PlantCell
 		if cell == null or cell.is_queued_for_deletion() or not manager.main_game.is_ancestor_of(cell):
 			continue
-		# 字典中可能含有已释放引用，禁止在有效性检查前赋给植物类型变量。
-		for plant_reference: Variant in cell.plant_in_cell.values():
+		# 活株快照包括伴生；前一死亡回调可能释放后续目标，先检查Variant引用。
+		for plant_reference: Variant in cell.living_plants():
 			if not is_instance_valid(plant_reference):
 				continue
 			# 同一次区域攻击中的植物唯一标识。
