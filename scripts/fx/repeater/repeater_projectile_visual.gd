@@ -30,6 +30,8 @@ var _glow: Node2D
 var _retire_age: float = -1.0
 ## 弱化星的基础透明度，独立于结束时的衰退。
 var _opacity: float = 1.0
+## 冥弹的专用长距离尾迹，与其他弹体的十二点轻尾迹独立。
+var _hades_trail: RepeaterHadesTrail
 
 ## 给已入树的 [param bullet] 附加 [param kind] 表现，重复调用返回已有节点。
 ## [param generation] 是星弹代数，[param color_index] 选择同轮不同颜色；空种类保持原画。
@@ -66,6 +68,10 @@ static func attach(bullet: Node2D, kind: StringName, generation: int = 0, color_
 	visual._glow.material = RepeaterVisualPalette.glow_material()
 	visual._glow.draw.connect(visual._draw_glow)
 	visual.add_child(visual._glow)
+	if kind == &"hades":
+		visual._hades_trail = RepeaterHadesTrail.new() # 冥弹使用独立历史采样及残影管线。
+		visual.add_child(visual._hades_trail)
+		visual._hades_trail.configure(visual._body)
 	# 第二代仅削弱光量，真实伤害和弹体比例由战斗层配置。
 	visual._opacity = 0.74 if generation > 1 else 1.0
 	visual.modulate.a = visual._opacity
@@ -97,13 +103,18 @@ func _process(delta: float) -> void:
 		_retire_age = 0.0
 	if _retire_age >= 0.0:
 		_retire_age += delta
-		modulate.a = _opacity * (1.0 - RepeaterVisualPalette.smooth(_retire_age / 0.22))
-		if _retire_age >= 0.22:
+		var fade_seconds: float = 0.47 if _kind == &"hades" else 0.22 # 冥界烟雾在弹体消失后继续平滑消散。
+		modulate.a = _opacity * (1.0 - RepeaterVisualPalette.smooth(_retire_age / fade_seconds))
+		if _retire_age >= fade_seconds:
 			queue_free()
 		queue_redraw()
 		_glow.queue_redraw()
 		return
 	global_position = _body.global_position
+	if _kind == &"hades": # 冥弹由专用模块按真实世界轨迹采样，避免双重尾迹。
+		queue_redraw()
+		_glow.queue_redraw()
+		return
 	var first_time: float = _sample_wait # 这一显示帧内第一个采样时刻。
 	var count: int = maxi(0, floori((delta - first_time) / SAMPLE_INTERVAL) + 1) # 所需数量仅用于计算相位。
 	var skipped: int = maxi(count - SAMPLE_LIMIT, 0) # 长帧直接跳过最终一定被丢弃的旧样本。
