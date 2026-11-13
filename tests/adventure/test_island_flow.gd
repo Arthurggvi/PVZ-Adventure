@@ -204,11 +204,16 @@ func _frames() -> void:
 			await get_tree().process_frame
 			continue
 		var transition: Node = scene.get_node_or_null("SceneTransition") # 可选的场景表现组件。
-		var picker: Node = scene.get_node_or_null("AdventureDestinationPicker") # 可选的地区弹层。
+		var picker := _destination_picker() # 地区弹层由常驻工具栏持有。
 		if (transition != null and transition.busy) or (picker != null and picker.is_animating()):
 			await get_tree().process_frame
 			continue
 		break
+
+## 读取常驻导航当前显示的纸图；关闭的节点在本帧末尾回收。
+func _destination_picker() -> Control:
+	var picker := get_tree().root.get_node_or_null("AdventureToolbar/MapNavigation/MapDestinationPicker") as Control # 工具栏当前持有的地区弹层。
+	return picker if picker != null and not picker.is_queued_for_deletion() else null
 
 ## 从真正的持久工具栏地区导航进入地图；等待动效完成再选择。
 func _enter_island_from_menu() -> void:
@@ -217,7 +222,7 @@ func _enter_island_from_menu() -> void:
 	var picker: Control
 	var deadline: int = Time.get_ticks_msec() + 12000
 	while Time.get_ticks_msec() < deadline:
-		picker = get_tree().root.get_node_or_null("AdventureToolbar/MapNavigation/MapDestinationPicker")
+		picker = _destination_picker()
 		if picker != null and picker.is_presented():
 			break
 		await get_tree().process_frame

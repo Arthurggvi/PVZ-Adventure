@@ -3,8 +3,11 @@ extends RefCounted
 
 ## 本轮唯一资源根目录，不回退到旧版或合成预览。
 const ROOT := "res://assets/adventure/destination_picker/v1_2/"
-## 已实现的地区与动作契约；未来地区还必须增加真实路由和玩家解锁条件。
-const ROUTES := {"zombie_island": "reuse_existing_zombie_island_entry"}
+## 已实现地区的动作契约，选择器与导航层共用此许可。
+const ROUTES := {
+	"zombie_island": "reuse_existing_zombie_island_entry",
+	"town": "return_to_main_menu",
+}
 ## 最近一次布局错误，交给界面显示。
 var error_message := ""
 
@@ -73,7 +76,7 @@ func load_layout() -> Dictionary:
 			return _invalid("v1.2 资源缺失或路径无效：%s" % str(asset))
 	return data
 
-## [param destination] 必须同时在配置中开放、已实现且动作契约匹配；城镇没有注册入口。
+## [param destination] 必须同时在配置中开放、已实现且动作契约匹配。
 static func can_enter(destination: Dictionary) -> bool:
 	return destination.get("enabled", false) == true and ROUTES.has(destination.get("id")) \
 		and ROUTES[destination.id] == destination.get("selection_action")

@@ -6,6 +6,8 @@ signal navigation_state_changed
 
 const PICKER = preload("res://scenes/adventure/AdventureDestinationPicker.tscn")
 const ZOMBIE_ISLAND := "zombie_island"
+## 城镇卡片的稳定地区 ID，目标场景由主场景注册表提供。
+const TOWN := "town"
 
 var _picker: Control
 var _source_scene: Node
@@ -37,26 +39,33 @@ func close() -> void:
 	if was_open:
 		navigation_state_changed.emit()
 
+## 跳转至 [param destination_id] 对应的场景，选择当前地区时直接关闭地图。
 func _navigate(destination_id: String) -> void:
 	if not is_open() or not _picker.is_presented() or not _picker.can_select(destination_id):
 		return
 	if not is_instance_valid(_source_scene) or get_tree().current_scene != _source_scene:
 		close()
 		return
+	var target_scene: String # 用于识别当前地区并避免重复加载场景。
+	var enter: Callable # 在遮幕完成后执行的已注册入口。
 	match destination_id:
 		ZOMBIE_ISLAND:
-			# Already on this map: dismiss the selector without recreating scene/session.
-			if _source_scene.scene_file_path == AdventureSession.MAP_SCENE:
-				close()
-				return
-			var transition := _source_scene.get_node_or_null("SceneTransition")
-			if transition != null:
-				if not transition.run(_enter_zombie_island):
-					_picker.set_navigation_pending(false)
-			else:
-				_enter_zombie_island()
+			target_scene = AdventureSession.MAP_SCENE
+			enter = _enter_zombie_island
+		TOWN:
+			target_scene = Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu]
+			enter = _enter_town.bind(target_scene)
 		_:
 			_picker.set_navigation_pending(false)
+			return
+	if _source_scene.scene_file_path == target_scene:
+		close()
+		return
+	var transition := _source_scene.get_node_or_null("SceneTransition") # 使用宿主的场景遮幕。
+	if transition == null:
+		enter.call()
+	elif not transition.run(enter):
+		_picker.set_navigation_pending(false)
 
 func _enter_zombie_island() -> bool:
 	if not is_open() or not is_instance_valid(_source_scene):
@@ -64,4 +73,13 @@ func _enter_zombie_island() -> bool:
 	if AdventureSession.open_adventure():
 		return true
 	_picker.show_entry_error(AdventureSession.entry_error)
+	return false
+
+## 打开 [param scene_path] 指定的主菜单；切换失败时提示并恢复地图输入。
+func _enter_town(scene_path: String) -> bool:
+	if not is_open() or not is_instance_valid(_source_scene):
+		return false
+	if get_tree().change_scene_to_file(scene_path) == OK:
+		return true
+	_picker.show_entry_error("无法返回城镇，请重试。")
 	return false
