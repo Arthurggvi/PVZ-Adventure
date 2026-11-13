@@ -111,7 +111,11 @@ const BASE_ITEMS: Dictionary = {
 	"zombie_island.grave_upstream.nightmare_key": {"subject": "墓地上游", "category": "key"},
 	"zombie_island.grave_downstream.nightmare_key": {"subject": "墓地下游", "category": "key"},
 	"zombie_island.sewer.nightmare_key": {"subject": "下水道", "category": "key"},
-	"zombie_island.edgar_temple.nightmare_key": {"subject": "埃德加神殿", "category": "key"},
+	# 沿用旧钥匙的存档 ID，已有库存直接显示为上半把。
+	"zombie_island.edgar_temple.nightmare_key": {"name": "埃德加钥匙（上）", "category": "key",
+		"description": "击败没落营地的黑将军可获得。可以开启埃德加神殿的噩梦挑战。"},
+	"zombie_island.edgar_temple.nightmare_key_lower": {"name": "埃德加钥匙（下）", "category": "key",
+		"description": "埃德加钥匙的下半部分。击败墓地下游的白爵士可获得。"},
 	"seedling_pot": {"name": "育苗花盆", "category": "consumable",
 		"description": "在研究室强化时使用。强化失败后保留主卡原有星级。"},
 	"growth_agent_lv1": {"growth_agent_level": 1, "category": "consumable"},
@@ -148,8 +152,9 @@ static func get_item_definition(item_id: String) -> Dictionary:
 			definition["name"] = "配方-%s" % definition.subject
 			definition["description"] = "记载着制作%s的方法。收集所需材料后，可以在研究室合成这张植物卡。" % definition.subject
 		"key":
-			definition["name"] = "钥匙-%s" % definition.subject
-			definition["description"] = "可以打开%s深处的大门，开启精英挑战。" % definition.subject
+			if definition.has("subject"):
+				definition["name"] = "钥匙-%s" % definition.subject
+				definition["description"] = "可以打开%s深处的大门，开启精英挑战。" % definition.subject
 		"promotion_book":
 			var skill: Dictionary = AdventurePromotionCatalog.definition(item_id) # 技能标题与效果共用同一份定义。
 			var tier: int = int(skill.get("tier", 0)) # 阶数同时用于命名和文字颜色。

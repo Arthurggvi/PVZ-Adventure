@@ -40,6 +40,15 @@ asset_id = &"seedling_pot"
 quantity_min = 1
 quantity_max = 1
 
+[sub_resource type="Resource" id="edgar_key_upper"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.fallen_camp.boss.drops.edgar_key_upper"
+rule = 3
+asset_kind = 2
+asset_id = &"zombie_island.edgar_temple.nightmare_key"
+quantity_min = 1
+quantity_max = 1
+
 [sub_resource type="Resource" id="BossDrops"]
 script = ExtResource("Table")
 table_id = &"zombie_island.fallen_camp.boss.drops"
@@ -47,7 +56,8 @@ entries = Array[ExtResource("Entry")]([
 SubResource("recipe_p050"),
 SubResource("growth_agent_lv2"),
 SubResource("fertilizer_lv2"),
-SubResource("seedling_pot")
+SubResource("seedling_pot"),
+SubResource("edgar_key_upper")
 ])
 
 [resource]

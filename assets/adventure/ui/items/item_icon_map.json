@@ -77,6 +77,10 @@
       "category": "key",
       "icon": "keys/edgar_temple_nightmare_key.png"
     },
+    "zombie_island.edgar_temple.nightmare_key_lower": {
+      "category": "key",
+      "icon": "keys/edgar_temple_nightmare_key.png"
+    },
     "seedling_pot": {
       "category": "consumable",
       "icon": "consumables/seedling_pot.png"

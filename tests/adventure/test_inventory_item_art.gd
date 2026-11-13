@@ -6,7 +6,7 @@ func _ready() -> void:
 	call_deferred("_run")
 func _run() -> void:
 	var m: Dictionary = Asset.manifest()
-	assert(m.has("ids") and (m["ids"] as Dictionary).size() == 40)
+	assert(m.has("ids") and (m["ids"] as Dictionary).size() == 42)
 	assert(m.has("backgrounds"))
 	for id: String in ItemRegistry.ITEMS:
 		assert(not Asset.entry(id).is_empty(), "Missing item art mapping: " + id)
@@ -84,5 +84,5 @@ func _run() -> void:
 	var recipe_wax: TextureRect = recipe.get_child(3) as TextureRect
 	assert(recipe_wax != null and recipe_wax.texture.resource_path == Asset.recipe_overlay_uri("recipe_wall_nut"))
 	recipe.queue_free()
-	print("INVENTORY_ITEM_ART_PASS 40 mapped IDs 21 materials 7 backings")
+	print("INVENTORY_ITEM_ART_PASS %d mapped IDs %d materials 7 backings" % [m["ids"].size(), materials.size()])
 	get_tree().quit(0)
