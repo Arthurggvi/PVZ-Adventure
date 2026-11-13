@@ -16,6 +16,8 @@ var _fields: Array[RepeaterFieldState] = []
 var _accumulator: float = 0.0
 ## 最近实际战斗物理步长，视觉插值同步战斗倍速而非假定现实时间一倍速。
 var _last_delta: float = STEP
+## 当前辉夜场数，只有黑洞存在时不必每帧查询全部星核。
+var _kaguya_count: int = 0
 
 ## 在 [param shot] 原战场登记 [param kind] 场；[param position]、[param lane] 均来自真实命中。
 static func spawn_field(kind: StringName, position: Vector2, lane: int, shot: RepeaterShotContext) -> void:
@@ -27,6 +29,8 @@ static func spawn_field(kind: StringName, position: Vector2, lane: int, shot: Re
 		runtime.name = NODE_NAME
 		shot.game.bullets.add_child(runtime)
 	runtime._fields.append(RepeaterFieldState.create(runtime, kind, position, lane, shot))
+	if kind == &"kaguya":
+		runtime._kaguya_count += 1
 	runtime.set_physics_process(true)
 	runtime.set_process(true)
 
@@ -57,19 +61,25 @@ func _tick() -> void:
 		if field.kind == &"hell" and field.age + EPSILON >= field.next_drain:
 			field.next_drain += 1.0
 			_drain(field)
-	var contacts: Dictionary[int, Dictionary] = RepeaterFieldQueries.kaguya_contacts(_fields) # 所有重叠碎片共用一次接触集合。
-	var hit_scope := CombatHitScope.new() # 转伤后的真正承伤者在扣血前共用本子步唯一资格。
+	# 全场只有黑洞时省掉所有辉夜的空间查询与形状分配。
+	if _kaguya_count > 0:
+		_apply_galaxy_damage()
+	for field: RepeaterFieldState in _fields.duplicate(): # 实际结束在末跳之后，视觉不再在此重复绘制。
+		if not field.shot.is_active() or field.age + EPSILON >= field.lifetime:
+			_retire(field)
+
+## 单次60Hz伤害在这里结算；昂贵的可见帧只由_process执行。
+func _apply_galaxy_damage() -> void:
+	var contacts: Dictionary[int, Dictionary] = RepeaterFieldQueries.kaguya_contacts(_fields) # 同一子步所有辉夜共享去重。
+	if contacts.is_empty():
+		return
+	var hit_scope := CombatHitScope.new() # 仅存在真实接触时创建，转伤后的受伤者仍去重。
 	for entry: Dictionary in contacts.values(): # 伤害回调可能结束战局或销毁后续目标。
 		var target: Character000Base = entry.target # 本次已确认接触的实体。
 		var shot: RepeaterShotContext = entry.shot # 首个接触来源持有本次伤害归属。
 		if shot.is_active() and _valid_enemy(target):
 			target.be_attacked_bullet(KAGUYA_DAMAGE, BulletRegistry.AttackMode.Norm,
 				true, false, 0, -1, null, hit_scope)
-	for field: RepeaterFieldState in _fields.duplicate(): # 实际结束在末跳之后，视觉年龄与寿命保持一致。
-		if not field.shot.is_active() or field.age + EPSILON >= field.lifetime:
-			_retire(field)
-		else:
-			field.render_at(field.age)
 
 ## 渲染只在两个战斗时刻之间采样；[param _delta] 不参与伤害、吸取或寿命结算。
 func _process(_delta: float) -> void:
@@ -96,7 +106,7 @@ func _drain(field: RepeaterFieldState) -> void:
 		shot.heal_original(actual_loss)
 		var recipient: Character000Base = receipt.get("recipient") as Character000Base # 链条连向真正承伤者，包括保护者。
 		if is_instance_valid(recipient) and recipient.is_inside_tree():
-			RepeaterImpactVisual.chain(self, center, recipient.hurt_box_component.global_position)
+			RepeaterImpactVisual.chain(self, center, recipient.hurt_box_component.global_position, field.lane * 50 + 47)
 
 ## [param target] 在同步结算前仍必须可受击；已死亡、魅惑与待删除目标不重复扣血。
 static func _valid_enemy(target: Character000Base) -> bool:
@@ -107,5 +117,7 @@ static func _valid_enemy(target: Character000Base) -> bool:
 
 ## 从唯一集合移除 [param field] 并回收对应纯视觉节点。
 func _retire(field: RepeaterFieldState) -> void:
+	if field.kind == &"kaguya" and _fields.has(field):
+		_kaguya_count = maxi(0, _kaguya_count - 1)
 	field.dispose()
 	_fields.erase(field)

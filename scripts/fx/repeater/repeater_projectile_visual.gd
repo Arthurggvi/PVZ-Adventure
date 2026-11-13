@@ -64,10 +64,11 @@ static func attach(bullet: Node2D, kind: StringName, generation: int = 0, color_
 	visual.global_position = visual._body.global_position
 	visual._last_position = visual.global_position
 	visual._points.append(visual.global_position)
-	visual._glow = Node2D.new()
-	visual._glow.material = RepeaterVisualPalette.glow_material()
-	visual._glow.draw.connect(visual._draw_glow)
-	visual.add_child(visual._glow)
+	if kind != &"hades": # 冥弹仅用专属单画布尾迹，不能再创建重复的尾光层。
+		visual._glow = Node2D.new()
+		visual._glow.material = RepeaterVisualPalette.glow_material()
+		visual._glow.draw.connect(visual._draw_glow)
+		visual.add_child(visual._glow)
 	if kind == &"hades":
 		visual._hades_trail = RepeaterHadesTrail.new() # 冥弹使用独立历史采样及残影管线。
 		visual.add_child(visual._hades_trail)
@@ -97,7 +98,8 @@ func _paint(root: Node) -> void:
 ## [param delta] 是受场景暂停控制的表现时间；尾迹按固定时间间隔采样。
 func _process(delta: float) -> void:
 	_age += delta
-	_ink.set_shader_parameter(&"effect_seconds", _age)
+	if _kind != &"hades": # 冥弹没有逐帧着色动画，避免大量子弹反复提交材质参数。
+		_ink.set_shader_parameter(&"effect_seconds", _age)
 	if _retire_age < 0.0 and (not is_instance_valid(_bullet) or not is_instance_valid(_body) \
 			or _bullet.is_queued_for_deletion() or not _bullet.is_visible_in_tree()):
 		_retire_age = 0.0
@@ -107,13 +109,13 @@ func _process(delta: float) -> void:
 		modulate.a = _opacity * (1.0 - RepeaterVisualPalette.smooth(_retire_age / fade_seconds))
 		if _retire_age >= fade_seconds:
 			queue_free()
-		queue_redraw()
-		_glow.queue_redraw()
+		if _kind != &"hades":
+			queue_redraw()
+			if is_instance_valid(_glow):
+				_glow.queue_redraw()
 		return
 	global_position = _body.global_position
-	if _kind == &"hades": # 冥弹由专用模块按真实世界轨迹采样，避免双重尾迹。
-		queue_redraw()
-		_glow.queue_redraw()
+	if _kind == &"hades": # 尾迹子节点自行节流渲染，弹体只更新一次世界锚点。
 		return
 	var first_time: float = _sample_wait # 这一显示帧内第一个采样时刻。
 	var count: int = maxi(0, floori((delta - first_time) / SAMPLE_INTERVAL) + 1) # 所需数量仅用于计算相位。

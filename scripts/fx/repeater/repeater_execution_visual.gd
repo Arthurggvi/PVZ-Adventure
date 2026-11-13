@@ -4,6 +4,10 @@ class_name RepeaterExecutionVisual
 
 ## 轮廓只存在九百毫秒，真实死亡由调用方立即结算。
 const DURATION: float = 0.90
+## 处决涉及完整僵尸分件与遮罩，每场最多同时保留六份形态副本。
+const MAX_EXECUTIONS: int = 6
+## 当前已挂入战场的完整破碎剪影数，退出场景立即撤销。
+static var _active_executions: int = 0
 ## 连续世界噪声让身体分件的破碎切面保持一致。
 const SILHOUETTE_SHADER: Shader = preload("res://shaders/repeater/repeater_silhouette.gdshader")
 
@@ -40,6 +44,8 @@ var _dust: Node2D
 ## 在 [param parent] 中复制 [param body] 此刻的可见姿势；必须在真实死亡前调用。
 ## 返回短命的纯图像节点，不隐藏原身体，调用者确认处决成功后负责隐藏原身。
 static func capture(parent: Node, body: Node2D) -> Node2D:
+	if _active_executions >= MAX_EXECUTIONS: # 数十次连杀时优先保留已存在的完整处决，额外命中仍有冥界冲击。
+		return null
 	if not is_instance_valid(parent) or not is_instance_valid(body):
 		return null
 	var result := RepeaterExecutionVisual.new() # 释放后不留下角色引用或死亡监听。
@@ -63,6 +69,14 @@ static func capture(parent: Node, body: Node2D) -> Node2D:
 	result._dust.draw.connect(result._draw_dust)
 	result.add_child(result._dust)
 	return result
+
+## 完整影像入树时占用一份有界处决名额，不持有死亡实体。
+func _enter_tree() -> void:
+	_active_executions += 1
+
+## 正常散尽或场景销毁均释放处决预算。
+func _exit_tree() -> void:
+	_active_executions = maxi(0, _active_executions - 1)
 
 ## [param body] 当前若正使用原生出土或入水遮罩，副本保留同一裁切边界。
 func _copy_clipping(body: Node2D) -> void:

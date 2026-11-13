@@ -61,7 +61,10 @@ func _on_impact(target: Character000Base, position: Vector2) -> void:
 		queue_free()
 	if shot == null or not shot.is_same_battle():
 		return
-	RepeaterImpactVisual.spawn(shot.game.bullets, kind, position, direction)
+	if kind == &"hades":
+		RepeaterHadesImpact.spawn(shot.game.bullets, position, direction, _executed, z_index) # 独立冥界裂隙，处决与普通命中采用不同压力。
+	else:
+		RepeaterImpactVisual.spawn(shot.game.bullets, kind, position, direction, z_index)
 	if not shot.is_active():
 		return
 	if kind == &"morning" and is_instance_valid(target):
