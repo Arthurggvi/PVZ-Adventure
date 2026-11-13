@@ -22,7 +22,7 @@ const BOLT_DURATION: float = 0.15
 const BOLT_LENGTH: float = 91.0
 ## 三种普通球的原版循环片段名。
 const PROJECTILE_CLIPS: Array[StringName] = [&"projectile", &"projectile2", &"projectile3"]
-## 原版每道电弧的 Bolt_Fire 实际声音池三选一，避免连续重复同一采样。
+## 原版 Bolt_Fire 声音池三选一；多条电弧在同一轮放电中共用一次提示音。
 const BOLT_SOUND: AudioStream = preload("res://assets/adventure/plants/electric_peashooter/audio/bolt_fire.tres")
 
 ## 本枚电球的冻结战局、伤害和等阶；必须在入树前配置。
@@ -152,6 +152,9 @@ func _discharge() -> void:
 		if not ElectricPeaFlightQuery.can_hit(target):
 			continue
 		var impact: Vector2 = ElectricPeaFlightQuery.target_position(target) # 目标死亡前保存电弧终点。
+		if strikes == 0:
+			# 首道电弧播放轻量提示音，相近的放电由音效池合并，避免长采样叠响。
+			SoundManager.play_sfx_with_pool(BOLT_SOUND, -18.0)
 		strikes += 1
 		_show_bolt(impact)
 		shot.hit(target, shot.bolt_damage)
@@ -159,7 +162,6 @@ func _discharge() -> void:
 
 ## 从本枚电球到 [param impact] 播放原版共享电弧和命中，已产生特效不依赖弹体存活。
 func _show_bolt(impact: Vector2) -> void:
-	SoundManager.play_sfx_with_pool(BOLT_SOUND, 0.0, 1.0, false)
 	var bolt: Node2D = _spawn_effect(&"bolt", global_position) # 电球发出的弧使用普通分段贴图。
 	var direction: Vector2 = impact - global_position # 电弧两端严格对齐实际位置。
 	bolt.global_rotation = direction.angle()

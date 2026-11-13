@@ -20,7 +20,7 @@ const ACTION_DURATION: float = 71.0 / 30.0
 const RECHECK_DELAY: float = 0.05
 ## 原版 Attack_Start 事件三选一且不连续重复。
 const START_SOUND: AudioStream = preload("res://assets/adventure/plants/electric_peashooter/audio/attack_start.tres")
-## 原版 Attack_Fire 主体声音层三选一且不连续重复，事件音量为负十分贝。
+## 原版 Attack_Fire 主体声音层三选一且不连续重复，混音中压低于电光层。
 const FIRE_BODY_SOUND: AudioStream = preload("res://assets/adventure/plants/electric_peashooter/audio/attack_fire_body.tres")
 ## 原版 Attack_Fire 电光声音层三选一且不连续重复，与主体层同时播放。
 const FIRE_ZAP_SOUND: AudioStream = preload("res://assets/adventure/plants/electric_peashooter/audio/attack_fire_zap.tres")
@@ -136,11 +136,12 @@ func _advance_attack(elapsed: float) -> void:
 	_attack_elapsed += elapsed
 	if _start_sound_pending and _attack_elapsed >= START_SOUND_TIME:
 		_start_sound_pending = false
-		SoundManager.play_sfx_with_pool(START_SOUND, 0.0, 1.0, false)
+		SoundManager.play_sfx_with_pool(START_SOUND, -12.0)
 	if _fire_sound_pending and _attack_elapsed >= FIRE_SOUND_TIME:
 		_fire_sound_pending = false
-		SoundManager.play_sfx_with_pool(FIRE_BODY_SOUND, -10.0, 1.0, false)
-		SoundManager.play_sfx_with_pool(FIRE_ZAP_SOUND, 0.0, 1.0, false)
+		# 两个发射声层仍同时播放，相近时刻的同类音效交给音效池合并。
+		SoundManager.play_sfx_with_pool(FIRE_BODY_SOUND, -20.0)
+		SoundManager.play_sfx_with_pool(FIRE_ZAP_SOUND, -14.0)
 	if _release_pending and _attack_elapsed >= RELEASE_TIME:
 		_release_pending = false
 		_release()
@@ -214,8 +215,9 @@ func _advance_idle(elapsed: float) -> void:
 		if _idle_sound_remaining <= 0.0:
 			_idle_sound_remaining = -1.0
 			if character_init_type == E_CharacterInitType.IsNorm and _can_emit():
-				SoundManager.play_sfx_with_pool(IDLE_RANDOM_SOUND, -10.0, 1.0, false)
-				SoundManager.play_sfx_with_pool(IDLE_FIXED_SOUND, 0.0, 1.0, false)
+				# 待机电流声留在背景，避免多株待机盖过出手提示。
+				SoundManager.play_sfx_with_pool(IDLE_RANDOM_SOUND, -30.0)
+				SoundManager.play_sfx_with_pool(IDLE_FIXED_SOUND, -20.0)
 	_idle_remaining -= elapsed
 	if _idle_remaining <= 0.0:
 		_play_idle()

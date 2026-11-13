@@ -17,9 +17,11 @@ random_speed_range = Vector2(1, 1)
 node2d_detect_in_slope = [NodePath("HurtBoxComponent/HurtBoxDetection"), NodePath("DetectComponent")]
 
 [node name="ElectricPeashooterVisual" parent="Body/BodyCorrect" index="0" instance=ExtResource("3_visual")]
+position = Vector2(0, 7)
+scale = Vector2(0.8, 0.8)
 
 [node name="Launch" type="Marker2D" parent="Body/BodyCorrect" index="1"]
-position = Vector2(45, -58)
+position = Vector2(36, -39.4)
 
 [node name="AnimComponent" parent="." index="2"]
 script = ExtResource("4_anim")
