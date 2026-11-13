@@ -88,7 +88,7 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 	var before_deck: Array[String] = state.selected_card_uids.duplicate()
 	var before_next: int = state.next_card_id
 	var before_coin: int = wallet.coin_value
-	var before_quests: Dictionary = state.quests.to_dict() # 制卡进度与卡片资产在同一保存边界提交。
+	var before_quests: Dictionary = state.quests.to_dict() # 制卡和强化任务进度与卡片资产一起保存或回滚。
 	var before_steps: Dictionary = state.tutorial_steps.duplicate() # 坚果教学完成标记随失败事务回滚。
 	var before_discoveries: Dictionary = state.almanac_discoveries.duplicate() # 合成保存失败时，未真正获得的物种不能留在图鉴。
 	var before_target: Dictionary = state.cards[updated_uid].to_dict() if state.cards.has(updated_uid) else {}
@@ -116,6 +116,9 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 			AdventureQuestService.record_event(state, "card_crafted", operation.recipe_id, AdventureQuestService.today())
 			if operation.recipe_id == "recipe_wall_nut":
 				state.tutorial_steps["research_wall_nut"] = true
+		elif operation.kind == AdventureResearchOperation.Kind.ENHANCE and succeeded:
+			# 只上报成功升星，失败掉到同一星级或花盆保星都不会完成任务。
+			AdventureQuestService.record_event(state, "card_enhanced", str(resulting_stars), AdventureQuestService.today())
 		completed = persist.call() == true
 	if not completed:
 		state.quests = AdventureQuestState.from_dict(before_quests)

@@ -426,9 +426,11 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 		error_message = "奖励入账失败，请检查库存容量。"
 		return false
 	# 在写入通关事实前记录事件，避免同一次事件计入刚解锁的后继任务。
-	var before_quests: Dictionary = state.quests.to_dict()
+	var before_quests: Dictionary = state.quests.to_dict() # 通关存档失败时随奖励一起回滚任务。
+	# 结算重试复用同一阶段的种植记录。
+	var played_plants: PackedInt32Array = runtime.played_plant_types if runtime != null else PackedInt32Array()
 	AdventureQuestService.record_event(state, "stage_cleared", "%s/%s" % [stage.stage_id,
-		AdventureStageCatalog.phase_slug(active_phase_kind)], AdventureQuestService.today())
+		AdventureStageCatalog.phase_slug(active_phase_kind)], AdventureQuestService.today(), played_plants)
 	if not claim_id.is_empty():
 		state.claimed_rewards[claim_id] = true
 		if not skip_combat_checks:

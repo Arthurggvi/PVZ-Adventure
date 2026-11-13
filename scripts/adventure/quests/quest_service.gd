@@ -70,13 +70,17 @@ static func synchronize(state: AdventureState, day: String) -> bool:
 	return before != state.quests.to_dict()
 
 ## 接收 [param event]、[param target]，按 [param day] 计入当时已生效的任务；自身不写磁盘。
-## 同一次事件完成前置后，后继任务从下一次事件开始计数。
-static func record_event(state: AdventureState, event: String, target: String, day: String) -> bool:
+## [param played_plants] 为本次获胜阶段中实际使用的植物卡物种；其他事件留空。
+## 同一次事件完成前置后，后继任务从下一次事件开始计数，允许补记的历史目标仍可在同步时完成。
+static func record_event(state: AdventureState, event: String, target: String, day: String,
+		played_plants: PackedInt32Array = PackedInt32Array()) -> bool:
 	var before: Dictionary = state.quests.to_dict() # 上报事实前的任务域。
 	synchronize(state, day)
 	for task: Dictionary in AdventureQuestCatalog.TASKS: # 此轮只处理已生效任务，后置刷新统一解锁后继。
 		var record: Dictionary = state.quests.records.get(task.id, {}) # 未生效任务没有记录。
 		if record.get("status", "") != "active" or task.event != event or (not str(task.target).is_empty() and task.target != target):
+			continue
+		if task.has("required_plant_type") and not played_plants.has(int(task.required_plant_type)):
 			continue
 		record.progress = mini(int(task.count), int(record.progress) + 1)
 		if record.progress >= int(task.count):

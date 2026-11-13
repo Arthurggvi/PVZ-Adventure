@@ -23,6 +23,8 @@ var _pea_skills: AdventurePeaPromotionRuntime
 var _pea_synergy: AdventurePeaSynergyRuntime
 var requested_items: Dictionary[String, int] = {}
 var pending_region_flags: Dictionary[StringName, bool] = {}
+## 本阶段成功使用过的植物卡物种，胜利结算读取；场上植物离场不清除此记录。
+var played_plant_types := PackedInt32Array()
 var _reward_rng := RandomNumberGenerator.new()
 var _battle_ended := false
 var _battle_won := false
@@ -86,10 +88,22 @@ func _ready() -> void:
 	_boss_director.idle.connect(_on_boss_idle)
 	_boss_director.failed.connect(_on_boss_failed)
 	zombies.signal_natural_wave_count_change.connect(_on_natural_count)
+	var slots: CardSlotBattle = zombies.main_game.card_manager.card_slot_battle # 冒险使用普通出战卡槽。
+	if is_instance_valid(slots):
+		slots.signal_card_committed.connect(_on_card_committed)
 	# 已初始化的格子才连接种植信号，关卡卸载自动断开。
 	for row: Array in zombies.main_game.plant_cell_manager.all_plant_cells:
 		for cell: PlantCell in row:
 			cell.signal_plant_create.connect(_on_plant_placed)
+
+## 正式战斗中 [param card] 成功结算后记录物种；[param _consumed_followup] 不影响任务判定。
+func _on_card_committed(card: Card, _consumed_followup: bool) -> void:
+	if _battle_ended or not zombies.is_game_running() \
+			or card.card_reference.card_type != ResourceCardReference.CardType.Plant:
+		return
+	var plant_type: int = card.card_reference.content_id # 来源是玩家用卡，预种植和技能召唤不会触发。
+	if not played_plant_types.has(plant_type):
+		played_plant_types.append(plant_type)
 
 ## 开始本阶段的开场事件和遭遇；终末阶段直接调用，无需生成第一波。
 func start_phase() -> void:
