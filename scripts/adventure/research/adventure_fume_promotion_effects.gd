@@ -109,7 +109,7 @@ func _on_bullet_created(created: Bullet000Base) -> void:
 ## 无效来源的迟到动画仍可能进入原生发射；对应弹体在主伤害前直接被统一门禁拒绝。
 static func _reject_attack() -> bool:
 	return false
-## 海神每半秒结算一次；无敌人时仅维持原生喷雾，不制造空弹体。
+## 海神有目标时每半秒结算一次；目标清空后由原攻击门禁停止时钟和喷雾。
 func _pulse() -> void:
 	if _pulse_pending or not _can_act():
 		return

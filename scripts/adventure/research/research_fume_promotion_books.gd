@@ -25,6 +25,6 @@ const BOOKS: Dictionary = {
 		"title": "犹格索托斯", "summary": "每次喷射随机附带一种异变：中毒、劣化、恐惧、魅惑、灼烧、减速、冻结值、眩晕、局部爆炸、沉默或光能。", "plant_type": 11, "tier": 4,
 		"effects": [{"kind": "fume_yog"}]},
 	"promotion_fume_poseidon": {
-		"title": "海神", "summary": "持续喷涌，每半秒伤害范围内的敌人，并触发已学会的命中效果。", "plant_type": 11, "tier": 4,
+		"title": "海神", "summary": "范围内有敌人时持续喷涌，每半秒造成伤害并触发已学会的命中效果；无目标时停喷。", "plant_type": 11, "tier": 4,
 		"effects": [{"kind": "fume_poseidon"}]},
 }

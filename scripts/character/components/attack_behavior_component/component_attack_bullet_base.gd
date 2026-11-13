@@ -99,7 +99,7 @@ func _refresh_attack_rate() -> void:
 		animation_tree.set(ATTACK_ANIMATION_RATE_PROPERTY, _attack_animation_base * _attack_rate_multiplier)
 
 ## [param interval] 是正的固定战斗秒周期；[param callback] 为空时恢复原生动画攻击。
-## 切换模式才重置进度；持续攻击仍由同一个SpeedTimer保持暂停、零速和离树语义。
+## 持续模式保留原生目标条件，同一个SpeedTimer保持暂停、零速和离树语义。
 func configure_continuous_attack(interval: float, callback: Callable) -> void:
 	if callback.is_valid() and (not is_finite(interval) or interval <= 0.0):
 		push_error("持续攻击周期必须为有限正数")
@@ -109,7 +109,7 @@ func configure_continuous_attack(interval: float, callback: Callable) -> void:
 	bullet_attack_cd_timer.stop()
 	bullet_attack_cd_timer.base_wait_time = interval if callback.is_valid() else attack_cd
 	_refresh_attack_rate()
-	set_requires_target(not callback.is_valid())
+	set_requires_target(true)
 
 ## 仅归还 [param callback] 对应的持续模式，旧控制器离场不能覆盖后来安装的回调。
 func clear_continuous_attack(callback: Callable) -> void:
