@@ -1,6 +1,45 @@
 {
   "schema_version": 1,
   "hover": {},
-  "lights": {},
-  "water": {}
+  "lights": {
+    "home": {
+      "mode": "breathe",
+      "minimum": 0.97,
+      "maximum": 1.025,
+      "period_seconds": 8.7,
+      "phase": 0.05
+    },
+    "library": {
+      "mode": "breathe",
+      "minimum": 0.985,
+      "maximum": 1.035,
+      "period_seconds": 11.3,
+      "phase": 0.28
+    },
+    "shop": {
+      "mode": "breathe",
+      "minimum": 0.97,
+      "maximum": 1.03,
+      "period_seconds": 9.1,
+      "phase": 0.51
+    },
+    "research": {
+      "mode": "breathe",
+      "minimum": 0.98,
+      "maximum": 1.04,
+      "period_seconds": 13.1,
+      "phase": 0.74
+    }
+  },
+  "water": {
+    "pattern": "drift",
+    "period_seconds": 11.2,
+    "phase_radians": 0.32,
+    "transverse_ratio": 0.24,
+    "shimmer_scale": [
+      52,
+      10,
+      29
+    ]
+  }
 }

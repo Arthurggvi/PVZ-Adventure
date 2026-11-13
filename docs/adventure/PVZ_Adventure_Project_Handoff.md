@@ -135,19 +135,20 @@
 - **时间调参**：运行config/daily_cycle.json为24小时环形关键帧：深夜→黎明→清晨→白天→黄昏→夜晚，午夜连续。menu_clock读当地时间并平滑校准，daily_cycle只产显示参数；动画用单调计时，任务/战斗日期不由菜单控制。set_preview_hour/use_local_time是同一路径的制作覆盖，不修改系统时间。
 - **真实UI/业务**：原User选择器提取为scenes/ui/profile_selector.tscn，复用SaveService事务；HUD显示真实头像/等级/名字并在切档后同步。功能台设置共用工具栏入口；帮助更新当前操作；退出确认后保存，失败留在菜单。布局在ui_layout.json，窗口阻塞与建筑/工具栏互斥统一。
 - **建筑入口**：沿用9A稳定命中与动态同步高亮；图书馆→真实图鉴、研究室→原研究功能、港口/船→地图。家/商店仍未开放、皮卡无独立入口。解锁由同一toolbar_entry_host查询/请求，不存于美术配置。
+- **2026-11-13视觉整理**：日间方向光、暮色冷暖、远景空气透视和夜间暖窗已重调；母图与31份纹理不变。船/风/水分为8.4/9.6/11.2秒，低幅错相灯光由显式动作时钟驱动。入口用 `building_entry_badge.gd` 显示图鉴/研究室/启程，原命中几何不变；锁定原因仅聚焦显示。档案经 `configure_coastal_presentation()` 使用296×118小卡片，其他场景保持原布局。正式调色、运动与entries现由runtime_inputs保护，旧制作发布不得覆盖；重建蒙版时需明确同步正式几何。核对目录 `C:\Dev\PvZ\_review\menu_polish_20261113`：五时段、牌面原生点击打开研究/地图导航/图鉴/档案、键盘焦点、锁定与模态遮挡、1066×800命中及144帧动作片段；原生日志无脚本/材质错误，未运行测试套件或进入战斗。
 - **实际核对**：本轮隔离录制含240帧全天、556帧真实档案切换/设置帮助/功能窗口/地图往返/退出保存；午夜前后最大像素差0，旧菜单宿主入地图后释放。原生资源逐份重开像素一致，空工程PCK绘制与正式背景最大差昼0/夜1。最终原生日志无脚本/材质ERROR或退出泄漏报告。
 - **发布与复现**：menu.py publish-runtime / runtime-preview / runtime-preview-images为单入口。交付在 `C:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112`。运行daily_cycle/ui_layout为正式权威，不被旧制作目录覆盖；原生资源包已验证可搬迁，但未安装exe模板、未导出完整游戏exe。
 - **边界**：只操作PVZ-Menu9B-Isolated-20261112演示档案，未读写正式玩家存档；没有进入战斗/验收合成事务，没有物理睡眠唤醒或全平台性能验证。未新增/运行游戏测试套件；旧版本专用美术探针已标明退役，不作为新菜单通过证据。实机短采样数据与详细限制见维护页，不夸大为完整回归或发布保证。
 
 ## 5.2｜主菜单效果：参数可达、算法替换与重载
 
-- **权威索引**：[效果调参与扩展接口](main_menu_effects_api.md)，按各阶段列出“配置→方法→材质→重建/发布”。正式效果文件为 `assets/adventure/main_menu/coastal/config/effect_profile.json`，默认三个空对象，保留已通过观感；示例只放在 tools/art_bake/main_menu/effect_examples。
+- **权威索引**：[效果调参与扩展接口](main_menu_effects_api.md)，按各阶段列出“配置→方法→材质→重建/发布”。正式效果文件为 `assets/adventure/main_menu/coastal/config/effect_profile.json`，正式默认已启用低幅错相灯光和独立水周期；空hover使用当前内侧暖边高亮。强变化示例只放在 tools/art_bake/main_menu/effect_examples。
 - **明确方法**：菜单 `reload_visual_effects()`；宿主 `reload_effects()`；`host.effects.set_hover_effect / set_light_behavior / set_water_effect / apply_profile / snapshot / describe`。错误输入不半更新，返回error且保留上次有效状态，不碰档案/入口权限。
 - **hover替换**：entry_highlight维持命中反馈和过渡，Shader按entry_mask/strength/accent/effect_seconds契约替换，参数按真实uniform名称/类型验证；内置entry_sweep示例不默认启用。不再为换高亮算法修改输入控制器。
 - **灯光行为**：light_behavior按home/library/shop/research四组支持steady/breathe/flicker/off，窗口、接收光、光晕共用倍率；日周期不能覆写倍率，显式动作秒数决定波形。独立到单扇窗或新增灯组仍需重建通道资产，不虚构任意命名光源。
 - **水面扩展**：water_surface.gdshaderinc只拥有表面位移/亮纹；water_effect负责drift/ripples/still与独立周期，保留岸线/遮挡和船体合成。水速改变不改船phase；普通幅度在motion.water，接触波纹仍独立。
 - **所有权与生效**：effect_profile与daily_cycle/ui_layout是运行所有，发布旧制作资产时不得覆盖。参数索引明确区分即时重载、重进菜单、重建蒙版/浮点场、显式发布；风/几何/业务不因本次例子扩张重构。
-- **实际核对**：正式宿主空工程完成三个案例、错误配置保留状态、文件重载恢复默认及全天参数提交不覆盖灯光调制。默认夜景/hover与基线像素完全一致，白天只有1像素相差1/255；不写成全图位一致。未新增/运行游戏测试套件、未加载玩家服务。
+- **接口历史核对（2026-11-12）**：正式宿主空工程完成三个案例、错误配置保留状态、文件重载恢复默认及全天参数提交不覆盖灯光调制。当时中性默认夜景/hover与基线像素完全一致，白天只有1像素相差1/255；该结论不适用于11月13日重新调色的默认表现。未新增/运行游戏测试套件、未加载玩家服务。
 - **复现**：`menu.py effects-preview --workspace <独立目录> --tools-config <原生工具配置>`；本轮证据目录 `C:\Dev\Tools\ArtControl\runs\main-menu-effects-access-20261112`。制作预览复用正式组件，不维护第二套效果算法。
 
 ## 6｜验收与交接收口

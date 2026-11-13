@@ -43,6 +43,16 @@ uniform vec3 sky_top = vec3(0.30,0.52,0.85);
 uniform vec3 sky_horizon = vec3(0.60,0.76,0.92);
 uniform vec3 cloud_color = vec3(0.87,0.93,1.0);
 uniform float sky_height_uv = 0.1488;
+// 地平线的宽幅散射光，只作用于已发布天空蒙版，不绘制额外日轮。
+uniform float horizon_glow_strength = 0.0;
+// 地平线散射光的显示色，由同一日周期提供。
+uniform vec3 horizon_glow_color = vec3(1.0,0.82,0.57);
+// 散射光中心的画布横坐标，0～1；与当日主光方向一起缓慢变化。
+uniform float horizon_glow_x = 0.84;
+// 远景与远海空气透视的混合量，不给近处建筑叠加雾幕。
+uniform float distance_haze_strength = 0.0;
+// 前景边缘的受光衰减；只压低反射底色，不遮暗后续叠加的窗灯。
+uniform float foreground_shade_strength = 0.0;
 vec3 to_linear(vec3 s) {
     return mix(s/12.92,pow((s+vec3(0.055))/1.055,vec3(2.4)),step(vec3(0.04045),s));
 }
@@ -69,6 +79,15 @@ void fragment() {
         lit=mix(vec3(luma),lit,saturation);
         lit*=mix(vec3(1.0),water_tint,environment.g);
         lit*=mix(vec3(1.0),distant_tint,environment.b);
+        // 远景蒙版包含图书馆边缘，纵向衰减让空气透视在地平线附近收束。
+        float horizon_depth=1.0-smoothstep(0.10,0.29,UV.y); // 天空以外的远近分离权重。
+        float far_sea=environment.g*smoothstep(0.76,0.82,UV.x); // 排除同通道中的研究室玻璃。
+        float haze_mask=clamp(environment.b+far_sea*0.65,0.0,1.0)*horizon_depth; // 有界空气透视蒙版。
+        lit=mix(lit,to_linear(sky_horizon),haze_mask*distance_haze_strength);
+        float foreground=smoothstep(0.56,1.0,UV.y); // 只在前景渐入，保留中央广场的明暗结构。
+        float side_weight=pow(clamp(abs(UV.x-0.52)/0.52,0.0,1.0),1.5); // 画面两侧略深，视线留在建筑入口。
+        float land_weight=1.0-clamp(environment.r+environment.g+environment.b,0.0,1.0); // 天空与水域不受前景压暗。
+        lit*=1.0-foreground_shade_strength*foreground*(0.35+0.65*side_weight)*land_weight;
         // 接收光乘以原表面颜色，保留材质纹理；位置/遮挡支持范围来自配置。
         float local_field=dot(texture(local_receiver_data,UV),local_group_energy);
         lit+=base_linear*local_color*local_field*local_strength;
@@ -83,6 +102,9 @@ void fragment() {
         float altitude=clamp(UV.y/max(sky_height_uv,0.001),0.0,1.0);
         vec3 sky=mix(sky_top,sky_horizon,smoothstep(0.0,1.0,altitude));
         sky=mix(sky,cloud_color,environment.a*0.90);
+        float glow_distance=(UV.x-horizon_glow_x)/0.31; // 无硬边的地平线散射宽度。
+        float horizon_glow=exp(-glow_distance*glow_distance)*smoothstep(0.12,0.96,altitude); // 云层保留自身体积。
+        sky=mix(sky,horizon_glow_color,horizon_glow*horizon_glow_strength*(1.0-environment.a*0.48));
         result=mix(result,sky,environment.r*sky_mix);
         COLOR=vec4(clamp(result,0.0,1.0),original.a);
     }

@@ -3,9 +3,10 @@
     1672,
     941
   ],
-  "profile_scale": 0.78375,
+  "profile_scale": 1.0,
+  "profile_position": [22, 22],
   "profile_action": [
-    402,
-    12
+    208,
+    70
   ]
 }

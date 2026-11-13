@@ -1,31 +1,31 @@
 {
   "enabled": true,
-  "loop_seconds": 6.0,
+  "loop_seconds": 8.4,
   "boat": {
     "enabled": true,
     "pivot": [
       1568,
       403
     ],
-    "heave_px": 2.4,
-    "sway_px": 0.35,
-    "roll_degrees": 0.16,
+    "heave_px": 2.2,
+    "sway_px": 0.3,
+    "roll_degrees": 0.14,
     "phase_offset": 0.0
   },
   "water": {
     "enabled": true,
-    "displacement_px": 1.05,
-    "glint_strength": 0.035,
+    "displacement_px": 0.95,
+    "glint_strength": 0.043,
     "wave_lengths": [
-      82.0,
-      41.0
+      96,
+      48
     ],
-    "night_gain": 0.56
+    "night_gain": 0.6
   },
   "contact": {
     "enabled": true,
     "width_px": 1.25,
-    "strength": 0.12,
+    "strength": 0.1,
     "model": "transformed lower hull silhouette"
   },
   "limits": {
@@ -34,5 +34,5 @@
     "max_roll_degrees": 0.3,
     "max_water_displacement_px": 2.0
   },
-  "note": "Explicit phase 0..1, no OS time. Small bounded loop; change only this file for motion tuning, no segmentation rebuild."
+  "note": "显式单调动作时间；船体8.4秒缓慢起伏，水面独立周期在effect_profile配置。位移保持在已发布遮挡与补图包络内。"
 }

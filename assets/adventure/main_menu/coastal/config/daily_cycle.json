@@ -12,8 +12,8 @@
         "repair_mix": 1.0,
         "window_color": [
           1,
-          0.49,
-          0.11
+          0.52,
+          0.15
         ],
         "spill_color": [
           1,
@@ -23,65 +23,74 @@
         "spill_scale": 0.22,
         "sky_height_uv": 0.1487778958554729,
         "light_direction": [
-          -0.3,
-          0.7,
-          0.65
+          -0.38,
+          0.61,
+          0.7
         ],
         "ambient_rgb": [
-          0.065,
-          0.11,
-          0.22
+          0.046,
+          0.082,
+          0.155
         ],
         "key_rgb": [
-          0.08,
-          0.12,
-          0.22
+          0.13,
+          0.21,
+          0.34
         ],
-        "window_energy": 0.74,
+        "window_energy": 0.92,
         "spill_energy": 0.95,
-        "saturation": 0.8,
+        "saturation": 0.87,
         "water_tint": [
-          0.7,
-          0.82,
-          0.94
+          0.92,
+          0.94,
+          0.78
         ],
         "distant_tint": [
-          0.8,
-          0.91,
-          1.05
+          0.82,
+          0.94,
+          1.07
         ],
-        "sky_mix": 0.96,
+        "sky_mix": 0.97,
         "sky_top": [
-          0.025,
-          0.055,
-          0.145
+          0.018,
+          0.037,
+          0.095
         ],
         "sky_horizon": [
-          0.095,
-          0.17,
+          0.085,
+          0.16,
           0.29
         ],
         "cloud_color": [
-          0.2,
-          0.29,
-          0.43
+          0.16,
+          0.235,
+          0.365
         ],
         "ground_strength": 1.0,
-        "local_strength": 1.0,
-        "halo_strength": 0.16,
+        "local_strength": 1.12,
+        "halo_strength": 0.19,
         "legacy_spill_strength": 0.0,
         "local_color": [
-          1.0,
-          0.66,
-          0.33
+          1,
+          0.64,
+          0.29
         ],
         "halo_color": [
-          1.0,
-          0.64,
-          0.26
+          1,
+          0.66,
+          0.29
         ],
         "emission_balance": 1.0,
-        "water_time_gain": 0.56
+        "water_time_gain": 0.6,
+        "horizon_glow_strength": 0.12,
+        "horizon_glow_color": [
+          0.26,
+          0.4,
+          0.67
+        ],
+        "horizon_glow_x": 0.82,
+        "distance_haze_strength": 0.075,
+        "foreground_shade_strength": 0.2
       }
     },
     {
@@ -92,8 +101,8 @@
         "repair_mix": 1.0,
         "window_color": [
           1,
-          0.49,
-          0.11
+          0.52,
+          0.15
         ],
         "spill_color": [
           1,
@@ -103,65 +112,74 @@
         "spill_scale": 0.22,
         "sky_height_uv": 0.1487778958554729,
         "light_direction": [
-          -0.3,
-          0.7,
-          0.65
+          -0.38,
+          0.61,
+          0.7
         ],
         "ambient_rgb": [
-          0.065,
-          0.11,
-          0.22
+          0.046,
+          0.082,
+          0.155
         ],
         "key_rgb": [
-          0.08,
-          0.12,
-          0.22
+          0.13,
+          0.21,
+          0.34
         ],
-        "window_energy": 0.74,
+        "window_energy": 0.92,
         "spill_energy": 0.95,
-        "saturation": 0.8,
+        "saturation": 0.87,
         "water_tint": [
-          0.7,
-          0.82,
-          0.94
+          0.92,
+          0.94,
+          0.78
         ],
         "distant_tint": [
-          0.8,
-          0.91,
-          1.05
+          0.82,
+          0.94,
+          1.07
         ],
-        "sky_mix": 0.96,
+        "sky_mix": 0.97,
         "sky_top": [
-          0.025,
-          0.055,
-          0.145
+          0.018,
+          0.037,
+          0.095
         ],
         "sky_horizon": [
-          0.095,
-          0.17,
+          0.085,
+          0.16,
           0.29
         ],
         "cloud_color": [
-          0.2,
-          0.29,
-          0.43
+          0.16,
+          0.235,
+          0.365
         ],
         "ground_strength": 1.0,
-        "local_strength": 1.0,
-        "halo_strength": 0.16,
+        "local_strength": 1.12,
+        "halo_strength": 0.19,
         "legacy_spill_strength": 0.0,
         "local_color": [
-          1.0,
-          0.66,
-          0.33
+          1,
+          0.64,
+          0.29
         ],
         "halo_color": [
-          1.0,
-          0.64,
-          0.26
+          1,
+          0.66,
+          0.29
         ],
         "emission_balance": 1.0,
-        "water_time_gain": 0.56
+        "water_time_gain": 0.6,
+        "horizon_glow_strength": 0.12,
+        "horizon_glow_color": [
+          0.26,
+          0.4,
+          0.67
+        ],
+        "horizon_glow_x": 0.82,
+        "distance_haze_strength": 0.075,
+        "foreground_shade_strength": 0.2
       }
     },
     {
@@ -172,8 +190,8 @@
         "repair_mix": 1.0,
         "window_color": [
           1,
-          0.49,
-          0.11
+          0.52,
+          0.15
         ],
         "spill_color": [
           1,
@@ -183,65 +201,74 @@
         "spill_scale": 0.22,
         "sky_height_uv": 0.1487778958554729,
         "light_direction": [
-          -0.68,
-          0.3,
-          0.67
+          -0.73,
+          0.33,
+          0.59
         ],
         "ambient_rgb": [
-          0.18,
-          0.23,
+          0.16,
+          0.22,
           0.34
         ],
         "key_rgb": [
-          0.27,
-          0.25,
-          0.25
+          0.46,
+          0.3,
+          0.21
         ],
-        "window_energy": 0.38,
+        "window_energy": 0.43,
         "spill_energy": 0.95,
-        "saturation": 0.86,
+        "saturation": 0.94,
         "water_tint": [
-          0.84,
-          0.97,
-          1.03
+          0.81,
+          0.96,
+          1.06
         ],
         "distant_tint": [
-          0.87,
-          0.94,
-          1.04
+          0.88,
+          0.95,
+          1.07
         ],
-        "sky_mix": 0.92,
+        "sky_mix": 0.94,
         "sky_top": [
-          0.17,
-          0.25,
+          0.13,
+          0.23,
           0.42
         ],
         "sky_horizon": [
-          0.65,
-          0.62,
-          0.6
+          0.7,
+          0.6,
+          0.52
         ],
         "cloud_color": [
-          0.55,
+          0.58,
           0.59,
-          0.66
+          0.67
         ],
         "ground_strength": 1.0,
-        "local_strength": 0.48,
-        "halo_strength": 0.07,
+        "local_strength": 0.55,
+        "halo_strength": 0.085,
         "legacy_spill_strength": 0.0,
         "local_color": [
-          1.0,
-          0.66,
-          0.33
+          1,
+          0.64,
+          0.29
         ],
         "halo_color": [
-          1.0,
-          0.64,
-          0.26
+          1,
+          0.66,
+          0.29
         ],
         "emission_balance": 1.0,
-        "water_time_gain": 0.71
+        "water_time_gain": 0.72,
+        "horizon_glow_strength": 0.32,
+        "horizon_glow_color": [
+          1,
+          0.77,
+          0.55
+        ],
+        "horizon_glow_x": 0.73,
+        "distance_haze_strength": 0.12,
+        "foreground_shade_strength": 0.15
       }
     },
     {
@@ -252,8 +279,8 @@
         "repair_mix": 1.0,
         "window_color": [
           1,
-          0.49,
-          0.11
+          0.52,
+          0.15
         ],
         "spill_color": [
           1,
@@ -263,65 +290,74 @@
         "spill_scale": 0.22,
         "sky_height_uv": 0.1487778958554729,
         "light_direction": [
-          -0.58,
-          0.48,
-          0.66
+          -0.63,
+          0.52,
+          0.57
         ],
         "ambient_rgb": [
-          0.58,
-          0.64,
-          0.72
+          0.47,
+          0.57,
+          0.7
         ],
         "key_rgb": [
-          0.4,
-          0.36,
-          0.29
+          0.66,
+          0.49,
+          0.3
         ],
-        "window_energy": 0.035,
+        "window_energy": 0.045,
         "spill_energy": 0.0,
-        "saturation": 0.96,
+        "saturation": 1.02,
         "water_tint": [
-          0.96,
-          1.0,
-          1.02
+          0.93,
+          1.01,
+          1.04
         ],
         "distant_tint": [
+          0.96,
           1,
-          1,
-          1
+          1.05
         ],
-        "sky_mix": 0.42,
+        "sky_mix": 0.48,
         "sky_top": [
-          0.33,
+          0.28,
           0.51,
-          0.72
+          0.78
         ],
         "sky_horizon": [
-          0.76,
-          0.81,
-          0.81
-        ],
-        "cloud_color": [
-          0.88,
-          0.89,
+          0.77,
+          0.84,
           0.85
         ],
+        "cloud_color": [
+          0.91,
+          0.93,
+          0.9
+        ],
         "ground_strength": 1.0,
-        "local_strength": 0.04,
-        "halo_strength": 0.005,
+        "local_strength": 0.055,
+        "halo_strength": 0.008,
         "legacy_spill_strength": 0.0,
         "local_color": [
-          1.0,
-          0.66,
-          0.33
+          1,
+          0.64,
+          0.29
         ],
         "halo_color": [
-          1.0,
-          0.64,
-          0.26
+          1,
+          0.66,
+          0.29
         ],
         "emission_balance": 1.0,
-        "water_time_gain": 0.94
+        "water_time_gain": 0.94,
+        "horizon_glow_strength": 0.17,
+        "horizon_glow_color": [
+          1,
+          0.91,
+          0.7
+        ],
+        "horizon_glow_x": 0.73,
+        "distance_haze_strength": 0.1,
+        "foreground_shade_strength": 0.13
       }
     },
     {
@@ -332,8 +368,8 @@
         "repair_mix": 1.0,
         "window_color": [
           1,
-          0.49,
-          0.11
+          0.52,
+          0.15
         ],
         "spill_color": [
           1,
@@ -343,65 +379,74 @@
         "spill_scale": 0.22,
         "sky_height_uv": 0.1487778958554729,
         "light_direction": [
-          -0.45,
-          0.6,
-          0.66
+          -0.5,
+          0.68,
+          0.55
         ],
         "ambient_rgb": [
-          0.76,
-          0.78,
-          0.8
+          0.57,
+          0.64,
+          0.76
         ],
         "key_rgb": [
-          0.3,
-          0.28,
-          0.25
+          0.63,
+          0.5,
+          0.31
         ],
-        "window_energy": 0.0,
+        "window_energy": 0,
         "spill_energy": 0.0,
-        "saturation": 1.0,
+        "saturation": 1.04,
         "water_tint": [
-          1,
-          1,
-          1
+          0.93,
+          1.01,
+          1.05
         ],
         "distant_tint": [
+          0.94,
           1,
-          1,
-          1
+          1.04
         ],
-        "sky_mix": 0.0,
+        "sky_mix": 0.26,
         "sky_top": [
-          0.3,
-          0.52,
-          0.85
+          0.24,
+          0.49,
+          0.8
         ],
         "sky_horizon": [
-          0.6,
-          0.76,
-          0.92
+          0.68,
+          0.82,
+          0.91
         ],
         "cloud_color": [
-          0.87,
-          0.93,
+          0.94,
+          0.97,
           1
         ],
         "ground_strength": 1.0,
-        "local_strength": 0.0,
-        "halo_strength": 0.0,
+        "local_strength": 0,
+        "halo_strength": 0,
         "legacy_spill_strength": 0.0,
         "local_color": [
-          1.0,
-          0.66,
-          0.33
+          1,
+          0.64,
+          0.29
         ],
         "halo_color": [
-          1.0,
-          0.64,
-          0.26
+          1,
+          0.66,
+          0.29
         ],
         "emission_balance": 1.0,
-        "water_time_gain": 1.0
+        "water_time_gain": 1,
+        "horizon_glow_strength": 0.12,
+        "horizon_glow_color": [
+          1,
+          0.95,
+          0.8
+        ],
+        "horizon_glow_x": 0.79,
+        "distance_haze_strength": 0.075,
+        "foreground_shade_strength": 0.12
       }
     },
     {
@@ -412,8 +457,8 @@
         "repair_mix": 1.0,
         "window_color": [
           1,
-          0.49,
-          0.11
+          0.52,
+          0.15
         ],
         "spill_color": [
           1,
@@ -423,65 +468,74 @@
         "spill_scale": 0.22,
         "sky_height_uv": 0.1487778958554729,
         "light_direction": [
-          -0.45,
-          0.6,
-          0.66
+          0.22,
+          0.72,
+          0.65
         ],
         "ambient_rgb": [
-          0.76,
-          0.78,
-          0.8
+          0.55,
+          0.59,
+          0.69
         ],
         "key_rgb": [
-          0.3,
-          0.28,
-          0.25
+          0.75,
+          0.53,
+          0.29
         ],
-        "window_energy": 0.0,
+        "window_energy": 0,
         "spill_energy": 0.0,
-        "saturation": 1.0,
+        "saturation": 1.035,
         "water_tint": [
+          0.97,
           1,
-          1,
-          1
+          1.04
         ],
         "distant_tint": [
-          1,
-          1,
-          1
+          0.96,
+          0.99,
+          1.06
         ],
-        "sky_mix": 0.0,
+        "sky_mix": 0.36,
         "sky_top": [
-          0.3,
-          0.52,
-          0.85
+          0.27,
+          0.48,
+          0.75
         ],
         "sky_horizon": [
-          0.6,
-          0.76,
-          0.92
+          0.83,
+          0.81,
+          0.72
         ],
         "cloud_color": [
-          0.87,
+          0.97,
           0.93,
-          1
+          0.86
         ],
         "ground_strength": 1.0,
-        "local_strength": 0.0,
-        "halo_strength": 0.0,
+        "local_strength": 0,
+        "halo_strength": 0,
         "legacy_spill_strength": 0.0,
         "local_color": [
-          1.0,
-          0.66,
-          0.33
+          1,
+          0.64,
+          0.29
         ],
         "halo_color": [
-          1.0,
-          0.64,
-          0.26
+          1,
+          0.66,
+          0.29
         ],
         "emission_balance": 1.0,
-        "water_time_gain": 1.0
+        "water_time_gain": 0.97,
+        "horizon_glow_strength": 0.18,
+        "horizon_glow_color": [
+          1,
+          0.85,
+          0.58
+        ],
+        "horizon_glow_x": 0.91,
+        "distance_haze_strength": 0.1,
+        "foreground_shade_strength": 0.14
       }
     },
     {
@@ -492,8 +546,8 @@
         "repair_mix": 1.0,
         "window_color": [
           1,
-          0.49,
-          0.11
+          0.52,
+          0.15
         ],
         "spill_color": [
           1,
@@ -503,65 +557,74 @@
         "spill_scale": 0.22,
         "sky_height_uv": 0.1487778958554729,
         "light_direction": [
-          0.85,
-          0.25,
-          0.45
+          0.88,
+          0.23,
+          0.4
         ],
         "ambient_rgb": [
-          0.26,
-          0.25,
-          0.36
+          0.18,
+          0.22,
+          0.35
         ],
         "key_rgb": [
-          0.72,
-          0.41,
-          0.2
+          0.92,
+          0.47,
+          0.18
         ],
-        "window_energy": 0.14,
+        "window_energy": 0.28,
         "spill_energy": 0.2,
-        "saturation": 0.9,
+        "saturation": 0.98,
         "water_tint": [
-          1.05,
-          0.91,
-          0.94
+          0.98,
+          0.9,
+          1.05
         ],
         "distant_tint": [
-          0.87,
-          0.9,
-          1.03
+          0.92,
+          0.93,
+          1.09
         ],
-        "sky_mix": 0.88,
+        "sky_mix": 0.94,
         "sky_top": [
-          0.31,
-          0.35,
-          0.57
+          0.24,
+          0.28,
+          0.49
         ],
         "sky_horizon": [
-          0.93,
-          0.58,
-          0.38
+          0.95,
+          0.57,
+          0.34
         ],
         "cloud_color": [
-          0.87,
-          0.68,
-          0.69
+          0.84,
+          0.62,
+          0.64
         ],
         "ground_strength": 1.0,
-        "local_strength": 0.23,
-        "halo_strength": 0.055,
+        "local_strength": 0.38,
+        "halo_strength": 0.1,
         "legacy_spill_strength": 0.0,
         "local_color": [
-          1.0,
-          0.66,
-          0.33
+          1,
+          0.64,
+          0.29
         ],
         "halo_color": [
-          1.0,
-          0.64,
-          0.26
+          1,
+          0.66,
+          0.29
         ],
         "emission_balance": 1.0,
-        "water_time_gain": 0.758
+        "water_time_gain": 0.79,
+        "horizon_glow_strength": 0.38,
+        "horizon_glow_color": [
+          1,
+          0.78,
+          0.43
+        ],
+        "horizon_glow_x": 0.94,
+        "distance_haze_strength": 0.14,
+        "foreground_shade_strength": 0.19
       }
     },
     {
@@ -572,8 +635,8 @@
         "repair_mix": 1.0,
         "window_color": [
           1,
-          0.49,
-          0.11
+          0.52,
+          0.15
         ],
         "spill_color": [
           1,
@@ -583,65 +646,74 @@
         "spill_scale": 0.22,
         "sky_height_uv": 0.1487778958554729,
         "light_direction": [
-          -0.3,
-          0.7,
-          0.65
+          -0.38,
+          0.61,
+          0.7
         ],
         "ambient_rgb": [
-          0.065,
-          0.11,
-          0.22
+          0.046,
+          0.082,
+          0.155
         ],
         "key_rgb": [
-          0.08,
-          0.12,
-          0.22
+          0.13,
+          0.21,
+          0.34
         ],
-        "window_energy": 0.74,
+        "window_energy": 0.92,
         "spill_energy": 0.95,
-        "saturation": 0.8,
+        "saturation": 0.87,
         "water_tint": [
-          0.7,
-          0.82,
-          0.94
+          0.92,
+          0.94,
+          0.78
         ],
         "distant_tint": [
-          0.8,
-          0.91,
-          1.05
+          0.82,
+          0.94,
+          1.07
         ],
-        "sky_mix": 0.96,
+        "sky_mix": 0.97,
         "sky_top": [
-          0.025,
-          0.055,
-          0.145
+          0.018,
+          0.037,
+          0.095
         ],
         "sky_horizon": [
-          0.095,
-          0.17,
+          0.085,
+          0.16,
           0.29
         ],
         "cloud_color": [
-          0.2,
-          0.29,
-          0.43
+          0.16,
+          0.235,
+          0.365
         ],
         "ground_strength": 1.0,
-        "local_strength": 1.0,
-        "halo_strength": 0.16,
+        "local_strength": 1.12,
+        "halo_strength": 0.19,
         "legacy_spill_strength": 0.0,
         "local_color": [
-          1.0,
-          0.66,
-          0.33
+          1,
+          0.64,
+          0.29
         ],
         "halo_color": [
-          1.0,
-          0.64,
-          0.26
+          1,
+          0.66,
+          0.29
         ],
         "emission_balance": 1.0,
-        "water_time_gain": 0.56
+        "water_time_gain": 0.6,
+        "horizon_glow_strength": 0.12,
+        "horizon_glow_color": [
+          0.26,
+          0.4,
+          0.67
+        ],
+        "horizon_glow_x": 0.82,
+        "distance_haze_strength": 0.075,
+        "foreground_shade_strength": 0.2
       }
     }
   ]

@@ -35,15 +35,15 @@
   ],
   "configs": [
     "pipeline",
-    "time_profile",
-    "motion",
-    "wind",
-    "wind_layout",
-    "entries"
+    "wind_layout"
   ],
   "runtime_owned_configs": [
     "daily_cycle",
     "ui_layout",
-    "effect_profile"
+    "effect_profile",
+    "time_profile",
+    "motion",
+    "wind",
+    "entries"
   ]
 }

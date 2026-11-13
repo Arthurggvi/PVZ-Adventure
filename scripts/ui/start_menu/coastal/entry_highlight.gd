@@ -2,31 +2,35 @@ extends RefCounted
 ## 建筑视觉层：输入命中与状态不依赖效果算法；可按uniform契约替换材质。
 ## Shader输入类型验证，失败时不替换当前可用材质。
 const Uniforms=preload("res://scripts/ui/start_menu/coastal/effect_uniforms.gd")
-## 默认效果保持已批准画面。
+## 默认效果保留建筑纹理，只在内边缘与斜向掠光中提示交互。
 const DEFAULT_SHADER := "res://shaders/ui/main_menu/entry_highlight.gdshader"
-## 当前场景独占高亮材质与显示节点。
+## 当前场景独占高亮材质，不修改共享资源实例。
 var material: ShaderMaterial
+## 承载前级场景纹理及当前高亮材质的显示节点。
 var display: TextureRect
 ## 基础表现来自entries.style，效果参数不能改业务状态。
 var style: Dictionary={}
 ## 入口对应的可见蒙版；不等同于点击范围。
 var masks: Dictionary={}
-## 当前入口、目标强度和连续过渡状态。
+## 当前蒙版身份；离开后暂时保留以便渐出。
 var active_id := ""
+## 权限和按下状态共同决定的目标强度。
 var desired := 0.0
+## 连续过渡后的当前强度。
 var amount := 0.0
 ## 当前反馈色；替换算法时保留。
-var accent := Vector3(1.0,.86,.58)
+var accent := Vector3(1.0,.83,.51)
 ## 显式效果时间，与本机日时钟分离。
 var effect_seconds := 0.0
 
-## [param host] 提供纹理/视口工厂；[param folder] 为数据根，缺入口配置则透传。
+## [param host] 提供纹理/视口工厂；[param folder] 为数据根；[param source] 为前级合成结果。
+## 返回带高亮的视口；缺入口配置时直接透传原视口。
 func configure(host: Node, folder: String, source: SubViewport) -> SubViewport:
 	if not FileAccess.file_exists(folder.path_join("config/entries.json")):
 		return source
 	var data: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(folder.path_join("config/entries.json"))) # 单一几何与样式来源。
 	style=data.style.duplicate(true)
-	for entry: Dictionary in data.entries:
+	for entry: Dictionary in data.entries: # 每个入口只加载对应可见蒙版，不读取命中轮廓。
 		masks[entry.id]=host.texture_file(folder.path_join("entry_assets/"+entry.id+".png"))
 	var view: SubViewport=host.make_view(source.size) # 高亮始终位于风/船变换之前。
 	display=host.artwork(view,source.get_texture())
@@ -35,18 +39,18 @@ func configure(host: Node, folder: String, source: SubViewport) -> SubViewport:
 	install_effect(candidate)
 	return view
 
-## [param effect] 只指定shader与parameters；先准备候选，不修改当前材质或过渡。
+## [param effect] 只指定shader与parameters；返回成功候选或错误说明，不修改当前材质或过渡。
 func prepare_effect(effect: Variant) -> Dictionary:
 	if display==null:
 		return {"ok":true,"skip":true} if effect is Dictionary and effect.is_empty() else {"ok":false,"error":"此场景未配置建筑高亮层"}
 	if not effect is Dictionary:
 		return {"ok":false,"error":"hover必须为对象"}
-	for key: String in effect:
+	for key: String in effect: # 拒绝配置中未知字段，避免表现参数静默失效。
 		if key not in ["shader","parameters"]:
 			return {"ok":false,"error":"未知hover字段："+key}
 	if not effect.get("shader",DEFAULT_SHADER) is String or not effect.get("parameters",{}) is Dictionary:
 		return {"ok":false,"error":"hover.shader必须为路径，parameters必须为对象"}
-	var defaults: Dictionary={"fill_gain":float(style.get("fill_gain",.13)),"inner_edge_gain":float(style.get("inner_edge_gain",.18))} # 替换算法仅继承其声明过的基础参数。
+	var defaults: Dictionary={"fill_gain":float(style.get("fill_gain",.018)),"inner_edge_gain":float(style.get("inner_edge_gain",.22)),"sheen_gain":float(style.get("sheen_gain",.028)),"sheen_speed":float(style.get("sheen_speed",.035))} # 替换算法仅继承其声明过的基础参数。
 	return Uniforms.prepare(str(effect.get("shader",DEFAULT_SHADER)),effect.get("parameters",{}),defaults)
 
 ## [param candidate] 由prepare_effect生成；一次性替换，不重建命中或重新绑定业务信号。
@@ -82,8 +86,10 @@ func set_target(id: String, mode: String, pressed: bool=false) -> void:
 func advance(delta: float) -> void:
 	if material==null:
 		return
-	var duration: float=style.fade_in_seconds if desired>amount else style.fade_out_seconds # 保持原渐入/渐出语义。
-	amount=move_toward(amount,desired,delta/maxf(duration,.001))
+	var duration: float=style.fade_in_seconds if desired>amount else style.fade_out_seconds # 渐出略长，避免指针擦过建筑时闪烁。
+	amount=lerpf(amount,desired,1.0-exp(-maxf(delta,0.0)*3.0/maxf(duration,.001)))
+	if absf(amount-desired)<.001:
+		amount=desired
 	material.set_shader_parameter("strength",amount)
 
 ## [param seconds] 显式控制可动画效果，暂停/回放可重复。

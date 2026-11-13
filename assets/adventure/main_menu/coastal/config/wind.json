@@ -1,9 +1,44 @@
 {
- "schema_version":1,"enabled":true,"loop_seconds":6.0,
- "field":{"strength":1.0,"direction":[1.0,0.18],"gust_depth":0.20,"gust_cycles":1.0},
- "canopy":{"enabled":true,"left_amplitude_px":2.5,"rear_amplitude_px":1.75,"left_phase":0.0,"rear_phase":0.85,"spatial_scale_px":95.0,"cycles":2.0},
- "awning":{"enabled":true,"amplitude_px":1.35,"phase":1.4,"cycles":2.0,"travel_radians":2.6,"horizontal_fraction":0.14},
- "flag":{"enabled":true,"amplitude_px":1.8,"phase":0.6,"cycles":4.0,"travel_radians":4.5},
- "limits":{"canopy_max_px":3.5,"awning_max_px":2.0,"flag_max_px":2.4},
- "note":"One deterministic wind field, different material responses. Tree silhouettes/branches and awning fixed edge stay pinned. Flag deformation happens before boat transform. No wallclock or extra particles."
+  "schema_version": 1,
+  "enabled": true,
+  "loop_seconds": 9.6,
+  "field": {
+    "strength": 0.93,
+    "direction": [
+      1.0,
+      0.18
+    ],
+    "gust_depth": 0.24,
+    "gust_cycles": 1.0
+  },
+  "canopy": {
+    "enabled": true,
+    "left_amplitude_px": 2.3,
+    "rear_amplitude_px": 1.6,
+    "left_phase": 0.0,
+    "rear_phase": 0.85,
+    "spatial_scale_px": 95.0,
+    "cycles": 2.0
+  },
+  "awning": {
+    "enabled": true,
+    "amplitude_px": 1.15,
+    "phase": 1.4,
+    "cycles": 2.0,
+    "travel_radians": 2.6,
+    "horizontal_fraction": 0.14
+  },
+  "flag": {
+    "enabled": true,
+    "amplitude_px": 1.7,
+    "phase": 0.6,
+    "cycles": 4.0,
+    "travel_radians": 4.5
+  },
+  "limits": {
+    "canopy_max_px": 3.5,
+    "awning_max_px": 2.0,
+    "flag_max_px": 2.4
+  },
+  "note": "9.6秒共享风场保留固定树干与棚边；树冠缓摆，棚布与船旗按不同频率回应。所有幅度低于现有资产包络，不引入全局时间或随机粒子。"
 }

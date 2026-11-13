@@ -63,8 +63,10 @@ func _ready() -> void:
 	var layout: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(PACK+"/config/ui_layout.json")) # 已确认布局，不把UI烘焙进背景。
 	profile_hud=Profile.new()
 	profile_hud.theme=preload("res://scripts/adventure/island_ui.gd").make_theme()
+	profile_hud.configure_coastal_presentation()
 	profile_hud.configure_canvas_layout(float(layout.profile_scale),Vector2(layout.profile_action[0],layout.profile_action[1]))
 	canvas.add_child(profile_hud)
+	profile_hud.position=Vector2(layout.profile_position[0],layout.profile_position[1])
 	profile_hud.add_action("存档",_open_profiles)
 	profile_hud.mouse_filter=Control.MOUSE_FILTER_STOP
 	var transition := preload("res://scenes/ui/transitions/SceneTransition.tscn").instantiate() # 地图导航共享原过渡服务。

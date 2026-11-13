@@ -3,7 +3,7 @@
 ## 0｜权威入口先置
 
 - 正式菜单：`res://scenes/main/01StartMenuCoastal.tscn`，运行实现 `scripts/ui/start_menu/coastal/`，材质 `shaders/ui/main_menu/`。
-- **效果配置**：`assets/adventure/main_menu/coastal/config/effect_profile.json`。正式提交保持 `hover/lights/water` 为空对象，即原高亮、恒定灯光与原水面。
+- **效果配置**：`assets/adventure/main_menu/coastal/config/effect_profile.json`。正式默认使用内侧暖边高亮、低幅度错相灯光与11.2秒独立水周期。空hover对象恢复当前默认高亮，空lights/water对象仍可用于中性效果对照。
 - **当前菜单即时重载**：`menu.reload_visual_effects()`；宿主直接调用 `host.reload_effects()`。返回 `{ok,error?}`，失败保留此前完整有效状态。不会写玩家档案或重建场景。
 - **直接调用**：`host.effects.set_hover_effect(...)`、`set_light_behavior(group,...)`、`set_water_effect(...)`、`apply_profile(...)`。`snapshot()`返回深复制；`describe()`列出真实入口和支持范围。
 - **离线入口**：`tools/art_bake/main_menu/menu.py`；复现例子：`effects-preview --workspace <独立目录> --tools-config <ArtControl/config.json>`。不加载游戏autoload和玩家存档。
@@ -81,7 +81,7 @@
 
 - 效果使用宿主传入的动作秒数：`set_elapsed(seconds)`或`set_phase(phase)`。不依赖引擎全局TIME、本机日期或每帧随机，因此暂停、回放和时钟调整不破坏动作。
 - `apply_profile()`先完成三项验证与hover候选材质准备，再一起提交。未知字段/材质uniform、错误类型、非法灯组、无效灯光或水面周期等返回明确error；原配置、材质和过渡保持有效。
-- 所有运行效果默认中性；素材、31份原生纹理和正式存档不修改。示例仅存在制作目录或当前演示实例中。
+- 正式运行效果以effect_profile为准；素材、31份原生纹理和正式存档不修改。强呼吸、闪烁与同心波示例仅存在制作目录或当前演示实例中。
 - 日周期参数也按实际relight声明检查；water_time_gain显式分流到港口材质，不再向光照材质写一个不存在的字段。调制倍率有独立所有者，拒绝被日周期字段覆盖。
 - `effect_profile.json`列入 runtime_inputs.json 的 runtime_owned_configs，与daily_cycle/ui_layout一样不会被旧制作目录的归档覆盖。
 - 参数类型来自Godot Shader.get_shader_uniform_list；该检验不代表自动理解任意自定义shader的全部视觉语义，特殊数值范围仍需由新效果负责。
@@ -98,7 +98,7 @@
 
 已用正式宿主在无autoload空工程实际运行：经典hover→扫光替换、研究室呼吸及闪烁、水面drift→ripples及独立速度、错误输入拒绝、文件重载回到默认。默认昼夜/hover与修改前截图比较：夜间完全一致，白天最大差1/255且仅1像素，属于本次shader运算路径的量化差异，不能写成全图逐位相同。
 
-呼吸采样的研究室倍率为0.15→0.8→1.45→0.8→0.15，窗口/受光/光晕一致，其他三组保持1。改变水面周期时船phase仍为0.25。示例恢复后正式profile仍是空对象中性配置。
+呼吸采样的研究室倍率为0.15→0.8→1.45→0.8→0.15，窗口/受光/光晕一致，其他三组保持1。改变水面周期时船phase仍为0.25。上述为2026-11-12中性配置的接口核对记录；2026-11-13默认表现调整见运行管线第9节，不沿用旧像素一致性结论。
 
 证据文件：reports/effect_reachability.json、default_identity.json，以及examples/真实截图与frames/实际视频源帧。按AGENTS没有新增/运行游戏测试套件；本轮是接口/材质接入与实际输出核对，不是全游戏回归或完整发布包验收。
 

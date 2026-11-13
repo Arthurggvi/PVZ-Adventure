@@ -92,6 +92,15 @@ XCF仍归已批准的9A美术工作副本，本轮没有重新绘制图层；新
 
 ## 8｜效果算法与时间调制（后续封装）
 
-hover材质替换、四组灯光呼吸/闪烁、水面算法与独立周期统一见 [效果接口索引](main_menu_effects_api.md)。当前默认effect_profile为空对象，原观感不改变。即时重载入口为菜单reload_visual_effects/host.reload_effects；普通几何、命中、风动参数的加载周期仍按索引区分。
+hover材质替换、四组灯光呼吸/闪烁、水面算法与独立周期统一见 [效果接口索引](main_menu_effects_api.md)。正式effect_profile已启用低幅度错相灯光和独立水周期；空hover对象使用当前默认高亮算法。即时重载入口为菜单reload_visual_effects/host.reload_effects；普通几何、命中、风动参数的加载周期仍按索引区分。
 
 日周期只提交实际relight参数，water_time_gain显式路由到港口材质；local/emission/halo组倍率由效果控制器拥有，不得在daily_cycle内重复维护。新运行profile已加入发布保护，旧制作目录不会覆盖它。
+
+## 9｜2026-11-13 视觉与交互整理
+
+- 白天不再与reference校准参数完全相同；较低环境光与方向光分开塑造墙面，下午有独立方向。天空地平线散射、远景空气透视与轻微前景压暗复用原环境蒙版，未改变母图或新增贴图。夜间以暖窗与冷屋顶分层，海水降低蓝色竞争。
+- 船周期8.4秒、风周期9.6秒、水周期11.2秒；各灯组约±3%的缓慢错相变化。均使用原显式动作时钟，位移仍处于原分层包络内，不增加持续跳动的界面元素。
+- 入口名称牌使用独立 `building_entry_badge.gd`：图鉴、研究室、启程；不再展示功能串和“点击进入”。牌匾穿透鼠标，位置落在原建筑命中范围内；权限与模态仍由同一工具栏门面查询，锁定原因只在指向时显示。
+- 档案通过 `configure_coastal_presentation()` 显式启用296×118紧凑布局；存档动作位于卡片内。菜单位置/比例由ui_layout控制；地图和战斗未启用时继续原有构造。
+- 运行调色、运动和入口表现已成为正式配置：`daily_cycle/ui_layout/effect_profile/time_profile/motion/wind/entries` 均由runtime_inputs保护，旧工作目录发布贴图不会覆盖调参。若重建入口蒙版，须将新的几何同时明确同步到正式entries并核对牌匾位置；只发布贴图不能代替几何同步。
+- 当前核对与截图目录：`C:\Dev\PvZ\_review\menu_polish_20261113`。使用独立用户目录 `PVZ-Menu-Polish-Isolated-20261113` 的演示档案，未运行游戏测试套件。第6节的数据属于原9B交付，不能当作本轮性能或完整流程验收。

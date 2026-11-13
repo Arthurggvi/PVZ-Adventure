@@ -5,23 +5,25 @@
     941
   ],
   "style": {
-    "fade_in_seconds": 0.13,
-    "fade_out_seconds": 0.1,
-    "fill_gain": 0.13,
-    "inner_edge_gain": 0.18,
+    "fade_in_seconds": 0.22,
+    "fade_out_seconds": 0.26,
+    "fill_gain": 0.018,
+    "inner_edge_gain": 0.22,
+    "sheen_gain": 0.028,
+    "sheen_speed": 0.035,
     "inner_edge_width_px": 1.5,
     "available_color": [
       1.0,
-      0.86,
-      0.58
+      0.83,
+      0.51
     ],
     "locked_color": [
       0.6,
       0.64,
       0.7
     ],
-    "locked_strength": 0.35,
-    "pressed_multiplier": 0.78,
+    "locked_strength": 0.24,
+    "pressed_multiplier": 0.86,
     "outline_min_width_px": 5
   },
   "entries": [
@@ -30,6 +32,9 @@
       "feature": "home",
       "name": "家",
       "title": "家园",
+      "label": "家园",
+      "label_anchor": [230, 380],
+      "resting_label": false,
       "anchor": [
         267,
         498
@@ -173,6 +178,9 @@
       "feature": "almanac",
       "name": "图书馆",
       "title": "图鉴",
+      "label": "图鉴",
+      "label_anchor": [655, 232],
+      "resting_label": true,
       "anchor": [
         655,
         321
@@ -337,6 +345,9 @@
       "feature": "store",
       "name": "商店",
       "title": "商店",
+      "label": "商店",
+      "label_anchor": [230, 680],
+      "resting_label": false,
       "anchor": [
         233,
         864
@@ -485,6 +496,9 @@
       "feature": "research",
       "name": "研究室",
       "title": "合成 · 强化 · 转职",
+      "label": "研究室",
+      "label_anchor": [1062, 410],
+      "resting_label": true,
       "anchor": [
         1062,
         515
@@ -845,6 +859,10 @@
       "feature": "map",
       "name": "港口",
       "title": "冒险地图",
+      "label": "启程",
+      "label_anchor": [1450, 428],
+      "resting_label": true,
+      "primary": true,
       "anchor": [
         1450,
         569
