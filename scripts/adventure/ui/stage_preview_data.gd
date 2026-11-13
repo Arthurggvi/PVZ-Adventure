@@ -9,31 +9,24 @@ const Recipes = preload("res://scripts/adventure/research/research_recipe_catalo
 ## Boss 名称和头像沿用图鉴从战斗场景读取的资料。
 const BossData = preload("res://scripts/adventure/ui/boss_almanac_data.gd")
 
-## 两种可见状态：普通未通关（隐藏敌情）、可展示敌情；未解锁关卡不进入预览。
+## 情报不可展示时只提供状态，关卡本身未解锁时不会请求预览。
 const STATE_SEALED := "sealed"
+## 情报可展示时附上关卡名与各阶段的内容。
 const STATE_READY := "ready"
 
 ## 未通关时最多列出的波次区间数量，超出时以省略号收尾。
 const MAX_WAVE_RANGES := 3
 
-## [param stage] 为已解析关卡；[param title] 为地图给出的关卡名；
-## [param normal_cleared] 来自地图已算好的进度，不在此处重复查询。
+## 根据 [param normal_cleared] 决定是否展示情报。
+## [param stage] 为已解析关卡，缺失时也显示问号；[param title] 仅用于完整情报。
 static func build(stage: StageDefinition, title: String, normal_cleared: bool) -> Dictionary:
-	var view := {"title": title, "state": STATE_SEALED, "hint": "", "blocks": []}
-	if not normal_cleared:
-		view["title"] = "？"
-		view["hint"] = "通关本关普通阶段后，才会显示敌人与掉落。"
-		return view
-	if stage == null:
-		view["hint"] = "关卡配置暂时无法读取。"
-		return view
+	if not normal_cleared or stage == null:
+		return {"state": STATE_SEALED}
 	Global.global_read_data.ensure_almanac_loaded() # 中文名与图鉴共用同一份数据，首次读取时加载。
-	view["state"] = STATE_READY
-	var blocks: Array[Dictionary] = []
-	for phase: StagePhaseDefinition in _ordered_phases(stage):
+	var blocks: Array[Dictionary] = [] # 按界面顺序组织普通、噩梦阶段的情报。
+	for phase: StagePhaseDefinition in _ordered_phases(stage): # 每个可展示阶段生成一块情报。
 		blocks.append(_block(phase))
-	view["blocks"] = blocks
-	return view
+	return {"state": STATE_READY, "title": title, "blocks": blocks}
 
 ## 普通阶段在前、噩梦在后，不依赖资源里的数组顺序。
 static func _ordered_phases(stage: StageDefinition) -> Array[StagePhaseDefinition]:

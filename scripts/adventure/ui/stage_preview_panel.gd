@@ -1,6 +1,6 @@
-## 僵尸岛地图的关卡悬停预览：三态面板、自动滚动与既有美术拼装。
+## 僵尸岛地图的关卡悬停预览：问号小框与可自动滚动的情报面板。
 ## 只消费 StagePreviewData 的展示字典；不查询进度，也不重新解释关卡规则。
-extends Control
+extends Panel
 
 ## 地图与按钮共用的界面构造工具。
 const UI = preload("res://scripts/adventure/island_ui.gd")
@@ -11,8 +11,10 @@ const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 
 ## 与地图按钮共用 1920×1080 设计坐标。
 const DESIGN_SIZE := Vector2(1920, 1080)
-## 固定面板尺寸，内容超出时由内部视口滚动。
+## 完整情报面板的尺寸，内容超出时由内部视口滚动。
 const PANEL_SIZE := Vector2(640, 700)
+## 未解锁情报的问号小框尺寸，使用地图设计坐标。
+const SEALED_SIZE := Vector2(64, 64)
 ## 面板内边距与标题区高度。
 const PADDING := 24.0
 const HEADER_HEIGHT := 118.0
@@ -38,9 +40,12 @@ const BLACK_GENERAL_VISUAL := "res://scenes/character/zombie_boss/black_general_
 const PANEL_COLOR := Color("12211cee")
 const EDGE_FADE := 24.0
 
-## 标题与状态行，只在展示新关卡时改写文字。
+## 完整情报的标题、分隔线与滚动视口共用一层，方便整体切换。
+var _details: Control
+## 未解锁情报小框内唯一可见的文字。
+var _sealed_label: Label
+## 完整情报的标题，只在展示新关卡时改写文字。
 var _title_label: Label
-var _state_label: Label
 ## 裁剪滚动的内容视口，内容高度超过视口时才启动自动滚动。
 var _viewport: Control
 var _content: VBoxContainer
@@ -57,9 +62,11 @@ var _tween: Tween
 
 ## 建立固定骨架；内容在每次展示时按数据重建。
 func _ready() -> void:
-	size = PANEL_SIZE
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
+	add_theme_stylebox_override("panel", UI.panel_style(PANEL_COLOR))
+	_sealed_label = _text(self, "？", Rect2(Vector2.ZERO, SEALED_SIZE), 40,
+		Color("ffe8b0"), HORIZONTAL_ALIGNMENT_CENTER)
 	_build_chrome()
 	_delay = Timer.new()
 	_delay.one_shot = true
@@ -83,11 +90,15 @@ func cancel() -> void:
 func _apply_pending() -> void:
 	if _pending_data.is_empty():
 		return
-	var data := _pending_data
+	var data := _pending_data # 本次确认展示的关卡情报。
 	_pending_data = {}
-	_title_label.text = str(data.get("title", ""))
-	_state_label.text = _state_text(data)
-	_rebuild(data)
+	var sealed: bool = data.get("state") == "sealed" # 未解锁情报时只显示问号小框。
+	_details.visible = not sealed
+	_sealed_label.visible = sealed
+	size = SEALED_SIZE if sealed else PANEL_SIZE
+	if not sealed:
+		_title_label.text = str(data.get("title", ""))
+	_rebuild(data.get("blocks", []))
 	_place(_pending_anchor)
 	visible = true
 	modulate.a = 0.0
@@ -102,7 +113,7 @@ func _apply_pending() -> void:
 
 ## 内容超高时往返滚动；两端各停顿 [constant EDGE_PAUSE] 秒。
 func _process(delta: float) -> void:
-	if not visible:
+	if not _details.is_visible_in_tree():
 		return
 	var span: float = _content.size.y - _viewport.size.y
 	if span <= 0.0:
@@ -121,29 +132,28 @@ func _process(delta: float) -> void:
 		_pause = EDGE_PAUSE
 	_content.position.y = -_scroll
 
-## 面板底色、标题、状态行与裁剪视口。
+## 建立完整情报的标题、状态行与裁剪视口。
 func _build_chrome() -> void:
-	var background := Panel.new()
-	background.size = PANEL_SIZE
-	background.add_theme_stylebox_override("panel", UI.panel_style(PANEL_COLOR))
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(background)
-	_title_label = _text(self, "", Rect2(Vector2(PADDING, 16), Vector2(PANEL_SIZE.x - PADDING * 2.0, 50)),
+	_details = Control.new()
+	_details.size = PANEL_SIZE
+	_details.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_details)
+	_title_label = _text(_details, "", Rect2(Vector2(PADDING, 16), Vector2(PANEL_SIZE.x - PADDING * 2.0, 50)),
 		40, Color("ffe8b0"))
-	_state_label = _text(self, "", Rect2(Vector2(PADDING, 68), Vector2(PANEL_SIZE.x - PADDING * 2.0, 30)),
+	_text(_details, "普通阶段已通关", Rect2(Vector2(PADDING, 68), Vector2(PANEL_SIZE.x - PADDING * 2.0, 30)),
 		22, Color("b9c9bf"))
 	var divider := ColorRect.new()
 	divider.color = Color(0.78, 0.68, 0.44, 0.45)
 	divider.position = Vector2(PADDING, HEADER_HEIGHT - 12.0)
 	divider.size = Vector2(PANEL_SIZE.x - PADDING * 2.0, 1.0)
 	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(divider)
+	_details.add_child(divider)
 	_viewport = Control.new()
 	_viewport.position = Vector2(PADDING, HEADER_HEIGHT)
 	_viewport.size = Vector2(PANEL_SIZE.x - PADDING * 2.0, PANEL_SIZE.y - HEADER_HEIGHT - PADDING)
 	_viewport.clip_contents = true
 	_viewport.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_viewport)
+	_details.add_child(_viewport)
 	_content = VBoxContainer.new()
 	_content.custom_minimum_size = Vector2(_viewport.size.x, 0.0)
 	_content.add_theme_constant_override("separation", 0)
@@ -172,36 +182,16 @@ func _edge_fade(top: bool) -> void:
 	node.position = Vector2(PADDING, HEADER_HEIGHT if top else PANEL_SIZE.y - PADDING - EDGE_FADE)
 	node.size = Vector2(PANEL_SIZE.x - PADDING * 2.0, EDGE_FADE)
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(node)
+	_details.add_child(node)
 
-## 状态行只描述进度，具体提示放在占位内容里。
-func _state_text(data: Dictionary) -> String:
-	if str(data.get("state", "")) == "sealed":
-		return "情报未解锁"
-	return "普通阶段已通关"
-
-## 按展示字典重建内容；旧行立即离树，避免重建时出现双份内容。
-func _rebuild(data: Dictionary) -> void:
-	for child: Node in _content.get_children():
+## 按 [param blocks] 重建情报；未解锁时列表为空，只清理旧行。
+func _rebuild(blocks: Array) -> void:
+	for child: Node in _content.get_children(): # 旧行立即离树，避免切换时出现双份内容。
 		_content.remove_child(child)
 		child.queue_free()
-	if str(data.get("state", "")) == "ready":
-		for block: Dictionary in data.get("blocks", []):
-			_build_block(block)
-	else:
-		_build_placeholder(str(data.get("hint", "")))
+	for block: Dictionary in blocks: # 每个阶段独立展示波次、敌人和掉落。
+		_build_block(block)
 	_content.reset_size()
-
-## 未通关时只显示问号与条件说明，整块在视口内垂直居中。
-func _build_placeholder(hint: String) -> void:
-	var frame := Control.new()
-	frame.custom_minimum_size = Vector2(0.0, _viewport.size.y)
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_content.add_child(frame)
-	_text(frame, "？", Rect2(Vector2.ZERO, Vector2(_content.size.x, 250.0)), 180, Color("ffe8b0"),
-		HORIZONTAL_ALIGNMENT_CENTER)
-	_text(frame, hint, Rect2(Vector2(20, 300), Vector2(_content.size.x - 40.0, 110.0)), 26,
-		Color("b9c9bf"), HORIZONTAL_ALIGNMENT_CENTER)
 
 ## 绘制 [param block] 的波次摘要、敌人与奖励，击败奖励按 Boss 分开显示。
 func _build_block(block: Dictionary) -> void:
@@ -433,12 +423,12 @@ func _text(parent: Control, value: String, rect: Rect2, font_size: int, color: C
 	parent.add_child(node)
 	return node
 
-## 优先放在节点右侧，空间不足翻到左侧；纵向夹在安全区内。
+## 在 [param anchor] 右侧按当前面板尺寸定位，空间不足时翻到左侧并夹在安全区内。
 func _place(anchor: Rect2) -> void:
-	var x: float = anchor.end.x + GAP
-	if x + PANEL_SIZE.x > DESIGN_SIZE.x - 32.0:
-		x = anchor.position.x - GAP - PANEL_SIZE.x
-	x = clampf(x, 32.0, DESIGN_SIZE.x - 32.0 - PANEL_SIZE.x)
-	var y: float = anchor.get_center().y - PANEL_SIZE.y * 0.5
-	y = clampf(y, SAFE_TOP, SAFE_BOTTOM - PANEL_SIZE.y)
+	var x: float = anchor.end.x + GAP # 面板左缘在地图画布上的横坐标。
+	if x + size.x > DESIGN_SIZE.x - 32.0:
+		x = anchor.position.x - GAP - size.x
+	x = clampf(x, 32.0, DESIGN_SIZE.x - 32.0 - size.x)
+	var y: float = anchor.get_center().y - size.y * 0.5 # 以关卡节点中心为基准的面板顶边。
+	y = clampf(y, SAFE_TOP, SAFE_BOTTOM - size.y)
 	position = Vector2(x, y)

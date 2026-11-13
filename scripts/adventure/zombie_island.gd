@@ -114,10 +114,10 @@ func _select_stage(stage_id: int) -> void:
 	if AdventureSession.is_unlocked(stage_id):
 		AdventureSession.enter_stage(stage_id)
 
-## 悬停节点时投影本关配置；未通关的关卡由视图模型降级为问号占位。
+## 悬停节点时请求情报预览，普通阶段通关后才解析配置。
 ## [param stage] 为 layout.json 条目，[param node] 提供面板锚点，[param cleared] 来自本轮已算好的进度。
 func _hover_stage(stage: Dictionary, node: Control, cleared: bool) -> void:
-	var definition: StageDefinition = _stage_definition(int(stage.id))
+	var definition: StageDefinition = _stage_definition(int(stage.id)) if cleared else null # 未通关时只需问号小框。
 	preview.request(PreviewData.build(definition, str(stage.name), cleared),
 		Rect2(node.position, node.size))
 
