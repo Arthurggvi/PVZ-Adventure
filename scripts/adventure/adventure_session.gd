@@ -194,17 +194,29 @@ func _start_battle_attempt(stage_number: int, stage: StageDefinition, phase: Sta
 	return true
 ## 接收备战画面按 UID 选择的卡，仅确认时冻结快照和更新当前玩家的历史卡组。
 func confirm_selected_cards(cards: Array[Card]) -> bool:
-	if not owns_battle(Global.game_para) or active_stage == null or active_phase == null \
-			or not battle_loadout.is_empty() or not CardSlotRules.can_start(active_stage.max_selected_cards, cards.size()):
+	if not owns_battle(Global.game_para) or active_stage == null or active_phase == null or not battle_loadout.is_empty():
 		return false
-	var inventory: AdventureInventoryService = Global.adventure_inventory
-	var uids: Array[String] = []
-	for card: Card in cards:
-		var uid: String = str(card.battle_card_data.get("uid", ""))
-		var current: Dictionary = inventory.get_card(uid)
-		if current.is_empty() or int(current.get("plant_type", -1)) != card.card_reference.content_id:
+	var inventory: AdventureInventoryService = Global.adventure_inventory # 权威库存决定真实卡片身份。
+	var uids: Array[String] = [] # 保存用户实际选中的完整顺序，免槽卡不会被剔除。
+	var profiles: Array[PlantSpawnProfile] = [] # 在写入卡组前校验并冻结每张卡的合法配方。
+	var occupied_slots: int = 0 # 不信任界面缓存的预算或可修改展示数据。
+	for card: Card in cards: # 同种不同 UID 分别校验，重复身份拒绝开战。
+		if not is_instance_valid(card) or card.card_reference == null \
+				or card.card_reference.card_type != ResourceCardReference.CardType.Plant or card.card_reference.is_imitater:
 			return false
+		var uid: String = str(card.battle_card_data.get("uid", "")) # 界面只提供待查身份。
+		var current: Dictionary = inventory.get_card(uid) # 重新读取该玩家当前实际卡牌。
+		if current.is_empty() or str(current.get("uid", "")) != uid or uids.has(uid) \
+				or int(current.get("plant_type", -1)) != card.card_reference.content_id:
+			return false
+		var profile: PlantSpawnProfile = AdventureBattleAdapter.profile_for(current) # 无效分支不能享受免槽。
+		if profile == null:
+			return false
+		profiles.append(profile)
+		occupied_slots += profile.selection_slot_cost()
 		uids.append(uid)
+	if not CardSlotRules.can_start(active_stage.max_selected_cards, cards.size(), occupied_slots):
+		return false
 	var state: AdventureState = Global.global_game_state.adventure_state
 	var previous_uids: Array[String] = state.selected_card_uids.duplicate()
 	if not inventory.set_deck(uids):
@@ -213,13 +225,7 @@ func confirm_selected_cards(cards: Array[Card]) -> bool:
 	if snapshot.size() != cards.size():
 		state.selected_card_uids = previous_uids
 		return false
-	var profiles: Array[PlantSpawnProfile] = []
-	for build: Dictionary in snapshot:
-		var profile: PlantSpawnProfile = AdventureBattleAdapter.profile_for(build)
-		if profile == null:
-			state.selected_card_uids = previous_uids
-			return false
-		profiles.append(profile)
+	# set_deck 只替换已校验的 UID 顺序；这里的快照与入事务前构造的配方来自同一库存。
 	if not Global.save_service.save_now():
 		state.selected_card_uids = previous_uids
 		return false
@@ -229,6 +235,19 @@ func confirm_selected_cards(cards: Array[Card]) -> bool:
 	for index: int in range(cards.size()):
 		cards[index].plant_spawn_profile = profiles[index]
 	return true
+## 重新核验本局冻结卡组的占槽预算；损坏或重复身份返回 -1，不能消费续战钥匙。
+func _frozen_loadout_slot_count() -> int:
+	var occupied_slots: int = 0 # 真实卡片数可以大于关卡普通槽预算。
+	var seen: Dictionary[String, bool] = {} # 免槽也不能复制同一 UID。
+	for build: Dictionary in battle_loadout: # 所有配方仍来自开战时的只读快照。
+		var profile: PlantSpawnProfile = AdventureBattleAdapter.profile_for(build) # 使用同一合法分支入口。
+		var uid: String = str(build.get("uid", "")) # 完整身份不能在续战时丢失。
+		if profile == null or seen.has(uid):
+			return -1
+		seen[uid] = true
+		occupied_slots += profile.selection_slot_cost()
+	return occupied_slots
+
 ## 仅供原版预选卡槽获取对应序号的冻结身份；普通模式不走此入口。
 func get_prechosen_battle_data(slot_index: int, reference: ResourceCardReference) -> Dictionary:
 	if active_level == null:
@@ -288,7 +307,9 @@ func begin_nightmare() -> bool:
 		return false
 	var nightmare: StagePhaseDefinition = AdventureStageCatalog.find_phase(
 		active_stage, StagePhaseDefinition.Kind.NIGHTMARE)
-	if nightmare == null or not CardSlotRules.can_start(active_stage.max_selected_cards, battle_loadout.size()):
+	var occupied_slots: int = _frozen_loadout_slot_count() # 续战沿用本局冻结配方，不重读已变化的库存。
+	if nightmare == null or occupied_slots < 0 \
+			or not CardSlotRules.can_start(active_stage.max_selected_cards, battle_loadout.size(), occupied_slots):
 		error_message = "噩梦阶段与当前卡组不兼容。"
 		return false
 	var consume: bool = active_stage.nightmare_key_use == StageDefinition.KeyUse.CONSUME

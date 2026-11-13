@@ -40,6 +40,29 @@ var _battle_aura_damage_sources: Dictionary[StringName, float] = {}
 ## 冒险转职赋予的负面效果免疫；仅在冻结出战卡生成时写入，不进入角色原版数据。
 var battle_negative_effect_immune: bool = false
 var spawn_attributes_applied: bool = false
+## 同一次卡片点击共享的提交身份；自动生成或独立放置可以为空。
+var placement_use_context: PlantPlacementUseContext
+## 原生咖啡伸缩动画；重复唤醒不会重启或叠加同一株身体的动画。
+var _coffee_wake_tween: Tween
+## 当前伸缩所属战场的弱引用；旧阶段动画不能挡住新阶段的合法咖啡。
+var _coffee_wake_game_ref: WeakRef
+## 当前伸缩所属空间，平台移动不改变此身份。
+var _coffee_wake_board: BoardRuntime
+## 当前伸缩所属冒险阶段；普通轮间切换继续使用同一身份。
+var _coffee_wake_phase: StagePhaseDefinition
+
+## 标准放置事务的纯查询准备入口；[param _origin] 区分玩家使用、预置和转化。
+## 普通植物无需额外作用计划；工具可保留非战斗阶段的原生配置语义。
+func prepare_placement_action(_origin: PlantCell.PlacementOrigin = PlantCell.PlacementOrigin.Player) -> bool:
+	return true
+
+## 占位、承托与保存状态完成后执行；默认植物没有额外同步作用。
+func commit_placement_action() -> void:
+	pass
+
+## 返回本次已提交作用的额外卡片冷却；未成功产生额外效果时为零。
+func placement_cooldown_extension() -> float:
+	return 0.0
 
 func set_battle_card_damage_multiplier(value: float) -> void:
 	_battle_card_damage_multiplier = maxf(0.0, value)
@@ -79,6 +102,12 @@ func capture_attack_context() -> PlantAttackContext:
 ## The species represented by this spawn, independent of rendering/transform.
 func spawn_species_id() -> int:
 	return int(plant_type)
+## 实际放置事务提交的完整地块声明，死亡记录不凭当前画面反推多格范围。
+var battle_placement_cells: Array[PlantCell] = []
+## 铲除、升级替换与场景清理显式关闭尸体记录；正常消耗与战斗死亡保持开启。
+var death_recording_enabled: bool = true
+## 复生后的永久最大生命比例，存档单独保存，不修改来源卡牌配方。
+var revival_health_scale: float = 1.0
 ## 植物死亡后是否直接删除
 var is_death_free:= true
 ## 是否为模仿者材质
@@ -246,6 +275,8 @@ func character_death():
 	if is_death:
 		return
 	_death_attack_context = capture_attack_context()
+	# 在占用释放、光环撤销和亡语之前冻结永久状态；记录不会保存死亡实例本身。
+	PlantRevivalArchive.record_death(self)
 	## 发射死亡信号并执行原生亡语，此时不再依赖动态提供者。
 	super()
 	if is_instance_valid(hurt_box_component):
@@ -291,6 +322,7 @@ func be_shovel_look_end() -> void:
 ## 被铲子铲除,禁止亡语
 func be_shovel_kill():
 	is_can_death_language = false
+	death_recording_enabled = false
 	hp_component.Hp_loss_death()
 
 ## 手持紫卡植物可以种植在该植物上
@@ -309,11 +341,41 @@ func preplant_purple_body_light_and_dark_end():
 ## 咖啡豆沿用一点五秒的原生伸缩动画，完成后授予独立的永久唤醒。
 ## 动画期间即使已被月光唤醒，也不会丢失咖啡豆的永久效果。
 func coffee_bean_awake_up():
-	var tween: Tween = create_tween() # 绑定植物生命周期，离树后不唤醒其他实例。
-	tween.tween_property(body, ^"scale:y", 0.8, 0.5)
-	tween.tween_property(body, ^"scale:y", 1.2, 0.5)
-	tween.tween_property(body, ^"scale:y", 1, 0.5)
-	tween.tween_callback(sleep_component.wake_permanently)
+	if is_death or is_queued_for_deletion() or not is_inside_tree() \
+			or not is_instance_valid(sleep_component) or sleep_component.is_permanently_awake \
+			or not is_instance_valid(plant_cell):
+		return
+	var game: MainGameManager = Global.main_game # 最终伸缩回调也必须保留本次战场身份。
+	if not is_instance_valid(game):
+		return
+	var phase: StagePhaseDefinition = AdventureSession.get_active_phase(game.game_para) # 普通轮次不会改变阶段身份。
+	if not CoffeeBeanUsePlan.wakeup_context_current(game, plant_cell.board, phase):
+		return
+	if _coffee_wake_tween != null and _coffee_wake_tween.is_valid():
+		if _coffee_wake_game_ref != null and CoffeeBeanUsePlan.wakeup_context_current(
+				_coffee_wake_game_ref.get_ref() as MainGameManager, _coffee_wake_board, _coffee_wake_phase):
+			return
+		_coffee_wake_tween.kill()
+	_coffee_wake_game_ref = weakref(game)
+	_coffee_wake_board = plant_cell.board
+	_coffee_wake_phase = phase
+	_coffee_wake_tween = create_tween()
+	_coffee_wake_tween.tween_property(body, ^"scale:y", 0.8, 0.5)
+	_coffee_wake_tween.tween_property(body, ^"scale:y", 1.2, 0.5)
+	_coffee_wake_tween.tween_property(body, ^"scale:y", 1, 0.5)
+	_coffee_wake_tween.tween_callback(_finish_coffee_wakeup.bind(
+		_coffee_wake_game_ref, _coffee_wake_board, _coffee_wake_phase))
+
+## [param game_ref]、[param board]、[param phase] 限定原目标的永久唤醒；成功或拒绝均释放重入标记。
+func _finish_coffee_wakeup(game_ref: WeakRef, board: BoardRuntime, phase: StagePhaseDefinition) -> void:
+	_coffee_wake_tween = null
+	_coffee_wake_game_ref = null
+	_coffee_wake_board = null
+	_coffee_wake_phase = null
+	var game: MainGameManager = game_ref.get_ref() as MainGameManager # 失效引用只结束本次动画，不寻找替代植物。
+	if CoffeeBeanUsePlan.wakeup_context_current(game, board, phase) \
+			and MushroomPlantQuery.is_active(self, game) and is_instance_valid(sleep_component):
+		sleep_component.wake_permanently()
 
 
 ## 植物修改睡眠
@@ -340,6 +402,12 @@ func gat_save_game_data_plant()->Dictionary:
 	save_game_data_plant["plant_type"] = plant_type
 	save_game_data_plant["curr_hp"] = hp_component.curr_hp
 	save_game_data_plant["is_imitater_material"] = is_imitater_material
+	if revival_health_scale < 1.0:
+		save_game_data_plant["revival_health_scale"] = revival_health_scale
+		save_game_data_plant["revival_max_health"] = hp_component.max_hp
+	var sun: CreateSunComponent = get_node_or_null(^"CreateSunComponent") as CreateSunComponent # 永久咖啡来源随成熟、保存和复生保留。
+	if sun != null:
+		save_game_data_plant["coffee_solar_bonus"] = sun.coffee_solar_bonus
 	return save_game_data_plant
 
 ## 恢复 [param save_game_data_plant] 的生命及永久唤醒；临时光环仍由当前场上来源决定。
@@ -349,6 +417,9 @@ func load_game_data_plant(save_game_data_plant:Dictionary):
 		and not bool(save_game_data_plant.get("is_sleeping", true)) # 兼容旧版白天咖啡豆存档。
 	sleep_component.restore_permanent_awake(bool(save_game_data_plant.get(
 		"is_permanently_awake", legacy_awake)))
+	var sun: CreateSunComponent = get_node_or_null(^"CreateSunComponent") as CreateSunComponent # 不直接改阳光菇阶段原始产值。
+	if sun != null:
+		sun.coffee_solar_bonus = float(save_game_data_plant.get("coffee_solar_bonus", 0.0))
 
 	hp_component.curr_hp = save_game_data_plant["curr_hp"]
 	hp_component.signal_hp_loss.emit(hp_component.curr_hp, true)
@@ -356,8 +427,16 @@ func load_game_data_plant(save_game_data_plant:Dictionary):
 
 ## 离树检查 [param state] 的完整基础字段；失败时不触发任何角色回调。
 func accepts_save_state(state: Dictionary) -> bool:
+	var solar: Variant = state.get("coffee_solar_bonus", 0.0) # 旧存档没有咖啡永久产值来源。
+	var revival: Variant = state.get("revival_health_scale", 1.0) # 旧存档保持正常最终最大生命。
 	return state.get("plant_type") is int and int(state["plant_type"]) == int(plant_type) \
 		and state.get("curr_hp") is int and int(state["curr_hp"]) > 0 \
 		and state.get("is_imitater_material") is bool \
 		and (not state.has("is_sleeping") or state["is_sleeping"] is bool) \
-		and (not state.has("is_permanently_awake") or state["is_permanently_awake"] is bool)
+		and (not state.has("is_permanently_awake") or state["is_permanently_awake"] is bool) \
+		and (solar is int or solar is float) and is_finite(float(solar)) \
+		and float(solar) >= 0.0 and float(solar) <= 0.5 \
+		and (revival is int or revival is float) and is_finite(float(revival)) \
+		and float(revival) > 0.0 and float(revival) <= 1.0 \
+		and (not state.has("revival_max_health") or (state["revival_max_health"] is int \
+			and int(state["revival_max_health"]) > 0))

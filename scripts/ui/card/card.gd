@@ -64,6 +64,10 @@ var plant_spawn_profile: PlantSpawnProfile:
 			_sync_star_badge()
 			_sync_promotion_appearance()
 
+## 返回本卡占用的选卡名额；普通卡占1格，冻结配方可声明免占位。
+func selection_slot_cost() -> int:
+	return _plant_spawn_profile.selection_slot_cost() if _plant_spawn_profile != null else 1
+
 ## 返回卡面、静态缩略图和持卡预览共用的转职次数。
 func promotion_tier() -> int:
 	return _plant_spawn_profile.promotion_tier() if _plant_spawn_profile != null else 0
@@ -115,7 +119,8 @@ func _apply_profile_card_stats() -> void:
 		push_error("Invalid combat card stat resolution")
 		return
 	_refresh_battle_sun_cost()
-	cool_time = maxf(0.0, float(stats.cooldown) * (1.0 - 0.1 * _pea_synergy_count))
+	_fixed_cooldown_seconds = float(stats.cooldown) if bool(stats.get("cooldown_fixed", false)) else -1.0
+	cool_time = _fixed_cooldown_seconds if _fixed_cooldown_seconds >= 0.0 else maxf(0.0, float(stats.cooldown) * (1.0 - 0.1 * _pea_synergy_count))
 
 ## Dynamic board costs are added after permanent card modifiers.
 func set_sun_surcharge(amount: int) -> void:
@@ -215,8 +220,25 @@ var is_sun_enough: bool = true
 var cheat_ignore_sun_cost := false
 ## 剩余冷却时间，单位为游戏秒。
 var _cool_timer: float = 0.0
-## 冒险事件倍率只影响新开始的冷却，不反向改动卡牌原有冷却参数。
+## 冒险事件倍率只影响新开始的冷却；固定时长技能不再乘此倍率。
 var adventure_cooldown_multiplier := 1.0
+## 配方声明的最终固定冷却秒数；负数表示使用普通倍率结算。
+var _fixed_cooldown_seconds: float = -1.0
+## 仅在同步成功使用通知期间存在的额外冷却，避免残留到下一次使用。
+var _placement_cooldown_bonus: float = 0.0
+## 防止同次使用通知的监听器重入，再次扣费和开始冷却。
+var _placement_commit_in_progress: bool = false
+
+## 结算一次成功放置，[param extra_cooldown] 由实际施效结果提供，单位为秒。
+## 沿用原有单参数信号；无冷却模式跳过计时后，附加值也会立即清空。
+func complete_placement(extra_cooldown: float = 0.0) -> void:
+	if _placement_commit_in_progress:
+		return
+	_placement_commit_in_progress = true
+	_placement_cooldown_bonus = maxf(0.0, extra_cooldown)
+	signal_card_use_end.emit(self)
+	_placement_cooldown_bonus = 0.0
+	_placement_commit_in_progress = false
 
 func adventure_adjust_remaining_cooldown(seconds: float) -> void:
 	if not _is_cooling:
@@ -365,7 +387,9 @@ func card_not_can_click() -> void:
 func card_cool() -> void:
 	_is_cooling = true
 	_cool_mask.show()
-	_cool_timer = maxf(0.0, cool_time * adventure_cooldown_multiplier)
+	var duration: float = _fixed_cooldown_seconds if _fixed_cooldown_seconds >= 0.0 else cool_time * adventure_cooldown_multiplier # 固定技能先确定最终基础时长。
+	_cool_timer = maxf(0.0, duration + _placement_cooldown_bonus)
+	_cool_mask.max_value = maxf(0.001, _cool_timer)
 	_cool_mask.value = _cool_timer
 	is_can_click = false
 

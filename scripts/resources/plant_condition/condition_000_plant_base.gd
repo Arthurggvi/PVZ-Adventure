@@ -113,6 +113,28 @@ func judge_is_can_plant(plant_cell: PlantCell, curr_plant_type: CharacterRegistr
 				return false
 	return true
 
+## 在 [param cell] 复生 [param species] 按普通占位，只免除已完成的紫卡前置；空间资格照常验证。
+## 临时条件副本只关闭升级分支，不修改注册表共享资源或调用方的冻结配方。
+func judge_revival_allowed(cell: PlantCell, species: CharacterRegistry.PlantType) -> bool:
+	if not is_instance_valid(cell):
+		return false
+	var cells: Array[PlantCell] = placement_cells(cell) # 使用与普通种植相同的完整空间声明。
+	if cells.is_empty() or not upgrade_footprint_available(cells) \
+			or not cell._placement_is_available(self, cells, []):
+		return false
+	if not is_purple_card:
+		return judge_is_can_plant(cell, species)
+	for target: PlantCell in cells: # 紫卡的所有占用格都需要实际地形和空闲位置，不能只检查原点。
+		if not is_instance_valid(target) or not target.can_common_plant \
+				or not (plant_condition & target.curr_condition):
+			return false
+	var restored: ResourcePlantCondition = duplicate() as ResourcePlantCondition # 复制参数，不产生场景实体或前置副作用。
+	if restored == null:
+		return false
+	restored.is_purple_card = false
+	restored.is_special_plants = false
+	return restored.judge_is_can_plant(cell, species)
+
 func judge_purple_card_can_plant(all_plant_cells, curr_plant_type: CharacterRegistry.PlantType) -> bool:
 	for cells: Array in all_plant_cells:
 		for cell: PlantCell in cells:

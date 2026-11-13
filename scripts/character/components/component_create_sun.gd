@@ -23,6 +23,8 @@ var production_growth_step: int = 0
 var production_growth_cap: int = 0
 ## 当前已积累的生产成长加值，不回写出战卡。
 var _production_growth_bonus: int = 0
+## 咖啡永久产值加成；与成熟基础价值分开保存，0.5 表示只增强实际生产的五成。
+var coffee_solar_bonus: float = 0.0
 
 @export_group("生产间隔时间")
 ## 首轮生产的基础秒数范围。
@@ -99,10 +101,10 @@ func _spawn_sun() -> void:
 	SoundManager.play_character_SFX(&"Throw1")
 	var total_value: int = 0 # 累计已创建的实际价值，包括成长加值和额外小阳光。
 	for _index: int in range(num_create_sun): # 普通生产份数不被单份价值加成放大。
-		total_value += _spawn_sun_value(sun_value + _production_growth_bonus)
+		total_value += _spawn_sun_value(roundi(float(sun_value + _production_growth_bonus) * (1.0 + coffee_solar_bonus)))
 	var extra: int = randi_range(extra_small_sun_min, extra_small_sun_max) # 本轮额外小阳光份数。
 	for _index: int in range(extra): # 额外小阳光也属于本株实际生产。
-		total_value += _spawn_sun_value(15)
+		total_value += _spawn_sun_value(roundi(15.0 * (1.0 + coffee_solar_bonus)))
 	advance_production_growth_bonus()
 	if total_value > 0:
 		production_created.emit(total_value)

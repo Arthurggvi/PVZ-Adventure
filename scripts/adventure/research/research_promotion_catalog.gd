@@ -16,13 +16,17 @@ const SunShroomBooks = preload("res://scripts/adventure/research/research_sunshr
 const ScaredyBooks = preload("res://scripts/adventure/research/research_scaredy_promotion_books.gd")
 ## 大喷菇的定义模块，状态效果由统一负面入口登记。
 const FumeBooks = preload("res://scripts/adventure/research/research_fume_promotion_books.gd")
+## 睡莲书目由承托与选卡容量共用冻结属性。
+const LilyBooks = preload("res://scripts/adventure/research/research_lily_promotion_books.gd")
+## 咖啡豆书目由种植事务冻结目标并结算使用结果。
+const CoffeeBooks = preload("res://scripts/adventure/research/research_coffee_promotion_books.gd")
 ## 全书目只在类初始化时汇总一次；消费者仍使用原有BOOKS入口。
 static var BOOKS: Dictionary = _build_books()
 
 ## 返回全部合法书目的深副本；重复ID报错，不覆盖已有定义。
 static func _build_books() -> Dictionary:
 	var books: Dictionary = ExistingBooks.BOOKS.duplicate(true) # 汇总结果不共享定义模块内部字典。
-	for module: Dictionary in [PuffBooks.BOOKS, SunShroomBooks.BOOKS, ScaredyBooks.BOOKS, FumeBooks.BOOKS]: # 新物种沿用统一的重复ID检查。
+	for module: Dictionary in [PuffBooks.BOOKS, SunShroomBooks.BOOKS, ScaredyBooks.BOOKS, FumeBooks.BOOKS, LilyBooks.BOOKS, CoffeeBooks.BOOKS]: # 新物种沿用统一的重复ID检查。
 		for id: String in module: # 稳定技能书ID也是存档中的选择值。
 			if books.has(id):
 				push_error("重复的转职书ID：%s" % id)
@@ -73,7 +77,7 @@ static func options(card: PlantCardInstance) -> Array[Dictionary]:
 			result.append(entry)
 	return result
 
-## 汇总 [param card] 已选技能：属性按基础值加算，机制事件由对应运行组件消费。
+## 汇总 [param card] 已选技能：基础加成先加算，再应用最终倍率或固定值。
 static func effects(card: PlantCardInstance) -> Dictionary:
 	var stats: Dictionary = {} # 按属性名称聚合固定值与百分比。
 	var events: Array[Dictionary] = [] # 非数值技能保留完整参数及选择顺序。
@@ -91,10 +95,16 @@ static func effects(card: PlantCardInstance) -> Dictionary:
 			var aggregate: Dictionary = stats.get(stat, {"flat": 0.0, "percent": 0.0}) # 同属性累计值。
 			aggregate.flat += float(effect.get("flat", 0.0))
 			aggregate.percent += float(effect.get("percent", 0.0))
+			if effect.has("final_multiplier"):
+				aggregate["final_multiplier"] = float(aggregate.get("final_multiplier", 1.0)) * maxf(0.0, float(effect.final_multiplier))
+			if effect.has("fixed"):
+				aggregate["fixed"] = float(effect.fixed)
 			stats[stat] = aggregate
 	return {"stats": stats, "events": events}
 
-## 用 [param modifier] 的百分比与固定值调整 [param base]，结果最低为0。
+## 用 [param modifier] 调整 [param base]：先加算、后乘最终倍率，固定值覆盖结果；最低为0。
 static func resolve_stat(base: float, modifier: Dictionary) -> float:
-	return maxf(0.0, base * (1.0 + float(modifier.get("percent", 0.0)))
-		+ float(modifier.get("flat", 0.0)))
+	if modifier.has("fixed"):
+		return maxf(0.0, float(modifier.fixed))
+	var scaled: float = base * (1.0 + float(modifier.get("percent", 0.0))) + float(modifier.get("flat", 0.0)) # 保留旧属性的加算顺序。
+	return maxf(0.0, scaled * float(modifier.get("final_multiplier", 1.0)))

@@ -73,6 +73,8 @@ var curr_condition:int = 3
 
 ## 每个物种最多一株不占种植位的伴生植物；不进入普通层或升级前置。
 var _companion_plants: Dictionary[int, Plant000Base] = {}
+## 本格最近一次真实死亡的完整记录；多格植物共享一枚成功消费令牌。
+var latest_plant_death: PlantDeathRecord
 
 ## 在当前格子中对应位置的容器节点
 @onready var plant_container_node:Dictionary =  {
@@ -188,14 +190,16 @@ enum PlacementOrigin {
 	Transformation, ## 模仿者等已有占用的实体转化。
 	Spawned, ## 战斗技能生成，按玩家资格校验但不消费卡片。
 	Companion, ## 不占种植位的技能子株，仍遵守地形、承托及障碍限制。
+	Revival, ## 原物种正常占位复生，只免除已经完成的紫卡升级前置。
 }
 
 func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 		is_plant_start_effect := true, is_imitater_material := false,
 		is_zombie_mode := false, spawn_profile: PlantSpawnProfile = null,
-		origin: PlacementOrigin = PlacementOrigin.Player) -> Plant000Base:
+		origin: PlacementOrigin = PlacementOrigin.Player,
+		use_context: PlantPlacementUseContext = null) -> Plant000Base:
 	var placement: PlantPlacement = PlantPlacement.prepare(self, plant_type, is_imitater,
-		is_plant_start_effect, is_imitater_material, is_zombie_mode, spawn_profile, origin) # 共享离树准备。
+		is_plant_start_effect, is_imitater_material, is_zombie_mode, spawn_profile, origin, use_context) # 共享离树准备。
 	return placement.commit() if placement != null else null
 
 ## 提交已完整预检的 [param placement]；读档事务用 [param notify] 延后成功通知。[br]
@@ -205,8 +209,11 @@ func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Pl
 	var plant: Plant000Base = placement.plant # 准备阶段构造并初始化的实例。
 	var condition: ResourcePlantCondition = placement.condition # 同一物种占用契约。
 	placement.committed = true
+	plant.battle_placement_cells = placement.footprint.duplicate()
 	for claim: Dictionary in placement.claims:
-		(claim["plant"] as Plant000Base).character_death_disappear()
+		var predecessor: Plant000Base = claim["plant"] # 升级前置是转换消费，不进入最近死亡记录。
+		predecessor.death_recording_enabled = false
+		predecessor.character_death_disappear()
 	if placement.imitater:
 		plant_container_node[CharacterRegistry.PlacePlantInCell.Imitater].add_child(plant)
 	else:
@@ -237,6 +244,8 @@ func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Pl
 
 	if not placement.saved_state.is_empty():
 		plant.load_game_data_plant(placement.saved_state)
+	if placement.origin != PlacementOrigin.SaveRestore:
+		plant.commit_placement_action()
 	if notify:
 		signal_plant_create.emit(self, plant.plant_type)
 
@@ -451,10 +460,18 @@ func _update_state_zombie():
 	if is_mouse_in_ui(button):
 		_on_button_mouse_entered()
 
+## 返回实际承托植物；正常种植与复生均占据同一个 Down 位置。
+func get_support_plant() -> Plant000DownBase:
+	var reference: Variant = plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Down) # 先检查失效节点引用。
+	if not is_instance_valid(reference):
+		return null
+	var support: Plant000DownBase = reference as Plant000DownBase # 普通植物不能冒充承托层。
+	return support if support != null and not support.is_death and not support.is_queued_for_deletion() else null
+
 ## 地形由底层槽位的实际占用推导，禁止在实例初始化或失败回滚时提前变更。
 ## 承托能力由 BoardTerrainDefinition 声明，新地形无需扩展这里的分支。
 func _sync_support_terrain_condition() -> void:
-	var support: Plant000Base = plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Down) # 实际承托占用。
+	var support: Plant000DownBase = get_support_plant() # 承托查询与支援技能共享同一真实占用。
 	if not is_instance_valid(support) or support.is_queued_for_deletion() \
 			or board_terrain == null or board_terrain.supported_flags == 0:
 		curr_condition = ori_condition
@@ -819,7 +836,11 @@ func get_save_game_data_plant_cell() -> ResourceSaveGamePlantCell:
 ## 整体读档由 BoardRestoreTransaction 统一准备，禁止逐格解码后立即写入。
 ## 清除当前植物格子数据
 func clear_data_plant_cell():
-	for reference: Variant in living_plants(): # 清场也覆盖不占位实体，死亡回调只移除自己的记录。
+	PlantRevivalArchive.clear(self)
+	var clearing: Array[Plant000Base] = living_plants() # 先标记全部目标，承托死亡连带清理也不会伪造尸体。
+	for plant: Plant000Base in clearing:
+		plant.death_recording_enabled = false
+	for reference: Variant in clearing: # 清场也覆盖不占位实体，死亡回调只移除自己的记录。
 		if not is_instance_valid(reference):
 			continue
 		var plant := reference as Plant000Base # 前一个死亡回调后重新确认当前引用。

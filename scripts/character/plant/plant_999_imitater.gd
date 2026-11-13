@@ -16,5 +16,6 @@ func update_imitater():
 	imitater_effect.visible = true
 	imitater_effect.z_index += 1
 	imitater_effect.activate_it()
-	## 角色死亡直接消失
+	## 转化中间体的退场不是死亡，避免与完成转化的真实植物重复留尸体。
+	death_recording_enabled = false
 	character_death_disappear()

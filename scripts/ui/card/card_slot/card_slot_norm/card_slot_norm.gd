@@ -8,6 +8,8 @@ class_name CardSlotNorm
 @onready var card_slot_candidate: CardSlotCandidate = $CardSlotCandidate
 ## 出战卡槽及阳光结算节点。
 @onready var card_slot_battle: CardSlotBattle = $CardSlotBattle
+## 重排期间每张卡只接受最新的移动，避免快速选择或取消后的旧回调覆盖新归属。
+var _selection_motion := CardSelectionMotion.new()
 
 ## 使用 [param game_para] 初始化槽位、候选点击信号和不可取消的预选卡。
 func init_card_slot_norm(game_para: ResourceLevelData) -> void:
@@ -65,35 +67,7 @@ func _on_texture_button_pressed() -> void:
 
 ## 按 [param references] 的顺序创建不可取消的预选卡；无效或未注册的出战引用不会进入卡槽。
 func init_pre_choosed_card(references: Array[ResourceCardReference]) -> void:
-	# 单个预选引用表示一个完整卡片，不再依赖两个补零数组的同下标组合。
-	for reference: ResourceCardReference in references:
-		if not AllCards.is_battle_card(reference):
-			push_error("CardSlotNorm：预选卡必须是已注册的出战卡牌。")
-			continue
-		if not card_slot_battle.has_free_slot():
-			break
-		# 隐藏对应的候选卡，保持预选卡不可取消。
-		var container: CardCandidateContainer = card_slot_candidate.get_candidate(reference)
-		if container != null:
-			container.card.visible = false
-			container.card.is_choosed_pre_card = true
-		# 实际出战卡是独立实例；开始战斗时再切换上下文。
-		var card: Card = AllCards.create_card(reference, Card.CardContext.Selection)
-		if card == null:
-			continue
-		if AdventureSession.owns_battle(Global.game_para):
-			var build: Dictionary = AdventureSession.get_prechosen_battle_data(card_slot_battle.curr_cards.size(), reference)
-			if build.is_empty():
-				push_error("冒险预选卡 UID 与卡槽模板不匹配，取消本卡绑定。")
-				card.free()
-				continue
-			card.plant_spawn_profile = AdventureBattleAdapter.profile_for(build)
-			if card.plant_spawn_profile == null:
-				card.free()
-				continue
-		pre_choosed_card(card, card_slot_battle.append_card(card))
-		if reference.is_imitater:
-			card_slot_candidate.imitater_be_choosed()
+	CardPreselectedSetup.populate(card_slot_battle, card_slot_candidate, references, pre_choosed_card)
 	card_disconnect_click_in_choose()
 
 ## 返回当前是否处于开局选卡或下一轮重选阶段。
@@ -116,11 +90,14 @@ func _on_card_click(card: Card) -> void:
 		for index: int in range(card_index, card_slot_battle.curr_cards.size()):
 			move_card_to(card_slot_battle.curr_cards[index], card_slot_battle.slot_at(index))
 		move_card_to(card, card.card_candidate_container)
-	elif not card_slot_battle.has_free_slot():
+	elif not card_slot_battle.has_free_slot(card):
 		SoundManager.play_other_SFX("buzzer")
 	else:
+		var slot: Control = card_slot_battle.append_card(card) # 追加成功后才改变选择状态。
+		if slot == null:
+			return
 		card.is_choosed_pre_card = true
-		move_card_to(card, card_slot_battle.append_card(card))
+		move_card_to(card, slot, true)
 
 ## [param card] 的模仿植物选择信号；独立入口本身不作为出战卡。
 func _on_imitater_card_click(card: Card) -> void:
@@ -136,30 +113,26 @@ func _on_imitater_card_click(card: Card) -> void:
 		# 需要重新定位的出战卡索引。
 		for index: int in range(card_index, card_slot_battle.curr_cards.size()):
 			move_card_to(card_slot_battle.curr_cards[index], card_slot_battle.slot_at(index))
-		await move_card_to(card, card_slot_candidate.card_imitater)
+		if not await move_card_to(card, card_slot_candidate.card_imitater):
+			return
 		card.reparent(card.card_candidate_container, false)
 		card_slot_candidate.imitater_be_choosed_cancel()
-	elif not card_slot_battle.has_free_slot():
+	elif not card_slot_battle.has_free_slot(card):
 		SoundManager.play_other_SFX("buzzer")
 		card_slot_candidate.imitater_card_slot_disappear()
 	elif not card_slot_candidate.card_imitater.is_be_choosed_imitater:
-		card.is_choosed_pre_card = true
 		var slot: Control = card_slot_battle.append_card(card) # 先登记出战顺序，再播放模仿卡移动。
+		if slot == null:
+			return
+		card.is_choosed_pre_card = true
 		card.reparent(card_slot_candidate.card_imitater, false)
-		move_card_to(card, slot)
+		move_card_to(card, slot, true)
 		card_slot_candidate.imitater_be_choosed()
 
-## 将 [param card] 动画移动到 [param target_parent] 的全局位置，再重新挂载。
-## 移动期间暂停按钮鼠标交互，耗时保持为 0.2 秒。
-func move_card_to(card: Card, target_parent: Control) -> void:
-	card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.reparent(temporary_card)
-	# 临时挂载后的移动动画。
-	var tween: Tween = create_tween()
-	tween.tween_property(card, "global_position", target_parent.global_position, 0.2)
-	await tween.finished
-	card.reparent(target_parent)
-	card.button.mouse_filter = Control.MOUSE_FILTER_PASS
+## 将 [param card] 动画移动到 [param target_parent]；[param reveal_target] 只为新选中的卡滚动视野。
+## 先等待动态显示位布局，移动期间暂停按钮交互，动画仍为 0.2 秒。
+func move_card_to(card: Card, target_parent: Control, reveal_target: bool = false) -> bool:
+	return await _selection_motion.move(self, card, target_parent, temporary_card, card_slot_battle, reveal_target)
 
 ## 预选卡不连接选择处理；如存在已连接处理则解除，保持不可取消。
 func card_disconnect_click_in_choose() -> void:

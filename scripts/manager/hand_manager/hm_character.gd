@@ -25,6 +25,11 @@ var characte_static_shadow_colum: Array[Node2D] = []
 ## 当前紫卡的预置植物，退出手持时恢复明暗效果。
 var curr_all_preplant_purple: Array[Plant000Base] = []
 
+## 当前一次点击共享的放置上下文，整列复制也使用同一份去重记录。
+var _placement_use_context: PlantPlacementUseContext = null
+## 本次所有成功创建结果中的最大额外冷却，不按目标数累计。
+var _placement_cooldown_extension: float = 0.0
+
 ## 从所属关卡读取柱子模式。
 func init_hm_character() -> void:
 	is_mode_column = hand_manager.game_para.is_mode_column
@@ -61,6 +66,8 @@ func click_card(card: Card) -> bool:
 	match curr_card.card_reference.card_type:
 		ResourceCardReference.CardType.Plant:
 			plant_condition = Global.character_registry.get_plant_info(curr_card.card_reference.content_id, CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
+			if curr_card.plant_spawn_profile != null:
+				plant_condition = curr_card.plant_spawn_profile.placement_condition(plant_condition)
 			if plant_condition.is_purple_card:
 				start_preplant_purple_light(plant_condition, curr_card.card_reference.content_id)
 		ResourceCardReference.CardType.Zombie:
@@ -178,7 +185,10 @@ func click_cell(plant_cell: PlantCell) -> void:
 			or not hand_manager.main_game.zombie_manager.can_summon_boss(curr_card.card_reference.content_id):
 			SoundManager.play_other_SFX("buzzer")
 			return
+	_placement_use_context = PlantPlacementUseContext.new()
+	_placement_cooldown_extension = 0.0
 	if not _create_character_at_cell(plant_cell):
+		_placement_use_context = null
 		if curr_card.card_reference.card_type == ResourceCardReference.CardType.ZombieBoss:
 			SoundManager.play_other_SFX("buzzer")
 		return
@@ -188,17 +198,24 @@ func click_cell(plant_cell: PlantCell) -> void:
 	if curr_card.card_reference.card_type == ResourceCardReference.CardType.Plant \
 			and curr_card.plant_spawn_profile != null:
 		curr_card.plant_spawn_profile.player_placement_committed(plant_cell)
-	curr_card.signal_card_use_end.emit(curr_card)
+	curr_card.complete_placement(_placement_cooldown_extension)
+	_placement_use_context = null
+	_placement_cooldown_extension = 0.0
 
 ## 在 [param plant_cell] 创建植物或普通僵尸，僵王使用所属关卡的固定位置；返回创建成功与否。
 ## 本函数不进行卡槽结算，僵王必须返回新实例才算成功。
 func _create_character_at_cell(plant_cell: PlantCell) -> bool:
 	match curr_card.card_reference.card_type:
 		ResourceCardReference.CardType.Plant:
-			return plant_cell.create_plant(
+			var created: Plant000Base = plant_cell.create_plant( # 必须读取实际提交的效果结果，不能按书目预估冷却。
 				curr_card.card_reference.content_id, curr_card.card_reference.is_imitater,
-				true, false, false, curr_card.plant_spawn_profile
-			) != null
+				true, false, false, curr_card.plant_spawn_profile,
+				PlantCell.PlacementOrigin.Player, _placement_use_context
+			)
+			if not is_instance_valid(created):
+				return false
+			_placement_cooldown_extension = maxf(_placement_cooldown_extension, created.placement_cooldown_extension())
+			return true
 		ResourceCardReference.CardType.Zombie:
 			if not hand_manager.main_game.zombie_manager.can_place_zombie_at_cell(
 				curr_card.card_reference.content_id, plant_cell):

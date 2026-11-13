@@ -49,6 +49,14 @@ func card_stats(base_sun_cost: int, base_cooldown: float) -> Dictionary:
 		return {}
 	return _modifier.card_stats(_snapshot.duplicate(true), base_sun_cost, base_cooldown)
 
+## 返回当前冻结卡片消耗的选卡名额；无有效配方时按普通卡处理。
+func selection_slot_cost() -> int:
+	return maxi(0, _modifier.selection_slot_cost(_snapshot.duplicate(true))) if is_valid_profile() else 1
+
+## 为预览和种植事务投影 [param base_condition]；修改器不得改写共享条件资源。
+func placement_condition(base_condition: ResourcePlantCondition) -> ResourcePlantCondition:
+	return _modifier.placement_condition(_snapshot.duplicate(true), base_condition) if is_valid_profile() else base_condition
+
 ## 将玩家已成功种植的 [param cell] 交给所属模式；仅手持卡确认入口调用一次。
 ## 技能生成、转化、预种植和读档不会调用此通知，也不会再次扣费。
 func player_placement_committed(cell: PlantCell) -> void:
