@@ -129,7 +129,7 @@ func _open_profiles() -> void:
 func _confirm_exit() -> void:
 	if not Global.user_manager.curr_user_name.is_empty():
 		if not Global.save_service.is_current_profile_loaded() or not Global.save_service.save_now():
-			dialogs.show_error("当前档案未成功保存。请关闭其他窗口后重试，或检查存档目录权限。")
+			dialogs.show_save_error()
 			return
 	var tree := get_tree() # ??????????????
 	tree.create_timer(.08,true,false,true).timeout.connect(tree.quit.bind(0))
@@ -143,7 +143,7 @@ func _notification(what: int) -> void:
 		_last_ticks=Time.get_ticks_usec()
 	elif what==NOTIFICATION_WM_CLOSE_REQUEST:
 		if not _entries_blocked():
-			dialogs.open_exit_confirmation()
+			dialogs.open_exit_confirmation(not Global.user_manager.curr_user_name.is_empty())
 
 func _exit_tree() -> void:
 	get_tree().auto_accept_quit=_old_auto_quit
