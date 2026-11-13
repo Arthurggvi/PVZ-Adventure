@@ -21,7 +21,7 @@ var promotion_hit_factors: PackedFloat32Array = PackedFloat32Array()
 var unique_target_hits: bool = false
 ## 穿透弹已命中的目标实例，避免同一目标多个受击框反复扣血。
 var _promotion_hit_ids: Dictionary[int, bool] = {}
-## 最近一次真实命中的伤害数值，供命中事件的额外效果按比例计算。
+## 最近一次真实命中的主伤害，含来源与成长修正，不含独立附伤，避免比例效果再次放大附伤。
 var last_impact_damage: int = 0
 ## 本次攻击的来源快照，可在弹体变换后继续使用；空值保持原生伤害。
 var attack_context: PlantAttackContext
@@ -193,12 +193,23 @@ func _can_attack_character(enemy: Character000Base, check_lane: bool = true) -> 
 	return not check_lane or not is_activate_lane or lane == enemy.lane
 
 
-## 对敌人造成伤害
+## [param damage] 已应用弹体穿透档位的主伤；[param _enemy] 当前目标，可为空。
+## 子类可纯计算单击成长，默认不变；后续来源上下文仍只修正主伤。
+func _modify_impact_damage(damage: int, _enemy: Character000Base) -> int:
+	return damage
+
+## [param _enemy] 即将进入生命路由的实际目标；返回同击附伤和放大后上限，-1 不限制。
+## 默认无附伤；只在原有伤害分支前读取一次，不使用共享可变字段保存本次参数。
+func _impact_bonus(_enemy: Character000Base) -> Vector2i:
+	return Vector2i(0, -1)
+
+## 对 [param enemy] 按原有角色类型分派一次命中；各子类的原生附加效果继续沿用此入口。
 func _attack_enemy(enemy:Character000Base):
 	if enemy is ZB000Base or enemy is EnemyStructureBase:
 		# 僵王直接使用角色伤害入口，不转换成普通僵尸或套用其防具规则。
 		var was_alive: bool = not enemy.is_death # 只回报本次实际从存活变为死亡的僵王。
-		enemy.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx)
+		var bonus: Vector2i = _impact_bonus(enemy) # 局部冻结命中前附伤，Boss 受击窗口仍由角色入口检查。
+		enemy.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx, bonus.x, bonus.y)
 		if was_alive and is_instance_valid(enemy) and enemy is ZB000Base and enemy.is_death:
 			last_impact_casualty = enemy
 	elif enemy is Zombie000Base:
@@ -214,8 +225,9 @@ func _attack_zombie(zombie: Zombie000Base):
 ## 防具倍率仅作为伤害参数传递，保留格挡、转伤、穿透和受击闪白。
 func _hit_zombie(zombie: Zombie000Base, mode: BulletRegistry.AttackMode) -> Zombie000Base:
 	var armor: float = attack_context.armor_multiplier if attack_context != null else 1.0 # 默认攻击完全沿用一倍防具消耗。
+	var bonus: Vector2i = _impact_bonus(zombie) # 保护者分流前冻结原目标数据，不能二次读取新的承伤者。
 	last_impact_casualty = (zombie.hp_component as HpComponentZombie).apply_hit(
-		attack_value, mode, true, trigger_be_attack_sfx, true, armor)
+		attack_value, mode, true, trigger_be_attack_sfx, true, armor, bonus.x, bonus.y)
 	if is_instance_valid(zombie) and is_instance_valid(zombie.body):
 		zombie.body.body_light()
 	return last_impact_casualty as Zombie000Base
@@ -226,8 +238,8 @@ func _attack_plant(plant:Plant000Base):
 	plant = get_first_be_hit_plant_in_cell(plant)
 	if not is_instance_valid(plant) or plant.is_death or plant.is_queued_for_deletion():
 		return
-	## 攻击敌人
-	plant.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx)
+	var bonus: Vector2i = _impact_bonus(plant) # 壳内实际受击植物确定后，才采样本次附伤。
+	plant.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx, bonus.x, bonus.y)
 
 
 ## 直线子弹先对壳类进行攻击
@@ -267,6 +279,7 @@ func attack_once(enemy:Character000Base):
 	if not promotion_hit_factors.is_empty():
 		var factor_index: int = mini(curr_attack_num - 1, promotion_hit_factors.size() - 1)
 		attack_value = maxi(0, roundi(float(original_damage) * promotion_hit_factors[factor_index]))
+	attack_value = _modify_impact_damage(attack_value, enemy)
 	if attack_context != null and is_instance_valid(enemy):
 		attack_value = attack_context.modify_damage(attack_value, enemy)
 	last_impact_damage = attack_value

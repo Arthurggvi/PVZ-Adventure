@@ -1,165 +1,292 @@
-## 回旋镖花瓣。首次命中后检查前方剩余目标，按原版减速距离折返。
+## 回旋镖的唯一飞行状态机；去返独立穿透，补投与分裂均由新弹体承担。
 extends Bullet000NormBase
 class_name Bullet017Boomerang
 
-## 正常接回时通知植株播放接镖动作；植株消失时飞至左边界后释放。
-signal returned
+## 只在原株当前接镖点真实接触时通知一次；先终止自身，再允许植株补投。
+signal returned(projectile_id: int, shot: BloomerangShotContext)
 
-## 去程可命中的目标上限，返程通过排除去程超额的目标保留穿透范围。
-const HIT_LIMIT := 3
-## 原版初速范围，单位为像素每秒。
+## 有限状态；弱镖没有折返或回收奖励的出口。
+enum FlightState { OUTBOUND, RETURNING, WEAK, FINISHED }
+## 原版初速区间，单位为世界像素每秒。
 const FLIGHT_SPEED := Vector2(400.0, 450.0)
-## 距离折返点 75 像素内减速或加速，最低维持初速的 10%。
-const TURN_RADIUS := 75.0
-## 折返阶段的最低速度倍率。
-const MIN_SPEED_FACTOR := 0.1
-## 同一行前方查询最多接收的受击形状数，覆盖密集出怪时的多个受击框。
-const LOOKAHEAD_RESULT_LIMIT := 256
+## 折返点两侧的加减速距离，单位为世界像素。
+const TURN_RADIUS: float = 75.0
+## 折返点最低仍有正速度，避免渐近停滞。
+const MIN_SPEED_FACTOR: float = 0.1
+## 世界坐标舍入允许的端点误差，不扩大受击形状。
+const END_EPSILON: float = 0.01
 
-## 翻转飞行方向后为 true，直至接回或离场。
-var _returning := false
-## 本段飞行已命中的敌人实例 ID，避免跨帧重叠重复扣血。
-var _hit_ids: Dictionary[int, bool] = {}
-## 去程耗尽命中额度时已在前方的超额目标，返程也跳过这些实例。
-var _excluded_ids: Dictionary[int, bool] = {}
-## 发射植株；移除后回旋镖仍沿原行飞行。
+## 发射器注入的唯一新弹工厂；静态 Callable 避免弹体与发射器形成脚本循环依赖。
+var projectile_factory: Callable
+## 发射时冻结的音色，弱镖沿用同一音色且不依赖母株存活。
+var impact_sound_tier: int = 0
+## 当前唯一飞行状态，终态不可退出。
+var _state: FlightState = FlightState.OUTBOUND
+## 单枚弹体的冻结规则，不共享成长计数。
+var _shot: BloomerangShotContext
+## 原发射实例；失效后仍允许弹体在原战局内完成攻击。
 var _thrower: Plant000Base
-## 战斗视口左右边缘，使用全局 X 坐标。
-var _field_edges: Vector2
-## 已决定的折返位置，使用全局 X；INF 表示还在向前飞行并继续判定目标。
-var _turn_x := INF
-## 飞行逻辑使用 64 位全局 X；节点坐标会舍入，只用于显示和碰撞。
-var _flight_x: float
-## 屋顶关卡的坡面，平地为空。
+## 原株的实时枪口；平台移动后不再按旧发射横坐标伪造回收。
+var _launch: Marker2D
+## 原战场的屋顶高度来源。
 var _slope: MainGameSlope
-## 扣除屋顶坡面高度后的发射 Y，保持相对地面的飞行高度。
-var _level_y: float
-## 发射点的全局 X，植株存活时在此接回花瓣。
-var _launch_x: float
-## 去程前方的扫描区域，宽度和位置随当前进度更新。
-var _lookahead_shape := RectangleShape2D.new()
-## 复用实际受击层，只在达到首次命中且还未进入折返时查询。
-var _lookahead_query := PhysicsShapeQueryParameters2D.new()
+## 扣除屋顶高度后的飞行高度，不跟随已离开的母株跳跃。
+var _level_y: float = 0.0
+## 逻辑横坐标，避免依赖显示坐标反复累积位移。
+var _flight_x: float = 0.0
+## 首次命中后确定的折返位置；无限表示继续找前方目标或到屏幕边缘。
+var _turn_x: float = INF
+## 当前这一程已经命中的角色；折返时清空，成长不清空。
+var _hit_ids: Dictionary[int, bool] = {}
+## 每枚弹独享的连续碰撞查询器。
+var _query := BloomerangFlightQuery.new()
+## 单枚弹体独享的伤害成长与追猎规则。
+var _damage := BloomerangDamage.new()
+## 当前帧的可见世界范围，镜头变化时重新读取。
+var _screen: Rect2
+## 已消耗的有效物理秒数，暂停不计时。
+var _elapsed: float = 0.0
+## 发射时确定的寿命上界，避免镜头永久同向追随弹体造成泄漏。
+var _lifetime: float = 0.0
+## 出生的物理帧号，弱镖不会继承母镖该帧尚未走完的路径。
+var _birth_frame: int = -1
+## 弱镖的出生重叠只检查一次。
+var _birth_checked: bool = false
 
-
-## 入树前记录 [param thrower]、世界坐标下的 [param field_edges] 与可空的 [param slope]。
-func configure_flight(thrower: Plant000Base, field_edges: Vector2, slope: MainGameSlope) -> void:
+## 入树前注入 [param shot]、可失效的原实例 [param thrower] 与实时枪口 [param launch]。
+func configure_flight(shot: BloomerangShotContext, thrower: Plant000Base, launch: Marker2D) -> void:
+	_shot = shot
 	_thrower = thrower
-	_field_edges = field_edges
-	_slope = slope
+	_launch = launch
+	_damage.configure(shot)
+	attack_validity = shot.is_active
+	_slope = shot.game.main_game_slope if is_instance_valid(shot.game.main_game_slope) else null
 
-
-## 初始化飞行起点与随机初速，命中由物理帧统一处理以保证同帧排序。
+## 关闭旧信号式命中，所有碰撞只由当前物理路径结算。
 func _ready() -> void:
 	super()
-	area_2d_attack.area_entered.disconnect(_on_area_2d_attack_area_entered)
-	speed = randf_range(FLIGHT_SPEED.x, FLIGHT_SPEED.y)
+	if area_2d_attack.area_entered.is_connected(_on_area_2d_attack_area_entered):
+		area_2d_attack.area_entered.disconnect(_on_area_2d_attack_area_entered)
+	if _shot == null or not is_attack_active():
+		_finish(false)
+		return
+	max_attack_num = -1
+	_state = FlightState.WEAK if _shot.is_split else FlightState.OUTBOUND
+	impact_resolved.connect(_on_impact_resolved)
+	speed = randf_range(FLIGHT_SPEED.x, FLIGHT_SPEED.y) * _shot.flight_multiplier
 	_flight_x = global_position.x
-	_launch_x = _flight_x
-	_level_y = global_position.y - _slope_height(_launch_x)
-	_lookahead_query.shape = _lookahead_shape
-	_lookahead_query.collision_mask = area_2d_attack.collision_mask
-	_lookahead_query.collide_with_areas = true
-	_lookahead_query.collide_with_bodies = false
+	_level_y = global_position.y - BloomerangFlightQuery.height_at(_slope, _flight_x)
+	_screen = BloomerangFlightQuery.screen_rect(self)
+	_lifetime = maxf(8.0, _screen.size.x * 4.0 / speed + 4.0 * TURN_RADIUS / (speed * MIN_SPEED_FACTOR))
+	_birth_frame = Engine.get_physics_frames()
 
-
-## [param delta] 为当前物理帧的游戏秒数，推进去程、减速掉头和返程。
+## [param delta] 是游戏物理秒数；无等待、无递归飞行，单帧最多执行一次折返。
 func _physics_process(delta: float) -> void:
-	_hit_overlaps()
-	if not _returning:
+	if _state == FlightState.FINISHED or is_queued_for_deletion():
+		return
+	if not is_attack_active():
+		_finish(false)
+		return
+	if get_tree().paused:
+		return
+	_elapsed += maxf(0.0, delta)
+	if _elapsed >= _lifetime:
+		_finish(false)
+		return
+	_screen = BloomerangFlightQuery.screen_rect(self)
+	if not is_instance_valid(_slope):
+		_slope = null
+	direction = Vector2(_travel_sign(), 0.0)
+	if _state == FlightState.WEAK and not _birth_checked:
+		_birth_checked = true
+		_move_segment(global_position)
+		if _state == FlightState.FINISHED or Engine.get_physics_frames() == _birth_frame:
+			return
+	if _state == FlightState.OUTBOUND:
 		_choose_turn_point()
-		if _flight_x >= _turn_x:
-			_returning = true
-			_hit_ids.clear()
-			_hit_boss_ids.clear()
-			curr_attack_num = 0
-	# 原版在折返半径内从 10% 至 100% 线性变化，折返点直接翻转速度。
-	var turn_distance_ratio: float = minf(absf(_flight_x - _turn_x) / TURN_RADIUS, 1.0)
-	var speed_factor: float = lerpf(MIN_SPEED_FACTOR, 1.0, turn_distance_ratio)
-	# 返程中若原植株已离场，飞过原发射点直到视野左缘。
-	var can_catch: bool = is_instance_valid(_thrower) and not _thrower.is_death \
-		and not _thrower.is_queued_for_deletion()
-	var return_end: float = _launch_x if can_catch else _field_edges.x # 本次返程的终点。
-	if _returning and _flight_x <= return_end:
-		queue_free()
-		if can_catch:
-			returned.emit()
+		if (_outbound_end() - _flight_x) * _shot.launch_direction <= END_EPSILON:
+			_begin_return()
+	var factor: float = 1.0 # 弱镖不减速折返；普通镖只在转弯附近加减速。
+	if _state != FlightState.WEAK:
+		var apex: float = _outbound_end() if _state == FlightState.OUTBOUND else _turn_x # 当前折返点。
+		factor = lerpf(MIN_SPEED_FACTOR, 1.0, minf(absf(_flight_x - apex) / TURN_RADIUS, 1.0))
+	var next_x: float = _flight_x + _travel_sign() * speed * factor * maxf(0.0, delta) # 本帧目标横坐标。
+	if _state == FlightState.OUTBOUND:
+		next_x = _clamp_outbound(next_x)
+	else:
+		var exit_x: float = _screen.end.x + 2.0 * BloomerangFlightQuery.HALF_SIZE \
+			if _travel_sign() > 0 else _screen.position.x - 2.0 * BloomerangFlightQuery.HALF_SIZE # 出屏终点。
+		next_x = minf(next_x, exit_x) if _travel_sign() > 0 else maxf(next_x, exit_x)
+	_advance_to(Vector2(next_x, _level_y + BloomerangFlightQuery.height_at(_slope, next_x)))
+	if _state == FlightState.FINISHED:
 		return
-	# 步长在转向点和接回点截断，避免越过端点。
-	var travel: float = speed * speed_factor * delta
-	_flight_x = maxf(return_end, _flight_x - travel) if _returning \
-		else minf(_turn_x, _flight_x + travel)
-	global_position = Vector2(_flight_x, _level_y + _slope_height(_flight_x))
+	if _state == FlightState.OUTBOUND and (_outbound_end() - _flight_x) * _shot.launch_direction <= END_EPSILON:
+		_begin_return()
+	elif _state != FlightState.OUTBOUND and not _screen.grow(BloomerangFlightQuery.HALF_SIZE).has_point(global_position):
+		_finish(false)
 
-
-## 首次命中后找同行前方还可命中的目标。达到上限时记住超额目标，再推进一个减速半径。
+## 首次命中后判断前方是否仍有合法目标；满额或目标耗尽时在一个减速半径内折返。
 func _choose_turn_point() -> void:
-	if _turn_x != INF:
+	if is_finite(_turn_x) or _hit_ids.is_empty():
 		return
-	# 已接近战场右缘时直接使用右缘作为折返点，不再向场外查询目标。
-	var ahead_distance: float = _field_edges.y - _flight_x
-	if ahead_distance <= TURN_RADIUS:
-		_turn_x = maxf(_flight_x, _field_edges.y)
-		return
-	if _hit_ids.is_empty():
-		return
-	# 扫描沿用原版 10 像素的弹道带；屋顶加入同一行斜坡的高度差。
-	var edge_y: float = _level_y + _slope_height(_field_edges.y)
-	_lookahead_shape.size = Vector2(ahead_distance, 10.0 + absf(edge_y - global_position.y))
-	_lookahead_query.transform = Transform2D(0.0,
-		Vector2(_flight_x + ahead_distance * 0.5, (global_position.y + edge_y) * 0.5))
-	# 去程满额时仍扫描一次，记录折返时需要跳过的现存目标。
-	var has_reached_limit: bool = _hit_ids.size() >= HIT_LIMIT
-	for hit: Dictionary in get_world_2d().direct_space_state.intersect_shape(
-			_lookahead_query, LOOKAHEAD_RESULT_LIMIT): # 与前方弹道相交的受击形状。
-		# 查询命中的是受击区域，沿用实际碰撞的角色资格和同行判定。
-		var area: Area2D = hit["collider"] as Area2D
-		var target: Character000Base = area.owner as Character000Base
-		if not _can_attack_character(target):
-			continue
-		# 跳过已经结算过的目标，多个形状共用同一角色 ID。
-		var target_id: int = target.get_instance_id()
-		if _hit_ids.has(target_id):
-			continue
-		if not has_reached_limit:
+	if _hit_ids.size() < _shot.hit_limit:
+		var edge: Vector2 = Vector2(_edge_x(), _level_y + BloomerangFlightQuery.height_at(_slope, _edge_x())) # 屏幕侧缘。
+		var points: Array[Vector2] = BloomerangFlightQuery.path_points(global_position, edge, _slope, _level_y) # 屋顶折线路径。
+		for index: int in range(points.size() - 1): # 只查有限的坡面线段，不按像素步进。
+			for area: Area2D in _query.areas(self, points[index], points[index + 1], area_2d_attack.collision_mask):
+				if not is_instance_valid(area) or area.is_queued_for_deletion() or not is_instance_valid(area.owner):
+					continue
+				var target: Character000Base = area.owner as Character000Base # 同行实际受击框对应的角色。
+				if _can_attack_character(target) and not _hit_ids.has(target.get_instance_id()):
+					return
+	_plan_turn()
+
+## 从当前实际位置计算折返上界，绝不越过当帧屏幕边缘。
+func _plan_turn() -> void:
+	_turn_x = _flight_x + _shot.launch_direction * TURN_RADIUS
+	_turn_x = minf(_turn_x, _edge_x()) if _shot.launch_direction > 0 else maxf(_turn_x, _edge_x())
+
+## 沿 [param finish] 所在的屋顶折线移动；达到本帧新确定的折返点后立即截断剩余路径。
+func _advance_to(finish: Vector2) -> void:
+	var points: Array[Vector2] = BloomerangFlightQuery.path_points(global_position, finish, _slope, _level_y) # 有限直线段。
+	for index: int in range(1, points.size()): # 顺序保持真实行进方向。
+		var endpoint: Vector2 = points[index] # 当前坡面线段的结束点。
+		if _state == FlightState.OUTBOUND:
+			endpoint.x = _clamp_outbound(endpoint.x)
+			endpoint.y = _level_y + BloomerangFlightQuery.height_at(_slope, endpoint.x)
+		_move_segment(endpoint)
+		if _state == FlightState.FINISHED:
 			return
-		_excluded_ids[target_id] = true
-	_turn_x = _flight_x + TURN_RADIUS
-
-
-## 按行进方向处理当前重叠的敌人；返程重置去程命中记录并跳过超额目标。
-func _hit_overlaps() -> void:
-	if not _returning and _hit_ids.size() >= HIT_LIMIT:
-		return
-	# 同帧重叠的受击框按行进方向排序，优先结算先接触的目标。
-	var targets: Array[Area2D] = area_2d_attack.get_overlapping_areas()
-	# a、b 为待比较的两个受击框。
-	targets.sort_custom(func(a: Area2D, b: Area2D) -> bool:
-		return a.global_position.x > b.global_position.x if _returning \
-			else a.global_position.x < b.global_position.x)
-	for area: Area2D in targets: # 投射物当前接触的受击框。
-		# 跳过己方、其他行和已关闭受击的角色。
-		var target: Character000Base = area.owner as Character000Base
-		if not _can_attack_character(target):
-			continue
-		# 对同一角色的多个受击框共享一次结算。
-		var target_id: int = target.get_instance_id()
-		if _hit_ids.has(target_id) or _excluded_ids.has(target_id):
-			continue
-		_hit_ids[target_id] = true
-		attack_once(target)
-		if not _returning and _hit_ids.size() >= HIT_LIMIT:
+		if _state == FlightState.OUTBOUND and (_outbound_end() - _flight_x) * _shot.launch_direction <= END_EPSILON:
 			return
 
+## 按 [param finish] 这一真实直线段先后处理接触，分裂位置就是当次实际命中位置。
+func _move_segment(finish: Vector2) -> void:
+	var start: Vector2 = global_position # 查询起点固定，不受命中回调临时设置的显示位置污染。
+	var catch_at: float = _source_contact(start, finish) # 真实母株接触优先截断后面的碰撞。
+	var endpoint: Vector2 = start.lerp(finish, catch_at) if is_finite(catch_at) else finish # 本段最多走到接触点。
+	if catch_at == 0.0:
+		_finish(_state == FlightState.RETURNING)
+		return
+	if _hit_ids.size() < _shot.hit_limit:
+		for contact: Dictionary in _query.contacts(self, start, endpoint, area_2d_attack.collision_mask): # 按形状首次接触排序。
+			if not is_attack_active():
+				_finish(false)
+				return
+			var reference: Variant = contact.get("area") # 前一个命中可能同步销毁后续受击框。
+			if not is_instance_valid(reference):
+				continue
+			var area: Area2D = reference # 重新确认实际阵营层，拒绝上一命中后已魅惑的目标。
+			if area.is_queued_for_deletion() or not is_instance_valid(area.owner) \
+					or (area.collision_layer & area_2d_attack.collision_mask) == 0:
+				continue
+			var target: Character000Base = area.owner as Character000Base # 多形状共享角色实例身份。
+			if not _can_attack_character(target) or _hit_ids.has(target.get_instance_id()):
+				continue
+			var position_at_hit: Vector2 = start.lerp(endpoint, float(contact.fraction)) # 本次真实接触位置。
+			if _state == FlightState.OUTBOUND and (_outbound_end() - position_at_hit.x) * _shot.launch_direction < -END_EPSILON:
+				break
+			_set_position(position_at_hit)
+			_hit_ids[target.get_instance_id()] = true
+			attack_once(target)
+			if _hit_ids.size() >= _shot.hit_limit:
+				if _state == FlightState.OUTBOUND:
+					_plan_turn()
+				break
+	if not is_attack_active():
+		_finish(false)
+		return
+	if _state == FlightState.OUTBOUND:
+		endpoint.x = _clamp_outbound(endpoint.x)
+		endpoint.y = _level_y + BloomerangFlightQuery.height_at(_slope, endpoint.x)
+	_set_position(endpoint)
+	if is_finite(catch_at) and _source_present():
+		_finish(_state == FlightState.RETURNING)
 
-## 对 [param zombie] 按飞行方向结算伤害。去程先打二类防具，返程从背后打到一类防具或本体。
+## 先验证弱引用再传入有类型的接口，避免已释放母株在参数转换阶段报错。
+func _source_present() -> bool:
+	return _shot != null and is_instance_valid(_thrower) and _shot.source_present(_thrower)
+
+## 对当前段 [param start]、[param finish] 查询原株；去程不能接住自己。
+func _source_contact(start: Vector2, finish: Vector2) -> float:
+	if _state == FlightState.OUTBOUND or not _source_present():
+		return INF
+	if _state == FlightState.RETURNING:
+		return _query.marker_fraction(_launch.global_position, start, finish) \
+			if is_instance_valid(_launch) and _launch.is_inside_tree() and not _launch.is_queued_for_deletion() else INF
+	if is_instance_valid(_thrower.hurt_box_component):
+		return _query.area_fraction(_thrower.hurt_box_component.hurt_box_real, start, finish)
+	return INF
+
+## 开始唯一一次返程；本程穿透与僵王去重清空，单弹伤害成长保留。
+func _begin_return() -> void:
+	_turn_x = _flight_x
+	_state = FlightState.RETURNING
+	_hit_ids.clear()
+	_hit_boss_ids.clear()
+	curr_attack_num = 0
+	direction = Vector2(_travel_sign(), 0.0)
+
+## 返回当前实际行进符号，供命中、分裂和防具方向共用。
+func _travel_sign() -> int:
+	return -_shot.launch_direction if _state == FlightState.RETURNING else _shot.launch_direction
+
+## 返回原抛出方向上的当帧可见边缘。
+func _edge_x() -> float:
+	return _screen.end.x if _shot.launch_direction > 0 else _screen.position.x
+
+## 返回不会越过当前屏幕边缘的去程终点。
+func _outbound_end() -> float:
+	if not is_finite(_turn_x):
+		return _edge_x()
+	return minf(_turn_x, _edge_x()) if _shot.launch_direction > 0 else maxf(_turn_x, _edge_x())
+
+## 将 [param world_x] 截断到本次去程终点；左右抛射使用同一规则。
+func _clamp_outbound(world_x: float) -> float:
+	return minf(world_x, _outbound_end()) if _shot.launch_direction > 0 else maxf(world_x, _outbound_end())
+
+## 同步 [param point] 的逻辑坐标与显示坐标，命中特效和弱镖从此处生成。
+func _set_position(point: Vector2) -> void:
+	_flight_x = point.x
+	global_position = point
+
+## [param damage] 是出战修正后的主伤害；[param _enemy] 由基类保留统一接口。
+func _modify_impact_damage(damage: int, _enemy: Character000Base) -> int:
+	return _damage.primary_damage(damage)
+
+## 对 [param enemy] 生成独立的追猎附伤与僵王上限，不混入主伤害倍率。
+func _impact_bonus(enemy: Character000Base) -> Vector2i:
+	return _damage.bonus_for(enemy)
+
+## 对 [param zombie] 按实际弹道相对其朝向选择后击，恐惧翻面与左向初发同样适用。
 func _attack_zombie(zombie: Zombie000Base) -> void:
-	# 复用通用扣血入口；伤害类型只由实际命中的飞行阶段决定。
-	var hit_mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Real if _returning \
-		else BulletRegistry.AttackMode.Norm
-	zombie.be_attacked_bullet(attack_value, hit_mode, true, trigger_be_attack_sfx)
+	var mode: BulletRegistry.AttackMode = bullet_mode # 保留显式特殊伤害模式，只修正普通弹的背击。
+	if mode == BulletRegistry.AttackMode.Norm and direction.x * zombie.direction_x_root < 0.0:
+		mode = BulletRegistry.AttackMode.Real
+	_hit_zombie(zombie, mode)
 
+## [param _target] 已被统一管线接纳；[param impact_position] 是该次实际接触的世界坐标。
+func _on_impact_resolved(_target: Character000Base, impact_position: Vector2) -> void:
+	_damage.register_impact()
+	if not _shot.split_enabled or not is_attack_active() or not projectile_factory.is_valid() \
+			or _state == FlightState.FINISHED or _state == FlightState.WEAK:
+		return
+	var child_shot: BloomerangShotContext = _shot.for_split(-_travel_sign()) # 弱镖新身份、新成长，永久关闭再分裂。
+	var source: Plant000Base = _thrower if is_instance_valid(_thrower) else null # 母株离场不取消已经发出的暴雨。
+	var marker: Marker2D = _launch if is_instance_valid(_launch) else null # 无实时枪口时继续飞到屏幕外。
+	var child: Bullet017Boomerang = projectile_factory.call(source, marker, child_shot, impact_position,
+		lane, can_attack_zombie_status, can_attack_plant_status, impact_sound_tier) as Bullet017Boomerang # 唯一工厂。
+	if child != null:
+		_shot.game.bullets.add_child(child)
 
-## 返回 [param world_x] 对应的屋顶相对高度，平地返回 0。
-func _slope_height(world_x: float) -> float:
-	return _slope.get_all_slope_y(world_x) if is_instance_valid(_slope) else 0.0
+## 将弹体永久置为终态；[param caught] 仅代表真实返程接触，失效或超时不会伪造回收。
+func _finish(caught: bool) -> void:
+	if _state == FlightState.FINISHED:
+		return
+	var notify: bool = caught and _state == FlightState.RETURNING and _shot != null \
+		and _source_present() # 回调前冻结真实回收资格。
+	_state = FlightState.FINISHED
+	set_physics_process(false)
+	queue_free()
+	if notify:
+		returned.emit(get_instance_id(), _shot)

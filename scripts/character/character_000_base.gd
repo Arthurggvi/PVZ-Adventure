@@ -247,8 +247,10 @@ func character_death_disappear():
 ## [param bullet_mode] 传给生命组件的攻击类型，用于区分普通、穿透等攻击规则。
 ## [param is_drop] 是否允许本次伤害触发掉落表现。
 ## [param trigger_be_attack_SFX] 是否播放本次受击音效，false 时只处理扣血及相关信号。
-func be_attacked_bullet(attack_value:int, bullet_mode:BulletRegistry.AttackMode=BulletRegistry.AttackMode.Norm, is_drop:bool=true, trigger_be_attack_SFX:=true):
-	hp_component.Hp_loss(attack_value, bullet_mode, is_drop, trigger_be_attack_SFX)
+## [param bonus_damage] 同次命中的附伤；[param bonus_cap] 为劣化放大后的附伤上限，-1 不限制。
+func be_attacked_bullet(attack_value:int, bullet_mode:BulletRegistry.AttackMode=BulletRegistry.AttackMode.Norm,
+		is_drop:bool=true, trigger_be_attack_SFX:=true, bonus_damage: int = 0, bonus_cap: int = -1):
+	hp_component.Hp_loss(attack_value, bullet_mode, is_drop, trigger_be_attack_SFX, true, bonus_damage, bonus_cap)
 	body.body_light()
 
 ## 被锤子攻击(伤害值不生效)

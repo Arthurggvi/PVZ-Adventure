@@ -6,7 +6,7 @@
 
 - **工程与引擎**：`C:\Dev\PvZ\PVZ-Adventure`（Git `develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时优先远程只读审计，获授权后直接施工，避免让用户手工搬运文件。
 - **本交接文档唯一原件**：`C:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。Git 跟踪入口 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 是**同一 NTFS 硬链接**，不应独立编辑/替换。改动需原位写入，并用 `fsutil hardlink list` 验证仍为同一文件。
-- **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `C:\Dev\PvZ\_review\<module>` 用于临时审查；`C:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。
+- **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `C:\Dev\PvZ\_review\<module>` 用于临时审查；`C:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。源码备份只放仓外，不能让带全局类名的旧脚本进入 Godot 扫描范围；解析时须确认类索引指向正式源码。
 - **主菜单运行/制作入口**：正式 `scenes/main/01StartMenuCoastal.tscn`；维护 `docs/adventure/main_menu_runtime_pipeline.md`；离线构建/发布/录制统一 `tools/art_bake/main_menu/menu.py`。9B已接当地时间与真实UI，不再使用占位主菜单。
 - **施工顺序**：检查 Git 和连接 → 读本文及权威代码/资源 → 复现并定位根因 → 设计通用接口与状态所有权 → 直接重构旧实现 → Godot 导入/解析检查 → 按 AGENTS.md 在明确获授权时运行测试/实机验收 → 必要时 Catbox 手机验收 → 仅暂存本轮文件并提交。
 - **仓库纪律**：先 `git status --short`、`git log -1`，保护并行工作区；禁止未授权的 `git reset`、`git clean`、`git add .` 和 `git push`。提交前 `git diff --cached --check` 并逐项核对暂存清单。被 `.gitignore` 忽略的新美术资源，必要时定向 `git add -f`。
@@ -76,10 +76,13 @@
 
 ## 3.1｜植物转职书、技能生成与负面状态
 
-- **书目唯一来源**：`scripts/adventure/research/research_promotion_catalog.gd` 汇总既有、小喷菇、阳光菇、胆小菇、大喷菇、睡莲和咖啡豆的 `research_*_promotion_books.gd` 定义模块；`ItemRegistry` 自动把目录中的书注册为道具，不再双处手填。每物种每阶二选一，书封、植物头像与研究室选项仍复用 `promotion_book_visual.gd` 和冻结卡牌快照。
+- **书目唯一来源**：`scripts/adventure/research/research_promotion_catalog.gd` 汇总既有、小喷菇、阳光菇、胆小菇、大喷菇、睡莲、咖啡豆和回旋镖射手的 `research_*_promotion_books.gd` 定义模块；`ItemRegistry` 自动把目录中的书注册为道具，不再双处手填。每物种每阶二选一，书封、植物头像与研究室选项仍复用 `promotion_book_visual.gd` 和冻结卡牌快照。
 - **小喷菇出生/射击**：`AdventureResearchBattleEffects.apply` 经 `AdventureResearchPlantEventDispatch` 入树前应用白昼耐心，挂载 `AdventurePuffPromotionEffects`；控制器等植物就绪后取得攻击组件与来源配方，再按路径加载派生弹体场景；禁止在全局类静态预加载该场景，避免与注册表形成资源加载环。`bullet_003_puff_adventure.tscn` 继承原孢子场景，由 `AdventurePuffProjectileEffects` 补充距离伤害、实际击杀与命中异常。全行同时扩索敌与弹体射程，按当前棋盘几何更新；孢涌按发射时格距区分半格内二倍、一格内原伤、之外半伤。
 - **大喷菇攻击接入**：`AdventureFumePromotionEffects` 等原株就绪后接原生发射；`AdventureFumeHitEffects` 每次攻击冻结一次规则和犹格十一选一结果，同股穿透喷雾对每个角色只命中一次。已发弹独立于母株，场景、轮次或冒险阶段失效则先于主伤害拒绝；局部爆炸走 `CombatExplosion` 的同一目标/护甲结算链，当前格距决定一格尺寸，不递归触发词条。
 - **涌潮与海神**：`AdventureFumeRange` 按当前同行前方边界投影私有检测形状、弹体射程和原生喷雾粒子行程，随移动棋盘更新。海神复用 `AttackComponentBulletBase.configure_continuous_attack` 的原攻击时钟，固定每0.5战斗秒调用同一原生检测和穿透伤害链；正向攻速不缩短周期，零速、睡眠、无效化和停战仍阻止攻击。仅免除无目标条件，持续喷雾不反复重启动画或制造空弹体；范围改变后须等物理重叠缓存同步再取目标。
+- **回旋镖自然发射**：`Plant051Bloomerang` 由 `BloomerangAttackCycle` 的唯一时钟驱动起手、声音与有限三连投，动画只负责表现，接镖不阻塞普通冷却。岚刀只加速攻击事务与投掷动画；暂停保留进度，死亡、无效化、零速及跨轮取消未离手动作。所有新投掷共用 `BloomerangEmitter` 门禁与构造入口，正常索敌仍走原 `DetectComponent`；扫荡在任一侧有目标时双向发射，不能依靠动画名或在飞弹数量解锁。
+- **回旋镖飞行与派生**：`BloomerangShotContext` 冻结战局、棋盘、轮次、冒险阶段、原株身份及每枚规则；`Bullet017Boomerang` 分别管理去程、返程、弱镖和结束，`BloomerangFlightQuery` 按实际形状扫掠与接触顺序去重。每程默认三目标，斩切五目标，折返只清本程命中表；同一枚的苍镰成长保留。真实回收使用原实例当前离手点，先结束弹体再发布一次回收；原株失效后自然终止，不永久等待。螺旋补投单枚并撤销再次补投资格；暴雨新镖反向直行、基础半伤且成长独立，不能再次分裂或补投，触及原株或出屏终止。屏幕边界随视口变换读取，平台移动不沿用初始坐标，弹体设有限寿命兜底。
+- **同击附伤与严格上限**：`BloomerangDamage` 只以命中前本体已损生命计算追猎，防具和临时护甲不参与基数；卡片、苍镰和弱镖基础倍率均不再放大该附伤。`Bullet000NormBase._modify_impact_damage / _impact_bonus` 是纯计算扩展，仍通过原伤害类型分发。生命入口用默认零的 `bonus_damage` 与默认无限的 `bonus_cap` 尾参传递同一次命中，`HpComponent.resolve_damage` 在劣化放大后限制附伤，再统一格挡、减伤与护甲结算，Boss 的0.2%帽不能被劣化绕过。保护者继承原目标冻结附伤并用自己的防御结算，不重新采样、不额外扣一次生命或脆弱防具；未携带附伤的旧攻击保持原算法。
 - **玩家扩种钩子**：成功的 `HMCharacter.click_cell` → `PlantSpawnProfile.player_placement_committed` → `PlantSpawnModifier` 所属模式 → `AdventurePuffPropagation` / `AdventureLilyPropagation`。主格只结算一次费用/冷却；十字或九宫格子株、感染与恢复都不再次触发该钩子。子株继承不可变来源的 UID、星级与已选分支，不能再乘母株已经计算的战斗倍率。
 - **最终属性与选卡名额**：目录统一合成 `flat` / `percent`，再应用 `final_multiplier`，`fixed` 为最终覆盖值；旧书未声明新字段时保持原算法。睡莲生命倍率在星级加成后乘算。`PlantSpawnModifier → PlantSpawnProfile → Card.selection_slot_cost` 同时供 UI 与 `AdventureSession` 权威预算使用，不能只扩大显示槽；免名额卡仍是实际可操作卡片，出战至少需要一张，超出原可视范围时通过前后按钮翻动固定显示窗口，保留原卡片尺寸与星徽。
 - **睡莲周期与扩散**：`AdventureLilyPromotionEffects` 每5个有效战斗秒查询 `Plant000DownBase.supported_plants()`，只给当前真实承托容器中的存活植物治疗或护甲，基数是该睡莲最终最大生命的10%。`AdventureLilyPropagation` 只响应玩家主操作，九宫格按同棋盘/同平台/逻辑距离及正常水面条件检查，子株占用普通 Down 槽，不递归扩张。
@@ -92,7 +95,7 @@
 - **日眠与月光**：`SleepComponent` 独立合成原生日眠、咖啡豆永久唤醒与按来源 ID 的临时豁免；状态切换幂等，撤销一个光环不覆盖其他来源。`MushroomPlantQuery` 按真实生成物种识别蘑菇（含忧郁、金磁和模仿目标），出生前冻结的日眠标记仅作扩展兼容。月光与共生统一继承 `AdventureMushroomAura`，使用拓扑邻接和 `living_plants()`，种植同步刷新、低频复核、死亡/无效化撤销；静态弱引用回收区分同步承托重挂与真正释放，不依赖源节点继续存活。存档永久唤醒字段不保存临时光环。
 - **胆小菇原生词条**：`AdventureScaredyTraits` 保存冻结书目与各共享来源，`AdventureScaredyTraitRules` 是唯一共享白名单和同类取最大值的合成入口。`AdventureScaredyTraitOutput` 只向 Sleep、Scaredy、Attack/Magnet 组件写一个可撤销来源；`set_attack_rate_source` 只加速攻击时钟及独立攻击动画，不改变阳光菇成长、产光或金磁收钱。群落按受益者自身九宫格的不同蘑菇物种计数，包含自身与伴生，同种不同UID/星级只计一次。
 - **腐殖共生与卡费**：`AdventureScaredySymbiosis` 只传播来源自己的一至三转选择，不复制星级、最终伤害或外部光环，排除真实物种14且不能再次传播；同类来源不叠加，不同词条可并存。`AdventureMushroomCardDiscount` 按受益植株冻结UID找到当前真实出战卡，`Card.set_battle_discount_source(family, source_id, amount)` 在家族内取最大值。共生最多减25，成功用卡不消费；费用输出延至当前放置扣费之后，最后来源离场、无效化或换卡后对称撤销，不写回永久卡资料。
-- **统一攻击上下文**：`Plant000Base.capture_attack_context` 经唯一提供者生成 `PlantAttackContext`，随原生弹体参数和变换传递；忧郁范围攻击、毁灭爆炸共用同一上下文。近伤按来源地面位置与实际格距，半格内双倍，向原恐惧外缘线性回落；胆小菇的光能转化按命中时阳光余额，最多额外1000%，真实击杀掉8阳光。`HpComponentZombie.apply_hit` 的末尾防具倍率只修改装备护甲损伤，溢出仍以原始伤害容量计算；保护者透传，临时生命池与气球固定命中次数不变。
+- **统一攻击上下文**：`Plant000Base.capture_attack_context` 经唯一提供者生成 `PlantAttackContext`，随原生弹体参数和变换传递；忧郁范围攻击、毁灭爆炸共用同一上下文。近伤按来源地面位置与实际格距，半格内双倍，向原恐惧外缘线性回落；胆小菇的光能转化按命中时阳光余额，最多额外1000%，真实击杀掉8阳光。`HpComponentZombie.apply_hit` 的防具倍率参数只修改装备护甲损伤，溢出仍以原始伤害容量计算；保护者透传，临时生命池与气球固定命中次数不变。
 - **攻击结算边界**：死亡开始、发信号清理来源之前冻结亡语上下文，已发攻击与同步亡语都不依赖母株继续存活。每次命中开始确认活动资格，实际击杀返回后即使同步触发结算仍完成该次掉光，不能补领其他死亡；游戏、轮次及冒险phase身份共同隔离旧攻击，普通进入噩梦不能令旧弹重新有效。失效上下文在命中计数和HP入口前拒绝，不用零伤害冒充取消命中。
 - **成功用卡与冷却**：`Card.complete_placement(extra_cooldown)` 仅在原同步通知期间携带实际施效结果，柱子模式按同次最大值汇总，不按目标数累加；无冷却模式也清空该结果。卡槽先扣本次显示费用、启动冷却、消费旧一次性收益，再发 `signal_card_committed(card, consumed_followup)`。固定冷却在新计时开始时跳过倍率，成功施效额外秒数随后加入并更新完整遮罩范围。阳光菇买一赠一经现有运行时委派 `AdventureSunShroomCardEffects`，只给该 UID 卡下一次成功用卡减25并立即清冷却；消费续种的那次不再授予，失败放置不消耗，技能生成不触发。蜂群调用 `halve_remaining_cooldowns`，逐张减半当前剩余时间，不修改基础/最大冷却；续战保留原卡及其待消费收益。
 - **击杀与弹体生命周期**：直接命中与毒伤都读取 `HpComponentZombie.apply_hit` 的实际死亡返回，包含保护者代伤；不要订阅目标将来的任意死亡来猜归属。礼物固定8～12颗径向孢子，孢涌不会把亡语弹数再次倍增；来源规则和配方由弹体独立持有，母株死亡不取消已发射能力。
@@ -101,7 +104,7 @@
 - **沉默与等阶资格**：`Zombie000Base.set_tier_suppressed / are_tier_skills_active` 是唯一启停入口；`AdventureZombieTierAbility` 保存能力期望输出和显式原生配置覆盖，沉默撤销持续速度、攻击、防御和光环并暂停其时钟，恢复保留消耗与进度，不重新 setup。事件、动画末端与延迟爆炸/召唤均须复核；死亡前冻结资格，清理状态不能重新放行亡语。基础等阶生命/攻击成长、原生物种动作及已结算治疗/护甲/召唤保留；自身等阶定时输出与外部已经授予的增益明确区分。
 - **光能与状态寿命**：`AdventureSunBeanEffect` 监听 `HpComponent.combat_health_lost` 的实际本体/装备/临时护甲损失，每层转换20%，以5阳光为单位兑现并保留余数；重复授予增加转换层数，光能自身持有独立黄色滤镜。`BattleSunDrop` 复用原生阳光拾取与寿命，不触发生产事件或直接改余额；脚本卸甲、过量伤害、尸体后续扣血不产光，转移伤害只由实际承受者结算，同步末击保留当次奖励。新状态按场景、轮次、冒险阶段、死亡、魅惑和真实离树清理；大蒜可逆换行保留状态和节拍，不能当作退场。
 - **劣化必须分通道**：`HpComponent.degradation_fraction` 只保存原不可叠加最强值；`stacked_degradation_fraction` 单独累计新劣化，每次尸变追加0.05。`total_degradation_fraction()` 只汇总结算，不反写或覆盖任一通道。尸变先判60%，再按毒/劣化/减速/眩晕/魅惑的2/2/2/2/1权重只取一种；默认减速5秒，眩晕0.5秒。
-- **验证边界**：转职实现只做独立静态审查和Godot导入/解析，不运行测试套件；散射、连锁感染、伴生密度、重叠月光/共生、群落攻速、真实卡费与击杀掉光、海神持续伤害/粒子、移动范围、复合状态滤镜、等阶沉默恢复、睡莲周期护甲与免名额选卡、咖啡九宫格/柱子重叠与扣血结算、复生多格/承托/读档、承托搬迁和长时间战斗仍需实机验收。正式冒险退出即放弃战斗、续战保留实体，本次不改造原版逐株中途存档；伴生不进入旧版按槽序列化格式，恢复空场预检仍必须识别它。
+- **验证边界**：转职实现只做独立静态审查和Godot导入/解析，不运行测试套件；散射、连锁感染、伴生密度、重叠月光/共生、群落攻速、真实卡费与击杀掉光、海神持续伤害/粒子、移动范围、复合状态滤镜、等阶沉默恢复、睡莲周期护甲与免名额选卡、咖啡九宫格/柱子重叠与扣血结算、复生多格/承托/读档、回旋镖双向连射/高速折返/密集分裂与移动回收、承托搬迁和长时间战斗仍需实机验收。正式冒险退出即放弃战斗、续战保留实体，本次不改造原版逐株中途存档；伴生不进入旧版按槽序列化格式，恢复空场预检仍必须识别它。
 
 ## 4｜天气、光场、雨声：当前需要维护的接口
 

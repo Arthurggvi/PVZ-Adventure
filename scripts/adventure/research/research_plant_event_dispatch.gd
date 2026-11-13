@@ -12,6 +12,7 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 	var scaredy_events: Array[Dictionary] = [] # 攻击专用词条和共享来源按单株冻结。
 	var fume_events: Array[Dictionary] = [] # 大喷的范围、持续喷涌和命中规则按攻击冻结。
 	var lily_events: Array[Dictionary] = [] # 睡莲仅维护真实承托植物的周期效果。
+	var bloomerang_events: Array[Dictionary] = [] # 回旋镖由原株单时钟发射，弹体各自保存飞行规则。
 	for event: Dictionary in events: # 每本书的事件只进入对应机制，不复制运行时状态。
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
@@ -43,6 +44,13 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 					fume_events.append(event)
 				elif kind.begins_with("lily_"):
 					lily_events.append(event)
+				elif kind.begins_with("bloomerang_"):
+					bloomerang_events.append(event)
+	if not bloomerang_events.is_empty():
+		if not plant is Plant051Bloomerang:
+			push_error("回旋镖转职事件需要对应的战斗植物")
+			return false
+		(plant as Plant051Bloomerang).configure_promotions(bloomerang_events)
 	if not lily_events.is_empty():
 		if not plant is Plant000DownBase:
 			push_error("睡莲转职事件需要实际承托植物")

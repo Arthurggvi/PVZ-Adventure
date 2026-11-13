@@ -51,8 +51,9 @@ func get_all_hp() -> int:
 	return curr_hp + bonus_armor
 
 ## 所有前置减伤先结算，再施加单次上限，最后进入可消耗护甲。
-func resolve_damage(damage: int) -> int:
-	var resolved: int = super.resolve_damage(damage)
+## [param damage] 主伤；[param bonus_damage] 同击附伤；[param bonus_cap] 为附伤上限，-1 不限制。
+func resolve_damage(damage: int, bonus_damage: int = 0, bonus_cap: int = -1) -> int:
+	var resolved: int = super.resolve_damage(damage, bonus_damage, bonus_cap) # 主伤与附伤共用植物单次上限。
 	if _bypass_damage_block or max_single_hit_fraction <= 0.0:
 		return resolved
 	return mini(resolved, maxi(1, ceili(float(max_hp) * max_single_hit_fraction)))

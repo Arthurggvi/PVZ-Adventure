@@ -13,11 +13,12 @@ func ready_norm() -> void:
 	hp_component.change_display_HP_label(Global.config_service.display_zombie_HP_label)
 
 ## [param damage] 伤害值；[param mode] 伤害类型；[param drop] 掉落表现；[param sfx] 受击音效开关。
+## [param bonus_damage] 同击附伤；[param bonus_cap] 为劣化放大后的附伤上限，-1 不限制。
 func be_attacked_bullet(damage: int, mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm,
-		drop: bool = true, sfx: bool = true) -> void:
+		drop: bool = true, sfx: bool = true, bonus_damage: int = 0, bonus_cap: int = -1) -> void:
 	if is_death or is_queued_for_deletion() or not hurt_box_component.is_enabling:
 		return
-	super.be_attacked_bullet(damage, mode, drop, sfx)
+	super.be_attacked_bullet(damage, mode, drop, sfx, bonus_damage, bonus_cap)
 
 ## 幂等死亡，先关闭受击并通知效果移除，再释放设施。
 func character_death() -> void:

@@ -83,11 +83,14 @@ func _absorb_bonus_armor(amount: int) -> int:
 ## 保护者对 [param amount] 点转移伤害独立结算减伤与护甲。[param mode] 为伤害类型。
 ## [param drop]、[param sfx] 和 [param extra_drop] 保留原伤害的表现开关。
 ## [param armor_multiplier] 同原始攻击传给保护者；返回本次实际击杀的僵尸。
+## [param bonus_damage] 保留原目标命中前冻结的附伤；[param bonus_cap] 上限交给实际承伤者结算，-1 不限制。
 func accept_transferred_hit(amount: int, mode: BulletRegistry.AttackMode,
-		drop: bool, sfx: bool, extra_drop: bool, armor_multiplier: float = 1.0) -> Zombie000Base:
+		drop: bool, sfx: bool, extra_drop: bool, armor_multiplier: float = 1.0,
+		bonus_damage: int = 0, bonus_cap: int = -1) -> Zombie000Base:
 	var previous: bool = _handling_transferred_hit # 内层伤害不能提前解除外层保护者的转移锁。
 	_handling_transferred_hit = true
-	var casualty: Zombie000Base = apply_hit(amount, mode, drop, sfx, extra_drop, armor_multiplier) # 当前转移实际产生的击杀。
+	# 主伤与附伤作为同一个转移命中结算，不能重新采样保护者的已损生命。
+	var casualty: Zombie000Base = apply_hit(amount, mode, drop, sfx, extra_drop, armor_multiplier, bonus_damage, bonus_cap)
 	_handling_transferred_hit = previous
 	return casualty
 
@@ -189,16 +192,22 @@ func apply_unblocked_loss(amount: int,
 ## [is_drop_on_death:bool] 死亡时是否有掉落
 ## [trigger_be_attack_SFX:bool]:是否触发受击音效
 ## [is_drop_2:bool] 是否有掉落额外条件
-func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm, is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true):
-	apply_hit(attack_value, bullet_mode, is_drop_on_death, trigger_be_attack_SFX, is_drop_2)
+## [param attack_value] 主伤；[param bullet_mode] 分流模式；[param is_drop_on_death] 致死掉落开关。
+## [param trigger_be_attack_SFX] 受击音效；[param is_drop_2] 额外掉落条件。
+## [param bonus_damage] 同击附伤；[param bonus_cap] 为劣化放大后的附伤上限，-1 不限制。
+func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm,
+		is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true,
+		bonus_damage: int = 0, bonus_cap: int = -1):
+	apply_hit(attack_value, bullet_mode, is_drop_on_death, trigger_be_attack_SFX, is_drop_2, 1.0, bonus_damage, bonus_cap)
 
 ## 结算 [param attack_value] 点伤害和 [param bullet_mode] 分流。
 ## [param is_drop_on_death]、[param trigger_be_attack_SFX] 和 [param is_drop_2] 沿用普通命中表现。
 ## [param armor_multiplier] 仅放大装备防具损伤，默认一倍；临时生命池与本体沿用原伤害。
+## [param bonus_damage] 普通、穿透或背击携带的同击附伤；[param bonus_cap] 为放大后上限，-1 不限制。
 ## 返回本次从存活变死亡的实际受击者；转移伤害时可返回保护者。
 func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 		is_drop_on_death: bool, trigger_be_attack_SFX: bool, is_drop_2: bool = true,
-		armor_multiplier: float = 1.0) -> Zombie000Base:
+		armor_multiplier: float = 1.0, bonus_damage: int = 0, bonus_cap: int = -1) -> Zombie000Base:
 	# A protector receives the raw hit and re-runs its own block -> DR -> armor.
 	# Scripted forced loss and nested transfers never redirect.
 	if not _bypass_damage_block and not _handling_transferred_hit and not is_damage_immune() \
@@ -207,13 +216,14 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 		if protector != null:
 			var protector_hp: HpComponentZombie = protector.hp_component as HpComponentZombie
 			return protector_hp.accept_transferred_hit(attack_value, bullet_mode,
-					is_drop_on_death, trigger_be_attack_SFX, is_drop_2, armor_multiplier)
+					is_drop_on_death, trigger_be_attack_SFX, is_drop_2, armor_multiplier, bonus_damage, bonus_cap)
 	# 只有本次受击产生的状态变化算击杀，已死亡的角色不重复回报。
 	var was_alive: bool = not is_death
-	var combat_loss: bool = was_alive and attack_value > 0 and not _bypass_damage_block # 只允许实际战斗血池损失产光，卸甲与处决不算。
+	var raw_damage: int = attack_value + maxi(0, bonus_damage) # 附伤不另发攻击事件，也不另扣一次脆弱防具。
+	var combat_loss: bool = was_alive and raw_damage > 0 and not _bypass_damage_block # 只允许实际战斗血池损失产光，卸甲与处决不算。
 	# Ordinary hits are mitigated once before any health-pool routing.
-	if attack_value > 0 and not is_death and not _bypass_damage_block:
-		received_attack.emit(attack_value)
+	if raw_damage > 0 and not is_death and not _bypass_damage_block:
+		received_attack.emit(raw_damage)
 	var ori_hp = get_all_hp()
 	_resolving_hit = true
 	_armor_granted_in_hit = 0
@@ -221,11 +231,11 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 	# block or damage reduction would round a positive impact to zero.
 	# Immunity and a separate temporary shield still take precedence.
 	var fragile_hit: bool = armor1_fixed_damage_per_hit > 0 \
-			and curr_hp_armor1 > 0 and attack_value > 0 \
+			and curr_hp_armor1 > 0 and raw_damage > 0 \
 			and not is_damage_immune() and not _bypass_damage_block
 	if bullet_mode not in [BulletRegistry.AttackMode.BowlingFront,
 			BulletRegistry.AttackMode.BowlingSide, BulletRegistry.AttackMode.Hammer]:
-		var resolved: int = resolve_damage(attack_value)
+		var resolved: int = resolve_damage(attack_value, bonus_damage, bonus_cap) # 两部分共享一次减伤与护甲容量。
 		if fragile_hit:
 			resolved = maxi(1, resolved)
 		attack_value = _absorb_bonus_armor(resolved)

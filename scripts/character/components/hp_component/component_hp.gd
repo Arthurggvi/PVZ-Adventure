@@ -166,13 +166,17 @@ func heal(amount: int) -> int:
 ## [param is_drop_on_death] 本次伤害导致死亡时是否允许掉落表现。
 ## [param trigger_be_attack_SFX] 是否播放本次受击音效，false 时只处理扣血及相关信号。
 ## [param is_drop_2] 掉落的额外允许条件，需与死亡掉落选项同时满足。
-func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm, is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true):
+## [param bonus_damage] 同一次命中的非负附伤；[param bonus_cap] 限制劣化放大后的附伤，-1 不限制。
+func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletRegistry.AttackMode.Norm,
+		is_drop_on_death=true, trigger_be_attack_SFX:=true, is_drop_2:=true,
+		bonus_damage: int = 0, bonus_cap: int = -1):
 	var was_alive: bool = not is_death # 尸体后续扣血不能重复触发战斗损失收益。
+	var raw_damage: int = attack_value + maxi(0, bonus_damage) # 主伤与附伤只发出一次原始攻击事件。
 	# 保留原始攻击事件，护甲和格挡不能将“正在被攻击”伪装成脱战。
-	var combat: bool = attack_value > 0 and not _bypass_damage_block and not is_damage_immune()
+	var combat: bool = raw_damage > 0 and not _bypass_damage_block and not is_damage_immune()
 	if combat:
-		combat_attack_received.emit(attack_value)
-	attack_value = resolve_damage(attack_value)
+		combat_attack_received.emit(raw_damage)
+	attack_value = resolve_damage(attack_value, bonus_damage, bonus_cap)
 	if combat:
 		var before_armor: int = attack_value # 已减伤但尚未被临时护甲吸收的本次容量。
 		attack_value = absorb_temporary_armor(attack_value)
@@ -214,13 +218,21 @@ func apply_unblocked_loss(amount: int, mode: BulletRegistry.AttackMode = BulletR
 func absorb_temporary_armor(damage: int) -> int:
 	return damage
 
-## [param damage] 原始伤害；普通生命与护甲子类分别在各自分流前调用一次。
-func resolve_damage(damage: int) -> int:
+## [param damage] 主伤害；[param bonus_damage] 同击附伤，负值按零处理。
+## [param bonus_cap] 为劣化放大后的附伤上限，-1 不限制；随后统一结算一次格挡和减伤。
+## 用总伤与主伤的整数差限制附伤，保留原有取整；后续减伤、护甲只会继续降低伤害。
+func resolve_damage(damage: int, bonus_damage: int = 0, bonus_cap: int = -1) -> int:
+	var bonus: int = maxi(0, bonus_damage) # 附伤不能抵消主伤或产生治疗。
 	if _bypass_damage_block:
-		return maxi(0, damage)
+		return maxi(0, damage + (mini(bonus, bonus_cap) if bonus_cap >= 0 else bonus))
 	if is_damage_immune():
 		return 0
-	return damage_reduction.reduce(damage_block.reduce(maxi(0, roundi(float(damage) * (1.0 + total_degradation_fraction())))))
+	var amplification: float = 1.0 + total_degradation_fraction() # 实际承伤者的劣化在上限之前应用。
+	var amplified: int = maxi(0, roundi(float(damage + bonus) * amplification)) # 无附伤时逐值沿用旧计算。
+	if bonus > 0 and bonus_cap >= 0:
+		var primary: int = maxi(0, roundi(float(damage) * amplification)) # 本次主伤独立保留，不受附伤上限削减。
+		amplified = primary + mini(bonus_cap, maxi(0, amplified - primary))
+	return damage_reduction.reduce(damage_block.reduce(amplified))
 
 ## [param source_id] 无敌效果的来源 ID；[param enabled] 为 true 时添加该来源，为 false 时移除。
 func set_immunity_source(source_id: int, enabled: bool) -> void:

@@ -160,10 +160,12 @@ func _can_receive_damage() -> bool:
 ## [param attack_value] 本次伤害；[param bullet_mode] 伤害类型。[br]
 ## [param is_drop] 是否允许掉落表现；[param trigger_be_attack_SFX] 是否播放受击音效。
 ## 致死伤害仅通过血量组件启动僵王死亡状态机，不套用普通僵尸的直接删除逻辑。
-func be_attacked_bullet(attack_value: int, bullet_mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm, is_drop: bool = true, trigger_be_attack_SFX := true):
+## [param bonus_damage] 同次命中的附伤；[param bonus_cap] 为劣化放大后的附伤上限，-1 不限制。
+func be_attacked_bullet(attack_value: int, bullet_mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm,
+		is_drop: bool = true, trigger_be_attack_SFX := true, bonus_damage: int = 0, bonus_cap: int = -1):
 	if not _can_receive_damage():
 		return
-	super.be_attacked_bullet(attack_value, bullet_mode, is_drop, trigger_be_attack_SFX)
+	super.be_attacked_bullet(attack_value, bullet_mode, is_drop, trigger_be_attack_SFX, bonus_damage, bonus_cap)
 
 
 ## 先发出原有死亡信号供管理器扣数，再关闭受击；重复调用不重复触发亡语或计数。
