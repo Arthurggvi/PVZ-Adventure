@@ -5,6 +5,8 @@ class_name AdventureState
 const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
 ## 图书馆独立货架协议；字段缺失的旧档使用未开馆状态。
 const LibraryStock = preload("res://scripts/adventure/library/library_stock.gd")
+## 商店购买记录独立编码，旧档缺失时默认六槽。
+const ShopState = preload("res://scripts/adventure/shop/shop_state.gd")
 
 ## 第一阶段协议版本，未知版本不自动初始化或迁移。
 var schema_version: int = 1
@@ -36,6 +38,8 @@ var tutorial_steps: Dictionary[String, bool] = {}
 var almanac_discoveries: Dictionary[String, bool] = {}
 ## 每日书籍与售出状态，不持久化窗口选择。
 var library: LibraryStock = LibraryStock.new()
+## 每日限购、永久槽位与购买版本属于当前玩家档案。
+var shop: ShopState = ShopState.new()
 
 ## 记录 [param kind] 类别的 [param type_id]；首次发现返回 true，重复或非法输入不改变状态。
 func discover_character(kind: String, type_id: int) -> bool:
@@ -49,6 +53,8 @@ func discover_character(kind: String, type_id: int) -> bool:
 
 ## 返回深拷贝的 JSON 基础数据；非法内存状态返回空字典，不泄漏对象引用。
 func to_dict() -> Dictionary:
+	if shop == null or ShopState.from_dict(shop.to_dict()) == null:
+		return {}
 	if library == null or LibraryStock.from_dict(library.to_dict()) == null:
 		return {}
 	if not _is_json_value(regions) or quests == null or AdventureQuestState.from_dict(quests.to_dict()) == null \
@@ -70,6 +76,7 @@ func to_dict() -> Dictionary:
 	data["tutorial_steps"] = tutorial_steps.duplicate()
 	data["almanac_discoveries"] = almanac_discoveries.duplicate()
 	data["library"] = library.to_dict()
+	data["shop"] = shop.to_dict()
 	return data if from_dict(data) != null else {}
 
 ## 从 [param data] 校验并创建独立状态；非法结构、版本、UID、出战列表或数量返回 null。
@@ -88,6 +95,9 @@ static func from_dict(data: Variant) -> AdventureState:
 	if data.has("card_order_uids") and not data.card_order_uids is Array:
 		return null
 	var state := AdventureState.new() # 所有容器和卡片都在此新实例中恢复。
+	state.shop = ShopState.from_dict(data.get("shop", {}))
+	if state.shop == null:
+		return null
 	state.library = LibraryStock.from_dict(data.get("library", {}))
 	if state.library == null:
 		return null

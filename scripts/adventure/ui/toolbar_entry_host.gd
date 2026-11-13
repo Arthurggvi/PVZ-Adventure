@@ -74,6 +74,7 @@ func _toggle_modal(feature_id: String, screen: Script) -> void:
 	_modal_feature = feature_id
 	add_child(window)
 	move_child(_view,get_child_count()-1)
+	_view.visible = not bool(window.get_meta("covers_toolbar", false)) # 全屏页面拥有全部输入，普通窗口继续保留工具栏。
 	window.closed.connect(_release_modal.bind(window))
 	window.tree_exited.connect(_release_modal.bind(window))
 
@@ -82,6 +83,7 @@ func _release_modal(window: Control) -> void:
 	if _modal == window:
 		_modal = null
 		_modal_feature = ""
+		_view.show() # 页面释放后恢复之前的展开状态，不重建工具栏。
 
 ## 工具栏按钮也必须经过公开门面。
 func _on_feature_pressed(feature_id: String) -> void:

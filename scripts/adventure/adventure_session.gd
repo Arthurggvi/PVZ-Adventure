@@ -178,6 +178,8 @@ func _start_battle_attempt(stage_number: int, stage: StageDefinition, phase: Sta
 	if level == null:
 		error_message = "无法从本局环境及阶段配置构建战斗。"
 		return false
+	# 本局冻结玩家扩容后的预算；关卡显式提供的更大容量仍保留，不修改共享关卡资源。
+	level.max_choosed_card_num = maxi(stage.max_selected_cards, Global.global_game_state.adventure_state.shop.card_slots)
 	var scene_path: String = Global.main_scene_registry.MainScenesMap.get(level.game_sences, "") # 关卡环境指定战斗场景。
 	if scene_path.is_empty() or get_tree().change_scene_to_file(scene_path) != OK:
 		error_message = "关卡场景加载失败。"
@@ -214,7 +216,7 @@ func confirm_selected_cards(cards: Array[Card]) -> bool:
 		profiles.append(profile)
 		occupied_slots += profile.selection_slot_cost()
 		uids.append(uid)
-	if not CardSlotRules.can_start(active_stage.max_selected_cards, cards.size(), occupied_slots):
+	if not CardSlotRules.can_start(active_level.max_choosed_card_num, cards.size(), occupied_slots):
 		return false
 	var state: AdventureState = Global.global_game_state.adventure_state
 	var previous_uids: Array[String] = state.selected_card_uids.duplicate()
@@ -330,7 +332,7 @@ func begin_terminal() -> bool:
 func _begin_followup(phase: StagePhaseDefinition, key_id: StringName, key_count: int, consume: bool) -> bool:
 	var occupied_slots: int = _frozen_loadout_slot_count() # 续战沿用本局冻结配方，不重读已变化的库存。
 	if phase == null or occupied_slots < 0 \
-			or not CardSlotRules.can_start(active_stage.max_selected_cards, battle_loadout.size(), occupied_slots):
+			or active_level == null or not CardSlotRules.can_start(active_level.max_choosed_card_num, battle_loadout.size(), occupied_slots):
 		error_message = "下一阶段与当前卡组不兼容。"
 		return false
 	if consume:

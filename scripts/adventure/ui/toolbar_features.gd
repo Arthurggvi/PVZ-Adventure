@@ -13,7 +13,7 @@ const ENTRIES: Array[Dictionary] = [
 ]
 
 ## 只由场景建筑提供的入口，参与同一权限门面但不重复占用底部工具栏。
-const SCENE_FEATURES: Array[String] = ["library"]
+const SCENE_FEATURES: Array[String] = ["library", "shop"]
 
 ## Only existing, selected user profiles may open the canonical adventure entrance.
 static func can_open_map() -> bool:

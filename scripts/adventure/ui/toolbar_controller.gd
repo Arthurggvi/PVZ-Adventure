@@ -17,6 +17,8 @@ const Quests = preload("res://scripts/adventure/ui/quest_window.gd")
 const Almanac = preload("res://scripts/adventure/ui/almanac_window.gd")
 ## 图书馆建筑使用独立书籍面板，复用相同模态生命周期。
 const Library = preload("res://scripts/adventure/ui/library_window.gd")
+## 戴夫全屏商店复用建筑入口与统一模态生命周期。
+const Shop = preload("res://scripts/adventure/shop/shop_window.gd")
 ## 首关后教学编排使用独立表现层，不占用任务或研究服务职责。
 const Onboarding = preload("res://scripts/adventure/ui/quest_onboarding.gd")
 ## 教学层随当前宿主销毁表现，业务节点随档案保存。
@@ -53,6 +55,7 @@ func _ready() -> void:
 	register_feature("almanac", Callable(self, "_can_open_inventory"), Callable(self, "_open_almanac"))
 	register_feature("library", Callable(self, "_can_open_library"), Callable(self, "_open_library"))
 	register_feature("player", Callable(self, "_can_open_player"), Callable(self, "_open_player"))
+	register_feature("shop", Callable(self, "_can_open_player"), Callable(self, "_open_shop"))
 	register_feature("settings", Callable(self, "_can_open_settings"), toggle_settings)
 	_onboarding = Onboarding.new()
 	_onboarding.toolbar = self
@@ -99,6 +102,7 @@ func _apply_host_scene(scene: Node) -> void:
 	_modal_feature = ""
 	_host_scene = scene
 	_view.reset_for_scene()
+	_view.show() # 切场释放全屏页面后恢复工具栏，由宿主决定整体可见性。
 	_host_allowed = is_instance_valid(scene) and scene.is_in_group(HOST_GROUP)
 	visible = _host_allowed
 	_sync_input()
@@ -154,6 +158,10 @@ func _can_open_library() -> bool:
 ## 图书馆窗口复用统一模态生命周期。
 func _open_library() -> void:
 	_toggle_modal("library", Library)
+
+## 主菜单商店建筑进入全屏戴夫页面；权限与其他角色资产操作一致。
+func _open_shop() -> void:
+	_toggle_modal("shop", Shop)
 
 ## 角色无需独立解锁进度；有效档案且不在冒险战斗时可以访问。
 func _can_open_player() -> bool:
