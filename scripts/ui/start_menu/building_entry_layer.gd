@@ -3,18 +3,28 @@ extends Control
 
 ## 当前建筑的视觉状态；不会直接开启功能。
 signal highlight_changed(entry_id: String, mode: String, pressed: bool)
+## 与主入口牌匾同步的轮廓引导强度；可与其他建筑的悬停同时呈现。
+signal guide_changed(entry_id: String, strength: float)
 ## 每次请求记录接受与否，供预览和可访问反馈使用。
 signal action_requested(entry_id: String, accepted: bool)
 ## 稳定命中控件的唯一实现。
 const Hit = preload("res://scripts/ui/start_menu/building_entry_hit.gd")
 ## 只负责显示、始终穿透鼠标的小型名称牌。
 const Badge = preload("res://scripts/ui/start_menu/building_entry_badge.gd")
+## 呼吸周期（秒），缓慢起伏以提示玩家注意主入口。
+const GUIDE_PERIOD_SECONDS := 2.8
 ## 权威入口元数据，不保存独立解锁条件。
 var entries: Dictionary = {}
 ## 原画坐标下的稳定命中控件。
 var controls: Dictionary = {}
 ## 与各个建筑对应的视觉牌匾。
 var _badges: Dictionary = {}
+## 使用呼吸引导的常驻主入口。
+var _guide_id := ""
+## 当前呼吸周期内经过的秒数。
+var _guide_elapsed := 0.0
+## 上次发出的引导强度，避免聚焦或隐藏后重复写入材质。
+var _last_guide_strength := 0.0
 ## 查询真实入口权限的宿主门面。
 var _status: Callable
 ## 重新校验并提交动作的宿主门面。
@@ -52,6 +62,8 @@ func configure(data: Dictionary, status: Callable, action: Callable, blocked: Ca
 		badge.configure(entry, size, font)
 		add_child(badge)
 		_badges[entry.id] = badge
+		if entry.get("primary", false) and entry.get("resting_label", false):
+			_guide_id = entry.id
 
 ## [param event] 仅记录交互模态，不抢占窗口的按键。
 func _input(event: InputEvent) -> void:
@@ -60,11 +72,17 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventKey and event.pressed:
 		_keyboard_mode = true
 
-## [param delta] 以秒推进轻微抬升和透明度；真实目标仍由原生 GUI 决定。
+## [param delta] 以秒推进抬升、透明度和主入口呼吸；真实目标仍由原生 GUI 决定。
 func _process(delta: float) -> void:
 	refresh_target()
-	for badge: Control in _badges.values(): # 每个牌匾独立收敛，不做持续弹跳。
-		badge.advance(delta)
+	_guide_elapsed = fposmod(_guide_elapsed + delta, GUIDE_PERIOD_SECONDS)
+	var wave: float = 0.5 - 0.5 * cos(TAU * _guide_elapsed / GUIDE_PERIOD_SECONDS) # 余弦首尾平滑，最低亮度仍保留提示。
+	for id: String in _badges: # 只给常驻主入口分配呼吸强度。
+		var badge: Control = _badges[id] # 同一牌匾负责焦点过渡和呼吸亮度。
+		var strength: float = badge.advance(delta, lerpf(0.24, 0.72, wave) if id == _guide_id else 0.0) # 共用平滑焦点后得到最终边缘亮度。
+		if id == _guide_id and strength != _last_guide_strength:
+			_last_guide_strength = strength
+			guide_changed.emit(id, strength)
 
 ## 同时处理真实 UI 遮挡、键盘焦点与模态；窗口开启后立即取消背景反馈。
 func refresh_target() -> void:
@@ -95,6 +113,9 @@ func refresh_target() -> void:
 	if signature != _last_feedback:
 		_last_feedback = signature
 		highlight_changed.emit(target, target_mode, target_pressed)
+	if blocked and _last_guide_strength > 0.0:
+		_last_guide_strength = 0.0
+		guide_changed.emit(_guide_id, 0.0)
 
 ## [param id] 通过真实门面重新校验；窗口打开后当帧清除所有背景交互。
 func _activate(id: String) -> void:

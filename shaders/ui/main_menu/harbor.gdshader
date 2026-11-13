@@ -20,6 +20,9 @@ uniform sampler2D boat_premult : filter_linear, repeat_disable;
 uniform sampler2D boat_light_uv : filter_nearest, repeat_disable;
 uniform sampler2D fixed_premult : filter_linear, repeat_disable;
 uniform sampler2D fixed_light_uv : filter_nearest, repeat_disable;
+// 复用悬停蒙版的绿通道内缘；强度由牌匾与焦点状态同步提供。
+uniform sampler2D entry_guide_mask : filter_linear, repeat_disable;
+uniform float entry_guide_strength = 0.0;
 uniform vec2 canvas_pixels = vec2(1672.0,941.0);
 uniform bool motion_enabled = true;
 uniform bool boat_enabled = true;
@@ -40,10 +43,28 @@ uniform float contact_strength = 0.12;
 vec3 light_transfer(sampler2D source,vec2 uv) {
     return texture(source,uv).rgb/max(texture(master_color,uv).rgb,vec3(0.015));
 }
+// 在各部件局部坐标上描边，并保留其预乘透明度。
+vec4 apply_entry_guide(vec4 part, vec2 uv) {
+    if (entry_guide_strength > 0.0 && part.a > 0.0) {
+        // 绿通道提供内缘，红通道把加宽的柔光限制在物件内。
+        vec2 shape = texture(entry_guide_mask,uv).rg;
+        if (shape.r > 0.0) {
+            // 向内扩约两个原画像素，让缩放后的描边依然可见。
+            vec2 spread = vec2(1.8,0.0) / canvas_pixels;
+            float nearby = max(max(texture(entry_guide_mask,uv-spread.xy).g,texture(entry_guide_mask,uv+spread.xy).g),
+                               max(texture(entry_guide_mask,uv-spread.yx).g,texture(entry_guide_mask,uv+spread.yx).g));
+            float edge = min(1.0, max(1.5 * shape.g, 0.58 * nearby * shape.r));
+            part.rgb = mix(part.rgb,vec3(1.0,0.81,0.31) * part.a,edge * entry_guide_strength);
+        }
+    }
+    return part;
+}
 vec4 clean_scene(sampler2D source,vec2 uv) {
     vec4 guide=texture(clean_light_uv,uv);
     vec3 patched=texture(clean_color,uv).rgb*light_transfer(source,guide.rg);
-    return vec4(mix(texture(source,uv).rgb,patched,guide.b),1.0);
+    // 补底区域原本是船的位置，先给静态码头描边，再由海面补底盖住原船位。
+    vec4 base=apply_entry_guide(texture(source,uv),uv);
+    return vec4(mix(base.rgb,patched,guide.b),1.0);
 }
 vec4 relit_part(sampler2D source,sampler2D part,sampler2D guide,vec2 uv) {
     vec4 pm=texture(part,uv);
@@ -52,7 +73,7 @@ vec4 relit_part(sampler2D source,sampler2D part,sampler2D guide,vec2 uv) {
 void fragment() {
     vec4 original=texture(TEXTURE,UV);
     if (!motion_enabled) {
-        COLOR=original;
+        COLOR=apply_entry_guide(original,UV);
     } else {
         float angle=phase*6.28318530718+phase_offset;
         vec2 point=UV*canvas_pixels;
@@ -82,10 +103,12 @@ void fragment() {
             vec2 flag_uv=boat_uv-vec2(0.0,flutter)/canvas_pixels;
             vec4 cloth=relit_part(TEXTURE,flag_premult,boat_light_uv,flag_uv);
             boat=relit_part(TEXTURE,boat_without_flag,boat_light_uv,boat_uv);
-            boat=cloth+boat*(1.0-cloth.a);
+            boat=apply_entry_guide(cloth,flag_uv)+apply_entry_guide(boat,boat_uv)*(1.0-cloth.a);
+        } else {
+            boat=apply_entry_guide(boat,boat_uv);
         }
         result.rgb=boat.rgb+result.rgb*(1.0-boat.a);
-        vec4 fixed=relit_part(TEXTURE,fixed_premult,fixed_light_uv,UV);
+        vec4 fixed=apply_entry_guide(relit_part(TEXTURE,fixed_premult,fixed_light_uv,UV),UV);
         result.rgb=fixed.rgb+result.rgb*(1.0-fixed.a);
         COLOR=vec4(clamp(result.rgb,0.0,1.0),original.a);
     }

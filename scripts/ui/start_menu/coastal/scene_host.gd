@@ -95,6 +95,8 @@ func configure(folder: String, include_preview_ui: bool=true) -> void:
 	harbor_material.shader = harbor_shader
 	harbor_material.set_shader_parameter("canvas_pixels",Vector2(size))
 	harbor_material.set_shader_parameter("masks",texture_file(folder.path_join("assets/harbor_masks.png")))
+	if entry_highlight.masks.has("harbor"):
+		harbor_material.set_shader_parameter("entry_guide_mask",entry_highlight.masks["harbor"])
 	harbor_material.set_shader_parameter("master_color",texture_file(folder.path_join("master_original.png")))
 	harbor_material.set_shader_parameter("clean_color",texture_file(folder.path_join("assets/clean_plate.png")))
 	for uniform: String in ["clean_light_uv","boat_premult","boat_light_uv","fixed_premult","fixed_light_uv"]: # 预乘颜色与低频受光参考分别绑定。
@@ -177,6 +179,11 @@ func set_wind_enabled(enabled: bool) -> void:
 func set_entry_hover(id: String, mode: String, pressed: bool=false) -> void:
 	if entry_highlight != null:
 		entry_highlight.set_target(id,mode,pressed)
+
+## [param id] 为主入口；[param strength] 为与牌匾同步的内缘混色权重，范围为 0 至 1。
+func set_entry_guide(id: String, strength: float) -> void:
+	if id == "harbor":
+		harbor_material.set_shader_parameter("entry_guide_strength",strength)
 
 ## [param delta] 独立推进交互过渡，不重置船或风的计时。
 func advance_entry_hover(delta: float) -> void:

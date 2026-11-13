@@ -43,6 +43,7 @@ func _ready() -> void:
 	canvas.add_child(entry_layer)
 	entry_layer.configure(data,AdventureToolbar.feature_status,AdventureToolbar.request_feature,AdventureToolbar.scene_entries_blocked,FONT)
 	entry_layer.highlight_changed.connect(host.set_entry_hover)
+	entry_layer.guide_changed.connect(host.set_entry_guide)
 	entry_layer.action_requested.connect(_record_action)
 	# 保留已认可的档案和功能台占位，作为真实GUI阻挡，不重做最终UI。
 	for filename in ["layer_profile_proposed.png","layer_console_proposed.png"]:

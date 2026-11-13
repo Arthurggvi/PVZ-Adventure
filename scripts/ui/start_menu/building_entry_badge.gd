@@ -1,5 +1,5 @@
 extends Control
-## 建筑前的小型暖色牌匾：静止时安静可辨，聚焦时轻抬；始终不参与输入路由。
+## 建筑前的小型暖色牌匾：主入口边缘随港口高亮呼吸，聚焦时轻抬；始终不参与输入路由。
 
 ## 名称字形与宽度测量使用同一字体。
 var _font: Font
@@ -9,7 +9,7 @@ var _title := ""
 var _anchor := Vector2.ZERO
 ## 原画画布尺寸，用于防止长锁定原因超出边缘。
 var _canvas_size := Vector2.ZERO
-## 港口主入口采用略大的字号与箭头。
+## 港口主入口采用略大的字号与牌面。
 var _primary := false
 ## 是否允许可用状态下保留安静的常驻标签。
 var _resting := false
@@ -21,6 +21,8 @@ var _content_key := ""
 var _focus_amount := 0.0
 ## 当前目标焦点强度。
 var _focus_goal := 0.0
+## 与场景轮廓同步的引导强度，范围为 0 至 1。
+var _guide_strength := 0.0
 ## 平滑后的显示透明度，范围为 0 至 1。
 var _opacity := 0.0
 ## 当前目标显示透明度。
@@ -89,11 +91,11 @@ func set_state(allowed: bool, reason: String, focused: bool, pressed: bool, bloc
 		var font_size: int = 27 if _primary else 23 # 与名称标签保持同一字号。
 		var title_width: float = _font.get_string_size(_title, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x # 保持短名牌紧凑。
 		var detail_width: float = _font.get_string_size(detail, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x if not detail.is_empty() else 0.0 # 原因只占所需宽度。
-		size = Vector2(maxf(146.0 if _primary else 102.0, maxf(title_width + (66.0 if _primary else 40.0), detail_width + 32.0)), 51.0 if _primary else 43.0)
+		size = Vector2(maxf(146.0 if _primary else 102.0, maxf(title_width + 40.0, detail_width + 32.0)), 51.0 if _primary else 43.0)
 		if not detail.is_empty():
 			size.y += 21.0
 		_name_label.position = Vector2(8, 1)
-		_name_label.size = Vector2(size.x - (34.0 if _primary and allowed else 16.0), 48.0 if _primary else 40.0)
+		_name_label.size = Vector2(size.x - 16.0, 48.0 if _primary else 40.0)
 		_reason_label.position = Vector2(10, size.y - 25)
 		_reason_label.size = Vector2(size.x - 20, 21)
 		queue_redraw()
@@ -102,8 +104,9 @@ func set_state(allowed: bool, reason: String, focused: bool, pressed: bool, bloc
 		modulate.a = 0.0
 		hide()
 
-## [param delta] 是帧间秒数；用指数收敛避免低帧率过冲，静止后不持续重绘或摇摆。
-func advance(delta: float) -> void:
+## [param delta] 是帧间秒数；[param guide_wave] 是当前呼吸强度，0 表示此入口不参与引导。
+## 返回供场景轮廓同步使用的强度；聚焦时收敛到稳定亮度，锁定或遮挡时归零。
+func advance(delta: float, guide_wave: float) -> float:
 	var blend: float = 1.0 - exp(-maxf(delta, 0.0) * 13.0) # 约 0.2 秒完成主要视觉过渡。
 	var previous_focus: float = _focus_amount # 判断焦点是否仍在变化。
 	var previous_opacity: float = _opacity # 判断显隐是否仍在变化。
@@ -113,23 +116,23 @@ func advance(delta: float) -> void:
 		_focus_amount = _focus_goal
 	if absf(_opacity - _opacity_goal) < 0.001:
 		_opacity = _opacity_goal
+	var previous_guide: float = _guide_strength # 呼吸只在边缘亮度变化时触发重绘。
+	_guide_strength = lerpf(guide_wave, 0.78, _focus_amount) if guide_wave > 0.0 and _available and _opacity_goal > 0.0 else 0.0
 	visible = _opacity > 0.005
 	modulate.a = _opacity
 	var lift: float = _focus_amount * (1.0 if _pressed else 3.0) # 仅聚焦时轻抬，不改变命中框。
 	position = Vector2(clampf(_anchor.x - size.x * 0.5, 8.0, _canvas_size.x - size.x - 8.0), clampf(_anchor.y - lift, 8.0, _canvas_size.y - size.y - 8.0))
-	if previous_focus != _focus_amount or previous_opacity != _opacity:
+	if previous_focus != _focus_amount or previous_opacity != _opacity or previous_guide != _guide_strength:
 		queue_redraw()
+	return _guide_strength
 
-## 框面保留画面透气感；主入口箭头手工绘制，避免字体缺字及额外资源依赖。
+## 框面沿用暖深色，呼吸光仅作用于牌匾边缘。
 func _draw() -> void:
 	var warmth: float = _focus_amount if _available else _focus_amount * 0.35 # 锁定入口不呈现可进入的金色强反馈。
 	_frame.bg_color = Color("292b24").lerp(Color("38352a"), warmth)
 	_frame.bg_color.a = 0.91
-	_frame.border_color = Color(0.65, 0.59, 0.43, 0.42).lerp(Color(0.93, 0.78, 0.44, 0.88), warmth)
+	var rim: float = maxf(warmth, _guide_strength) # 聚焦反馈优先，待机亮度随场景轮廓起伏。
+	_frame.border_color = Color(0.65, 0.59, 0.43, 0.42).lerp(Color(0.93, 0.78, 0.44, 0.88), rim)
 	draw_style_box(_frame, Rect2(Vector2.ZERO, size))
 	if _primary and _available:
-		var arrow_color := Color("d9b96e").lerp(Color("ffe4a0"), _focus_amount) # 港口入口的单个方向提示。
-		var center := Vector2(size.x - 25, 25) # 与主行名称基线视觉对齐。
-		draw_line(center + Vector2(-7, 0), center + Vector2(7, 0), arrow_color, 1.7, true)
-		draw_polyline(PackedVector2Array([center + Vector2(2, -5), center + Vector2(7, 0), center + Vector2(2, 5)]), arrow_color, 1.7, true)
-		draw_line(Vector2(20, 1), Vector2(size.x - 20, 1), Color(0.88, 0.71, 0.38, 0.45 + 0.25 * _focus_amount), 1.0, true)
+		draw_line(Vector2(20, 1), Vector2(size.x - 20, 1), Color(0.88, 0.71, 0.38, 0.45 + 0.25 * rim), 1.0, true)

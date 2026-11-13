@@ -59,6 +59,7 @@ func _ready() -> void:
 	canvas.add_child(entry_layer)
 	entry_layer.configure(data,AdventureToolbar.feature_status,AdventureToolbar.request_feature,_entries_blocked,FONT)
 	entry_layer.highlight_changed.connect(host.set_entry_hover)
+	entry_layer.guide_changed.connect(host.set_entry_guide)
 	entry_layer.action_requested.connect(func(id: String, accepted: bool):feature_requested.emit(id,accepted))
 	var layout: Dictionary=JSON.parse_string(FileAccess.get_file_as_string(PACK+"/config/ui_layout.json")) # 已确认布局，不把UI烘焙进背景。
 	profile_hud=Profile.new()
