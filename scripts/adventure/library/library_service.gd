@@ -106,6 +106,8 @@ func _run(action: String, revision: int = -1, slot: int = -1, ids: Array[String]
 			or _wallet.adventure_state != _state or not _inventory.owns_state(_state) \
 			or not _persist.is_valid() or not _clock.is_valid():
 		return _error("档案已切换，请重新打开图书馆")
+	if not AdventureQuestService.feature_unlocked(_state, "library"):
+		return _error("完成「千锤百炼」后开放图书馆")
 	_committing = true
 	var result: Dictionary = _execute(action, revision, slot, ids) # 所有提前返回在内部完成，外部始终释放锁。
 	_committing = false

@@ -75,7 +75,16 @@ func _fit() -> void:
 func _is_current() -> bool:
 	return not _closing and Global.global_game_state != null and Global.global_game_state.adventure_state == _opened_state \
 		and Global.save_service != null and Global.save_service.is_current_profile_loaded() \
-		and Global.adventure_inventory != null and Global.adventure_inventory.owns_state(_opened_state)
+		and Global.adventure_inventory != null and Global.adventure_inventory.owns_state(_opened_state) \
+		and AdventureQuestService.feature_unlocked(_opened_state, "library")
+
+## 使用正常切页入口打开 [param mode]，返回真实页签供教学定位；不提交交易。
+func guide_tab(mode: String) -> Control:
+	if not _is_current() or _busy:
+		return null
+	if mode != _mode:
+		_on_action("mode", mode)
+	return _view.tab_control(mode)
 
 ## 从实时库存及货架生成纯展示快照。
 func _render() -> void:

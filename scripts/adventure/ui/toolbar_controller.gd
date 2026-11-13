@@ -51,7 +51,7 @@ func _ready() -> void:
 	register_feature("research", Callable(self, "can_open_research"), Callable(self, "_open_research"))
 	register_feature("quests", Callable(self, "_can_open_quests"), Callable(self, "_open_quests"))
 	register_feature("almanac", Callable(self, "_can_open_inventory"), Callable(self, "_open_almanac"))
-	register_feature("library", Callable(self, "_can_open_inventory"), Callable(self, "_open_library"))
+	register_feature("library", Callable(self, "_can_open_library"), Callable(self, "_open_library"))
 	register_feature("player", Callable(self, "_can_open_player"), Callable(self, "_open_player"))
 	register_feature("settings", Callable(self, "_can_open_settings"), toggle_settings)
 	_onboarding = Onboarding.new()
@@ -147,7 +147,11 @@ func _open_quests() -> void:
 func _open_almanac() -> void:
 	_toggle_modal("almanac", Almanac)
 
-## 图书馆无额外解锁门槛；当前有效档案才能购买或处理技能书。
+## 当前档案完成千锤百炼后才允许通过建筑和教学入口打开图书馆。
+func _can_open_library() -> bool:
+	return _can_open_inventory() and AdventureQuestService.feature_unlocked(Global.global_game_state.adventure_state, "library")
+
+## 图书馆窗口复用统一模态生命周期。
 func _open_library() -> void:
 	_toggle_modal("library", Library)
 
@@ -180,9 +184,9 @@ func _refresh() -> void:
 
 ## 为教学提供已校验的当前上下文；背包等其他模态存在时不抢占输入。
 func guide_context() -> Dictionary:
-	return {"ready": _host_allowed and _interactive and _can_open_inventory() and (not is_instance_valid(_modal) or _modal_feature in ["quests", "research"]),
+	return {"ready": _host_allowed and _interactive and _can_open_inventory() and (not is_instance_valid(_modal) or _modal_feature in ["quests", "research", "library"]),
 		"state": Global.global_game_state.adventure_state if _can_open_inventory() else null,
-		"quests": modal_for("quests"), "research": modal_for("research")}
+		"quests": modal_for("quests"), "research": modal_for("research"), "library": modal_for("library")}
 
 ## 展开并定位 [param feature_id] 的真实按钮；不绕过正常功能入口。
 func guide_feature(feature_id: String) -> Control:

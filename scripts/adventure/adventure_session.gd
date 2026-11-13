@@ -429,8 +429,9 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 	var before_quests: Dictionary = state.quests.to_dict() # 通关存档失败时随奖励一起回滚任务。
 	# 结算重试复用同一阶段的种植记录。
 	var played_plants: PackedInt32Array = runtime.played_plant_types if runtime != null else PackedInt32Array()
+	var quest_day: String = AdventureQuestService.today() # 通关事件与后续前置同步使用同一周期。
 	AdventureQuestService.record_event(state, "stage_cleared", "%s/%s" % [stage.stage_id,
-		AdventureStageCatalog.phase_slug(active_phase_kind)], AdventureQuestService.today(), played_plants)
+		AdventureStageCatalog.phase_slug(active_phase_kind)], quest_day, played_plants)
 	if not claim_id.is_empty():
 		state.claimed_rewards[claim_id] = true
 		if not skip_combat_checks:
@@ -443,6 +444,7 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 		state.quests = AdventureQuestState.from_dict(before_quests)
 		return false
 	AdventureStageCatalog.mark_cleared(state, stage.stage_id, active_phase_kind)
+	AdventureQuestService.synchronize(state, quest_day)
 	if runtime != null and not runtime.pending_region_flags.is_empty():
 		var region: Dictionary = state.regions.get(AdventureStageCatalog.REGION_ID, {}).duplicate(true)
 		var flags: Dictionary = region.get("event_flags", {}).duplicate(true)

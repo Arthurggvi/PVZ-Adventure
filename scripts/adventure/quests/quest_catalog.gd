@@ -19,7 +19,7 @@ const THANK_YOU_LETTER := """[font_size=34][color=#a4452c]感谢你下载这个�
 ## 没落营地及墓地两关主线共用的强化道具奖励。
 const MAINLINE_ENHANCEMENT_REWARDS := [{"id": "fertilizer_lv2", "count": 2}, {"id": "growth_agent_lv2", "count": 2}]
 ## 稳定 ID 与业务规则；accept_history 仅用于可从现有永久状态恢复的目标。
-## 空 event 表示达成前置条件后可直接领奖，无须额外玩法事件。
+## 空 event 表示根据当前状态判断完成；completion_level 可指定目标等级。
 ## required_plant_type 要求在本次通关的战斗中实际使用该植物卡。
 const TASKS: Array[Dictionary] = [
 	{"id": "first_expedition", "group": "主线任务", "title": "初次远征",
@@ -55,8 +55,15 @@ const TASKS: Array[Dictionary] = [
 	"description": "在研究室成功将任意一张卡片从 3 星强化到 4 星。", "objective": "成功强化出一张 4 星卡片",
 	"event": "card_enhanced", "target": "4", "daily": false, "accept_history": false,
 	"requires_completed": ["solid_defense"], "min_level": 0, "activation_mode": "all", "count": 1,
-	"exp": 1000, "coins": 2000, "unlocks": [], "items": [{"id": "fertilizer_lv2", "count": 3},
+	"exp": 1000, "coins": 2000, "unlocks": ["library"], "unlock_on_completion": true,
+	"items": [{"id": "fertilizer_lv2", "count": 3},
 		{"id": "growth_agent_lv2", "count": 3}, {"id": "seedling_pot", "count": 3}]},
+	{"id": "rising_adventurer", "group": "支线任务", "title": "新晋达人",
+	"description": "将玩家等级提升至 5 级。", "objective": "玩家等级达到 5 级",
+	"event": "", "target": "", "daily": false, "accept_history": false,
+	"required_normal_clear": &"zombie_island.fallen_camp", "completion_level": 5,
+	"requires_completed": [], "min_level": 0, "activation_mode": "all", "count": 1,
+	"exp": 0, "coins": 5000, "unlocks": [], "items": [], "equipment_reward": "adventurer_badge"},
 	{"id": "daily_boss", "group": "日常任务", "title": "擒贼先擒王",
 	"description": "击败任意一个 BOSS。\n\n每天零点刷新，按本机日期计算。请在刷新前领取奖励。", "objective": "击败任意一个 BOSS",
 	"event": "boss_defeated", "target": "", "daily": true, "accept_history": false,
@@ -66,8 +73,8 @@ const TASKS: Array[Dictionary] = [
 	{"id": "thank_you", "group": "活动任务", "title": "感谢有你！", "description": THANK_YOU_LETTER,
 	"letter": true, "event": "", "target": "", "daily": false, "accept_history": false,
 	"requires_completed": ["first_expedition"], "min_level": 0, "activation_mode": "all", "count": 1,
-	"exp": 0, "coins": 0, "unlocks": [], "items": [], "outfit_reward": "deepseek_whale",
-	"outfit_label": "DeepSeek 鲸鱼娘时装"},
+	"exp": 0, "coins": 0, "unlocks": [], "items": [], "equipment_reward": "deepseek_whale",
+	"equipment_label": "DeepSeek 鲸鱼娘时装"},
 ]
 
 ## 返回 [param id] 的独立定义，未知 ID 返回空字典。

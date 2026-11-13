@@ -7,13 +7,16 @@ static func next_step(state: AdventureState) -> String:
 		return ""
 	if not AdventureQuestService.claimed(state, "first_expedition"):
 		return "first_reward" if state.tutorial_steps.get("quest_notice", false) else "quest_notice"
-	if AdventureQuestService.completed(state, "first_craft") or state.tutorial_steps.get("research_wall_nut", false):
-		return ""
-	return "research" if state.tutorial_steps.get("research_dave", false) else "research_dave"
+	if not AdventureQuestService.completed(state, "first_craft") and not state.tutorial_steps.get("research_wall_nut", false):
+		return "research" if state.tutorial_steps.get("research_dave", false) else "research_dave"
+	if AdventureQuestService.claimed(state, "tempered_card") and not state.tutorial_steps.get("library_tour", false):
+		return "library_tour"
+	return ""
 
 ## 将 [param step] 写入 [param state]；验证 [param wallet] 档案归属，通过 [param persist] 保存，失败回滚。
 static func mark_step(state: AdventureState, wallet: GlobalGameState, persist: Callable, step: String) -> bool:
-	if state == null or wallet == null or wallet.adventure_state != state or not persist.is_valid() or step not in ["quest_notice", "research_dave"]:
+	if state == null or wallet == null or wallet.adventure_state != state or not persist.is_valid() \
+			or step not in ["quest_notice", "research_dave", "library_tour"]:
 		return false
 	if state.tutorial_steps.get(step, false):
 		return true

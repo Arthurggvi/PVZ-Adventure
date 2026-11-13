@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("1")
 id = &"adventurer_badge"
-display_name = "冒险者徽章"
+display_name = "冒险者勋章"
 description = "冒险者的身份标记，仅作装饰。"
 slot = 3
 icon = ExtResource("2")

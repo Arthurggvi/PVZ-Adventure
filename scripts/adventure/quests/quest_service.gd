@@ -34,6 +34,8 @@ static func eligible(state: AdventureState, task: Dictionary) -> bool:
 	var checks: Array[bool] = [] # 未配置等级门槛时不加入恒真项，避免破坏 any 语义。
 	if int(task.min_level) > 0:
 		checks.append(state.player_level >= int(task.min_level))
+	if task.has("required_normal_clear"):
+		checks.append(AdventureStageCatalog.is_cleared(state, task.required_normal_clear, StagePhaseDefinition.Kind.NORMAL))
 	for id: String in task.requires_completed: # 前置使用完成状态而非领取状态。
 		checks.append(completed(state, id))
 	for id: String in task.get("requires_claimed", []): # 领奖前置独立配置，保留原有完成与等级语义。
@@ -43,7 +45,7 @@ static func eligible(state: AdventureState, task: Dictionary) -> bool:
 	return checks.has(true) if task.activation_mode == "any" else not checks.has(false)
 
 ## 在 [param day] 刷新周期并按前置依赖收敛生效状态；返回是否修改了存档数据。
-## 空事件任务生效即完成；其余任务仅在生效后计数，历史通关补记须显式启用 accept_history。
+## 空事件任务按当前等级判定；其余任务仅在生效后计数，历史通关补记须显式启用 accept_history。
 static func synchronize(state: AdventureState, day: String) -> bool:
 	var before: Dictionary = state.quests.to_dict() # 比较完整任务域以通知调用方保存。
 	state.quests.day = day if day > state.quests.day else state.quests.day
@@ -54,20 +56,29 @@ static func synchronize(state: AdventureState, day: String) -> bool:
 		var changed := false # 无新生效或完成时立即停止。
 		for task: Dictionary in AdventureQuestCatalog.TASKS: # 每个任务最多从缺失进入生效再完成。
 			if not state.quests.records.has(task.id) and eligible(state, task):
-				var ready_to_claim: bool = str(task.event).is_empty() # 无额外玩法要求的任务直接开放领奖。
 				state.quests.records[task.id] = {"period": state.quests.day if task.daily else "",
-					"status": "complete" if ready_to_claim else "active", "progress": task.count if ready_to_claim else 0}
+					"status": "active", "progress": 0}
 				changed = true
-			if state.quests.records.has(task.id) and task.accept_history and task.event == "stage_cleared":
-				var target: PackedStringArray = str(task.target).split("/") # 稳定关卡 ID 与阶段类型。
-				var record: Dictionary = state.quests.records[task.id] # 在权威记录上完成历史事实补记。
-				if record.status == "active" and target.size() == 2 and AdventureStageCatalog.is_cleared(state, StringName(target[0]), StagePhaseDefinition.Kind.NORMAL if target[1] == "normal" else StagePhaseDefinition.Kind.NIGHTMARE):
-					record.progress = task.count
-					record.status = "complete"
-					changed = true
+			var record: Dictionary = state.quests.records.get(task.id, {}) # 在权威记录上补记已满足的目标。
+			if record.get("status") == "active" and _objective_met(state, task):
+				record.progress = task.count
+				record.status = "complete"
+				changed = true
 		if not changed:
 			break
 	return before != state.quests.to_dict()
+
+## 根据 [param state] 中可直接核实的事实判定 [param task]，不修改任务记录。
+static func _objective_met(state: AdventureState, task: Dictionary) -> bool:
+	if str(task.event).is_empty():
+		return state.player_level >= int(task.get("completion_level", 0))
+	if not task.accept_history or task.event != "stage_cleared":
+		return false
+	var target: PackedStringArray = str(task.target).split("/") # 前段为关卡 ID，后段为阶段。
+	if target.size() != 2:
+		return false
+	var phase: int = StagePhaseDefinition.Kind.NORMAL if target[1] == "normal" else StagePhaseDefinition.Kind.NIGHTMARE # 与现有通关记录口径一致。
+	return AdventureStageCatalog.is_cleared(state, StringName(target[0]), phase)
 
 ## 接收 [param event]、[param target]，按 [param day] 计入当时已生效的任务；自身不写磁盘。
 ## [param played_plants] 为本次获胜阶段中实际使用的植物卡物种；其他事件留空。
@@ -88,10 +99,14 @@ static func record_event(state: AdventureState, event: String, target: String, d
 	synchronize(state, day)
 	return before != state.quests.to_dict()
 
-## 返回 [param feature] 是否被已领奖的永久任务解锁，保存失败时随领取状态回滚。
+## 返回 [param feature] 是否已被永久任务解锁；默认需领奖，可配置为完成即开放。
 static func feature_unlocked(state: AdventureState, feature: String) -> bool:
+	if state == null:
+		return false
 	for task: Dictionary in AdventureQuestCatalog.TASKS: # 不保存平行解锁开关。
-		if not task.daily and feature in task.unlocks and claimed(state, task.id):
+		if task.daily or feature not in task.unlocks:
+			continue
+		if claimed(state, task.id) or (task.get("unlock_on_completion", false) and completed(state, task.id)):
 			return true
 	return false
 
@@ -107,6 +122,9 @@ static func rows(state: AdventureState) -> Array[Dictionary]:
 		row["status"] = record.status
 		row["period"] = record.period
 		row["progress"] = "%d / %d" % [int(record.progress), int(task.count)]
+		if task.has("completion_level"):
+			var goal: int = task.completion_level # 已完成记录保持满进度，避免开发调级影响已达成的任务。
+			row["progress"] = "%d / %d" % [mini(state.player_level, goal) if record.status == "active" else goal, goal]
 		# 未领取展示当前可得经验；已领取展示当时实际奖励，旧档没有收据时保留基础数值。
 		row["exp"] = int(record.get("awarded_experience", task.exp)) if record.status == "claimed" \
 			else PlayerEffects.scale_amount(int(task.exp), effects.experience_multiplier)
@@ -157,23 +175,23 @@ static func _commit_claim(state: AdventureState, inventory: AdventureInventorySe
 		state.items.assign(before_items)
 		wallet.coin_value = before_coin
 		return "经验入账失败，奖励已撤销。"
-	var outfit_id: String = task.get("outfit_reward", "") # 时装走角色装备域，不能作为普通道具入库。
-	var outfit_uid := "" # 只记录本次实际发放的实例，已有同款时直接保留。
+	var equipment_id: String = task.get("equipment_reward", "") # 装备奖励入角色背包。
+	var equipment_uid := "" # 只记录本次实际发放的实例，已有同款时直接保留。
 	var equipment := PlayerEquipmentService.new(state.equipment) # 和任务记录共用这次存档事务。
-	if not outfit_id.is_empty() and not state.equipment.owned.values().has(outfit_id):
-		outfit_uid = equipment.grant(StringName(outfit_id))
-		if outfit_uid.is_empty():
+	if not equipment_id.is_empty() and not state.equipment.owned.values().has(equipment_id):
+		equipment_uid = equipment.grant(StringName(equipment_id))
+		if equipment_uid.is_empty():
 			state.items.assign(before_items)
 			state.experience = before_exp
 			state.player_level = before_level
 			wallet.coin_value = before_coin
-			return "时装发放失败，请重试。"
+			return "装备发放失败，请重试。"
 	record.status = "claimed"
 	record["awarded_experience"] = experience
 	synchronize(state, day)
 	if persist.call() != true:
-		if not outfit_uid.is_empty():
-			equipment.remove(outfit_uid)
+		if not equipment_uid.is_empty():
+			equipment.remove(equipment_uid)
 			state.equipment.next_id = before_equipment_id
 		state.items.assign(before_items)
 		state.quests = AdventureQuestState.from_dict(before_quests)

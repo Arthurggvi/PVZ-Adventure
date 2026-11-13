@@ -58,6 +58,10 @@ func _ready() -> void:
 	_body.size = Vector2(1440, 600)
 	add_child(_body)
 
+## 返回 [param mode] 对应的固定页签，未知模式返回 null。
+func tab_control(mode: String) -> Control:
+	return _tabs.get(mode)
+
 ## 用 [param model] 的只读快照更新书卡、材料槽与结果；不接收可写玩家状态。
 func render(model: Dictionary) -> void:
 	_coins.text = "金币  %s" % money(int(model.coins))

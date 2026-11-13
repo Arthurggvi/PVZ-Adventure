@@ -177,12 +177,16 @@ func _render_details(task: Dictionary) -> void:
 	Art.label(_details, task.progress, Vector2(861, 297), Vector2(90, 38), 21, Color("596b31"))
 	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2(0, 382), Vector2(1000, 296), 30)
 	Art.label(_details, "任务奖励", Vector2(38, 401), Vector2(240, 43), 28)
-	Art.label(_details, "EXP: %d" % task.exp, Vector2(40, 449), Vector2(265, 42), 29, Color("596b31"))
-	Art.label(_details, "%d$" % task.coins, Vector2(334, 449), Vector2(250, 42), 29)
-	Art.label(_details, "道具" if not task.items.is_empty() else "道具：无", Vector2(40, 504), Vector2(150, 34), 22)
+	if int(task.exp) > 0:
+		Art.label(_details, "EXP: %d" % task.exp, Vector2(40, 449), Vector2(265, 42), 29, Color("596b31"))
+	if int(task.coins) > 0:
+		Art.label(_details, "%d$" % task.coins, Vector2(334, 449), Vector2(250, 42), 29)
 	if "research" in task.unlocks:
 		Art.label(_details, "领取后解锁研究室", Vector2(624, 454), Vector2(335, 38), 23, Color("596b31"))
+	if "library" in task.unlocks:
+		Art.label(_details, "完成任务解锁图书馆", Vector2(624, 454), Vector2(335, 38), 23, Color("596b31"))
 	if not task.items.is_empty():
+		Art.label(_details, "道具", Vector2(40, 504), Vector2(150, 34), 22)
 		for index: int in 5: # 奖励统一展示五个空槽，已有物品填入对应位置。
 			var pos := Vector2(40 + index * 96, 548) # 槽位之间保留间距。
 			Art.image(_details, "slots/item_slot_normal.png", pos, Vector2(80, 80))
@@ -199,6 +203,8 @@ func _render_details(task: Dictionary) -> void:
 				if not backing.is_empty():
 					Art.slot_frame(_details, pos, Vector2(80, 80))
 				Art.count_badge(_details, "×%d" % reward.count, pos + Vector2(77, 77))
+	if task.has("equipment_reward"):
+		_render_equipment_reward(task, Vector2(40, 548))
 	_render_claim_button(task)
 
 ## 展示 [param task] 的活动信和时装奖励；正文可滚动，奖励与领取按钮保持可见。
@@ -219,12 +225,19 @@ func _render_letter(task: Dictionary) -> void:
 	_details.add_child(letter)
 	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2(0, 507), Vector2(1000, 171), 30)
 	Art.label(_details, "活动奖励", Vector2(39, 520), Vector2(270, 38), 26, Color("24685b"))
-	var outfit: EquipmentDefinition = EquipmentCatalog.definition(task.outfit_reward) # 用角色面板中的原时装素材。
-	if outfit != null:
-		Art.image(_details, "slots/item_slot_normal.png", Vector2(39, 565), Vector2(82, 82))
-		Art.image(_details, outfit.icon.resource_path, Vector2(47, 573), Vector2(66, 66))
-		Art.label(_details, task.outfit_label, Vector2(141, 567), Vector2(510, 42), 33, Color("185f8c"))
-		Art.label(_details, outfit.display_name, Vector2(143, 610), Vector2(510, 34), 24)
+	_render_equipment_reward(task, Vector2(39, 565))
+
+## 以 [param pos] 绘制 [param task] 的装备图标及名称；活动别名可与角色装备名并列显示。
+func _render_equipment_reward(task: Dictionary, pos: Vector2) -> void:
+	var equipment: EquipmentDefinition = EquipmentCatalog.definition(task.equipment_reward) # 复用角色面板的装备定义。
+	if equipment == null:
+		return
+	var title: String = task.get("equipment_label", equipment.display_name) # 活动时装可显示玩家熟悉的别名。
+	Art.image(_details, "slots/item_slot_normal.png", pos, Vector2(82, 82))
+	Art.image(_details, equipment.icon.resource_path, pos + Vector2(8, 8), Vector2(66, 66))
+	Art.label(_details, title, pos + Vector2(102, 2), Vector2(510, 42), 33, Color("185f8c"))
+	Art.label(_details, equipment.display_name if title != equipment.display_name else equipment.description,
+		pos + Vector2(104, 45), Vector2(510, 34), 24)
 
 ## 将活动信中点击的 [param meta] 与作者主页核对后交给系统浏览器。
 func _open_author_profile(meta: Variant) -> void:

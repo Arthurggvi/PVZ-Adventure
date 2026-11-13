@@ -70,15 +70,18 @@ func _process(delta: float) -> void:
 	_layout()
 	queue_redraw()
 
-## 提示卡放在目标上方；边缘空间不足时向视口内部夹取。
+## 提示卡优先放在目标上方；顶部页签空间不足时放到下方，避免挡住高亮。
 func _layout() -> void:
 	var factor := minf(size.x / 1066.0, size.y / 600.0) # 和游戏逻辑分辨率保持同等阅读比例。
 	_card.scale = Vector2.ONE * factor
 	var dimensions: Vector2 = _card.size * factor # 实际提示卡尺寸。
 	_hole = target.get_global_rect().grow(7.0 * factor) if is_instance_valid(target) and target.is_visible_in_tree() else Rect2()
 	var center: Vector2 = _hole.get_center() if _hole.has_area() else size * 0.5 # 无目标时用中央解锁公告。
+	var top: float = _hole.position.y - dimensions.y - 28.0 * factor # 给高亮和提示卡之间留出呼吸空间。
+	if top < 12.0 and _hole.end.y + dimensions.y + 24.0 * factor <= size.y - 12.0:
+		top = _hole.end.y + 24.0 * factor
 	_card.position = Vector2(clampf(center.x - dimensions.x * 0.5, 12.0, maxf(12.0, size.x - dimensions.x - 12.0)),
-		clampf(_hole.position.y - dimensions.y - 28.0 * factor, 12.0, maxf(12.0, size.y - dimensions.y - 12.0))) if _hole.has_area() else (size - dimensions) * 0.5
+		clampf(top, 12.0, maxf(12.0, size.y - dimensions.y - 12.0))) if _hole.has_area() else (size - dimensions) * 0.5
 
 ## 只有高亮孔允许鼠标穿透；[param point] 是遮罩局部坐标。
 func _has_point(point: Vector2) -> bool:

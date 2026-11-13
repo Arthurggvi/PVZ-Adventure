@@ -1,4 +1,4 @@
-## 首关后的教学编排。工具栏提供真实入口，本组件只呈现公告、戴夫和定位提示。
+## 任务解锁后的教学编排。工具栏提供真实入口，本组件只呈现公告、对话和定位提示。
 extends CanvasLayer
 
 ## 教学顺序与存档提交独立于视觉层。
@@ -9,12 +9,22 @@ const Spotlight = preload("res://scripts/adventure/ui/tutorial_spotlight.gd")
 const Conversation = preload("res://scripts/ui/native_dave_conversation.gd")
 ## 用户指定的六句台词，末句运行原版发疯动画。
 const DIALOGUE = preload("res://resources/adventure/dave_research_intro.tres")
+## 图书馆教学依次介绍真实页签和可执行的操作。
+const LIBRARY_PAGES := [
+	{"mode": "today", "text": "今日书籍\n每天免费换一批书，用金币购买。\n也可以花金币立即刷新书架。"},
+	{"mode": "convert", "text": "书籍转换\n投入两本同阶转职书，\n随机换成一本不同的同阶转职书。"},
+	{"mode": "synthesize", "text": "书籍合成\n投入三本同植物、同阶转职书，\n合成一本该植物的下一阶转职书。"},
+]
 ## 工具栏入口提供宿主、窗口和玩家档案的快照。
 var toolbar: Node
 ## 当前绑定的档案，跨档时销毁所有未完成表现。
 var _state: AdventureState
 ## 本次会话中暂缓提示，不持久化为完成。
 var _postponed := false
+## 图书馆提示可单独暂缓，旧的新手提示不会阻止开馆公告。
+var _library_postponed := false
+## 当前图书馆教学页，-1 表示尚在解锁公告。
+var _library_page := -1
 ## 当前高亮提示层。
 var _spotlight: Control
 ## 原生对话和遮幕的共同根节点。
@@ -42,12 +52,18 @@ func reset(resume: bool = true) -> void:
 	_conversation = null
 	_spotlight.hide()
 	_shown = ""
+	_library_page = -1
 	if resume:
 		_postponed = false
+		_library_postponed = false
 
-## 让玩家稍后重开任务或研究室；不写入完成节点。
+## 让玩家暂缓当前教学；不写入完成节点。
 func _postpone() -> void:
-	_postponed = true
+	if _shown.begins_with("library"):
+		_library_postponed = true
+		_library_page = -1
+	else:
+		_postponed = true
 	_spotlight.hide()
 	_shown = ""
 
@@ -62,12 +78,12 @@ func _process(_delta: float) -> void:
 		visible = false
 		return
 	visible = true
-	if _postponed or is_instance_valid(_dialogue_root):
+	if is_instance_valid(_dialogue_root):
 		return
 	var step: String = Progress.next_step(_state) # 功能解锁和教学观看分别建模。
 	var quests: Control = context.get("quests") # 当前任务窗口可能被用户关闭。
 	var research: Control = context.get("research") # 研究室入口仍由工具栏校验。
-	if step.is_empty():
+	if step.is_empty() or (_library_postponed if step == "library_tour" else _postponed):
 		_spotlight.hide()
 		_shown = ""
 		return
@@ -96,6 +112,44 @@ func _process(_delta: float) -> void:
 				_show_target("craft", "坚果配方和材料已就位\n点击「合成」，制作你的第一张坚果卡！", research.guide_recipe("recipe_wall_nut"))
 			else:
 				_show_target("research", "研究室已解锁！\n点击研究室图标，去合成坚果。", toolbar.guide_feature("research"))
+		"library_tour":
+			if is_instance_valid(research):
+				return
+			toolbar.close_quests_for_guide()
+			_show_library(context.get("library"))
+
+## 先显示解锁公告，再通过 [param library] 定位和介绍当前页签。
+func _show_library(library: Control) -> void:
+	if not is_instance_valid(library):
+		_library_page = -1
+	if _library_page < 0:
+		if _shown != "library_notice":
+			_shown = "library_notice"
+			_spotlight.present("恭喜解锁了图书馆功能！\n在这里可以获得转职书，\n在研究室转职时为植物赋予特殊技能。", null, _advance_library, "查看图书馆")
+		return
+	var key: String = "library_page_%d" % _library_page # 只在切页时重新配置高亮及按钮。
+	if _shown == key:
+		return
+	var page: Dictionary = LIBRARY_PAGES[_library_page] # 正文对应真实的图书馆页签。
+	var tab: Control = library.guide_tab(page.mode) # 用原有切页入口，不触发买书或消耗材料。
+	if not is_instance_valid(tab):
+		return
+	_shown = key
+	_spotlight.present(page.text, tab, _advance_library, "完成" if _library_page == LIBRARY_PAGES.size() - 1 else "下一项")
+
+## 进入图书馆或推进介绍；最后一页确认时保存已看过的标记。
+func _advance_library() -> void:
+	if _library_page < 0 and toolbar.modal_for("library") == null and not toolbar.request_feature("library"):
+		return
+	if _library_page < LIBRARY_PAGES.size() - 1:
+		_library_page += 1
+		_shown = ""
+	elif _save_step("library_tour"):
+		_library_page = -1
+		_spotlight.hide()
+		_shown = ""
+	else:
+		_spotlight.present("暂时无法保存引导进度，请重试。", _spotlight.target, _advance_library, "重试")
 
 ## [param key] 区分提示节点，[param message] 和 [param target] 只影响表现。
 func _show_target(key: String, message: String, target: Control) -> void:
