@@ -16,5 +16,6 @@ func _bomb_all_enemy():
 	if damage_resolver.is_valid():
 		damage_resolver.call()
 		return
+	var context: PlantAttackContext = (owner as Plant000Base).capture_attack_context() if owner is Plant000Base else null # 本轮爆炸的来源快照。
 	CombatExplosion.resolve_plant_blast(area_2d_bomb.get_overlapping_areas(), owner.lane,
-		bomb_lane, can_attack_zombie_status, resolved_damage(), is_cherry_bomb)
+		bomb_lane, can_attack_zombie_status, resolved_damage(), is_cherry_bomb, context)

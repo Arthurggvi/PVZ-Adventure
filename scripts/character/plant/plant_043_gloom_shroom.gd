@@ -30,5 +30,24 @@ func attack_once():
 	num_attack = wrapi(num_attack+1, 0, all_bullet_fx_particles.size())
 
 	var all_enemy:Array[Character000Base] = attack_component.detect_component.get_all_enemy_can_be_attacked()
-	for enemy in all_enemy:
-		enemy.be_attacked_bullet(battle_damage(attack_value),BulletRegistry.AttackMode.Penetration)
+	var context: PlantAttackContext = capture_attack_context() # 同一轮范围攻击共享来源位置快照。
+	for enemy in all_enemy: # 每个实际检测目标仍分别经过原生穿透伤害路由。
+		if context != null and not context.is_active():
+			break
+		if not is_instance_valid(enemy) or enemy.is_death or enemy.is_queued_for_deletion():
+			continue
+		var damage: int = battle_damage(attack_value) # 原出战卡、光环和劣化后的基础攻击。
+		if context != null:
+			damage = context.modify_damage(damage, enemy)
+		var casualty: Character000Base = null # 只收集本次伤害实际杀死的角色。
+		if context != null and enemy is Zombie000Base:
+			casualty = (enemy.hp_component as HpComponentZombie).apply_hit(
+				damage, BulletRegistry.AttackMode.Penetration, true, true, true, context.armor_multiplier)
+			if is_instance_valid(enemy) and is_instance_valid(enemy.body):
+				enemy.body.body_light()
+		else:
+			enemy.be_attacked_bullet(damage, BulletRegistry.AttackMode.Penetration)
+			if is_instance_valid(enemy) and enemy is ZB000Base and enemy.is_death:
+				casualty = enemy
+		if context != null:
+			context.resolve_kill(casualty)

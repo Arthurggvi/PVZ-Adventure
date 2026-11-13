@@ -6,6 +6,8 @@ class_name AdventurePuffProjectileEffects
 var _game: MainGameManager
 ## 发射所属轮次，防止同场景下一轮收到旧弹体或晚到命中。
 var _round_index: int = 0
+## 发射所属冒险阶段；普通与噩梦共用战场和轮次时仍拒绝旧孢子，非冒险为空。
+var _phase: StagePhaseDefinition
 ## 不可变来源配方，用于直接击杀或中毒击杀后的繁殖。
 var _profile: PlantSpawnProfile
 ## 每颗孢子独立保存的转职规则。
@@ -26,6 +28,7 @@ func configure(game: MainGameManager, profile: PlantSpawnProfile, rules: Diction
 		origin: Vector2, cell_pitch: float, source_id: int) -> void:
 	_game = game
 	_round_index = game.curr_game_round
+	_phase = AdventureSession.get_active_phase(game.game_para)
 	_profile = profile
 	_rules = rules.duplicate(true)
 	_origin = origin
@@ -79,15 +82,12 @@ func attack_once(enemy: Character000Base):
 		_apply_corpse_effect(enemy)
 
 ## [param zombie] 为直接碰撞目标；沿用原生背击真实伤害和受击闪白。
-## 普通生命入口丢弃击杀返回值，此处直接保留同一生命组件返回的实际死亡角色。
+## 使用原生弹体共用命中入口，保留共享防具倍率及同一生命组件返回的实际死亡角色。
 func _attack_zombie(zombie: Zombie000Base):
 	var mode: BulletRegistry.AttackMode = bullet_mode # 维持线性弹从背后绕过二类防具的规则。
 	if direction.x < 0.0 and mode == BulletRegistry.AttackMode.Norm:
 		mode = BulletRegistry.AttackMode.Real
-	_casualty = (zombie.hp_component as HpComponentZombie).apply_hit(
-		attack_value, mode, true, trigger_be_attack_sfx)
-	if is_instance_valid(zombie) and is_instance_valid(zombie.body):
-		zombie.body.body_light()
+	_casualty = _hit_zombie(zombie, mode)
 
 ## 孢涌含边界：飞行距离不超过半格为二倍，超过半格但不超过一格为原伤，之外为半伤。
 ## 礼物只继承这份伤害档位，不再次增加亡语弹数。
@@ -100,11 +100,12 @@ func _distance_factor() -> float:
 		return float(rule.get("point_blank_factor", 2.0))
 	return float(rule.get("near_factor", 1.0)) if distance <= 1.0 else float(rule.get("far_factor", 0.5))
 
-## 返回弹体仍处于原战场正式战斗中；结算或场景释放后停止附加效果。
+## 返回弹体仍处于原战场、原轮次和原阶段正式战斗中；结算或场景释放后停止附加效果。
 func _battle_active() -> bool:
 	return is_instance_valid(_game) and _game.is_inside_tree() and not _game.is_queued_for_deletion() \
 		and _game == Global.main_game and _game.get_tree().current_scene == _game \
 		and _game.curr_game_round == _round_index \
+		and AdventureSession.get_active_phase(_game.game_para) == _phase \
 		and _game.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME \
 		and not TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.GameOver, false) \
 		and not TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.AdventureContinue, false)

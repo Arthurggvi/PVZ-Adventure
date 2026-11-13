@@ -46,10 +46,13 @@ static func plant_blast_targets(areas: Array[Area2D], lane: int,
 
 ## 结算 [param areas] 覆盖的植物爆炸，沿用 [param lane]、[param radius] 和 [param statuses] 筛选。
 ## [param damage] 是出战修正后的伤害，[param ash] 选择普通僵尸是否播放灰烬。
+## [param context] 是可选来源快照，逐目标修饰伤害并仅奖励本次实际击杀。
 ## 返回实际击杀的僵尸或僵王，设施销毁不计入击杀。
 static func resolve_plant_blast(areas: Array[Area2D], lane: int, radius: int,
-        statuses: int, damage: int, ash: bool) -> Array[Character000Base]:
+        statuses: int, damage: int, ash: bool, context: PlantAttackContext = null) -> Array[Character000Base]:
     var casualties: Array[Character000Base] = [] # 只保存本次受击从存活变为死亡的角色。
+    if context != null and not context.is_active():
+        return casualties
     for area: Area2D in areas: # 梯子按原爆炸区域与行限制清理。
         if not is_instance_valid(area) or not is_instance_valid(area.owner):
             continue
@@ -58,19 +61,26 @@ static func resolve_plant_blast(areas: Array[Area2D], lane: int, radius: int,
             ladder.ladder_death()
     # 一次伤害可能同步销毁后续目标，逐个结算前复核有效性。
     for reference: Variant in plant_blast_targets(areas, lane, radius, statuses):
+        if context != null and not context.is_active():
+            break
         if not is_instance_valid(reference):
             continue
         var target: Character000Base = reference # 同步回调后重新验证。
         if not _can_hit_plant_blast(target, lane, radius, statuses):
             continue
+        var hit_damage: int = context.modify_damage(damage, target) if context != null else damage # 每个目标独立计算距离。
+        var casualty: Character000Base = null # 实际死者可能是承受转伤的保护者。
         if target is Zombie000Base:
-            var casualty: Zombie000Base = target.be_bomb(damage, ash) # 可能是转移伤害的保护者。
-            if is_instance_valid(casualty):
-                casualties.append(casualty)
+            var armor: float = context.armor_multiplier if context != null else 1.0 # 只扩展原爆炸的防具消耗参数。
+            casualty = target.be_bomb(hit_damage, ash, armor)
         else:
-            target.be_attacked_bullet(damage, BulletRegistry.AttackMode.Penetration, false, false)
+            target.be_attacked_bullet(hit_damage, BulletRegistry.AttackMode.Penetration, false, false)
             if is_instance_valid(target) and target is ZB000Base and target.is_death:
-                casualties.append(target)
+                casualty = target
+        if is_instance_valid(casualty):
+            casualties.append(casualty)
+        if context != null:
+            context.resolve_kill(casualty) # 未致死同样消费本次同步奖励资格。
     return casualties
 
 ## 判断 [param target] 是否仍可被以 [param lane] 为中心的植物爆炸命中。

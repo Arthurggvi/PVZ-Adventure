@@ -29,6 +29,10 @@ var plant_cell:PlantCell
 var plant_spawn_profile: PlantSpawnProfile = null
 ## Transient attack scaling from the frozen adventure card; never saved to the card.
 var battle_damage_multiplier: float = 1.0
+## 当前实例的攻击词条提供者；由唯一运行时管理，空值保持原生攻击。
+var battle_attack_context_provider: Callable
+## 死亡信号清空动态来源前冻结的最后一份攻击上下文，仅供同步亡语使用。
+var _death_attack_context: PlantAttackContext
 var _battle_card_damage_multiplier: float = 1.0
 var _battle_aura_damage_bonus: float = 0.0
 ## 各技能光环独立来源；允许向日葵圣战与豌豆协同叠加且各自撤销。
@@ -63,6 +67,14 @@ func _refresh_battle_damage_multiplier() -> void:
 ## No card snapshot in vanilla means a factor of 1.0.
 func battle_damage(source_damage: int) -> int:
 	return hp_component.outgoing_damage(maxi(0, roundi(float(source_damage) * battle_damage_multiplier)))
+
+## 存活时捕获本次攻击来源；死亡后只返回死亡开始前冻结的快照，不能重新查询共享词条。
+func capture_attack_context() -> PlantAttackContext:
+	if is_death:
+		return _death_attack_context
+	if not battle_attack_context_provider.is_valid():
+		return null
+	return battle_attack_context_provider.call() as PlantAttackContext
 
 ## The species represented by this spawn, independent of rendering/transform.
 func spawn_species_id() -> int:
@@ -229,9 +241,12 @@ func be_zombie_eat_once(attack_zombie:Zombie000Base):
 func _be_zombie_eat_once_special(_attack_zombie:Zombie000Base):
 	pass
 
-## 植物死亡
+## 植物首次死亡前冻结攻击来源；死亡信号清理光环后，亡语仍使用死亡瞬间的词条。
 func character_death():
-	## 发射死亡信号
+	if is_death:
+		return
+	_death_attack_context = capture_attack_context()
+	## 发射死亡信号并执行原生亡语，此时不再依赖动态提供者。
 	super()
 	if is_instance_valid(hurt_box_component):
 		## 要先删除碰撞器，否则僵尸攻击检测组件有问题

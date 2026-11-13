@@ -70,6 +70,7 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 	var cherry_events: Array[Dictionary] = [] # 交给樱桃炸弹本身冻结，等原版引信结算。
 	var puff_events: Array[Dictionary] = [] # 孢子的射击与命中能力按单株冻结。
 	var sunshroom_events: Array[Dictionary] = [] # 阳光菇的成长、光环与储蓄按实际植株执行。
+	var scaredy_events: Array[Dictionary] = [] # 攻击专用词条和共享来源按单株冻结。
 	for event: Dictionary in resolved.events:
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
@@ -95,6 +96,10 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 					puff_events.append(event)
 				elif kind.begins_with("sunshroom_"):
 					sunshroom_events.append(event)
+				elif kind.begins_with("scaredy_"):
+					scaredy_events.append(event)
+	if not scaredy_events.is_empty() and not AdventureScaredyTraits.install(plant, scaredy_events):
+		return false
 	if not sunshroom_events.is_empty():
 		if not plant is Plant010SunShroom:
 			push_error("阳光菇转职事件需要对应的战斗植物")

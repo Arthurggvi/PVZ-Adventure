@@ -10,13 +10,17 @@ func _attack_zombie(zombie:Zombie000Base):
 	## 从后面攻击僵尸的子弹，正常伤害类型子弹攻击类型修改为真实
 	if direction.x < 0 and bullet_mode ==BulletRegistry.AttackMode.Norm:
 		## 攻击敌人
-		zombie.be_attacked_bullet(attack_value,BulletRegistry.AttackMode.Real, true, trigger_be_attack_sfx)
+		_hit_zombie(zombie, BulletRegistry.AttackMode.Real)
 	else:
 		## 攻击敌人
-		zombie.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx)
+		_hit_zombie(zombie, bullet_mode)
 
 
 func _physics_process(delta: float) -> void:
+	# 同场景切换冒险阶段后，旧来源弹体在恢复物理处理时立即回收。
+	if attack_context != null and not attack_context.is_active():
+		queue_free()
+		return
 	## 调用移动组件控制移动
 	movement_component.physics_process_bullet_move(delta)
 

@@ -4,22 +4,23 @@
 extends RefCounted
 class_name ZombieDamageRouter
 
-## Return bit flags 1=body 2=helmet 4=outer gear for post-hit observers.
+## 对 [param hp] 按 [param bullet_mode] 分流 [param attack_value]；返回本体、一类、二类受击位标志。
+## [param armor_multiplier] 只传给装备防具，保留穿透、背击与脚本强制扣血规则。
 static func route(hp: HpComponentZombie, bullet_mode: BulletRegistry.AttackMode,
-        attack_value: int) -> int:
+        attack_value: int, armor_multiplier: float = 1.0) -> int:
 	var flag_loss: int = 0
 	match bullet_mode:
 		## 普通子弹
 		BulletRegistry.AttackMode.Norm:
 			if hp.curr_hp_armor2 > 0 and attack_value > 0:
-				attack_value = hp._hit_armor2(attack_value)
+				attack_value = hp._hit_armor2(attack_value, armor_multiplier)
 				flag_loss |= 4
 				if hp.is_damage_immune():
 					attack_value = 0
 				else:
 					attack_value = hp._absorb_bonus_armor(attack_value)
 			if hp.curr_hp_armor1 > 0 and attack_value > 0:
-				attack_value = hp._hit_armor1(attack_value)
+				attack_value = hp._hit_armor1(attack_value, armor_multiplier)
 				flag_loss |= 2
 				attack_value = hp._absorb_bonus_armor(attack_value)
 			if hp.curr_hp > 0 and attack_value > 0:
@@ -30,14 +31,14 @@ static func route(hp: HpComponentZombie, bullet_mode: BulletRegistry.AttackMode,
 		## inner-armor/body behavior; only the outer pool receives gear-specific DR.
 		BulletRegistry.AttackMode.Penetration:
 			if hp.curr_hp_armor2 > 0 and attack_value > 0:
-				hp._hit_armor2(attack_value)
+				hp._hit_armor2(attack_value, armor_multiplier)
 				flag_loss |= 4
 				if hp.is_damage_immune():
 					attack_value = 0
 				else:
 					attack_value = hp._absorb_bonus_armor(attack_value)
 			if hp.curr_hp_armor1 > 0 and attack_value > 0:
-				attack_value = hp._hit_armor1(attack_value)
+				attack_value = hp._hit_armor1(attack_value, armor_multiplier)
 				flag_loss |= 2
 				attack_value = hp._absorb_bonus_armor(attack_value)
 			if hp.curr_hp > 0 and attack_value > 0:
@@ -46,7 +47,7 @@ static func route(hp: HpComponentZombie, bullet_mode: BulletRegistry.AttackMode,
 
 		BulletRegistry.AttackMode.Real:
 			if hp.curr_hp_armor1 > 0 and attack_value > 0:
-				attack_value = hp._hit_armor1(attack_value)
+				attack_value = hp._hit_armor1(attack_value, armor_multiplier)
 				flag_loss |= 2
 				attack_value = hp._absorb_bonus_armor(attack_value)
 			if hp.curr_hp > 0 and attack_value > 0:
@@ -64,10 +65,10 @@ static func route(hp: HpComponentZombie, bullet_mode: BulletRegistry.AttackMode,
 			var front_damage := hp._absorb_bonus_armor(hp.resolve_damage(front_amount))
 			if front_damage > 0:
 				if hp.curr_hp_armor2 > 0:
-					hp._hit_armor2(front_damage)
+					hp._hit_armor2(front_damage, armor_multiplier)
 					flag_loss |= 4
 				elif hp.curr_hp_armor1 > 0:
-					hp._hit_armor1(front_damage)
+					hp._hit_armor1(front_damage, armor_multiplier)
 					flag_loss |= 2
 				else:
 					hp.curr_hp -= front_damage
@@ -80,10 +81,10 @@ static func route(hp: HpComponentZombie, bullet_mode: BulletRegistry.AttackMode,
 			var side_damage := hp._absorb_bonus_armor(hp.resolve_damage(side_amount))
 			if side_damage > 0:
 				if hp.curr_hp_armor2 > 0:
-					hp._hit_armor2(side_damage)
+					hp._hit_armor2(side_damage, armor_multiplier)
 					flag_loss |= 4
 				elif hp.curr_hp_armor1 > 0:
-					hp._hit_armor1(side_damage)
+					hp._hit_armor1(side_damage, armor_multiplier)
 					flag_loss |= 2
 				else:
 					hp.curr_hp -= side_damage
@@ -94,7 +95,7 @@ static func route(hp: HpComponentZombie, bullet_mode: BulletRegistry.AttackMode,
 			var hammer_damage := hp._absorb_bonus_armor(hp.resolve_damage(hammer_amount))
 			if hammer_damage > 0:
 				if hp.curr_hp_armor1 > 0:
-					hp._hit_armor1(hammer_damage)
+					hp._hit_armor1(hammer_damage, armor_multiplier)
 					flag_loss |= 2
 				elif hp.curr_hp > 0:
 					hp.curr_hp -= hammer_damage

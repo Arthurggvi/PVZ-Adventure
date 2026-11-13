@@ -21,6 +21,10 @@ var promotion_hit_factors: PackedFloat32Array = PackedFloat32Array()
 var _promotion_hit_ids: Dictionary[int, bool] = {}
 ## 最近一次真实命中的伤害数值，供命中事件的额外效果按比例计算。
 var last_impact_damage: int = 0
+## 本次攻击的来源快照，可在弹体变换后继续使用；空值保持原生伤害。
+var attack_context: PlantAttackContext
+## 当前命中实际杀死的角色；保护者代伤时可以与直接命中目标不同。
+var last_impact_casualty: Character000Base
 ## One post-impact hook for projectile perks, after normal hit/umbrella routing.
 signal impact_resolved(target: Character000Base, impact_position: Vector2)
 ## 子弹伤害
@@ -80,6 +84,7 @@ enum E_InitParasAttr{
 	## 抛物线子弹\追踪子弹额外属性
 	Enemy,				## 子弹选中的敌人
 	EnemyGloPos,		## 敌人位置(发射子弹时敌人若已经消失,抛物线依旧可以攻击)
+	AttackContext,		## 可选植物攻击上下文；追加枚举值以保留既有参数序号。
 
 }
 
@@ -96,6 +101,7 @@ func init_bullet(bullet_paras:Dictionary):
 	self.direction = bullet_paras.get(E_InitParasAttr.Direction, Vector2.RIGHT)
 	self.can_attack_plant_status = bullet_paras.get(E_InitParasAttr.CanAttackPlantState, can_attack_plant_status)
 	self.can_attack_zombie_status = bullet_paras.get(E_InitParasAttr.CanAttackZombieState, can_attack_zombie_status)
+	attack_context = bullet_paras.get(E_InitParasAttr.AttackContext) as PlantAttackContext
 	source_damage_multiplier = float(bullet_paras.get(E_InitParasAttr.DamageMultiplier, 1.0))
 	attack_value = maxi(0, roundi(float(attack_value) * source_damage_multiplier))
 	var splash: SpatterComponent = get_node_or_null("SpatterComponent") as SpatterComponent
@@ -113,10 +119,15 @@ func get_bullet_paras()->Dictionary[E_InitParasAttr,Variant]:
 		E_InitParasAttr.CanAttackPlantState : self.can_attack_plant_status,
 		E_InitParasAttr.CanAttackZombieState : self.can_attack_zombie_status,
 		E_InitParasAttr.DamageMultiplier : self.source_damage_multiplier,
+		E_InitParasAttr.AttackContext : self.attack_context,
 	}
 
 ## 子弹与敌人碰撞
 func _on_area_2d_attack_area_entered(area: Area2D) -> void:
+	# 梯子分支不调用 attack_once，因此碰撞入口也拒绝已经跨轮的来源。
+	if attack_context != null and not attack_context.is_active():
+		queue_free()
+		return
 	var ladder_entity: Ladder = area.owner as Ladder
 	if is_instance_valid(ladder_entity):
 		if bullet_camp == CharacterRegistry.CharacterType.Plant \
@@ -174,16 +185,28 @@ func _can_attack_character(enemy: Character000Base, check_lane: bool = true) -> 
 func _attack_enemy(enemy:Character000Base):
 	if enemy is ZB000Base or enemy is EnemyStructureBase:
 		# 僵王直接使用角色伤害入口，不转换成普通僵尸或套用其防具规则。
+		var was_alive: bool = not enemy.is_death # 只回报本次实际从存活变为死亡的僵王。
 		enemy.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx)
+		if was_alive and is_instance_valid(enemy) and enemy is ZB000Base and enemy.is_death:
+			last_impact_casualty = enemy
 	elif enemy is Zombie000Base:
 		_attack_zombie(enemy)
 	elif enemy is Plant000Base:
 		_attack_plant(enemy)
 
-## 对僵尸敌人造成伤害,直线类子弹重写
-func _attack_zombie(zombie:Zombie000Base):
-	## 攻击敌人
-	zombie.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx)
+## 对 [param zombie] 使用当前模式；直线子类仍可选择背击模式。
+func _attack_zombie(zombie: Zombie000Base):
+	_hit_zombie(zombie, bullet_mode)
+
+## 将 [param zombie] 与 [param mode] 交给既有生命路由，返回本次实际死亡者。
+## 防具倍率仅作为伤害参数传递，保留格挡、转伤、穿透和受击闪白。
+func _hit_zombie(zombie: Zombie000Base, mode: BulletRegistry.AttackMode) -> Zombie000Base:
+	var armor: float = attack_context.armor_multiplier if attack_context != null else 1.0 # 默认攻击完全沿用一倍防具消耗。
+	last_impact_casualty = (zombie.hp_component as HpComponentZombie).apply_hit(
+		attack_value, mode, true, trigger_be_attack_sfx, true, armor)
+	if is_instance_valid(zombie) and is_instance_valid(zombie.body):
+		zombie.body.body_light()
+	return last_impact_casualty as Zombie000Base
 
 
 ## 对 [param plant] 所在格的有效目标造成伤害；同帧被移除的目标不再调用受击接口。
@@ -207,6 +230,10 @@ func get_first_be_hit_plant_in_cell(plant:Plant000Base)->Plant000Base:
 func attack_once(enemy:Character000Base):
 	if is_queued_for_deletion():
 		return
+	# 有来源的旧弹跨轮后直接退出，不能以零伤害继续消耗命中或触发受击。
+	if attack_context != null and not attack_context.is_active():
+		queue_free()
+		return
 	if enemy != null and not promotion_hit_factors.is_empty():
 		if _promotion_hit_ids.has(enemy.get_instance_id()):
 			return
@@ -228,10 +255,15 @@ func attack_once(enemy:Character000Base):
 	if not promotion_hit_factors.is_empty():
 		var factor_index: int = mini(curr_attack_num - 1, promotion_hit_factors.size() - 1)
 		attack_value = maxi(0, roundi(float(original_damage) * promotion_hit_factors[factor_index]))
+	if attack_context != null and is_instance_valid(enemy):
+		attack_value = attack_context.modify_damage(attack_value, enemy)
 	last_impact_damage = attack_value
+	last_impact_casualty = null
 	## 对敌人造成伤害
 	_attack_enemy(enemy)
 	attack_value = original_damage
+	if attack_context != null:
+		attack_context.resolve_kill(last_impact_casualty) # 同步消费命中资格，最后一击已经切到结算也可奖励。
 	## 是否有音效
 	if type_bullet_SFX != SoundManagerClass.TypeBulletSFX.Null:
 		SoundManager.play_bullet_attack_SFX(type_bullet_SFX)

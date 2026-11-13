@@ -23,6 +23,10 @@ var _registry_sun_cost: int = -1
 var _registry_cooldown: float = 0.0
 ## Runtime field additions are separate from permanent star/promotion modifiers.
 var _sun_surcharge: int = 0
+## 持续减费按家族与来源实例独立保存；同家族取最大值，不写入永久资料。
+var _battle_discount_sources: Dictionary[StringName, Dictionary] = {}
+## 各减费家族最大值之和；成功用卡不消费，由实际来源退出时撤销。
+var _battle_discount_total: int = 0
 ## Battlefield-only, per-card temporary costs; never enter persistent card data.
 ## 本卡下次成功种植时消费的一次性费用减免。
 var _next_planting_discount: int = 0
@@ -118,12 +122,46 @@ func set_sun_surcharge(amount: int) -> void:
 	_sun_surcharge = maxi(0, amount)
 	_refresh_battle_sun_cost()
 
+## [param family] 为独立技能家族；[param source_id] 为正来源实例 ID；[param amount] 为减免阳光数。
+## 同家族只取最大来源，各家族相加；非正数撤销该来源，成功用卡不会消费此持续收益。
+func set_battle_discount_source(family: StringName, source_id: int, amount: int) -> void:
+	if family == &"" or source_id <= 0:
+		return
+	var sources: Dictionary = _battle_discount_sources.get(family, {}) # 当前家族的各个有效来源。
+	var next_amount: int = maxi(0, amount) # 用正数表示减免幅度，避免负数取最大值时丢失优惠。
+	if int(sources.get(source_id, 0)) == next_amount:
+		return
+	if next_amount > 0:
+		sources[source_id] = next_amount
+	else:
+		sources.erase(source_id)
+	if sources.is_empty():
+		_battle_discount_sources.erase(family)
+	else:
+		_battle_discount_sources[family] = sources
+	var total: int = 0 # 每个家族只贡献其中最大的减免值。
+	for family_sources: Dictionary in _battle_discount_sources.values(): # 不同技能的持续减费互不覆盖。
+		var highest: int = 0 # 当前技能家族的单份有效减免。
+		for source_amount: int in family_sources.values(): # 同 UID 多株只维护来源，不叠加本家族金额。
+			highest = maxi(highest, source_amount)
+		total += highest
+	if total == _battle_discount_total:
+		return
+	_battle_discount_total = total
+	_refresh_battle_sun_cost()
+	if is_node_ready() and is_instance_valid(Global.main_game) \
+			and is_instance_valid(Global.main_game.card_manager):
+		var slots: CardSlotBattle = Global.main_game.card_manager.card_slot_battle # 仅刷新当前槽中实际卡的可用性。
+		if is_instance_valid(slots) and slots.curr_cards.has(self):
+			judge_sun_enough(slots.sun_value)
+
+## 由永久配方、动态加价、一次优惠及持续减费合成当前价格，免费续种仍优先。
 func _refresh_battle_sun_cost() -> void:
-	var stats: Dictionary = _resolved_card_stats()
+	var stats: Dictionary = _resolved_card_stats() # 每次从注册基础值与冻结配方重新取永久费用。
 	if stats.is_empty():
 		return
 	sun_cost = 0 if _resonance_next_free else maxi(0,
-		int(stats.sun_cost) + _sun_surcharge - _next_planting_discount - 10 * _pea_synergy_count)
+		int(stats.sun_cost) + _sun_surcharge - _next_planting_discount - 10 * _pea_synergy_count - _battle_discount_total)
 
 ## [param count] 场上同物种存活株数；仅协同卡牌由战斗运行时调用，最多五株。
 ## 变动即时刷新价格；当前已经开始的冷却不追溯修改。

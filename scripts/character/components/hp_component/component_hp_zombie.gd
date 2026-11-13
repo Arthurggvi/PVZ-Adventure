@@ -20,34 +20,42 @@ func configure_fragile_armor1(hit_count: int) -> void:
 	armor1_fixed_damage_per_hit = 1
 var armor2_reduction := DamageReductionEffect.new()
 
-## Returns unmitigated overflow after a specific gear pool is consumed.
-## The gear absorbs raw attack capacity according to its own reduction.
-func _hit_armor2(raw: int) -> int:
+## [param raw] 是进入防具前的伤害容量，[param armor_multiplier] 仅放大防具损伤。
+## 返回未放大的剩余容量，防具减伤与破甲增伤不会污染向内层溢出的伤害。
+func _hit_armor2(raw: int, armor_multiplier: float = 1.0) -> int:
 	if raw <= 0 or curr_hp_armor2 <= 0:
 		return maxi(0, raw)
-	var before: int = curr_hp_armor2
-	var mitigated: int = raw if _bypass_damage_block else armor2_reduction.reduce_gear(raw)
+	var before: int = curr_hp_armor2 # 防具破坏前的实际生命池。
+	var factor: float = _equipment_hit_factor(armor_multiplier) # 强制卸甲保留原生的一倍容量。
+	var mitigated: int = raw if _bypass_damage_block else armor2_reduction.reduce_gear(roundi(float(raw) * factor)) # 仅本层消耗翻倍。
 	if mitigated < before:
 		curr_hp_armor2 = before - mitigated
 		return 0
 	curr_hp_armor2 = 0
-	var retained: float = 1.0 if _bypass_damage_block else 1.0 - armor2_reduction.raw_reduction()
+	var retained: float = 1.0 if _bypass_damage_block else (1.0 - armor2_reduction.raw_reduction()) * factor # 每点原始容量能消耗的防具生命。
 	return 0 if retained <= 0.0 else maxi(0, raw - ceili(float(before) / retained))
 
-func _hit_armor1(raw: int) -> int:
+## [param raw] 与 [param armor_multiplier] 沿用二类防具的容量单位；气球固定命中次数不变。
+func _hit_armor1(raw: int, armor_multiplier: float = 1.0) -> int:
 	if raw <= 0 or curr_hp_armor1 <= 0:
 		return maxi(0, raw)
 	if armor1_fixed_damage_per_hit > 0 and not _bypass_damage_block:
 		curr_hp_armor1 = maxi(0, curr_hp_armor1 - armor1_fixed_damage_per_hit)
 		return 0 # The balloon absorbs the entire projectile even when it pops.
-	var before: int = curr_hp_armor1
-	var mitigated: int = raw if _bypass_damage_block else armor1_reduction.reduce_gear(raw)
+	var before: int = curr_hp_armor1 # 一类防具破坏前的实际生命。
+	var factor: float = _equipment_hit_factor(armor_multiplier) # 仅数值防具接受额外消耗倍率。
+	var mitigated: int = raw if _bypass_damage_block else armor1_reduction.reduce_gear(roundi(float(raw) * factor)) # 本体不接收该倍率。
 	if mitigated < before:
 		curr_hp_armor1 = before - mitigated
 		return 0
 	curr_hp_armor1 = 0
-	var retained: float = 1.0 if _bypass_damage_block else 1.0 - armor1_reduction.raw_reduction()
+	var retained: float = 1.0 if _bypass_damage_block else (1.0 - armor1_reduction.raw_reduction()) * factor # 溢出仍以原始伤害容量计算。
 	return 0 if retained <= 0.0 else maxi(0, raw - ceili(float(before) / retained))
+
+## [param multiplier] 是战斗攻击携带的防具增伤；脚本强制操作与非法数值均回退一倍。
+func _equipment_hit_factor(multiplier: float) -> float:
+	return 1.0 if _bypass_damage_block or not is_finite(multiplier) else maxf(1.0, multiplier)
+
 var _handling_transferred_hit := false
 var _resolving_hit := false
 var _armor_granted_in_hit := 0
@@ -73,12 +81,13 @@ func _absorb_bonus_armor(amount: int) -> int:
 	return maxi(0, amount - absorbed)
 
 ## 保护者对 [param amount] 点转移伤害独立结算减伤与护甲。[param mode] 为伤害类型。
-## [param drop]、[param sfx] 和 [param extra_drop] 沿用原伤害的表现开关。返回本次实际击杀的僵尸。
+## [param drop]、[param sfx] 和 [param extra_drop] 保留原伤害的表现开关。
+## [param armor_multiplier] 同原始攻击传给保护者；返回本次实际击杀的僵尸。
 func accept_transferred_hit(amount: int, mode: BulletRegistry.AttackMode,
-		drop: bool, sfx: bool, extra_drop: bool) -> Zombie000Base:
+		drop: bool, sfx: bool, extra_drop: bool, armor_multiplier: float = 1.0) -> Zombie000Base:
 	var previous: bool = _handling_transferred_hit # 内层伤害不能提前解除外层保护者的转移锁。
 	_handling_transferred_hit = true
-	var casualty: Zombie000Base = apply_hit(amount, mode, drop, sfx, extra_drop) # 当前转移实际产生的击杀。
+	var casualty: Zombie000Base = apply_hit(amount, mode, drop, sfx, extra_drop, armor_multiplier) # 当前转移实际产生的击杀。
 	_handling_transferred_hit = previous
 	return casualty
 
@@ -185,9 +194,11 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 
 ## 结算 [param attack_value] 点伤害和 [param bullet_mode] 分流。
 ## [param is_drop_on_death]、[param trigger_be_attack_SFX] 和 [param is_drop_2] 沿用普通命中表现。
-## 返回本次从存活变为死亡的实际受击者，转移伤害时可返回保护者。
+## [param armor_multiplier] 仅放大装备防具损伤，默认一倍；临时生命池与本体沿用原伤害。
+## 返回本次从存活变死亡的实际受击者；转移伤害时可返回保护者。
 func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
-		is_drop_on_death: bool, trigger_be_attack_SFX: bool, is_drop_2: bool = true) -> Zombie000Base:
+		is_drop_on_death: bool, trigger_be_attack_SFX: bool, is_drop_2: bool = true,
+		armor_multiplier: float = 1.0) -> Zombie000Base:
 	# A protector receives the raw hit and re-runs its own block -> DR -> armor.
 	# Scripted forced loss and nested transfers never redirect.
 	if not _bypass_damage_block and not _handling_transferred_hit and not is_damage_immune() \
@@ -196,7 +207,7 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 		if protector != null:
 			var protector_hp: HpComponentZombie = protector.hp_component as HpComponentZombie
 			return protector_hp.accept_transferred_hit(attack_value, bullet_mode,
-					is_drop_on_death, trigger_be_attack_SFX, is_drop_2)
+					is_drop_on_death, trigger_be_attack_SFX, is_drop_2, armor_multiplier)
 	# 只有本次受击产生的状态变化算击杀，已死亡的角色不重复回报。
 	var was_alive: bool = not is_death
 	# Ordinary hits are mitigated once before any health-pool routing.
@@ -218,7 +229,7 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 			resolved = maxi(1, resolved)
 		attack_value = _absorb_bonus_armor(resolved)
 	## 掉血标志, 1:本体 2:一类防具 4:二类防具
-	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value)
+	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value, armor_multiplier)
 
 	var res_hp = get_all_hp()
 	# A gear-loss trigger can award armor in this impact. The received-hit

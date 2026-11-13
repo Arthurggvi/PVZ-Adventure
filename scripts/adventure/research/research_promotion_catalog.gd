@@ -12,13 +12,15 @@ const ExistingBooks = preload("res://scripts/adventure/research/research_existin
 const PuffBooks = preload("res://scripts/adventure/research/research_puff_promotion_books.gd")
 ## 阳光菇的定义模块，沿用相同的转职校验与物品展示入口。
 const SunShroomBooks = preload("res://scripts/adventure/research/research_sunshroom_promotion_books.gd")
+## 胆小菇的定义模块，共享与原生词条均从相同冻结选择解析。
+const ScaredyBooks = preload("res://scripts/adventure/research/research_scaredy_promotion_books.gd")
 ## 全书目只在类初始化时汇总一次；消费者仍使用原有BOOKS入口。
 static var BOOKS: Dictionary = _build_books()
 
 ## 返回全部合法书目的深副本；重复ID报错，不覆盖已有定义。
 static func _build_books() -> Dictionary:
 	var books: Dictionary = ExistingBooks.BOOKS.duplicate(true) # 汇总结果不共享定义模块内部字典。
-	for module: Dictionary in [PuffBooks.BOOKS, SunShroomBooks.BOOKS]: # 新物种沿用统一的重复ID检查。
+	for module: Dictionary in [PuffBooks.BOOKS, SunShroomBooks.BOOKS, ScaredyBooks.BOOKS]: # 新物种沿用统一的重复ID检查。
 		for id: String in module: # 稳定技能书ID也是存档中的选择值。
 			if books.has(id):
 				push_error("重复的转职书ID：%s" % id)

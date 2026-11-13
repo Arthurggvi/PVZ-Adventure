@@ -464,10 +464,11 @@ func be_grap_in_pool():
 
 ## 承受 [param attack_value] 点爆炸伤害，返回本次实际击杀的僵尸。
 ## [param is_cherry_bomb] 为 true 时，普通致死爆炸使用原版灰烬演出。
-func be_bomb(attack_value: int, is_cherry_bomb: bool = false) -> Zombie000Base:
+## [param armor_multiplier] 只传递装备防具倍率，不改变灰烬、穿透与转伤行为。
+func be_bomb(attack_value: int, is_cherry_bomb: bool = false, armor_multiplier: float = 1.0) -> Zombie000Base:
 	is_can_death_language = false
 	var casualty: Zombie000Base = (hp_component as HpComponentZombie).apply_hit(
-		attack_value, BulletRegistry.AttackMode.Penetration, false, false) # 可能是承受转移伤害的保护者。
+		attack_value, BulletRegistry.AttackMode.Penetration, false, false, true, armor_multiplier) # 可能是承受转移伤害的保护者。
 	if is_death and not _preserves_blast_death_animation():
 		## 在在灰烬动画条件下
 		if is_cherry_bomb and (not is_swimming or not curr_be_attack_status != E_BeAttackStatusZombie.IsDownGround):
