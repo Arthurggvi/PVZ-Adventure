@@ -18,7 +18,7 @@ enum E_CardBg {
 
 ## 背景样式的共享纹理，不存入卡牌身份数据。
 const CARD_BG_MAP: Dictionary[E_CardBg, Resource] = {
-	E_CardBg.CB01Norm: preload("res://resources/card_bg/01Norm.tres"),
+	E_CardBg.CB01Norm: preload("res://assets/image/ui/ui_card/SeedPacket_Larger.png"),
 	E_CardBg.CB02Purple: preload("res://resources/card_bg/02Purple.tres"),
 	E_CardBg.CB03Gray: preload("res://resources/card_bg/03Gray.tres"),
 }

@@ -1,2 +1,31 @@
-# Normalize EOL for all files that Git considers text files.
 * text=auto eol=lf
+
+# Godot 的场景、资源和导入元数据保留可读差异。
+*.gd text eol=lf
+*.gdshader text eol=lf
+*.gdshaderinc text eol=lf
+*.godot text eol=lf
+*.tscn text eol=lf
+*.tres text eol=lf
+*.uid text eol=lf
+*.import text eol=lf
+
+# 原生二进制资源与媒体按字节保存。
+*.res binary
+*.scn binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.ttc binary
+*.TTC binary
+*.wav binary
+*.mp3 binary
+*.ogg binary
+*.exe binary
+*.zip binary
+*.pck binary

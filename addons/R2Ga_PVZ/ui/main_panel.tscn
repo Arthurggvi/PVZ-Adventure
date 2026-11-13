@@ -84,14 +84,7 @@ custom_minimum_size = Vector2(520, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 6.0
-tooltip_text = "E:/000GodotPVZ/R2Ga/r-2-ga-pvz/assets/all_reanim/Cabbagepult.reanim"
 clip_text = true
-selected = 0
-item_count = 2
-popup/item_0/text = "E:/000GodotPVZ/R2Ga/r-2-ga-pvz/assets/all_reanim/Cabbagepult.reanim"
-popup/item_0/id = 0
-popup/item_1/text = "E:/000GodotPVZ/R2Ga/r-2-ga-pvz/assets/all_reanim/Blover.reanim"
-popup/item_1/id = 1
 
 [node name="file_select_button" type="Button" parent="HBoxContainer/PluginIntroductionPanel2/ScrollContainer2/MarginContainer/VBoxContainer2/FirstParaPanelContainer/VBoxContainer/PanelContainer/VBoxContainer/file_path_box" unique_id=408958911]
 unique_name_in_owner = true

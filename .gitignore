@@ -1,42 +1,38 @@
-# Godot 4+ specific ignores
-.godot/
+# Godot 4 的本机缓存与生成数据。源文件旁的 .import 和 .uid 随源文件提交。
+/.godot/
 /android/
-.vscode
-assets
+*.translation
+export_credentials.cfg
 
-# 角色系统自有素材随代码交付；其他未跟踪资源继续忽略。
-!assets/
-assets/*
-!assets/adventure/
-assets/adventure/*
-!assets/adventure/ui/
-assets/adventure/ui/*
-!assets/adventure/ui/player/
+# 本地发行产物、调试输出和编辑器配置。
+/.release/
+/_review/
+/.vscode/
+__pycache__/
+*.pyc
+Thumbs.db
+.DS_Store
 
-# 本批新增设置图标；仅放行该文件，不重新跟踪整个工具栏资源目录。
-!assets/adventure/ui/bottom_bar/
-assets/adventure/ui/bottom_bar/*
-!assets/adventure/ui/bottom_bar/icons/
-assets/adventure/ui/bottom_bar/icons/*
-!assets/adventure/ui/bottom_bar/icons/icon_settings.png
+# 来自本地素材库的原版文件。已跟踪的覆绘素材保留在仓库。
+/assets/all_reanim/
+/assets/audio/
+/assets/fonts/
+/assets/image/
+/assets/reanim/
 
-# All-Star original PAM-derived sprite assets are game resources.
-# Keep generated .import metadata and unused reference archives out of Git.
-!assets/adventure/zombies/
-assets/adventure/zombies/*
-!assets/adventure/zombies/all_star/
-assets/adventure/zombies/all_star/*
-!assets/adventure/zombies/all_star/original/
-assets/adventure/zombies/all_star/original/*
-!assets/adventure/zombies/all_star/original/black/
-assets/adventure/zombies/all_star/original/black/*
-!assets/adventure/zombies/all_star/original/black/*.png
-!assets/adventure/zombies/all_star/original/original_source_manifest.json
-!assets/adventure/zombies/all_star/original/all_star_sound_177168068.wav
-!assets/adventure/zombies/all_star/original/entrance_referee_whistle_cc0.ogg
+# 第四关从本地素材包取用的曲目及其导入设置。
+/resources/adventure/audio/mus_floating_island_night_pre.mp3
+/resources/adventure/audio/mus_floating_island_night_pre.mp3.import
+/resources/adventure/audio/mus_floating_island_night_elite.mp3
+/resources/adventure/audio/mus_floating_island_night_elite.mp3.import
+/resources/adventure/audio/mus_delicious_island_night_boss.mp3
+/resources/adventure/audio/mus_delicious_island_night_boss.mp3.import
 
-# 探险家使用原版图集、火把燃烧音频和派生的显示贴图。
-!assets/adventure/zombies/explorer/
-assets/adventure/zombies/explorer/*
-!assets/adventure/zombies/explorer/*.png
-!assets/adventure/zombies/explorer/*.wav
+# 私有配置及导出签名材料。
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+*.pfx
+*.p12
