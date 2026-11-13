@@ -123,6 +123,7 @@ func _add_test_encounters() -> void:
 	var boss_phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(
 		AdventureStageCatalog.load_stage(2), StagePhaseDefinition.Kind.NIGHTMARE) # 地区模板提供 Boss 召唤参数。
 	var boss: BossEncounterDefinition = boss_phase.boss_encounters[0] # 将测试 Boss 配置在本局末波。
+	boss.timing = BossEncounterDefinition.Timing.WAVE_STARTED
 	boss.wave = phase.wave_profile.wave_count
 	phase.boss_encounters.append(boss)
 	var horde := StageEventDefinition.new() # 在第二波模拟原突袭事件。

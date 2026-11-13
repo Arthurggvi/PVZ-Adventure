@@ -2,48 +2,28 @@ extends Node
 
 const BUCKET: PackedScene = preload("res://scenes/character/zombie/zombie_005_bucket.tscn")
 const CONE: PackedScene = preload("res://scenes/character/zombie/zombie_003_cone.tscn")
+## 通过原生场景装配战斗环境。
+const BattleFixture = preload("res://tests/adventure/zombie_tier_battle_fixture.gd")
 var _failed := false
 
 func _ready() -> void:
     call_deferred("_run")
 
-func _spawn(scene: PackedScene, lane: int, x: float) -> Zombie000Base:
+## 将 [param scene] 实体放入 [param battle] 的测试攻击行 [param lane] 与横坐标 [param x]。
+func _spawn(scene: PackedScene, battle: MainGameManager, lane: int, x: float) -> Zombie000Base:
     var zombie: Zombie000Base = scene.instantiate() as Zombie000Base
     zombie.character_init_type = Character000Base.E_CharacterInitType.IsShow
     zombie.lane = lane
     zombie.position = Vector2(x, lane * 80.0)
-    add_child(zombie)
+    battle.add_child(zombie)
     return zombie
 
 func _run() -> void:
-    var game := MainGameManager.new()
-    var cells := PlantCellManager.new()
-    var grid: Array[Array] = []
-    for lane in range(5):
-        var cell := PlantCell.new()
-        cell.size = Vector2(80, 80)
-        grid.append([cell])
-    game.board = BoardRuntime.new() # 既有场地夹具改用当前空间注册协议。
-    var lanes: Array[BoardLaneDefinition] = [] # 原案例的五个逻辑行。
-    for index: int in range(grid.size()): # 保留原测试输入。
-        var lane := BoardLaneDefinition.new() # 离树攻击行声明。
-        lane.lane_id = StringName("lane_%d" % index)
-        lanes.append(lane)
-    game.board.configure_lanes(lanes)
-    game.board.terrains[&"grass"] = BoardTerrainDefinition.legacy(0)
-    for index: int in range(grid.size()): # 注册原有 PlantCell，不增加测试案例。
-        var data := BoardCellDefinition.new() # 地块身份与原逻辑行对应。
-        data.cell_id = StringName("cell_%d" % index)
-        data.address = Vector2i(index, 0)
-        game.board.register_cell(grid[index][0], data)
-    game.board.finish_configuration()
-    cells.main_game = game
-    game.plant_cell_manager = cells
-    var manager := ZombieManager.new()
-    manager.main_game = game
-    var source := _spawn(BUCKET, 2, 400)
-    var nearby := _spawn(CONE, 3, 450)
-    var far := _spawn(CONE, 4, 450)
+    var game: MainGameManager = BattleFixture.mount(self) # 使用已注册地块的真实草坪。
+    var manager: ZombieManager = game.zombie_manager # 来源需与当前战场管理器一致。
+    var source := _spawn(BUCKET, game, 2, 400)
+    var nearby := _spawn(CONE, game, 3, 450)
+    var far := _spawn(CONE, game, 4, 450)
     await get_tree().process_frame
     manager.all_zombies_1d.append(source)
     manager.all_zombies_1d.append(nearby)
@@ -87,12 +67,6 @@ func _run() -> void:
         "bucket aura cleans self source")
     _expect(is_zero_approx(nh.damage_reduction.effective_reduction()),
         "bucket aura cleans neighbor source")
-    for row: Array in grid:
-        for cell: PlantCell in row:
-            cell.free()
-    cells.free()
-    game.free()
-    manager.free()
     if not _failed:
         print("ZOMBIE_TIER_BUCKET_FIELD_PASS")
     get_tree().quit(1 if _failed else 0)

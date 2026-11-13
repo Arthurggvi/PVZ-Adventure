@@ -137,6 +137,7 @@ func _run() -> void:
 	var cleared_bytes := FileAccess.get_file_as_bytes(path) # 胜利文件不可因入口重写。
 	get_tree().current_scene._return_menu()
 	await _frames()
+	await _postpone_quest_notice()
 	await _enter_island_from_menu()
 	await _frames()
 	assert(FileAccess.get_file_as_bytes(path) == cleared_bytes)
@@ -278,9 +279,11 @@ func _harbor_entry() -> Control:
 func _postpone_quest_notice() -> void:
 	var guide: CanvasLayer = AdventureToolbar._onboarding # 持有当前档案的教学界面。
 	var prompt: Control = guide._spotlight # 港口入口前方的教学遮罩。
-	if prompt.is_visible_in_tree():
-		prompt._later.pressed.emit()
-	await get_tree().process_frame
+	for index: int in range(3): # 档案和宿主变化在下一帧刷新教学。
+		await get_tree().process_frame
+		if prompt.is_visible_in_tree():
+			prompt._later.pressed.emit()
+			return
 
 ## 从档案选择器选中玩家并确认，沿用保存、身份切换与全局加载链路。
 ## [param username] 必须是测试创建的已有玩家。
@@ -297,8 +300,9 @@ func _select_user(username: String) -> void:
 ## 在 [param cell] 的中心通过真实 GUI 路由发送一次点击。
 func _click_battle_cell(cell: PlantCell) -> void:
 	var motion := InputEventMouseMotion.new() # 同步视口鼠标位置，以便棋盘拾取和格子按钮使用同一点。
-	motion.position = cell.get_global_rect().get_center()
+	motion.position = cell.get_global_transform_with_canvas() * (cell.size * 0.5)
 	motion.global_position = motion.position
+	get_viewport().warp_mouse(motion.position)
 	get_viewport().push_input(motion, true)
 	await get_tree().process_frame
 	var press := InputEventMouseButton.new() # 模拟正常按下及释放，让格子触发其原有信号。

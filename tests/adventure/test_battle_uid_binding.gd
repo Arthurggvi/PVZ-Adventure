@@ -82,9 +82,11 @@ func _run() -> void:
 		await _click_battle_cell(cell)
 		await _frames()
 		var plant: Plant000Base = cell.plant_in_cell[CharacterRegistry.PlacePlantInCell.Norm]
-		assert(plant != null and plant.battle_card_data["uid"] == selected[index])
-		assert(plant.battle_card_data["stars"] == index + 1)
+		assert(plant != null and plant.plant_spawn_profile != null)
+		var snapshot: Dictionary = plant.plant_spawn_profile.snapshot() # 实际植株的冻结卡牌配方。
+		assert(snapshot["uid"] == selected[index])
+		assert(snapshot["stars"] == index + 1)
 		card.battle_card_data["stars"] = 99
-		assert(plant.battle_card_data["stars"] == index + 1)
+		assert(plant.plant_spawn_profile.snapshot()["stars"] == index + 1)
 	print("PASS: duplicate-species UID / card slot / plant / frozen snapshots")
 	get_tree().quit(0)

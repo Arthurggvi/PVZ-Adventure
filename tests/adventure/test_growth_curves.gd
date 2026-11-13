@@ -3,9 +3,16 @@ extends Node
 
 const Tiers = preload("res://scripts/adventure/adventure_zombie_tier_catalog.gd")
 const Growth = preload("res://scripts/adventure/adventure_plant_growth_catalog.gd")
+## 断言失败时退出的计时器；正常完成后显式停止。
+var _watchdog: Timer
 
 func _ready() -> void:
-	get_tree().create_timer(6.0, true, false, true).timeout.connect(func(): get_tree().quit(1))
+	_watchdog = Timer.new()
+	_watchdog.one_shot = true
+	_watchdog.ignore_time_scale = true
+	_watchdog.timeout.connect(func(): get_tree().quit(1))
+	add_child(_watchdog)
+	_watchdog.start(6.0)
 	_run.call_deferred()
 
 func _run() -> void:
@@ -39,4 +46,5 @@ func _run() -> void:
 		24.0 / 1.15))
 	assert(Growth.modifiers(11).is_empty())
 	print("GROWTH_CURVES_PASS 5 tiers, HP/armor/bite and stars 0/1/3/6/10")
+	_watchdog.stop()
 	get_tree().quit(0)

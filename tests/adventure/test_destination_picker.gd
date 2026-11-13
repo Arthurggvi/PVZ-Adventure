@@ -133,6 +133,7 @@ func _run() -> void:
 	assert(get_tree().current_scene.canvas.has_node("Intro"))
 	get_tree().current_scene.canvas.get_node("Intro")._finish()
 	assert(AdventureSession.progress.record_victory()) # 仅在测试中模拟已通关状态。
+	Global.refresh_quests() # 和正式胜利一样先同步任务，避免把进地图时的修复写盘误当覆档。
 	assert(Global.save_service.save_now())
 	var saved := FileAccess.get_file_as_bytes(native_path) # 已赠卡、已解锁的字节基线。
 	get_tree().current_scene._return_menu()

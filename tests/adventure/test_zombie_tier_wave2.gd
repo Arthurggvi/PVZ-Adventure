@@ -1,5 +1,6 @@
 extends Node
 
+const BattleFixture = preload("res://tests/adventure/zombie_tier_battle_fixture.gd") ## 真实战场管理器的测试入口。
 const PAPER := preload("res://scenes/character/zombie/zombie_006_paper.tscn")
 const DOOR := preload("res://scenes/character/zombie/zombie_007_screendoor.tscn")
 const FOOTBALL := preload("res://scenes/character/zombie/zombie_008_football.tscn")
@@ -12,6 +13,8 @@ const JACKBOX := preload("res://scenes/character/zombie/zombie_016_jackbox.tscn"
 
 
 var failed := false
+## 测试实体归属的真实战场。
+var _battle: MainGameManager
 
 func _ready() -> void:
     call_deferred("_run")
@@ -20,10 +23,11 @@ func spawn(scene: PackedScene, tier: StringName) -> Zombie000Base:
     var zombie: Zombie000Base = scene.instantiate() as Zombie000Base
     zombie.character_init_type = Character000Base.E_CharacterInitType.IsShow
     check(AdventureZombieTierBinding.new(tier).apply(zombie), "tier binding")
-    add_child(zombie)
+    _battle.add_child(zombie)
     return zombie
 
 func _run() -> void:
+    _battle = BattleFixture.mount(self)
     var paper: Zombie000Base = spawn(PAPER, &"tier5")
     var door: Zombie000Base = spawn(DOOR, &"tier5")
     var football: Zombie000Base = spawn(FOOTBALL, &"tier4")
@@ -58,13 +62,16 @@ func _run() -> void:
         "paper loss immunity applies inside the same armor-breaking hit")
 
     var bucket4: Zombie000Base = spawn(BUCKET, &"tier4")
+    bucket4.lane = 2 # 授甲需要来源位于一个可查询的棋盘攻击行。
     await get_tree().process_frame
     await get_tree().process_frame
     var bucket_hp: HpComponentZombie = bucket4.hp_component as HpComponentZombie
     bucket_hp.curr_hp_armor1 = 10
     var bucket_body_before: int = bucket_hp.curr_hp
+    var overflow: int = bucket_hp.resolve_damage(150) - bucket_hp.curr_hp_armor1 # 先扣生效的减伤及铁桶。
     bucket_hp.Hp_loss(150, BulletRegistry.AttackMode.Norm, true, false)
-    check(bucket_hp.bonus_armor == 60 and bucket_hp.curr_hp == bucket_body_before,
+    check(overflow > 0 and bucket_hp.bonus_armor == 200 - overflow
+        and bucket_hp.curr_hp == bucket_body_before,
         "bucket armor-loss grant immediately absorbs same-hit overflow")
 
     var door_hp: HpComponentZombie = door.hp_component as HpComponentZombie
@@ -148,7 +155,7 @@ func _run() -> void:
 
     var plant: Plant000Base = PLANT.instantiate() as Plant000Base
     plant.character_init_type = Character000Base.E_CharacterInitType.IsShow
-    add_child(plant)
+    _battle.add_child(plant)
     var plant_area := Area2D.new()
     plant.add_child(plant_area)
     plant_area.owner = plant
@@ -178,6 +185,9 @@ func _run() -> void:
         "native Jackbox uses independently extracted shared explosion FX")
     native_jackbox.free()
     check(paper_hp.is_damage_immune(), "paper-loss invulnerability takes effect immediately")
+    _battle.queue_free()
+    await get_tree().process_frame
+    await get_tree().process_frame
     if not failed:
         print("ZOMBIE_TIER_WAVE2_PASS")
     get_tree().quit(1 if failed else 0)

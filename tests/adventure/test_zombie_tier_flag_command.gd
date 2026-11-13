@@ -2,21 +2,27 @@ extends Node
 
 const FLAG: PackedScene = preload("res://scenes/character/zombie/zombie_002_flag.tscn")
 const BUCKET: PackedScene = preload("res://scenes/character/zombie/zombie_005_bucket.tscn")
+## 通过原生场景装配战斗环境。
+const BattleFixture = preload("res://tests/adventure/zombie_tier_battle_fixture.gd")
 var _failed := false
 
 func _ready() -> void:
     call_deferred("_run")
 
-func _spawn(scene: PackedScene) -> Zombie000Base:
+## 实例化 [param scene] 作为 [param battle] 的测试实体。只给 [param tier] 非空的实体装配正式等阶。
+func _spawn(scene: PackedScene, battle: MainGameManager, tier: StringName = &"") -> Zombie000Base:
     var zombie: Zombie000Base = scene.instantiate() as Zombie000Base
     zombie.character_init_type = Character000Base.E_CharacterInitType.IsShow
-    add_child(zombie)
+    if not tier.is_empty():
+        _expect(AdventureZombieTierBinding.new(tier).apply(zombie), "tier binding")
+    battle.add_child(zombie)
     return zombie
 
 func _run() -> void:
-    var f1 := _spawn(FLAG)
-    var f2 := _spawn(FLAG)
-    var receiver := _spawn(BUCKET)
+    var battle: MainGameManager = BattleFixture.mount(self) # 号令及接收者归属同一真实战场。
+    var f1 := _spawn(FLAG, battle)
+    var f2 := _spawn(FLAG, battle)
+    var receiver := _spawn(BUCKET, battle)
     await get_tree().process_frame
     var manager := ZombieManager.new()
     manager.all_zombies_1d.append(f1)
@@ -43,11 +49,17 @@ func _run() -> void:
     normal.clear()
     _expect(hp.damage_block.value == 0, "all sources removed")
 
-    var c5 := AdventureZombieFlagCommand.new()
-    add_child(c5)
-    var tier5 := AdventureZombieTierTraits.for_spawn(
-            CharacterRegistry.ZombieType.Z002Flag, &"tier5")[0]
-    c5.setup(f1, manager, tier5)
+    # 出生号令使用正式等阶绑定，与永久光环共用同一个入场资格。
+    var battle_manager: ZombieManager = battle.zombie_manager # 生产派发器读取的管理器。
+    battle_manager.all_zombies_1d.append(receiver)
+    var fifth := _spawn(FLAG, battle, &"tier5") # 出生时由正式派发器创建号令。
+    await get_tree().process_frame
+    var c5: AdventureZombieFlagCommand # 找到真实创建的第五阶号令节点。
+    for ability: Node in fifth.get_node("AdventureTierBehavior").get_children():
+        if ability is AdventureZombieFlagCommand:
+            c5 = ability
+            break
+    assert(c5 != null)
     _expect(hp.damage_block.value == 15, "tier5 additive 15 block")
     _expect(hp.is_damage_immune(), "tier5 global entry immunity")
     var speed: float = float(receiver.influence_speed_factors.get(

@@ -37,5 +37,9 @@ func _run() -> void:
 	assert(waves.curr_wave_type == ZombieWaveManager.E_WaveType.Norm)
 	assert(not waves.is_advancement_suspended)
 	assert(battle.adventure_runtime == null)
+	assert(get_tree().change_scene_to_file("res://scenes/main/01StartMenuCoastal.tscn") == OK)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert(Global.main_game == null)
 	print("PASS: legacy actual main game, original wave path, no adventure runtime or phase")
 	get_tree().quit(0)
