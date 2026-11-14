@@ -63,12 +63,16 @@ func unregister_feature(feature_id: String) -> void:
 	_refresh()
 
 ## [param feature_id] 绑定唯一模态；[param screen] 遵守closed/request_close契约。
-func _toggle_modal(feature_id: String, screen: Script) -> void:
+func _toggle_modal(feature_id: String, screen_path: String) -> void:
 	if not feature_status(feature_id).allowed:
 		return
 	if is_instance_valid(_modal):
 		if _modal_feature == feature_id:
 			_modal.request_close()
+		return
+	var screen: Script = load(screen_path) as Script # Only materialize a modal when it is opened.
+	if screen == null:
+		push_error("Toolbar: modal resource is unavailable: " + screen_path)
 		return
 	var window: Control = screen.new() # 唯一窗口实例，不复制另一套生命周期。
 	_modal = window

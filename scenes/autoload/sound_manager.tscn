@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://batejflfm7jxj"]
 
 [ext_resource type="Script" uid="uid://b2p2bkr2jdfep" path="res://scripts/autoload/sound_manager.gd" id="1_yi7ou"]
-[ext_resource type="AudioStream" path="res://assets/audio/SFX/zombie/black_general_phase_transition_roar.ogg" id="2_boss_roar"]
 
 [node name="SoundManager" type="Node" unique_id=1854376969]
 script = ExtResource("1_yi7ou")
@@ -21,5 +20,4 @@ bus = &"SFX"
 bus = &"SFX"
 
 [node name="BossPhaseRoar" type="AudioStreamPlayer" parent="SFXAll"]
-stream = ExtResource("2_boss_roar")
 bus = &"SFX"

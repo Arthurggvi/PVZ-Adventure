@@ -1,60 +1,139 @@
+## SceneRegistry 原有属性接口的唯一延迟加载目录；本层只持有路径和缓存。
+## 所有资源通过公共属性按需获得，不复制战场或花园节点。
 extends Node
-## 散落的加载场景
 
+## 固定身份到资源路径的只读映射，查询元数据不加载场景。
+const PATHS := {
+	&"PLANT_CELL_GARDEN": "res://scenes/garden/plant_cell_garden.tscn",
+	&"GARDEN_SPEECH_BUBBLE": "res://scenes/garden/garden_speech_bubble.tscn",
+	&"GARDEN_FLOWER_POT": "res://scenes/garden/garden_flower_pot.tscn",
+	&"CRAZY_DAVE": "res://scenes/crazy_dave/crazy_dave.tscn",
+	&"REMINDER_INFORMATION": "res://scenes/ui/reminder_information.tscn",
+	&"COIN_DIAMOND": "res://scenes/item/game_scenes_item/drop/coin_diamond.tscn",
+	&"COIN_GOLD": "res://scenes/item/game_scenes_item/drop/coin_gold.tscn",
+	&"COIN_SILVER": "res://scenes/item/game_scenes_item/drop/coin_silver.tscn",
+	&"PRESENT": "res://scenes/item/game_scenes_item/drop/present.tscn",
+	&"CARD_CANDIDATE_CONTAINER": "res://scenes/ui/all_cards/card_candidate_container.tscn",
+	&"PLANT_START_EFFECT": "res://scenes/item/game_scenes_item/plant_effect/plant_start_effect.tscn",
+	&"PLANT_START_EFFECT_WATER": "res://scenes/item/game_scenes_item/plant_effect/plant_start_effect_water.tscn",
+	&"DOOM_SHROOM_CRATER": "res://scenes/fx/doom_shroom_crater.tscn",
+	&"TOMBSTONE": "res://scenes/item/game_scenes_item/tombstone.tscn",
+	&"JACKSON_MANAGER": "res://scenes/character/components/jackson_manager.tscn",
+	&"TROPHY": "res://scenes/item/game_scenes_item/trophy.tscn",
+	&"ICE_EFFECT": "res://scenes/fx/ice_effect.tscn",
+	&"SPLASH": "res://scenes/item/game_scenes_item/splash.tscn",
+	&"FIRE": "res://scenes/fx/fire.tscn",
+	&"BUTTER_SPLAT": "res://scenes/fx/butter_splat.tscn",
+	&"SUN": "res://scenes/item/game_scenes_item/sun.tscn",
+	&"DIRT_RISE_EFFECT": "res://scenes/character/item/dirt_rise_effect.tscn",
+	&"LADDER": "res://scenes/item/game_scenes_item/ladder.tscn",
+}
+## 已解析的 PackedScene 资源统一缓存，避免反复磁盘访问。
+var _cache: Dictionary[StringName, PackedScene] = {}
 
-## 花园植物格子
-var PLANT_CELL_GARDEN:PackedScene= load("res://scenes/garden/plant_cell_garden.tscn")
-## 花园需求气泡
-var GARDEN_SPEECH_BUBBLE = load("res://scenes/garden/garden_speech_bubble.tscn")
-## 花园花盆
-const GARDEN_FLOWER_POT = preload("res://scenes/garden/garden_flower_pot.tscn")
+## [param key] 为历史资源名称；首次访问时加载，缺失则返回 null。
+func _scene(key: StringName) -> PackedScene:
+	if _cache.has(key):
+		return _cache[key]
+	var path: String = PATHS.get(key, "")
+	if path.is_empty():
+		push_error("SceneRegistry: unregistered scene: " + str(key))
+		return null
+	var resource: PackedScene = load(path) as PackedScene
+	if resource == null:
+		push_error("SceneRegistry: resource not found: " + path)
+		return null
+	_cache[key] = resource
+	return resource
 
+## 花园植物格子：保留原属性名称，首次使用时解析对应资源。
+var PLANT_CELL_GARDEN: PackedScene:
+	get: return _scene(&"PLANT_CELL_GARDEN")
 
-## 戴夫
-var CRAZY_DAVE:PackedScene = load("res://scenes/crazy_dave/crazy_dave.tscn")
+## 花园需求气泡：保留原属性名称，首次使用时解析对应资源。
+var GARDEN_SPEECH_BUBBLE: PackedScene:
+	get: return _scene(&"GARDEN_SPEECH_BUBBLE")
 
-## 提示信息
-const REMINDER_INFORMATION:PackedScene = preload("res://scenes/ui/reminder_information.tscn")
+## 花园花盆：保留原属性名称，首次使用时解析对应资源。
+var GARDEN_FLOWER_POT: PackedScene:
+	get: return _scene(&"GARDEN_FLOWER_POT")
 
-## 钻石、金币、银币、
-const COIN_DIAMOND:PackedScene = preload("res://scenes/item/game_scenes_item/drop/coin_diamond.tscn")
-const COIN_GOLD:PackedScene = preload("res://scenes/item/game_scenes_item/drop/coin_gold.tscn")
-const COIN_SILVER:PackedScene = preload("res://scenes/item/game_scenes_item/drop/coin_silver.tscn")
-const PRESENT:PackedScene = preload("res://scenes/item/game_scenes_item/drop/present.tscn")
+## 戴夫角色：保留原属性名称，首次使用时解析对应资源。
+var CRAZY_DAVE: PackedScene:
+	get: return _scene(&"CRAZY_DAVE")
 
-## 待选卡槽
-var CARD_CANDIDATE_CONTAINER = load("res://scenes/ui/all_cards/card_candidate_container.tscn")
-## 植物种植特效
-const PLANT_START_EFFECT = preload("res://scenes/item/game_scenes_item/plant_effect/plant_start_effect.tscn")
-const PLANT_START_EFFECT_WATER = preload("res://scenes/item/game_scenes_item/plant_effect/plant_start_effect_water.tscn")
+## 提示弹窗：保留原属性名称，首次使用时解析对应资源。
+var REMINDER_INFORMATION: PackedScene:
+	get: return _scene(&"REMINDER_INFORMATION")
 
-## 坑洞
-const DOOM_SHROOM_CRATER = preload("res://scenes/fx/doom_shroom_crater.tscn")
+## 钻石实体：保留原属性名称，首次使用时解析对应资源。
+var COIN_DIAMOND: PackedScene:
+	get: return _scene(&"COIN_DIAMOND")
 
-## 墓碑
-var TOMBSTONE = load("res://scenes/item/game_scenes_item/tombstone.tscn")
+## 金币实体：保留原属性名称，首次使用时解析对应资源。
+var COIN_GOLD: PackedScene:
+	get: return _scene(&"COIN_GOLD")
 
+## 银币实体：保留原属性名称，首次使用时解析对应资源。
+var COIN_SILVER: PackedScene:
+	get: return _scene(&"COIN_SILVER")
 
-## 舞王管理器
-var JACKSON_MANAGER = load("res://scenes/character/components/jackson_manager.tscn")
+## 礼物实体：保留原属性名称，首次使用时解析对应资源。
+var PRESENT: PackedScene:
+	get: return _scene(&"PRESENT")
 
-## 奖杯
-var TROPHY = load("res://scenes/item/game_scenes_item/trophy.tscn")
+## 候选卡槽：保留原属性名称，首次使用时解析对应资源。
+var CARD_CANDIDATE_CONTAINER: PackedScene:
+	get: return _scene(&"CARD_CANDIDATE_CONTAINER")
 
-## 冰冻僵尸特效
-const ICE_EFFECT = preload("res://scenes/fx/ice_effect.tscn")
-## 泳池水花场景
-const SPLASH = preload("res://scenes/item/game_scenes_item/splash.tscn")
-## 火焰特效(火爆辣椒\火焰豌豆)
-var FIRE = load("res://scenes/fx/fire.tscn")
-## 黄油特效
-const BUTTER_SPLAT = preload("res://scenes/fx/butter_splat.tscn")
+## 陆地种植特效：保留原属性名称，首次使用时解析对应资源。
+var PLANT_START_EFFECT: PackedScene:
+	get: return _scene(&"PLANT_START_EFFECT")
 
-## 阳光
-var SUN = load("res://scenes/item/game_scenes_item/sun.tscn")
+## 水路种植特效：保留原属性名称，首次使用时解析对应资源。
+var PLANT_START_EFFECT_WATER: PackedScene:
+	get: return _scene(&"PLANT_START_EFFECT_WATER")
 
-## 泥土上升特效
-const DIRT_RISE_EFFECT = preload("res://scenes/character/item/dirt_rise_effect.tscn")
+## 毁灭菇坑洞：保留原属性名称，首次使用时解析对应资源。
+var DOOM_SHROOM_CRATER: PackedScene:
+	get: return _scene(&"DOOM_SHROOM_CRATER")
 
-## 梯子
-const LADDER = preload("res://scenes/item/game_scenes_item/ladder.tscn")
+## 原版墓碑：保留原属性名称，首次使用时解析对应资源。
+var TOMBSTONE: PackedScene:
+	get: return _scene(&"TOMBSTONE")
+
+## 伴舞管理器：保留原属性名称，首次使用时解析对应资源。
+var JACKSON_MANAGER: PackedScene:
+	get: return _scene(&"JACKSON_MANAGER")
+
+## 奖杯实体：保留原属性名称，首次使用时解析对应资源。
+var TROPHY: PackedScene:
+	get: return _scene(&"TROPHY")
+
+## 冰冻特效：保留原属性名称，首次使用时解析对应资源。
+var ICE_EFFECT: PackedScene:
+	get: return _scene(&"ICE_EFFECT")
+
+## 水花特效：保留原属性名称，首次使用时解析对应资源。
+var SPLASH: PackedScene:
+	get: return _scene(&"SPLASH")
+
+## 火焰特效：保留原属性名称，首次使用时解析对应资源。
+var FIRE: PackedScene:
+	get: return _scene(&"FIRE")
+
+## 黄油效果：保留原属性名称，首次使用时解析对应资源。
+var BUTTER_SPLAT: PackedScene:
+	get: return _scene(&"BUTTER_SPLAT")
+
+## 阳光实体：保留原属性名称，首次使用时解析对应资源。
+var SUN: PackedScene:
+	get: return _scene(&"SUN")
+
+## 出土特效：保留原属性名称，首次使用时解析对应资源。
+var DIRT_RISE_EFFECT: PackedScene:
+	get: return _scene(&"DIRT_RISE_EFFECT")
+
+## 梯子实体：保留原属性名称，首次使用时解析对应资源。
+var LADDER: PackedScene:
+	get: return _scene(&"LADDER")

@@ -2,31 +2,31 @@
 extends "res://scripts/adventure/ui/toolbar_entry_host.gd"
 
 ## 工具栏纯表现及按钮交互。
-const View = preload("res://scripts/adventure/ui/toolbar_view.gd")
+const View = "res://scripts/adventure/ui/toolbar_view.gd"
 ## 普通背包窗口。
-const Inventory = preload("res://scripts/adventure/ui/inventory_window.gd")
+const Inventory = "res://scripts/adventure/ui/inventory_window.gd"
 ## 研究室场景外壳。
-const Research = preload("res://scripts/adventure/ui/research_lab_stage.gd")
+const Research = "res://scripts/adventure/ui/research_lab_stage.gd"
 ## 角色窗口接入同一模态生命周期。
-const Player = preload("res://scripts/adventure/ui/player_window.gd")
+const Player = "res://scripts/adventure/ui/player_window.gd"
 ## 设置窗口参与工具栏模态互斥。
-const Settings = preload("res://scripts/ui/game_settings_window.gd")
+const Settings = "res://scripts/ui/game_settings_window.gd"
 ## 任务面板复用工具栏模态窗口入口。
-const Quests = preload("res://scripts/adventure/ui/quest_window.gd")
+const Quests = "res://scripts/adventure/ui/quest_window.gd"
 ## 冒险图鉴复用同一模态生命周期，独立于原版图鉴场景。
-const Almanac = preload("res://scripts/adventure/ui/almanac_window.gd")
+const Almanac = "res://scripts/adventure/ui/almanac_window.gd"
 ## 图书馆建筑使用独立书籍面板，复用相同模态生命周期。
-const Library = preload("res://scripts/adventure/ui/library_window.gd")
+const Library = "res://scripts/adventure/ui/library_window.gd"
 ## 戴夫全屏商店复用建筑入口与统一模态生命周期。
-const Shop = preload("res://scripts/adventure/shop/shop_window.gd")
+const Shop = "res://scripts/adventure/shop/shop_window.gd"
 ## 首关后教学编排使用独立表现层，不占用任务或研究服务职责。
-const Onboarding = preload("res://scripts/adventure/ui/quest_onboarding.gd")
+const Onboarding = "res://scripts/adventure/ui/quest_onboarding.gd"
 ## 教学层随当前宿主销毁表现，业务节点随档案保存。
 var _onboarding: CanvasLayer
 ## 识别档案对象替换，及时释放旧档案的模态窗口和教学引用。
 var _bound_state: AdventureState
 ## 地图导航窗口及切场编排。
-const MapNavigation = preload("res://scripts/adventure/ui/map_navigation.gd")
+const MapNavigation = "res://scripts/adventure/ui/map_navigation.gd"
 ## 只有显式加入该组的场景显示工具栏。
 const HOST_GROUP := &"adventure_toolbar_surface"
 ## 当前场景身份，用于切场时释放表现引用。
@@ -35,16 +35,9 @@ var _host_scene: Node
 var _navigation: Node
 
 func _ready() -> void:
-	layer = 50 # Below existing SceneTransition (100), above ordinary map art.
+	layer = 50 # 高于普通地图、低于 SceneTransition 的 100 层遮幕。
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_view = View.new()
-	_view.name = "ToolbarView"
-	add_child(_view)
-	_view.feature_pressed.connect(_on_feature_pressed)
-	_navigation = MapNavigation.new()
-	_navigation.name = "MapNavigation"
-	add_child(_navigation)
-	_navigation.navigation_state_changed.connect(_sync_input)
+	# Bootstrap 不具备工具栏宿主资格，当前只注册业务回调，不创建 HUD 或窗口。
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Global.user_manager.signal_users_update.connect(_refresh)
 	Global.quests_changed.connect(_refresh)
@@ -57,10 +50,23 @@ func _ready() -> void:
 	register_feature("player", Callable(self, "_can_open_player"), Callable(self, "_open_player"))
 	register_feature("shop", Callable(self, "_can_open_shop"), Callable(self, "_open_shop"))
 	register_feature("settings", Callable(self, "_can_open_settings"), toggle_settings)
-	_onboarding = Onboarding.new()
+	_on_scene_changed()
+
+## 唯一表现层创建入口，只在有效游戏宿主上构造工具栏、导航与教学。
+func _ensure_presenter() -> void:
+	if is_instance_valid(_view):
+		return
+	_view = (load(View) as Script).new() as AdventureToolbarView
+	_view.name = "ToolbarView"
+	add_child(_view)
+	_view.feature_pressed.connect(_on_feature_pressed)
+	_navigation = (load(MapNavigation) as Script).new()
+	_navigation.name = "MapNavigation"
+	add_child(_navigation)
+	_navigation.navigation_state_changed.connect(_sync_input)
+	_onboarding = (load(Onboarding) as Script).new()
 	_onboarding.toolbar = self
 	add_child(_onboarding)
-	_on_scene_changed()
 
 ## [param _delta] 为帧间隔，档案切换期间没有状态时也继续更新工具栏。
 func _process(_delta: float) -> void:
@@ -69,23 +75,23 @@ func _process(_delta: float) -> void:
 	if current != _bound_state:
 		_bound_state = current
 		_apply_host_scene(get_tree().current_scene)
-	# Scene ownership controls visibility; temporary modal input locks never hide the HUD.
+	# 场景控制工具栏整体可见性，模态和导航只禁止输入，不复制 HUD。
 	_sync_input()
-	if _host_allowed and _view._available.get("inventory", false) != _can_open_inventory():
+	if _host_allowed and is_instance_valid(_view) and _view._available.get("inventory", false) != _can_open_inventory():
 		_refresh()
 
 func _sync_input() -> void:
 	var allowed: bool = _host_allowed and is_instance_valid(_host_scene) and not get_tree().paused \
-		and not _navigation.is_open()
+		and is_instance_valid(_navigation) and not _navigation.is_open()
 	if allowed and _host_scene.has_method("is_adventure_toolbar_blocked"):
 		allowed = not bool(_host_scene.call("is_adventure_toolbar_blocked"))
 	if allowed == _interactive:
 		return
 	_interactive = allowed
-	_view.set_interaction_enabled(allowed)
+	if is_instance_valid(_view):
+		_view.set_interaction_enabled(allowed)
 
-## SceneTree.scene_changed can be delivered with zero or one argument across launch paths.
-## Resolve the authoritative current scene after the notification, not from its payload.
+## SceneTree.scene_changed 参数随入口不同；延迟读取权威 current_scene。
 func _on_scene_changed(_signal_scene: Node = null) -> void:
 	_sync_scene_from_tree.call_deferred()
 
@@ -95,20 +101,23 @@ func _sync_scene_from_tree() -> void:
 func _apply_host_scene(scene: Node) -> void:
 	if is_instance_valid(_onboarding):
 		_onboarding.reset()
-	_navigation.close()
+	if is_instance_valid(_navigation):
+		_navigation.close()
 	if is_instance_valid(_modal):
 		_modal.queue_free()
 	_modal = null
 	_modal_feature = ""
 	_host_scene = scene
-	_view.reset_for_scene()
-	_view.show() # 切场释放全屏页面后恢复工具栏，由宿主决定整体可见性。
 	_host_allowed = is_instance_valid(scene) and scene.is_in_group(HOST_GROUP)
+	if _host_allowed:
+		_ensure_presenter()
+		_view.reset_for_scene()
+		_view.show()
 	visible = _host_allowed
 	_sync_input()
 	_refresh()
 
-## Same navigation entry for the menu ship and any map toolbar.
+## 海滨港口与岛屿工具栏共用地图导航门面。
 func open_map_navigation() -> bool:
 	return request_feature("map")
 

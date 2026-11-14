@@ -51,7 +51,7 @@ static func tier_id(tier: int) -> StringName:
 static func scene_for(kind: String, type_id: int) -> PackedScene:
 	if kind == "plant":
 		return Global.character_registry.get_plant_scene(type_id)
-	return CharacterRegistry.ZombieInfo.get(type_id, {}).get(CharacterRegistry.ZombieInfoAttribute.ZombieScenes) as PackedScene
+	return Global.character_registry.get_zombie_info(type_id, CharacterRegistry.ZombieInfoAttribute.ZombieScenes) as PackedScene
 
 ## 将 [param kind]、[param type_id] 在 [param tier] 的说明、数值和效果分开供详情面板排版。
 static func detail(kind: String, type_id: int, tier: int) -> Dictionary:

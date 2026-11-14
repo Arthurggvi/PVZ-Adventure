@@ -36,7 +36,7 @@ static func title_for(type_id: int) -> String:
 static func profile(type_id: int) -> Dictionary:
 	if not TYPES.has(type_id):
 		return {}
-	var packed: PackedScene = CharacterRegistry.ZombieBossInfo[type_id][CharacterRegistry.ZombieBossInfoAttribute.BossScenes] # 实战注册场景。
+	var packed: PackedScene = Global.character_registry.get_zombie_boss_info(type_id, CharacterRegistry.ZombieBossInfoAttribute.BossScenes) # 实战注册场景。
 	var source := packed.instantiate() as ZB000Base # 仅读取导出值，绝不运行出战初始化。
 	var hp := source.get_node("HpComponent") as HpComponent # 与实战一致的最大生命。
 	var result: Dictionary = {
