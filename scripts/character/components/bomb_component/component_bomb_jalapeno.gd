@@ -9,8 +9,9 @@ var owner_plant: Plant021Jalapeno
 func _ready() -> void:
 	owner_plant = owner as Plant021Jalapeno
 
-## 无转职时也复用完整原始火焰序列；转职范围和表现由同一次结算派发。
+## 主爆瞬间产生一次以纵向为主的短震；普通整行火焰在此播放，转职火焰由结算派发。
 func _start_bomb_fx():
+	EventBus.push_event(MainGameCamera.SHAKE_EVENT, [Vector2(4.0, 7.0), 0.22])
 	if owner_plant.promotion_rules.is_empty():
 		_play_native_lane()
 
