@@ -39,6 +39,8 @@ var _distance: float = 0.0
 var _bolt_remaining: float = 0.0
 ## 每枚球的直击记录，独立于每轮放电目标。
 var _contact_ids: Dictionary[int, bool] = {}
+## 本颗球的实际承伤去重；多枚弹体各自允许独立伤害，保护者代伤同弹只结算一次。
+var _hit_scope: CombatHitScope = CombatHitScope.new()
 ## 每枚球独立碰撞大小和连续碰撞查询器。
 var _query: ElectricPeaFlightQuery
 ## 生存秒数限制永久追随弹体的镜头造成的泄漏。
@@ -163,7 +165,7 @@ func _move_segment(finish: Vector2, candidates: Array[Character000Base]) -> void
 		_contact_ids[target_id] = true
 		global_position = start.lerp(finish, float(contact.fraction))
 		var kind := ElectricPeaShotContext.HitKind.SPLIT if splitting else ElectricPeaShotContext.HitKind.CONTACT # 只有母球首个实伤分裂。
-		if shot.hit(target, roundi(shot.contact_damage * _damage_multiplier), kind, shot.contact_scope) > 0 and splitting:
+		if shot.hit(target, roundi(shot.contact_damage * _damage_multiplier), kind, _hit_scope) > 0 and splitting:
 			if shot.is_active() and not get_tree().paused:
 				_split(target_id)
 			queue_free()

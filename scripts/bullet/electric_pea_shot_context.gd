@@ -25,8 +25,6 @@ var source_id: int = 0
 var promotions: ElectricPeaPromotions
 ## 矩阵每帧伤害，包含一次出战输出修正。
 var matrix_damage: int = 0
-## 同次离手的父球、扩散球和分裂后代共用的实际直击承伤资格。
-var contact_scope: CombatHitScope
 ## 发射的地面行，屋顶高度不改变行身份。
 var lane: int = -1
 ## 原地格的世界间距，用于把原版格数范围换算为本项目坐标。
@@ -56,8 +54,6 @@ static func capture(plant: Plant000Base, rules: ElectricPeaPromotions) -> Electr
 		return null
 	shot.source_id = plant.get_instance_id()
 	shot.promotions = rules
-	if rules.spread_cells > 0.0 or rules.split_count > 0:
-		shot.contact_scope = CombatHitScope.new()
 	if rules.matrix_damage > 0:
 		shot.matrix_damage = plant.battle_damage(rules.matrix_damage)
 	shot.lane = plant.lane
