@@ -28,6 +28,7 @@ enum Kind {
 ## [param context] 的 stackable 令劣化叠加；family 与 cap 可给指定效果族单独封顶，旧通道不受影响。
 ## on_detonate 接收世界位置与行号，由来源快照安排延迟引爆；同目标十点只回调一次。
 ## on_kill 是持续伤害的击杀回调，接收实际死亡者；调用方应保存可脱离母株的来源快照。
+## 灼烧可提供 final_multiplier、before_death 和 source_active，分别控制末乘、致死前观察和来源边界。
 ## 脆弱的 amount 为层数；深寒的 amount 为减速秒数，followup 为冻结秒数，battle 和 statuses 为冻结来源及受击位。
 ## 冻结值 context 可用 control_only 禁用附伤，并以 freeze_hit_scope 观察原生附伤。
 ## 返回是否接受请求；死亡、非法状态或对应状态免疫返回 false，伤害无敌不等同于状态免疫。
@@ -81,8 +82,15 @@ static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 			var on_kill: Variant = context.get("on_kill", Callable()) # 非法回调不能进入延迟状态。
 			if not on_kill is Callable:
 				return false
-			return AdventurePoisonEffect.apply_to(target, amount, on_kill) if kind == Kind.POISON \
-				else AdventureBurnEffect.apply_to(target, amount, on_kill)
+			if kind == Kind.POISON:
+				return AdventurePoisonEffect.apply_to(target, amount, on_kill)
+			var multiplier: Variant = context.get("final_multiplier", 1.0) # 末乘仅对本次登记的灼烧来源有效。
+			var before_death: Variant = context.get("before_death", Callable()) # 可选观察口须为可调用值。
+			if not (multiplier is float or multiplier is int) or not is_finite(float(multiplier)) \
+					or float(multiplier) < 0.0 or not before_death is Callable \
+					or not context.get("source_active", Callable()) is Callable:
+				return false
+			return AdventureBurnEffect.apply_to(target, amount, on_kill, context)
 		Kind.FREEZE_CHARGE:
 			return AdventureFreezeChargeEffect.apply_to(target, amount, bool(context.get("control_only", false)),
 				context.get("freeze_hit_scope") as CombatHitScope)
@@ -129,3 +137,14 @@ static func release(plant: Plant000Base, kind: Kind, source_id: int,
 		return
 	if kind == Kind.NULLIFICATION:
 		AdventurePlantNullification.release(plant, source_id, persistent)
+
+## 净化 [param plant] 的无效化、劣化、原生寒冷和公共持续伤害。
+static func purge(plant: Plant000Base) -> void:
+	if not is_instance_valid(plant) or plant.is_death or plant.is_queued_for_deletion():
+		return
+	AdventurePlantNullification.purge(plant)
+	plant.hp_component.clear_degradation()
+	plant.clear_cold()
+	for child: Node in plant.get_children(): # 仅清公共周期负面节点，保留其余组件和来源。
+		if child is AdventurePeriodicDamageEffect:
+			child.clear()

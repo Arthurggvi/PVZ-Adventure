@@ -12,10 +12,11 @@ var _visual: Node2D
 var _animation: AnimationPlayer
 
 ## 为 [param target] 授予 [param duration] 秒灼烧；[param on_kill] 为可选真实击杀回调。
+## [param source] 可为最新来源提供伤害末乘与死亡前观察。
 ## 重施只续时，不重复创建表现或额外伤害节拍。
 static func apply_to(target: Character000Base, duration: float,
-		on_kill: Callable = Callable()) -> bool:
-	return AdventurePeriodicDamageEffect.grant(target, duration, on_kill, NODE_NAME, AdventureBurnEffect)
+		on_kill: Callable = Callable(), source: Dictionary = {}) -> bool:
+	return AdventurePeriodicDamageEffect.grant(target, duration, on_kill, NODE_NAME, AdventureBurnEffect, false, source)
 
 ## 状态首次开始时挂载纯视觉，跟随受击位置；僵王维持原命中特效的前景层。
 func _on_effect_started() -> void:

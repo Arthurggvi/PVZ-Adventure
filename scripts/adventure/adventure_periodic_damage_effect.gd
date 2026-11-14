@@ -24,13 +24,20 @@ var _permanent: bool = false
 var _until_tick: float = TICK_SECONDS
 ## 最新来源的真实击杀回调，不绑定即将销毁的弹体或母株。
 var _on_kill: Callable = Callable()
+## 当前来源对原生整数跳伤的最终倍率。
+var _final_multiplier: float = 1.0
+## 在伤害路由确认实际承伤者时捕获死亡位置。
+var _before_death: Callable
+## 某些来源需要比公共灼烧更细的战局边界；空值使用原有判断。
+var _source_active: Callable
 
 ## 为 [param target] 授予 [param duration] 秒状态；[param on_kill] 接收真实死亡者。
 ## [param effect_name] 区分独立状态；[param effect_script] 是本类的具体子类。
 ## [param permanent] 为 true 时持续到目标或本战局结束，duration 可为零，重施不会增加跳伤。
+## [param source] 可为最新来源设置末乘、致死观察与战局门禁；缺省沿用原版规则。
 ## 同种状态复用节点，跨阶段首次重施先清旧状态；失效目标或战斗返回false。
 static func grant(target: Character000Base, duration: float, on_kill: Callable,
-		effect_name: StringName, effect_script: GDScript, permanent: bool = false) -> bool:
+		effect_name: StringName, effect_script: GDScript, permanent: bool = false, source: Dictionary = {}) -> bool:
 	if not is_instance_valid(target) or not target.can_receive_negative_effects() \
 			or target.is_death or target.is_hypno \
 			or target.is_queued_for_deletion() or not target.is_inside_tree() \
@@ -57,6 +64,9 @@ static func grant(target: Character000Base, duration: float, on_kill: Callable,
 	effect._game = game
 	effect._round = game.curr_game_round
 	effect._phase = AdventureSession.get_active_phase(game.game_para)
+	effect._final_multiplier = source.get("final_multiplier", 1.0)
+	effect._before_death = source.get("before_death", Callable())
+	effect._source_active = source.get("source_active", Callable())
 	effect.refresh(duration, on_kill, permanent)
 	return true
 
@@ -99,7 +109,8 @@ func _battle_active() -> bool:
 	return is_instance_valid(_target) and not _target.is_death and not _target.is_hypno \
 		and not _target.is_queued_for_deletion() and _target.is_inside_tree() \
 		and _target.character_init_type == Character000Base.E_CharacterInitType.IsNorm \
-		and _battle_context_active()
+		and _battle_context_active() \
+		and (_source_active.is_null() or (_source_active.is_valid() and _source_active.call()))
 
 ## 死亡回调可能同步切换阶段；此门禁不要求死者存活，供真实击杀归属最终复核。
 func _battle_context_active() -> bool:
@@ -117,18 +128,24 @@ func _deal_tick() -> void:
 	var hp: HpComponent = _target.hp_component # 分母只取本体最大生命。
 	if not is_instance_valid(hp) or hp.is_death:
 		return
-	var damage: int = maxi(0, roundi(float(hp.max_hp) * _max_health_fraction())) # 沿用整数伤害取整规则。
+	var damage: int = roundi(float(roundi(float(hp.max_hp) * _max_health_fraction())) * _final_multiplier) # 原生整数跳伤结算完毕后才乘来源倍率。
 	if damage <= 0:
 		return
 	var callback: Callable = _on_kill # 扣血可同步清除状态，先保存本次来源。
+	var tracks_boundary: bool = not _source_active.is_null() # 明确接管边界的来源自行核对最后一击。
 	var casualty: Character000Base = null # 实际死者可能是保护者而非直接受击目标。
 	if _target is Zombie000Base and hp is HpComponentZombie:
-		casualty = (hp as HpComponentZombie).apply_hit(damage, BulletRegistry.AttackMode.Norm, true, false)
+		var scope: CombatHitScope = CombatHitScope.new() if _before_death.is_valid() else null # 默认沿用旧跳伤路径。
+		if scope != null:
+			scope.before_death = _before_death
+		casualty = (hp as HpComponentZombie).apply_hit(damage, BulletRegistry.AttackMode.Norm, true, false, true, 1.0, 0, -1, null, scope)
 	else:
+		if _before_death.is_valid():
+			_before_death.call(_target)
 		_target.be_attacked_bullet(damage, BulletRegistry.AttackMode.Norm, true, false)
 		if is_instance_valid(_target) and _target.is_death:
 			casualty = _target
-	if is_instance_valid(casualty) and callback.is_valid() and _battle_context_active():
+	if is_instance_valid(casualty) and callback.is_valid() and (tracks_boundary or _battle_context_active()):
 		callback.call(casualty)
 
 ## 结束状态并释放延迟来源；保留休眠节点供该角色后续复用。
@@ -137,6 +154,9 @@ func clear() -> void:
 	_permanent = false
 	_until_tick = _tick_seconds()
 	_on_kill = Callable()
+	_before_death = Callable()
+	_source_active = Callable()
+	_final_multiplier = 1.0
 	set_physics_process(false)
 	_on_effect_cleared()
 

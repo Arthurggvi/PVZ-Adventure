@@ -426,4 +426,20 @@ func cancel_ice():
 		all_timer[E_TimerType.IceDecelerate].stop()
 		_on_ice_decelerate_timer_timeout()
 
+## 净化原生冻结和减速，不安排冻后减速，也不启动解冻保护期。
+func clear_cold() -> void:
+	if not is_cold_slowed():
+		return
+	for kind: E_TimerType in [E_TimerType.IceFreeze, E_TimerType.IceDecelerate]: # 只终止寒冷控制计时。
+		var timer: Timer = all_timer.get(kind) # 从未受过对应状态时没有计时器。
+		if is_instance_valid(timer):
+			timer.stop()
+	if is_instance_valid(ice_effect):
+		ice_effect.queue_free()
+	ice_effect = null
+	time_ice_end_decelerate = 0.0
+	if is_cold_frozen():
+		update_speed_factor(1.0, E_Influence_Speed_Factor.IceFreezeSpeed)
+	_on_ice_decelerate_timer_timeout()
+
 #endregion

@@ -4,6 +4,8 @@ class_name CombatHitScope
 
 ## 本群组已经消费的角色实例ID；不持有角色引用，不延长实体生命。
 var _claimed: Dictionary[int, bool] = {}
+## 可选的致死前观察口，只接收实际承伤角色。
+var before_death: Callable
 
 ## 为真正承受伤害的 [param target] 原子登记一次资格；重复、死亡或待删除目标返回 false。
 ## 保护者转移必须先完成，再调用此处；调用方须在受击事件和扣血之前检查结果。
@@ -16,7 +18,8 @@ func try_claim(target: Character000Base) -> bool:
 	_claimed[identity] = true
 	return true
 
-## [param _hp] 是最终承伤组件；[param _amount] 是护甲分流后即将扣除的本体伤害。
+## [param hp] 是最终承伤组件；[param amount] 是护甲分流后即将扣除的本体伤害。
 ## 默认无需采集；调用发生在原生死亡和掉落之前，扩展只能观察本击。
-func before_body_loss(_hp: HpComponentZombie, _amount: int) -> void:
-	pass
+func before_body_loss(hp: HpComponentZombie, amount: int) -> void:
+	if amount >= hp.curr_hp and before_death.is_valid():
+		before_death.call(hp.owner_character)

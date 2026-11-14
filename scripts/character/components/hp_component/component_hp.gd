@@ -45,6 +45,14 @@ func apply_capped_degradation(fraction: float, cap: float, family: StringName) -
 	if is_instance_valid(owner_character) and is_instance_valid(owner_character.body):
 		owner_character.body.set_other_color(BodyCharacter.E_ChangeColors.Degradation, Color(0.55, 0.57, 0.58))
 
+## 清除所有劣化通道和对应染色，保留其他承伤修正及颜色层。
+func clear_degradation() -> void:
+	degradation_fraction = 0.0
+	stacked_degradation_fraction = 0.0
+	_capped_degradation.clear()
+	if is_instance_valid(owner_character) and is_instance_valid(owner_character.body):
+		owner_character.body.set_other_color(BodyCharacter.E_ChangeColors.Degradation, Color.WHITE)
+
 ## 脆弱的最大层数；每层只增加一个百分点的承伤。
 const MAX_BRITTLENESS_STACKS: int = 100
 ## 当前脆弱层数；按实际承伤者结算，任何输出计算都不读取它。

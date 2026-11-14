@@ -16,6 +16,7 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 	var repeater_events: Array[Dictionary] = [] # 双发只追加本轮总发数，每颗独立抽取一种变种。
 	var snow_pea_events: Array[Dictionary] = [] # 寒冰射手事件交给原生发射上的转职控制器。
 	var electric_pea_events: Array[Dictionary] = [] # 电能豌豆参数由原株在入树前冻结。
+	var jalapeno_events: Array[Dictionary] = [] # 辣椒规则入树前冻结，仍用原生引信。
 	for event: Dictionary in events: # 每本书的事件只进入对应机制，不复制运行时状态。
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
@@ -55,6 +56,13 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 					snow_pea_events.append(event)
 				elif kind.begins_with("electric_pea_"):
 					electric_pea_events.append(event)
+				elif kind.begins_with("jalapeno_"):
+					jalapeno_events.append(event)
+	if not jalapeno_events.is_empty():
+		if not plant is Plant021Jalapeno:
+			push_error("火爆辣椒转职事件需要对应的战斗植物")
+			return false
+		(plant as Plant021Jalapeno).configure_promotions(record.uid, jalapeno_events)
 	if not electric_pea_events.is_empty():
 		if not plant is Plant052ElectricPeashooter:
 			push_error("电能豌豆转职事件需要对应的战斗植物")
