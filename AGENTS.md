@@ -19,3 +19,11 @@
 - 文档引用使用 Godot 支持的格式，例如 `[member 名称]`、`[method 名称]` 和 `[code]代码[/code]`；需要强制换行时使用 `[br]`。
 - 注释应说明用途、含义和设计意图；涉及单位、取值范围、特殊值或生命周期时，应一并说明，避免仅重复名称或代码。
 - 修改代码时同步更新相关注释，确保注释与实现一致。
+
+# 启动、资源加载与场景切换
+
+- 权威设计与验收规范：`docs/adventure/startup_loading.md`，交接入口：`docs/adventure/PVZ_Adventure_Project_Handoff.md` 的「启动/加载权威协议」。
+- `project.godot` 的冷启动入口只能是 `scenes/main/00Bootstrap.tscn`；正式菜单仍是 `01StartMenuCoastal.tscn`。不要把大量 UI、角色、音效、战斗模板加入 Bootstrap 的静态依赖。
+- 所有正式场景转换必须复用 `SceneTransition.change_scene(path, after_switch)`；禁止为新区域、新模式或 Boss 再造 Loader、同步黑幕切场、独立全局缓存。回调只在场景被接纳后提交战斗态，失败保留原场景并恢复输入。
+- `AllCards`、`CharacterRegistry`、`SceneRegistry`、`SoundManager`、`AdventureToolbar` 已有统一的惰性资源入口。扩展时只维护权威资源注册和门面，不得让 Autoload 随物种增加而重新预加载所有资源。
+- 相关改动必须在隔离 `user://` 下运行 `tests/adventure/test_lazy_startup.tscn`、`test_lazy_audio.tscn`、`test_threaded_scene_loading.tscn`、`test_boot_to_menu.tscn`、`test_threaded_battle_route.tscn`、`test_lazy_toolbar_modal.tscn`；同时核对导航验收及图形过渡帧测试。测速要区分引擎 Autoload、Bootstrap 到就绪、图形首帧与实际发行包，不能混算。

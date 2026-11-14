@@ -1,16 +1,24 @@
 # PVZ-Adventure｜唯一权威项目交接
 
-更新：2026-11-13。**只记录权威路径、可复用管线、实施方法、有效约束和未关闭的验收边界。** 源码与实际资源优先于本文；“接入”“自动化通过”“实机视觉通过”必须分别表述。
+更新：2026-11-14。**只记录权威路径、可复用管线、实施方法、有效约束和未关闭的验收边界。** 源码与实际资源优先于本文；“接入”“自动化通过”“实机视觉通过”必须分别表述。
 
 ## 0｜权威入口、施工纪律（先读）
 
 - **工程与引擎**：`C:\Dev\PvZ\PVZ-Adventure`（Git `develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时优先远程只读审计，获授权后直接施工，避免让用户手工搬运文件。
 - **本交接文档唯一原件**：`C:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。Git 跟踪入口 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 是**同一 NTFS 硬链接**，不应独立编辑/替换。改动需原位写入，并用 `fsutil hardlink list` 验证仍为同一文件。
 - **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `C:\Dev\PvZ\_review\<module>` 用于临时审查；`C:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。源码备份只放仓外，不能让带全局类名的旧脚本进入 Godot 扫描范围；解析时须确认类索引指向正式源码。
-- **主菜单运行/制作入口**：正式 `scenes/main/01StartMenuCoastal.tscn`；维护 `docs/adventure/main_menu_runtime_pipeline.md`；离线构建/发布/录制统一 `tools/art_bake/main_menu/menu.py`。9B已接当地时间与真实UI，不再使用占位主菜单。
+- **主菜单运行/制作入口**：启动入口 `scenes/main/00Bootstrap.tscn`；正式菜单 `scenes/main/01StartMenuCoastal.tscn`；维护 `docs/adventure/main_menu_runtime_pipeline.md`；离线构建/发布/录制统一 `tools/art_bake/main_menu/menu.py`。9B已接当地时间与真实UI，不再使用占位主菜单。
 - **施工顺序**：检查 Git 和连接 → 读本文及权威代码/资源 → 复现并定位根因 → 设计通用接口与状态所有权 → 直接重构旧实现 → Godot 导入/解析检查 → 按 AGENTS.md 在明确获授权时运行测试/实机验收 → 必要时 Catbox 手机验收 → 仅暂存本轮文件并提交。
 - **仓库纪律**：先 `git status --short`、`git log -1`，保护并行工作区；禁止未授权的 `git reset`、`git clean`、`git add .` 和 `git push`。提交前 `git diff --cached --check` 并逐项核对暂存清单。被 `.gitignore` 忽略的新美术资源，必要时定向 `git add -f`。
 - **架构原则**：一条权威数据与状态链；配置描述差异，组件实现机制。禁止针对某一关/植物/僵尸追加并行实现、补丁式坐标修正、冗余管理器或把重复接线留给后续开发者。
+
+## 0.1．启动/加载权威协议（先读）
+
+- **唯一启动入口**：`project.godot → scenes/main/00Bootstrap.tscn`（仅轻量文字和背景），正式海滨菜单仍为 `scenes/main/01StartMenuCoastal.tscn`；严禁把重型菜单或战斗场景重新设为 Bootstrap 的预加载依赖。
+- **唯一切场实现**：`scenes/ui/transitions/SceneTransition.tscn` / `scripts/ui/transitions/scene_transition.gd`，`change_scene(path, after_switch)` 线程加载并在 SceneTree 接受目标后发布交接事务；`transition_failed` 必须恢复遮幕/输入。禁止另建 Loader、页面专用同步切场或在黑幕中直调 `change_scene_to_file`。
+- **唯一资源门面**：`AllCards` 是 `scripts/autoload/lazy_card_catalog.gd`，源模板仍只有 `scenes/autoload/all_cards.tscn`；`Global.character_registry` / `SceneRegistry` / `SoundManager` 保留原 API，资源首次请求才加载；`AdventureToolbar._ensure_presenter` 仅在真实宿主建 UI。禁止在 Autoload 静态 `preload` 全植物、僵尸、音效、窗口。
+- **业务交接**：`MapNavigation` 验证档案后切场；`AdventureSession._commit_battle_entry/_commit_map_return` 仅在切场成功后提交或回收战斗状态；`MainGame00Base.tscn` 为战斗派生场景共享过渡组件，海滨菜单提供 `is_visual_ready()` 揭幕握手。
+- **扩展与验收**：权威合同、失败场景、隔离存档、Headless 性能测试和 UI 首帧边界统一见 `docs/adventure/startup_loading.md`。改加载、地图或角色注册表必须跑关联测试；性能声称须分别记录 Autoload、主场景与图形首帧。
 
 ## 1｜核心系统权威总线
 

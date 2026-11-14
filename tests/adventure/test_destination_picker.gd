@@ -134,7 +134,7 @@ func _run() -> void:
 	var picker := _destination_picker() # 首次实际进入僵尸岛的选择器。
 	var island: TextureButton = picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island") # 开放地区卡片。
 	await _mouse_click(island)
-	await _frames()
+	await _wait_for_scene(AdventureSession.MAP_SCENE)
 	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
 	assert(AdventureSession.progress.started and FileAccess.file_exists(native_path) and not FileAccess.file_exists(path))
 	assert(get_tree().current_scene.canvas.has_node("Intro"))
@@ -148,7 +148,7 @@ func _run() -> void:
 	assert(Global.save_service.save_now())
 	var saved := FileAccess.get_file_as_bytes(native_path) # 已赠卡、已解锁的字节基线。
 	await _mouse_click(island_picker.get_node("MotionRoot/DesignCanvas/Cards/town"))
-	await _frames()
+	await _wait_for_scene("res://scenes/main/01StartMenuCoastal.tscn")
 	menu = get_tree().current_scene
 	assert(menu.scene_file_path == "res://scenes/main/01StartMenuCoastal.tscn")
 	assert(_destination_picker() == null and not AdventureSession.adventure_active)
@@ -165,7 +165,7 @@ func _run() -> void:
 	island = picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island")
 	island.grab_focus()
 	await _key(KEY_ENTER)
-	await _frames()
+	await _wait_for_scene(AdventureSession.MAP_SCENE)
 	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
 	assert(AdventureSession.is_unlocked(2) and not get_tree().current_scene.canvas.has_node("Intro"))
 	assert(FileAccess.get_file_as_bytes(native_path) == saved)
@@ -175,6 +175,17 @@ func _run() -> void:
 	assert(not FileAccess.file_exists(path))
 	print("PASS: modal interruption/resize/input lock, scene fade/rollback, town and island routes, X/ESC cycles, four viewport bounds, first/existing unified saves, native bytes and continuous town BGM")
 	get_tree().quit()
+
+## Threaded navigation returns "accepted", never "finished". Preserve all state
+## assertions but require the destination to become the active scene before asserting.
+func _wait_for_scene(path: String) -> void:
+	var deadline: int = Time.get_ticks_msec() + 8000
+	while Time.get_ticks_msec() < deadline:
+		var scene: Node = get_tree().current_scene
+		if is_instance_valid(scene) and scene.scene_file_path == path:
+			return
+		await get_tree().process_frame
+	assert(false, "Threaded destination did not become active: " + path)
 
 ## 向 [param button] 中心发送真实鼠标输入并检查开放卡片状态层。
 func _mouse_click(button: BaseButton) -> void:
