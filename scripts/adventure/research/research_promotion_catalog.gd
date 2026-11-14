@@ -26,13 +26,15 @@ const BloomerangBooks = preload("res://scripts/adventure/research/research_bloom
 const RepeaterBooks = preload("res://scripts/adventure/research/research_repeater_promotion_books.gd")
 ## 寒冰射手的命中与派生规则由单株出战配置冻结。
 const SnowPeaBooks = preload("res://scripts/adventure/research/research_snow_pea_promotion_books.gd")
+## 电能豌豆书目由原生离手入口和单株光环共用。
+const ElectricPeaBooks = preload("res://scripts/adventure/research/research_electric_pea_promotion_books.gd")
 ## 全书目只在类初始化时汇总一次；消费者仍使用原有BOOKS入口。
 static var BOOKS: Dictionary = _build_books()
 
 ## 返回全部合法书目的深副本；重复ID报错，不覆盖已有定义。
 static func _build_books() -> Dictionary:
 	var books: Dictionary = ExistingBooks.BOOKS.duplicate(true) # 汇总结果不共享定义模块内部字典。
-	for module: Dictionary in [PuffBooks.BOOKS, SunShroomBooks.BOOKS, ScaredyBooks.BOOKS, FumeBooks.BOOKS, LilyBooks.BOOKS, CoffeeBooks.BOOKS, BloomerangBooks.BOOKS, RepeaterBooks.BOOKS, SnowPeaBooks.BOOKS]: # 新物种沿用统一的重复ID检查。
+	for module: Dictionary in [PuffBooks.BOOKS, SunShroomBooks.BOOKS, ScaredyBooks.BOOKS, FumeBooks.BOOKS, LilyBooks.BOOKS, CoffeeBooks.BOOKS, BloomerangBooks.BOOKS, RepeaterBooks.BOOKS, SnowPeaBooks.BOOKS, ElectricPeaBooks.BOOKS]: # 新物种沿用统一的重复ID检查。
 		for id: String in module: # 稳定技能书ID也是存档中的选择值。
 			if books.has(id):
 				push_error("重复的转职书ID：%s" % id)

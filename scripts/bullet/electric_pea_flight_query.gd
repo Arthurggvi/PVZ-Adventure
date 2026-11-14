@@ -13,9 +13,9 @@ const TARGET_STATES: int = Zombie000Base.E_BeAttackStatusZombie.IsNorm \
 var _probe := RectangleShape2D.new()
 
 
-## 创建独立几何资源，避免同帧多枚电球互相修改查询形状。
-func _init() -> void:
-	_probe.size = Vector2.ONE * HALF_SIZE * 2.0
+## [param size_multiplier] 缩放独立碰撞框；小电球沿用同一真实扫掠。
+func _init(size_multiplier: float = 1.0) -> void:
+	_probe.size = Vector2.ONE * HALF_SIZE * 2.0 * size_multiplier
 
 
 ## 从 [param game] 的原始全局重叠区域取敌人，避开全局检测器默认不含跳跃状态的预筛选。
@@ -61,9 +61,9 @@ static func height_at(slope: MainGameSlope, world_x: float) -> float:
 	return slope.get_all_slope_y(world_x) if is_instance_valid(slope) else 0.0
 
 
-## 将 [param start] 到 [param finish] 按 [param slope] 折点拆段，[param level_y] 为固定离地高度。
+## 将 [param start] 到 [param finish] 按 [param slope] 折点拆段，[param start_y] 到 [param finish_y] 为这一段的坡面相对高度。
 static func path_points(start: Vector2, finish: Vector2, slope: MainGameSlope,
-		level_y: float) -> Array[Vector2]:
+		start_y: float, finish_y: float) -> Array[Vector2]:
 	var breaks: Array[float] = [] # 只处理本帧经过的有限屋顶折点。
 	if is_instance_valid(slope):
 		for part: Slope in slope.all_slopes: # 低帧率跨坡时仍沿坡面飞行。
@@ -75,7 +75,8 @@ static func path_points(start: Vector2, finish: Vector2, slope: MainGameSlope,
 	breaks.sort()
 	var points: Array[Vector2] = [start] # 保持从左至右的实际飞行顺序。
 	for boundary: float in breaks: # 每个折点高度来自同一坡面接口。
-		points.append(Vector2(boundary, level_y + height_at(slope, boundary)))
+		var fraction: float = inverse_lerp(start.x, finish.x, boundary) # 同步插值斜向弹道的离地高度。
+		points.append(Vector2(boundary, lerpf(start_y, finish_y, fraction) + height_at(slope, boundary)))
 	points.append(finish)
 	return points
 
@@ -114,3 +115,15 @@ func _shape_fraction(shape: Shape2D, transform: Transform2D, start: Vector2, fin
 		else:
 			lower = middle
 	return upper
+
+
+## [param plant] 使用 [param detect] 查询同行前方可见敌人；僵王由真实重叠定位。
+static func has_forward_target(plant: Plant000Base, detect: DetectComponent) -> bool:
+	var screen: Rect2 = plant.get_canvas_transform().affine_inverse() * plant.get_viewport_rect() # 镜头移动时仍按实际可见战场索敌。
+	for target: Character000Base in detect.get_all_enemy_can_be_attacked(): # 组件已完成同行与状态筛选。
+		if not ElectricPeaFlightQuery.can_hit(target):
+			continue
+		var target_x: float = target.hurt_box_component.global_position.x # 机甲根节点不代表可命中位置。
+		if target_x >= plant.global_position.x and target_x <= screen.end.x:
+			return true
+	return false

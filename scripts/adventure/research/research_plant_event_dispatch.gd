@@ -15,6 +15,7 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 	var bloomerang_events: Array[Dictionary] = [] # 回旋镖由原株单时钟发射，弹体各自保存飞行规则。
 	var repeater_events: Array[Dictionary] = [] # 双发只追加本轮总发数，每颗独立抽取一种变种。
 	var snow_pea_events: Array[Dictionary] = [] # 寒冰射手事件交给原生发射上的转职控制器。
+	var electric_pea_events: Array[Dictionary] = [] # 电能豌豆参数由原株在入树前冻结。
 	for event: Dictionary in events: # 每本书的事件只进入对应机制，不复制运行时状态。
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
@@ -52,6 +53,13 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 					repeater_events.append(event)
 				elif kind.begins_with("snow_pea_"):
 					snow_pea_events.append(event)
+				elif kind.begins_with("electric_pea_"):
+					electric_pea_events.append(event)
+	if not electric_pea_events.is_empty():
+		if not plant is Plant052ElectricPeashooter:
+			push_error("电能豌豆转职事件需要对应的战斗植物")
+			return false
+		(plant as Plant052ElectricPeashooter).configure_promotions(electric_pea_events)
 	if not snow_pea_events.is_empty():
 		if not plant is Plant006SnowPea:
 			push_error("寒冰射手转职事件需要对应的战斗植物")
