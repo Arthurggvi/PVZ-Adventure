@@ -57,40 +57,42 @@ func _detonate(uid: String, source_id: int) -> void:
 
 ## 对 [param zombie] 结算一次原生冻伤和合法控制，只有实际完全冻结才计入奖励。
 func _freeze_zombie(zombie: Zombie000Base) -> void:
-	if not _battle.is_active() or not _is_legal_target(zombie):
+	if not _battle.is_active() or not _is_battle_target(zombie):
 		return
-	var identity: int = zombie.get_instance_id() # 使用角色实例，而非行号或当前血量。
+	var identity: int = zombie.get_instance_id() # 一次施放内同一目标只能结算一次。
 	if _visited.has(identity):
 		return
 	_visited[identity] = true
-	var can_freeze: bool = zombie.can_cold_freeze() # 能力在冻伤前判定，保留气球和跳跳的只减速行为。
-	var freeze_factor := Character000Base.E_Influence_Speed_Factor.IceFreezeSpeed # 只检查本次写入的冻结通道。
-	if _rules.has("ice_shroom_deep_cold"):
-		freeze_factor = Character000Base.E_Influence_Speed_Factor.DeepColdFreeze
-		if can_freeze:
-			zombie.hp_component.Hp_loss(20, BulletRegistry.AttackMode.Real, true, false)
-		if not _is_legal_target(zombie):
-			return
-		# 深寒的两个计时同时开始，减速覆盖冻结及其后的完整减速段。
-		if not AdventureDeepCold.apply_to(zombie, _battle, _freeze_seconds + _slow_seconds,
-				_freeze_seconds, ALL_ZOMBIE_STATUSES):
-			return
-	else:
-		zombie.be_ice_freeze(_freeze_seconds, _slow_seconds)
-	if not _is_legal_target(zombie):
-		return
-	if can_freeze and zombie.can_cold_freeze() and zombie.influence_speed_factors.get(freeze_factor, 1.0) == 0.0:
-		_frozen_count += 1
-	if _battle.is_active() and _rules.has("ice_shroom_tundra"):
+	if _is_legal_target(zombie):
+		var can_freeze: bool = zombie.can_cold_freeze() # 气球与持杆跳跳仅接受减速。
+		var freeze_factor := Character000Base.E_Influence_Speed_Factor.IceFreezeSpeed # 区分本次原生与深寒冻结。
+		if _rules.has("ice_shroom_deep_cold"):
+			freeze_factor = Character000Base.E_Influence_Speed_Factor.DeepColdFreeze
+			if can_freeze:
+				zombie.hp_component.Hp_loss(20, BulletRegistry.AttackMode.Real, true, false)
+			if _is_legal_target(zombie):
+				# 仅复用抗火寒冷状态；解冻后的特殊减速仍占满原生减速阶段。
+				AdventureDeepCold.apply_to(zombie, _battle, _freeze_seconds + _slow_seconds,
+					_freeze_seconds, ALL_ZOMBIE_STATUSES)
+		else:
+			zombie.be_ice_freeze(_freeze_seconds, _slow_seconds)
+		if _is_legal_target(zombie) and can_freeze and zombie.can_cold_freeze() \
+				and zombie.influence_speed_factors.get(freeze_factor, 1.0) == 0.0:
+			_frozen_count += 1
+	# 冻原的生命损失不依赖寒冷免疫；非Boss仍须满足原战斗的受击资格。
+	if _battle.is_active() and _is_battle_target(zombie) and _rules.has("ice_shroom_tundra"):
 		_apply_tundra(zombie)
 
-## 验证 [param zombie] 属于本关卡且可以接受寒冷；结构与僵王由其他入口结算。
-func _is_legal_target(zombie: Zombie000Base) -> bool:
+## 判断 [param zombie] 是否仍为本战局可受击的普通敌方僵尸，独立于寒冷免疫。
+func _is_battle_target(zombie: Zombie000Base) -> bool:
 	return is_instance_valid(zombie) and not zombie.is_death and not zombie.is_queued_for_deletion() \
 		and zombie.is_inside_tree() and _battle.game.is_ancestor_of(zombie) and not zombie.is_hypno \
 		and zombie.character_init_type == Character000Base.E_CharacterInitType.IsNorm \
-		and zombie.can_receive_negative_effects() and zombie.can_receive_cold() \
 		and is_instance_valid(zombie.hurt_box_component) and zombie.hurt_box_component.is_enabling
+
+## 只有允许寒冷状态的 [param zombie] 才能进入冻结和对应奖励结算。
+func _is_legal_target(zombie: Zombie000Base) -> bool:
+	return _is_battle_target(zombie) and zombie.can_receive_negative_effects() and zombie.can_receive_cold()
 
 ## 对仍合法的 [param zombie] 以本体最大生命计算附伤，沿用真实伤害、无敌和死亡阈值。
 func _apply_tundra(zombie: Zombie000Base) -> void:
