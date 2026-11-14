@@ -18,7 +18,7 @@ signal transition_failed
 ## 场景入树时是否自动遮幕并等待可见首帧。
 @export var reveal_on_ready := true
 ## 延迟展开花园内容的真实秒数，避免短切场闪烁提示。
-@export var loading_hint_delay := 0.25
+@export var loading_hint_delay := 0.45
 
 ## 遮幕、加载、揭幕期间统一拒绝重复请求与底层输入。
 var busy := false
@@ -60,7 +60,7 @@ var _presentation: Control
 ## 初始化仅负责表现；Boot 场景可明确禁用入树揭幕。
 func _ready() -> void:
 	set_process(false)
-	_create_presentation("准备新的旅程")
+	_create_presentation()
 	if not reveal_on_ready:
 		curtain.modulate.a = 0.0
 		curtain.hide()
@@ -84,14 +84,14 @@ func _ready() -> void:
 		_prepare_frames = 2
 		RenderingServer.frame_post_draw.connect(_on_prepared_frame)
 
-## [param heading] 是当前目的地的友好标题；只重建表现，不影响资源请求与输入锁。
-func _create_presentation(heading: String) -> void:
+## 重建无文案的加载表现，不影响资源请求与输入锁。
+func _create_presentation() -> void:
 	if is_instance_valid(_presentation):
 		curtain.remove_child(_presentation)
 		_presentation.queue_free()
 	_presentation = LoadingPresentation.new()
 	_presentation.name = "LoadingPresentation"
-	_presentation.configure(heading, "让阳光先铺满小路")
+	_presentation.configure()
 	_presentation.set_content_visible(false, true)
 	curtain.add_child(_presentation)
 
@@ -107,17 +107,6 @@ func adopt_presentation(state: Dictionary) -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	_covered = true
-
-## [param scene_path] 仅用于识别现有正式目的地；返回不暴露资源路径的加载标题。
-func _heading_for(scene_path: String) -> String:
-	var path: String = scene_path.to_lower() # 路径大小写不改变目的地文案。
-	if path.contains("startmenu"):
-		return "准备进入城镇"
-	if path.contains("zombie_island") or path.contains("adventure_map"):
-		return "准备展开地图"
-	if path.contains("maingame"):
-		return "准备进入关卡"
-	return "准备新的旅程"
 
 ## 无显示后端仍等待宿主异步构造结束，仅省略真实渲染帧屏障。
 func _prepare_headless() -> void:
@@ -145,7 +134,7 @@ func run(action: Callable) -> bool:
 		return false
 	busy = true
 	_request_failed = false
-	_create_presentation("准备新的旅程")
+	_create_presentation()
 	_source_scene = get_tree().current_scene
 	curtain.show()
 	_tween = _fade_to(1.0, cover_seconds)
@@ -172,7 +161,7 @@ func change_scene(scene_path: String, after_switch: Callable = Callable(),
 	_hint_shown = false
 	_request_failed = false
 	_awaiting_visual_ready = false
-	_create_presentation(_heading_for(scene_path))
+	_create_presentation()
 	curtain.show()
 	_tween = _fade_to(1.0, cover_seconds)
 	_tween.tween_callback(func(): _covered = true)
@@ -215,7 +204,6 @@ func _process(_delta: float) -> void:
 					return
 				var paths: PackedStringArray = _initial_resource_paths(_packed_target) # 场景脚本声明的首屏动态依赖。
 				if not paths.is_empty():
-					_presentation.set_detail("正在整理旅途所需")
 					_load_batch = ResourceBatch.new()
 					if _load_batch.start(paths) != OK:
 						_failed()
@@ -243,7 +231,6 @@ func _initial_resource_paths(packed: PackedScene) -> PackedStringArray:
 ## 目标资源确认完成后唯一提交切场；交接发生于新场景入树前。
 func _finish_threaded_load() -> void:
 	_presentation.set_progress(0.94)
-	_presentation.set_detail("花园正在就位，很快就好")
 	var resource: PackedScene = _packed_target # 已完成的场景，不在此处等待线程。
 	_prepared_resources.append_array(_load_batch.resources)
 	_load_batch = null

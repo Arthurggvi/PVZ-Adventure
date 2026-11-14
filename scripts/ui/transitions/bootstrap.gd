@@ -31,7 +31,7 @@ func _request_menu() -> void:
 	_presentation.name = "LoadingPresentation"
 	add_child(_presentation)
 	_presentation.disable_action()
-	_presentation.configure("准备进入城镇", "让阳光先铺满小路")
+	_presentation.configure()
 	_presentation.set_content_visible(true, true)
 	if not _transition.change_scene(MAIN_MENU):
 		_show_failure()
@@ -42,12 +42,12 @@ func _request_menu() -> void:
 ## 已接受请求后的失败也显示可操作反馈；统一过渡负责恢复输入。
 func _show_failure() -> void:
 	_failed = true
-	_presentation.show_error("城镇暂时没有打开，请再试一次。")
+	_presentation.show_error("菜单加载失败。")
 	_presentation.set_action("重试", _request_menu)
 	if not _transition.busy:
 		_on_revealed()
 
-## 统一过渡完全释放输入后再显示错误并聚焦，避免两层文字或按钮焦点互相覆盖。
+## 统一过渡完全释放输入后再显示错误并聚焦，避免按钮焦点互相覆盖。
 func _on_revealed() -> void:
 	if not _failed:
 		return

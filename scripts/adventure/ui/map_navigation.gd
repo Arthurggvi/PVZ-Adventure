@@ -55,7 +55,6 @@ func open_from(scene: Node) -> bool:
 	_source_state = Global.global_game_state.adventure_state if Global.global_game_state != null else null
 	_source_profile = Global.user_manager.curr_user_name
 	_feedback = LoadingView.new()
-	_feedback.set_context("正在展开地图")
 	_feedback.name = "MapDestinationLoading"
 	_feedback.z_index = 100
 	_feedback.closed.connect(close)
