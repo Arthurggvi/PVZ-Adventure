@@ -2,16 +2,12 @@
 extends RefCounted
 class_name ElectricPeaBolt
 
-## 原版电弧和芦苇命中资源。
-const EFFECTS: PackedScene = preload("res://scenes/character/plant/electric_peashooter_bolt.tscn")
-## 对电弧及命中采用实际出手等阶的配色。
-const PromotionArt = preload("res://scripts/adventure/plant_art/adventure_electric_peashooter_promotion_art.gd")
+## 独立的分段电弧、分叉与命中画布，按出手等阶配色且不参与结算。
+const ArcVisual = preload("res://scripts/fx/electric_pea_arc_visual.gd")
 ## 每次放电的半径，以棋盘实际横向格宽为单位。
 const RANGE_CELLS: float = 2.0
-## 原版单道电弧显示的游戏秒数。
-const DURATION: float = 0.15
-## 原版电弧图像的参考长度，单位为世界像素。
-const LENGTH: float = 91.0
+## 折射比原始放电稍晚显示的游戏秒数；实际伤害仍在同一轮同步完成。
+const JUMP_VISUAL_DELAY: float = 0.045
 ## 放电提示音；同一轮多道弧只播一次。
 const SOUND: AudioStream = preload("res://assets/adventure/plants/electric_peashooter/audio/bolt_fire.tres")
 
@@ -90,28 +86,11 @@ static func _jump(shot: ElectricPeaShotContext, origin: Vector2, lane: int, dama
 			continue
 		visited[target_id] = true
 		if shot.is_active():
-			_show(shot, origin, impact)
+			_show(shot, origin, impact, JUMP_VISUAL_DELAY)
 		return
 
 
-## 用 [param shot] 的配色从 [param origin] 到 [param impact] 绘制共享电弧及命中动画。
-static func _show(shot: ElectricPeaShotContext, origin: Vector2, impact: Vector2) -> void:
-	var bolt: Node2D = _spawn_effect(shot, &"bolt", origin) # 电弧资源的横轴对齐真实两端。
-	var direction: Vector2 = impact - origin # 方向和距离决定表现的旋转及长度。
-	bolt.global_rotation = direction.angle()
-	bolt.scale.x = maxf(1.0, direction.length()) / LENGTH
-	_spawn_effect(shot, &"hit", impact)
-
-
-## 在 [param shot] 的战场于 [param at] 播放 [param clip]；返回独立动画节点并在播完后释放。
-static func _spawn_effect(shot: ElectricPeaShotContext, clip: StringName, at: Vector2) -> Node2D:
-	var effect: Node2D = EFFECTS.instantiate() as Node2D # 原资源自带换色和动画结构。
-	PromotionArt.apply_to_effect(effect, shot.appearance_rank)
-	shot.game.bullets.add_child(effect)
-	effect.global_position = at
-	effect.z_index = 350
-	var player: AnimationPlayer = effect.get_node(^"AnimationPlayer") as AnimationPlayer # 每段动画独立回收。
-	player.animation_finished.connect(func(_clip: StringName) -> void: effect.queue_free(), CONNECT_ONE_SHOT) # _clip 是结束的动画名。
-	var rate: float = player.get_animation(clip).length / DURATION if clip == &"bolt" else 1.0 # 命中保留原动画速度。
-	player.play(clip, -1.0, rate)
-	return effect
+## 用 [param shot] 的配色从 [param origin] 到 [param impact] 绘制电弧与命中碎光。
+## [param delay] 仅用于折射的表现接力，不改变本函数之外的同步结算。
+static func _show(shot: ElectricPeaShotContext, origin: Vector2, impact: Vector2, delay: float = 0.0) -> void:
+	ArcVisual.spawn(shot, origin, impact, delay)

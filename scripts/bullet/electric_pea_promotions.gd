@@ -8,7 +8,7 @@ var speed_multiplier: float = 1.0
 var bolt_targets: int = 2
 ## 跳跃允许的横向格数；零表示未选择。
 var jump_cells: float = 0.0
-## 分道到达相邻行需要的横向格数；零表示只发中路。
+## 锥形射线跨越一行的参考横向格数；夹角另受14度上限约束，零表示只发中路。
 var spread_cells: float = 0.0
 ## 每次实际攻击命中的眩晕秒数。
 var stun_seconds: float = 0.0

@@ -61,19 +61,41 @@ static func height_at(slope: MainGameSlope, world_x: float) -> float:
 	return slope.get_all_slope_y(world_x) if is_instance_valid(slope) else 0.0
 
 
+## 返回 [param board] 中距离 [param point] 地面投影最近的真实攻击行。
+## [param slope] 统一剔除屋顶高差；无有效地块时沿用 [param fallback]，不制造边界外的攻击行。
+static func nearest_lane(board: BoardRuntime, point: Vector2, slope: MainGameSlope, fallback: int) -> int:
+	var flat_point := Vector2(point.x, point.y - height_at(slope, point.x)) # 弹体当前地面投影的展开坐标。
+	var closest: float = INF # 同一展开平面内的最小距离平方。
+	var lane: int = fallback # 空板或正在清理时保留最后一个有效行号。
+	for cell: PlantCell in board.cells(): # 每次查询使用平台移动后的真实地块位置。
+		if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_visible_in_tree():
+			continue
+		var center: Vector2 = cell.get_global_rect().get_center() # 屋顶高度在地块自身横坐标处剔除。
+		center.y -= height_at(slope, center.x)
+		var distance: float = flat_point.distance_squared_to(center) # 枪口离地偏移已由调用者抵消。
+		if distance < closest:
+			closest = distance
+			lane = cell.row_col.x
+	return lane
+
+
 ## 将 [param start] 到 [param finish] 按 [param slope] 折点拆段，[param start_y] 到 [param finish_y] 为这一段的坡面相对高度。
 static func path_points(start: Vector2, finish: Vector2, slope: MainGameSlope,
 		start_y: float, finish_y: float) -> Array[Vector2]:
 	var breaks: Array[float] = [] # 只处理本帧经过的有限屋顶折点。
+	var left: float = minf(start.x, finish.x) # 正反向共用的经过区间左端点。
+	var right: float = maxf(start.x, finish.x) # 竖直飞行时区间为空，不执行横向插值。
 	if is_instance_valid(slope):
 		for part: Slope in slope.all_slopes: # 低帧率跨坡时仍沿坡面飞行。
 			if not is_instance_valid(part):
 				continue
 			for boundary: float in [part.slope_global_pos_x_range.x, part.slope_global_pos_x_range.y]: # 坡段两端。
-				if boundary > start.x and boundary < finish.x and not breaks.has(boundary):
+				if boundary > left and boundary < right and not breaks.has(boundary):
 					breaks.append(boundary)
 	breaks.sort()
-	var points: Array[Vector2] = [start] # 保持从左至右的实际飞行顺序。
+	if finish.x < start.x:
+		breaks.reverse()
+	var points: Array[Vector2] = [start] # 顺序始终沿实际速度方向，包括向左飞行的分裂后代。
 	for boundary: float in breaks: # 每个折点高度来自同一坡面接口。
 		var fraction: float = inverse_lerp(start.x, finish.x, boundary) # 同步插值斜向弹道的离地高度。
 		points.append(Vector2(boundary, lerpf(start_y, finish_y, fraction) + height_at(slope, boundary)))

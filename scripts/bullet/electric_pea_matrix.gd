@@ -6,19 +6,37 @@ class_name ElectricPeaMatrix
 const NODE_NAME: StringName = &"ElectricPeaMatrix"
 ## 每六十分之一游戏秒独立扣一次伤。
 const STEP: float = 1.0 / 60.0
-## 电弧的真实世界宽度与绘制宽度共用同一参数，单位为像素。
+## 电弧的真实世界宽度与连续主线宽度共用同一参数，单位为像素。
 const WIDTH: float = 2.0
-## 单画布绘制的电弧颜色。
-const COLOR := Color(0.44, 0.85, 1.0, 0.82)
+## 最多为这些真实连线叠加流动碎电光，其余连线仍完整绘制真实主线。
+const DECORATION_BUDGET: int = 96
+## 矩阵沿用同一出手等阶的独立电能配色。
+const PromotionArt = preload("res://scripts/adventure/plant_art/adventure_electric_peashooter_promotion_art.gd")
+## 与短时放电共用稳定几何及细芯绘制，不共用伤害或生命周期。
+const ArcVisual = preload("res://scripts/fx/electric_pea_arc_visual.gd")
 
 ## 源植株实例 ID 到个体电球列表；换场或空组时回收。
 var _groups: Dictionary[int, Array] = {}
 ## 当前展示帧的线段端点，每对端点为一条独立线。
 var _lines := PackedVector2Array()
+## 每条线右端电球的实际出手配色，与本线真实伤害的出手快照一致。
+var _line_ranks := PackedInt32Array()
+## 由真实端点身份生成的稳定噪声种子，排序移动不会导致逐帧闪烁。
+var _line_seeds := PackedInt64Array()
+## 仅非暂停时推进的表现游戏秒数，独立于固定伤害累积器。
+var _visual_time: float = 0.0
+## 五档颜色只在画布建立时读取，逐帧绘制不复制色表字典。
+var _colors: Array[Dictionary] = []
 ## 固定结算帧尚未消费的游戏秒数。
 var _elapsed: float = 0.0
 ## 整个战场共用一份几何探针，每段调整长度。
 var _probe := RectangleShape2D.new()
+
+
+## 只缓存表现用色；矩阵登记、排序和固定伤害时钟沿用原生命周期。
+func _ready() -> void:
+	for rank: int in range(5): # 五阶色表固定，所有同阶连线只读共享。
+		_colors.append(PromotionArt.effect_colors(rank))
 
 
 ## 将 [param ball] 登记到其原战场，扩散和分裂后代沿用相同来源ID。
@@ -42,6 +60,8 @@ static func register_ball(ball: ElectricPeaProjectile) -> void:
 ## 在 [param delta] 游戏物理秒内消费所有应到的固定帧；暂停时只清理失效节点并更新画布。
 func _physics_process(delta: float) -> void:
 	_lines.clear()
+	_line_ranks.clear()
+	_line_seeds.clear()
 	var networks: Array[Array] = [] # 只有至少两枚有效球的植株有可计算线段。
 	var game: MainGameManager = null # 每个画布仅服务自己的唯一战场。
 	for id: int in _groups.keys(): # 已离场的电球不占据活跃列表。
@@ -61,6 +81,8 @@ func _physics_process(delta: float) -> void:
 		for index: int in range(1, balls.size()): # 每个球只连接排序中的前一个球，总共 N-1 条。
 			_lines.append(to_local(balls[index - 1].global_position))
 			_lines.append(to_local(balls[index].global_position))
+			_line_ranks.append(clampi(balls[index].shot.appearance_rank, 0, 4))
+			_line_seeds.append(balls[index - 1].get_instance_id() ^ (balls[index].get_instance_id() * 31))
 	queue_redraw()
 	if _groups.is_empty():
 		queue_free()
@@ -70,6 +92,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if get_tree().paused:
 		return
+	_visual_time += delta
 	_elapsed += delta
 	if _elapsed + 0.000001 < STEP:
 		return
@@ -134,7 +157,49 @@ static func _position_less(a: ElectricPeaProjectile, b: ElectricPeaProjectile) -
 	return a.global_position.y < b.global_position.y
 
 
-## 同一画布一次绘制所有简单连线。
+## 按出手等阶批绘准确的连续主线，并在固定预算内添加小幅流动电光。
 func _draw() -> void:
-	if not _lines.is_empty():
-		draw_multiline(_lines, COLOR, WIDTH, true)
+	if _lines.is_empty():
+		return
+	for rank: int in range(5): # 最多五组基础批次，球数增加不增加基础绘制调用数。
+		var segments := PackedVector2Array() # 本阶所有真实端点仍严格按原始邻接关系连通。
+		for index: int in range(_line_ranks.size()): # 连线配色与承担这条线伤害的右端电球一致。
+			if _line_ranks[index] == rank:
+				segments.append(_lines[index * 2])
+				segments.append(_lines[index * 2 + 1])
+		if segments.is_empty():
+			continue
+		var colors: Dictionary = _colors[rank] # 白亮芯、低饱和边缘、极淡外光分层。
+		draw_multiline(segments, Color(colors.glow, 0.035), 7.0, true)
+		draw_multiline(segments, Color(colors.rim, 0.08), 4.0, true)
+		draw_multiline(segments, Color(colors.rim, 0.32), WIDTH, true)
+		draw_multiline(segments, Color(colors.core, 0.62), 0.85, true)
+	for index: int in range(mini(_line_ranks.size(), DECORATION_BUDGET)): # 超出预算只省略装饰，所有真实线与结算仍保留。
+		_draw_current(_lines[index * 2], _lines[index * 2 + 1], _line_seeds[index],
+			_colors[_line_ranks[index]])
+
+
+## 在 [param start] 至 [param finish] 的真实直线上绘制短电流前沿。
+## [param seed] 固定各连线错开的节奏，[param colors] 为出手三色；侧偏不足一像素，不冒充额外碰撞宽度。
+func _draw_current(start: Vector2, finish: Vector2, seed: int, colors: Dictionary) -> void:
+	var direction: Vector2 = finish - start # 主判定始终是未偏移的两点直线。
+	var length: float = direction.length() # 过短的连线只保留准确主线。
+	if length < 8.0:
+		return
+	var clock: float = _visual_time + ArcVisual.noise(seed, 1) * 0.54 # 每条线错开脉冲，避免整片矩阵同步频闪。
+	var cycle: int = floori(clock / 0.54) # 每半秒只换一次固定细碎形态。
+	var phase: float = fposmod(clock, 0.54) / 0.54 # 一个电流包由前端滑到后端。
+	var energy: float = sin(phase * PI) * 0.76 # 在每轮首尾完全淡出后才切换形态。
+	var span: float = minf(0.30, 28.0 / length) # 亮包只占短段，长连线也不出现大片光带。
+	var head: float = lerpf(span, 1.0, phase) # 亮包的前端始终停在真实端点以内。
+	var tail: Vector2 = start.lerp(finish, head - span) # 短包开始处精确贴合主线。
+	var tip: Vector2 = start.lerp(finish, head) # 短包结束处精确贴合主线。
+	var path: PackedVector2Array = ArcVisual.make_path(tail, tip, seed + cycle * 71, 0.85, 5.5, 7) # 最多七段且偏移小于真实半宽。
+	ArcVisual.draw_strand(self, path, colors, energy, 0.85)
+	if phase > 0.25 and phase < 0.63:
+		var root: Vector2 = path[path.size() / 2] # 短枝从当前电流包中段发出。
+		var side: float = -1.0 if seed % 2 == 0 else 1.0 # 由线身份决定朝向，保持稳定。
+		var spur := PackedVector2Array([root, root + direction.normalized() * 1.7 + direction.normalized().orthogonal() * side * 2.2,
+			root + direction.normalized() * 4.0 + direction.normalized().orthogonal() * side * 3.8]) # 仅一根不超过四像素侧偏的小枝。
+		draw_polyline(spur, Color(colors.rim, energy * 0.16), 1.6, true)
+		draw_polyline(spur, Color(colors.core, energy * 0.36), 0.65, true)

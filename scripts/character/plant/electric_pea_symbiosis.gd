@@ -6,8 +6,8 @@ class_name ElectricPeaSymbiosis
 const AURA_SOURCE: StringName = &"electric_pea_symbiosis"
 ## 可提供共生的两种实际雷电植物ID。
 const ELECTRIC_TYPES: Array[int] = [50, 52]
-## 轻量连线的像素宽度和颜色使用固定表现。
-const LINE_COLOR := Color(0.59, 0.87, 1.0, 0.68)
+## 共生和电球共用本物种的电青、紫白色表，不改变闪电芦苇的本体。
+const PromotionArt = preload("res://scripts/adventure/plant_art/adventure_electric_peashooter_promotion_art.gd")
 
 ## 光环接受者；节点随此株一起离场。
 var plant: Plant000Base
@@ -19,6 +19,12 @@ var bonus_per_plant: float = 0.0
 var _bonus: float = 0.0
 ## 当前邻居的绘制端点，相对于本画布。
 var _links := PackedVector2Array()
+## 冻结的出战外观等级，仅影响光环连线，不参与增伤计算。
+var _appearance_rank: int = 0
+## 共生细流的有效表现秒数，暂停时不推进。
+var _visual_age: float = 0.0
+## 表现更新的未消费秒数，最多每秒重绘二十次。
+var _visual_remainder: float = 0.0
 
 
 ## 为 [param owner_plant] 安装从 [param mouth] 显示的共生；未选择 [param bonus] 时返回空。
@@ -29,8 +35,10 @@ static func install(owner_plant: Plant000Base, mouth: Marker2D, bonus: float) ->
 	aura.plant = owner_plant
 	aura.launch = mouth
 	aura.bonus_per_plant = bonus
+	aura._appearance_rank = owner_plant.plant_spawn_profile.promotion_tier() if owner_plant.plant_spawn_profile != null else 0
 	aura.z_index = 300
 	owner_plant.add_child(aura)
+	aura.set_process(false)
 	owner_plant.signal_character_death.connect(aura.clear)
 	return aura
 
@@ -73,6 +81,16 @@ func _set_links(endpoints: PackedVector2Array) -> void:
 			plant.set_battle_aura_damage_source(AURA_SOURCE, bonus)
 	if _links != endpoints:
 		_links = endpoints
+		set_process(not _links.is_empty())
+		queue_redraw()
+
+
+## [param delta] 只推进连接中的低亮度电流，空光环不占用逐帧处理。
+func _process(delta: float) -> void:
+	_visual_age += delta
+	_visual_remainder += delta
+	if _visual_remainder >= 0.05:
+		_visual_remainder = fmod(_visual_remainder, 0.05)
 		queue_redraw()
 
 
@@ -81,7 +99,17 @@ func _exit_tree() -> void:
 	clear()
 
 
-## 本株只需一个绘制节点即可显示全部共生连接。
+## 共生使用低亮度细流，与伤害矩阵的连续亮芯区分；端点始终跟随真实植物。
 func _draw() -> void:
-	if not _links.is_empty():
-		draw_multiline(_links, LINE_COLOR, 1.5, true)
+	var colors: Dictionary = PromotionArt.effect_colors(_appearance_rank) # 五阶共生与电球使用相同的清亮配色。
+	var phase: int = floori(_visual_age * 7.0) # 离散电流节奏避免每帧随机抖动。
+	for index: int in range(0, _links.size(), 2): # 每对端点仍只代表一株邻居。
+		var start: Vector2 = _links[index] # 本株枪口在画布中的位置。
+		var finish: Vector2 = _links[index + 1] # 相邻植物的真实锚点。
+		if start.distance_squared_to(finish) < 1.0:
+			continue
+		var strand: PackedVector2Array = ElectricPeaArcVisual.make_path(start, finish,
+			index * 43 + phase, 1.8, 16.0, 16) # 只有微小摆动，不能表现成伤害范围。
+		ElectricPeaArcVisual.draw_strand(self, strand, colors, 0.24, 0.65)
+		var progress: float = fposmod(_visual_age * 0.65 + float(index) * 0.17, 1.0) # 各连线错相，能量从邻株流向本株。
+		draw_circle(finish.lerp(start, progress), 1.15, Color(colors.core, 0.50), true, -1.0, true)
