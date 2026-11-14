@@ -2,6 +2,9 @@
 extends Node
 class_name AdventureSnowPeaPromotion
 
+## 一格风推持续的战斗秒数，与暴雪主体的横向运动保持一致。
+const BLIZZARD_PUSH_SECONDS: float = 0.60
+
 ## 寒冰射手原实例；加射受其攻击和生命状态约束。
 var _plant: Plant006SnowPea
 ## 入树前冻结的技能配置。
@@ -68,11 +71,12 @@ func _count_shot(shot: SnowPeaShot, origin: Vector2) -> void:
 	_shot_count = 0
 	var game: MainGameManager = shot.battle.game # 当前正式战场。
 	var lane: int = _plant.lane # 只作用于实际攻击行。
-	var cells: float = _loadout.number(&"chione", &"cells") # 每个目标按当前位置的实际棋盘格距击退。
+	var cells: float = clampf(_loadout.number(&"chione", &"cells", 1.0), 0.0, 1.0) # 旧存档的两格配置也限制在一格内。
 	for zombie: Zombie000Base in game.zombie_manager.all_zombies_2d[lane].duplicate(): # 原位移入口过滤载具和死亡目标。
-		if is_instance_valid(zombie) and not zombie.is_hypno:
+		if is_instance_valid(zombie) and not zombie.is_hypno and is_instance_valid(zombie.move_component):
 			var pitch: Vector2 = shot.battle.pitch_at(zombie.global_position, lane) # 移动平台读取当前而非发射时的尺寸。
-			zombie.apply_projectile_knockback(pitch.x * cells)
+			zombie.move_component.apply_forced_displacement(Vector2(pitch.x * cells, 0.0),
+				BLIZZARD_PUSH_SECONDS, 0.0, Callable(), true, shot.battle.is_active)
 	SnowPeaBlizzardVisual.spawn(shot.battle, origin, lane)
 	_volley = shot
 	_extra_left = int(_loadout.number(&"chione", &"shots"))

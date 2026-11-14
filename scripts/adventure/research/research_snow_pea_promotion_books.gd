@@ -25,6 +25,6 @@ const BOOKS: Dictionary = {
 		"title": "斯卡蒂", "summary": "被豌豆击杀的敌人会变成冰雕。冰雕再受攻击就会爆裂，射出16枚可穿透的冰锥，每枚增加5点冻结值。", "plant_type": 6, "tier": 4,
 		"effects": [{"kind": "snow_pea_skadi", "prism_count": 16, "prism_points": 5}]},
 	"promotion_snow_pea_chione": {
-		"title": "喀俄涅", "summary": "每攻击5次，吹起暴雪将本行敌人击退2格，并追加5连射。", "plant_type": 6, "tier": 4,
-		"effects": [{"kind": "snow_pea_chione", "period": 5, "cells": 2.0, "shots": 5, "spacing": 0.10}]},
+		"title": "喀俄涅", "summary": "每攻击5次，吹起暴雪将本行敌人平滑击退1格，并追加5连射。", "plant_type": 6, "tier": 4,
+		"effects": [{"kind": "snow_pea_chione", "period": 5, "cells": 1.0, "shots": 5, "spacing": 0.10}]},
 }

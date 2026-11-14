@@ -2,7 +2,7 @@
 extends RefCounted
 class_name SnowPeaImpact
 
-## [param target] 是实际直击且存活的僵尸；[param shot] 提供出战词条。
+## [param target] 是直接承受命中且存活的僵尸；格挡归零不等于状态免疫。[param shot] 提供出战词条。
 ## [param was_slowed] 为扣血前快照；[param prism] 添加棱锥冻结值；[param contact] 标识当前接触。
 static func apply_direct_status(target: Zombie000Base, shot: SnowPeaShot, was_slowed: bool,
 		prism: bool, contact: int) -> void:
@@ -46,7 +46,8 @@ static func _apply_chill(target: Zombie000Base, shot: SnowPeaShot, allow_damage:
 			shot.battle.source_id, shot.slow_seconds)
 		return
 	var duration: float = shot.loadout.number(&"deep_cold", &"seconds") if freeze else 0.0 # 溅射只施加抗火减速。
-	if allow_damage and duration > 0.0 and target.can_cold_freeze() and not target.is_cold_frozen():
+	var was_frozen: bool = target.is_cold_frozen() # 深寒只在真正进入冻结时补伤和播放结晶，续时不重复。
+	if allow_damage and duration > 0.0 and target.can_cold_freeze() and not was_frozen:
 		var hp := target.hp_component as HpComponentZombie # 附伤使用和原生冰冻相同的真实伤害路由。
 		var scope: CombatHitScope = SnowPeaStatueHit.new(shot, contact) if contact > 0 and shot.loadout.has(&"skadi") else null # 只有根弹附伤能触发冻结死亡。
 		hp.apply_hit(int(shot.loadout.number(&"deep_cold", &"damage")), BulletRegistry.AttackMode.Real,
@@ -54,6 +55,8 @@ static func _apply_chill(target: Zombie000Base, shot: SnowPeaShot, allow_damage:
 	if _can_chill(target, shot):
 		AdventurePlantNegativeEffects.apply(target, AdventurePlantNegativeEffects.Kind.DEEP_COLD,
 			shot.battle.source_id, shot.slow_seconds, duration, {"battle": shot.battle, "statuses": shot.zombie_statuses()})
+		if not was_frozen and target.is_cold_frozen():
+			SnowPeaStatueBurst.crystallize(shot.battle, target)
 
 ## [param target] 当前仍处于 [param shot] 允许的寒冷受击状态时返回真。
 static func _can_chill(target: Zombie000Base, shot: SnowPeaShot) -> bool:
@@ -84,6 +87,7 @@ static func _splash(direct_id: int, position: Vector2, lane: int, damage: int, s
 	if amount <= 0:
 		return
 	var width: float = shot.loadout.number(&"cold_extract", &"width_cells") # 即时棋盘格距的倍数。
+	SnowPeaSplashVisual.spawn(shot.battle, position, lane, width)
 	var areas := RepeaterFieldQueries.area(shot.battle, position, lane, width) # 复用实际受击层的矩形宽相查询。
 	var scope := CombatHitScope.new() # 即使多名目标转移给同一个保护者也只结算一次。
 	for target: Character000Base in CombatExplosion.plant_blast_targets(areas, lane, 1, shot.zombie_statuses()): # 按角色去重后的候选。
@@ -93,8 +97,8 @@ static func _splash(direct_id: int, position: Vector2, lane: int, damage: int, s
 				or target.get_instance_id() == direct_id \
 				or (target is SnowPeaStatue and target.was_created_by(shot, contact)):
 			continue
-		var receipt: Dictionary = {} # 只给本次实际受伤且存活的直接溅射目标共享减速。
+		var receipt: Dictionary = {} # 减速跟随直接溅射命中；伤害被格挡不应成为额外的寒冷免疫。
 		target.be_attacked_bullet(amount, BulletRegistry.AttackMode.Norm, true, false, 0, -1, receipt, scope)
 		if target is Zombie000Base and receipt.get("recipient") == target \
-				and int(receipt.get("actual_loss", 0)) > 0 and _can_chill(target, shot) and _unshielded(target):
+				and not bool(receipt.get("duplicate_hit", false)) and _can_chill(target, shot) and _unshielded(target):
 			_apply_chill(target, shot, false, false)

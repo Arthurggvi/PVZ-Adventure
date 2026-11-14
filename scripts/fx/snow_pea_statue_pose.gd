@@ -1,9 +1,11 @@
-## 采集僵尸致死前的可见绘制分件，以静态原画显示冰雕。
+## 采集僵尸致死前的原画姿势，以轮廓内透明冰壳和自下而上的结晶显示冰雕。
 extends Node2D
 class_name SnowPeaStatuePose
 
-## 冰雕的统一浅蓝乘色，强调冻结轮廓并保持原画细节。
-const ICE_COLOR: Color = Color(0.54, 0.84, 1.0, 0.96)
+## 冰壳只采样原画，不复制僵尸的动画、状态材质或游戏逻辑。
+const ICE_SHADER: Shader = preload("res://scripts/fx/snow_pea_statue_ice.gdshader")
+## 结晶扫描的有效战斗秒数，结束后停止逐帧处理。
+const FORM_SECONDS: float = 0.42
 
 ## 一片冻结的原画，保留姿势、帧选区和合成绘制层。
 class Part:
@@ -22,9 +24,16 @@ class Part:
 
 ## 当前冰雕唯一的绘制数据，不持有原节点。
 var _parts: Array[Part] = []
+## 原画变换后的局部范围，用于结晶高度和破碎分布。
+var _bounds: Rect2 = Rect2(-20.0, -82.0, 40.0, 82.0)
+## 每座冰雕私有的形成进度，避免多座同时触发时相互重置。
+var _ice_material: ShaderMaterial
+## 当前结晶动画年龄，完成后保持静态。
+var _age: float = 0.0
 
 ## 复制 [param body] 此刻的可见原画；[param feet] 为新设施局部原点。
 func capture(body: BodyCharacter, feet: Vector2) -> void:
+	_parts.clear()
 	for node: Node in body.find_children("*", "", true, false): # 只采集可见静态纹理和正在显示的帧。
 		if not (node is Sprite2D or node is AnimatedSprite2D) or not node.is_visible_in_tree():
 			continue
@@ -52,8 +61,30 @@ func capture(body: BodyCharacter, feet: Vector2) -> void:
 		part.pose *= Transform2D(0.0, center).scaled_local(mirror).translated_local(-center)
 		part.depth = _depth(node, body)
 		part.order = _parts.size()
+		var extent: Rect2 = part.pose * part.rect # 包括持盾、弯腰及不同体型的真实可见范围。
+		_bounds = extent if _parts.is_empty() else _bounds.merge(extent)
 		_parts.append(part)
 	_parts.sort_custom(_draws_before)
+	queue_redraw()
+
+## 安装时已取得最终世界位置，所有分件共享连续的结晶前沿。
+func _ready() -> void:
+	_ice_material = ShaderMaterial.new()
+	_ice_material.shader = ICE_SHADER
+	_ice_material.set_shader_parameter(&"vertical_bounds",
+		Vector2(global_position.y + _bounds.position.y, global_position.y + _bounds.end.y))
+	material = _ice_material
+
+## [param delta] 只推进形成动画；完成后原画与冰壳不再重绘或更新参数。
+func _process(delta: float) -> void:
+	_age = minf(FORM_SECONDS, _age + delta)
+	_ice_material.set_shader_parameter(&"formation", smoothstep(0.0, FORM_SECONDS, _age))
+	if _age >= FORM_SECONDS:
+		set_process(false)
+
+## 返回冰雕原画的局部范围，提供给独立的形成与破碎画布。
+func get_pose_bounds() -> Rect2:
+	return _bounds
 
 ## 返回 [param sprite] 相对于 [param body] 的展开绘制层。
 func _depth(sprite: CanvasItem, body: CanvasItem) -> int:
@@ -74,4 +105,5 @@ func _draws_before(first: Part, second: Part) -> bool:
 func _draw() -> void:
 	for part: Part in _parts: # 原遮挡顺序保留。
 		draw_set_transform_matrix(part.pose)
-		draw_texture_rect_region(part.texture, part.rect, part.region, ICE_COLOR)
+		draw_texture_rect_region(part.texture, part.rect, part.region)
+	draw_set_transform(Vector2.ZERO)

@@ -215,7 +215,7 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 ## [param armor_multiplier] 仅放大装备防具损伤，默认一倍；临时生命池与本体沿用原伤害。
 ## [param bonus_damage] 普通、穿透或背击携带的同击附伤；[param bonus_cap] 为放大后上限，-1 不限制。
 ## [param receipt] 可选字典，报告实际承伤者及损失；无敌、旧尸体和强制生命调整均记零战斗损失。
-## [param hit_scope] 在保护者转移完成后、发出受击事件前消费，重复承伤回报零损失。
+## [param hit_scope] 在保护者转移完成后、发出受击事件前消费；重复承伤回报零损失并标记 duplicate_hit，区别于格挡归零。
 ## 返回本次从存活变死亡的实际受击者；转移伤害时可返回保护者。
 func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 		is_drop_on_death: bool, trigger_be_attack_SFX: bool, is_drop_2: bool = true,
@@ -233,6 +233,8 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 					is_drop_on_death, trigger_be_attack_SFX, is_drop_2, armor_multiplier, bonus_damage, bonus_cap, receipt, hit_scope)
 	# 转移先决定真正承伤者；不能在原接触目标提前占用资格。
 	if hit_scope != null and not hit_scope.try_claim(owner_character):
+		if receipt is Dictionary:
+			receipt["duplicate_hit"] = true
 		return null
 	# 只有本次受击产生的状态变化算击杀，已死亡的角色不重复回报。
 	var was_alive: bool = not is_death

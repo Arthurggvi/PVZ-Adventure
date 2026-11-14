@@ -10,6 +10,10 @@ var _shot: SnowPeaShot
 var _contact: int
 ## 16枚棱锥相对于冰雕的爆心，来自原真实受击区域。
 var _burst_offset: Vector2
+## 原画冰壳用于读取可见范围，不复制角色动画或状态。
+var _pose: SnowPeaStatuePose
+## 实际承伤只播放一次破碎，防止同帧的重复信号叠出多份画布与棱锥。
+var _fractured: bool = false
 
 ## [param zombie] 即将在原生路由中死亡；[param shot] 与 [param contact] 唯一标识该次接触。
 ## 在死亡信号前采集姿势与受击几何，入树等待当前物理冲刷和致死事务完成。
@@ -60,9 +64,9 @@ func _copy_collision(zombie: Zombie000Base, feet: Vector2) -> void:
 ## [param zombie] 为当前姿势来源；[param feet] 将其可见原画定位到冰雕局部。
 func _copy_pose(zombie: Zombie000Base, feet: Vector2) -> void:
 	var display := get_node("Body") as BodyCharacter # 只挂静态绘制节点，不复制动画和角色脚本。
-	var pose := SnowPeaStatuePose.new() # 材质和原图快照与原尸体独立。
-	pose.capture(zombie.body, feet)
-	display.add_child(pose)
+	_pose = SnowPeaStatuePose.new()
+	_pose.capture(zombie.body, feet)
+	display.add_child(_pose)
 
 ## 在安全阶段使用 [param feet] 安装设施；[param original] 只在原死亡事务结束后隐藏原身体。
 func _mount(feet: Vector2, original: WeakRef) -> void:
@@ -78,6 +82,7 @@ func _mount(feet: Vector2, original: WeakRef) -> void:
 		corpse.shadow.hide()
 	position = _shot.battle.game.items.to_local(feet)
 	_shot.battle.game.items.add_child(self)
+	SnowPeaStatueBurst.spawn(_shot.battle, feet, _pose.get_pose_bounds(), false, z_index)
 
 ## [param _delta] 不推进冰雕寿命；当前轮次或阶段失效时撤销设施。
 func _physics_process(_delta: float) -> void:
@@ -88,7 +93,9 @@ func _physics_process(_delta: float) -> void:
 ## 实际伤害才触发破碎。直接清场和无伤命中不进入此入口。
 ## [param loss] 为原生生命组件报告的实际伤害。
 func _on_combat_health_lost(loss: int) -> void:
-	if loss > 0 and _shot.battle.is_active():
+	if loss > 0 and not _fractured and _shot.battle.is_active():
+		_fractured = true
+		SnowPeaStatueBurst.spawn.call_deferred(_shot.battle, global_position, _pose.get_pose_bounds(), true, z_index)
 		_release_prisms.call_deferred(_shot, to_global(_burst_offset), lane)
 
 ## [param shot]、[param position] 与 [param source_lane] 已冻结，不依赖已碎的冰雕。

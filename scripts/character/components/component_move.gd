@@ -107,8 +107,16 @@ class ForcedMotion:
 	var initial_lift: float = 0.0
 	## 本次新增的抛物线高度，单位世界像素。
 	var arc_height: float = 0.0
+	## 水平风推使用缓入缓出；其他已有位移保持线性时序。
+	var smooth_push: bool = false
+	## 可选的风推战局门禁，结束或换阶段后取消余程，不执行完成回调。
+	var push_validity: Callable
 	## 只有存活并到达轨迹终点才执行的回调。
 	var on_finish: Array[Callable] = []
+
+	## 将时间进度 [param progress] 转为位移进度；两端速度归零，避免瞬移式起停。
+	func travel_at(progress: float) -> float:
+		return progress * progress * (3.0 - 2.0 * progress) if smooth_push else progress
 
 	## 按 [param progress]（0 到 1）合成抛高，落地时恢复到地面。
 	func lift_at(progress: float) -> float:
@@ -177,9 +185,12 @@ func can_receive_forced_displacement() -> bool:
 ## 将存活角色移动 [param offset] 世界像素，X 向右，Y 向下。
 ## [param seconds] 为 0 时立即移动。[param height] 为抛物线高度，纯换行和吹动可与抛起叠加。
 ## [param landed] 在完成位移时调用。连续抛起保留剩余位移和回调，死亡时取消。
+## [param smooth_push] 仅为纯水平推移启用缓动；重叠的同向风推合并到当前终点，不累计多格位移。
+## [param push_validity] 可限制缓动风推的战局寿命；其他原生位移不使用此门禁。
 ## 返回是否接受本次位移。离场、死亡或无效参数返回 false。
 func apply_forced_displacement(offset: Vector2, seconds: float = 0.0,
-		height: float = 0.0, landed: Callable = Callable()) -> bool:
+		height: float = 0.0, landed: Callable = Callable(), smooth_push: bool = false,
+		push_validity: Callable = Callable()) -> bool:
 	if not can_receive_forced_displacement() or not offset.is_finite() \
 			or not is_finite(seconds) or seconds < 0.0 or not is_finite(height) or height < 0.0:
 		return false
@@ -193,6 +204,15 @@ func apply_forced_displacement(offset: Vector2, seconds: float = 0.0,
 	motion.duration = seconds
 	motion.arc_height = height
 	var kind: E_ForcedMotion = E_ForcedMotion.LaneShift if offset.x == 0.0 else E_ForcedMotion.Push # 默认按位移方向区分。
+	motion.smooth_push = smooth_push and height == 0.0 and offset.y == 0.0 and kind == E_ForcedMotion.Push
+	if motion.smooth_push:
+		motion.push_validity = push_validity
+		var active_push: ForcedMotion = _forced_motions.get(kind) # 同时触发的暴雪共享尚未完成的一格滑行。
+		if active_push != null and active_push.smooth_push and signf(active_push.offset.x) == signf(offset.x) \
+				and (not active_push.push_validity.is_valid() or bool(active_push.push_validity.call())):
+			if landed.is_valid():
+				active_push.on_finish.append(landed)
+			return true
 	if height > 0.0:
 		kind = E_ForcedMotion.Launch
 		var previous: ForcedMotion = _forced_motions.get(kind) # 重抛时沿用在空中的高度和余程。
@@ -220,10 +240,13 @@ func _physics_process(delta: float) -> void:
 	var completed: Array[Callable] = [] # 回调可结束战斗或新增位移，延迟到更新所有轨迹之后。
 	for kind: E_ForcedMotion in _forced_motions.keys(): # 键快照允许删除已完成的轨迹。
 		var motion: ForcedMotion = _forced_motions[kind] # 本帧正在推进的轨迹。
+		if motion.push_validity.is_valid() and not bool(motion.push_validity.call()):
+			_forced_motions.erase(kind)
+			continue
 		var before: float = motion.elapsed / motion.duration # 本帧开始前已走过的比例。
 		motion.elapsed = minf(motion.elapsed + delta, motion.duration)
 		var progress: float = motion.elapsed / motion.duration # 本帧结束时应走到的比例。
-		_shift_forced(motion.offset * (progress - before))
+		_shift_forced(motion.offset * (motion.travel_at(progress) - motion.travel_at(before)))
 		if kind == E_ForcedMotion.Launch:
 			body.set_forced_lift(motion.lift_at(progress))
 		if progress == 1.0:

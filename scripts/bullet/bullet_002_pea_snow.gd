@@ -37,7 +37,7 @@ func _ready() -> void:
 	if is_prism:
 		_prism_scope = CombatHitScope.new()
 	if promotion_shot.loadout.has(&"deep_cold"):
-		body.modulate = Color(0.25, 0.46, 1.0)
+		body.modulate = Color(0.56, 0.76, 1.0)
 
 ## [param delta] 为实战秒；棱锥保留原生射程门禁并额外限制寿命。
 func _physics_process(delta: float) -> void:
@@ -56,39 +56,41 @@ func _continues_after_hit(enemy: Character000Base) -> bool:
 		return enemy is Zombie000Base and not enemy.is_hypno and enemy.is_cold_slowed()
 	return super(enemy)
 
-## 回廊中途命中特效需要复制；棱锥的轻量场景不带粒子。
+## 回廊和棱锥中途命中特效独立复制，避免首次命中移走后续碰撞所需的效果节点。
 func _copies_continuing_hit_effect() -> bool:
-	return promotion_shot != null and promotion_shot.loadout.has(&"corridor")
+	return is_prism or (promotion_shot != null and promotion_shot.loadout.has(&"corridor"))
 
-## 转职命中只在真实承伤后传递词条，普通弹无回执。
+## 转职回执区分直接命中与代伤，并让伤害派生效果只读取真实扣血；普通弹无回执。
 func _impact_receipt() -> Variant:
 	return _receipt if promotion_shot != null else null
 
-## [param enemy] 为原生资格已确认的命中目标或落空。
+## [param enemy] 为原生资格已确认的命中目标或落空；普通与转职弹共用负面状态免疫入口。
 func _attack_enemy(enemy: Character000Base) -> void:
 	if promotion_shot == null:
 		super(enemy)
-		if enemy is Zombie000Base and _can_attack_character(enemy) and enemy.hp_component.curr_hp_armor2 <= 0:
-			enemy.be_ice_decelerate(time_be_decelerated)
+		if is_instance_valid(enemy) and enemy is Zombie000Base and _can_attack_character(enemy) \
+				and enemy.hp_component.curr_hp_armor2 <= 0:
+			AdventurePlantNegativeEffects.apply(enemy, AdventurePlantNegativeEffects.Kind.ICE_SLOW,
+				0, time_be_decelerated)
 		return
 	var was_slowed: bool = enemy is Zombie000Base and enemy.is_cold_slowed() # 脆性只看命中前寒冷。
 	var position_at_hit: Vector2 = global_position # 扣血后原目标可能已死亡或移位。
 	var target_lane: int = enemy.lane if enemy is Zombie000Base else lane # 溅射以实际接触的行确定格距。
 	_receipt.clear()
 	super(enemy)
-	if int(_receipt.get("actual_loss", 0)) <= 0:
-		return
+	var dealt_damage: bool = int(_receipt.get("actual_loss", 0)) > 0 # 格挡或伤害免疫只阻止伤害派生效果，不吞掉有效命中的寒冷。
 	if is_instance_valid(enemy) and enemy is Zombie000Base:
-		if _receipt.get("recipient") == enemy and _can_attack_character(enemy):
-			if not _trail_started and promotion_shot.loadout.has(&"torment"):
+		if _receipt.get("recipient") == enemy and not bool(_receipt.get("duplicate_hit", false)) \
+				and _can_attack_character(enemy):
+			if dealt_damage and not _trail_started and promotion_shot.loadout.has(&"torment"):
 				_trail_started = true
 				if not enemy.is_hypno:
 					SnowPeaIceTrail.track.call_deferred(enemy, promotion_shot)
 			SnowPeaImpact.apply_direct_status(enemy, promotion_shot, was_slowed, is_prism, curr_attack_num)
-		elif not _trail_started and promotion_shot.loadout.has(&"torment"):
+		elif dealt_damage and not _trail_started and promotion_shot.loadout.has(&"torment"):
 			# 首个有效接触已经致死或由保护者代伤，后续穿透也不能重复登记路径起点。
 			_trail_started = true
-	if is_instance_valid(enemy):
+	if dealt_damage and is_instance_valid(enemy):
 		SnowPeaImpact.queue_splash(enemy, position_at_hit, target_lane, last_impact_damage,
 			promotion_shot, 0 if is_prism else curr_attack_num)
 

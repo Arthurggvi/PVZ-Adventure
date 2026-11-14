@@ -176,13 +176,33 @@ func _clear() -> void:
 	set_physics_process(false)
 	queue_redraw()
 
-## 在地面绘制当前痕迹；同一位置最多一条，仅随低频时钟重绘。
+## 在地面绘制浅薄冰片与分叉霜纹；同一位置最多一片，不覆盖整格草地。
 func _draw() -> void:
-	for segment: Segment in _segments.values(): # 每格最多四个地面碎片。
+	for key: int in _segments.keys(): # 每格最多四个地面碎片，形状由槽位稳定决定。
+		var segment: Segment = _segments[key] # 独立到期，不把其他路径的小段一起淡出。
 		var cell := segment.cell.get_ref() as PlantCell # 已移除地块不再绘制。
 		if not is_instance_valid(cell) or not cell.is_inside_tree():
 			continue
-		var center: Vector2 = to_local(cell.get_global_transform() * (segment.local_point * cell.size)) # 当前平台变换。
-		var width: float = cell.size.x / BINS_PER_CELL * 0.62 # 接近槽宽的冰屑轮廓。
-		draw_line(center - Vector2(width, 0.0) * 0.5, center + Vector2(width, 0.0) * 0.5,
-			Color(0.44, 0.82, 1.0, 0.63), 3.0, true)
+		var frame: Transform2D = get_global_transform().affine_inverse() * cell.get_global_transform() # 同时保留平台位置、缩放与倾斜。
+		frame = frame.translated_local(segment.local_point * cell.size)
+		draw_set_transform_matrix(frame)
+		var width: float = cell.size.x / BINS_PER_CELL * 0.47 # 相邻槽自然留出细小断口。
+		var depth: float = 3.6 + float(posmod(key * 7, 4)) # 地面透视下的薄片深度，槽位不同而稳定。
+		var remaining: float = float(segment.until - _step) * TICK - _accumulator # 末段透明消退不改变实际到期。
+		var alpha: float = smoothstep(0.0, 0.85, remaining) # 低频时钟内逐级融化，避免整条突然消失。
+		var edge := PackedVector2Array([Vector2(-width, -depth * 0.14), Vector2(-width * 0.57, -depth),
+			Vector2(width * 0.54, -depth * 0.72), Vector2(width, depth * 0.11),
+			Vector2(width * 0.48, depth), Vector2(-width * 0.71, depth * 0.72)]) # 不规则六边形贴合地面。
+		draw_colored_polygon(edge, Color(0.31, 0.67, 0.80, alpha * 0.27))
+		draw_colored_polygon(PackedVector2Array([edge[0], edge[1], edge[2], Vector2(width * 0.20, 0.0)]),
+			Color(0.69, 0.91, 0.97, alpha * 0.36))
+		draw_line(edge[0], edge[1], Color(0.84, 0.98, 1.0, alpha * 0.66), 0.85, true)
+		draw_line(edge[1], edge[2], Color(0.78, 0.94, 1.0, alpha * 0.50), 0.75, true)
+		draw_line(Vector2(-width * 0.68, depth * 0.1), Vector2(width * 0.72, -depth * 0.12),
+			Color(0.74, 0.95, 1.0, alpha * 0.49), 0.7, true)
+		for branch: int in range(3): # 三道极细分叉霜纹使痕迹具有冻结而非涂线质感。
+			var root := Vector2(width * (-0.42 + float(branch) * 0.40), 0.0) # 霜纹生长在长轴上。
+			var side: float = -1.0 if posmod(key + branch, 2) == 0 else 1.0 # 分叉方向交错。
+			draw_line(root, root + Vector2(width * 0.21, side * depth * 0.70),
+				Color(0.82, 0.98, 1.0, alpha * 0.44), 0.65, true)
+	draw_set_transform(Vector2.ZERO)
