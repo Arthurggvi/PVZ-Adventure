@@ -49,7 +49,15 @@ var progress_bar_segment_mini_every_sec:float
 var _refresh_generation: int = 0
 ## 同一战斗最多显示一个援军旗帜波提示，防止重复请求叠加红字。
 var _support_flag_wave_pending: bool = false
+## 共同挂起自然波次的来源；默认来源保留既有 Boss 契约。
+var _advancement_sources: Dictionary[StringName, bool] = {}
+## 开场保护与墓碑出怪的自然等待，和常规刷新一起暂停。
+var _natural_wait_timers: Array[Timer] = []
+## 通知波次预警后的等待可以重查当前刷新代数。
+signal _advancement_unblocked
+## 是否至少有一个来源挂起自然波次。
 var is_advancement_suspended := false
+## 已经到点但须等待解除暂停或遭遇结算的下一波。
 var _pending_advancement := false
 var _before_wave_signalled: int = -1
 var _last_refresh_request: int = -1
@@ -57,26 +65,34 @@ signal adventure_battle_started
 signal adventure_wave_before(wave_number: int)
 signal adventure_wave_started(wave_number: int)
 
-## 暂停自然波次的计时、进度和下一波调度；不会影响游戏世界及 Boss 援军。
-func suspend_advancement() -> void:
+## 用 [param source] 挂起自然波次；默认代表 Boss 遭遇，重复登记同一来源安全。
+func suspend_advancement(source: StringName = &"boss") -> void:
+	_advancement_sources[source] = true
 	if is_advancement_suspended:
 		return
 	is_advancement_suspended = true
 	every_wave_progress_timer.paused = true
 	zombie_wave_refresh_manager.suspend_refresh()
+	for timer: Timer in _natural_wait_timers: # 保留每个自然等待的剩余时间。
+		timer.paused = true
 
-func resume_advancement() -> void:
-	if not is_advancement_suspended:
+## 仅撤销 [param source]，最后一个来源退出时恢复计时与待推进波次。
+func resume_advancement(source: StringName = &"boss") -> void:
+	if not _advancement_sources.erase(source) or not _advancement_sources.is_empty():
 		return
 	is_advancement_suspended = false
 	every_wave_progress_timer.paused = false
 	zombie_wave_refresh_manager.resume_refresh()
+	for timer: Timer in _natural_wait_timers: # 接续开场保护及墓碑出怪等待。
+		timer.paused = false
+	_advancement_unblocked.emit()
 	if _pending_advancement:
-		_pending_advancement = false
 		_resume_pending_wave.call_deferred(_refresh_generation)
 
+## [param generation] 必须仍在当前阶段；恢复前若再次暂停，保留待发波次。
 func _resume_pending_wave(generation: int) -> void:
-	if _is_wave_refresh_current(generation) and not is_advancement_suspended:
+	if _pending_advancement and _is_wave_refresh_current(generation) and not is_advancement_suspended:
+		_pending_advancement = false
 		start_next_wave()
 
 ## 波次刷新信号,给zombie_manager,删除魅惑僵尸，更新是否为最后一波
@@ -99,6 +115,7 @@ func _on_refresh_requested(generation: int) -> void:
 
 ## 初始化波次管理器
 func init_zombie_wave_manager(game_para:ResourceLevelData):
+	_advancement_sources.clear()
 	is_advancement_suspended = false
 	_pending_advancement = false
 	_before_wave_signalled = -1
@@ -166,7 +183,7 @@ func start_first_wave():
 	var refresh_generation: int = _refresh_generation # 首波保护与进度计时都只属于当前阶段。
 	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile # 本次开波使用的阶段配置。
 	if profile != null and profile.use_classic_spawn_timing and profile.classic_opening_protection:
-		await get_tree().create_timer(CLASSIC_OPENING_SECONDS, false).timeout
+		await _wait_for_natural_spawn(CLASSIC_OPENING_SECONDS)
 	if not _is_wave_refresh_current(refresh_generation):
 		return
 	if profile != null:
@@ -184,11 +201,28 @@ func start_first_wave():
 ## 停止自然波次与进度计时并失效旧轮等待；下一轮进入战斗也不会恢复旧波流程。
 func stop_wave_refresh() -> void:
 	_refresh_generation += 1
+	_advancement_sources.clear()
 	is_advancement_suspended = false
 	_pending_advancement = false
 	every_wave_progress_timer.paused = false
 	every_wave_progress_timer.stop()
 	zombie_wave_refresh_manager.stop_refresh()
+	for timer: Timer in _natural_wait_timers.duplicate(): # 唤醒旧协程，由代数检查丢弃出怪动作。
+		timer.stop()
+		timer.timeout.emit()
+	_advancement_unblocked.emit()
+
+## 等待 [param seconds] 个未被挂起的自然波次秒数；调用方在返回后核对刷新代数。
+func _wait_for_natural_spawn(seconds: float) -> void:
+	var timer := Timer.new() # 正式波次管理器持有的单次自然等待。
+	timer.one_shot = true
+	add_child(timer)
+	_natural_wait_timers.append(timer)
+	timer.paused = is_advancement_suspended
+	timer.start(seconds)
+	await timer.timeout
+	_natural_wait_timers.erase(timer)
+	timer.queue_free()
 
 ## 返回 [param refresh_generation] 是否仍属于当前刷新流程，且所属关卡仍处于正式战斗。
 func _is_wave_refresh_current(refresh_generation: int) -> bool:
@@ -236,10 +270,10 @@ func start_next_wave() -> void:
 		next_type = E_WaveType.FlagFront
 	if next_type in [E_WaveType.Final, E_WaveType.Flag]:
 		await ui_remind_word.zombie_approach(next_type == E_WaveType.Final, uses_classic_spawn_timing())
-		if not _is_wave_refresh_current(refresh_generation):
-			return
-		if is_advancement_suspended:
-			_pending_advancement = true
+		# 提示播完后保留这次已确认的自然波次，解除挂起时直接继续。
+		while is_advancement_suspended and _is_wave_refresh_current(refresh_generation):
+			await _advancement_unblocked
+		if not _is_wave_refresh_current(refresh_generation) or curr_wave + 1 != next_wave_index:
 			return
 	curr_wave = next_wave_index
 	curr_wave_type = next_type
@@ -300,7 +334,7 @@ func call_tombstone_create_zombie():
 	if not _is_wave_refresh_current(refresh_generation):
 		return
 	EventBus.push_event("create_tombstone", [randi()%3+1])
-	await get_tree().create_timer(1.0, false).timeout
+	await _wait_for_natural_spawn(1.0)
 	if not _is_wave_refresh_current(refresh_generation):
 		return
 	# 从所属关卡读取墓碑列表，避免旧协程恢复时访问新关卡的全局引用。

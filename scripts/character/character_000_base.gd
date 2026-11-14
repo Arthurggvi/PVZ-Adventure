@@ -73,6 +73,7 @@ enum E_Influence_Speed_Factor{
 	ForcedAirborne, ## 被抛起时暂停动作，落地后恢复此通道。
 	DeepColdSlow, ## 独立于原生冰的抗火减速；与原生寒冷减速取较强值。
 	DeepColdFreeze, ## 独立于原生冰的抗火冻结；两个来源均解除才真正解冻。
+	Dynasty, ## 皇朝攻速，同一种增益的所有施放共享一个乘数。
 }
 ## 是否被魅惑
 var is_hypno:bool = false
@@ -222,6 +223,10 @@ func speed_factor_product() -> float:
 	var cold_overlap: bool = influence_speed_factors.get(E_Influence_Speed_Factor.IceDecelerateSpeed, 1.0) < 1.0 \
 		and influence_speed_factors.get(E_Influence_Speed_Factor.DeepColdSlow, 1.0) < 1.0 # 两种寒冷的标准减速均为半速。
 	return GlobalUtils.get_dic_product(influence_speed_factors) * (2.0 if cold_overlap else 1.0)
+
+## 从 [param speed_product] 移除皇朝攻速，保留生产与成长原有的速度来源。
+func production_speed_product(speed_product: float) -> float:
+	return speed_product / influence_speed_factors.get(E_Influence_Speed_Factor.Dynasty, 1.0)
 
 #region 死亡、受击相关
 ## 亡语

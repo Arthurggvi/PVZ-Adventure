@@ -1057,19 +1057,30 @@ func delete_prepare_show_zombies():
 ## [param time_ice] 完全冻结时长，单位为游戏秒。[br]
 ## [param time_decelerate] 解冻后的减速时长，单位为游戏秒。
 func ice_all_zombie(time_ice:float, time_decelerate: float):
+	resolve_ice_blast(time_ice, time_decelerate)
+
+## 结算 [param time_ice] 秒冻结与 [param time_decelerate] 秒后续减速的全场副效果。
+## [param freeze_zombie] 仅替换普通僵尸的逐目标结算，设施、珊瑚和僵王共用原生入口。
+func resolve_ice_blast(time_ice: float, time_decelerate: float, freeze_zombie: Callable = Callable()) -> void:
 	for structure: Node in get_tree().get_nodes_in_group(EnemyStructureBase.GROUP): # 当前战场内的敌方设施。
 		if main_game.is_ancestor_of(structure):
 			structure.be_attacked_bullet(20, BulletRegistry.AttackMode.Real, false, false)
 	# 保留寒冰菇对珊瑚出怪的抑制计时。
 	is_ice = true
-	start_ice_timer(time_ice)
+	var coral_duration: float = time_ice # 转职版本不能缩短已有的珊瑚抑制。
+	if freeze_zombie.is_valid() and is_instance_valid(ice_timer):
+		coral_duration = maxf(coral_duration, ice_timer.time_left)
+	start_ice_timer(coral_duration)
 	# 当前行的普通僵尸列表；僵王由独立集合登记。
 	for zombie_row:Array in all_zombies_2d:
 		if zombie_row.is_empty():
 			continue
 		# 当前接受冻结效果的普通僵尸。
-		for zombie:Zombie000Base in zombie_row:
-			zombie.be_ice_freeze(time_ice, time_decelerate)
+		for zombie:Zombie000Base in zombie_row.duplicate():
+			if freeze_zombie.is_valid():
+				freeze_zombie.call(zombie)
+			elif is_instance_valid(zombie):
+				zombie.be_ice_freeze(time_ice, time_decelerate)
 	# 独立登记的僵王各结算一次寒冰菇伤害，由共同受击入口免疫冰冻。
 	for boss: ZB000Base in get_living_bosses():
 		if is_instance_valid(boss):

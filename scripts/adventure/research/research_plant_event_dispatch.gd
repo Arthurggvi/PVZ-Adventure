@@ -17,6 +17,7 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 	var snow_pea_events: Array[Dictionary] = [] # 寒冰射手事件交给原生发射上的转职控制器。
 	var electric_pea_events: Array[Dictionary] = [] # 电能豌豆参数由原株在入树前冻结。
 	var jalapeno_events: Array[Dictionary] = [] # 辣椒规则入树前冻结，仍用原生引信。
+	var ice_shroom_events: Array[Dictionary] = [] # 寒冰菇转职由原生冰冻引爆入口结算。
 	for event: Dictionary in events: # 每本书的事件只进入对应机制，不复制运行时状态。
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
@@ -58,6 +59,13 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 					electric_pea_events.append(event)
 				elif kind.begins_with("jalapeno_"):
 					jalapeno_events.append(event)
+				elif kind.begins_with("ice_shroom_"):
+					ice_shroom_events.append(event)
+	if not ice_shroom_events.is_empty():
+		if not plant is Plant015IceShroom:
+			push_error("寒冰菇转职事件只能挂载于寒冰菇")
+			return false
+		(plant as Plant015IceShroom).configure_promotions(record.uid, ice_shroom_events)
 	if not jalapeno_events.is_empty():
 		if not plant is Plant021Jalapeno:
 			push_error("火爆辣椒转职事件需要对应的战斗植物")

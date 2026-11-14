@@ -15,14 +15,16 @@ func get_roll_animation() -> StringName:
 	return &"Zombie_boss_fireball_role"
 
 
-## 复用寒冰菇的全场冰冻事件，不限制火球所在行。
+## 普通及转职寒冰菇都消除全场火球。
 func _subscribe_counter_events() -> void:
 	EventBus.subscribe("ice_all_zombie", _on_ice_all_zombie)
+	EventBus.subscribe("ice_shroom_dispel_fireballs", dispel)
 
 
 ## 取消寒冰菇事件订阅；销毁与退出场景时重复调用安全。
 func _unsubscribe_counter_events() -> void:
 	EventBus.unsubscribe("ice_all_zombie", _on_ice_all_zombie)
+	EventBus.unsubscribe("ice_shroom_dispel_fireballs", dispel)
 
 
 ## 寒冰菇生效时直接消除火球，不对球施加冰冻或减速。[br]
