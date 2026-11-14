@@ -9,9 +9,18 @@ var owner_plant: Plant021Jalapeno
 func _ready() -> void:
 	owner_plant = owner as Plant021Jalapeno
 
-## 原版在此播放整行火焰；转职范围和表现由同一次结算派发。
+## 无转职时也复用完整原始火焰序列；转职范围和表现由同一次结算派发。
 func _start_bomb_fx():
 	if owner_plant.promotion_rules.is_empty():
+		_play_native_lane()
+
+## 保留普通辣椒的整行范围；缺少正式地格时仍沿用事件入口。
+func _play_native_lane() -> void:
+	var cell: PlantCell = owner_plant.plant_cell # 世界地格仅提供视觉位置，不参与本函数的伤害结算。
+	if is_instance_valid(cell) and cell.board != null:
+		for lane_cell: PlantCell in cell.board.row_cells(owner_plant.row_col.x): # 稀疏行只显示实际存在的地块。
+			JalapenoFireVisual.spawn_cell(lane_cell, owner_plant.row_col.y)
+	else:
 		EventBus.push_event("jalapeno_bomb_effect", [owner_plant.row_col.x])
 
 ## 在原生引信内结算一次。战局条件不成立时沿用原版三事件。
@@ -19,7 +28,7 @@ func _bomb_all_enemy():
 	if not owner_plant.promotion_rules.is_empty():
 		if AdventureJalapenoBlast.try_detonate(owner_plant, can_attack_zombie_status):
 			return
-		EventBus.push_event("jalapeno_bomb_effect", [owner_plant.row_col.x])
+		_play_native_lane()
 	EventBus.push_event("jalapeno_bomb_lane_zombie", [owner_plant.row_col.x, resolved_damage()])
 	EventBus.push_event("jalapeno_bomb_item_lane", [owner_plant.row_col.x])
 

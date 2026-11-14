@@ -11,6 +11,10 @@ var _visual: Node2D
 ## 单次fire_done动画播放器，结束后在状态仍活跃时重新播放。
 var _animation: AnimationPlayer
 
+## 只有本次灼烧跳伤致死才属于烧死，目标之后被其他攻击击杀不沿用此来源。
+func _damage_cause() -> CombatHitScope.DeathCause:
+	return CombatHitScope.DeathCause.FIRE
+
 ## 为 [param target] 授予 [param duration] 秒灼烧；[param on_kill] 为可选真实击杀回调。
 ## [param source] 可为最新来源提供伤害末乘与死亡前观察。
 ## 重施只续时，不重复创建表现或额外伤害节拍。

@@ -115,4 +115,4 @@ static func _lose_body(hp: HpComponentZombie, amount: int, receipt: Variant,
 		hit_scope.before_body_loss(hp, amount)
 	if receipt is Dictionary:
 		receipt["body_loss"] = int(receipt.get("body_loss", 0)) + mini(maxi(0, amount), hp.curr_hp)
-	hp.curr_hp -= amount
+	hp.apply_body_loss(amount, hit_scope.death_cause if hit_scope != null else CombatHitScope.DeathCause.NORMAL)

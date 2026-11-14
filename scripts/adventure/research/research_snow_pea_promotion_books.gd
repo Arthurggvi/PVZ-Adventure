@@ -22,7 +22,7 @@ const BOOKS: Dictionary = {
 		"title": "酷刑", "summary": "每颗豌豆首次击中的僵尸会沿途留下持续5秒的冰痕，踩中冰痕的敌人会受到寒冷效果。", "plant_type": 6, "tier": 3,
 		"effects": [{"kind": "snow_pea_torment", "seconds": 5.0}]},
 	"promotion_snow_pea_skadi": {
-		"title": "斯卡蒂", "summary": "被豌豆击杀的敌人会变成冰雕。冰雕再受攻击就会爆裂，射出16枚可穿透的冰锥，每枚增加5点冻结值。", "plant_type": 6, "tier": 4,
+		"title": "斯卡蒂", "summary": "被本株攻击过的敌人之后死亡时会变成冰雕，烧死或被冥弹击杀除外。冰雕再受攻击就会爆裂，射出16枚可穿透的冰锥，每枚增加5点冻结值；冰锥不新增冰雕标记。", "plant_type": 6, "tier": 4,
 		"effects": [{"kind": "snow_pea_skadi", "prism_count": 16, "prism_points": 5}]},
 	"promotion_snow_pea_chione": {
 		"title": "喀俄涅", "summary": "每攻击5次，吹起暴雪将本行敌人平滑击退1格，并追加5连射。", "plant_type": 6, "tier": 4,

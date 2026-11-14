@@ -181,14 +181,15 @@ func get_all_hp():
 
 ## [param amount] 为强制调整量；[param mode] 决定分流，[param drop]、[param sfx]、[param extra_drop] 保留表现开关。
 ## 全量强制致死清除旧护甲及破甲回调中新授的护甲；部分卸甲和未死亡者保留原有护甲规则。
+## [param hit_scope] 保留强制处决的真实死因，不改变护甲分流。
 func apply_unblocked_loss(amount: int,
 		mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm,
-		drop: bool = true, sfx: bool = true, extra_drop: bool = true) -> void:
+		drop: bool = true, sfx: bool = true, extra_drop: bool = true, hit_scope: CombatHitScope = null) -> void:
 	var full_elimination: bool = amount >= get_all_hp() # 必须在回调授甲前冻结本次是否请求清空全部血池。
 	if full_elimination and bonus_armor > 0:
 		bonus_armor = 0
 		bonus_armor_changed.emit(0)
-	super.apply_unblocked_loss(amount, mode, drop, sfx, extra_drop)
+	super.apply_unblocked_loss(amount, mode, drop, sfx, extra_drop, hit_scope)
 	if full_elimination and is_death and bonus_armor > 0:
 		bonus_armor = 0 # 报纸破损可能在本次旁路中授甲；死亡后不能留下幽灵生命池。
 		bonus_armor_changed.emit(0)

@@ -521,9 +521,17 @@ func be_grap_in_pool():
 func be_bomb(attack_value: int, is_cherry_bomb: bool = false, armor_multiplier: float = 1.0,
 		hit_scope: CombatHitScope = null) -> Zombie000Base:
 	is_can_death_language = false
+	var scope: CombatHitScope = hit_scope # 灰烬爆炸明确属于烧死，代伤者也接收同一来源。
+	if scope == null and is_cherry_bomb:
+		scope = CombatHitScope.new()
+	var previous_cause: CombatHitScope.DeathCause = scope.death_cause if scope != null else CombatHitScope.DeathCause.NORMAL # 不污染调用方复用的群组。
+	if is_cherry_bomb:
+		scope.death_cause = CombatHitScope.DeathCause.FIRE
 	var casualty: Zombie000Base = (hp_component as HpComponentZombie).apply_hit(
 		attack_value, BulletRegistry.AttackMode.Penetration, false, false, true, armor_multiplier,
-		0, -1, null, hit_scope) # 可能是承受转移伤害的保护者。
+		0, -1, null, scope) # 可能是承受转移伤害的保护者。
+	if scope != null:
+		scope.death_cause = previous_cause
 	if is_death and not _preserves_blast_death_animation():
 		## 在在灰烬动画条件下
 		if is_cherry_bomb and (not is_swimming or not curr_be_attack_status != E_BeAttackStatusZombie.IsDownGround):

@@ -9,36 +9,38 @@ var _board: BoardRuntime
 ## 实际覆盖的格子，同时供地火、梯子和涅槃使用。
 var cells: Array[PlantCell] = []
 ## 持续地火表现随地块运动，战局结束立即回收。
-var _ground_flames: Array[BombEffectFire] = []
+var _ground_flames: Array[JalapenoFireVisual] = []
+## 引爆列只决定火浪的表现先后，命中范围仍由 [member rows] 和 [member cells] 决定。
+var _origin_column: int = 0
 
 ## 从 [param origin] 的棋盘建立范围。[param spread] 扩至邻行，[param cross] 加入所在列。
 func configure(origin: PlantCell, spread: bool, cross: bool) -> void:
 	_board = origin.board
+	_origin_column = origin.row_col.y
 	for lane: int in range(maxi(0, origin.row_col.x - int(spread)), mini(_board.extent.x, origin.row_col.x + int(spread) + 1)): # 合法空行仍是完整攻击行。
 		rows.append(lane)
 	for cell: PlantCell in _board.cells(): # 稀疏棋盘只加入真实存在的行和格。
 		if rows.has(cell.row_col.x) or (cross and cell.row_col.y == origin.row_col.y):
 			cells.append(cell)
 
-## 播放完整行原版火焰并清理原版行道具；额外纵列只处理对应格的火焰和梯子。
-## [param manager] 提供单格火焰入口；[param ground] 为持续地火开启额外的五秒表现。
-func display(manager: PlantCellManager, ground: bool) -> void:
+## 播放保留完整原始帧的连续火浪，并清理原版行道具；额外纵列只处理对应格和梯子。
+## [param ground] 为持续地火开启额外的五秒表现，不延迟原有伤害结算。
+func display(ground: bool) -> void:
 	for lane: int in rows: # 每个完整行只发一组原版事件。
-		EventBus.push_event("jalapeno_bomb_effect", [lane])
 		EventBus.push_event("jalapeno_bomb_item_lane", [lane])
 	for cell: PlantCell in cells: # 覆盖格随所在平台移动。
 		if not is_instance_valid(cell) or cell.is_queued_for_deletion():
 			continue
+		JalapenoFireVisual.spawn_cell(cell, _origin_column)
 		if not rows.has(cell.row_col.x):
-			manager.show_jalapeno_fire(cell)
 			if is_instance_valid(cell.ladder):
 				cell.ladder.ladder_death()
 		if ground:
-			_ground_flames.append(manager.show_jalapeno_fire(cell, true))
+			_ground_flames.append(JalapenoFireVisual.spawn_cell(cell, _origin_column, true))
 
 ## 回收本来源仍在播放的地火，完整行及额外纵列的原生爆炸表现自行结束。
 func clear_ground() -> void:
-	for flame: BombEffectFire in _ground_flames: # 地块可能已经先卸载。
+	for flame: JalapenoFireVisual in _ground_flames: # 地块可能已经先卸载。
 		if is_instance_valid(flame):
 			flame.queue_free()
 	_ground_flames.clear()

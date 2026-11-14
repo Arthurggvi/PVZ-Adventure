@@ -44,7 +44,8 @@ func _attack_zombie(zombie: Zombie000Base) -> void:
 		var execution: Node2D = RepeaterExecutionVisual.capture(shot.game.bullets, zombie.body) # 冻结当前姿态，后续不引用将死角色。
 		# 使用原生最终生命调整和死亡通知，关闭残肢表现但保留独立的正常掉落信号。
 		zombie.hp_component.apply_unblocked_loss(zombie.hp_component.get_all_hp(),
-			BulletRegistry.AttackMode.Norm, false, false)
+			BulletRegistry.AttackMode.Norm, false, false, true,
+			CombatHitScope.for_cause(CombatHitScope.DeathCause.HADES))
 		if is_instance_valid(zombie) and zombie.is_death:
 			last_impact_casualty = zombie
 			_executed = true
@@ -54,6 +55,16 @@ func _attack_zombie(zombie: Zombie000Base) -> void:
 		if is_instance_valid(execution):
 			execution.queue_free()
 	super(zombie)
+
+## [param zombie]、[param mode]、[param armor] 与 [param bonus] 沿用普通直击。
+## 冥弹未触发处决但靠普通伤害击杀时同样排除冰雕，后续独立缠怨不继承本击死因。
+func _apply_zombie_impact(zombie: Zombie000Base, mode: BulletRegistry.AttackMode,
+		armor: float, bonus: Vector2i) -> Zombie000Base:
+	if kind != &"hades":
+		return super(zombie, mode, armor, bonus)
+	return (zombie.hp_component as HpComponentZombie).apply_hit(attack_value, mode, true,
+		trigger_be_attack_sfx, true, armor, bonus.x, bonus.y, _impact_receipt(),
+		CombatHitScope.for_cause(CombatHitScope.DeathCause.HADES))
 
 ## [param target] 为已完成直击的实体；[param position] 是原生世界命中位置。
 func _on_impact(target: Character000Base, position: Vector2) -> void:

@@ -30,3 +30,11 @@ func _attack_zombie(zombie: Zombie000Base) -> void:
 	if is_instance_valid(zombie) and zombie is Zombie027Explorer \
 		and zombie.hp_component.get_all_hp() < hp_before:
 		zombie.relight_from_fire()
+
+## [param zombie]、[param mode]、[param armor] 与 [param bonus] 沿用原生直击参数。
+## 火豆只为本次实际伤害携带火焰死因；红焰、狱焰继承此入口，代伤保持同一来源。
+func _apply_zombie_impact(zombie: Zombie000Base, mode: BulletRegistry.AttackMode,
+		armor: float, bonus: Vector2i) -> Zombie000Base:
+	return (zombie.hp_component as HpComponentZombie).apply_hit(attack_value, mode, true,
+		trigger_be_attack_sfx, true, armor, bonus.x, bonus.y, _impact_receipt(),
+		CombatHitScope.for_cause(CombatHitScope.DeathCause.FIRE))

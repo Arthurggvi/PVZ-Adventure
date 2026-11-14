@@ -99,4 +99,5 @@ func _burn_tick() -> void:
 				and not target.is_hypno and (target is Zombie000Base or target is ZB000Base):
 			if target is Zombie000Base and is_instance_valid(target.move_component) and target.move_component.is_forced_airborne():
 				continue
-			target.be_attacked_bullet(_damage, BulletRegistry.AttackMode.Norm, true, false)
+			target.be_attacked_bullet(_damage, BulletRegistry.AttackMode.Norm, true, false, 0, -1, null,
+				CombatHitScope.for_cause(CombatHitScope.DeathCause.FIRE))

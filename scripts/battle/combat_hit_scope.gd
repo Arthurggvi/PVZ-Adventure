@@ -2,10 +2,20 @@
 extends RefCounted
 class_name CombatHitScope
 
+## 最终致死伤害的语义来源；持续缠怨属于普通伤害，不沿用施加它的冥弹类型。
+enum DeathCause { NORMAL, FIRE, HADES }
+## 当前结算群组的伤害来源，跟随代伤转移到最终承伤者。
+var death_cause: DeathCause = DeathCause.NORMAL
 ## 本群组已经消费的角色实例ID；不持有角色引用，不延长实体生命。
 var _claimed: Dictionary[int, bool] = {}
 ## 可选的致死前观察口，只接收实际承伤角色。
 var before_death: Callable
+
+## 返回携带 [param cause] 的独立命中群组；调用方决定是否共享多目标去重。
+static func for_cause(cause: DeathCause) -> CombatHitScope:
+	var scope := CombatHitScope.new() # 死因只属于本次结算，不写入仍存活的目标。
+	scope.death_cause = cause
+	return scope
 
 ## 为真正承受伤害的 [param target] 原子登记一次资格；重复、死亡或待删除目标返回 false。
 ## 保护者转移必须先完成，再调用此处；调用方须在受击事件和扣血之前检查结果。

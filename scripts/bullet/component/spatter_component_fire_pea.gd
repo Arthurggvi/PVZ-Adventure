@@ -7,7 +7,8 @@ extends SpatterComponent
 func attack_enemy(enemy: Character000Base, damage_per_enemy: int) -> void:
 	# 实际扣血量用于区分有效火伤和免疫、格挡。
 	var hp_before: int = enemy.hp_component.get_all_hp()
-	super(enemy, damage_per_enemy)
+	enemy.be_attacked_bullet(damage_per_enemy, BulletRegistry.AttackMode.Penetration, true, false,
+		0, -1, null, CombatHitScope.for_cause(CombatHitScope.DeathCause.FIRE))
 	if is_instance_valid(enemy) and enemy is Zombie027Explorer \
 		and enemy.hp_component.get_all_hp() < hp_before:
 		enemy.relight_from_fire()

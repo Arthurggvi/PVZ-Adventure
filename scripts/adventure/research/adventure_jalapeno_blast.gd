@@ -61,7 +61,7 @@ static func try_detonate(plant: Plant021Jalapeno, statuses: int) -> bool:
 func _detonate() -> void:
 	TreePauseManager.pause_factors_changed.connect(_check_boundary)
 	EventBus.subscribe("main_game_progress_update", _on_progress)
-	_footprint.display(_game.plant_cell_manager, _rules.has("jalapeno_combustion"))
+	_footprint.display(_rules.has("jalapeno_combustion"))
 	var scope := CombatHitScope.new() # 原生转伤之后才消费同一爆炸的受击资格。
 	scope.before_death = _remember_death_point
 	for target: Character000Base in _footprint.enemies(_game, true): # 同时纳入普通僵尸、僵王和设施。
@@ -126,7 +126,7 @@ func _physics_process(delta: float) -> void:
 
 ## 地火每半秒从接触者读取现有受击资格，以普通伤害经过护甲及保护者。
 func _burn_ground() -> void:
-	var scope := CombatHitScope.new() # 同一跳的实际承伤者至多受伤一次。
+	var scope := CombatHitScope.for_cause(CombatHitScope.DeathCause.FIRE) # 同一跳只伤实际承伤者一次，并携带地火死因。
 	scope.before_death = _remember_death_point
 	for target: Character000Base in _footprint.enemies(_game): # 接触范围按此刻平台世界位置重新判断。
 		if not _active():

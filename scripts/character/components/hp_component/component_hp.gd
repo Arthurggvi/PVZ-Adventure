@@ -106,6 +106,10 @@ var _bypass_damage_block: bool = false
 var is_can_look_hp:=true
 ## 角色是否死亡，判断是否发射死亡信号
 var is_death := false
+## 只在同步本体扣血期间设置；嵌套扣血结束后恢复，非致死命中不留下死因。
+var _body_loss_cause: CombatHitScope.DeathCause = CombatHitScope.DeathCause.NORMAL
+## 第一次达到死亡阈值时冻结的死因，尸体后续扣血不能改写。
+var death_cause: CombatHitScope.DeathCause = CombatHitScope.DeathCause.NORMAL
 
 ## 死亡判定阈值；当前血量不高于该值时首次触发死亡信号，默认 0。
 var death_hp:int = 0
@@ -123,6 +127,8 @@ var curr_hp:int:
 		## 如果血量小于死亡血量临界值,并且角色还未死亡时
 		if value <= death_hp and not is_death:
 			is_death = true
+			death_cause = _body_loss_cause
+			before_death.emit(death_cause)
 			## 角色死亡
 			signal_hp_component_death.emit()
 
@@ -131,6 +137,8 @@ var curr_hp:int:
 signal signal_hp_loss(curr_hp:int, is_drop:bool)
 ## 血量组件检测到死亡信号
 signal signal_hp_component_death
+## 第一次确认死亡后、角色死亡与掉落信号前的只读观察口；[param cause] 是冻结的真实伤害来源。
+signal before_death(cause: CombatHitScope.DeathCause)
 ## 本次确实收到的战斗攻击，含被护甲吸收部分；不包括脚本强制处决。
 signal combat_attack_received(raw_damage: int)
 ## 本次真实损失的本体生命，已扣除减伤、护甲和单次伤害上限。
@@ -246,7 +254,7 @@ func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletReg
 		actual_loss = maxi(0, before_armor - attack_value) + mini(attack_value, curr_hp) if was_alive else 0
 		if was_alive and actual_loss > 0:
 			combat_health_lost.emit(actual_loss)
-	curr_hp -= attack_value
+	apply_body_loss(attack_value, hit_scope.death_cause if hit_scope != null else CombatHitScope.DeathCause.NORMAL)
 	if receipt is Dictionary:
 		receipt["actual_loss"] = actual_loss
 		receipt["body_loss"] = body_loss
@@ -270,12 +278,21 @@ func Hp_loss_death(is_drop:=true):
 
 ## 非战斗生命调整，供卸甲、处决和存档恢复使用；保留护甲分流及原有死亡/掉落信号。
 ## [param amount] 调整量；[param mode] 分流类型；[param drop] 致死掉落；[param sfx] 音效；[param extra_drop] 额外掉落开关。
+## [param hit_scope] 供明确的处决来源携带死因，缺省保持普通强制死亡。
 func apply_unblocked_loss(amount: int, mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm,
-		drop: bool = true, sfx: bool = true, extra_drop: bool = true) -> void:
+		drop: bool = true, sfx: bool = true, extra_drop: bool = true, hit_scope: CombatHitScope = null) -> void:
 	var previous: bool = _bypass_damage_block # 保存嵌套调用前的状态，避免回调覆盖外层上下文。
 	_bypass_damage_block = true
-	Hp_loss(amount, mode, drop, sfx, extra_drop)
+	Hp_loss(amount, mode, drop, sfx, extra_drop, 0, -1, null, hit_scope)
 	_bypass_damage_block = previous
+
+## 扣除 [param amount] 点本体生命，并仅在本次同步写入期间携带 [param cause]。
+## 不替换死亡判定、掉落或受击信号；直接脚本写血仍默认普通死亡。
+func apply_body_loss(amount: int, cause: CombatHitScope.DeathCause = CombatHitScope.DeathCause.NORMAL) -> void:
+	var previous: CombatHitScope.DeathCause = _body_loss_cause # 死亡观察可能嵌套另一笔伤害，退出时恢复外层来源。
+	_body_loss_cause = cause
+	curr_hp -= amount
+	_body_loss_cause = previous
 
 
 ## 可消耗临时护甲的扩展入口；没有护甲的角色保持原伤害数值。

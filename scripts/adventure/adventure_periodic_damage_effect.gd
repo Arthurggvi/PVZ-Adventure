@@ -134,15 +134,16 @@ func _deal_tick() -> void:
 	var callback: Callable = _on_kill # 扣血可同步清除状态，先保存本次来源。
 	var tracks_boundary: bool = not _source_active.is_null() # 明确接管边界的来源自行核对最后一击。
 	var casualty: Character000Base = null # 实际死者可能是保护者而非直接受击目标。
+	var cause: CombatHitScope.DeathCause = _damage_cause() # 由具体持续状态声明，不从视觉或节点名猜测。
+	var scope: CombatHitScope = CombatHitScope.for_cause(cause) if cause != CombatHitScope.DeathCause.NORMAL or _before_death.is_valid() else null # 灼烧始终把火焰来源传给真实承伤者。
+	if scope != null:
+		scope.before_death = _before_death
 	if _target is Zombie000Base and hp is HpComponentZombie:
-		var scope: CombatHitScope = CombatHitScope.new() if _before_death.is_valid() else null # 默认沿用旧跳伤路径。
-		if scope != null:
-			scope.before_death = _before_death
 		casualty = (hp as HpComponentZombie).apply_hit(damage, BulletRegistry.AttackMode.Norm, true, false, true, 1.0, 0, -1, null, scope)
 	else:
 		if _before_death.is_valid():
 			_before_death.call(_target)
-		_target.be_attacked_bullet(damage, BulletRegistry.AttackMode.Norm, true, false)
+		_target.be_attacked_bullet(damage, BulletRegistry.AttackMode.Norm, true, false, 0, -1, null, scope)
 		if is_instance_valid(_target) and _target.is_death:
 			casualty = _target
 	if is_instance_valid(casualty) and callback.is_valid() and (tracks_boundary or _battle_context_active()):
@@ -186,3 +187,7 @@ func _tick_seconds() -> float:
 ## 子类可替换最大生命比例；默认两种旧状态均为每跳 2%。
 func _max_health_fraction() -> float:
 	return MAX_HEALTH_FRACTION
+
+## 中毒和缠怨保持普通死因；具体火焰状态覆盖此来源，不影响其已有结算节拍。
+func _damage_cause() -> CombatHitScope.DeathCause:
+	return CombatHitScope.DeathCause.NORMAL

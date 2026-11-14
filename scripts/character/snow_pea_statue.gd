@@ -2,7 +2,7 @@
 extends EnemyStructureBase
 class_name SnowPeaStatue
 
-## 冰雕的标准设施场景；只有斯卡蒂致死时才需要。
+## 冰雕的标准设施场景；只有带斯卡蒂来源的僵尸合格死亡时才需要。
 const SCENE_PATH: String = "res://scenes/character/snow_pea_statue.tscn"
 ## 生成冰雕的原始发射，保留棱锥的完整来源。
 var _shot: SnowPeaShot
@@ -15,11 +15,11 @@ var _pose: SnowPeaStatuePose
 ## 实际承伤只播放一次破碎，防止同帧的重复信号叠出多份画布与棱锥。
 var _fractured: bool = false
 
-## [param zombie] 即将在原生路由中死亡；[param shot] 与 [param contact] 唯一标识该次接触。
-## 在死亡信号前采集姿势与受击几何，入树等待当前物理冲刷和致死事务完成。
+## [param zombie] 已由生命组件确认死亡；[param shot] 与 [param contact] 标识此前登记的根弹来源。
+## 在原生角色死亡信号前采集姿势与受击几何，入树等待当前物理冲刷和致死事务完成。
 static func capture(zombie: Zombie000Base, shot: SnowPeaShot, contact: int) -> void:
-	if zombie.is_hypno or not zombie.can_receive_cold() or not zombie.can_receive_negative_effects() \
-			or not zombie.hurt_box_component.is_enabling or zombie.is_queued_for_deletion() \
+	if not shot.battle.is_active() or not shot.battle.game.is_ancestor_of(zombie) \
+			or zombie.is_hypno or zombie.is_queued_for_deletion() \
 			or zombie.character_init_type != Character000Base.E_CharacterInitType.IsNorm:
 		return
 	var scene := load(SCENE_PATH) as PackedScene # 不引入注册表场景依赖。
