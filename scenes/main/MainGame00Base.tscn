@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://b2soejmoqi7wd"]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/boss_hp_progress_bar.tscn" id="boss_hp_progress"]
+[ext_resource type="PackedScene" path="res://scenes/ui/transitions/SceneTransition.tscn" id="scene_transition_runtime"]
 [ext_resource type="Script" uid="uid://c7dr2016dfdoo" path="res://scripts/manager/main_game_manager.gd" id="1_7dde3"]
 [ext_resource type="Script" uid="uid://b2rst408m72au" path="res://scripts/manager/hand_manager/hand_manager.gd" id="3_acpf0"]
 [ext_resource type="Script" uid="uid://duphb7sb466c0" path="res://scripts/manager/hand_manager/hm_character.gd" id="4_ee3wa"]
@@ -840,6 +841,8 @@ collision_mask = 4
 position = Vector2(525.5, 300)
 shape = SubResource("RectangleShape2D_b6ai2")
 debug_color = Color(0, 0.6, 0.69803923, 0.20392157)
+
+[node name="SceneTransition" parent="." instance=ExtResource("scene_transition_runtime")]
 
 [connection signal="timeout" from="Manager/ZombieManager/ZombieWaveManager/ZombieWaveRefreshManager/WaveNormRefreshTimer" to="Manager/ZombieManager/ZombieWaveManager/ZombieWaveRefreshManager" method="_on_wave_norm_refresh_timer_timeout"]
 [connection signal="timeout" from="Manager/ZombieManager/ZombieWaveManager/ZombieWaveRefreshManager/WaveMinTimeTimer" to="Manager/ZombieManager/ZombieWaveManager/ZombieWaveRefreshManager" method="_on_wave_min_time_timer_timeout"]

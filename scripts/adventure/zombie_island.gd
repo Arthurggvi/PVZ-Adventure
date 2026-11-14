@@ -112,7 +112,7 @@ func _apply_environment() -> void:
 ## 单一关卡入口；解锁与入场条件由按钮状态和会话入口判定。
 func _select_stage(stage_id: int) -> void:
 	if AdventureSession.is_unlocked(stage_id):
-		AdventureSession.enter_stage(stage_id)
+		AdventureSession.enter_stage(stage_id, StagePhaseDefinition.Kind.NORMAL, $SceneTransition)
 
 ## 悬停节点时请求情报预览，普通阶段通关后才解析配置。
 ## [param stage] 为 layout.json 条目，[param node] 提供面板锚点，[param cleared] 来自本轮已算好的进度。
@@ -129,5 +129,4 @@ func _stage_definition(stage_number: int) -> StageDefinition:
 
 ## 经复用遮幕返回原有菜单；只增加表现时序，保留进度、音乐和原返回目的地。
 func _return_menu() -> void:
-	AdventureSession.adventure_active = false
 	$SceneTransition.change_scene(Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu])

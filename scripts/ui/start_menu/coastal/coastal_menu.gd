@@ -84,6 +84,10 @@ func _ready() -> void:
 	if is_inside_tree():
 		show()
 
+## The transition curtain may reveal only after the first composited menu frames.
+func is_visual_ready() -> bool:
+	return initialized and visible
+
 func _fit() -> void:
 	if canvas==null:
 		return

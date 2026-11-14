@@ -46,40 +46,32 @@ func _navigate(destination_id: String) -> void:
 	if not is_instance_valid(_source_scene) or get_tree().current_scene != _source_scene:
 		close()
 		return
-	var target_scene: String # 用于识别当前地区并避免重复加载场景。
-	var enter: Callable # 在遮幕完成后执行的已注册入口。
+	var target_scene: String
 	match destination_id:
 		ZOMBIE_ISLAND:
 			target_scene = AdventureSession.MAP_SCENE
-			enter = _enter_zombie_island
 		TOWN:
 			target_scene = Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu]
-			enter = _enter_town.bind(target_scene)
 		_:
 			_picker.set_navigation_pending(false)
 			return
 	if _source_scene.scene_file_path == target_scene:
 		close()
 		return
-	var transition := _source_scene.get_node_or_null("SceneTransition") # 使用宿主的场景遮幕。
+	# 档案和冒险进度由 AdventureSession 校验/保存，导航本身不接管用户状态。
+	if destination_id == ZOMBIE_ISLAND and not AdventureSession.prepare_adventure():
+		_picker.show_entry_error(AdventureSession.entry_error)
+		return
+	var transition: Node = _source_scene.get_node_or_null("SceneTransition")
 	if transition == null:
-		enter.call()
-	elif not transition.run(enter):
-		_picker.set_navigation_pending(false)
+		_picker.show_entry_error("当前场景缺少统一场景切换组件。")
+		return
+	var on_failed := _transition_failed
+	transition.transition_failed.connect(on_failed, CONNECT_ONE_SHOT)
+	if not transition.change_scene(target_scene):
+		transition.transition_failed.disconnect(on_failed)
+		_picker.show_entry_error("场景加载请求未被接受，请稍后重试。")
 
-func _enter_zombie_island() -> bool:
-	if not is_open() or not is_instance_valid(_source_scene):
-		return false
-	if AdventureSession.open_adventure():
-		return true
-	_picker.show_entry_error(AdventureSession.entry_error)
-	return false
-
-## 打开 [param scene_path] 指定的主菜单；切换失败时提示并恢复地图输入。
-func _enter_town(scene_path: String) -> bool:
-	if not is_open() or not is_instance_valid(_source_scene):
-		return false
-	if get_tree().change_scene_to_file(scene_path) == OK:
-		return true
-	_picker.show_entry_error("无法返回城镇，请重试。")
-	return false
+func _transition_failed() -> void:
+	if is_open():
+		_picker.show_entry_error("场景资源加载失败，可以重试。")
