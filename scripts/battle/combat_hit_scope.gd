@@ -19,7 +19,7 @@ func try_claim(target: Character000Base) -> bool:
 	return true
 
 ## [param hp] 是最终承伤组件；[param amount] 是护甲分流后即将扣除的本体伤害。
-## 默认无需采集；调用发生在原生死亡和掉落之前，扩展只能观察本击。
+## 默认无需采集；跨越原生死亡阈值才观察，调用先于死亡和掉落。
 func before_body_loss(hp: HpComponentZombie, amount: int) -> void:
-	if amount >= hp.curr_hp and before_death.is_valid():
+	if amount > 0 and hp.curr_hp > hp.death_hp and hp.curr_hp - amount <= hp.death_hp and before_death.is_valid():
 		before_death.call(hp.owner_character)
