@@ -10,10 +10,13 @@ const ROUTES := {
 }
 ## 最近一次布局错误，交给界面显示。
 var error_message := ""
+## 本次验证通过的布局纹理路径；不加载资源，不跨界面缓存。
+var resource_paths := PackedStringArray()
 
 ## 返回已验证并附加显式 rect 的目录；失败返回空字典，不修改玩家状态。
 func load_layout() -> Dictionary:
 	error_message = ""
+	resource_paths.clear()
 	var parser := JSON.new() # 实例解析保证错误可以展示而不会静默替换布局。
 	if parser.parse(FileAccess.get_file_as_string(ROOT + "layout.json")) != OK:
 		return _invalid("v1.2 layout.json 缺失或格式错误。")
@@ -74,6 +77,9 @@ func load_layout() -> Dictionary:
 		if not asset is String or not asset.begins_with("art/") or ".." in asset \
 			or not asset.ends_with(".png") or not ResourceLoader.exists(ROOT + asset, "Texture2D"):
 			return _invalid("v1.2 资源缺失或路径无效：%s" % str(asset))
+		var path: String = ROOT + asset # 与展示校验共用权威清单，只移交去重后的路径。
+		if not resource_paths.has(path):
+			resource_paths.append(path)
 	return data
 
 ## [param destination] 必须同时在配置中开放、已实现且动作契约匹配。

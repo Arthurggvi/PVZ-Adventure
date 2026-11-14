@@ -1,0 +1,174 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://300aew7liup" path="res://assets/reanim/PeaShooter_frontleaf.png" id="8_jrvjq"]
+
+[ext_resource type="Texture2D" uid="uid://nj6m28m6k5p1" path="res://assets/reanim/PeaShooter_frontleaf_righttip.png" id="9_lppa3"]
+
+[ext_resource type="Texture2D" uid="uid://dit0i5evvco14" path="res://assets/reanim/PeaShooter_frontleaf_lefttip.png" id="10_xa6hp"]
+
+[ext_resource type="Texture2D" uid="uid://b7uqfdos6ocy7" path="res://assets/reanim/Cabbagepult_basket.png" id="245_etbto"]
+
+[ext_resource type="Texture2D" uid="uid://ch84133e8r30q" path="res://assets/reanim/Cabbagepult_cabbage.png" id="246_jnm8r"]
+
+[ext_resource type="Texture2D" uid="uid://ypi3oybr0n66" path="res://assets/reanim/Cabbagepult_basket_overlay.png" id="247_qq07m"]
+
+[ext_resource type="Texture2D" uid="uid://cbcy85auqsqxo" path="res://assets/reanim/Cabbagepult_stalk4.png" id="248_ap7r3"]
+
+[ext_resource type="Texture2D" uid="uid://dfh0ujqq7ciin" path="res://assets/reanim/Cabbagepult_stalk3.png" id="249_o7it4"]
+
+[ext_resource type="Texture2D" uid="uid://bpfr12xfpabt2" path="res://assets/reanim/Cabbagepult_stalk2.png" id="250_w8min"]
+
+[ext_resource type="Texture2D" uid="uid://dhxg5sfuuamwo" path="res://assets/reanim/Cabbagepult_stalk1.png" id="251_7f486"]
+
+[ext_resource type="Texture2D" uid="uid://d31i0qu2yufil" path="res://assets/reanim/Cabbagepult_leaf.png" id="252_ih4no"]
+
+[ext_resource type="Texture2D" uid="uid://doafgbf11qv24" path="res://assets/reanim/Cabbagepult_head.png" id="253_angoc"]
+
+[ext_resource type="Texture2D" uid="uid://2kjeq2b7olbb" path="res://assets/reanim/Cabbagepult_blink1.png" id="254_yrvmv"]
+
+[ext_resource type="Texture2D" uid="uid://b2utpcye3xuco" path="res://assets/reanim/Cabbagepult_eyebrow.png" id="255_k6rbm"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_33"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 33
+
+[node name="Card33" unique_id=210719842 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_33")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant033CabbagePult" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=926537297]
+position = Vector2(5, 14)
+scale = Vector2(0.45, 0.45)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant033CabbagePult" unique_id=169821118]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body" unique_id=882803556]
+position = Vector2(-41, -65)
+
+[node name="Cabbagepult_backleaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=960373318]
+position = Vector2(17.3, 51.9)
+rotation = 0.397935
+scale = Vector2(0.555, 0.374)
+texture = ExtResource("10_xa6hp")
+centered = false
+
+[node name="Cabbagepult_backleaf2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=714425691]
+position = Vector2(55.3, 52)
+rotation = -0.42237
+scale = Vector2(0.555, 0.444)
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Cabbagepult_basket" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=944505232]
+position = Vector2(-19.9, 8.3)
+scale = Vector2(0.64, 0.64)
+texture = ExtResource("245_etbto")
+centered = false
+
+[node name="Cabbagepult_cabbage" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=1146366619]
+position = Vector2(-17.5, 3.2)
+rotation = -0.076794
+texture = ExtResource("246_jnm8r")
+centered = false
+
+[node name="Cabbagepult_basket_overlay" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=1534441065]
+position = Vector2(-19.8, 8.3)
+scale = Vector2(0.637, 0.637)
+texture = ExtResource("247_qq07m")
+centered = false
+
+[node name="Cabbagepult_stalk4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=188436656]
+position = Vector2(12.2, 16.1)
+rotation = -0.003491
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("248_ap7r3")
+centered = false
+
+[node name="Cabbagepult_stalk3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=216359591]
+position = Vector2(19.7, 13.1)
+rotation = 0.617847
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("249_o7it4")
+centered = false
+
+[node name="Cabbagepult_stalk2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=1490965424]
+position = Vector2(24.9, 13.2)
+rotation = 0.574213
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("250_w8min")
+centered = false
+
+[node name="Cabbagepult_stalk1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=1598538126]
+position = Vector2(31.8, 21.7)
+rotation = 0.048869
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("251_7f486")
+centered = false
+
+[node name="Cabbagepult_leaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=260421563]
+position = Vector2(32.6, 11.3)
+rotation = 0.136136
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("252_ih4no")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=1611659540]
+position = Vector2(14.8, 29.1)
+rotation = -0.054105
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("253_angoc")
+centered = false
+
+[node name="Cabbagepult_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=828336025]
+visible = false
+position = Vector2(43, 48.3)
+rotation = -0.047124
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("254_yrvmv")
+centered = false
+
+[node name="Cabbagepult_eyebrow2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=242430937]
+position = Vector2(51.4, 42.5)
+rotation = 0.254818
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("255_k6rbm")
+centered = false
+
+[node name="Cabbagepult_eyebrow1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=2139380542]
+position = Vector2(47.1, 43.1)
+rotation = 2.56913
+scale = Vector2(0.799, 0.799)
+skew = -3.13985
+texture = ExtResource("255_k6rbm")
+centered = false
+
+[node name="Frontleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=121375665]
+position = Vector2(23.9, 54)
+rotation = 0.10472
+scale = Vector2(0.555, 0.43)
+texture = ExtResource("8_jrvjq")
+centered = false
+
+[node name="Frontleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=745760625]
+position = Vector2(57.1, 58.4)
+rotation = 0.10472
+scale = Vector2(0.555, 0.444)
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Frontleaf_tip_left" type="Sprite2D" parent="CardBg/CharacterStatic/Plant033CabbagePult/Body/BodyCorrect" unique_id=186650580]
+position = Vector2(19.9, 59)
+rotation = 0.10472
+scale = Vector2(0.555, 0.452)
+texture = ExtResource("10_xa6hp")
+centered = false

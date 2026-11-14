@@ -11,6 +11,17 @@ const Service = preload("res://scripts/adventure/shop/shop_service.gd")
 const View = preload("res://scripts/adventure/shop/shop_view.gd")
 ## 窗口缩放与金额格式直接依赖视觉原语，避免跨视图层解析嵌套脚本成员。
 const Style = preload("res://scripts/adventure/shop/shop_skin.gd")
+## 商品图标和原版戴夫都属于本窗口的首屏准备。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+
+## 首次只准备每日页的三个商品；不访问其他货架或写入玩家状态。
+static func get_initial_resource_paths() -> PackedStringArray:
+	var paths := PackedStringArray() # 商店布局的静态素材已由 View 脚本依赖提供。
+	ResourcePaths.append(paths, str(SceneRegistry.PATHS[&"CRAZY_DAVE"]))
+	for id: String in Catalog.ids("daily"):
+		var product: Dictionary = Catalog.product(id) # 图标路径只由既有商品目录决定。
+		ResourcePaths.append(paths, Style.ItemArt.icon_uri(str(product.asset)))
+	return paths
 ## 当前玩家的服务实例，不跨档复用。
 var _service: Service
 ## 页面打开时的玩家身份。

@@ -49,6 +49,9 @@ func _run() -> void:
 		push_error("FAIL: lazy settings action was rejected")
 		get_tree().quit(1)
 		return
+	var modal_limit: int = Time.get_ticks_msec() + 8000 # 接受打开请求之后，等待真实窗口完成资源准备。
+	while Time.get_ticks_msec() < modal_limit and AdventureToolbar.modal_for("settings") == null:
+		await get_tree().process_frame
 	var modal: Control = AdventureToolbar.modal_for("settings")
 	if not is_instance_valid(modal) or not modal is GameSettingsWindow:
 		push_error("FAIL: settings module did not materialize via toolbar")

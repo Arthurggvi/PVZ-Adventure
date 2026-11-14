@@ -1,0 +1,177 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://crmmrx3udqb0" path="res://assets/reanim/GloomShroom_base.png" id="321_ks0wj"]
+
+[ext_resource type="Texture2D" uid="uid://crtc0e5ars06p" path="res://assets/reanim/GloomShroom_shooter4.png" id="322_ylgpa"]
+
+[ext_resource type="Texture2D" uid="uid://kayk4ioac4ge" path="res://assets/reanim/GloomShroom_shooter5.png" id="323_whuge"]
+
+[ext_resource type="Texture2D" uid="uid://dbufjppsufks" path="res://assets/reanim/GloomShroom_head.png" id="324_ffws3"]
+
+[ext_resource type="Texture2D" uid="uid://buljqolbwkqsf" path="res://assets/reanim/GloomShroom_stem1.png" id="325_ft85b"]
+
+[ext_resource type="Texture2D" uid="uid://btqhc7w415bc4" path="res://assets/reanim/GloomShroom_shooter1.png" id="326_vcv46"]
+
+[ext_resource type="Texture2D" uid="uid://cxhcfy34a1jcr" path="res://assets/reanim/GloomShroom_stem2.png" id="327_vo1g1"]
+
+[ext_resource type="Texture2D" uid="uid://blnjxkyjc8hps" path="res://assets/reanim/GloomShroom_shooter2.png" id="328_bqk8l"]
+
+[ext_resource type="Texture2D" uid="uid://c3vhpes4gfdnm" path="res://assets/reanim/GloomShroom_stem3.png" id="329_ed5ns"]
+
+[ext_resource type="Texture2D" uid="uid://8xpg1e5uv1h" path="res://assets/reanim/GloomShroom_shooter3.png" id="330_6nvl2"]
+
+[ext_resource type="Texture2D" uid="uid://dbb2pywmigtfp" path="res://assets/reanim/GloomShroom_blink1.png" id="331_augfe"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_43"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 43
+
+[node name="Card43" unique_id=1234321302 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_43")
+
+[node name="Plant043GloomShroom" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=963285404]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom" unique_id=889917644]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant043GloomShroom" unique_id=2091260768]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body" unique_id=2000784344]
+position = Vector2(-39, -67)
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=2056007531]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=842321211]
+centered = false
+
+[node name="Anim_sleep" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1025003964]
+visible = false
+centered = false
+
+[node name="Anim_shooting" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=87489347]
+visible = false
+centered = false
+
+[node name="GloomShroom_base" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=319168170]
+position = Vector2(12.5, 40.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("321_ks0wj")
+centered = false
+
+[node name="GloomShroom_shooter4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=2010320229]
+position = Vector2(7.6, 3.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("322_ylgpa")
+centered = false
+
+[node name="GloomShroom_shooter42" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1356084244]
+position = Vector2(75.3, 3.5)
+rotation = 3.14159
+scale = Vector2(0.8, 0.8)
+skew = -3.14159
+texture = ExtResource("322_ylgpa")
+centered = false
+
+[node name="GloomShroom_shooter5" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1185538307]
+position = Vector2(28.3, -1.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("323_whuge")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1947136836]
+position = Vector2(7.2, 5.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("324_ffws3")
+centered = false
+
+[node name="GloomShroom_stem1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1869038522]
+position = Vector2(31.4, 49.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("325_ft85b")
+centered = false
+
+[node name="GloomShroom_shooter1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1554988155]
+position = Vector2(29.3, 51.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("326_vcv46")
+centered = false
+
+[node name="GloomShroom_stem2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1659761289]
+position = Vector2(9.3, 40.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("327_vo1g1")
+centered = false
+
+[node name="GloomShroom_stem22" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1783259878]
+position = Vector2(72, 41.6)
+rotation = 3.14159
+scale = Vector2(0.8, 0.8)
+skew = -3.14159
+texture = ExtResource("327_vo1g1")
+centered = false
+
+[node name="GloomShroom_shooter2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1602148250]
+position = Vector2(8.1, 41.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("328_bqk8l")
+centered = false
+
+[node name="GloomShroom_shooter22" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1218182580]
+position = Vector2(73.2, 42.6)
+rotation = 3.14159
+scale = Vector2(0.8, 0.8)
+skew = -3.14159
+texture = ExtResource("328_bqk8l")
+centered = false
+
+[node name="GloomShroom_stem3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1272225018]
+position = Vector2(2.4, 24)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("329_ed5ns")
+centered = false
+
+[node name="GloomShroom_stem32" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=2122737374]
+position = Vector2(78.9, 25.2)
+rotation = 3.14159
+scale = Vector2(0.8, 0.8)
+skew = -3.14159
+texture = ExtResource("329_ed5ns")
+centered = false
+
+[node name="GloomShroom_shooter3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1151612802]
+position = Vector2(-0.4, 22.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("330_6nvl2")
+centered = false
+
+[node name="GloomShroom_shooter32" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=981115439]
+position = Vector2(81.8, 23.8)
+rotation = 3.14159
+scale = Vector2(0.8, 0.8)
+skew = -3.14159
+texture = ExtResource("330_6nvl2")
+centered = false
+
+[node name="GloomShroom_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=705229438]
+visible = false
+centered = false
+
+[node name="Blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant043GloomShroom/Body/BodyCorrect" unique_id=1281030833]
+visible = false
+position = Vector2(15, 12)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("331_augfe")
+centered = false

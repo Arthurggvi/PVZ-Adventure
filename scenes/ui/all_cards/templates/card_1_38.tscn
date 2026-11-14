@@ -1,0 +1,107 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://dkyp1upt321re" path="res://assets/reanim/Umbrellaleaf_body.png" id="290_jnetc"]
+
+[ext_resource type="Texture2D" uid="uid://dlrvn6rpf5r15" path="res://assets/reanim/Umbrellaleaf_blink1.png" id="291_x4ed2"]
+
+[ext_resource type="Texture2D" uid="uid://dm7kvxxhm4uel" path="res://assets/reanim/Umbrellaleaf_leaf5.png" id="292_g74nx"]
+
+[ext_resource type="Texture2D" uid="uid://d0umbuark08ak" path="res://assets/reanim/Umbrellaleaf_leaf4.png" id="293_kkciq"]
+
+[ext_resource type="Texture2D" uid="uid://do46elh3ankjy" path="res://assets/reanim/Umbrellaleaf_leaf6.png" id="294_d31db"]
+
+[ext_resource type="Texture2D" uid="uid://cx1iqwgjlil8n" path="res://assets/reanim/Umbrellaleaf_leaf3.png" id="295_5wf4j"]
+
+[ext_resource type="Texture2D" uid="uid://bhf6nf1hac1uj" path="res://assets/reanim/Umbrellaleaf_leaf7.png" id="296_q2ynx"]
+
+[ext_resource type="Texture2D" uid="uid://dmao52cen7wl3" path="res://assets/reanim/Umbrellaleaf_leaf2.png" id="297_pct5d"]
+
+[ext_resource type="Texture2D" uid="uid://elsoyk2l1qy" path="res://assets/reanim/Umbrellaleaf_leaf1.png" id="298_m376l"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_38"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 38
+
+[node name="Card38" unique_id=1849484246 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_38")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant038UmbrellaLeaf" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=143571529]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf" unique_id=130768737]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf" unique_id=2097474592]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf/Body" unique_id=226151638]
+position = Vector2(-40, -66)
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf/Body/BodyCorrect" unique_id=1524069315]
+position = Vector2(27.6, 33.5)
+scale = Vector2(0.637, 0.637)
+texture = ExtResource("290_jnetc")
+centered = false
+
+[node name="Umbrellaleaf_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf/Body/BodyCorrect" unique_id=1203141809]
+visible = false
+position = Vector2(33.1, 50.6)
+scale = Vector2(0.665, 0.665)
+texture = ExtResource("291_x4ed2")
+centered = false
+
+[node name="Umbrellaleaf_leaf5" type="Sprite2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf/Body/BodyCorrect" unique_id=1999939714]
+position = Vector2(32.9, 3.9)
+scale = Vector2(0.637, 0.637)
+texture = ExtResource("292_g74nx")
+centered = false
+
+[node name="Umbrellaleaf_leaf4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf/Body/BodyCorrect" unique_id=1539286715]
+position = Vector2(9.6, 4.8)
+scale = Vector2(0.637, 0.637)
+texture = ExtResource("293_kkciq")
+centered = false
+
+[node name="Umbrellaleaf_leaf6" type="Sprite2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf/Body/BodyCorrect" unique_id=1761788687]
+position = Vector2(33.5, 11.4)
+scale = Vector2(0.637, 0.637)
+texture = ExtResource("294_d31db")
+centered = false
+
+[node name="Umbrellaleaf_leaf3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf/Body/BodyCorrect" unique_id=2000778513]
+position = Vector2(0, 16.3)
+scale = Vector2(0.637, 0.637)
+texture = ExtResource("295_5wf4j")
+centered = false
+
+[node name="Umbrellaleaf_leaf7" type="Sprite2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf/Body/BodyCorrect" unique_id=796846544]
+position = Vector2(37.7, 19.1)
+scale = Vector2(0.637, 0.637)
+texture = ExtResource("296_q2ynx")
+centered = false
+
+[node name="Umbrellaleaf_leaf2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf/Body/BodyCorrect" unique_id=1652475054]
+position = Vector2(11.1, 23.2)
+scale = Vector2(0.637, 0.637)
+texture = ExtResource("297_pct5d")
+centered = false
+
+[node name="Umbrellaleaf_leaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant038UmbrellaLeaf/Body/BodyCorrect" unique_id=681380920]
+position = Vector2(32, 24)
+scale = Vector2(0.637, 0.637)
+texture = ExtResource("298_m376l")
+centered = false

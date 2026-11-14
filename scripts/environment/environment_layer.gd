@@ -48,6 +48,20 @@ var original_background_material: Material
 ## 本场景独立的临时叶片材质。
 var leaf_material: ShaderMaterial
 
+## 返回 [param config_path] 中效果帧和遮罩的去重路径，供宿主入树前后台准备。
+## JSON 是既有美术配置，保持它作为唯一素材清单，不扫描文件夹或构造节点。
+static func resource_paths(config_path: String) -> PackedStringArray:
+	var paths := PackedStringArray() # 本场景实际使用的环境纹理。
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(config_path)) # 轻量效果声明。
+	for entry: Dictionary in data.get("effects", []): # 各效果的循环帧和局部遮罩。
+		for path: String in entry.get("frames", []):
+			if not paths.has(path):
+				paths.append(path)
+		var mask: String = str(entry.get("mask", "")) # 无遮罩的粒子不请求空路径。
+		if not mask.is_empty() and not paths.has(mask):
+			paths.append(mask)
+	return paths
+
 ## 按数据创建固定数量效果，所有Node2D不参与GUI命中。
 func _ready() -> void:
 	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(configuration)) # 本场景的效果数据。

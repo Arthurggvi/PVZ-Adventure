@@ -54,6 +54,7 @@ func _run() -> void:
 		Input.parse_input_event(down)
 		await get_tree().create_timer(0.3).timeout
 		if utility_name == "options":
+			await _wait_for_settings()
 			var settings: GameSettingsWindow = AdventureToolbar.modal_for("settings") # 主菜单和工具栏共用的设置窗口。
 			assert(is_instance_valid(settings) and settings.visible)
 			settings.request_close()
@@ -95,6 +96,7 @@ func _run() -> void:
 	var bus := AudioServer.get_bus_index("BGM") # 既有音乐总线。
 	var master := AudioServer.get_bus_index("Master") # 既有总音量总线。
 	get_tree().current_scene._on_option_button_1_pressed()
+	await _wait_for_settings()
 	var audio_settings := AdventureToolbar.modal_for("settings") as GameSettingsWindow # 通过共用窗口调节音量。
 	audio_settings.get_node("Panel/General/BGM").value = 0.3
 	audio_settings.request_close()
@@ -127,3 +129,10 @@ func _run() -> void:
 	await _frames()
 	assert(get_tree().current_scene.art_canvas.get_node("CrowFlyby") != null)
 	get_tree().current_scene.art_canvas.get_node("exit_button").pressed.emit()
+
+## 历史探针也等待统一模态入口的异步完成，不把接受请求当作窗口就绪。
+func _wait_for_settings() -> void:
+	var deadline: int = Time.get_ticks_msec() + 8000 # 保留原断言范围，仅修正等待边界。
+	while Time.get_ticks_msec() < deadline and AdventureToolbar.modal_for("settings") == null:
+		await get_tree().process_frame
+	assert(AdventureToolbar.modal_for("settings") != null)

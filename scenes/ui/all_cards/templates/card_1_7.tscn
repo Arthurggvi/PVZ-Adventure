@@ -1,0 +1,246 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://bxi5txsx8yu3x" path="res://assets/reanim/Chomper_groundleaf4.png" id="72_5okmr"]
+
+[ext_resource type="Texture2D" uid="uid://x1iiuc81dxov" path="res://assets/reanim/Chomper_groundleaf3.png" id="73_nlpbr"]
+
+[ext_resource type="Texture2D" uid="uid://dpldve0cdg4md" path="res://assets/reanim/Chomper_stem3.png" id="74_5ndg8"]
+
+[ext_resource type="Texture2D" uid="uid://cwve7jn8g2ab0" path="res://assets/reanim/Chomper_stem2.png" id="75_fbpmc"]
+
+[ext_resource type="Texture2D" uid="uid://chfafv4kl20eo" path="res://assets/reanim/Chomper_stem1.png" id="76_x57l6"]
+
+[ext_resource type="Texture2D" uid="uid://bht0olrtfwmu0" path="res://assets/reanim/Chomper_groundleaf1.png" id="77_5ktdx"]
+
+[ext_resource type="Texture2D" uid="uid://dk286nihksjx8" path="res://assets/reanim/Chomper_groundleaf1tip.png" id="78_waqkr"]
+
+[ext_resource type="Texture2D" uid="uid://b0skfagpdpsv2" path="res://assets/reanim/Chomper_Headleaf4.png" id="79_1x30p"]
+
+[ext_resource type="Texture2D" uid="uid://bcu2d35xi6q11" path="res://assets/reanim/Chomper_Headleaf3.png" id="80_scsnj"]
+
+[ext_resource type="Texture2D" uid="uid://bjd1h032nkggy" path="res://assets/reanim/Chomper_Headleaf2.png" id="81_deuj6"]
+
+[ext_resource type="Texture2D" uid="uid://htohny1gtb75" path="res://assets/reanim/Chomper_Headleaf1.png" id="82_fxj51"]
+
+[ext_resource type="Texture2D" uid="uid://df6twhnyyfhsm" path="res://assets/reanim/Chomper_insidemouth.png" id="83_1sppy"]
+
+[ext_resource type="Texture2D" uid="uid://ch8qytdyotlrl" path="res://assets/reanim/Chomper_tongue.png" id="84_m3gwa"]
+
+[ext_resource type="Texture2D" uid="uid://eel4e8ca5e42" path="res://assets/reanim/Chomper_underjaw.png" id="85_ictml"]
+
+[ext_resource type="Texture2D" uid="uid://ciabjou0lxvtw" path="res://assets/reanim/Chomper_bottomlip.png" id="86_0syva"]
+
+[ext_resource type="Texture2D" uid="uid://d0jsmbm05wgmd" path="res://assets/reanim/Chomper_groundleaf2.png" id="87_rabrt"]
+
+[ext_resource type="Texture2D" uid="uid://dywcasy6pilto" path="res://assets/reanim/Chomper_groundleaf2tip.png" id="88_w8jmd"]
+
+[ext_resource type="Texture2D" uid="uid://dnracm7r1oeef" path="res://assets/reanim/Chomper_spike.png" id="89_em450"]
+
+[ext_resource type="Texture2D" uid="uid://bdxru0taei1fn" path="res://assets/reanim/Chomper_topjaw.png" id="90_gyjjj"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_7"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 7
+
+[node name="Card7" unique_id=1841011198 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_7")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant007Chomper" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1850271558]
+position = Vector2(1, 14)
+scale = Vector2(0.4, 0.4)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant007Chomper" unique_id=2098379026]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body" unique_id=1352032105]
+position = Vector2(-33, -79)
+
+[node name="Chomper_groundleaf4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=158871110]
+position = Vector2(32.8534, 63.8798)
+scale = Vector2(0.64, 0.784879)
+texture = ExtResource("72_5okmr")
+centered = false
+
+[node name="Chomper_groundleaf3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1041393629]
+position = Vector2(6.3, 64.1399)
+scale = Vector2(0.64, 0.75761)
+texture = ExtResource("73_nlpbr")
+centered = false
+
+[node name="Chomper_stem3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1859624244]
+position = Vector2(28.5135, 66.3332)
+rotation = 0.179081
+scale = Vector2(0.807265, 0.806148)
+skew = 6.03033
+texture = ExtResource("74_5ndg8")
+centered = false
+
+[node name="Chomper_stem2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1556839901]
+position = Vector2(9.55382, 42.9659)
+rotation = 0.179081
+scale = Vector2(0.807265, 0.805216)
+skew = 5.99777
+texture = ExtResource("75_fbpmc")
+centered = false
+
+[node name="Chomper_stem1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1531327431]
+position = Vector2(8.29373, 32.4524)
+rotation = 0.179081
+scale = Vector2(0.807265, 0.806148)
+skew = 6.03033
+texture = ExtResource("76_x57l6")
+centered = false
+
+[node name="Chomper_stomach" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=825989394]
+visible = false
+centered = false
+
+[node name="Chomper_groundleaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=52544250]
+position = Vector2(6.60673, 65.9265)
+rotation = 0.114621
+scale = Vector2(0.639466, 0.639466)
+texture = ExtResource("77_5ktdx")
+centered = false
+
+[node name="Chomper_groundleaf1tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1310706466]
+position = Vector2(-6.20673, 77.4)
+rotation = 6.00905
+scale = Vector2(0.639, 0.639)
+texture = ExtResource("78_waqkr")
+centered = false
+
+[node name="Chomper_Headleaf4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=4978783]
+position = Vector2(12.074, 35.013)
+rotation = 5.8341
+scale = Vector2(0.820812, 0.806937)
+skew = -0.0279412
+texture = ExtResource("79_1x30p")
+centered = false
+
+[node name="Chomper_Headleaf3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1648830677]
+position = Vector2(12.0673, 18.1735)
+rotation = 5.74003
+scale = Vector2(0.820812, 0.806937)
+skew = -0.0279413
+texture = ExtResource("80_scsnj")
+centered = false
+
+[node name="Chomper_Headleaf2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=184613985]
+position = Vector2(7.42064, 20.8067)
+rotation = 5.74748
+scale = Vector2(0.819211, 0.806937)
+skew = 0.0111768
+texture = ExtResource("81_deuj6")
+centered = false
+
+[node name="Chomper_Headleaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1645009805]
+position = Vector2(4.387, 32.6197)
+rotation = 5.80523
+scale = Vector2(0.824014, 0.806937)
+skew = -0.0465688
+texture = ExtResource("82_fxj51")
+centered = false
+
+[node name="Chomper_insidemouth" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=2118599094]
+position = Vector2(30.8139, 24.6125)
+rotation = 6.02194
+scale = Vector2(0.819534, 0.756072)
+skew = -0.00569772
+texture = ExtResource("83_1sppy")
+centered = false
+
+[node name="Chomper_tongue" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=543849969]
+position = Vector2(25.6605, 29.0664)
+rotation = 0.0366281
+scale = Vector2(0.799534, 0.792072)
+skew = 0.000813848
+texture = ExtResource("84_m3gwa")
+centered = false
+
+[node name="Chomper_underjaw" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=772967795]
+position = Vector2(13.1538, 26.7332)
+rotation = 5.7705
+scale = Vector2(0.743735, 0.729404)
+skew = -0.00814001
+texture = ExtResource("85_ictml")
+centered = false
+
+[node name="Chomper_bottomlip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=553278072]
+position = Vector2(24.6605, 27.2798)
+rotation = 5.74501
+scale = Vector2(0.794735, 0.791471)
+skew = -0.00104084
+texture = ExtResource("86_0syva")
+centered = false
+
+[node name="Zombie_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=2005174180]
+visible = false
+centered = false
+
+[node name="Zombie_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=468862308]
+visible = false
+centered = false
+
+[node name="Chomper_groundleaf2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=168224477]
+position = Vector2(30.1466, 68.4534)
+rotation = -0.0616812
+scale = Vector2(0.64, 0.64)
+texture = ExtResource("87_rabrt")
+centered = false
+
+[node name="Chomper_groundleaf2tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1722739992]
+position = Vector2(54.1601, 72.0197)
+rotation = 0.466019
+scale = Vector2(0.801601, 0.866014)
+skew = -0.0437591
+texture = ExtResource("88_w8jmd")
+centered = false
+
+[node name="Chomper_tongue_lick" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=795877194]
+visible = false
+centered = false
+
+[node name="Chomper_spike4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=706294583]
+position = Vector2(37.6735, -9.88746)
+rotation = 5.79753
+scale = Vector2(0.799067, 0.799067)
+texture = ExtResource("89_em450")
+centered = false
+
+[node name="Chomper_spike3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1879688645]
+position = Vector2(26.1803, -2.04755)
+rotation = 5.40904
+scale = Vector2(0.797067, 0.797067)
+texture = ExtResource("89_em450")
+centered = false
+
+[node name="Chomper_spike2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1331313796]
+position = Vector2(17.687, 8.63272)
+rotation = 5.07346
+scale = Vector2(0.796534, 0.796534)
+texture = ExtResource("89_em450")
+centered = false
+
+[node name="Chomper_spike1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=1234440575]
+position = Vector2(14.2005, 20.0995)
+rotation = 4.80058
+scale = Vector2(0.796, 0.796)
+texture = ExtResource("89_em450")
+centered = false
+
+[node name="Chomper_topjaw" type="Sprite2D" parent="CardBg/CharacterStatic/Plant007Chomper/Body/BodyCorrect" unique_id=222666909]
+position = Vector2(12.4404, 7.24618)
+rotation = 5.95099
+scale = Vector2(0.882, 0.795803)
+texture = ExtResource("90_gyjjj")
+centered = false

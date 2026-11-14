@@ -1,0 +1,116 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://cphyi585kac3c" path="res://assets/reanim/Blover_dirt_back.png" id="233_w46wv"]
+
+[ext_resource type="Texture2D" uid="uid://du4g4ioiybxm5" path="res://assets/reanim/Blover_stem2.png" id="234_yjayj"]
+
+[ext_resource type="Texture2D" uid="uid://s4quydbbcbox" path="res://assets/reanim/Blover_stem1.png" id="235_5okmr"]
+
+[ext_resource type="Texture2D" uid="uid://p0gjyfmwmgbi" path="res://assets/reanim/Blover_dirt_front.png" id="236_nlpbr"]
+
+[ext_resource type="Texture2D" uid="uid://cqprf536gm6xf" path="res://assets/reanim/Blover_petal.png" id="237_5ndg8"]
+
+[ext_resource type="Texture2D" uid="uid://jgwwt6mqsswi" path="res://assets/reanim/Blover_head.png" id="238_fbpmc"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_28"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 28
+
+[node name="Card28" unique_id=962754072 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_28")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant028Blover" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1109504220]
+position = Vector2(1, 15)
+scale = Vector2(0.45, 0.45)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover" unique_id=657594687]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant028Blover" unique_id=1634574779]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant028Blover/Body" unique_id=1338873299]
+position = Vector2(-41, -67)
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=446560195]
+visible = false
+centered = false
+
+[node name="Anim_loop" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=797883501]
+visible = false
+centered = false
+
+[node name="Anim_blow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=1517486337]
+position = Vector2(5, 0)
+centered = false
+
+[node name="Blover_dirt_back" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=46212439]
+position = Vector2(37.3, 65.3)
+scale = Vector2(0.8, 0.801)
+skew = -0.015708
+texture = ExtResource("233_w46wv")
+centered = false
+
+[node name="Blover_stem2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=985198884]
+position = Vector2(29.1, 53.5)
+rotation = -0.090757
+scale = Vector2(0.799, 0.801)
+skew = -0.0122174
+texture = ExtResource("234_yjayj")
+centered = false
+
+[node name="Blover_stem1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=722379625]
+position = Vector2(27, 39.1)
+rotation = -0.020944
+scale = Vector2(0.792, 0.808)
+skew = -0.0383972
+texture = ExtResource("235_5okmr")
+centered = false
+
+[node name="Blover_dirt_front" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=2037633292]
+position = Vector2(36.2, 67.7)
+scale = Vector2(0.8, 0.801)
+skew = -0.015708
+texture = ExtResource("236_nlpbr")
+centered = false
+
+[node name="Blover_petals" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=1442971622]
+position = Vector2(19.5, -13.1)
+scale = Vector2(0.993, 1)
+texture = ExtResource("237_5ndg8")
+centered = false
+
+[node name="Blover_petals2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=1039346611]
+position = Vector2(5.7, 67.2)
+rotation = 4.19228
+scale = Vector2(0.998, 0.995)
+skew = -0.0069815
+texture = ExtResource("237_5ndg8")
+centered = false
+
+[node name="Blover_petals3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=557516115]
+position = Vector2(83, 36.3)
+rotation = 2.0909
+scale = Vector2(0.998, 0.995)
+skew = 0.0069817
+texture = ExtResource("237_5ndg8")
+centered = false
+
+[node name="Blover_head" type="Sprite2D" parent="CardBg/CharacterStatic/Plant028Blover/Body/BodyCorrect" unique_id=50850282]
+position = Vector2(19.9, 16.4)
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("238_fbpmc")
+centered = false

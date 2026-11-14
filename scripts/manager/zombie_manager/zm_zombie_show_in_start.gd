@@ -34,17 +34,24 @@ func create_show_zombie(zombie_type:CharacterRegistry.ZombieType, parent_node:Pa
 	zombie.position = zombie_pos
 	return zombie
 
-## 生成关卡前展示僵尸
-func create_prepare_show_zombies():
-	for zombie_type in zombie_manager.zombie_refresh_types:
-		var zombie_num_range :Vector2i= special_show_zombie_num_range.get(zombie_type, default_show_zombie_num_range)
-		var zombie_num = randi_range(zombie_num_range.x, zombie_num_range.y)
-		for i in range(zombie_num):
-			var z = create_show_zombie(zombie_type, show_zombie_panel)
-			show_zombies_array.append(z)
+## 生成关卡前展示僵尸；冒险首屏按 4ms 构造预算让出帧，调用方等待全部完成再开始镜头。
+func create_prepare_show_zombies() -> void:
+	var budget_start: int = Time.get_ticks_usec() # 当前批次主线程构造的计时起点。
+	var stagger: bool = AdventureSession.owns_battle(zombie_manager.game_para) # 原版入口保持原有同步行为。
+	for zombie_type: int in zombie_manager.zombie_refresh_types: # 本关真实预览名单。
+		var zombie_num_range: Vector2i = special_show_zombie_num_range.get(zombie_type, default_show_zombie_num_range) # 原随机数量范围。
+		var zombie_num: int = randi_range(zombie_num_range.x, zombie_num_range.y) # 每种物种只抽取一次数量。
+		for _index: int in range(zombie_num): # 每次只构造一个完整展示实体。
+			if stagger and Time.get_ticks_usec() - budget_start >= 4000:
+				await get_tree().process_frame
+				if not is_inside_tree():
+					return
+				budget_start = Time.get_ticks_usec()
+			var zombie: Zombie000Base = create_show_zombie(zombie_type, show_zombie_panel) # 后台已准备的资源在主线程实例化。
+			show_zombies_array.append(zombie)
 	if zombie_manager.is_bungi:
-		var z = create_show_zombie(CharacterRegistry.ZombieType.Z021Bungi, show_zombie_panel_2)
-		show_zombies_array.append(z)
+		var bungee: Zombie000Base = create_show_zombie(CharacterRegistry.ZombieType.Z021Bungi, show_zombie_panel_2) # 特殊层的蹦极展示实体。
+		show_zombies_array.append(bungee)
 
 ## 删除关卡前展示僵尸
 func delete_prepare_show_zombies() -> void:

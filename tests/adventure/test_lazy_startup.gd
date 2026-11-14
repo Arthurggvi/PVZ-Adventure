@@ -1,4 +1,4 @@
-## Contract test for cold startup and the first materialization of the original card catalogue.
+## 启动及单卡装配契约；身份查询不应实体化卡面模板。
 extends Node
 
 func _ready() -> void:
@@ -37,9 +37,11 @@ func _run() -> void:
 		ResourceCardReference.CardType.Plant)
 	if not _expect(not references.is_empty(), "lazy catalogue references empty"):
 		return
-	if not _expect(AllCards.is_catalog_materialized(), "catalogue not materialized on demand"):
+	if not _expect(not AllCards.is_catalog_materialized(), "metadata query materialized card templates"):
 		return
 	if not _expect(AllCards.get_template(references[0]) != null, "catalogue template absent"):
+		return
+	if not _expect(AllCards.is_catalog_materialized(), "requested card template not materialized"):
 		return
 	var card: Card = AllCards.create_card(references[0])
 	if not _expect(card != null, "card copy failed"):

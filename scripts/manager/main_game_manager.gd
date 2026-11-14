@@ -3,6 +3,12 @@ class_name MainGameManager
 
 ## 当前战斗唯一空间索引，在子管理器 ready 之前完成装配。
 var board: BoardRuntime
+## 初次展示实体分帧构造期间阻止统一遮幕提前揭开。
+var _initializing_visuals := false
+
+## 统一过渡查询首屏构造是否完成；演出时长不计入资源准备。
+func is_visual_ready() -> bool:
+	return not _initializing_visuals
 
 ## 正式战斗内复用的战外档案头像框。
 const ProfileHud = preload("res://scripts/adventure/ui/adventure_profile_hud.gd")
@@ -219,7 +225,10 @@ func _ready() -> void:
 	## 连接子节点信号
 	signal_connect()
 	## 初始化子管理器
-	init_manager()
+	_initializing_visuals = true
+	await init_manager()
+	if not is_inside_tree():
+		return
 	coin_bank_label.visible = false
 	## 初始化游戏背景音乐
 	_init_game_BGM()
@@ -227,13 +236,16 @@ func _ready() -> void:
 	## 若有存档
 	if is_save_game_data_on_init:
 		if not load_game_main_game():
+			_initializing_visuals = false
 			return
 		# 存档表示上一轮已经结束，选卡阶段直接恢复过渡，不重新判胜。
 		_advance_to_next_round()
+		_initializing_visuals = false
 	else:
 
 		## 如果有戴夫对话
 		if game_para.crazy_dave_dialog:
+			_initializing_visuals = false # 对话需要揭幕后才能交互，不等待玩家操作。
 			var crazy_dave:CrazyDave = SceneRegistry.CRAZY_DAVE.instantiate()
 			crazy_dave.init_dave(game_para.crazy_dave_dialog)
 			canvas_layer_ui.add_child(crazy_dave)
@@ -243,7 +255,10 @@ func _ready() -> void:
 		## 如果看展示僵尸
 		if game_para.look_show_zombie:
 			## 创建展示僵尸，等待一秒移动相机
-			zombie_manager.create_prepare_show_zombies()
+			await zombie_manager.create_prepare_show_zombies()
+			if not is_inside_tree():
+				return
+			_initializing_visuals = false
 			await get_tree().create_timer(1.0).timeout
 			await camera_2d.move_look_zombie()
 			## 如果可以选卡
@@ -253,6 +268,7 @@ func _ready() -> void:
 				await get_tree().create_timer(1.0).timeout
 				no_choosed_card_start_game()
 		else:
+			_initializing_visuals = false
 			main_game_start()
 
 ## 创建复用战外头像框的战斗档案 HUD，缩到阳光槽左侧以避开卡槽和草坪操作区。
@@ -297,9 +313,11 @@ func update_marker_2d_sun_target(new_marker_2d_sun_target:Marker2D):
 	marker_2d_sun_target = new_marker_2d_sun_target
 
 #region 游戏关卡初始化
-## 初始化管理器
+## 初始化管理器；等待选卡候选分帧构造完成后再启动依赖卡槽的子管理器。
 func init_manager():
-	card_manager.init_manager()
+	await card_manager.init_manager()
+	if not is_inside_tree():
+		return
 	plant_cell_manager.init_manager()
 	game_item_manager.init_manager()
 	hand_manager.init_manager()
@@ -414,7 +432,9 @@ func _advance_to_next_round() -> void:
 	## 如果看展示僵尸
 	if game_para.look_show_zombie:
 		## 创建展示僵尸，等待一秒移动相机
-		zombie_manager.create_prepare_show_zombies()
+		await zombie_manager.create_prepare_show_zombies()
+		if not is_inside_tree():
+			return
 		await get_tree().create_timer(1.0).timeout
 		await camera_2d.move_look_zombie()
 		## 如果可以选卡

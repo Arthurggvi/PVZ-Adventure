@@ -7,10 +7,24 @@ signal closed
 
 const Background = preload("res://scripts/adventure/research_lab_background.gd")
 const ResearchWindow = preload("res://scripts/adventure/ui/research_window.gd")
+## 温室和当前合成页的动态依赖由所属窗口声明。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+
+## 不创建其他研究模式，只准备初次展示的布局及温室分层。
+static func get_initial_resource_paths() -> PackedStringArray:
+	var paths: PackedStringArray = ResearchWindow.get_initial_resource_paths() # 当前合成页和共享皮肤。
+	for filename: String in ["research_bg_base.png", "research_window_leaf_shadow.png", "research_lamp_lightcone.png",
+		"research_lamp_glow.png", "research_vine_left.png", "research_vine_right.png", "research_dust_mote.png"]:
+		ResourcePaths.append(paths, Background.ROOT + filename)
+	return paths
 
 var _background: Node2D
 var _window: AdventureResearchWindow
 var _closing := false
+
+## 温室与面板共用真实首屏内容完成状态。
+func is_content_ready() -> bool:
+	return is_instance_valid(_window) and _window.is_content_ready()
 
 func _ready() -> void:
 	name = "ResearchLabStage"

@@ -71,16 +71,25 @@ static func is_unlocked(stage_number: int, state: AdventureState) -> bool:
 	return is_cleared(state, AdventureStageRegistry.previous_stage_id(stage_number),
 		StagePhaseDefinition.Kind.NORMAL)
 
-## 空字符串即允许进入。不可执行的事件或资源错误在这里拦截，不能静默退回原版。
+## 按 [param stage_number] 解析配置并校验 [param kind]，保留外部调用入口。
+## [param state] 与 [param inventory] 始终实时检查；返回空字符串表示允许进入。
 static func entry_error(stage_number: int, kind: int, state: AdventureState,
 		inventory: AdventureInventoryService) -> String:
+	return entry_error_for_stage(stage_number, load_stage(stage_number), kind, state, inventory)
+
+## 使用同一次解析的 [param stage] 校验，不再次读取或深拷贝关卡资源。
+## [param stage_number] 必须对应配置身份；[param kind]、[param state]、[param inventory]
+## 保持原入口动态校验，空字符串表示配置与当前玩家都允许进入。
+static func entry_error_for_stage(stage_number: int, stage: StageDefinition, kind: int,
+		state: AdventureState, inventory: AdventureInventoryService) -> String:
 	if state == null or inventory == null:
 		return "玩家冒险数据未就绪。"
 	if not is_unlocked(stage_number, state):
 		return "请先通关上一关普通阶段。"
-	var stage: StageDefinition = load_stage(stage_number)
 	if stage == null:
 		return "关卡配置不存在。"
+	if stage.stage_id != AdventureStageRegistry.stage_id(stage_number):
+		return "关卡配置身份与入口不一致。"
 	var issues: PackedStringArray = stage.validate(tier_ids(), key_ids())
 	if not issues.is_empty():
 		return "关卡配置无效：" + issues[0]

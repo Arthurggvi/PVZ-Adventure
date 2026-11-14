@@ -1,0 +1,224 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://ni7u5qre4aik" path="res://assets/reanim/Zombie_bungi_body.png" id="591_h4f86"]
+
+[ext_resource type="Texture2D" uid="uid://bdf4plya5ncom" path="res://assets/reanim/Zombie_bungi_rightleg_upper.png" id="592_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://7l5orx8w6bs6" path="res://assets/reanim/Zombie_bungi_rightleg_lower.png" id="593_ygkuv"]
+
+[ext_resource type="Texture2D" uid="uid://cjcr1tlvwtumn" path="res://assets/reanim/Zombie_bungi_foot.png" id="594_8ubrk"]
+
+[ext_resource type="Texture2D" uid="uid://b7pf87l4wyfx0" path="res://assets/reanim/Zombie_bungi_leftleg_upper.png" id="595_7s78v"]
+
+[ext_resource type="Texture2D" uid="uid://dil6nq4haoji6" path="res://assets/reanim/Zombie_bungi_left_tatter.png" id="596_hwt68"]
+
+[ext_resource type="Texture2D" uid="uid://cq2x0vj5ju3kf" path="res://assets/reanim/Zombie_bungi_leftshirt.png" id="597_02mw7"]
+
+[ext_resource type="Texture2D" uid="uid://b30lm4ay2qo8d" path="res://assets/reanim/Zombie_bungi_rightshirt.png" id="598_dlmd8"]
+
+[ext_resource type="Texture2D" uid="uid://byghtcm5ywjss" path="res://assets/reanim/Zombie_bungi_leftleg_lower.png" id="599_seprb"]
+
+[ext_resource type="Texture2D" uid="uid://c3xwcqjvlgxlm" path="res://assets/reanim/Zombie_bungi_leftleg_tatter.png" id="600_apyy4"]
+
+[ext_resource type="Texture2D" uid="uid://c73w6fjerlg5f" path="res://assets/reanim/Zombie_bungi_rightarm_upper.png" id="601_fjnrx"]
+
+[ext_resource type="Texture2D" uid="uid://dj4gfm8sr42hb" path="res://assets/reanim/Zombie_bungi_rightarm_lower.png" id="602_h01eb"]
+
+[ext_resource type="Texture2D" uid="uid://demqoy2s3fhri" path="res://assets/reanim/Zombie_bungi_rightarm_cuff.png" id="603_7tryg"]
+
+[ext_resource type="Texture2D" uid="uid://cc2yfg7unkcyq" path="res://assets/reanim/Zombie_bungi_hand.png" id="604_30kia"]
+
+[ext_resource type="Texture2D" uid="uid://cerfji34nvenc" path="res://assets/reanim/Zombie_bungi_leftarm_upper.png" id="605_c3ges"]
+
+[ext_resource type="Texture2D" uid="uid://csc3soiyqlcg3" path="res://assets/reanim/Zombie_bungi_leftarm_lower.png" id="606_xx0yu"]
+
+[ext_resource type="Texture2D" uid="uid://cr5wbmtt2c1o4" path="res://assets/reanim/Zombie_bungi_jaw.png" id="607_erjjv"]
+
+[ext_resource type="Texture2D" uid="uid://cmvshansx1t4" path="res://assets/reanim/Zombie_bungi_head.png" id="608_bssnp"]
+
+[ext_resource type="Texture2D" uid="uid://drpdbrrx80w50" path="res://assets/reanim/Zombie_bungi_hair.png" id="609_k4s3d"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_21"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 21
+
+[node name="Card21" unique_id=904830040 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_21")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie021Bungi" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1534456787]
+position = Vector2(2, 17)
+scale = Vector2(0.3, 0.3)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie021Bungi" unique_id=1590332963]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body" unique_id=448414838]
+position = Vector2(-45, -110)
+
+[node name="Zombie_bungi_body" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=124315575]
+position = Vector2(17.6, 17)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("591_h4f86")
+centered = false
+
+[node name="Zombie_bungi_rightleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=988969669]
+position = Vector2(12.5, 50.6)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("592_m4n4y")
+centered = false
+
+[node name="Zombie_bungi_rightleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1659582158]
+position = Vector2(5.8, 52.6)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("593_ygkuv")
+centered = false
+
+[node name="Zombie_bungi_rightleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=545247845]
+position = Vector2(-12.8, 66.3)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("594_8ubrk")
+centered = false
+
+[node name="Zombie_bungi_leftleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1786242928]
+position = Vector2(51.3, 47.5)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("595_7s78v")
+centered = false
+
+[node name="Zombie_bungi_left_tatter" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=896847600]
+position = Vector2(58, 44)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("596_hwt68")
+centered = false
+
+[node name="Zombie_bungi_leftshirt" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1517235018]
+position = Vector2(58.7, 30.2)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("597_02mw7")
+centered = false
+
+[node name="Zombie_bungi_rightshirt" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=2048893170]
+position = Vector2(2.3, 36.4)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("598_dlmd8")
+centered = false
+
+[node name="Zombie_bungi_leftleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1335834410]
+position = Vector2(57.8, 53)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("599_seprb")
+centered = false
+
+[node name="Zombie_bungi_leftleg_tatter" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1328314710]
+position = Vector2(73.1, 64.3)
+scale = Vector2(0.747, 0.747)
+texture = ExtResource("600_apyy4")
+centered = false
+
+[node name="Zombie_bungi_leftleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1647952096]
+position = Vector2(95.6, 70.7)
+rotation = 3.14159
+scale = Vector2(0.702, 0.702)
+skew = -3.14159
+texture = ExtResource("594_8ubrk")
+centered = false
+
+[node name="Zombie_bungi_rightarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1572458685]
+position = Vector2(0.5, 8.4)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("601_fjnrx")
+centered = false
+
+[node name="Zombie_bungi_rightarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=479891241]
+position = Vector2(-9.1, 9.5)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("602_h01eb")
+centered = false
+
+[node name="Zombie_bungi_rightarm_cuff" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1511073395]
+position = Vector2(-17.3, 11.2)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("603_7tryg")
+centered = false
+
+[node name="Zombie_bungi_rightarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1862497995]
+position = Vector2(-32.3, 9.5)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("604_30kia")
+centered = false
+
+[node name="Zombie_bungi_leftarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1080152445]
+position = Vector2(57, 9)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("605_c3ges")
+centered = false
+
+[node name="Zombie_bungi_leftarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1731151964]
+position = Vector2(74, 8.9)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("606_xx0yu")
+centered = false
+
+[node name="Zombie_bungi_leftarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1773337083]
+position = Vector2(112.7, 16.1)
+rotation = 3.14159
+scale = Vector2(0.702, 0.702)
+skew = -3.14159
+texture = ExtResource("604_30kia")
+centered = false
+
+[node name="Zombie_bungi_body2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=183528393]
+visible = false
+centered = false
+
+[node name="Zombie_bungi_rightarm_upper2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=6962138]
+visible = false
+centered = false
+
+[node name="Zombie_bungi_leftarm_upper2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1542127131]
+visible = false
+centered = false
+
+[node name="Zombie_bungi_jaw" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1590505680]
+position = Vector2(26.3, 35.6)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("607_erjjv")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1750466523]
+position = Vector2(22.1, 1)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("608_bssnp")
+centered = false
+
+[node name="Zombie_bungi_hair" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=2038352998]
+position = Vector2(19.4, -3)
+scale = Vector2(0.702, 0.702)
+texture = ExtResource("609_k4s3d")
+centered = false
+
+[node name="Zombie_bungi_leftarm_hand2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1079684119]
+visible = false
+centered = false
+
+[node name="Zombie_bungi_leftarm_lower2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1813279199]
+visible = false
+centered = false
+
+[node name="Zombie_bungi_rightarm_hand2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=1734998711]
+visible = false
+centered = false
+
+[node name="Zombie_bungi_rightarm_lower2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie021Bungi/Body/BodyCorrect" unique_id=714707944]
+visible = false
+centered = false

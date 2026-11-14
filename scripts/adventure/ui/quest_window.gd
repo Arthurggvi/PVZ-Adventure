@@ -13,6 +13,24 @@ var _claim_button: Button
 var reward_playing := false
 ## 共享木框、羊皮纸、按钮和文字绘制入口。
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
+## 任务簿的动态皮肤和初次远征奖励美术由自身声明。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+
+## 准备首屏任务详情，不创建其他任务的奖励卡面。
+static func get_initial_resource_paths() -> PackedStringArray:
+	var paths: PackedStringArray = ResourcePaths.frame() # 列表按钮与当前详情公共素材。
+	paths.append_array(ResourcePaths.skin(PackedStringArray(["controls/filter_field.png", "slots/item_slot_normal.png",
+		"res://assets/adventure/ui/bottom_bar/icons/icon_quests.png"]), PackedStringArray(["buttons/action_neutral", "buttons/action_confirm"])))
+	if Global.global_game_state != null:
+		for task: Dictionary in AdventureQuestService.rows(Global.global_game_state.adventure_state):
+			if str(task.id) != "first_expedition":
+				continue
+			var rows: Array[Dictionary] = [] # 只取当前选中任务的奖励。
+			for reward: Dictionary in task.get("items", []):
+				rows.append(ResourcePaths.ItemArt.entry(str(reward.id)).merged({"id": str(reward.id),
+					"plant_type": int(Recipes.definition(str(reward.id)).get("plant_type", 0))}))
+			ResourcePaths.inventory_rows(paths, rows)
+	return paths
 ## 共享道具图标解析入口。
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 ## 静态目录与当前玩家的任务服务。

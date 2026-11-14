@@ -1,0 +1,312 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://cy3xu8ug3gd2" path="res://assets/reanim/PeaShooter_backleaf.png" id="3_xm6ba"]
+
+[ext_resource type="Texture2D" uid="uid://cyknr5ymersct" path="res://assets/reanim/PeaShooter_backleaf_lefttip.png" id="4_2m5n3"]
+
+[ext_resource type="Texture2D" uid="uid://i7fngqj5l36a" path="res://assets/reanim/PeaShooter_backleaf_righttip.png" id="5_utnli"]
+
+[ext_resource type="Texture2D" uid="uid://yxv2bpco6d57" path="res://assets/reanim/PeaShooter_stalk_bottom.png" id="6_1j6ba"]
+
+[ext_resource type="Texture2D" uid="uid://bu8g84fe1ni48" path="res://assets/reanim/PeaShooter_stalk_top.png" id="7_1qg83"]
+
+[ext_resource type="Texture2D" uid="uid://300aew7liup" path="res://assets/reanim/PeaShooter_frontleaf.png" id="8_jrvjq"]
+
+[ext_resource type="Texture2D" uid="uid://nj6m28m6k5p1" path="res://assets/reanim/PeaShooter_frontleaf_righttip.png" id="9_lppa3"]
+
+[ext_resource type="Texture2D" uid="uid://dit0i5evvco14" path="res://assets/reanim/PeaShooter_frontleaf_lefttip.png" id="10_xa6hp"]
+
+[ext_resource type="Texture2D" uid="uid://cqimtpo6uxpvv" path="res://assets/reanim/SunFlower_leftpetal8.png" id="15_o1kov"]
+
+[ext_resource type="Texture2D" uid="uid://dba05af6m14qb" path="res://assets/reanim/SunFlower_leftpetal7.png" id="16_s5i6f"]
+
+[ext_resource type="Texture2D" uid="uid://f43xv0aun5yb" path="res://assets/reanim/SunFlower_leftpetal6.png" id="17_h2xlp"]
+
+[ext_resource type="Texture2D" uid="uid://df06anw7nt00g" path="res://assets/reanim/SunFlower_leftpetal5.png" id="18_a41kf"]
+
+[ext_resource type="Texture2D" uid="uid://csycwxx4kl7gc" path="res://assets/reanim/SunFlower_leftpetal4.png" id="19_5n58f"]
+
+[ext_resource type="Texture2D" uid="uid://coqi3vpwq3dft" path="res://assets/reanim/SunFlower_leftpetal3.png" id="20_qgv2v"]
+
+[ext_resource type="Texture2D" uid="uid://dj5sy8aolaots" path="res://assets/reanim/SunFlower_leftpetal2.png" id="21_857ao"]
+
+[ext_resource type="Texture2D" uid="uid://c88ujwcx255a7" path="res://assets/reanim/SunFlower_leftpetal1.png" id="22_8nu58"]
+
+[ext_resource type="Texture2D" uid="uid://c33g6guw6tx2v" path="res://assets/reanim/SunFlower_bottompetals.png" id="23_cxbim"]
+
+[ext_resource type="Texture2D" uid="uid://dl82be6txvuxn" path="res://assets/reanim/SunFlower_rightpetal9.png" id="24_hpq6i"]
+
+[ext_resource type="Texture2D" uid="uid://bg2vmisbxbjaj" path="res://assets/reanim/SunFlower_rightpetal8.png" id="25_321e4"]
+
+[ext_resource type="Texture2D" uid="uid://vov3fyb78wmx" path="res://assets/reanim/SunFlower_rightpetal7.png" id="26_if8dq"]
+
+[ext_resource type="Texture2D" uid="uid://bv60pjqhu0vxm" path="res://assets/reanim/SunFlower_rightpetal6.png" id="27_k3hpp"]
+
+[ext_resource type="Texture2D" uid="uid://bnb4xvrduvnxl" path="res://assets/reanim/SunFlower_rightpetal5.png" id="28_q814d"]
+
+[ext_resource type="Texture2D" uid="uid://bds7y48b8uyoq" path="res://assets/reanim/SunFlower_rightpetal4.png" id="29_1pakb"]
+
+[ext_resource type="Texture2D" uid="uid://c36k2lh6ryu1i" path="res://assets/reanim/SunFlower_rightpetal3.png" id="30_83a58"]
+
+[ext_resource type="Texture2D" uid="uid://b0k8h0fw04b17" path="res://assets/reanim/SunFlower_rightpetal2.png" id="31_vni1y"]
+
+[ext_resource type="Texture2D" uid="uid://2mhgcxn85ix5" path="res://assets/reanim/SunFlower_rightpetal1.png" id="32_fbpe6"]
+
+[ext_resource type="Texture2D" uid="uid://cnigbyvgwk626" path="res://assets/reanim/SunFlower_toppetals.png" id="33_u48w0"]
+
+[ext_resource type="Texture2D" uid="uid://cu06igj1jmdy" path="res://assets/reanim/SunFlower_head.png" id="34_q3g05"]
+
+[ext_resource type="Texture2D" uid="uid://6sig2vr6hn5j" path="res://assets/reanim/SunFlower_blink2.png" id="35_f8qha"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_2"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 2
+
+[node name="Card2" unique_id=1464936208 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_2")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant002SunFlower" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=136801012]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant002SunFlower" unique_id=523750001]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body" unique_id=782059286]
+position = Vector2(-43, -69)
+
+[node name="Backleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=700533324]
+position = Vector2(27.6, 55.7213)
+scale = Vector2(0.585978, 0.433126)
+texture = ExtResource("3_xm6ba")
+centered = false
+
+[node name="Backleaf_left_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=448447080]
+position = Vector2(24.8809, 56.1)
+rotation = 0.017977
+scale = Vector2(0.609956, 0.461465)
+skew = 0.0181212
+texture = ExtResource("4_2m5n3")
+centered = false
+
+[node name="Backleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=375293908]
+position = Vector2(47.7596, 55.4213)
+rotation = 0.038283
+scale = Vector2(0.664022, 0.456295)
+skew = 0.000410078
+texture = ExtResource("5_utnli")
+centered = false
+
+[node name="Stalk_bottom" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1639056150]
+position = Vector2(38.1383, 49.2426)
+rotation = 0.206131
+scale = Vector2(0.559596, 0.741252)
+skew = -0.0718547
+texture = ExtResource("6_1j6ba")
+centered = false
+
+[node name="Stalk_top" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=36414054]
+position = Vector2(34.017, 36.9235)
+rotation = 0.178577
+scale = Vector2(0.564787, 0.848296)
+skew = -0.0721881
+texture = ExtResource("7_1qg83")
+centered = false
+
+[node name="Frontleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1030300458]
+position = Vector2(22.3404, 52.2022)
+scale = Vector2(0.572787, 0.630743)
+texture = ExtResource("8_jrvjq")
+centered = false
+
+[node name="Frontleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=260716388]
+position = Vector2(55.2213, 54.0809)
+rotation = -0.148573
+scale = Vector2(0.717274, 0.644126)
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Frontleaf_left_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1634179663]
+position = Vector2(19.5404, 58.883)
+rotation = 0.134276
+scale = Vector2(0.654722, 0.64353)
+texture = ExtResource("10_xa6hp")
+centered = false
+
+[node name="SunFlower_leftpetal8" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1702991109]
+position = Vector2(26.9765, 42.6213)
+rotation = 0.0223178
+scale = Vector2(0.801617, 0.8)
+skew = -0.0223178
+texture = ExtResource("15_o1kov")
+centered = false
+
+[node name="SunFlower_leftpetal7" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1779994558]
+position = Vector2(18.7765, 37.7617)
+rotation = 0.0166718
+scale = Vector2(1.00243, 1)
+skew = -0.0166718
+texture = ExtResource("16_s5i6f")
+centered = false
+
+[node name="SunFlower_leftpetal6" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=185185855]
+position = Vector2(13.4361, 33.3022)
+rotation = 0.0166718
+scale = Vector2(0.802022, 0.8)
+skew = -0.0166718
+texture = ExtResource("17_h2xlp")
+centered = false
+
+[node name="SunFlower_leftpetal5" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1715182254]
+position = Vector2(10.1956, 27.4044)
+rotation = -0.0115574
+scale = Vector2(0.805257, 0.8)
+skew = 0.0115574
+texture = ExtResource("18_a41kf")
+centered = false
+
+[node name="SunFlower_leftpetal4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=2072525614]
+position = Vector2(12.6361, 19.4044)
+rotation = -0.0115574
+scale = Vector2(0.805257, 0.8)
+skew = 0.0115574
+texture = ExtResource("19_5n58f")
+centered = false
+
+[node name="SunFlower_leftpetal3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=20479951]
+position = Vector2(16.8361, 13.1235)
+rotation = 0.0060858
+scale = Vector2(0.80283, 0.8)
+skew = -0.0060858
+texture = ExtResource("20_qgv2v")
+centered = false
+
+[node name="SunFlower_leftpetal2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=499146708]
+position = Vector2(24.0361, 7.98087)
+rotation = 0.0223178
+scale = Vector2(1.00243, 1)
+skew = -0.0223178
+texture = ExtResource("21_857ao")
+centered = false
+
+[node name="SunFlower_leftpetal1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1824950231]
+position = Vector2(30.3361, 6.28087)
+rotation = 0.0223178
+scale = Vector2(0.801617, 0.8)
+skew = -0.0223178
+texture = ExtResource("22_8nu58")
+centered = false
+
+[node name="SunFlower_bottompetals" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1739982598]
+position = Vector2(34.917, 43.6617)
+rotation = 0.0223178
+scale = Vector2(0.801617, 0.8)
+skew = -0.0223178
+texture = ExtResource("23_cxbim")
+centered = false
+
+[node name="SunFlower_rightpetal9" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=469858727]
+position = Vector2(48.0765, 43.0213)
+rotation = 0.0223178
+scale = Vector2(0.801617, 0.8)
+skew = -0.0223178
+texture = ExtResource("24_hpq6i")
+centered = false
+
+[node name="SunFlower_rightpetal8" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=196646597]
+position = Vector2(52.717, 40.5617)
+rotation = 0.0258462
+scale = Vector2(0.802022, 0.8)
+skew = -0.0258462
+texture = ExtResource("25_321e4")
+centered = false
+
+[node name="SunFlower_rightpetal7" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1841880544]
+position = Vector2(56.317, 37.4404)
+rotation = 0.039961
+scale = Vector2(0.80283, 0.8)
+skew = -0.039961
+texture = ExtResource("26_if8dq")
+centered = false
+
+[node name="SunFlower_rightpetal6" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1648053815]
+position = Vector2(61.3574, 32.6191)
+rotation = 0.0519582
+scale = Vector2(0.804852, 0.8)
+skew = -0.0519582
+texture = ExtResource("27_k3hpp")
+centered = false
+
+[node name="SunFlower_rightpetal5" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1925901204]
+position = Vector2(62.9574, 26.5596)
+rotation = 0.0625442
+scale = Vector2(0.807278, 0.8)
+skew = -0.0625442
+texture = ExtResource("28_q814d")
+centered = false
+
+[node name="SunFlower_rightpetal4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=871714037]
+position = Vector2(60.7383, 18)
+rotation = 0.0364322
+scale = Vector2(1.00323, 1)
+skew = -0.0364322
+texture = ExtResource("29_1pakb")
+centered = false
+
+[node name="SunFlower_rightpetal3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=893989026]
+position = Vector2(56.7574, 14.1809)
+rotation = 0.0258462
+scale = Vector2(1.00243, 1)
+skew = -0.0258462
+texture = ExtResource("30_83a58")
+centered = false
+
+[node name="SunFlower_rightpetal2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=65375925]
+position = Vector2(52.217, 9.84044)
+rotation = 0.0223178
+scale = Vector2(0.801617, 0.8)
+skew = -0.0223178
+texture = ExtResource("31_vni1y")
+centered = false
+
+[node name="SunFlower_rightpetal1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1613871044]
+position = Vector2(47.1765, 7.1)
+rotation = 0.0223178
+scale = Vector2(0.801617, 0.8)
+skew = -0.0223178
+texture = ExtResource("32_fbpe6")
+centered = false
+
+[node name="SunFlower_toppetals" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1668913517]
+position = Vector2(36.5765, 6.02131)
+rotation = 0.0223178
+scale = Vector2(0.801617, 0.896039)
+skew = -0.0223178
+texture = ExtResource("33_u48w0")
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=1518473389]
+position = Vector2(19.0574, 12.3809)
+scale = Vector2(0.8, 0.808787)
+texture = ExtResource("34_q3g05")
+centered = false
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=7238558]
+visible = false
+position = Vector2(32.2978, 20)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("35_f8qha")
+centered = false
+
+[node name="Marker2DCreateSun" type="Marker2D" parent="CardBg/CharacterStatic/Plant002SunFlower/Body/BodyCorrect" unique_id=672943629]
+position = Vector2(43, 27)

@@ -7,6 +7,12 @@ signal closed
 
 ## 复用冒险界面的木纹贴图。
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
+## 设置首屏只动态读取标题木纹，其他样式由脚本创建。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+
+## 返回设置窗口的动态美术依赖。
+static func get_initial_resource_paths() -> PackedStringArray:
+	return ResourcePaths.skin(PackedStringArray(["panels/wood_ninepatch.png"]))
 ## 与战斗暂停菜单共用的音量滑块。
 const VolumeSlider = preload("res://scripts/ui/audio_volume_slider.gd")
 ## 弹窗以基准视口像素布局，小窗口下才额外缩放。
@@ -27,7 +33,8 @@ var _closing := false
 
 ## 在全屏输入遮罩内构建紧凑的桌面设置窗。
 func _ready() -> void:
-	_previous_focus = get_viewport().gui_get_focus_owner()
+	var opener: WeakRef = get_meta("modal_opener_focus") as WeakRef if has_meta("modal_opener_focus") else null # 异步入口保存真正的打开按钮，不返回已释放的加载反馈。
+	_previous_focus = opener.get_ref() as Control if opener != null else get_viewport().gui_get_focus_owner()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade := ColorRect.new() # 保留背景辨识度，由根节点拦截鼠标。
@@ -72,7 +79,10 @@ func _ready() -> void:
 	var fullscreen := _add_fullscreen_toggle(general) # 浏览窗口模式时可用空格切换。
 	var done := _close_button("完成", Rect2(354, 252, 98, 32)) # 设置即时应用，按钮只负责关闭。
 	_set_focus_order([music, effects, fullscreen, done, close])
-	music.grab_focus()
+	if is_visible_in_tree():
+		music.grab_focus()
+	else:
+		visibility_changed.connect(music.grab_focus, CONNECT_ONE_SHOT) # 隐藏构造完成后，真实显示时再接管键盘焦点。
 
 	resized.connect(_fit)
 	_fit()

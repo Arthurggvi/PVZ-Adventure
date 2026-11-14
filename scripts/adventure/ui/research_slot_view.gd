@@ -25,6 +25,8 @@ const COLUMNS: int = 4
 const VISIBLE_ROWS: int = 6
 ## 相邻背包格之间的设计像素间距。
 const GRID_GAP: int = 8
+## 展示行的美术依赖沿用窗口准备协议。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
 
 ## 在 [param parent] 内绘制 [param rows] 的选择网格，点击后向 [param owner] 提交行索引。
 ## [param picker] 指定格子类型与当前高亮。
@@ -50,16 +52,26 @@ static func choices(owner: Control, parent: Control, rows: Array[Dictionary], pi
 		var cell := Control.new() # 容器尺寸独立于背包格内部等比缩放。
 		cell.custom_minimum_size = cell_size
 		grid.add_child(cell)
-		var key: String = str(record.get("uid", record.get("id", ""))) # 区分同物种的多张独立卡。
-		var tile: Control = _tile(cell, record, Rect2(Vector2.ZERO, cell_size), plants, not key.is_empty() and key == selected) # 格子复用背包点击信号。
 		if record.is_empty():
+			_tile(cell, record, Rect2(Vector2.ZERO, cell_size), plants, false) # 空格只有已准备皮肤，不进入资源等待队列。
 			continue
-		tile.tooltip_text = str(record.get("title", ""))
-		var pick := func(_record: Dictionary) -> void: # 格子离树后忽略排队中的旧点击。
-			if tile.is_inside_tree():
-				owner.call("choose_entry", index)
-		# 等背包格处理完当前输入，再移除旧格子并刷新界面。
-		tile.connect("chosen", pick, Object.CONNECT_DEFERRED)
+		var key: String = str(record.get("uid", record.get("id", ""))) # 区分同物种的多张独立卡。
+		var paths := PackedStringArray() # 只在容器进入视口时请求这一格的卡面与物品图标。
+		ResourcePaths.inventory_rows(paths, [record])
+		owner.visual_queue.enqueue(cell, paths,
+			_build_choice.bind(owner, cell, record, cell_size, plants, not key.is_empty() and key == selected, index))
+
+## 为已经准备的 [param record] 装配单格；其余参数保持原候选索引、布局和高亮。
+static func _build_choice(owner: Control, cell: Control, record: Dictionary, cell_size: Vector2,
+		plants: bool, active: bool, index: int) -> void:
+	var tile: Control = _tile(cell, record, Rect2(Vector2.ZERO, cell_size), plants, active) # 只在主线程构造背包格。
+	if record.is_empty():
+		return
+	tile.tooltip_text = str(record.get("title", ""))
+	var pick := func(_record: Dictionary) -> void: # 目标仍然有效时才向窗口提交索引。
+		if is_instance_valid(tile) and tile.is_inside_tree():
+			owner.call("choose_entry", index)
+	tile.connect("chosen", pick, Object.CONNECT_DEFERRED)
 
 ## 在工作面板中按 [param columns] 列、[param rows] 行划分空间，返回 [param index] 的槽位区域。
 ## [param scale_factor] 按原格中心等比缩放槽位区域，1 表示原始大小。

@@ -1,0 +1,200 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://c56eve4tvxpgc" path="res://assets/reanim/Zombie_innerarm_hand.png" id="196_pct5d"]
+
+[ext_resource type="Texture2D" uid="uid://duyqfy4j8isia" path="res://assets/reanim/Zombie_outerarm_hand.png" id="221_f80r2"]
+
+[ext_resource type="Texture2D" uid="uid://dt826rfskljq4" path="res://assets/reanim/Zombie_balloon_innerleg_lower.png" id="465_aglxf"]
+
+[ext_resource type="Texture2D" uid="uid://dftphnbl7ljec" path="res://assets/reanim/Zombie_balloon_innerleg_foot.png" id="466_pk4u5"]
+
+[ext_resource type="Texture2D" uid="uid://0wrnstqn1loq" path="res://assets/reanim/Zombie_balloon_outerleg_upper.png" id="467_3lhqb"]
+
+[ext_resource type="Texture2D" uid="uid://mgnph01t2mn4" path="res://assets/reanim/Zombie_balloon_innerarm_upper.png" id="468_q0gty"]
+
+[ext_resource type="Texture2D" uid="uid://b5c1gr8niscia" path="res://assets/reanim/Zombie_balloon_innerarm_lower.png" id="469_03qhc"]
+
+[ext_resource type="Texture2D" uid="uid://dwijy5l3lqdfw" path="res://assets/reanim/Zombie_balloon_string.png" id="470_l1yc2"]
+
+[ext_resource type="Texture2D" uid="uid://c3xavnc2w2w43" path="res://assets/reanim/Zombie_balloon_bottom.png" id="471_2uats"]
+
+[ext_resource type="Texture2D" uid="uid://gnlo3ckohgef" path="res://assets/reanim/Zombie_balloon_top.png" id="472_ch63v"]
+
+[ext_resource type="Texture2D" uid="uid://csr4uc1qe2u8u" path="res://assets/reanim/Zombie_balloon_body2.png" id="473_hvhik"]
+
+[ext_resource type="Texture2D" uid="uid://r4v5voglt86g" path="res://assets/reanim/Zombie_balloon_body1.png" id="474_0ve74"]
+
+[ext_resource type="Texture2D" uid="uid://btjxktub70sh0" path="res://assets/reanim/Zombie_balloon_outerleg_FOOT.png" id="475_tmgt8"]
+
+[ext_resource type="Texture2D" uid="uid://dtvjlpwc6oksx" path="res://assets/reanim/Zombie_balloon_outerleg_lower.png" id="476_bga83"]
+
+[ext_resource type="Texture2D" uid="uid://qxhl1eck8fir" path="res://assets/reanim/Zombie_balloon_innerleg_upper.png" id="477_s6kw2"]
+
+[ext_resource type="Texture2D" uid="uid://25pfkquqyf10" path="res://assets/reanim/Zombie_balloon_head.png" id="478_whtsg"]
+
+[ext_resource type="Texture2D" uid="uid://dnpua6oq6p72a" path="res://assets/reanim/Zombie_balloon_jaw.png" id="479_utmk7"]
+
+[ext_resource type="Texture2D" uid="uid://c7dplcbrtt1ff" path="res://assets/reanim/Zombie_balloon_outerarm_upper.png" id="480_4k8ki"]
+
+[ext_resource type="Texture2D" uid="uid://fyhorf5er12q" path="res://assets/reanim/Zombie_balloon_outerarm_lower.png" id="481_ghxkp"]
+
+[ext_resource type="Texture2D" uid="uid://47l5l3b3e50s" path="res://assets/reanim/Zombie_balloon_hat.png" id="482_xbns8"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_17"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 17
+
+[node name="Card17" unique_id=2092435491 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_17")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie017Balloon" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1064074178]
+position = Vector2(2, 17)
+scale = Vector2(0.3, 0.3)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie017Balloon" unique_id=1069771998]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body" unique_id=210961947]
+position = Vector2(-40, -128)
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=1597257962]
+visible = false
+centered = false
+
+[node name="Zombie_balloon_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=1300578175]
+position = Vector2(36.5, 73.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("465_aglxf")
+centered = false
+
+[node name="Zombie_balloon_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=486802497]
+position = Vector2(38.4, 88.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("466_pk4u5")
+centered = false
+
+[node name="Zombie_balloon_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=593422984]
+position = Vector2(35.4, 59.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("467_3lhqb")
+centered = false
+
+[node name="Zombie_innerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=995832504]
+position = Vector2(10, 95.1)
+scale = Vector2(0.656, 0.7)
+texture = ExtResource("196_pct5d")
+centered = false
+
+[node name="Zombie_balloon_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=153758143]
+position = Vector2(15.1, 67.1)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("468_q0gty")
+centered = false
+
+[node name="Zombie_balloon_innerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=857992828]
+position = Vector2(12.1, 82.4)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("469_03qhc")
+centered = false
+
+[node name="Zombie_balloon_string" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=55660170]
+position = Vector2(38.8, 26.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("470_l1yc2")
+centered = false
+
+[node name="Zombie_balloon_bottom" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=724803466]
+position = Vector2(35.9, 28.9)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("471_2uats")
+centered = false
+
+[node name="Zombie_balloon_top" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=908600451]
+position = Vector2(24.4, -12.5)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("472_ch63v")
+centered = false
+
+[node name="Zombie_balloon_body2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=482135005]
+position = Vector2(38.5, 43.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("473_hvhik")
+centered = false
+
+[node name="Zombie_balloon_body1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=86974797]
+position = Vector2(16.8, 36.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("474_0ve74")
+centered = false
+
+[node name="Zombie_balloon_outerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=117209728]
+position = Vector2(48.8, 86.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("475_tmgt8")
+centered = false
+
+[node name="Zombie_balloon_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=199702347]
+position = Vector2(51.2, 79.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("476_bga83")
+centered = false
+
+[node name="Zombie_balloon_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=1148370520]
+position = Vector2(50, 54.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("477_s6kw2")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=169576852]
+position = Vector2(-6.3, 32.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("478_whtsg")
+centered = false
+
+[node name="Anim_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=1877522527]
+position = Vector2(4.2, 68)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("479_utmk7")
+centered = false
+
+[node name="Zombie_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=2111897312]
+position = Vector2(23.6, 96.1)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("221_f80r2")
+centered = false
+
+[node name="Zombie_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=1424890139]
+position = Vector2(26.5, 59.4)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("480_4k8ki")
+centered = false
+
+[node name="Zombie_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=66143642]
+position = Vector2(29, 82)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("481_ghxkp")
+centered = false
+
+[node name="Hat" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=330774676]
+position = Vector2(-1.4, 34.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("482_xbns8")
+centered = false
+
+[node name="Balloon_pop" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=1169597332]
+visible = false
+centered = false
+
+[node name="Propeller" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie017Balloon/Body/BodyCorrect" unique_id=356292629]
+visible = false
+centered = false

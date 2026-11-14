@@ -40,7 +40,7 @@ func _run() -> void:
 	assert(not transition.busy and not transition.curtain.visible, "成功返回却未切场景时必须揭幕恢复")
 	# 快速取消可打断入场；动画期间的程序选择同样不能抢跑或创建进度。
 	menu.entry_layer.controls["harbor"].activated.emit("harbor")
-	var opening := _destination_picker() # 尚未展开的纸图。
+	var opening := await _wait_for_picker(false) # 资源准备完成但尚未展开的纸图。
 	assert(opening.is_animating() and not opening.is_presented())
 	opening._select_destination("zombie_island")
 	opening.destination_selected.emit("zombie_island")
@@ -62,7 +62,7 @@ func _run() -> void:
 	get_tree().root.size = Vector2i(1066, 600)
 	for cycle: int in range(2): # X、ESC各验证一次，并检查单实例和重复信号。
 		menu.entry_layer.controls["harbor"].activated.emit("harbor")
-		await _frames()
+		await _wait_for_picker()
 		var cycle_picker := _destination_picker() # 本次打开的独立场景。
 		assert(cycle_picker.has_node("ModalMotion"), "纸图开关动效尚未接入")
 		assert(cycle_picker.is_presented() and not cycle_picker.is_animating())
@@ -94,8 +94,8 @@ func _run() -> void:
 			# 临时移除当前档案身份，走正式僵尸岛导航的失败恢复路径。
 			Global.user_manager.curr_user_name = ""
 			cycle_island.pressed.emit()
+			Global.user_manager.curr_user_name = username # 同步入口已拒绝；避免把错误恢复用例变成跨帧换档取消。
 			await _frames()
-			Global.user_manager.curr_user_name = username
 			assert(not AdventureSession.adventure_active and not cycle_picker.get_node("InputShield").visible)
 			assert(cycle_picker.get_node("EntryError").visible)
 			cycle_picker.get_node("EntryError").hide()
@@ -123,14 +123,14 @@ func _run() -> void:
 		assert(player == SoundManager.bgm_play and player.stream == town and player.get_playback_position() >= before)
 	# 在主菜单选择城镇应收起纸图，并保留当前场景实例。
 	menu.entry_layer.controls["harbor"].activated.emit("harbor")
-	await _frames()
+	await _wait_for_picker()
 	await _key(KEY_TAB)
 	await _joy_accept()
 	assert(_destination_picker() == null and get_tree().current_scene == menu)
 	assert(not AdventureSession.adventure_active and AdventureSession.progress == null)
 	# 鼠标真实悬停、按下层和释放进入首次地图；之前不能初始化。
 	menu.entry_layer.controls["harbor"].activated.emit("harbor")
-	await _frames()
+	await _wait_for_picker()
 	var picker := _destination_picker() # 首次实际进入僵尸岛的选择器。
 	var island: TextureButton = picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island") # 开放地区卡片。
 	await _mouse_click(island)
@@ -141,7 +141,7 @@ func _run() -> void:
 	get_tree().current_scene.canvas.get_node("Intro")._finish()
 	await _frames()
 	assert(AdventureToolbar.request_feature("map"))
-	await _frames()
+	await _wait_for_picker()
 	var island_picker := _destination_picker() # 从僵尸岛工具栏打开的同一纸图。
 	assert(AdventureSession.progress.record_victory()) # 仅在测试中模拟已通关状态。
 	Global.refresh_quests()
@@ -160,7 +160,7 @@ func _run() -> void:
 	if prompt.is_visible_in_tree():
 		prompt._later.pressed.emit()
 	menu.entry_layer.controls["harbor"].activated.emit("harbor")
-	await _frames()
+	await _wait_for_picker()
 	picker = _destination_picker()
 	island = picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island")
 	island.grab_focus()
@@ -175,6 +175,17 @@ func _run() -> void:
 	assert(not FileAccess.file_exists(path))
 	print("PASS: modal interruption/resize/input lock, scene fade/rollback, town and island routes, X/ESC cycles, four viewport bounds, first/existing unified saves, native bytes and continuous town BGM")
 	get_tree().quit()
+
+## [param presented] 为 false 时保留原入场中断验收，否则等待资源准备及既有开场动画完成。
+func _wait_for_picker(presented: bool = true) -> Control:
+	var deadline: int = Time.get_ticks_msec() + 12000 # 后台准备以真实窗口状态为准，不以固定帧数猜测。
+	while Time.get_ticks_msec() < deadline:
+		var picker: Control = _destination_picker() # 加载反馈不冒充真实地区选择器。
+		if picker != null and (not presented or picker.is_presented()):
+			return picker
+		await get_tree().process_frame
+	assert(false, "地区选择器未在资源准备后进入预期状态")
+	return null
 
 ## Threaded navigation returns "accepted", never "finished". Preserve all state
 ## assertions but require the destination to become the active scene before asserting.

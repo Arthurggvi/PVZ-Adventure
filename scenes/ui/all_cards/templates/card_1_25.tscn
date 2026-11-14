@@ -1,0 +1,100 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://yjc7pkf5hdn2" path="res://assets/image/particles/bullet/PuffShroom_puff1.png" id="104_boyy4"]
+
+[ext_resource type="Texture2D" uid="uid://eyoj2etiyi4k" path="res://assets/reanim/SeaShroom_tentacles.png" id="195_k3hpp"]
+
+[ext_resource type="Texture2D" uid="uid://vm2queyyke4v" path="res://assets/reanim/SeaShroom_body.png" id="196_q814d"]
+
+[ext_resource type="Texture2D" uid="uid://dsuh2ioxrdues" path="res://assets/reanim/SeaShroom_blink1.png" id="197_1pakb"]
+
+[ext_resource type="Texture2D" uid="uid://cxc288x17u2g8" path="res://assets/reanim/SeaShroom_foam.png" id="198_83a58"]
+
+[ext_resource type="Texture2D" uid="uid://dh2w1owgt2gqq" path="res://assets/reanim/SeaShroom_head.png" id="199_vni1y"]
+
+[ext_resource type="Texture2D" uid="uid://q5wujowspg8i" path="res://assets/reanim/SeaShroom_mouth.png" id="200_fbpe6"]
+
+[ext_resource type="Texture2D" uid="uid://dvdfe128qav7a" path="res://assets/reanim/SeaShroom_lips.png" id="201_u48w0"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_25"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 25
+
+[node name="Card25" unique_id=969336698 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_25")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant025SeaShroom" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1876887760]
+position = Vector2(1, 8)
+scale = Vector2(0.5, 0.5)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant025SeaShroom" unique_id=1768334671]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant025SeaShroom/Body" unique_id=1472405292]
+position = Vector2(-42, -56)
+
+[node name="SeaShroom_tentacles" type="Sprite2D" parent="CardBg/CharacterStatic/Plant025SeaShroom/Body/BodyCorrect" unique_id=400716561]
+position = Vector2(17.6, 52)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("195_k3hpp")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant025SeaShroom/Body/BodyCorrect" unique_id=1802129218]
+position = Vector2(24, 34)
+scale = Vector2(0.738, 0.7)
+texture = ExtResource("196_q814d")
+centered = false
+
+[node name="SeaShroom_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant025SeaShroom/Body/BodyCorrect" unique_id=609552397]
+visible = false
+position = Vector2(41.1894, 36.4736)
+scale = Vector2(1e-05, 1e-05)
+texture = ExtResource("197_1pakb")
+centered = false
+
+[node name="SeaShroom_blink2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant025SeaShroom/Body/BodyCorrect" unique_id=1647847984]
+visible = false
+position = Vector2(41, 37.5)
+scale = Vector2(0.732, 0.7)
+texture = ExtResource("197_1pakb")
+centered = false
+
+[node name="Anim_waterline" type="Sprite2D" parent="CardBg/CharacterStatic/Plant025SeaShroom/Body/BodyCorrect" unique_id=264691133]
+position = Vector2(28.4, 51)
+scale = Vector2(0.783, 0.773)
+texture = ExtResource("198_83a58")
+centered = false
+
+[node name="SeaShroom_head" type="Sprite2D" parent="CardBg/CharacterStatic/Plant025SeaShroom/Body/BodyCorrect" unique_id=1085596482]
+position = Vector2(21, 20.9)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("199_vni1y")
+centered = false
+
+[node name="SeahShroom_mouth" type="Sprite2D" parent="CardBg/CharacterStatic/Plant025SeaShroom/Body/BodyCorrect" unique_id=58902118]
+position = Vector2(52, 42.3)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("200_fbpe6")
+centered = false
+
+[node name="SeaShroom_lips" type="Sprite2D" parent="CardBg/CharacterStatic/Plant025SeaShroom/Body/BodyCorrect" unique_id=999781968]
+position = Vector2(55.8, 40.3)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("201_u48w0")
+centered = false
+
+[node name="PuffShroomPuff1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant025SeaShroom/Body/BodyCorrect" unique_id=208626387]
+visible = false
+position = Vector2(19, 5)
+scale = Vector2(0.5, 0.592593)
+texture = ExtResource("104_boyy4")

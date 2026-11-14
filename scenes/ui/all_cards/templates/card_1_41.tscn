@@ -1,0 +1,215 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cy3xu8ug3gd2" path="res://assets/reanim/PeaShooter_backleaf.png" id="3_xm6ba"]
+
+[ext_resource type="Texture2D" uid="uid://cyknr5ymersct" path="res://assets/reanim/PeaShooter_backleaf_lefttip.png" id="4_2m5n3"]
+
+[ext_resource type="Texture2D" uid="uid://i7fngqj5l36a" path="res://assets/reanim/PeaShooter_backleaf_righttip.png" id="5_utnli"]
+
+[ext_resource type="Texture2D" uid="uid://yxv2bpco6d57" path="res://assets/reanim/PeaShooter_stalk_bottom.png" id="6_1j6ba"]
+
+[ext_resource type="Texture2D" uid="uid://bu8g84fe1ni48" path="res://assets/reanim/PeaShooter_stalk_top.png" id="7_1qg83"]
+
+[ext_resource type="Texture2D" uid="uid://300aew7liup" path="res://assets/reanim/PeaShooter_frontleaf.png" id="8_jrvjq"]
+
+[ext_resource type="Texture2D" uid="uid://nj6m28m6k5p1" path="res://assets/reanim/PeaShooter_frontleaf_righttip.png" id="9_lppa3"]
+
+[ext_resource type="Texture2D" uid="uid://dit0i5evvco14" path="res://assets/reanim/PeaShooter_frontleaf_lefttip.png" id="10_xa6hp"]
+
+[ext_resource type="Texture2D" uid="uid://dgigsil3n5prk" path="res://assets/reanim/PeaShooter_eyebrow.png" id="97_rcuue"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://lyw24xd1xo6b" path="res://assets/reanim/GatlingPea_head.png" id="311_dlmd8"]
+
+[ext_resource type="Texture2D" uid="uid://d4al6wc7hk8at" path="res://assets/reanim/GatlingPea_mouth.png" id="312_seprb"]
+
+[ext_resource type="Texture2D" uid="uid://bxifwtxc523wo" path="res://assets/reanim/GatlingPea_barrel.png" id="313_apyy4"]
+
+[ext_resource type="Texture2D" uid="uid://w2pc4t1b0k5v" path="res://assets/reanim/GatlingPea_mouth_overlay.png" id="314_fjnrx"]
+
+[ext_resource type="Texture2D" uid="uid://cvjtg07tpqo7p" path="res://assets/reanim/GatlingPea_blink1.png" id="315_h01eb"]
+
+[ext_resource type="Texture2D" uid="uid://bilalnayg1vtf" path="res://assets/reanim/GatlingPea_helmet.png" id="316_7tryg"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_41"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 41
+
+[node name="Card41" unique_id=1862224860 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_41")
+
+[node name="Plant041GatlingPea" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1418026992]
+position = Vector2(1, 14)
+scale = Vector2(0.45, 0.45)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea" unique_id=1580417513]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant041GatlingPea" unique_id=1065798386]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body" unique_id=326531923]
+position = Vector2(-42, -70)
+
+[node name="Backleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect" unique_id=1843049591]
+position = Vector2(27.6, 53.948)
+scale = Vector2(0.5732, 0.51488)
+texture = ExtResource("3_xm6ba")
+centered = false
+
+[node name="Backleaf_left_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect" unique_id=1605482471]
+position = Vector2(24.9, 54.424)
+rotation = 0.0282745
+scale = Vector2(0.5864, 0.52908)
+texture = ExtResource("4_2m5n3")
+centered = false
+
+[node name="Backleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect" unique_id=493830098]
+position = Vector2(47.5, 53.696)
+rotation = 0.0152196
+scale = Vector2(0.62828, 0.52908)
+texture = ExtResource("5_utnli")
+centered = false
+
+[node name="Stalk_bottom" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect" unique_id=1598380524]
+position = Vector2(37.196, 50.632)
+rotation = 0.118333
+scale = Vector2(0.55824, 0.66292)
+skew = -0.0422371
+texture = ExtResource("6_1j6ba")
+centered = false
+
+[node name="Stalk_top" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect" unique_id=880083346]
+position = Vector2(32.62, 38.38)
+rotation = 0.106186
+scale = Vector2(0.55772, 0.79252)
+skew = -0.0409107
+texture = ExtResource("7_1qg83")
+centered = false
+
+[node name="Frontleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect" unique_id=349507205]
+position = Vector2(22.476, 55.024)
+scale = Vector2(0.56696, 0.5368)
+texture = ExtResource("8_jrvjq")
+centered = false
+
+[node name="Frontleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect" unique_id=1906753224]
+position = Vector2(55.976, 56.148)
+rotation = -0.0830772
+scale = Vector2(0.64896, 0.54952)
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Frontleaf_tip_left" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect" unique_id=936711084]
+position = Vector2(19.524, 61.052)
+rotation = 0.0760962
+scale = Vector2(0.59488, 0.54952)
+texture = ExtResource("10_xa6hp")
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect" unique_id=1280671341]
+position = Vector2(38.72, 43.728)
+centered = false
+
+[node name="HeadCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle" unique_id=41868245]
+position = Vector2(-36.1049, -48.5013)
+
+[node name="Anim_shooting" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=862881283]
+visible = false
+self_modulate = Color(0, 0, 0, 1)
+scale = Vector2(1e-05, 1e-05)
+centered = false
+
+[node name="Anim_head_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=905056461]
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=611917219]
+position = Vector2(19.3, 16.276)
+scale = Vector2(0.555, 0.51512)
+texture = ExtResource("311_dlmd8")
+centered = false
+
+[node name="GatlingPea_mouth" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=1769162012]
+position = Vector2(49.584, 13.976)
+rotation = -0.0249237
+scale = Vector2(0.55036, 0.51512)
+skew = 0.0249237
+texture = ExtResource("312_seprb")
+centered = false
+
+[node name="GatlingPea_barrel3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=688995964]
+position = Vector2(58.216, 18.644)
+rotation = -0.0162665
+scale = Vector2(0.55, 0.55)
+skew = 0.0162665
+texture = ExtResource("313_apyy4")
+centered = false
+
+[node name="GatlingPea_barrel4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=1740280178]
+position = Vector2(56, 24.728)
+rotation = -0.0162665
+scale = Vector2(0.55, 0.55)
+skew = 0.0162665
+texture = ExtResource("313_apyy4")
+centered = false
+
+[node name="GatlingPea_barrel2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=252246562]
+position = Vector2(56.1, 12.844)
+rotation = -0.0162665
+scale = Vector2(0.55, 0.55)
+skew = 0.0162665
+texture = ExtResource("313_apyy4")
+centered = false
+
+[node name="GatlingPea_barrel1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=460696371]
+position = Vector2(53.1, 18.944)
+rotation = -0.0162665
+scale = Vector2(0.55, 0.55)
+skew = 0.0162665
+texture = ExtResource("313_apyy4")
+centered = false
+
+[node name="GatlingPea_mouth_overlay" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=391939888]
+position = Vector2(49.5, 13.876)
+rotation = -0.0249237
+scale = Vector2(0.55036, 0.51512)
+skew = 0.0249237
+texture = ExtResource("314_fjnrx")
+centered = false
+
+[node name="Idle_shoot_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=345181647]
+visible = false
+self_modulate = Color(0, 0, 0, 1)
+scale = Vector2(1e-05, 1e-05)
+centered = false
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=1350075486]
+visible = false
+position = Vector2(-9.70314, -23.1875)
+scale = Vector2(0.555, 0.555)
+texture = ExtResource("315_h01eb")
+centered = false
+
+[node name="PeaShooter_eyebrow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=1533749329]
+position = Vector2(35.3, 17.616)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("97_rcuue")
+centered = false
+
+[node name="GatlingPea_helmet" type="Sprite2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=1452925442]
+position = Vector2(9.768, 2.18)
+rotation = 0.0642978
+scale = Vector2(0.6108, 0.57788)
+skew = 0.0372105
+texture = ExtResource("316_7tryg")
+centered = false
+
+[node name="Marker2D" type="Marker2D" parent="CardBg/CharacterStatic/Plant041GatlingPea/Body/BodyCorrect/Anim_idle/HeadCorrect" unique_id=1502407881]
+position = Vector2(80.4326, 24.4314)

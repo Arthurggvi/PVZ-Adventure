@@ -7,6 +7,22 @@ signal action_requested(action: String, data: Variant)
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 ## 四阶书本与植物封面组合。
 const BookArt = preload("res://scripts/adventure/ui/promotion_book_visual.gd")
+## 书架只装配可见书本，其他页和滚动区外条目保持轻量按钮。
+const VisualQueue = preload("res://scripts/adventure/ui/prepared_visual_queue.gd")
+## 书本依赖由物品与卡牌权威目录解析。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+## 当前书架的唯一预览装配队列。
+var _visual_queue: VisualQueue
+
+## 首屏书本准备结束后通知模态宿主。
+func is_content_ready() -> bool:
+	return _visual_queue != null and _visual_queue.is_content_ready()
+
+## 在 [param target] 的 [param bounds] 装配 [param id]，只准备该本书对应植物。
+func _queue_book(target: Control, id: String, bounds: Rect2) -> void:
+	var paths := PackedStringArray() # 书皮、底图和植物头像来自共享目录。
+	ResourcePaths.inventory_rows(paths, [{"id": id, "category": "promotion_book"}])
+	_visual_queue.enqueue(target, paths, BookArt.draw.bind(target, id, bounds))
 ## 本地化植物名投影。
 const Names = preload("res://scripts/adventure/ui/inventory_data.gd")
 ## 技能定义与图书馆规则。
@@ -36,6 +52,8 @@ var _submit: Button
 
 ## 构造固定外框；所有内容绘制采用设计坐标。
 func _ready() -> void:
+	_visual_queue = VisualQueue.new()
+	add_child(_visual_queue)
 	size = DESIGN
 	theme = Theme.new()
 	theme.default_font = FONT
@@ -110,7 +128,7 @@ func _today(model: Dictionary) -> void:
 		_body.add_child(card)
 		Art.panel(card, "panels/parchment_ninepatch.png", Vector2.ZERO, card.size, 24)
 		_centered(card, tier_name(int(book.tier)), Vector2(20, 15), Vector2(208, 35), 22, TIER_COLORS[int(book.tier) - 1])
-		BookArt.draw(card, str(offer.id), Rect2(29, 58, 190, 190))
+		_queue_book(card, str(offer.id), Rect2(29, 58, 190, 190))
 		_centered(card, str(book.title), Vector2(14, 250), Vector2(220, 44), 28)
 		_centered(card, Names.plant_name(int(book.plant_type)), Vector2(14, 294), Vector2(220, 34), 21, Color("806442"))
 		var price: int = Rules.PRICES[int(book.tier) - 1] # 价格由等阶映射，不信任 UI 或存档中的任意数值。
@@ -173,7 +191,11 @@ func _workbench(model: Dictionary) -> void:
 		_centered(_body, "保留等阶 · 不限物种" if model.mode == "convert" else "保留物种 · 提升一阶",
 			Vector2(903, 405), Vector2(450, 34), 20, Color("806442"))
 	else:
-		BookArt.draw(_body, result_id, Rect2(899, 313, 140, 140))
+		var result_visual := Control.new() # 独立目标在下次重绘时销毁，旧加载回调不会画入新页面。
+		result_visual.position = Vector2(899, 313)
+		result_visual.size = Vector2(140, 140)
+		_body.add_child(result_visual)
+		_queue_book(result_visual, result_id, Rect2(Vector2.ZERO, result_visual.size))
 		Art.label(_body, "已获得", Vector2(1056, 314), Vector2(300, 32), 20, Color("507b43"))
 		Art.label(_body, str(Rules.Books.definition(result_id).title), Vector2(1056, 351), Vector2(310, 44), 28)
 		Art.label(_body, "%s · %s" % [Names.plant_name(int(Rules.Books.definition(result_id).plant_type)), tier_name(int(Rules.Books.definition(result_id).tier))],
@@ -198,7 +220,7 @@ func _book_tile(parent: Node, id: String, dimensions: Vector2, action: String, d
 	parent.add_child(tile)
 	var book: Dictionary = Rules.Books.definition(id) # 标题与说明直接读取技能目录。
 	var image_size: float = dimensions.y - 57 # 为技能名、等阶预留底部空间。
-	BookArt.draw(tile, id, Rect2((dimensions.x - image_size) * 0.5, 5, image_size, image_size))
+	_queue_book(tile, id, Rect2((dimensions.x - image_size) * 0.5, 5, image_size, image_size))
 	_centered(tile, str(book.title), Vector2(7, dimensions.y - 51), Vector2(dimensions.x - 14, 29), 20)
 	_centered(tile, tier_name(int(book.tier)), Vector2(7, dimensions.y - 26), Vector2(dimensions.x - 14, 22), 16, TIER_COLORS[int(book.tier) - 1])
 	tile.tooltip_text = tooltip(id)

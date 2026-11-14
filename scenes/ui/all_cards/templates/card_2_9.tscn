@@ -1,0 +1,219 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://xvpvxtsj2yew" path="res://assets/reanim/Ground.png" id="195_q2ynx"]
+
+[ext_resource type="Texture2D" uid="uid://cbftqok26jk60" path="res://assets/reanim/Zombie_jaw.png" id="215_bymx4"]
+
+[ext_resource type="Texture2D" uid="uid://cgu8jugkb0jj0" path="res://assets/reanim/Zombie_Jackson_innerarm_upper.png" id="284_ym0d5"]
+
+[ext_resource type="Texture2D" uid="uid://2vhecx8jtntc" path="res://assets/reanim/Zombie_Jackson_innerarm_lower.png" id="285_ex30g"]
+
+[ext_resource type="Texture2D" uid="uid://idsahid8s358" path="res://assets/reanim/Zombie_Jackson_innerarm_hand.png" id="286_pgkms"]
+
+[ext_resource type="Texture2D" uid="uid://usx0eusirtut" path="res://assets/reanim/Zombie_Jackson_innerleg_lower.png" id="287_sb7s8"]
+
+[ext_resource type="Texture2D" uid="uid://do57dqiu3no52" path="res://assets/reanim/Zombie_Jackson_innerleg_foot.png" id="288_43hxu"]
+
+[ext_resource type="Texture2D" uid="uid://ccbhw6rymsk5y" path="res://assets/reanim/Zombie_Jackson_innerleg_toe.png" id="289_oh3tm"]
+
+[ext_resource type="Texture2D" uid="uid://0dk67rons1en" path="res://assets/reanim/Zombie_Jackson_innerleg_upper.png" id="290_glykx"]
+
+[ext_resource type="Texture2D" uid="uid://l65xsiwtbcl" path="res://assets/reanim/Zombie_Jackson_outerleg_lower.png" id="291_hlu7o"]
+
+[ext_resource type="Texture2D" uid="uid://cmghfrqgh0n6" path="res://assets/reanim/Zombie_Jackson_body2.png" id="292_komcm"]
+
+[ext_resource type="Texture2D" uid="uid://bipqfymcseifu" path="res://assets/reanim/Zombie_Jackson_outerleg_foot.png" id="293_2aqox"]
+
+[ext_resource type="Texture2D" uid="uid://clqpq478qfm1n" path="res://assets/reanim/Zombie_Jackson_outerleg_toe.png" id="294_2ccqq"]
+
+[ext_resource type="Texture2D" uid="uid://c6pypdt168bgf" path="res://assets/reanim/Zombie_Jackson_outerleg_upper.png" id="295_6lkfc"]
+
+[ext_resource type="Texture2D" uid="uid://ebpqrwq8sao6" path="res://assets/reanim/Zombie_Jackson_body1.png" id="296_oj48r"]
+
+[ext_resource type="Texture2D" uid="uid://b5t3p6i0y74qt" path="res://assets/reanim/Zombie_jackson_head.png" id="297_a01en"]
+
+[ext_resource type="Texture2D" uid="uid://rm13hk6ivq47" path="res://assets/reanim/Zombie_Jackson_hair.png" id="298_5ixax"]
+
+[ext_resource type="Texture2D" uid="uid://banoacf6228yq" path="res://assets/reanim/Zombie_Jackson_colar.png" id="299_ut4i6"]
+
+[ext_resource type="Texture2D" uid="uid://dnk0ocsjnncsm" path="res://assets/reanim/Zombie_Jackson_outerarm_upper.png" id="300_h4f86"]
+
+[ext_resource type="Texture2D" uid="uid://dhp5ar8xaxobo" path="res://assets/reanim/Zombie_Jackson_outerarm_lower.png" id="301_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://co6n3rmsy6vcv" path="res://assets/reanim/Zombie_Jackson_outerarm_hand.png" id="302_ygkuv"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_9"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 9
+
+[node name="Card9" unique_id=2111303491 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_9")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie009Jackson" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=861368190]
+position = Vector2(2, 17)
+scale = Vector2(0.3, 0.3)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie009Jackson" unique_id=968362998]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body" unique_id=1777026898]
+position = Vector2(-54, -120)
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1866126410]
+visible = false
+position = Vector2(-9.8, 40)
+texture = ExtResource("195_q2ynx")
+centered = false
+
+[node name="Zombie_Jackson_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1778096653]
+position = Vector2(61.3, 37.4)
+rotation = 2.35619
+scale = Vector2(0.736, 1.359)
+texture = ExtResource("284_ym0d5")
+centered = false
+
+[node name="Zombie_Jackson_innerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=892399141]
+position = Vector2(44.3, 25.8)
+rotation = 2.98277
+scale = Vector2(0.795, 0.919)
+skew = -0.0715589
+texture = ExtResource("285_ex30g")
+centered = false
+
+[node name="Zombie_Jackson_innerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1194355958]
+position = Vector2(40.5, -0.4)
+rotation = 2.0944
+scale = Vector2(0.791, 0.791)
+texture = ExtResource("286_pgkms")
+centered = false
+
+[node name="Zombie_Jackson_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=572387206]
+position = Vector2(50.4, 92.7)
+rotation = -0.471239
+scale = Vector2(0.748, 0.748)
+texture = ExtResource("287_sb7s8")
+centered = false
+
+[node name="Zombie_Jackson_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=2018326249]
+position = Vector2(55.9, 108.2)
+rotation = 0.003491
+scale = Vector2(0.752, 0.798)
+texture = ExtResource("288_43hxu")
+centered = false
+
+[node name="Zombie_Jackson_innerleg_toe" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1182117503]
+position = Vector2(49.5, 108.8)
+rotation = 6.28318
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("289_oh3tm")
+centered = false
+
+[node name="Zombie_Jackson_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1145171873]
+position = Vector2(44.5, 59.5)
+rotation = 0.036652
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("290_glykx")
+centered = false
+
+[node name="Zombie_Jackson_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1705271795]
+position = Vector2(44.4, 91.5)
+rotation = 6.44899
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("291_hlu7o")
+centered = false
+
+[node name="Zombie_Jackson_body2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1500298684]
+position = Vector2(45.2, 61.9)
+rotation = 6.42107
+scale = Vector2(0.806, 0.799)
+skew = -6.40885
+texture = ExtResource("292_komcm")
+centered = false
+
+[node name="Zombie_Jackson_outerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=111446462]
+position = Vector2(35.9, 115.8)
+rotation = 6.2029
+scale = Vector2(0.697, 0.8)
+texture = ExtResource("293_2aqox")
+centered = false
+
+[node name="Zombie_Jackson_outerleg_toe" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=846567885]
+position = Vector2(25.5, 116.1)
+rotation = 6.28318
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("294_2ccqq")
+centered = false
+
+[node name="Zombie_Jackson_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1343458468]
+position = Vector2(59.1, 71.5)
+rotation = 6.9499
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("295_6lkfc")
+centered = false
+
+[node name="Zombie_Jackson_body1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=854509454]
+position = Vector2(58.6, 20.6)
+rotation = 0.776672
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("296_oj48r")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1946473636]
+position = Vector2(53.5, -2.8)
+rotation = 0.514872
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("297_a01en")
+centered = false
+
+[node name="Anim_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1402903782]
+position = Vector2(39, 32.8)
+rotation = 0.221657
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("215_bymx4")
+centered = false
+
+[node name="Anim_hair" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1718659854]
+position = Vector2(53.3, -14.2)
+rotation = 0.514872
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("298_5ixax")
+centered = false
+
+[node name="Zombie_Jackson_colar" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=187325398]
+position = Vector2(74.2, 35.8)
+rotation = 0.776672
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("299_ut4i6")
+centered = false
+
+[node name="Zombie_Jackson_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=493789490]
+position = Vector2(75.5, 45)
+rotation = 1.67726
+scale = Vector2(0.795, 0.854)
+skew = 0.373501
+texture = ExtResource("300_h4f86")
+centered = false
+
+[node name="Zombie_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=616594740]
+position = Vector2(60.5, 42.9)
+rotation = -3.0456
+scale = Vector2(0.794, 0.794)
+texture = ExtResource("301_m4n4y")
+centered = false
+
+[node name="Zombie_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Jackson/Body/BodyCorrect" unique_id=1426782795]
+position = Vector2(65.7, 16.2)
+rotation = 2.241
+scale = Vector2(0.796, 0.796)
+texture = ExtResource("302_ygkuv")
+centered = false

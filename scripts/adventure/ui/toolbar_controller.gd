@@ -70,15 +70,24 @@ func _ensure_presenter() -> void:
 
 ## [param _delta] 为帧间隔，档案切换期间没有状态时也继续更新工具栏。
 func _process(_delta: float) -> void:
-	# current 是当前档案的冒险状态；无档案时清理旧窗口。
-	var current: AdventureState = Global.global_game_state.adventure_state if Global.global_game_state != null else null
-	if current != _bound_state:
-		_bound_state = current
-		_apply_host_scene(get_tree().current_scene)
+	_sync_profile_context()
+	_poll_modal_loading()
 	# 场景控制工具栏整体可见性，模态和导航只禁止输入，不复制 HUD。
 	_sync_input()
 	if _host_allowed and is_instance_valid(_view) and _view._available.get("inventory", false) != _can_open_inventory():
 		_refresh()
+
+## 请求 [param feature_id] 前先接纳真实档案，避免下帧把新档案的请求当作旧窗口撤销。
+func request_feature(feature_id: String) -> bool:
+	_sync_profile_context()
+	return super.request_feature(feature_id)
+
+## 原生档案选择可以在同一输入帧更新状态；公开入口和逐帧检查共用此同步边界。
+func _sync_profile_context() -> void:
+	var current: AdventureState = Global.global_game_state.adventure_state if Global.global_game_state != null else null # 当前权威档案对象。
+	if current != _bound_state:
+		_bound_state = current
+		_apply_host_scene(get_tree().current_scene)
 
 func _sync_input() -> void:
 	var allowed: bool = _host_allowed and is_instance_valid(_host_scene) and not get_tree().paused \
@@ -99,6 +108,7 @@ func _sync_scene_from_tree() -> void:
 	_apply_host_scene(get_tree().current_scene)
 
 func _apply_host_scene(scene: Node) -> void:
+	_cancel_modal_loading()
 	if is_instance_valid(_onboarding):
 		_onboarding.reset()
 	if is_instance_valid(_navigation):
@@ -190,6 +200,7 @@ func _can_open_settings() -> bool:
 
 ## 从工具栏齿轮打开设置，沿用模态互斥和关闭行为。
 func toggle_settings() -> void:
+	_sync_profile_context() # 保留直接调用设置入口时的同帧换档保护。
 	_toggle_modal("settings", Settings)
 
 func _refresh() -> void:
@@ -205,7 +216,7 @@ func _refresh() -> void:
 
 ## 为教学提供已校验的当前上下文；背包等其他模态存在时不抢占输入。
 func guide_context() -> Dictionary:
-	return {"ready": _host_allowed and _interactive and _can_open_inventory() and (not is_instance_valid(_modal) or _modal_feature in ["quests", "research", "library"]),
+	return {"ready": not _modal_loading and _host_allowed and _interactive and _can_open_inventory() and (not is_instance_valid(_modal) or _modal_feature in ["quests", "research", "library"]),
 		"state": Global.global_game_state.adventure_state if _can_open_inventory() else null,
 		"quests": modal_for("quests"), "research": modal_for("research"), "library": modal_for("library")}
 

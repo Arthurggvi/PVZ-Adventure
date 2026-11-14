@@ -3,6 +3,8 @@ extends Node
 const MAP_SCENE := "res://scenes/adventure/zombie_island.tscn"
 const Progress = preload("res://scripts/adventure/island_progress.gd")
 const RewardService = preload("res://scripts/adventure/adventure_reward_service.gd")
+## 只收集本关动态依赖路径，由统一过渡异步准备，不在会话中读取重型资源。
+const BattleResources = preload("res://scripts/ui/transitions/battle_resource_plan.gd")
 signal battle_finished(stage_id: int, result: String)
 ## 关卡全程唯一状态机；每个阶段都有独立的胜利事务。
 enum ChallengeState {
@@ -71,6 +73,7 @@ func prepare_adventure() -> bool:
 	var scene: Node = get_tree().current_scene
 	if adventure_active and is_instance_valid(scene) and scene.scene_file_path == MAP_SCENE:
 		return true
+	AdventureStageRegistry.begin_map_visit()
 	adventure_active = false
 	progress = null
 	entry_error = ""
@@ -166,11 +169,11 @@ func enter_stage(stage_number: int, phase_kind: int = StagePhaseDefinition.Kind.
 	if phase_kind != StagePhaseDefinition.Kind.NORMAL:
 		error_message = "只能从普通阶段进入；噩梦在本次普通阶段完成后续战。"
 		return false
-	error_message = AdventureStageCatalog.entry_error(
-		stage_number, phase_kind, Global.global_game_state.adventure_state, Global.adventure_inventory)
+	var stage: StageDefinition = AdventureStageCatalog.load_stage(stage_number) # 本次点击唯一解析结果，校验和构建共用。
+	error_message = AdventureStageCatalog.entry_error_for_stage(
+		stage_number, stage, phase_kind, Global.global_game_state.adventure_state, Global.adventure_inventory)
 	if not error_message.is_empty():
 		return false
-	var stage: StageDefinition = AdventureStageCatalog.load_stage(stage_number) # 读取已验证的关卡定义。
 	var phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, phase_kind) # 首次进入从普通阶段开始。
 	return _start_battle_attempt(stage_number, stage, phase, transition)
 
@@ -198,7 +201,7 @@ func _start_battle_attempt(stage_number: int, stage: StageDefinition, phase: Sta
 	if transition != null:
 		# 战场只由统一过渡加载，SceneTree 接受资源后才发布本局快照。
 		if not transition.change_scene(scene_path,
-				_commit_battle_entry.bind(stage_number, stage, phase, level)):
+				_commit_battle_entry.bind(stage_number, stage, phase, level), BattleResources.paths(level)):
 			error_message = "战斗场景加载请求未被接受。"
 			return false
 		return true
@@ -579,6 +582,7 @@ func return_to_map() -> void:
 
 ## 仅在返回地图成功时清理战斗状态，加载失败仍可重试。
 func _commit_map_return() -> void:
+	AdventureStageRegistry.begin_map_visit()
 	adventure_active = true
 	_clear_active_battle()
 	Global.game_para = null

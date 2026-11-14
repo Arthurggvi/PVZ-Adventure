@@ -1045,8 +1045,9 @@ func update_multi_round_zombie_refresh_types(curr_round:int, game_sences:MainSce
 #endregion
 
 #region 生成关卡前展示僵尸
-func create_prepare_show_zombies():
-	zombie_show_in_start.create_prepare_show_zombies()
+## 等待展示实体按主线程预算构造完成，调用方随后才启动选卡镜头。
+func create_prepare_show_zombies() -> void:
+	await zombie_show_in_start.create_prepare_show_zombies()
 
 func delete_prepare_show_zombies():
 	zombie_show_in_start.delete_prepare_show_zombies()

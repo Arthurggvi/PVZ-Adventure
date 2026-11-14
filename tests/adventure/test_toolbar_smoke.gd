@@ -124,8 +124,7 @@ func _run() -> void:
 	bar._apply_host_scene(actual_map)
 	await get_tree().create_timer(0.4).timeout
 	bar._on_feature_pressed("map")
-	await get_tree().create_timer(0.6).timeout
-	if not bar._navigation.is_open():
+	if not await _wait_for_picker(bar._navigation):
 		return _fail("Actual zombie-island map did not open the shared picker")
 	bar._navigation._navigate("zombie_island")
 	await get_tree().process_frame
@@ -144,6 +143,18 @@ func _run() -> void:
 	holder.queue_free()
 	non_map.queue_free()
 	get_tree().quit(0)
+
+## [param navigation] 的请求接受与窗口就绪分离，原地区选择断言必须等待真实纸图展开。
+func _wait_for_picker(navigation: Node) -> bool:
+	var deadline: int = Time.get_ticks_msec() + 12000 # 保持有界等待，不绕过入场输入锁。
+	while Time.get_ticks_msec() < deadline:
+		var picker: Control = navigation.get_node_or_null("MapDestinationPicker") as Control # 反馈不属于选择器。
+		if picker != null and picker.is_presented():
+			return true
+		if not navigation.is_open():
+			return false
+		await get_tree().process_frame
+	return false
 
 func _is_flush(view: AdventureToolbarView) -> bool:
 	var dimensions := get_viewport().get_visible_rect().size

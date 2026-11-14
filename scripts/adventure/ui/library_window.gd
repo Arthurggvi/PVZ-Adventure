@@ -9,6 +9,16 @@ const View = preload("res://scripts/adventure/ui/library_panel_view.gd")
 const Service = preload("res://scripts/adventure/library/library_service.gd")
 ## 共享操作反馈，避免常驻冗余说明。
 const Feedback = preload("res://scripts/adventure/ui/research_feedback.gd")
+## 本窗口固定皮肤的动态路径集合。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+
+## 首屏准备只含固定布局；随机货架生成并保存后再按实际书目准备预览。
+static func get_initial_resource_paths() -> PackedStringArray:
+	var paths: PackedStringArray = ResourcePaths.frame() # 不为了预热触发每日刷新或任何存档写入。
+	paths.append_array(ResourcePaths.skin(PackedStringArray(["overlays/star_filled.png",
+		"res://assets/adventure/ui/bottom_bar/icons/icon_deck.png"]),
+		PackedStringArray(["buttons/action_neutral", "buttons/action_confirm", "slots/item_slot"])))
+	return paths
 ## 当前展示画布，按窗口等比适配。
 var _view: View
 ## 当前档案的图书馆服务，不跨档复用。
@@ -33,6 +43,10 @@ var _closing := false
 var _fade: Tween
 ## 已观察自然日；轮询仅在跨日或首次货架失败后触发保存。
 var _observed_day := ""
+
+## 每日货架成功持久化后，等待当前五本书的实际预览准备完成。
+func is_content_ready() -> bool:
+	return is_instance_valid(_view) and _view.is_content_ready()
 
 ## 创建窗口并绑定现有档案；只有成功保存后的每日货架才会显示。
 func _ready() -> void:

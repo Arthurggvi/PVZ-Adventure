@@ -1,0 +1,139 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://d1x4xadjlb30u" path="res://assets/reanim/Tanglekelp_body_zengarden.png" id="163_k6rbm"]
+
+[ext_resource type="Texture2D" uid="uid://dxcbc8jk8xrij" path="res://assets/reanim/Tanglekelp_whitewater2.png" id="164_gghvn"]
+
+[ext_resource type="Texture2D" uid="uid://bh61rwjcgjjaf" path="res://assets/reanim/Tanglekelp_arm1.png" id="165_018v2"]
+
+[ext_resource type="Texture2D" uid="uid://bpvt5hsrkwhwn" path="res://assets/reanim/Tanglekelp_arm2.png" id="166_5fvvn"]
+
+[ext_resource type="Texture2D" uid="uid://13iffk72b514" path="res://assets/reanim/Tanglekelp_arm3.png" id="167_ywrpp"]
+
+[ext_resource type="Texture2D" uid="uid://dvlvk4mwxcma7" path="res://assets/reanim/Tanglekelp_arm4.png" id="168_c86k7"]
+
+[ext_resource type="Texture2D" uid="uid://b65ehj75jy3vm" path="res://assets/reanim/Tanglekelp_arm5.png" id="169_qvmtp"]
+
+[ext_resource type="Texture2D" uid="uid://brb1vdthom483" path="res://assets/reanim/Tanglekelp_arm6.png" id="170_2xpbq"]
+
+[ext_resource type="Texture2D" uid="uid://iuat4exnictt" path="res://assets/reanim/Tanglekelp_arm7.png" id="171_aglxf"]
+
+[ext_resource type="Texture2D" uid="uid://ulvunu6chx1n" path="res://assets/reanim/Tanglekelp_arm 8.png" id="172_pk4u5"]
+
+[ext_resource type="Texture2D" uid="uid://nr65sy3ejdu8" path="res://assets/reanim/Tanglekelp_blink1.png" id="173_3lhqb"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_20"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 20
+
+[node name="Card20" unique_id=1112674409 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_20")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant020Tanglekelp" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1900851377]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp" unique_id=1782789341]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp" unique_id=1037167001]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body" unique_id=455668241]
+position = Vector2(-43, -62)
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=140488590]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=1630830525]
+visible = false
+centered = false
+
+[node name="Anim_grab" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=243869395]
+visible = false
+centered = false
+
+[node name="Anim_idle_aquarium" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=1765232977]
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=1218238537]
+position = Vector2(2.4, 11.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("163_k6rbm")
+centered = false
+
+[node name="Anim_waterline" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=2027645192]
+visible = false
+position = Vector2(3.3, 52.9)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("164_gghvn")
+centered = false
+
+[node name="Tanglekelp_arm1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=1697786497]
+position = Vector2(-5.9, 24.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("165_018v2")
+centered = false
+
+[node name="Tanglekelp_arm2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=347838110]
+position = Vector2(12.8, 21.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("166_5fvvn")
+centered = false
+
+[node name="Tanglekelp_arm3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=1125501601]
+position = Vector2(14.6, 11)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("167_ywrpp")
+centered = false
+
+[node name="Tanglekelp_arm4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=1333374371]
+position = Vector2(16, 5.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("168_c86k7")
+centered = false
+
+[node name="Tanglekelp_arm5" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=1002755208]
+position = Vector2(41.4, 5.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("169_qvmtp")
+centered = false
+
+[node name="Tanglekelp_arm6" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=2136284313]
+position = Vector2(51.2, 14)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("170_2xpbq")
+centered = false
+
+[node name="Tanglekelp_arm7" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=1009247990]
+position = Vector2(63.8, 21.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("171_aglxf")
+centered = false
+
+[node name="Tanglekelp_arm8" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=1282606921]
+position = Vector2(66.1, 28.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("172_pk4u5")
+centered = false
+
+[node name="Anim_blink1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant020Tanglekelp/Body/BodyCorrect" unique_id=1433157408]
+visible = false
+position = Vector2(21.7, 42.8)
+scale = Vector2(0.8, 0.770034)
+texture = ExtResource("173_3lhqb")
+centered = false

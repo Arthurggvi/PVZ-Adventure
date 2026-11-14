@@ -59,6 +59,7 @@ func _run() -> void:
 	var bus := AudioServer.get_bus_index("BGM") # 既有音乐总线。
 	var master := AudioServer.get_bus_index("Master") # 既有总音量总线。
 	get_tree().current_scene._on_option_button_1_pressed()
+	await _wait_for_settings()
 	var audio_settings := AdventureToolbar.modal_for("settings") as GameSettingsWindow # 通过共用窗口调节音量。
 	audio_settings.get_node("Panel/General/BGM").value = 0.3
 	audio_settings.request_close()
@@ -103,3 +104,10 @@ func _run() -> void:
 	assert(get_tree().current_scene.canvas.get_node("Stage2").disabled)
 	print("PASS: v6 three resolutions, disabled input, native profiles, town continuity, volume/mute, battle and victory return")
 	get_tree().quit()
+
+## 历史探针也等待统一模态入口的异步完成，不把接受请求当作窗口就绪。
+func _wait_for_settings() -> void:
+	var deadline: int = Time.get_ticks_msec() + 8000 # 保留原断言范围，仅修正等待边界。
+	while Time.get_ticks_msec() < deadline and AdventureToolbar.modal_for("settings") == null:
+		await get_tree().process_frame
+	assert(AdventureToolbar.modal_for("settings") != null)

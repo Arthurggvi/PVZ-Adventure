@@ -1,0 +1,753 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://d0gnsuf88om6q" path="res://assets/reanim/Zombie_boss_arm_upper2.png" id="765_pjsii"]
+
+[ext_resource type="Texture2D" uid="uid://cb7lvkchehhyj" path="res://assets/reanim/Zombie_boss_innerarm_lower.png" id="766_wj5jn"]
+
+[ext_resource type="Texture2D" uid="uid://c77q3t07btgx3" path="res://assets/reanim/Zombie_boss_innerarm_finger.png" id="767_ys4uk"]
+
+[ext_resource type="Texture2D" uid="uid://b61wa16xujdnk" path="res://assets/reanim/Zombie_boss_innerarm_hand.png" id="768_057a1"]
+
+[ext_resource type="Texture2D" uid="uid://c533qswlsv8dw" path="res://assets/reanim/Zombie_boss_RVwheel.png" id="769_a818n"]
+
+[ext_resource type="Texture2D" uid="uid://cj10wpko1fxuj" path="res://assets/reanim/Zombie_boss_rv.png" id="770_pihh5"]
+
+[ext_resource type="Texture2D" uid="uid://cdrqid7xanb3t" path="res://assets/reanim/Zombie_boss_innerarm_thumb2.png" id="771_pyiy8"]
+
+[ext_resource type="Texture2D" uid="uid://dgcifib0510bl" path="res://assets/reanim/Zombie_boss_innerarm_thumb1.png" id="772_wmb04"]
+
+[ext_resource type="Texture2D" uid="uid://d22p4oxj6fvxt" path="res://assets/reanim/Zombie_boss_innerarm_upper.png" id="773_unevv"]
+
+[ext_resource type="Texture2D" uid="uid://yrcmd1nqpt8i" path="res://assets/reanim/Zombie_boss_foot.png" id="774_omd6i"]
+
+[ext_resource type="Texture2D" uid="uid://cq7u4mojd15e3" path="res://assets/reanim/Zombie_boss_legbits.png" id="775_1xgfh"]
+
+[ext_resource type="Texture2D" uid="uid://cpn0fqjqj12ah" path="res://assets/reanim/Zombie_boss_innerleg_upper.png" id="776_edua1"]
+
+[ext_resource type="Texture2D" uid="uid://bjxhbmwr06r3n" path="res://assets/reanim/Zombie_boss_leg_lower.png" id="777_ovu1s"]
+
+[ext_resource type="Texture2D" uid="uid://bxsncalumj0c" path="res://assets/reanim/Zombie_boss_lowerbody.png" id="778_tkur7"]
+
+[ext_resource type="Texture2D" uid="uid://dmxrbe37acf4o" path="res://assets/reanim/Zombie_boss_outerleg_upper.png" id="779_l2vl6"]
+
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_boss_upperbody.png" id="780_tj32w"]
+
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_boss_neck.png" id="781_r3l0y"]
+
+[ext_resource type="Texture2D" uid="uid://b1g33eigvbf34" path="res://assets/reanim/Zombie_boss_innerjaw.png" id="782_x2csx"]
+
+[ext_resource type="Texture2D" uid="uid://bpi1pc7gdc7e3" path="res://assets/reanim/Zombie_boss_mouthglow.png" id="783_ctg56"]
+
+[ext_resource type="Texture2D" path="res://assets/image/particles/Zombie_boss_iceball_particles_flip_h.png" id="784_bdohu"]
+
+[ext_resource type="Texture2D" uid="uid://4a4nlhkc5nak" path="res://assets/reanim/Zombie_boss_mouthglow_red.png" id="785_ehf8s"]
+
+[ext_resource type="Texture2D" uid="uid://bql5giivcflcr" path="res://assets/reanim/Zombie_boss_jaw.png" id="786_2m6xt"]
+
+[ext_resource type="Texture2D" uid="uid://dk0ry1s32y2so" path="res://assets/reanim/Zombie_boss_eyeglow.png" id="787_reerk"]
+
+[ext_resource type="Texture2D" uid="uid://baeptg7m3bq68" path="res://assets/reanim/Zombie_boss_eyeglow_red.png" id="788_24mg5"]
+
+[ext_resource type="Texture2D" uid="uid://cbanmp4jcvjfb" path="res://assets/reanim/Zombie_boss_head2.png" id="789_2w3aa"]
+
+[ext_resource type="Texture2D" uid="uid://dk13aytsnwxi1" path="res://assets/reanim/Zombie_boss_flagpole.png" id="790_kbnj3"]
+
+[ext_resource type="Texture2D" uid="uid://mbffsjw8tmah" path="res://assets/reanim/Zombie_boss_flag.png" id="791_hd7i3"]
+
+[ext_resource type="Texture2D" uid="uid://sj6owkpr0cfk" path="res://assets/reanim/Zombie_bossdriver_upperarm.png" id="792_wej7v"]
+
+[ext_resource type="Texture2D" uid="uid://ba1ajlvpbir3f" path="res://assets/reanim/Zombie_bossdriver_lowerarm2.png" id="793_lthex"]
+
+[ext_resource type="Texture2D" uid="uid://v4p10lusa25u" path="res://assets/reanim/Zombie_bossdriver_innerhand.png" id="794_x80n0"]
+
+[ext_resource type="Texture2D" uid="uid://dxcoxwwr4wead" path="res://assets/reanim/Zombie_bossdriver_lowerarm.png" id="795_g7l2s"]
+
+[ext_resource type="Texture2D" uid="uid://lagxt75xdc10" path="res://assets/reanim/Zombie_bossdriver_body.png" id="796_8u2eh"]
+
+[ext_resource type="Texture2D" uid="uid://i3y8pw036bm6" path="res://assets/reanim/Zombie_bossdriver_brain.png" id="797_bqli3"]
+
+[ext_resource type="Texture2D" uid="uid://c78slfd0wsyi1" path="res://assets/reanim/Zombie_bossdriver_face.png" id="798_vgh2t"]
+
+[ext_resource type="Texture2D" uid="uid://dbqc4n8qmm51s" path="res://assets/reanim/Zombie_bossdriver_jaw.png" id="799_7qkq4"]
+
+[ext_resource type="Texture2D" uid="uid://dqnrr5mlrqchx" path="res://assets/reanim/Zombie_bossdriver_outerhand.png" id="800_n8gol"]
+
+[ext_resource type="Texture2D" uid="uid://b5owucpyftf8c" path="res://assets/reanim/Zombie_boss_antenna.png" id="809_f5cox"]
+
+[ext_resource type="Texture2D" uid="uid://dosj05ct71hmf" path="res://assets/reanim/Zombie_boss_head.png" id="810_qu0d4"]
+
+[ext_resource type="Texture2D" uid="uid://y7g8rfl3fp03" path="res://assets/reanim/Zombie_boss_outerarm_thumb2.png" id="811_hdy3q"]
+
+[ext_resource type="Texture2D" uid="uid://c74eawoq1s7t2" path="res://assets/reanim/Zombie_boss_outerarm_hand.png" id="812_ddyfb"]
+
+[ext_resource type="Texture2D" uid="uid://t8xlhlkacmq4" path="res://assets/reanim/Zombie_boss_outerarm_finger2.png" id="813_4lhy5"]
+
+[ext_resource type="Texture2D" uid="uid://dtklsfuxl3iw0" path="res://assets/reanim/Zombie_boss_outerarm_finger1.png" id="814_1sv84"]
+
+[ext_resource type="Texture2D" uid="uid://dao8440gm8ep2" path="res://assets/reanim/Zombie_boss_outerarm_thumb1.png" id="815_apd8i"]
+
+[ext_resource type="Texture2D" uid="uid://itotbpb0blnd" path="res://assets/reanim/Zombie_boss_outerarm_lower.png" id="816_2aixh"]
+
+[ext_resource type="Texture2D" uid="uid://773rlnrhsldg" path="res://assets/reanim/Zombie_boss_outerarm_upper.png" id="817_lwqrl"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_3_1"]
+script = ExtResource("card_reference")
+card_type = 3
+content_id = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_spit"]
+particles_animation = true
+particles_anim_h_frames = 4
+particles_anim_v_frames = 1
+particles_anim_loop = false
+
+[sub_resource type="Gradient" id="Gradient_spit_fade"]
+offsets = PackedFloat32Array(0, 0.65, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_spit_fade"]
+gradient = SubResource("Gradient_spit_fade")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_spit"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(1, 20, 1)
+angle_min = 160.0
+angle_max = 200.0
+direction = Vector3(-1, 0.12, 0)
+spread = 18.0
+initial_velocity_min = 120.0
+initial_velocity_max = 200.5
+gravity = Vector3(0, 0, 0)
+scale_min = 0.5
+scale_max = 0.59999996
+color_ramp = SubResource("GradientTexture1D_spit_fade")
+
+[node name="Card1" unique_id=1942300287 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_3_1")
+
+[node name="ZB001Doctor" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=262577151]
+position = Vector2(0, 22)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor" unique_id=279424657]
+position = Vector2(-1, 5)
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body" unique_id=676407091]
+position = Vector2(-152, -90)
+scale = Vector2(0.25, 0.25)
+
+[node name="InnerArm" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect" unique_id=953478479]
+visible = false
+
+[node name="InnerArmBack" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm" unique_id=364483274]
+
+[node name="Boss_innerarm_bits" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmBack" unique_id=1724772011]
+visible = false
+position = Vector2(470.3, -109.900085)
+rotation = 0.11900039
+scale = Vector2(0.795, 0.893)
+texture = ExtResource("765_pjsii")
+centered = false
+
+[node name="Boss_innerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmBack" unique_id=2035547884]
+visible = false
+position = Vector2(465.00003, -265)
+rotation = 0.18000071
+scale = Vector2(0.793, 0.793)
+texture = ExtResource("766_wj5jn")
+centered = false
+
+[node name="Boss_innerarm_finger4" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmBack" unique_id=1668258136]
+visible = false
+position = Vector2(490.36295, -127.99321)
+rotation = 0.15700038
+scale = Vector2(0.616, 0.676)
+texture = ExtResource("767_ys4uk")
+centered = false
+
+[node name="Marker2DBungeeAnchorRight" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmBack/Boss_innerarm_finger4" unique_id=2029274155]
+position = Vector2(33.250984, 54.583748)
+
+[node name="Boss_innerarm_finger2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmBack" unique_id=104866418]
+visible = false
+position = Vector2(500.26294, -99.39322)
+rotation = 0.15900071
+scale = Vector2(0.79, 0.861)
+texture = ExtResource("767_ys4uk")
+centered = false
+
+[node name="Boss_innerarm_finger1" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmBack" unique_id=1547949555]
+visible = false
+position = Vector2(506.06293, -65.89322)
+rotation = 0.2760007
+scale = Vector2(0.79, 0.79)
+texture = ExtResource("767_ys4uk")
+centered = false
+
+[node name="Marker2DBungeeAnchorLeft" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmBack/Boss_innerarm_finger1" unique_id=2030822815]
+position = Vector2(41.316055, 49.081253)
+
+[node name="Boss_innerarm_finger3" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmBack" unique_id=1062385943]
+visible = false
+position = Vector2(500.06293, -121.29321)
+rotation = 0.110000715
+scale = Vector2(0.673, 0.709)
+texture = ExtResource("767_ys4uk")
+centered = false
+
+[node name="Marker2DBungeeAnchorMiddle" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmBack/Boss_innerarm_finger3" unique_id=1136095815]
+position = Vector2(34.045753, 46.127296)
+
+[node name="Boss_innerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmBack" unique_id=1674103897]
+visible = false
+position = Vector2(520.99994, -182)
+rotation = 0.21800071
+scale = Vector2(0.791, 0.791)
+texture = ExtResource("768_057a1")
+centered = false
+
+[node name="RV" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm" unique_id=1701852143]
+
+[node name="Boss_RV_wheel1" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/RV" unique_id=1780507705]
+visible = false
+position = Vector2(260.8, -106.35574)
+rotation = 0.014
+scale = Vector2(1.0530002, 0.8059999)
+texture = ExtResource("769_a818n")
+centered = false
+
+[node name="Boss_RV_wheel2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/RV" unique_id=302521803]
+visible = false
+position = Vector2(126.999985, -79.95575)
+rotation = 0.014
+scale = Vector2(1.0850003, 0.75599974)
+texture = ExtResource("769_a818n")
+centered = false
+
+[node name="Boss_RV" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/RV" unique_id=1740718740]
+visible = false
+position = Vector2(73, -180.8558)
+rotation = -0.24099979
+scale = Vector2(0.899, 0.899)
+texture = ExtResource("770_pihh5")
+centered = false
+
+[node name="InnerArmFront" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm" unique_id=1251161516]
+
+[node name="Boss_innerarm_thumb2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmFront" unique_id=1419253326]
+visible = false
+position = Vector2(450.76294, -53.593216)
+rotation = 0.21800071
+scale = Vector2(0.791, 0.791)
+texture = ExtResource("771_pyiy8")
+centered = false
+
+[node name="Boss_innerarm_thumb1" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmFront" unique_id=1704770219]
+visible = false
+position = Vector2(434.26294, -57.693207)
+rotation = 0.21800071
+scale = Vector2(0.791, 0.791)
+texture = ExtResource("772_wmb04")
+centered = false
+
+[node name="Boss_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmFront" unique_id=285857078]
+visible = false
+position = Vector2(456.70007, -225.10013)
+rotation = 0.11900039
+scale = Vector2(0.795, 0.795)
+texture = ExtResource("773_unevv")
+centered = false
+
+[node name="Marker2DDeathExplosion" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerArm/InnerArmFront/Boss_innerarm_upper" unique_id=1871673667]
+position = Vector2(113.5, 125)
+
+[node name="InnerLeg" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect" unique_id=1635572612]
+visible = false
+
+[node name="Boss_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerLeg" unique_id=762478341]
+visible = false
+position = Vector2(879.9, 104.6)
+rotation = 0.04399998
+scale = Vector2(0.64300007, 0.64299995)
+texture = ExtResource("774_omd6i")
+centered = false
+
+[node name="Marker2DDeathExplosion" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerLeg/Boss_innerleg_foot" unique_id=1512279758]
+position = Vector2(183.5, 113)
+
+[node name="Boss_innerleg_bits" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerLeg" unique_id=152840387]
+visible = false
+position = Vector2(962.9, -6)
+rotation = 0.016999988
+scale = Vector2(0.793, 0.79299986)
+texture = ExtResource("775_1xgfh")
+centered = false
+
+[node name="Boss_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerLeg" unique_id=302382060]
+visible = false
+position = Vector2(953.9, -120.4)
+rotation = 0.37500024
+scale = Vector2(0.795, 0.795)
+texture = ExtResource("776_edua1")
+centered = false
+
+[node name="Boss_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerLeg" unique_id=1411851095]
+visible = false
+position = Vector2(930.5, -6.9)
+rotation = 0.016999988
+scale = Vector2(0.645, 0.64499986)
+texture = ExtResource("777_ovu1s")
+centered = false
+
+[node name="Marker2DDeathExplosion" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/InnerLeg/Boss_innerleg_lower" unique_id=1281705084]
+position = Vector2(134, 144)
+
+[node name="BodyBack" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect" unique_id=1499300266]
+visible = false
+
+[node name="Boss_body2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/BodyBack" unique_id=2137951501]
+visible = false
+position = Vector2(904, -152.2)
+rotation = 0.01700034
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("778_tkur7")
+centered = false
+
+[node name="Marker2DDeathExplosion" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/BodyBack/Boss_body2" unique_id=1418879676]
+position = Vector2(166.5, 125)
+
+[node name="OuterLeg" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect" unique_id=184445529]
+visible = false
+
+[node name="Boss_outerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterLeg" unique_id=1609133244]
+visible = false
+position = Vector2(948.3, 215)
+rotation = -0.117
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("774_omd6i")
+centered = false
+
+[node name="Marker2DDeathExplosion" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterLeg/Boss_outerleg_foot" unique_id=1477585776]
+position = Vector2(183.5, 113)
+
+[node name="Boss_outerleg_bits" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterLeg" unique_id=972857165]
+visible = false
+position = Vector2(1052.1, 80.5)
+rotation = -0.39299998
+scale = Vector2(0.99899995, 0.99899995)
+texture = ExtResource("775_1xgfh")
+centered = false
+
+[node name="Boss_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterLeg" unique_id=469221767]
+visible = false
+position = Vector2(1036.7, -74.4)
+rotation = 0.4150002
+scale = Vector2(0.799, 0.89)
+texture = ExtResource("779_l2vl6")
+centered = false
+
+[node name="Boss_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterLeg" unique_id=1958987605]
+visible = false
+position = Vector2(1012.9, 79.8)
+rotation = -0.39299998
+scale = Vector2(0.79899997, 0.79899997)
+texture = ExtResource("777_ovu1s")
+centered = false
+
+[node name="Marker2DDeathExplosion" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterLeg/Boss_outerleg_lower" unique_id=876523593]
+position = Vector2(134, 144)
+
+[node name="BodyFront" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect" unique_id=1466200048]
+visible = false
+
+[node name="Boss_body1" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/BodyFront" unique_id=1297403480]
+position = Vector2(527.8, 156.09998)
+rotation = -0.29
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("780_tj32w")
+centered = false
+
+[node name="Marker2DDeathExplosionUpper" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/BodyFront/Boss_body1" unique_id=1430184374]
+position = Vector2(260, 170)
+
+[node name="Marker2DDeathExplosionLower" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/BodyFront/Boss_body1" unique_id=455410074]
+position = Vector2(280, 330)
+
+[node name="Head" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect" unique_id=1860114788]
+
+[node name="Boss_neck" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=471672474]
+visible = false
+position = Vector2(553.5, 174.2)
+rotation = -0.033
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("781_r3l0y")
+centered = false
+
+[node name="Boss_innerjaw" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=722934809]
+position = Vector2(551.4, 248.1)
+rotation = -0.016
+scale = Vector2(0.996, 0.996)
+texture = ExtResource("782_x2csx")
+centered = false
+
+[node name="Boss_mouthglow" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=221032456]
+position = Vector2(558.3, 248.10002)
+rotation = -0.016
+scale = Vector2(0.996, 0.996)
+texture = ExtResource("783_ctg56")
+centered = false
+
+[node name="Marker2DSpawnBall" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_mouthglow" unique_id=2102279935]
+position = Vector2(-27.533157, 133.01022)
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_mouthglow" unique_id=1272363236]
+z_index = 2
+material = SubResource("CanvasItemMaterial_spit")
+position = Vector2(56.43201, 94.18802)
+emitting = false
+amount = 24
+texture = ExtResource("784_bdohu")
+one_shot = true
+visibility_rect = Rect2(-300, -100, 500, 200)
+process_material = SubResource("ParticleProcessMaterial_spit")
+
+[node name="Boss_mouthglow_red" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=584449058]
+visible = false
+self_modulate = Color(1, 1, 1, 0)
+rotation = -0.051
+scale = Vector2(0.955, 0.998)
+skew = 0.045
+texture = ExtResource("785_ehf8s")
+centered = false
+
+[node name="Boss_jaw" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=1093876877]
+position = Vector2(528.2, 264.4)
+rotation = -0.016
+scale = Vector2(0.796, 0.796)
+texture = ExtResource("786_2m6xt")
+centered = false
+
+[node name="Marker2DDeathExplosion" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_jaw" unique_id=1669767882]
+position = Vector2(104.5, 101.5)
+
+[node name="Boss_eyeglow" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=1799996869]
+position = Vector2(523.8, 250.9)
+rotation = -0.016
+scale = Vector2(0.796, 0.796)
+texture = ExtResource("787_reerk")
+centered = false
+
+[node name="Boss_eyeglow_red" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=1348113633]
+visible = false
+self_modulate = Color(1, 1, 1, 0)
+rotation = -0.049
+scale = Vector2(0.795, 0.796)
+skew = -0.002
+texture = ExtResource("788_24mg5")
+centered = false
+
+[node name="Boss_head2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=1008658357]
+position = Vector2(547.4, 184.3)
+rotation = -0.016
+scale = Vector2(0.796, 0.796)
+texture = ExtResource("789_2w3aa")
+centered = false
+
+[node name="TrophySpawnPoint" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2" unique_id=1978147573]
+position = Vector2(79.60669, 80.11557)
+rotation = -0.11747604
+scale = Vector2(1.2256789, 1.2753907)
+skew = -0.004692197
+
+[node name="Zombie_Boss_driver" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2" unique_id=1177670409]
+position = Vector2(46.159447, -64.06694)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver" unique_id=1150864459]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body" unique_id=1587338084]
+
+[node name="Anim" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=573734214]
+
+[node name="Anim_swell" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect/Anim" unique_id=404605015]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect/Anim" unique_id=1796331686]
+centered = false
+
+[node name="Anim_drive" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect/Anim" unique_id=873592817]
+visible = false
+centered = false
+
+[node name="Anim_damage" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect/Anim" unique_id=1333258026]
+visible = false
+centered = false
+
+[node name="Anim_laugh" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect/Anim" unique_id=1768776203]
+visible = false
+centered = false
+
+[node name="Anim_death" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect/Anim" unique_id=1708015571]
+visible = false
+centered = false
+
+[node name="Anim_flag" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect/Anim" unique_id=731530954]
+visible = false
+centered = false
+
+[node name="Anim_flag_loop" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect/Anim" unique_id=584210935]
+visible = false
+centered = false
+
+[node name="Flagpole" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=1225894105]
+visible = false
+position = Vector2(42.7, 39.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("790_kbnj3")
+centered = false
+
+[node name="Flag" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=1933660959]
+visible = false
+position = Vector2(44.4, 40.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("791_hd7i3")
+centered = false
+
+[node name="Driver_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=230864207]
+position = Vector2(39.9, 58.7)
+rotation = 0.686
+scale = Vector2(0.733, 0.733)
+texture = ExtResource("792_wej7v")
+centered = false
+
+[node name="Driver_innerarm_lower2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=439263083]
+position = Vector2(14.4, 79.6)
+rotation = 0.145
+scale = Vector2(0.696, 0.696)
+texture = ExtResource("793_lthex")
+centered = false
+
+[node name="Driver_innerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=211814939]
+position = Vector2(0.9, 74)
+rotation = -0.038
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("794_x80n0")
+centered = false
+
+[node name="Driver_innerrarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=390940718]
+position = Vector2(16.2, 72.9)
+rotation = 0.201
+scale = Vector2(0.696, 0.696)
+texture = ExtResource("795_g7l2s")
+centered = false
+
+[node name="Driver_body" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=1565201880]
+position = Vector2(35.2, 44.8)
+rotation = -0.099
+scale = Vector2(0.799, 0.979)
+texture = ExtResource("796_8u2eh")
+centered = false
+
+[node name="Driver_brain" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=564623875]
+position = Vector2(8.3, 20.8)
+rotation = -0.099
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("797_bqli3")
+centered = false
+
+[node name="Driver_face" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=1645333108]
+position = Vector2(9.7, 44.1)
+rotation = -0.099
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("798_vgh2t")
+centered = false
+
+[node name="Driver_jaw" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=1978241722]
+position = Vector2(24.7, 55.4)
+rotation = -0.099
+scale = Vector2(0.831, 0.737)
+texture = ExtResource("799_7qkq4")
+centered = false
+
+[node name="Driver_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=73029572]
+position = Vector2(47.5, 58)
+rotation = -0.016
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("792_wej7v")
+centered = false
+
+[node name="Driver_outerarm_lower2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=257278540]
+position = Vector2(34.8, 83.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("793_lthex")
+centered = false
+
+[node name="Driver_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=2058249003]
+position = Vector2(19.1, 78.3)
+rotation = 0.162
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("800_n8gol")
+centered = false
+
+[node name="Driver_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head2/Zombie_Boss_driver/Body/BodyCorrect" unique_id=1466502098]
+position = Vector2(35.5, 75)
+rotation = 0.038
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("795_g7l2s")
+centered = false
+
+[node name="Boss_eyeglow_black" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=1231610611]
+visible = false
+centered = false
+
+[node name="Boss_antenna2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=856900922]
+position = Vector2(496.6, 210.99998)
+rotation = 0.045
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("809_f5cox")
+centered = false
+
+[node name="Boss_head" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=319767950]
+position = Vector2(517, 190.30002)
+rotation = -0.016
+scale = Vector2(0.796, 0.796)
+texture = ExtResource("810_qu0d4")
+centered = false
+
+[node name="Marker2DDeathExplosion" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head/Boss_head" unique_id=866737753]
+position = Vector2(137, 113)
+
+[node name="Boss_antenna" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/Head" unique_id=69792600]
+position = Vector2(720.3, 212.2)
+rotation = -0.016
+scale = Vector2(0.996, 0.996)
+texture = ExtResource("809_f5cox")
+centered = false
+
+[node name="OuterArm" type="Node2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect" unique_id=1574861696]
+visible = false
+
+[node name="Boss_outerarm_thumb2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=791635750]
+visible = false
+position = Vector2(806, 13.4)
+rotation = -0.41400018
+scale = Vector2(0.86, 0.906)
+texture = ExtResource("811_hdy3q")
+centered = false
+
+[node name="Boss_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=2053416305]
+visible = false
+position = Vector2(893.2, -30.5)
+rotation = -0.44300026
+scale = Vector2(0.795, 0.795)
+texture = ExtResource("812_ddyfb")
+centered = false
+
+[node name="Marker2DDeathExplosion" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm/Boss_outerarm_hand" unique_id=63869028]
+position = Vector2(99, 99)
+
+[node name="Boss-outerarm_finger4" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=243111818]
+visible = false
+position = Vector2(869, 46)
+rotation = -0.93500024
+scale = Vector2(0.666, 0.611)
+texture = ExtResource("813_4lhy5")
+centered = false
+
+[node name="Marker2DSpawnZombie" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm/Boss-outerarm_finger4" unique_id=43062232]
+position = Vector2(44.77496, 78.85651)
+
+[node name="Boss-outerarm_knuckle4" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=1870302835]
+visible = false
+position = Vector2(922.5, 85)
+rotation = -1.0930003
+scale = Vector2(0.536, 0.588)
+texture = ExtResource("814_1sv84")
+centered = false
+
+[node name="Boss-outerarm_finger3" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=1405589169]
+visible = false
+position = Vector2(853.3, 19.8)
+rotation = -0.76800025
+scale = Vector2(0.688, 0.705)
+texture = ExtResource("813_4lhy5")
+centered = false
+
+[node name="Boss-outerarm_knuckle3" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=1232300507]
+visible = false
+position = Vector2(890.6, 65.6)
+rotation = -0.8990002
+scale = Vector2(0.567, 0.662)
+texture = ExtResource("814_1sv84")
+centered = false
+
+[node name="Boss-outerarm_finger2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=1953269329]
+visible = false
+position = Vector2(884.7, 13.9)
+rotation = -0.73000026
+scale = Vector2(0.74, 0.809)
+texture = ExtResource("813_4lhy5")
+centered = false
+
+[node name="Boss-outerarm_knuckle2" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=732627678]
+visible = false
+position = Vector2(863.5, 48.2)
+rotation = -0.83400023
+scale = Vector2(0.745, 0.795)
+texture = ExtResource("814_1sv84")
+centered = false
+
+[node name="Boss-outerarm_finger1" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=798031054]
+visible = false
+position = Vector2(834.3, 14.6)
+rotation = -0.45200026
+scale = Vector2(0.699, 0.769)
+texture = ExtResource("813_4lhy5")
+centered = false
+
+[node name="Boss-outerarm_knuckle1" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=1802549734]
+visible = false
+position = Vector2(846.9, 34)
+rotation = -0.39600027
+scale = Vector2(0.758, 0.758)
+texture = ExtResource("814_1sv84")
+centered = false
+
+[node name="Boss_outerarm_thumb1" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=538628403]
+visible = false
+position = Vector2(858, -27.4)
+rotation = -0.39600027
+scale = Vector2(0.86, 0.906)
+texture = ExtResource("815_apd8i")
+centered = false
+
+[node name="Boss_outerarm_bits" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=615951645]
+visible = false
+position = Vector2(929.1, -127.3)
+rotation = -0.5760004
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("765_pjsii")
+centered = false
+
+[node name="Boss_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=1487191804]
+visible = false
+position = Vector2(941.8, -145)
+rotation = -0.2830005
+scale = Vector2(0.797, 0.858)
+texture = ExtResource("816_2aixh")
+centered = false
+
+[node name="Boss_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm" unique_id=1755649227]
+position = Vector2(738.6, 217.20001)
+rotation = -0.759
+scale = Vector2(0.795, 0.795)
+texture = ExtResource("817_lwqrl")
+centered = false
+
+[node name="Marker2DDeathExplosion" type="Marker2D" parent="CardBg/CharacterStatic/ZB001Doctor/Body/BodyCorrect/OuterArm/Boss_outerarm_upper" unique_id=1841004507]
+position = Vector2(142.5, 178)

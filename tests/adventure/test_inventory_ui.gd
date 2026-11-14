@@ -18,7 +18,7 @@ func _run() -> void:
 	assert(AdventureToolbar._can_open_inventory())
 	assert(AdventureToolbar._view._available.get("inventory", false))
 	AdventureToolbar._view._on_pressed("inventory")
-	await get_tree().process_frame
+	await _wait_for_inventory()
 	var modal: AdventureInventoryWindow = AdventureToolbar.modal_for("inventory")
 	assert(is_instance_valid(modal))
 	assert(AdventureToolbar._view.get_index() > modal.get_index()) # Toolbar icon stays clickable.
@@ -28,14 +28,16 @@ func _run() -> void:
 	modal._reorder(b, 0)
 	assert(Global.adventure_inventory.get_card_order() == [b, a])
 	modal.choose_category("materials")
+	await _wait_for_content(modal)
 	assert(modal.ui.cells.get_child_count() == 66)
 	modal.choose_category("items")
+	await _wait_for_content(modal)
 	assert(modal.ui.cells.get_child_count() == 66)
 	AdventureToolbar._view._on_pressed("inventory") # Toggle the same toolbar icon to close.
 	await get_tree().create_timer(0.42).timeout
 	assert(not is_instance_valid(AdventureToolbar.modal_for("inventory")))
 	AdventureToolbar._view._on_pressed("inventory") # Reopen using the actual icon signal path.
-	await get_tree().process_frame
+	await _wait_for_inventory()
 	modal = AdventureToolbar.modal_for("inventory")
 	assert(is_instance_valid(modal))
 	var close: TextureButton = modal.find_child("InventoryCloseButton", true, false)
@@ -47,3 +49,17 @@ func _run() -> void:
 	Global.reload_session_for_current_user()
 	print("INVENTORY_UI_SMOKE_PASS")
 	get_tree().quit(0)
+
+## 请求接受不代表窗口已出现，等待相同模态拥有者公开就绪实例。
+func _wait_for_inventory() -> void:
+	var deadline: int = Time.get_ticks_msec() + 12000 # 仅作为失败上限，不参与性能结论。
+	while Time.get_ticks_msec() < deadline and AdventureToolbar.modal_for("inventory") == null:
+		await get_tree().process_frame
+	assert(AdventureToolbar.modal_for("inventory") != null)
+
+## [param modal] 的分页资源与分帧格子构造完成后才检查原有布局断言。
+func _wait_for_content(modal: AdventureInventoryWindow) -> void:
+	var deadline: int = Time.get_ticks_msec() + 12000 # 保留原有测试范围，仅修正异步完成边界。
+	while Time.get_ticks_msec() < deadline and not modal.is_content_ready():
+		await get_tree().process_frame
+	assert(modal.is_content_ready())

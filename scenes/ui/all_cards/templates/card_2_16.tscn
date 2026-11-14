@@ -1,0 +1,188 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://xvpvxtsj2yew" path="res://assets/reanim/Ground.png" id="195_q2ynx"]
+
+[ext_resource type="Texture2D" uid="uid://bpwq05kghn85" path="res://assets/reanim/Zombie_jackbox_innerleg_foot.png" id="444_7f486"]
+
+[ext_resource type="Texture2D" uid="uid://c0xi6knhqwb5t" path="res://assets/reanim/Zombie_jackbox_outerarm_upper.png" id="445_deuj6"]
+
+[ext_resource type="Texture2D" uid="uid://cwce4k76w0sgw" path="res://assets/reanim/Zombie_jackbox_innerleg_lower.png" id="445_ih4no"]
+
+[ext_resource type="Texture2D" uid="uid://rypdab60sr08" path="res://assets/reanim/Zombie_jackbox_innerleg_upper.png" id="446_angoc"]
+
+[ext_resource type="Texture2D" uid="uid://d3qbdvu0sgga4" path="res://assets/reanim/Zombie_jackbox_outerarm_lower.png" id="446_fxj51"]
+
+[ext_resource type="Texture2D" uid="uid://d4dl8p8lgt7i2" path="res://assets/reanim/Zombie_jackbox_body2.png" id="447_yrvmv"]
+
+[ext_resource type="Texture2D" uid="uid://dnlj4rxjc2lhs" path="res://assets/reanim/Zombie_jackbox_outerleg_foot.png" id="448_k6rbm"]
+
+[ext_resource type="Texture2D" uid="uid://d1s3fjploxu8v" path="res://assets/reanim/Zombie_jackbox_outerleg_lower.png" id="449_gghvn"]
+
+[ext_resource type="Texture2D" uid="uid://cyijgltc56xfa" path="res://assets/reanim/Zombie_jackbox_outerleg_upper.png" id="450_018v2"]
+
+[ext_resource type="Texture2D" uid="uid://bcsysccvm68l1" path="res://assets/reanim/Zombie_jackbox_innerarm_upper.png" id="451_5fvvn"]
+
+[ext_resource type="Texture2D" uid="uid://dacpno52l22kk" path="res://assets/reanim/Zombie_jackbox_innerarm_lower.png" id="452_ywrpp"]
+
+[ext_resource type="Texture2D" uid="uid://b10qfl2b731ai" path="res://assets/reanim/Zombie_jackbox_body1.png" id="453_c86k7"]
+
+[ext_resource type="Texture2D" uid="uid://csmn4qrtcjxis" path="res://assets/reanim/Zombie_jackbox_head.png" id="455_orgcc"]
+
+[ext_resource type="Texture2D" uid="uid://57jm1vwhf3jy" path="res://assets/reanim/Zombie_jackbox_jaw.png" id="456_1exfc"]
+
+[ext_resource type="Texture2D" uid="uid://cu45yqt8usavu" path="res://assets/reanim/Zombie_jackbox_handle.png" id="456_qvmtp"]
+
+[ext_resource type="Texture2D" uid="uid://qcwjlx6xls5x" path="res://assets/reanim/Zombie_jackbox_box.png" id="457_2xpbq"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_16"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 16
+
+[node name="Card16" unique_id=256601358 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_16")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie016Jackbox" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=893186750]
+position = Vector2(2, 17)
+scale = Vector2(0.3, 0.3)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie016Jackbox" unique_id=977413254]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body" unique_id=838617863]
+position = Vector2(-50, -120)
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=535697681]
+visible = false
+texture = ExtResource("195_q2ynx")
+centered = false
+
+[node name="Zombie_jackbox_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=1001319171]
+position = Vector2(27, 104.5)
+scale = Vector2(0.748, 0.748)
+texture = ExtResource("444_7f486")
+centered = false
+
+[node name="Zombie_jackbox_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=490055084]
+position = Vector2(27.2, 93.6)
+scale = Vector2(0.748, 0.748)
+texture = ExtResource("445_ih4no")
+centered = false
+
+[node name="Zombie_jackbox_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=1891983387]
+position = Vector2(41.7, 75.6)
+scale = Vector2(0.748, 0.748)
+texture = ExtResource("446_angoc")
+centered = false
+
+[node name="Zombie_jackbox_body2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=1876137109]
+position = Vector2(38.4, 59.7)
+scale = Vector2(0.748, 0.748)
+texture = ExtResource("447_yrvmv")
+centered = false
+
+[node name="Zombie_jackbox_outerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=1677597527]
+position = Vector2(48.4, 113.5)
+scale = Vector2(0.748, 0.748)
+texture = ExtResource("448_k6rbm")
+centered = false
+
+[node name="Zombie_jackbox_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=1955603868]
+position = Vector2(57.6, 92.8)
+scale = Vector2(0.748, 0.748)
+texture = ExtResource("449_gghvn")
+centered = false
+
+[node name="Zombie_jackbox_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=112281768]
+position = Vector2(56.4, 73.5)
+scale = Vector2(0.748, 0.748)
+texture = ExtResource("450_018v2")
+centered = false
+
+[node name="Zombie_jackbox_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=1025757713]
+position = Vector2(15.8, 33.4)
+rotation = 0.036652
+scale = Vector2(0.815, 0.757)
+texture = ExtResource("451_5fvvn")
+centered = false
+
+[node name="Zombie_jackbox_innerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=1325767107]
+position = Vector2(-12, 44.5)
+scale = Vector2(0.775, 0.748)
+texture = ExtResource("452_ywrpp")
+centered = false
+
+[node name="Zombie_jackbox_body1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=915938262]
+position = Vector2(26.9, 27.2)
+scale = Vector2(0.748, 0.748)
+texture = ExtResource("453_c86k7")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=1123154875]
+position = Vector2(0.3, -1.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("455_orgcc")
+centered = false
+
+[node name="Anim_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=584990340]
+position = Vector2(10.1, 35.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("456_1exfc")
+centered = false
+
+[node name="Zombie_jackbox_handle" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=468953834]
+position = Vector2(-3, 45.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("456_qvmtp")
+centered = false
+
+[node name="Zombie_jackbox_box" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=802130289]
+position = Vector2(7.8, 43.5)
+rotation = -0.099484
+scale = Vector2(0.67, 0.67)
+texture = ExtResource("457_2xpbq")
+centered = false
+
+[node name="Zombie_jackbox_box2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=212538016]
+visible = false
+centered = false
+
+[node name="Zombie_jackbox_clownneck3" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=1315238000]
+visible = false
+centered = false
+
+[node name="Zombie_jackbox_clownneck2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=1641880612]
+visible = false
+centered = false
+
+[node name="Zombie_jackbox_clownneck1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=2040155800]
+visible = false
+centered = false
+
+[node name="Zombie_jackbox_clownhead" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=44096677]
+visible = false
+centered = false
+
+[node name="Zombie_jackbox_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=2031832741]
+position = Vector2(44.6, 38.1)
+rotation = -0.136136
+scale = Vector2(0.767, 0.795)
+skew = 0.225148
+texture = ExtResource("445_deuj6")
+centered = false
+
+[node name="Zombie_jackbox_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie016Jackbox/Body/BodyCorrect" unique_id=2051944908]
+position = Vector2(14.2, 59.5)
+rotation = -0.099484
+scale = Vector2(0.747, 0.747)
+texture = ExtResource("446_fxj51")
+centered = false

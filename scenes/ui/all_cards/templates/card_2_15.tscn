@@ -1,0 +1,266 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://xvpvxtsj2yew" path="res://assets/reanim/Ground.png" id="195_q2ynx"]
+
+[ext_resource type="Texture2D" uid="uid://brvu2a0dj7ujr" path="res://assets/reanim/Zombie_dolphinrider_innerarm_hand.png" id="372_m7q7w"]
+
+[ext_resource type="Texture2D" uid="uid://c7cjwc2v85fq8" path="res://assets/reanim/Zombie_dolphinrider_innerarm_lower.png" id="373_r0uf5"]
+
+[ext_resource type="Texture2D" uid="uid://7rp63r7hf0ll" path="res://assets/reanim/Zombie_dolphinrider_innerarm_upper.png" id="374_te8ao"]
+
+[ext_resource type="Texture2D" uid="uid://dahparam7w4qx" path="res://assets/reanim/Zombie_dolphinrider_innerleg_foot.png" id="375_msri8"]
+
+[ext_resource type="Texture2D" uid="uid://dso0w5x240ovg" path="res://assets/reanim/Zombie_dolphinrider_innerleg_lower.png" id="376_7lapw"]
+
+[ext_resource type="Texture2D" uid="uid://8lf3oib5dsqt" path="res://assets/reanim/Zombie_dolphinrider_innerleg_upper.png" id="377_pupom"]
+
+[ext_resource type="Texture2D" uid="uid://dkj0lon114c3o" path="res://assets/reanim/Zombie_dolphinrider_body2.png" id="378_b70e6"]
+
+[ext_resource type="Texture2D" uid="uid://cli3edkc70xbo" path="res://assets/reanim/Zombie_dolphinrider_body1.png" id="379_45g8r"]
+
+[ext_resource type="Texture2D" uid="uid://b7ggvyaplipyr" path="res://assets/reanim/Zombie_dolphinrider_outerleg_foot1.png" id="380_cnu4l"]
+
+[ext_resource type="Texture2D" uid="uid://feufmecp63cf" path="res://assets/reanim/Zombie_dolphinrider_outerleg_foot2.png" id="381_vxcot"]
+
+[ext_resource type="Texture2D" uid="uid://ym3cj03fvop4" path="res://assets/reanim/Zombie_dolphinrider_outerleg_lower.png" id="382_3fnx5"]
+
+[ext_resource type="Texture2D" uid="uid://cnf5nehubebbk" path="res://assets/reanim/Zombie_dolphinrider_outerleg_upper.png" id="383_knh0l"]
+
+[ext_resource type="Texture2D" uid="uid://cjujyrb3tyc55" path="res://assets/reanim/Zombie_dolphinrider_jaw.png" id="384_junvc"]
+
+[ext_resource type="Texture2D" uid="uid://c0qb3srcraxvi" path="res://assets/reanim/Zombie_dolphinrider_head.png" id="385_jlrij"]
+
+[ext_resource type="Texture2D" uid="uid://ctci5pveql0wh" path="res://assets/reanim/Zombie_dolphinrider_dolphinbody2.png" id="386_w8qdd"]
+
+[ext_resource type="Texture2D" uid="uid://bfv7uuojjvqli" path="res://assets/reanim/Zombie_dolphinrider_dolphinfin2.png" id="387_e83gd"]
+
+[ext_resource type="Texture2D" uid="uid://bp4w3qbdj44t6" path="res://assets/reanim/Zombie_dolphinrider_dolphinjaw.png" id="388_aber1"]
+
+[ext_resource type="Texture2D" uid="uid://ccvrcj5k4u21i" path="res://assets/reanim/Zombie_dolphinrider_dolphinbody1.png" id="389_brt1f"]
+
+[ext_resource type="Texture2D" uid="uid://cmqttdyw412mn" path="res://assets/reanim/Zombie_dolphinrider_dolphinfin1.png" id="390_30d3l"]
+
+[ext_resource type="Texture2D" uid="uid://drj73i768ti4y" path="res://assets/reanim/Zombie_dolphinrider_outerarm_hand.png" id="391_mlr8r"]
+
+[ext_resource type="Texture2D" uid="uid://chk8ojme1d2nr" path="res://assets/reanim/Zombie_dolphinrider_outerarm_lower.png" id="392_10mhf"]
+
+[ext_resource type="Texture2D" uid="uid://dso348ywf210h" path="res://assets/reanim/Zombie_dolphinrider_outerarm_upper.png" id="393_bh1la"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_15"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 15
+
+[node name="Card15" unique_id=2014619735 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_15")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie015Dolphinrider" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=87496939]
+position = Vector2(2, 17)
+scale = Vector2(0.33, 0.33)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider" unique_id=107416631]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body" unique_id=1504614515]
+position = Vector2(-47, -126)
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=649412590]
+visible = false
+position = Vector2(-59.8, 110.1)
+texture = ExtResource("195_q2ynx")
+centered = false
+
+[node name="Zombie_dolphinrider_innerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=2006447283]
+position = Vector2(15.2, 85.7)
+rotation = -0.022689
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("372_m7q7w")
+centered = false
+
+[node name="Zombie_dolphinrider_innerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1533794900]
+position = Vector2(25.2, 69.9)
+rotation = 0.164061
+scale = Vector2(0.8, 0.876)
+texture = ExtResource("373_r0uf5")
+centered = false
+
+[node name="Zombie_dolphinrider_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=762380458]
+position = Vector2(24.3, 56.1)
+rotation = 0.034907
+scale = Vector2(0.8, 0.876)
+texture = ExtResource("374_te8ao")
+centered = false
+
+[node name="Zombie_dolphinrider_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1623983905]
+position = Vector2(29.3, 118.9)
+rotation = -0.017453
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("375_msri8")
+centered = false
+
+[node name="Zombie_dolphinrider_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1302928881]
+position = Vector2(36.5, 99.2)
+rotation = -0.017453
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("376_7lapw")
+centered = false
+
+[node name="Zombie_dolphinrider_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1883980850]
+position = Vector2(39.7, 69)
+rotation = 0.069813
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("377_pupom")
+centered = false
+
+[node name="Zombie_dolphinrider_dolphininwater" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1333238705]
+visible = false
+centered = false
+
+[node name="Layer 185" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1620825531]
+visible = false
+centered = false
+
+[node name="Layer 1852" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1080595063]
+visible = false
+centered = false
+
+[node name="Layer 1853" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=691280758]
+visible = false
+centered = false
+
+[node name="Layer 1854" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1081229556]
+visible = false
+centered = false
+
+[node name="Layer 1855" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=596376977]
+visible = false
+centered = false
+
+[node name="Zombie_dolphinrider_body2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1927215037]
+position = Vector2(41.6, 69.9)
+rotation = 0.034907
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("378_b70e6")
+centered = false
+
+[node name="Zombie_dolphinrider_body1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1727123310]
+position = Vector2(25.9, 41.1)
+rotation = 0.034907
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("379_45g8r")
+centered = false
+
+[node name="Zombie_dolphinrider_watershadow" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=421422237]
+visible = false
+centered = false
+
+[node name="Zombie_dolphinrider_outerleg_foot1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1485667665]
+position = Vector2(51.7, 126)
+rotation = -0.352557
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("380_cnu4l")
+centered = false
+
+[node name="Zombie_dolphinrider_outerleg_foot2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1487152092]
+position = Vector2(39.5, 127.1)
+rotation = -0.10821
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("381_vxcot")
+centered = false
+
+[node name="Zombie_dolphinrider_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=2083474397]
+position = Vector2(44, 107.6)
+rotation = -0.305433
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("382_3fnx5")
+centered = false
+
+[node name="Zombie_dolphinrider_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1120414552]
+position = Vector2(50.3, 78.6)
+rotation = 0.127409
+scale = Vector2(0.799, 0.913)
+skew = 0.0017454
+texture = ExtResource("383_knh0l")
+centered = false
+
+[node name="Zombie_dolphinrider_whitewater" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=946485198]
+visible = false
+centered = false
+
+[node name="Anim_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=543735811]
+position = Vector2(8.1, 48.5)
+rotation = 0.017453
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("384_junvc")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1845382283]
+position = Vector2(4.2, 20.6)
+rotation = 0.123918
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("385_jlrij")
+centered = false
+
+[node name="Zombie_dolphinrider_dolphinbody2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1698422633]
+position = Vector2(70.6, 81.3)
+scale = Vector2(0.835, 0.799)
+texture = ExtResource("386_w8qdd")
+centered = false
+
+[node name="Zombie_dolphinrider_dolphinfin2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=137912801]
+position = Vector2(40.9, 104.1)
+rotation = -0.001745
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("387_e83gd")
+centered = false
+
+[node name="Zombie_dolphinrider_dolphinjaw" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1142746245]
+position = Vector2(19.6, 111.9)
+rotation = -0.240855
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("388_aber1")
+centered = false
+
+[node name="Zombie_dolphinrider_dolphinbody1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1040849462]
+position = Vector2(8.1, 59.8)
+rotation = -0.073304
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("389_brt1f")
+centered = false
+
+[node name="Zombie_dolphinrider_dolphinfin1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1386129588]
+position = Vector2(47.3, 99.7)
+rotation = 0.05236
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("390_30d3l")
+centered = false
+
+[node name="Zombie_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=1635384372]
+position = Vector2(51.3, 82.4)
+rotation = -0.073304
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("391_mlr8r")
+centered = false
+
+[node name="Zombie_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=2000562302]
+position = Vector2(59.8, 63.6)
+rotation = -0.073304
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("392_10mhf")
+centered = false
+
+[node name="Zombie_dolphinrider_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie015Dolphinrider/Body/BodyCorrect" unique_id=2050249748]
+position = Vector2(43.8, 48.5)
+rotation = -0.024435
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("393_bh1la")
+centered = false

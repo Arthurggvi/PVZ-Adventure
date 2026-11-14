@@ -15,6 +15,20 @@ const ItemName = preload("res://scripts/adventure/ui/item_name_style.gd")
 ## 集中处理移除、保存与失败回滚，界面不再内联资产修改。
 const DiscardAction = preload("res://scripts/adventure/inventory_discard_action.gd")
 const PAGE_SIZE := 66
+## 单帧格子装配预算，单位微秒；轻量空格不会再占用固定等待帧。
+const BUILD_BUDGET_USEC := 4000
+## 所属窗口的首屏资源路径，不预建其他分类或后续页。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+## 所有资源准备共用同一批次实现。
+const ResourceBatch = preload("res://scripts/ui/transitions/resource_load_batch.gd")
+## 每次重绘递增，旧页分帧任务不得继续追加格子。
+var _render_revision := 0
+## 初始内容完成后才向工具栏公开真实窗口。
+var _content_ready := false
+## 当前页准备期间持有的请求，换页或关闭时移交宿主回收。
+var _page_batch: ResourceBatch
+## 当前页资源强引用随窗口存在，避免构造时再次读盘。
+var _page_resources: Array[Resource] = []
 var category := "plants"
 var search := ""
 var sort_mode := 0
@@ -29,6 +43,22 @@ var _dialog: InventoryDialog
 var _opened_state: AdventureState
 ## 打开背包时的玩家名，不写入存档。
 var _opened_profile: String
+## 准备现有皮肤、第一页 UID 卡；身份和排序仍来自原数据服务。
+static func get_initial_resource_paths() -> PackedStringArray:
+	var paths: PackedStringArray = ResourcePaths.frame() # 本窗口实际使用的公共皮肤。
+	paths.append_array(ResourcePaths.skin(PackedStringArray(["sidebar/sidebar_wood.png", "controls/search_field.png",
+		"controls/filter_field.png", "icons/search_magnifier.png", "slots/empty_plant_symbol.png",
+		"slots/plant_slot_hover_frame.png", "slots/plant_slot_selected_frame.png",
+		"slots/item_slot_hover_frame.png", "slots/item_slot_selected_frame.png",
+		"icons/category_plants.png", "icons/category_recipes.png", "icons/category_materials.png", "icons/category_items.png"]),
+		PackedStringArray(["tabs/tab", "controls/arrow", "slots/plant_slot", "slots/item_slot", "buttons/action_danger"])))
+	ResourcePaths.inventory_rows(paths, Data.rows("plants", "", 0).slice(0, PAGE_SIZE))
+	return paths
+
+## 首屏所有格子和详情完成后释放入口反馈。
+func is_content_ready() -> bool:
+	return _content_ready
+
 func _ready() -> void:
 	_opened_state = Global.global_game_state.adventure_state
 	_opened_profile = Global.user_manager.curr_user_name
@@ -66,6 +96,8 @@ func request_close() -> void:
 	if closing:
 		return
 	closing = true
+	_render_revision += 1
+	_retire_page_batch()
 	SoundManager.play_other_SFX(&"buttonclick")
 	if is_instance_valid(_anim):
 		_anim.kill()
@@ -94,6 +126,10 @@ func change_page(delta: int) -> void:
 func _render() -> void:
 	if ui.is_empty():
 		return
+	_render_revision += 1
+	var revision: int = _render_revision # 重绘身份阻止快速翻页或搜索的旧结果入树。
+	_content_ready = false
+	_retire_page_batch()
 	ui.coin.text = "$" + GlobalUtils.format_number_with_commas(Global.global_game_state.coin_value)
 	for key: String in ui.tabs:
 		var button: TextureButton = ui.tabs[key]
@@ -105,7 +141,34 @@ func _render() -> void:
 	for child: Node in grid.get_children():
 		grid.remove_child(child)
 		child.queue_free()
+	var paths := PackedStringArray() # 后续分类同样只准备当前可见页。
+	ResourcePaths.inventory_rows(paths, rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE))
+	_page_batch = ResourceBatch.new()
+	if _page_batch.start(paths) != OK:
+		_retire_page_batch()
+		Art.label(grid, "暂时无法加载，请重新选择分类。", Vector2(12, 12), Vector2(900, 60), 24)
+		_content_ready = true
+		return
+	while _page_batch != null and _page_batch.poll() == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+		await get_tree().process_frame
+		if revision != _render_revision or closing:
+			return
+	if revision != _render_revision or _page_batch == null:
+		return
+	if _page_batch.poll() != ResourceLoader.THREAD_LOAD_LOADED:
+		_retire_page_batch()
+		Art.label(grid, "暂时无法加载，请重新选择分类。", Vector2(12, 12), Vector2(900, 60), 24)
+		_content_ready = true
+		return
+	_page_resources = _page_batch.resources.duplicate()
+	_page_batch = null
+	var frame_started: int = Time.get_ticks_usec() # 只累计当前帧实际装配时间，首格立即开始。
 	for i in PAGE_SIZE:
+		if Time.get_ticks_usec() - frame_started >= BUILD_BUDGET_USEC:
+			await get_tree().process_frame
+			if revision != _render_revision or closing:
+				return
+			frame_started = Time.get_ticks_usec()
 		var position_index: int = page * PAGE_SIZE + i
 		var entry: Dictionary = rows[position_index] if position_index < rows.size() else {}
 		var tile: Control = Tile.new()
@@ -125,6 +188,18 @@ func _render() -> void:
 		selected = rows[0].duplicate(true)
 	_update_tile_selection()
 	_render_detail()
+	_content_ready = true
+
+## 关闭或重绘时撤销旧准备；已经发出的请求由工具栏轮询回收。
+func _retire_page_batch() -> void:
+	if _page_batch != null:
+		AdventureToolbar.retire_resource_batch(_page_batch)
+		_page_batch = null
+
+## 退出只取消呈现资格，不同步等待线程。
+func _exit_tree() -> void:
+	_render_revision += 1
+	_retire_page_batch()
 
 func _row_key(value: Dictionary) -> String:
 	return str(value.get("uid", value.get("id", "")))

@@ -46,33 +46,46 @@ static func sun_material_for_tier(tier: int) -> ShaderMaterial:
 	_sun_materials[tier] = material
 	return material
 
-static func _asset_set(tier: int) -> Dictionary:
-	if _texture_cache.has(tier):
-		return _texture_cache[tier]
-	var info: Dictionary = _catalog()
+## 返回 [param tier] 转外观实际使用的分件路径；零转或未配置时为空，不加载纹理。
+static func resource_paths(tier: int) -> PackedStringArray:
+	var result := PackedStringArray() # 与实际装配共用按图层索引的唯一路径解析。
+	for path: String in _asset_paths(tier).values(): # 额外图层也由实际装配路径一并展开。
+		if not result.has(path):
+			result.append(path)
+	return result
+
+## 从权威 manifest 解析 [param tier] 的图层到路径映射，包含三转额外表情。
+static func _asset_paths(tier: int) -> Dictionary:
+	if tier < 1 or tier > 4:
+		return {}
+	var info: Dictionary = _catalog() # 只读取既有目录，不创建第二份资源缓存。
 	var subdir: String = str(_tier_config(tier).get("folder", "")) # 本转职的分件目录。
 	if subdir.is_empty():
 		return {}
-	var assets: Dictionary = {}
-	for part_name: Variant in info["parts"]:
-		var part: String = str(part_name)
-		var path := ASSET_DIR + subdir + "/" + part + ".png"
-		var texture := load(path) as Texture2D
+	var paths: Dictionary = {} # 键与本体装配使用的分件及额外图层一致。
+	for part_name: Variant in info["parts"]: # 只枚举当前转职的分件。
+		var part: String = str(part_name) # manifest 中保留源精灵名称。
+		paths[part] = ASSET_DIR + subdir + "/" + part + ".png"
+	paths[STAR_LAYER] = ASSET_DIR + subdir + "/SunFlower_promotion_starburst.png"
+	if tier == int(info.get("wink_tier", 0)):
+		paths[HEAD_LAYER] = ORIGINAL_DIR + "SunFlower_head_wink.png"
+	return paths
+
+## 取得 [param tier] 的纹理，异步准备方使用相同路径使这里仅命中资源缓存。
+static func _asset_set(tier: int) -> Dictionary:
+	if _texture_cache.has(tier):
+		return _texture_cache[tier]
+	var paths: Dictionary = _asset_paths(tier) # 不复制转职目录的路径拼装规则。
+	if paths.is_empty():
+		return {}
+	var assets: Dictionary = {} # 完整装配成功后才发布缓存，避免返回缺件外观。
+	for layer: String in paths:
+		var path: String = paths[layer] # 分件和额外图层使用同一资源加载入口。
+		var texture := load(path) as Texture2D # 调用方可提前异步准备并持有该路径。
 		if texture == null:
 			push_error("Sunflower promotion texture missing: " + path)
 			return {}
-		assets[part] = texture
-	var star_path := ASSET_DIR + subdir + "/SunFlower_promotion_starburst.png"
-	var star := load(star_path) as Texture2D
-	if star == null:
-		push_error("Sunflower promotion star missing: " + star_path)
-		return {}
-	assets[STAR_LAYER] = star
-	if tier == int(info.get("wink_tier", 0)):
-		var wink := load(ORIGINAL_DIR + "SunFlower_head_wink.png") as Texture2D
-		if wink == null:
-			return {}
-		assets[HEAD_LAYER] = wink
+		assets[layer] = texture
 	_texture_cache[tier] = assets
 	return assets
 

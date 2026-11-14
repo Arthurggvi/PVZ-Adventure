@@ -1,0 +1,73 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://c4tr5pxpgn1st" path="res://assets/reanim/Garlic_stem1.png" id="285_tmgt8"]
+
+[ext_resource type="Texture2D" uid="uid://d1abmgqa60ngk" path="res://assets/reanim/Garlic_stem2.png" id="286_bga83"]
+
+[ext_resource type="Texture2D" uid="uid://njrw363r8de5" path="res://assets/reanim/Garlic_stem3.png" id="287_s6kw2"]
+
+[ext_resource type="Texture2D" uid="uid://bjcutyeg4vtre" path="res://assets/reanim/Garlic_body1.png" id="288_whtsg"]
+
+[ext_resource type="Texture2D" uid="uid://k4aatmbcppnb" path="res://assets/reanim/Garlic_blink1.png" id="289_utmk7"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_37"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 37
+
+[node name="Card37" unique_id=1987088751 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_37")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant037Garlic" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=28264426]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant037Garlic" unique_id=530901868]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant037Garlic/Body" unique_id=1220773373]
+position = Vector2(-42, -66)
+
+[node name="Garlic_stem1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant037Garlic/Body/BodyCorrect" unique_id=705496529]
+position = Vector2(32, 21.4)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("285_tmgt8")
+centered = false
+
+[node name="Garlic_stem2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant037Garlic/Body/BodyCorrect" unique_id=1311260578]
+position = Vector2(39, 17.5)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("286_bga83")
+centered = false
+
+[node name="Garlic_stem3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant037Garlic/Body/BodyCorrect" unique_id=271234002]
+position = Vector2(40.8, 22.9)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("287_s6kw2")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant037Garlic/Body/BodyCorrect" unique_id=1104639827]
+position = Vector2(14, 20.1)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("288_whtsg")
+centered = false
+
+[node name="Garlic_stink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant037Garlic/Body/BodyCorrect" unique_id=1527707173]
+visible = false
+centered = false
+
+[node name="Garlic_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant037Garlic/Body/BodyCorrect" unique_id=2052756578]
+visible = false
+position = Vector2(32, 38.2)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("289_utmk7")
+centered = false

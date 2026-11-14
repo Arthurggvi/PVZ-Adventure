@@ -12,8 +12,8 @@ const STORIES: Dictionary = {
 }
 ## 纯视觉资源不携带 Boss 的技能执行器、碰撞、血量或奖励。
 const VISUALS: Dictionary = {
-	CharacterRegistry.ZombieBossType.ZB002BlackGeneral: preload("res://scenes/character/zombie_boss/black_general_visual.tscn"),
-	CharacterRegistry.ZombieBossType.ZB003WhiteDuke: preload("res://scenes/character/zombie_boss/white_duke_visual.tscn"),
+	CharacterRegistry.ZombieBossType.ZB002BlackGeneral: "res://scenes/character/zombie_boss/black_general_visual.tscn",
+	CharacterRegistry.ZombieBossType.ZB003WhiteDuke: "res://scenes/character/zombie_boss/white_duke_visual.tscn",
 }
 
 ## 返回按 [param search] 过滤的 Boss 目录；直接开放查看，不写入玩家发现记录。

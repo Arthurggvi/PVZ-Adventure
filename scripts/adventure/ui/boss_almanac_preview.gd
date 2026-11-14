@@ -90,7 +90,7 @@ func show_boss(type_id: int, phase: int, info: Dictionary) -> void:
 		_world.remove_child(_effects)
 		_effects.queue_free()
 	_phase = clampi(phase, 1, 2)
-	_visual = (Data.VISUALS[type_id] as PackedScene).instantiate() as Node2D
+	_visual = (load(Data.VISUALS[type_id]) as PackedScene).instantiate() as Node2D
 	_general = _visual as BlackGeneralVisual
 	_actor = Node2D.new()
 	_effects = Node2D.new()

@@ -12,7 +12,12 @@ class_name CardSlotNorm
 var _selection_motion := CardSelectionMotion.new()
 
 ## 使用 [param game_para] 初始化槽位、候选点击信号和不可取消的预选卡。
+## 冒险候选页可能分帧装配；必须等全部 UID 索引完成后才连接交互或恢复预选。
 func init_card_slot_norm(game_para: ResourceLevelData) -> void:
+	if not card_slot_candidate.is_content_ready():
+		await card_slot_candidate.content_ready
+		if not is_inside_tree() or is_queued_for_deletion():
+			return
 	card_slot_battle.init_card_slot_battle(game_para.max_choosed_card_num, game_para.start_sun)
 	# 候选容器按引用的完整选择键定位，模仿修饰决定点击处理方法。
 	for container: CardCandidateContainer in card_slot_candidate.get_all_candidates():

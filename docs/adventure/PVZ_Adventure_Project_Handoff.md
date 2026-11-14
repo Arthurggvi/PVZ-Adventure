@@ -14,11 +14,15 @@
 
 ## 0.1．启动/加载权威协议（先读）
 
-- **唯一启动入口**：`project.godot → scenes/main/00Bootstrap.tscn`（仅轻量文字和背景），正式海滨菜单仍为 `scenes/main/01StartMenuCoastal.tscn`；严禁把重型菜单或战斗场景重新设为 Bootstrap 的预加载依赖。
-- **唯一切场实现**：`scenes/ui/transitions/SceneTransition.tscn` / `scripts/ui/transitions/scene_transition.gd`，`change_scene(path, after_switch)` 线程加载并在 SceneTree 接受目标后发布交接事务；`transition_failed` 必须恢复遮幕/输入。禁止另建 Loader、页面专用同步切场或在黑幕中直调 `change_scene_to_file`。
-- **唯一资源门面**：`AllCards` 是 `scripts/autoload/lazy_card_catalog.gd`，源模板仍只有 `scenes/autoload/all_cards.tscn`；`Global.character_registry` / `SceneRegistry` / `SoundManager` 保留原 API，资源首次请求才加载；`AdventureToolbar._ensure_presenter` 仅在真实宿主建 UI。禁止在 Autoload 静态 `preload` 全植物、僵尸、音效、窗口。
-- **业务交接**：`MapNavigation` 验证档案后切场；`AdventureSession._commit_battle_entry/_commit_map_return` 仅在切场成功后提交或回收战斗状态；`MainGame00Base.tscn` 为战斗派生场景共享过渡组件，海滨菜单提供 `is_visual_ready()` 揭幕握手。
-- **扩展与验收**：权威合同、失败场景、隔离存档、Headless 性能测试和 UI 首帧边界统一见 `docs/adventure/startup_loading.md`。改加载、地图或角色注册表必须跑关联测试；性能声称须分别记录 Autoload、主场景与图形首帧。
+- **唯一启动入口**：`project.godot → scenes/main/00Bootstrap.tscn`，正式海滨菜单仍为 `scenes/main/01StartMenuCoastal.tscn`；Bootstrap 不静态引用重型菜单、战斗或卡牌总览。
+- **唯一切场实现**：`SceneTransition.change_scene(path, after_switch=Callable(), resource_paths=PackedStringArray())` 的第三参数是可选动态依赖；接受请求不等于完成。遮幕开始即通过 `resource_load_batch.gd` 请求目标与依赖，每批最多2个根资源在途、不启用子线程，只有 `THREAD_LOAD_LOADED` 才取结果。目标根脚本可静态声明 `get_initial_resource_paths()` 补充动态首屏资源。
+- **单次构造与交接**：资源与遮幕都准备好后，在主线程只构造一次目标，以 `prepared_resources` metadata 持有准备资源；使用 Godot 4.7 `SceneTree.change_scene_to_node`，成功后执行预先保留的回调，早于目标入树及 `_ready`。`transition_failed` 恢复旧场景/输入；普通取消异步回收请求，退出才允许完成剩余请求。不得另建 Loader、预实例化校验场景或同步黑幕切场。
+- **卡牌唯一门面**：`AllCards` 的 `lazy_card_catalog.gd` 只按需构造单卡；`card_catalog_manifest.gd` 支持纯身份/路径查询。当前有84个逐卡场景、83个运行时基础引用，`scenes/autoload/all_cards.tscn` 是编辑总览及顺序源，运行时不实例化整棵总览。单卡/总览改动后用 `python tools/card_catalog.py` 生成，再用 `python tools/card_catalog.py --check` 检查；禁止手工维护第二份目录。
+- **既有资源拥有者**：`Global.character_registry` / `SceneRegistry` / `SoundManager` 保留按需加载门面；`AdventureToolbar._ensure_presenter` 仅在真实宿主建 UI。禁止在 Autoload 预加载全部角色、音效或窗口。`battle_resource_plan.gd` 仅收集本局动态依赖路径，后台读取不意味着节点构造和渲染已无主线程成本。
+- **关卡解析与地形**：`enter_stage` 一次解析，同一个配置交给 `entry_error_for_stage` 与构建；Registry 缓存私有合并模板，对外深拷贝，editor feature 运行在重新进入地图时显式失效。地形校验使用 `BoardDefinition` 或 `MainSceneRegistry.LEGACY_SPAWN_ROWS`，不加载/实例化战场读行数；真实旧战场装配时在地形覆盖前核对静态表与节点。首次配置读取仍是同步步骤。
+- **模态生命周期**：`request_feature` 先过正式解锁条件，立即提供可取消反馈，异步准备脚本及首屏依赖；主线程构造、可选 `is_content_ready()` 完成后才发布到 `modal_for()`。取消、换档、重载和离场撤销旧请求资格；当前可见项通过 `prepared_visual_queue.gd` 按需准备、每帧最多构造一个预览，不能预建整本图鉴或隐藏页签。
+- **业务状态与揭幕**：`MapNavigation` 校验玩家后切场；`AdventureSession._commit_battle_entry/_commit_map_return` 仅在目标被接纳后发布/回收战斗状态。战斗基场景共享过渡；海滨菜单提供 `is_visual_ready()`，再等待真实绘制帧揭幕。加载百分比仅反映资源批次，不代表可选卡或窗口内容就绪。
+- **验收与计时边界**：详细契约及串行隔离命令见 `docs/adventure/startup_loading.md`；Windows GUI Godot 输出接 `| Out-String` 等待进程结束后再跑下一项。仓外本轮日志/JSON/PNG位于 `C:\Dev\PvZ\_review\interaction_loading_20261114`，记录入口同步耗时、内容就绪和帧间隔；未解锁窗口明确列为未覆盖。上一轮 Autoload/Bootstrap 基线只作历史记录，不能作为本轮首次关卡或窗口提速证据，源码接入不能写成验收通过。
 
 ## 1｜核心系统权威总线
 

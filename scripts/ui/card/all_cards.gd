@@ -1,4 +1,5 @@
-## 卡牌源模板目录；统一按身份值注册，实例创建与静态缩略图复制都经过此入口。
+## 编辑器卡牌总览；独立卡牌场景是美术与身份的权威源，运行时只使用 AllCards 门面。
+## 此脚本同时提供共享复制逻辑，保证总览工具与运行时转职、模仿表现一致。
 extends Control
 class_name AllCardsClass
 
@@ -53,6 +54,15 @@ func create_card(reference: ResourceCardReference, context: Card.CardContext = C
 	if (context == Card.CardContext.Battle or context == Card.CardContext.Selection) and not is_battle_card(reference):
 		push_error("AllCards：此卡牌不支持选卡或出战用途")
 		return null
+	return copy_card(template, reference, context)
+
+
+## 从 [param template] 复制 [param reference] 的卡牌，并在入树前设置 [param context]。
+## 供总览工具与按物种加载的运行时门面共用；空模板返回 null。
+static func copy_card(template: Card, reference: ResourceCardReference, context: Card.CardContext) -> Card:
+	if template == null or reference == null:
+		push_error("AllCards：无法创建未注册卡牌")
+		return null
 	# 入树前完成身份与用途设置，让 _ready 使用正确角色参数。
 	var card := template.duplicate() as Card
 	card.card_reference = reference.copy_reference()
@@ -64,7 +74,13 @@ func create_card(reference: ResourceCardReference, context: Card.CardContext = C
 func create_static_preview(reference: ResourceCardReference, promotion_tier: int = 0) -> Node2D:
 	# 已注册模板持有美术制作完成的静态节点树。
 	var template := get_template(reference)
-	if template == null:
+	return copy_static_preview(template, reference, promotion_tier)
+
+
+## 从 [param template] 复制 [param reference] 的静态图，应用 [param promotion_tier] 转职与模仿修饰。
+## 不实例化出战角色；空模板返回 null，所有调用方共享同一套外观规则。
+static func copy_static_preview(template: Card, reference: ResourceCardReference, promotion_tier: int = 0) -> Node2D:
+	if template == null or reference == null:
 		push_error("AllCards：无法创建未注册卡牌的缩略图")
 		return null
 	# 仅复制静态图像容器，保留模板内部的位置和缩放。

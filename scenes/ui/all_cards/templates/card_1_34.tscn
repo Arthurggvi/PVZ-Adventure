@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://cpuhiwnvj34aw" path="res://assets/reanim/Pot_bottom.png" id="258_o7it4"]
+
+[ext_resource type="Texture2D" uid="uid://1kbfcfjfc6ri" path="res://assets/reanim/Pot_stem.png" id="259_w8min"]
+
+[ext_resource type="Texture2D" uid="uid://clwvntcysv04j" path="res://assets/reanim/Pot_leaf1.png" id="260_7f486"]
+
+[ext_resource type="Texture2D" uid="uid://bdfonjr6km5kt" path="res://assets/reanim/Pot_leaf2.png" id="261_ih4no"]
+
+[ext_resource type="Texture2D" uid="uid://bjmbxk07m4w1b" path="res://assets/reanim/Pot_top.png" id="262_angoc"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_34"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 34
+
+[node name="Card34" unique_id=1322663961 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_34")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant034FlowerPot" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1733395329]
+position = Vector2(1, 11)
+scale = Vector2(0.4, 0.4)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant034FlowerPot" unique_id=1214798740]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant034FlowerPot/Body" unique_id=1599218445]
+position = Vector2(-42, -58)
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant034FlowerPot/Body/BodyCorrect" unique_id=2021556373]
+centered = false
+
+[node name="Anim_zengarden" type="Sprite2D" parent="CardBg/CharacterStatic/Plant034FlowerPot/Body/BodyCorrect" unique_id=2076739550]
+visible = false
+centered = false
+
+[node name="Anim_waterplants" type="Sprite2D" parent="CardBg/CharacterStatic/Plant034FlowerPot/Body/BodyCorrect" unique_id=1968815899]
+visible = false
+centered = false
+
+[node name="Pot_bottom" type="Sprite2D" parent="CardBg/CharacterStatic/Plant034FlowerPot/Body/BodyCorrect" unique_id=1585875545]
+position = Vector2(13.5, 55.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("258_o7it4")
+centered = false
+
+[node name="Pot_stem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant034FlowerPot/Body/BodyCorrect" unique_id=457043806]
+position = Vector2(24, 10.9)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("259_w8min")
+centered = false
+
+[node name="Pot_leaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant034FlowerPot/Body/BodyCorrect" unique_id=1626219093]
+position = Vector2(27, 7.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("260_7f486")
+centered = false
+
+[node name="Pot_leaf2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant034FlowerPot/Body/BodyCorrect" unique_id=966579291]
+position = Vector2(17.6, 9.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("261_ih4no")
+centered = false
+
+[node name="Pot_top" type="Sprite2D" parent="CardBg/CharacterStatic/Plant034FlowerPot/Body/BodyCorrect" unique_id=1680170554]
+position = Vector2(7.2, 13.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("262_angoc")
+centered = false
