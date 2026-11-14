@@ -4,7 +4,7 @@ extends CanvasLayer
 const Features = preload("res://scripts/adventure/ui/toolbar_features.gd")
 ## 场景与窗口共用的后台资源批次，不持有全局缓存。
 const ResourceBatch = preload("res://scripts/ui/transitions/resource_load_batch.gd")
-## 立即出现且可取消的原生反馈，不预载业务界面。
+## 立即接管输入、短请求克制展开的花园反馈，不预载业务界面。
 const LoadingView = preload("res://scripts/adventure/ui/modal_loading_view.gd")
 ## 同一常驻工具栏视图。
 var _view: AdventureToolbarView
@@ -106,6 +106,12 @@ func _toggle_modal(feature_id: String, screen_path: String) -> void:
 	_modal_script = null
 	_modal_resources.clear()
 	_modal = LoadingView.new()
+	var feature_name: String = {"library": "图书馆", "shop": "商店"}.get(feature_id, "界面") # 建筑入口没有工具栏图标，仍使用同一反馈。
+	for entry: Dictionary in Features.ENTRIES: # 优先复用现有功能的权威显示名称。
+		if entry.id == feature_id:
+			feature_name = str(entry.label)
+			break
+	_modal.set_context("正在打开" + feature_name)
 	_modal_feature = feature_id
 	add_child(_modal)
 	_modal.closed.connect(_release_modal.bind(_modal))
@@ -135,7 +141,7 @@ func _poll_modal_loading() -> void:
 	if _modal_batch == null:
 		return
 	var status: int = _modal_batch.poll() # 状态查询不触发阻塞资源获取。
-	_modal.set_progress(_modal_batch.progress())
+	_modal.set_progress(_modal_batch.progress() * 0.15 if _modal_script == null else 0.15 + _modal_batch.progress() * 0.70)
 	if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 		return
 	if status != ResourceLoader.THREAD_LOAD_LOADED:
@@ -165,6 +171,8 @@ func _materialize_modal(request_id: int) -> void:
 	await get_tree().process_frame
 	if request_id != _modal_request_id or not _modal_context_matches():
 		return
+	_modal.set_progress(0.92)
+	_modal.set_detail("正在准备画面")
 	_building_modal = _modal_script.new() as Control
 	if _building_modal == null:
 		_modal.show_error("暂时无法打开，请关闭后重试。")
@@ -201,7 +209,7 @@ func _publish_modal() -> void:
 	window.set_process_input(true)
 	window.set_process_unhandled_input(true)
 	window.set_process_unhandled_key_input(true)
-	feedback.queue_free()
+	feedback.dismiss() # 已发布窗口立即可交互，旧反馈只作短淡出，不再拥有取消资格。
 	move_child(_view, get_child_count() - 1)
 	_view.visible = not bool(window.get_meta("covers_toolbar", false))
 	window.closed.connect(_release_modal.bind(window))

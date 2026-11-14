@@ -3,6 +3,10 @@
 extends CanvasLayer
 ## 场景与功能窗口共用的有限并发请求适配器，不建立另一份全局资源目录。
 const ResourceBatch = preload("res://scripts/ui/transitions/resource_load_batch.gd")
+## 场景内轻量绘制层，只保存展示快照，不参与资源与业务状态管理。
+const LoadingPresentation = preload("res://scripts/ui/transitions/loading_presentation.gd")
+## 目标根节点上的一次性视觉交接数据，与 prepared_resources 独立。
+const PRESENTATION_META := &"loading_presentation_state"
 ## 当前场景揭幕完成，输入锁释放。
 signal revealed
 ## 请求失败且准备恢复源场景；失败响应不得清空业务状态。
@@ -13,7 +17,7 @@ signal transition_failed
 @export_range(0.05, 1.0, 0.01) var reveal_seconds := 0.36
 ## 场景入树时是否自动遮幕并等待可见首帧。
 @export var reveal_on_ready := true
-## 延迟显示加载百分比的秒数，避免短切场闪烁提示。
+## 延迟展开花园内容的真实秒数，避免短切场闪烁提示。
 @export var loading_hint_delay := 0.25
 
 ## 遮幕、加载、揭幕期间统一拒绝重复请求与底层输入。
@@ -30,7 +34,7 @@ var _pending_path := ""
 var _after_switch: Callable
 ## 单调计时起点，单位微秒，仅用于进度提示显隐。
 var _requested_at_usec := 0
-## Godot 资源加载百分比容器，范围 0 至 1。
+## 当前资源批次；批次进度按读取、动态依赖两阶段映射到展示层。
 var _load_batch: RefCounted
 ## 取消或失败后仍在后台收尾的请求，正常帧只轮询不等待。
 var _retired_batches: Array[RefCounted] = []
@@ -42,20 +46,36 @@ var _packed_target: PackedScene
 var _prepared_resources: Array[Resource] = []
 ## 目标脚本的首屏依赖协议每次只执行一次。
 var _dependencies_requested := false
+## 源场景已展开内容时，目标无需重新等待显示延迟。
+var _hint_shown := false
+## 目标仍在等待首屏与两帧屏障，继续按真实时间处理展示延迟。
+var _awaiting_visual_ready := false
+## 失败恢复不把进度推进到完成，业务回滚仍交给原有宿主。
+var _request_failed := false
+## 当前请求独享的展示节点；新请求重建，避免继承上次完成进度。
+var _presentation: Control
 ## 负责输入拦截和统一遮幕的不透明层。
 @onready var curtain: ColorRect = $Curtain
-## 不可交互的进度文字，短切场保持隐藏。
-@onready var loading_label: Label = $Curtain/LoadingLabel
 
 ## 初始化仅负责表现；Boot 场景可明确禁用入树揭幕。
 func _ready() -> void:
 	set_process(false)
-	loading_label.hide()
+	_create_presentation("准备新的旅程")
 	if not reveal_on_ready:
 		curtain.modulate.a = 0.0
 		curtain.hide()
 		return
+	_requested_at_usec = Time.get_ticks_usec()
+	var host: Node = get_parent() # 快照由源场景在目标入树前放到目标根节点。
+	if host != null and host.has_meta(PRESENTATION_META):
+		var handoff: Dictionary = host.get_meta(PRESENTATION_META) # 只交接标量与展示数据，不保留源对象。
+		_presentation.restore(handoff.get("presentation", {}))
+		_requested_at_usec = int(handoff.get("requested_at_usec", _requested_at_usec))
+		_hint_shown = bool(handoff.get("hint_shown", false))
+		host.remove_meta(PRESENTATION_META)
 	busy = true
+	_awaiting_visual_ready = true
+	set_process(true)
 	curtain.show()
 	curtain.modulate.a = 1.0
 	if DisplayServer.get_name() == "headless":
@@ -63,6 +83,41 @@ func _ready() -> void:
 	else:
 		_prepare_frames = 2
 		RenderingServer.frame_post_draw.connect(_on_prepared_frame)
+
+## [param heading] 是当前目的地的友好标题；只重建表现，不影响资源请求与输入锁。
+func _create_presentation(heading: String) -> void:
+	if is_instance_valid(_presentation):
+		curtain.remove_child(_presentation)
+		_presentation.queue_free()
+	_presentation = LoadingPresentation.new()
+	_presentation.name = "LoadingPresentation"
+	_presentation.configure(heading, "让阳光先铺满小路")
+	_presentation.set_content_visible(false, true)
+	curtain.add_child(_presentation)
+
+## [param state] 为启动首屏的视觉快照；只在已接受请求时接管已存在的不透明首屏。
+## 首屏原本就已覆盖，无需再次渐暗；不增加新的等待或修改成功回调。
+func adopt_presentation(state: Dictionary) -> void:
+	if not busy or _pending_path.is_empty():
+		return
+	_presentation.restore(state)
+	_hint_shown = true
+	curtain.show()
+	curtain.modulate.a = 1.0
+	if _tween != null and _tween.is_valid():
+		_tween.kill()
+	_covered = true
+
+## [param scene_path] 仅用于识别现有正式目的地；返回不暴露资源路径的加载标题。
+func _heading_for(scene_path: String) -> String:
+	var path: String = scene_path.to_lower() # 路径大小写不改变目的地文案。
+	if path.contains("startmenu"):
+		return "准备进入城镇"
+	if path.contains("zombie_island") or path.contains("adventure_map"):
+		return "准备展开地图"
+	if path.contains("maingame"):
+		return "准备进入关卡"
+	return "准备新的旅程"
 
 ## 无显示后端仍等待宿主异步构造结束，仅省略真实渲染帧屏障。
 func _prepare_headless() -> void:
@@ -75,7 +130,7 @@ func _prepare_headless() -> void:
 
 ## 父场景可公开 is_visual_ready()，视觉未准备好时不计入两帧揭幕屏障。
 func _on_prepared_frame() -> void:
-	var host: Node = get_parent()
+	var host: Node = get_parent() # 异步构造宿主满足自己的视觉就绪协议后才开始计帧。
 	if host != null and host.has_method("is_visual_ready") and not bool(host.call("is_visual_ready")):
 		return
 	_prepare_frames -= 1
@@ -89,6 +144,8 @@ func run(action: Callable) -> bool:
 	if busy or not action.is_valid():
 		return false
 	busy = true
+	_request_failed = false
+	_create_presentation("准备新的旅程")
 	_source_scene = get_tree().current_scene
 	curtain.show()
 	_tween = _fade_to(1.0, cover_seconds)
@@ -112,7 +169,10 @@ func change_scene(scene_path: String, after_switch: Callable = Callable(),
 	_dependencies_requested = false
 	_packed_target = null
 	_prepared_resources.clear()
-	loading_label.hide()
+	_hint_shown = false
+	_request_failed = false
+	_awaiting_visual_ready = false
+	_create_presentation(_heading_for(scene_path))
 	curtain.show()
 	_tween = _fade_to(1.0, cover_seconds)
 	_tween.tween_callback(func(): _covered = true)
@@ -126,16 +186,24 @@ func change_scene(scene_path: String, after_switch: Callable = Callable(),
 		set_process(true)
 	return true
 
-## 每帧只查询加载状态；禁止在未完成时调用会阻塞的 load_threaded_get。
+## 每帧只查询加载状态；[param _delta] 不用于计时，避免游戏倍速改变展示延迟。
+## 禁止在未完成时调用会阻塞的 load_threaded_get。
 func _process(_delta: float) -> void:
 	for retired: RefCounted in _retired_batches.duplicate(): # 失败请求继续异步回收。
 		retired.poll()
 		if not retired.is_running():
 			_retired_batches.erase(retired)
+	if busy and not _hint_shown and (_awaiting_visual_ready or not _pending_path.is_empty()):
+		var elapsed: float = float(Time.get_ticks_usec() - _requested_at_usec) / 1000000.0 # 源与目标共用真实起点。
+		if elapsed >= loading_hint_delay:
+			_hint_shown = true
+			_presentation.set_content_visible(true)
 	if _load_batch == null or _pending_path.is_empty():
-		set_process(not _retired_batches.is_empty())
+		set_process(_awaiting_visual_ready or not _retired_batches.is_empty())
 		return
 	var status: int = _load_batch.poll() # 整批资源完成不等于场景已经构造。
+	var amount: float = _load_batch.progress() # 当前批次读取比例不能直接作为整个旅程的完成比例。
+	_presentation.set_progress(0.65 + amount * 0.25 if _dependencies_requested else amount * 0.65)
 	match status:
 		ResourceLoader.THREAD_LOAD_LOADED:
 			if not _dependencies_requested:
@@ -147,21 +215,17 @@ func _process(_delta: float) -> void:
 					return
 				var paths: PackedStringArray = _initial_resource_paths(_packed_target) # 场景脚本声明的首屏动态依赖。
 				if not paths.is_empty():
+					_presentation.set_detail("正在整理旅途所需")
 					_load_batch = ResourceBatch.new()
 					if _load_batch.start(paths) != OK:
 						_failed()
 					return
+			_presentation.set_progress(0.90)
 			# 重试前遗留的请求也须先异步回收，避免旧组件离树时被迫同步等待。
 			if _covered and _retired_batches.is_empty():
 				_finish_threaded_load()
 		ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 			_failed()
-		ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-			var elapsed := float(Time.get_ticks_usec() - _requested_at_usec) / 1000000.0
-			if elapsed >= loading_hint_delay:
-				loading_label.show()
-				var amount: float = _load_batch.progress() # 只反映当前资源准备阶段。
-				loading_label.text = "正在加载 %d%%" % roundi(amount * 100.0)
 
 ## 读取 [param packed] 根脚本的可选首屏依赖；继承场景向基础场景查找，不实例化节点。
 func _initial_resource_paths(packed: PackedScene) -> PackedStringArray:
@@ -178,6 +242,8 @@ func _initial_resource_paths(packed: PackedScene) -> PackedStringArray:
 
 ## 目标资源确认完成后唯一提交切场；交接发生于新场景入树前。
 func _finish_threaded_load() -> void:
+	_presentation.set_progress(0.94)
+	_presentation.set_detail("花园正在就位，很快就好")
 	var resource: PackedScene = _packed_target # 已完成的场景，不在此处等待线程。
 	_prepared_resources.append_array(_load_batch.resources)
 	_load_batch = null
@@ -192,6 +258,11 @@ func _finish_threaded_load() -> void:
 		_failed()
 		return
 	target.set_meta(&"prepared_resources", _prepared_resources.duplicate())
+	target.set_meta(PRESENTATION_META, {
+		"presentation": _presentation.snapshot(),
+		"requested_at_usec": _requested_at_usec,
+		"hint_shown": _hint_shown,
+	})
 	var callback: Callable = _after_switch # 切场会同步触发旧组件 _exit_tree，先冻结交接回调。
 	_after_switch = Callable()
 	var status: Error = tree.change_scene_to_node(target) # Godot 4.7：把已构造目标交给 SceneTree。
@@ -214,7 +285,7 @@ func _failed() -> void:
 	_prepared_resources.clear()
 	_after_switch = Callable()
 	set_process(not _retired_batches.is_empty())
-	loading_label.hide()
+	_request_failed = true
 	transition_failed.emit()
 	_reveal()
 
@@ -233,7 +304,10 @@ func _invoke(action: Callable) -> void:
 ## 同一揭幕动作供新场景首次进入及失败恢复复用。
 func _reveal() -> void:
 	busy = true
-	loading_label.hide()
+	_awaiting_visual_ready = false
+	set_process(not _retired_batches.is_empty())
+	if not _request_failed:
+		_presentation.finish()
 	curtain.show()
 	_tween = _fade_to(0.0, reveal_seconds)
 	_tween.tween_callback(_finish_reveal)
@@ -242,7 +316,7 @@ func _reveal() -> void:
 func _fade_to(alpha: float, seconds: float) -> Tween:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
-	var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS).set_ignore_time_scale(true)
+	var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS).set_ignore_time_scale(true) # 暂停与倍速均不影响揭幕。
 	tween.tween_property(curtain, "modulate:a", alpha, seconds).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	return tween
 

@@ -13,23 +13,4 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.035, 0.045, 0.04, 1)
-
-[node name="LoadingLabel" type="Label" parent="Curtain"]
-visible = false
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -160.0
-offset_top = -18.0
-offset_right = 160.0
-offset_bottom = 18.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_font_sizes/font_size = 22
-text = "正在加载..."
-horizontal_alignment = 1
-vertical_alignment = 1
-mouse_filter = 2
+color = Color(0.08235294, 0.1764706, 0.14509805, 1)

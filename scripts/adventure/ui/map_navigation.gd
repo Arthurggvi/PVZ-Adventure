@@ -55,6 +55,7 @@ func open_from(scene: Node) -> bool:
 	_source_state = Global.global_game_state.adventure_state if Global.global_game_state != null else null
 	_source_profile = Global.user_manager.curr_user_name
 	_feedback = LoadingView.new()
+	_feedback.set_context("正在展开地图")
 	_feedback.name = "MapDestinationLoading"
 	_feedback.z_index = 100
 	_feedback.closed.connect(close)
@@ -129,8 +130,7 @@ func _publish_picker(request_id: int) -> void:
 	add_child(_picker)
 	_batch = null
 	_layout = {}
-	_feedback.hide()
-	_feedback.queue_free()
+	_feedback.dismiss() # 新选择器已可交互，旧卡片不再接收输入。
 	_feedback = null
 
 ## 同时验证场景、档案对象与玩家名；任何身份变化都取消当前请求。
@@ -148,8 +148,7 @@ func close() -> void:
 		_picker.hide()
 		_picker.queue_free()
 	if is_instance_valid(_feedback):
-		_feedback.hide()
-		_feedback.queue_free()
+		_feedback.dismiss()
 	_picker = null
 	_feedback = null
 	_source_scene = null
