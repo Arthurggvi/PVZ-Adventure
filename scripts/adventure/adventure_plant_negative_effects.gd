@@ -19,6 +19,8 @@ enum Kind {
 	SUN_INFUSION, ## 阳光豆式受伤产光，一次赋予一层实伤转换。
 	DETONATION_CHARGE, ## 目标累积十点后清零，并交给来源快照引爆一格。
 	RESENTMENT, ## 永久且不叠伤的每秒损血，黑白滤镜独立于其他状态。
+	BRITTLENESS, ## 仅增加承伤的脆弱层数。
+	DEEP_COLD, ## 抗火寒冷，冻结和减速有独立的持续时间。
 }
 
 ## [param target] 目标角色；[param kind] 为已登记状态；[param source_id] 用于独立解除无效化。
@@ -26,6 +28,8 @@ enum Kind {
 ## [param context] 的 stackable 令劣化叠加；family 与 cap 可给指定效果族单独封顶，旧通道不受影响。
 ## on_detonate 接收世界位置与行号，由来源快照安排延迟引爆；同目标十点只回调一次。
 ## on_kill 是持续伤害的击杀回调，接收实际死亡者；调用方应保存可脱离母株的来源快照。
+## 脆弱的 amount 为层数；深寒的 amount 为减速秒数，followup 为冻结秒数，battle 和 statuses 为冻结来源及受击位。
+## 冻结值 context 可用 control_only 禁用附伤，并以 freeze_hit_scope 观察原生附伤。
 ## 返回是否接受请求；死亡、非法状态或对应状态免疫返回 false，伤害无敌不等同于状态免疫。
 static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 		amount: float = 0.0, followup: float = 0.0, context: Dictionary = {}) -> bool:
@@ -80,7 +84,15 @@ static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 			return AdventurePoisonEffect.apply_to(target, amount, on_kill) if kind == Kind.POISON \
 				else AdventureBurnEffect.apply_to(target, amount, on_kill)
 		Kind.FREEZE_CHARGE:
-			return AdventureFreezeChargeEffect.apply_to(target, amount)
+			return AdventureFreezeChargeEffect.apply_to(target, amount, bool(context.get("control_only", false)),
+				context.get("freeze_hit_scope") as CombatHitScope)
+		Kind.BRITTLENESS:
+			if zombie == null or not is_instance_valid(target.hp_component) or amount < 1.0:
+				return false
+			target.hp_component.add_brittleness(int(minf(amount, HpComponent.MAX_BRITTLENESS_STACKS)))
+		Kind.DEEP_COLD:
+			var battle := context.get("battle") as RepeaterShotContext # 用真实来源限制抗火状态的生命周期。
+			return AdventureDeepCold.apply_to(zombie, battle, amount, followup, int(context.get("statuses", 1)))
 		Kind.DETONATION_CHARGE:
 			var on_detonate: Variant = context.get("on_detonate", Callable()) # 必须冻结来源回调，状态自身不依赖弹体。
 			if not on_detonate is Callable:

@@ -257,7 +257,7 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 			resolved = maxi(1, resolved)
 		attack_value = _absorb_bonus_armor(resolved)
 	## 掉血标志, 1:本体 2:一类防具 4:二类防具
-	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value, armor_multiplier, receipt)
+	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value, armor_multiplier, receipt, hit_scope)
 
 	var res_hp = get_all_hp()
 	# A gear-loss trigger can award armor in this impact. The received-hit

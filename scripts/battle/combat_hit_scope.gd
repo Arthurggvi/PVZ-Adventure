@@ -15,3 +15,8 @@ func try_claim(target: Character000Base) -> bool:
 		return false
 	_claimed[identity] = true
 	return true
+
+## [param _hp] 是最终承伤组件；[param _amount] 是护甲分流后即将扣除的本体伤害。
+## 默认无需采集；调用发生在原生死亡和掉落之前，扩展只能观察本击。
+func before_body_loss(_hp: HpComponentZombie, _amount: int) -> void:
+	pass

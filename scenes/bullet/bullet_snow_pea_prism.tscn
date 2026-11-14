@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/bullet/bullet_000_linear_base.tscn" id="base"]
+[ext_resource type="Script" path="res://scripts/bullet/bullet_002_pea_snow.gd" id="snow"]
+
+[node name="SnowPeaPrism" instance=ExtResource("base")]
+script = ExtResource("snow")
+speed = 360.0
+max_distance = 600.0
+bullet_mode = 1
+trigger_be_attack_sfx = false
+type_bullet_SFX = 0
+
+[node name="BulletShadow" parent="." index="0"]
+visible = false
+
+[node name="IcePrism" type="Polygon2D" parent="Body" index="1"]
+polygon = PackedVector2Array(-11, 0, -3, -4, 11, 0, -3, 4)
+color = Color(0.43, 0.83, 1, 0.95)
+
+[node name="IceFacet" type="Polygon2D" parent="Body" index="2"]
+polygon = PackedVector2Array(-9, 0, -3, -3, 9, 0)
+color = Color(0.84, 0.97, 1, 0.92)
+
+[node name="BulletEffect" parent="." index="2"]
+is_bullet_effect = false
+
+[node name="Area2DAttack" parent="." index="3"]
+collision_mask = 512

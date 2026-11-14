@@ -75,7 +75,7 @@ func update_speed_factor(value: float, change_speed_factor:E_Influence_Speed_Fac
 	if is_death:
 		return
 	influence_speed_factors[change_speed_factor] = value
-	jackson_manager.change_speed_factor_product(dancer_id, GlobalUtils.get_dic_product(influence_speed_factors))
+	jackson_manager.change_speed_factor_product(dancer_id, speed_factor_product())
 
 ## 舞王由管理器修改速度
 func manager_update_anim_speed(speed_factor_product:float):

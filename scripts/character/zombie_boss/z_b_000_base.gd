@@ -246,7 +246,9 @@ func be_ice_decelerate(_time: float) -> void:
 
 ## [param _time] 冰冻时长；[param _new_time_ice_end_decelerate] 解冻后的减速时长。
 ## Boss 免疫两种控制，只在受击窗口内结算冰菇原有的 20 点真实伤害。
-func be_ice_freeze(_time: float, _new_time_ice_end_decelerate: float) -> void:
+## [param _hit_scope] 为可选冻伤观察组，只有原生冻伤结算才使用。
+func be_ice_freeze(_time: float, _new_time_ice_end_decelerate: float,
+		_hit_scope: CombatHitScope = null) -> void:
 	if _can_receive_damage():
 		hp_component.Hp_loss(20, BulletRegistry.AttackMode.Real, true, false)
 

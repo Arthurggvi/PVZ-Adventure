@@ -14,6 +14,7 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 	var lily_events: Array[Dictionary] = [] # 睡莲仅维护真实承托植物的周期效果。
 	var bloomerang_events: Array[Dictionary] = [] # 回旋镖由原株单时钟发射，弹体各自保存飞行规则。
 	var repeater_events: Array[Dictionary] = [] # 双发只追加本轮总发数，每颗独立抽取一种变种。
+	var snow_pea_events: Array[Dictionary] = [] # 寒冰射手事件交给原生发射上的转职控制器。
 	for event: Dictionary in events: # 每本书的事件只进入对应机制，不复制运行时状态。
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
@@ -49,6 +50,15 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 					bloomerang_events.append(event)
 				elif kind.begins_with("repeater_"):
 					repeater_events.append(event)
+				elif kind.begins_with("snow_pea_"):
+					snow_pea_events.append(event)
+	if not snow_pea_events.is_empty():
+		if not plant is Plant006SnowPea:
+			push_error("寒冰射手转职事件需要对应的战斗植物")
+			return false
+		var snow_pea := AdventureSnowPeaPromotion.new() # 先冻结选择，入树后只连接原生攻击信号。
+		snow_pea.configure(plant as Plant006SnowPea, snow_pea_events)
+		plant.add_child(snow_pea)
 	if not repeater_events.is_empty():
 		if not plant is Plant008PeaShooterDouble:
 			push_error("双发射手转职事件需要对应的战斗植物")

@@ -45,6 +45,15 @@ func apply_capped_degradation(fraction: float, cap: float, family: StringName) -
 	if is_instance_valid(owner_character) and is_instance_valid(owner_character.body):
 		owner_character.body.set_other_color(BodyCharacter.E_ChangeColors.Degradation, Color(0.55, 0.57, 0.58))
 
+## 脆弱的最大层数；每层只增加一个百分点的承伤。
+const MAX_BRITTLENESS_STACKS: int = 100
+## 当前脆弱层数；按实际承伤者结算，任何输出计算都不读取它。
+var brittleness_stacks: int = 0
+
+## 增加 [param stacks] 层脆弱，非正值忽略；多个来源共用目标自身的上限。
+func add_brittleness(stacks: int) -> void:
+	brittleness_stacks = mini(MAX_BRITTLENESS_STACKS, brittleness_stacks + maxi(0, stacks))
+
 ## 返回各独立劣化通道的总比例，仅用于结算和表现，不反写任一通道。
 func total_degradation_fraction() -> float:
 	var total: float = degradation_fraction + stacked_degradation_fraction # 旧两通道保持原有含义。
@@ -267,7 +276,7 @@ func absorb_temporary_armor(damage: int) -> int:
 	return damage
 
 ## [param damage] 主伤害；[param bonus_damage] 同击附伤，负值按零处理。
-## [param bonus_cap] 为劣化放大后的附伤上限，-1 不限制；随后统一结算一次格挡和减伤。
+## [param bonus_cap] 为易伤放大后的附伤上限，-1 不限制；随后统一结算一次格挡和减伤。
 ## 用总伤与主伤的整数差限制附伤，保留原有取整；后续减伤、护甲只会继续降低伤害。
 func resolve_damage(damage: int, bonus_damage: int = 0, bonus_cap: int = -1) -> int:
 	var bonus: int = maxi(0, bonus_damage) # 附伤不能抵消主伤或产生治疗。
@@ -275,7 +284,7 @@ func resolve_damage(damage: int, bonus_damage: int = 0, bonus_cap: int = -1) -> 
 		return maxi(0, damage + (mini(bonus, bonus_cap) if bonus_cap >= 0 else bonus))
 	if is_damage_immune():
 		return 0
-	var amplification: float = 1.0 + total_degradation_fraction() # 实际承伤者的劣化在上限之前应用。
+	var amplification: float = 1.0 + total_degradation_fraction() + brittleness_stacks * 0.01 # 两项独立，只在承伤放大前合计。
 	var amplified: int = maxi(0, roundi(float(damage + bonus) * amplification)) # 无附伤时逐值沿用旧计算。
 	if bonus > 0 and bonus_cap >= 0:
 		var primary: int = maxi(0, roundi(float(damage) * amplification)) # 本次主伤独立保留，不受附伤上限削减。

@@ -27,7 +27,10 @@ var _points: float = 0.0
 
 ## 为 [param target] 累加 [param points] 点冻结值；无效数值、寒冷免疫及冻后保护期返回false。
 ## 原生冰冻期间及真正解冻后一秒均不接受新点数，首次接触也遵守该窗口。
-static func apply_to(target: Character000Base, points: float) -> bool:
+## [param control_only] 供无伤害地面效果使用；满点仍冻结，但跳过原生冰冻附伤。
+## [param freeze_hit_scope] 可观察本次冰冻附伤最终扣除的本体生命。
+static func apply_to(target: Character000Base, points: float, control_only: bool = false,
+		freeze_hit_scope: CombatHitScope = null) -> bool:
 	var zombie: Zombie000Base = target as Zombie000Base # 僵王没有普通移动组件，也保留其寒冷免疫。
 	if not is_instance_valid(zombie) or zombie.is_death or zombie.is_hypno \
 			or zombie.is_queued_for_deletion() or not zombie.is_inside_tree() \
@@ -57,11 +60,19 @@ static func apply_to(target: Character000Base, points: float) -> bool:
 	effect._points = minf(MAX_POINTS, effect._points + points)
 	if effect._points >= MAX_POINTS:
 		effect.clear()
-		zombie.be_ice_freeze(FREEZE_SECONDS, FOLLOWUP_SLOW_SECONDS)
+		if control_only:
+			zombie.apply_ice_freeze_control(FREEZE_SECONDS, FOLLOWUP_SLOW_SECONDS)
+		else:
+			zombie.be_ice_freeze(FREEZE_SECONDS, FOLLOWUP_SLOW_SECONDS, freeze_hit_scope)
 	else:
 		effect._apply_sources()
 		effect.set_physics_process(true)
 	return true
+
+## [param target] 是即将被命中的角色；返回是否有本战斗的活动冻结值减速。
+static func has_points(target: Character000Base) -> bool:
+	var effect := target.get_node_or_null(NodePath(NODE_NAME)) as AdventureFreezeChargeEffect # 按目标唯一状态读取。
+	return effect != null and effect._points > 0.0 and effect._battle_active()
 
 ## 状态跟随角色的暂停和生命周期，不使用墙钟计算恢复期。
 func _ready() -> void:
