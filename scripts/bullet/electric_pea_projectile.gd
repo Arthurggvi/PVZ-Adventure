@@ -164,8 +164,9 @@ func _move_segment(finish: Vector2, candidates: Array[Character000Base]) -> void
 		var target_id: int = target.get_instance_id() # 即使后续死亡仍能屏蔽子球出生碰撞。
 		_contact_ids[target_id] = true
 		global_position = start.lerp(finish, float(contact.fraction))
-		var kind := ElectricPeaShotContext.HitKind.SPLIT if splitting else ElectricPeaShotContext.HitKind.CONTACT # 只有母球首个实伤分裂。
-		if shot.hit(target, roundi(shot.contact_damage * _damage_multiplier), kind, _hit_scope) > 0 and splitting:
+		var kind := ElectricPeaShotContext.HitKind.SPLIT if splitting else ElectricPeaShotContext.HitKind.CONTACT # 只有母球首次合法接触可触发分裂，后代不再递归。
+		shot.hit(target, roundi(shot.contact_damage * _damage_multiplier), kind, _hit_scope)
+		if splitting:
 			if shot.is_active() and not get_tree().paused:
 				_split(target_id)
 			queue_free()

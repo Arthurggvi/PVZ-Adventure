@@ -19,7 +19,7 @@ const BOOKS := {
 		"title": "电力过载", "summary": "电球直击或电弧命中时，使僵尸眩晕0.1秒。", "plant_type": 52, "tier": 3,
 		"effects": [{"kind": "electric_pea_overload", "seconds": 0.1}]},
 	"promotion_electric_pea_pulse_split": {
-		"title": "脉冲分裂", "summary": "电球首次撞伤敌人就分裂成3枚可穿透的小电球，并使受伤的僵尸眩晕0.2秒。小电球造成60%的伤害。", "plant_type": 52, "tier": 3,
+		"title": "脉冲分裂", "summary": "电球首次命中敌人后分裂成3枚可穿透的小电球，并使目标眩晕0.2秒。小电球造成60%的伤害。", "plant_type": 52, "tier": 3,
 		"effects": [{"kind": "electric_pea_pulse_split", "seconds": 0.2, "count": 3, "damage_multiplier": 0.6, "size_multiplier": 0.6}]},
 	"promotion_electric_pea_matrix": {
 		"title": "超导矩阵", "summary": "同一株射出的电球彼此连接，电弧持续伤害穿过它的僵尸，每秒造成600点基础伤害。", "plant_type": 52, "tier": 4,

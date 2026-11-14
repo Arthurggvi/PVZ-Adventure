@@ -107,7 +107,7 @@ func hit(target: Character000Base, base_damage: int, kind: HitKind,
 	if attack_context != null:
 		attack_context.resolve_kill(receipt.get("casualty"))
 	var loss: int = int(receipt.get("actual_loss", 0)) # 免疫、格挡和零伤害均不派发实伤效果。
-	if loss > 0 and kind != HitKind.FIELD and is_active():
+	if (loss > 0 or kind == HitKind.SPLIT) and kind != HitKind.FIELD and is_active():
 		var seconds: float = promotions.stun_seconds # 继承过载；母球首次实伤时可额外使用分裂眩晕。
 		if kind == HitKind.SPLIT:
 			seconds = maxf(seconds, promotions.split_stun)
