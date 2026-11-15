@@ -8,6 +8,8 @@ class_name HM_Item
 @onready var real_shovel: RealShovel = %RealShovel
 ## 工具栏图标与选中态。
 @onready var _glove_button: Button = %BattleGloveButton
+## 按剩余冷却比例覆盖手套槽位。
+@onready var _glove_cooldown_mask: ProgressBar = _glove_button.get_node("CooldownMask")
 ## 跟随鼠标的原版手套贴图。
 @onready var _real_glove: Sprite2D = %RealGlove
 ## 放下前显示当前目标格的半透明反馈。
@@ -16,6 +18,8 @@ class_name HM_Item
 const GLOVE_VALID_COLOR := Color(0.62, 0.89, 0.38, 0.27)
 ## 不兼容地形和占位冲突共用反馈。
 const GLOVE_INVALID_COLOR := Color(0.94, 0.36, 0.28, 0.24)
+## 手套成功移株后的冷却时长，单位为战斗秒。
+const GLOVE_COOLDOWN_SECONDS := 5.0
 
 ## 手持道具状态
 enum E_HmItemStatus{
@@ -128,8 +132,23 @@ func _use_glove(cell: PlantCell) -> bool:
 	if not source.relocate_plant(_glove_plant, cell):
 		SoundManager.play_other_SFX(&"buzzer")
 		return false
+	_start_glove_cooldown()
 	SoundManager.play_other_SFX(&"plant2")
 	return true
+
+## 成功移株后禁用手套，通过一个补间同步推进暗罩和可用状态。
+func _start_glove_cooldown() -> void:
+	_glove_button.disabled = true
+	_glove_cooldown_mask.value = 1.0
+	_glove_cooldown_mask.show()
+	var cooldown: Tween = _glove_cooldown_mask.create_tween() # 跟随战斗暂停与倍速，手套槽释放时自动停止。
+	cooldown.tween_property(_glove_cooldown_mask, "value", 0.0, GLOVE_COOLDOWN_SECONDS)
+	cooldown.tween_callback(_finish_glove_cooldown)
+
+## 冷却结束时恢复手套点击区并收起暗罩。
+func _finish_glove_cooldown() -> void:
+	_glove_cooldown_mask.hide()
+	_glove_button.disabled = false
 
 ## 原株留在棋盘中，期间可能被击败或移除；失效后回到选株状态。
 func _has_lifted_plant() -> bool:

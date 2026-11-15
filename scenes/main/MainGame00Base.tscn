@@ -88,6 +88,9 @@ modulate_color = Color(1.18, 1.14, 1.08, 1)
 texture = ExtResource("42_pmw6j")
 modulate_color = Color(1.32, 1.26, 0.88, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_glove_cooldown"]
+bg_color = Color(0, 0, 0, 0.56)
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_battle_menu"]
 texture = ExtResource("battle_tool_bg")
 texture_margin_left = 16.0
@@ -485,6 +488,7 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_glove_normal")
 theme_override_styles/hover = SubResource("StyleBoxTexture_glove_hover")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_glove_active")
 theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_glove_active")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_glove_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_tool_focus")
 toggle_mode = true
 
@@ -499,6 +503,22 @@ mouse_filter = 2
 texture = ExtResource("battle_glove")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="CooldownMask" type="ProgressBar" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/BattleTools/BattleGloveButton"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxEmpty_jbbka")
+theme_override_styles/fill = SubResource("StyleBoxFlat_glove_cooldown")
+max_value = 1.0
+step = 0.0
+fill_mode = 2
+show_percentage = false
 
 [node name="CanvasLayerFG" type="CanvasLayer" parent="." unique_id=1245328214]
 layer = 5

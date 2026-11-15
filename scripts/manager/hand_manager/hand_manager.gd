@@ -80,7 +80,8 @@ func _click_shovel() -> void:
 
 ## 点击图标切换手套；同一局中卡片、铲子和手套由同一个手持状态互斥管理。
 func _click_glove() -> void:
-	if not main_game.has_battle_glove() or main_game.main_game_progress != MainGameManager.E_MainGameProgress.MAIN_GAME \
+	if main_game.battle_glove_button.disabled or not main_game.has_battle_glove() \
+			or main_game.main_game_progress != MainGameManager.E_MainGameProgress.MAIN_GAME \
 			or get_tree().paused:
 		main_game.battle_glove_button.set_pressed_no_signal(false)
 		return
