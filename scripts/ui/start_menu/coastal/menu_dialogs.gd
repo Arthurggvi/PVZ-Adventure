@@ -25,7 +25,8 @@ var confirm: Button
 
 ## 创建档案选择器、全屏遮罩和退出窗口。
 func _ready() -> void:
-	layer = 65
+	# 退出确认及其遮罩须盖过修改器（90），仍由场景切换遮幕（100）统一阻挡切场输入。
+	layer = 95
 	surface = Control.new()
 	add_child(surface)
 	surface.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
