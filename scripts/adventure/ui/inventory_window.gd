@@ -291,7 +291,8 @@ func _render_description(root: Control, top: float) -> void:
 	scroll.add_child(content)
 	var description: String = str(selected.get("description", "")) # 基础描述始终排在最上方。
 	if not description.is_empty():
-		ItemName.draw(content, description, "", Rect2(), 22, true)
+		var description_item_id: String = str(selected.get("id", "")) # 技能书的描述与标题共用实际转职阶数。
+		ItemName.draw_description(content, description, description_item_id, Rect2(), 22)
 	if str(selected.get("kind", "")) != "plant":
 		return
 	for field: String in PlantCardInstance.PROMOTION_FIELDS: # 按一转至四转读取实际已学技能。
