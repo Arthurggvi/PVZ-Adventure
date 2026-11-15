@@ -36,7 +36,7 @@ static func get_initial_resource_paths() -> PackedStringArray:
 	var service := Service.new(Global.global_game_state.adventure_state, Global.adventure_inventory,
 		Global.global_game_state, Global.save_service.save_now) # 仅查询，不调用执行或保存。
 	var picker := Picker.new("craft", Global.config_service.get_research_selection("craft")) # 恢复同一选择协议。
-	var primary: Array[Dictionary] = service.options("craft", picker.key_for(Picker.Slot.RECIPE))
+	var primary: Array[Dictionary] = service.options("craft") # 首屏只准备持有的配方。
 	picker.refresh_selection("craft", service, primary)
 	var preview: Dictionary = service.quote("craft", picker.operation_choice("craft")) # 真实当前工作槽。
 	var rows: Array[Dictionary] = picker.candidates(service, primary, preview).slice(0, 24) # 六行四列首屏。
@@ -197,8 +197,10 @@ func _render() -> void:
 	var service: AdventureResearchService = _service if _is_current_profile() else null # 切档后不继续读取旧库存。
 	var primary: Array[Dictionary] = [] # 当前页的主卡或配方候选。
 	if service != null:
-		primary = service.options(mode, _picker.key_for(Picker.Slot.RECIPE))
+		primary = service.options(mode)
 		_picker.refresh_selection(mode, service, primary)
+		if mode == "craft" and _picker.key_for(Picker.Slot.RECIPE).is_empty():
+			_remember_selection() # 合成耗尽或读到旧选择时，移除配置里的配方记录。
 	_preview = service.quote(mode, _picker.operation_choice(mode)) if service != null \
 		else {"ready": false, "message": "请先加载有效玩家档案。"}
 	_options = _picker.candidates(service, primary, _preview)
@@ -267,6 +269,8 @@ func _execute_action(operation_mode: String, chosen: Dictionary) -> void:
 		Global.quests_changed.emit()
 		if operation_mode == "craft":
 			detail = "新植物卡已放入背包。"
+			if _service.inventory.get_item_count(str(chosen.recipe_id)) == 0:
+				detail += "配方已用完。"
 		elif operation_mode == "promotion":
 			detail = "星级保持不变。"
 		elif operation_mode == "upgrade":

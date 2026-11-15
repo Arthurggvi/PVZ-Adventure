@@ -21,12 +21,12 @@ func _init(current: AdventureState, stock: AdventureInventoryService,
 	wallet = currency
 	persist = save_callback
 
-## 返回 [param mode] 的主槽候选；合成时额外保留 [param selected_recipe] 对应的已登记配方。
-func options(mode: String, selected_recipe: String = "") -> Array[Dictionary]:
+## 返回 [param mode] 的主槽候选。合成页只列出背包里持有的配方。
+func options(mode: String) -> Array[Dictionary]:
 	var entries: Array[Dictionary] = [] # 按目录或背包顺序返回候选快照。
 	if mode == "craft":
-		for id: String in Recipes.all_ids(): # 用完的已选配方保留在同一目录顺序中。
-			if id == selected_recipe or inventory.get_item_count(id) > 0:
+		for id: String in Recipes.all_ids(): # 过滤库存后仍按目录顺序展示配方。
+			if inventory.get_item_count(id) > 0:
 				var definition: Dictionary = Recipes.definition(id) # 目录返回可供展示补充名称的副本。
 				definition["title"] = ItemRegistry.get_item_definition(id).get("name", id)
 				entries.append(definition)
@@ -66,7 +66,7 @@ func quote(mode: String, choice: Dictionary) -> Dictionary:
 ## 返回 [param id] 的合成报价，包括卷轴、材料的实时持有量和实际缺项。
 func _craft_quote(id: String) -> Dictionary:
 	if id.is_empty():
-		return {"ready": false, "message": "请先从左侧选择配方。"}
+		return {"ready": false, "message": "请选择背包中持有的配方。"}
 	var recipe: Dictionary = Recipes.definition(id) # 报价字段只写入目录返回的副本。
 	if recipe.is_empty():
 		return {"ready": false, "message": "所选配方已失效，请重新选择。"}
@@ -74,7 +74,7 @@ func _craft_quote(id: String) -> Dictionary:
 	var slots: Array[Dictionary] = [] # 预览与缺项提示共用同一份库存数量。
 	var missing_items := PackedStringArray() # 只记录需要补齐的道具名称和数量。
 	for item_id: String in required_items:
-		var owned: int = inventory.get_item_count(item_id) # 仍可预览已经耗尽的配方。
+		var owned: int = inventory.get_item_count(item_id) # 点击和执行前都读取当前库存。
 		slots.append({"id": item_id, "owned": owned, "required": 1})
 		if owned < 1:
 			var item_name: String = str(ItemRegistry.get_item_definition(item_id).get("name", item_id)) # 使用背包中的道具名。

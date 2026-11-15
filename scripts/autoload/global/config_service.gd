@@ -110,8 +110,13 @@ func get_research_selection(mode: String) -> Dictionary:
 	var selection: Variant = _research_selections.get(mode, {}) # 外部不能修改配置中存储的副本。
 	return selection.duplicate(true) if selection is Dictionary else {}
 
-## 保存当前玩家在 [param mode] 的 [param selection]，相同选择不重复写盘。
+## 保存当前玩家在 [param mode] 的 [param selection]，空字典移除该页记录。[br]
+## 记录未变化时不写盘。
 func remember_research_selection(mode: String, selection: Dictionary) -> void:
+	if selection.is_empty():
+		if _research_selections.erase(mode):
+			save_config()
+		return
 	if _research_selections.get(mode, {}) == selection:
 		return
 	_research_selections[mode] = selection.duplicate(true)

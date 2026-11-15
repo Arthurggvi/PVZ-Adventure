@@ -30,7 +30,7 @@ static func render(owner: Control, target: Control, mode: String,
 			ModeView.promotion(owner, target, preview, picker, inventory, coin_balance)
 
 ## 在 [param parent] 显示 [param preview] 的产物和材料。产物居于上排，材料按固定位置放在下排。
-## 右侧分别显示卷轴用量和费用，卷轴或 [param coin_balance] 不足时对应文字标红。
+## 右侧显示配方卷轴用量及金币费用，[param coin_balance] 不足时价格标红。
 static func _craft(parent: Control, preview: Dictionary, coin_balance: int) -> void:
 	var slots: Array = preview.get("slots", []) # 材料与库存状态由合成报价提供。
 	var top_bounds: Rect2 = Slots.work_cell(1, 2, 0) # 上排跨工作区全宽，产物独立居中。
@@ -48,10 +48,9 @@ static func _craft(parent: Control, preview: Dictionary, coin_balance: int) -> v
 		info_bounds.position + Vector2(0, 72), Vector2(info_bounds.size.x, info_bounds.size.y - 184), 26) # 与背包共用植物描述。
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	var scroll: Dictionary = preview.scroll # 即使卷轴耗尽，仍显示当前持有量和所需数量。
-	var scroll_color: Color = Color("a32824") if scroll.owned < scroll.required else Color("382719") # 仅卷轴不足时标红。
+	var scroll: Dictionary = preview.scroll # 标明当前持有量和本次合成消耗量。
 	Art.label(parent, "配方卷轴  %d / %d" % [scroll.owned, scroll.required],
-		Vector2(info_bounds.position.x, info_bounds.end.y - 100), Vector2(info_bounds.size.x, 40), 26, scroll_color)
+		Vector2(info_bounds.position.x, info_bounds.end.y - 100), Vector2(info_bounds.size.x, 40), 26)
 	ModeView.price(parent, info_bounds, int(preview.fee), coin_balance)
 
 ## 将 [param slot] 的素材等比放入 [param parent] 的 [param bounds]，数量显示在格内，名称放入悬停提示。

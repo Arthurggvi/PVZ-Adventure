@@ -48,8 +48,11 @@ func _init(mode: String, selection: Dictionary) -> void:
 			if slots[index] is String:
 				_materials[index] = slots[index]
 
-## 返回 [param mode] 可写入玩家配置的选择副本，包括固定位置的空耗材槽。
+## 返回 [param mode] 可写入玩家配置的选择副本，包括固定位置的空耗材槽。[br]
+## 合成页未选配方时返回空字典，用于移除保存的选择。
 func saved_selection(mode: String) -> Dictionary:
+	if mode == "craft" and _recipe_id.is_empty():
+		return {}
 	var selection: Dictionary = operation_choice(mode) # 与操作共用稳定的配方、卡片和道具标识。
 	if mode == "upgrade":
 		selection["materials"] = _materials.duplicate()
@@ -63,9 +66,10 @@ func refresh_selection(mode: String, service: AdventureResearchService, primary:
 				_set_primary(mode, str(entry.id if mode == "craft" else entry.uid))
 				break
 	if mode == "craft":
-		# 用完配方后仍保留预览，只有目录中已不存在的配方才失效。
-		if not _recipe_id.is_empty() and AdventureRecipeCatalog.definition(_recipe_id).is_empty():
-			_recipe_id = ""
+		# 候选只包含持有的已登记配方，耗尽后清空选择并等待玩家重新选取。
+		if not _recipe_id.is_empty() \
+				and not primary.any(func(entry: Dictionary) -> bool: return entry.id == _recipe_id):
+			_set_primary(mode, "")
 		return
 	var main: PlantCardInstance = service.state.cards.get(_main_uid) # 使用更新后的星级及转职阶段。
 	if main == null:
@@ -199,7 +203,7 @@ func candidates(service: AdventureResearchService, primary: Array[Dictionary], p
 		return rows
 	match active_slot:
 		Slot.RECIPE:
-			for recipe: Dictionary in primary: # 当前配方即使用完也留在原来的目录顺序中。
+			for recipe: Dictionary in primary: # 只绘制当前库存中可选的配方卷轴。
 				var id: String = str(recipe.id) # 配方卷轴按目录 ID 统计持有量。
 				rows.append(Data.item_row(id, service.inventory.get_item_count(id)))
 		Slot.MAIN_CARD:
