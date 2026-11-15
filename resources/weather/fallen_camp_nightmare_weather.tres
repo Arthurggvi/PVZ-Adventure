@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="WeatherSequence" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/weather/weather_sequence.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/weather/weather_keyframe.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/weather/fallen_camp_sand_visual.tres" id="3"]
+
+[sub_resource type="Resource" id="WindRises"]
+script = ExtResource("2")
+time_seconds = 0.0
+sand = 0.28
+
+[sub_resource type="Resource" id="DustFront"]
+script = ExtResource("2")
+time_seconds = 7.0
+sand = 0.46
+
+[sub_resource type="Resource" id="RollingWall"]
+script = ExtResource("2")
+time_seconds = 16.0
+sand = 0.7
+
+[sub_resource type="Resource" id="Sandstorm"]
+script = ExtResource("2")
+time_seconds = 27.0
+sand = 0.91
+
+[sub_resource type="Resource" id="StormHold"]
+script = ExtResource("2")
+time_seconds = 36.0
+sand = 1.0
+
+[resource]
+script = ExtResource("1")
+sand_visual_profile = ExtResource("3")
+sand_cursor_speed = 18.0
+frames = Array[ExtResource("2")]([SubResource("WindRises"), SubResource("DustFront"), SubResource("RollingWall"), SubResource("Sandstorm"), SubResource("StormHold")])

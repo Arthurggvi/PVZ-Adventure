@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SandVisualProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weather/sand_visual_profile.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+shadow_color = Color(0.46, 0.29, 0.12, 1)
+sunlit_color = Color(0.93, 0.72, 0.38, 1)
+wall_opacity = 0.78
+veil_opacity = 0.5
+wind_speed = 95.0
+gust_strength = 0.8
+grain_density = 0.62
+clear_bounds = Rect2(0.17, 0.16, 0.54, 0.78)

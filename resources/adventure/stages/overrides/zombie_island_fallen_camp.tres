@@ -14,6 +14,8 @@
 [ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/fallen_camp/nightmare.tres" id="NightmareDrops"]
 [ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/fallen_camp/boss.tres" id="BossDrops"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="DropEvent"]
+[ext_resource type="Resource" path="res://resources/weather/fallen_camp_normal_weather.tres" id="weather_normal"]
+[ext_resource type="Resource" path="res://resources/weather/fallen_camp_nightmare_weather.tres" id="weather_nightmare"]
 
 [sub_resource type="Resource" id="NormalOpening"]
 script = ExtResource("2_band")
@@ -343,6 +345,8 @@ wait_for_death_presentation = true
 [resource]
 script = ExtResource("1_override")
 battle_background_texture = ExtResource("battlebg_camp")
+normal_weather_sequence = ExtResource("weather_normal")
+nightmare_weather_sequence = ExtResource("weather_nightmare")
 normal_wave_profile = SubResource("NormalProfile")
 nightmare_wave_profile = SubResource("NightmareProfile")
 normal_drop_table = ExtResource("NormalDrops")

@@ -146,6 +146,9 @@
 - **仅第四关墓地下游的噩梦阶段触发本次暴雨**；没落营地没有雨。关卡 `resources/adventure/stages/overrides/zombie_island_grave_downstream.tres` 引用 `nightmare_weather_sequence`、`weather_lens_profile`。不要把地区默认配置设成全程降雨。
 - 时间轴 `resources/weather/grave_downstream_nightmare_weather.tres`（WeatherSequence / WeatherKeyframe）按 `0→6→15→26→36` 秒递增至暴雨；最后关键帧持续保持，除非显式请求新天气。暂停不能推进天气。暴雨视觉 `resources/weather/grave_downstream_storm_visual.tres`（RainVisualProfile），音频 `resources/weather/storm_rain_audio.tres`（RainAudioProfile）。
 - `scripts/weather/battle_weather_director.gd` 为状态/过渡唯一导演；原雨景 `scenes/main_game_bg/rain.tscn` / `MainGameRain`、`RainStormRenderer`（分层雨幕、地面水花、风场）按强度驱动。SoundManager 统一混音，不要创建额外雨声播放器。
+- **没落营地风沙（2026-11-15）**：该关覆盖引用 `fallen_camp_normal_weather.tres` / `fallen_camp_nightmare_weather.tres`，普通阶段维持 0.28 浮尘，噩梦按 `0→7→16→27→36` 秒升至沙暴并保持。`WeatherKeyframe.sand` 与雨/湿镜头独立；`WeatherSequence.sample_channels()` 统一采样，旧 `sample()` 仍返回雨/镜头 Vector2。不要以雨强度代替沙强度。
+- **风沙表现与指针**：`SandStormRenderer` / `SandVisualProfile` / `shaders/weather/sand_storm.gdshader` 共用底图坐标，远处沙墙在背景层，流沙和飞砂在现有前景层；显式游戏时钟随暂停停止。噩梦 `sand_cursor_speed=18`（视口像素/秒上限），由同一阵风驱动 `WeatherCursorDrift`，实际满强度约 11～17 px/s 向左漂移。普通浮尘、非战斗阶段、UI 遮挡、按住鼠标、暂停和失焦均不施力；不捕获鼠标。
+- **本轮证据与边界**：隔离 user 目录下完成 Godot 4.7.2 导入和 GL Compatibility 完整战场预览，使用真实卡牌、植物和僵尸，最后渲染无脚本/材质/退出报错。最小证据在 `D:\Dev\PvZ\_review\fallen_camp_sand_20261115`。未新增或运行测试；未做完整续战、真实鼠标漂移手感或跨平台性能验收。
 - 湿镜头统一 `scenes/weather/weather_lens.tscn` → `WeatherLensController` / `WeatherLensProfile`；光源统一 `WeatherLightField` / `WeatherLightProfile`，关卡预设 `resources/weather/grave_downstream_light_profile.tres`。Bloom、折射、水滴与鼠标擦除都从现有光场/镜头渲染管线实现；镜头擦除只影响水膜，不删除真实雨线或环境光。
 - 主要调参先动配置资源，再审 Shader；GL Compatibility 运行、分辨率和 GPU 预算需要测量，不能凭 headless 成功宣称性能达标。全战斗雨景预览入口 `tools/weather_preview/battle_preview.tscn` / `render_battle.gd`；按正式 `--scene` 运行，不能用只有背景的 GIF 冒充完整战斗验收。
 

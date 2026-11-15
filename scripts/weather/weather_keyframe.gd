@@ -8,3 +8,5 @@ class_name WeatherKeyframe
 @export_range(0.0, 1.0, 0.01) var rain: float = 0.0
 ## 湿镜头的归一化强度，0 透明，1 使用完整预设。
 @export_range(0.0, 1.0, 0.01) var lens: float = 0.0
+## 风沙的归一化强度，0 无沙，1 使用完整沙暴预设；与降雨独立。
+@export_range(0.0, 1.0, 0.01) var sand: float = 0.0
