@@ -35,6 +35,8 @@ var _player_state: AdventureState
 var boss_exit_results: Dictionary[StringName, int] = {}
 ## 存档失败后沿用同一次掉落结果，重试不得重新抽奖。
 var pending_reward: Dictionary = {}
+## 本局各阶段已经入账的保底物品，在生成最终奖杯时统一展示。
+var _victory_floor_items: Dictionary = {}
 ## 结算结果显示在返回地图后的提示中。
 var notice := ""
 var battle_failed := false
@@ -66,6 +68,7 @@ func _reset_battle_attempt() -> void:
 	_player_state = null
 	boss_exit_results.clear()
 	pending_reward.clear()
+	_victory_floor_items.clear()
 	battle_failed = false
 ## 初始化冒险会话的合法身份及首次启程标记，但不执行场景切换。
 ## 首次启程是持久事务，场景资源失败时允许重试且不重复发奖。
@@ -489,6 +492,10 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 		error_message = "奖励或通关记录保存失败，可重试相同掉落。"
 		state.quests = AdventureQuestState.from_dict(before_quests)
 		return false
+	if not skip_combat_checks:
+		var floor_items: Dictionary = pending_reward["floor_items"] # 存档成功后才把本阶段保底交给奖杯。
+		for item_id: String in floor_items: # 续战累积同一物品的保底份数。
+			_victory_floor_items[item_id] = int(_victory_floor_items.get(item_id, 0)) + int(floor_items[item_id])
 	Global.quests_changed.emit()
 	error_message = ""
 	var phase_name: String # 结算提示中的阶段名称。
@@ -507,6 +514,12 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 	if challenge_state == ChallengeState.COMPLETE:
 		battle_finished.emit(active_stage_number, "victory")
 	return true
+
+## 取出并清空本局等待随奖杯展示的保底，返回物品 ID 到已入账份数的映射。
+func take_victory_floor_items() -> Dictionary:
+	var items: Dictionary = _victory_floor_items # 移交显示数据，不修改背包或存档。
+	_victory_floor_items = {}
+	return items
 
 func _active_runtime() -> AdventureBattleRuntime:
 	var game: MainGameManager = Global.main_game

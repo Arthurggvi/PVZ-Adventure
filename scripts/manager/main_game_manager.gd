@@ -750,6 +750,7 @@ func _finish_round_victory(glo_pos: Vector2) -> void:
 				or (AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE \
 					and AdventureSession.active_stage.terminal_key_id.is_empty()):
 			drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase, glo_pos)
+		drop_item_manager.spawn_victory_floor_items(AdventureSession.take_victory_floor_items(), glo_pos)
 	var trophy = SceneRegistry.TROPHY.instantiate()
 	canvas_layer_temp.add_child(trophy)
 	trophy.global_position = glo_pos

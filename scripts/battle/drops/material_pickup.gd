@@ -1,4 +1,4 @@
-## 战场材料掉落物：外观复用冒险物品图标，拾取后直接进背包。
+## 战场物品掉落：外观复用冒险物品图标，支持战斗材料拾取和胜利保底展示。
 ## 抛出、落地、超时与收集表现继承自 [BattlePickup]；本类额外提供星芒光晕、弹出缩放与拾取迸发。
 extends BattlePickup
 class_name MaterialPickup
@@ -15,10 +15,14 @@ const SPARKLE_SPIN_SECONDS := 9.0
 @onready var icon: Sprite2D = $Body/Icon
 @onready var sparkle: Sprite2D = $Body/Sparkle
 @onready var burst: GPUParticles2D = $Burst
+## 结算时同种道具合并成一堆，数量显示在图标右下角。
+@onready var quantity_label: Label = $Body/Quantity
 
 ## 本次掉落的物品 id 与数量。
 var item_id: StringName
 var quantity := 1
+## 胜利奖励已入账，收取这个实体时只播放拾取演出。
+var settled_reward := false
 ## 待机浮动补间。
 var _bob: Tween
 ## 星芒呼吸补间。
@@ -30,20 +34,30 @@ func _ready() -> void:
 	super._ready()
 	_start_idle_motion()
 
-## 设置掉落的物品与数量，并按图标原始尺寸缩放到战场显示大小。
+## 设置 [param id] 与 [param amount]，并将图标缩放至战场尺寸；结算掉落还显示堆叠和配方植物。
 func setup_item(id: StringName, amount := 1) -> void:
 	item_id = id
 	quantity = maxi(1, amount)
-	var uri := ItemArt.icon_uri(str(id))
+	var uri: String = ItemArt.icon_uri(str(id)) # 与背包一致的物品基础图标路径。
 	if uri.is_empty() or icon == null:
 		return
-	var texture := load(uri) as Texture2D
+	var texture: Texture2D = load(uri) as Texture2D # 首次掉出该物品时才加载贴图。
 	if texture == null:
 		return
 	icon.texture = texture
-	var longest := float(maxi(texture.get_width(), texture.get_height()))
+	var longest: float = float(maxi(texture.get_width(), texture.get_height())) # 最长边决定等比缩放系数。
 	if longest > 0.0:
 		icon.scale = Vector2.ONE * (ICON_PIXELS / longest)
+	if settled_reward:
+		var definition: Dictionary = ItemRegistry.get_item_definition(str(id)) # 数量与提示使用本物品的背包定义。
+		quantity_label.text = "×%d" % quantity
+		quantity_label.visible = quantity > 1
+		if button != null:
+			button.tooltip_text = str(definition.get("name", str(id)))
+		if str(definition.get("category", "")) == "recipe":
+			var recipe: Dictionary = AdventureRecipeCatalog.definition(str(id)) # 卷轴纸面共享贴图，用植物头像区分配方。
+			ItemArt.add_recipe_portrait(icon.get_parent(), int(recipe.get("plant_type", 0)),
+				icon.position, 0.42 * ICON_PIXELS / 58.0)
 
 ## 抛出瞬间做一次弹出缩放，让掉落更容易被注意到。
 func launch(relative_target: Vector2) -> void:
@@ -111,8 +125,10 @@ func _emit_burst() -> void:
 	burst.emitting = true
 	burst.finished.connect(burst.queue_free)
 
-## 拾取后把材料写进冒险背包；界面不弹任何文字提示。
+## 完成拾取；战斗中掉出的材料此时入账，已结算的胜利奖励直接结束收取。
 func _grant() -> bool:
+	if settled_reward:
+		return true
 	if item_id.is_empty() or not Global.adventure_inventory.owns_state(_owner_state):
 		return false
 	return Global.adventure_inventory.add_item(String(item_id), quantity)

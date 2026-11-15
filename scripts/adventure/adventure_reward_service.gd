@@ -7,8 +7,11 @@ class_name AdventureRewardService
 const FIRST_CLEAR_COIN_VALUES := {"diamond": 1000, "gold": 50, "silver": 10}
 ## 地区存档中按领取 ID 保存尚未拾取的各面额钱币数量。
 const PENDING_FIRST_CLEAR_COINS := "pending_first_clear_coins"
+## 每个阶段的基础图纸结算轮数，每轮都复用关卡配置的随机规则和保底。
+const BASE_RECIPE_ROLLS := 2
 
-## 抽取 [param table]；[param effects] 仅修正随机材料/消耗品，固定与补齐奖励保持原配置。
+## 用 [param rng] 抽取 [param table]，返回总奖励与其中计入保底的物品。
+## [param effects] 仅修正随机材料和消耗品，固定与补齐奖励保持原配置。
 static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEffects = null) -> Dictionary:
 	if table == null or rng == null or not table.validate().is_empty():
 		return {"ok": false}
@@ -48,9 +51,10 @@ static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEf
 				if table.weighted_selection == DropTable.WeightedSelection.WITHOUT_REPLACEMENT:
 					weighted.remove_at(i)
 				break
-	if not _fill_floor(items, table, rng):
+	var floor_items: Dictionary = {} # 包括已随机抽中且计入保底的份数，供胜利掉落展示。
+	if not _fill_floor(items, table, rng, floor_items):
 		return {"ok": false}
-	return {"ok": true, "items": items}
+	return {"ok": true, "items": items, "floor_items": floor_items}
 
 ## 用 [param rng] 抽取 [param entry] 数量并应用 [param effects]，最后执行条目上限；溢出返回 -1。
 static func _random_quantity(entry: DropEntryDefinition, rng: RandomNumberGenerator, effects: PlayerEffects) -> int:
@@ -59,38 +63,56 @@ static func _random_quantity(entry: DropEntryDefinition, rng: RandomNumberGenera
 		quantity = PlayerEffects.scale_amount(quantity, float(effects.loot_multiplier))
 	return mini(quantity, entry.quantity_max) if entry.cap_quantity_at_max else quantity
 
-static func _fill_floor(items: Dictionary, table: DropTable, rng: RandomNumberGenerator) -> bool:
-	var material_ids: Array[String] = []
-	var recipe_ids: Array[String] = []
-	for entry: DropEntryDefinition in table.entries:
-		var item_id: String = str(entry.asset_id)
-		var category: String = str(ItemRegistry.get_item_definition(item_id).get("category", ""))
+## 按 [param table] 用 [param rng] 向 [param items] 补足保底，并向 [param floor_items] 写入可展示的保底份数。
+static func _fill_floor(items: Dictionary, table: DropTable, rng: RandomNumberGenerator,
+		floor_items: Dictionary) -> bool:
+	var material_ids: Array[String] = [] # 按掉落表顺序去重的素材候选。
+	var recipe_ids: Array[String] = [] # 按掉落表顺序去重的图纸候选。
+	for entry: DropEntryDefinition in table.entries: # 只将本表中的条目纳入保底。
+		var item_id: String = str(entry.asset_id) # 与奖励映射一致的物品键。
+		var category: String = str(ItemRegistry.get_item_definition(item_id).get("category", "")) # 用道具分类选择保底池。
 		if category == "material" and not material_ids.has(item_id):
 			material_ids.append(item_id)
 		elif category == "recipe" and not recipe_ids.has(item_id):
 			recipe_ids.append(item_id)
-	var distinct := 0
-	for item_id: String in material_ids:
+	var distinct := 0 # 已计入素材种类保底的种数，每种先展示一份。
+	for item_id: String in material_ids: # 优先使用本次已抽中的素材种类。
+		if distinct >= table.min_distinct_materials:
+			break
 		if items.get(item_id, 0) > 0:
+			floor_items[item_id] = 1
 			distinct += 1
-	for item_id: String in material_ids:
+	for item_id: String in material_ids: # 种类不足时按原掉落表顺序补齐。
 		if distinct >= table.min_distinct_materials:
 			break
 		if items.get(item_id, 0) == 0:
 			_add(items, item_id, 1)
+			floor_items[item_id] = 1
 			distinct += 1
-	return _fill_quantity(items, material_ids, table.min_material_count, rng) \
-		and _fill_quantity(items, recipe_ids, table.min_recipe_count, rng)
+	return _fill_quantity(items, material_ids, table.min_material_count, rng, floor_items) \
+		and _fill_quantity(items, recipe_ids, table.min_recipe_count, rng, floor_items)
 
+## 从 [param candidates] 用 [param rng] 将 [param items] 补到 [param required] 份。
+## [param floor_items] 复用已计入种类保底的份数；不足且无候选时返回 false。
 static func _fill_quantity(items: Dictionary, candidates: Array[String], required: int,
-		rng: RandomNumberGenerator) -> bool:
-	var total := 0
-	for id: String in candidates:
+		rng: RandomNumberGenerator, floor_items: Dictionary) -> bool:
+	var total := 0 # 当前类别已结算的总数。
+	var remaining := required # 扣除已展示的份数后，还需计入数量保底的份数。
+	for id: String in candidates: # 候选只包含当前类别的去重物品 ID。
 		total += int(items.get(id, 0))
+		remaining -= int(floor_items.get(id, 0))
 	if total < required and candidates.is_empty():
 		return false
-	for missing: int in range(maxi(0, required - total)):
+	for missing: int in range(maxi(0, required - total)): # 每缺一份就随机补一份。
 		_add(items, candidates[rng.randi_range(0, candidates.size() - 1)], 1)
+	for id: String in candidates: # 从已结算份数中补齐展示，超出保底的部分只进入背包。
+		if remaining <= 0:
+			break
+		var shown: int = int(floor_items.get(id, 0)) # 此物品已计入种类保底的份数。
+		var quantity: int = mini(remaining, int(items.get(id, 0)) - shown) # 此物品还能计入数量保底的份数。
+		if quantity > 0:
+			floor_items[id] = shown + quantity
+			remaining -= quantity
 	return true
 
 ## 把抽中的 [param entry] 写入 [param items]；每份 [param count] 配方可附带一套材料。
@@ -102,17 +124,31 @@ static func _add_entry(items: Dictionary, entry: DropEntryDefinition, count: int
 static func _add(items: Dictionary, id: String, count: int) -> void:
 	items[id] = int(items.get(id, 0)) + count
 
-## 按 [param phase]、[param table]、[param claimed] 与 [param boss_defeated] 合并奖励。
+## 按 [param phase]、[param table]、[param claimed] 与 [param boss_defeated] 合并基础和首通奖励。
 ## [param rng] 决定本次抽取，[param effects] 仅进入随机掉落计算，首通奖励不加成；不修改玩家资产。
 static func prepare(phase: StagePhaseDefinition, table: DropTable,
 		claimed: Dictionary, boss_defeated: bool, rng: RandomNumberGenerator, effects: PlayerEffects = null) -> Dictionary:
-	var result: Dictionary = roll(table, rng, effects)
+	var result: Dictionary = roll(table, rng, effects) # 首轮结算基表中的所有物品。
 	if not result.get("ok", false):
 		return {"ok": false}
+	var items: Dictionary = result["items"] # 胜利事务入账的总数量。
+	var floor_items: Dictionary = result["floor_items"] # 随奖杯展示的保底份数。
+	for _draw: int in range(1, BASE_RECIPE_ROLLS): # 额外轮次保留同一掉落表的概率、放回和保底规则。
+		var extra: Dictionary = roll(table, rng) # 基础图纸的独立抽取结果。
+		if not extra.get("ok", false):
+			return {"ok": false}
+		var extra_items: Dictionary = extra["items"] # 额外轮次中可并入的道具。
+		var extra_floor_items: Dictionary = extra["floor_items"] # 此轮计入保底的数量。
+		for item_id: String in extra_items: # 额外轮次仅并入图纸，其他类别按首轮结算。
+			if str(ItemRegistry.get_item_definition(item_id).get("category", "")) != "recipe":
+				continue
+			_add(items, item_id, int(extra_items[item_id]))
+			var floor_amount: int = int(extra_floor_items.get(item_id, 0)) # 此图纸在本轮保底内的份数。
+			if floor_amount > 0:
+				_add(floor_items, item_id, floor_amount)
 	var claim_id: String = first_clear_claim_id(phase) # 沿用已有存档的首通领取标记。
 	var qualified: bool = not phase.first_clear_requires_boss_kill or boss_defeated
 	var first: bool = qualified and not claimed.get(claim_id, false)
-	var items: Dictionary = result["items"]
 	if first:
 		for id: StringName in phase.first_clear_items:
 			_add(items, str(id), phase.first_clear_items[id])

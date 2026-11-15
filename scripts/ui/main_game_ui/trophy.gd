@@ -31,7 +31,7 @@ func _ready():
 	if not AdventureSession.owns_battle(main_game.game_para):
 		Global.save_service.save_now()
 
-## 先整批收取普通掉落，再在白屏演出中收取首通钱币。
+## 先整批收取普通掉落，再在白屏演出中收取保底物品和首通钱币。
 func _on_trophy_button_pressed() -> void:
 	if trophy_button.disabled:
 		return

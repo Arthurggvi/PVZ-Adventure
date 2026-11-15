@@ -3,17 +3,33 @@
 extends RefCounted
 class_name BattleDropService
 
+## 战场材料与结算保底共用的掉落物场景。
 const MaterialPickupScene := preload("res://scenes/item/game_scenes_item/drop/material_pickup.tscn")
 
 ## 实例化掉落物场景、挂到 [param parent]、定位到 [param origin]；调用方配置完外观后再 [method BattlePickup.launch]。
 ## [param target] 是收集动画的终点锚点（金币栏），可与掉落物处于不同画布。
-static func spawn(scene: PackedScene, parent: Node, target: Node2D, origin: Vector2) -> BattlePickup:
+## [param persistent] 为 true 时不启动落地后的超时淡出，实体会留到收取或离场。
+static func spawn(scene: PackedScene, parent: Node, target: Node2D, origin: Vector2,
+		persistent: bool = false) -> BattlePickup:
 	if not is_instance_valid(parent) or scene == null:
 		return null
-	var pickup: BattlePickup = scene.instantiate()
+	var pickup: BattlePickup = scene.instantiate() # 入树前配置寿命，[method BattlePickup._ready] 会依此启动计时。
+	if persistent:
+		pickup.exist_time = 0.0
 	parent.add_child(pickup)
 	pickup.setup(target)
 	pickup.global_position = origin
+	return pickup
+
+## 在 [param parent] 的世界坐标 [param origin] 生成已入账的 [param item_id]，叠放 [param quantity] 份。
+## [param target] 是点击物品或奖杯后收取飞行的锚点；调用方负责抛掷到本次胜利的落点。
+static func spawn_settled_item(parent: Node, target: Node2D, origin: Vector2,
+		item_id: StringName, quantity: int) -> MaterialPickup:
+	var pickup: MaterialPickup = spawn(MaterialPickupScene, parent, target, origin, true) as MaterialPickup # 胜利保底常驻到收取。
+	if pickup != null:
+		pickup.settled_reward = true
+		pickup.auto_collect_on_landing = false
+		pickup.setup_item(item_id, quantity)
 	return pickup
 
 ## 掷出掉落物；[param target_offset] 是相对落点（x 随机左右，y 固定往前）。
