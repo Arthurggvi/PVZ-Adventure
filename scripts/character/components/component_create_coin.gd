@@ -57,5 +57,6 @@ func disable_component(is_enable_factor:E_IsEnableFactor):
 		create_coin_timer.stop()
 
 ## 仅传递倍率，进度换算和零速暂停统一交给计时器。
-func owner_update_speed(speed_product:float):
-	create_coin_timer.set_speed_scale(speed_product)
+## [param speed_product] 为角色速度乘积；金币生产仅保留原有速度来源。
+func owner_update_speed(speed_product: float) -> void:
+	create_coin_timer.set_speed_scale((owner as Character000Base).production_speed_product(speed_product))

@@ -1,0 +1,224 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://duyqfy4j8isia" path="res://assets/reanim/Zombie_outerarm_hand.png" id="221_f80r2"]
+
+[ext_resource type="Texture2D" uid="uid://b3r33mjs010cl" path="res://assets/reanim/Zombie_snorkle_innerarm_hand.png" id="323_75asi"]
+
+[ext_resource type="Texture2D" uid="uid://l18dd4u2y8yq" path="res://assets/reanim/Zombie_snorkle_innerarm_lower.png" id="324_hry64"]
+
+[ext_resource type="Texture2D" uid="uid://b8bgwnl7k526m" path="res://assets/reanim/Zombie_snorkle_innerarm_upper.png" id="325_fcsht"]
+
+[ext_resource type="Texture2D" uid="uid://d1dec02gmqtps" path="res://assets/reanim/Zombie_snorkle_innerleg_upper.png" id="326_o2t8c"]
+
+[ext_resource type="Texture2D" uid="uid://dtpm8eixn4g6e" path="res://assets/reanim/Zombie_snorkle_innerleg_foot.png" id="327_8uedi"]
+
+[ext_resource type="Texture2D" uid="uid://6t3vw1uqq15j" path="res://assets/reanim/Zombie_snorkle_innerleg_lower.png" id="328_ldtun"]
+
+[ext_resource type="Texture2D" uid="uid://cj8j23cm8pq7l" path="res://assets/reanim/Zombie_snorkle_outerleg_lower.png" id="329_3xv8k"]
+
+[ext_resource type="Texture2D" uid="uid://bah2h4gclww0a" path="res://assets/reanim/Zombie_snorkle_outerleg_upper.png" id="330_c6nfp"]
+
+[ext_resource type="Texture2D" uid="uid://calj464piv02j" path="res://assets/reanim/Zombie_snorkle_outerleg_foot.png" id="331_h3kd2"]
+
+[ext_resource type="Texture2D" uid="uid://dqgpbjg4rxrav" path="res://assets/reanim/Zombie_snorkle_body2.png" id="332_frm5j"]
+
+[ext_resource type="Texture2D" uid="uid://c6xijgem68q86" path="res://assets/reanim/Zombie_snorkle_body1.png" id="333_ns2kx"]
+
+[ext_resource type="Texture2D" uid="uid://dttknuqm436hn" path="res://assets/reanim/Zombie_snorkle_head.png" id="334_rgiyd"]
+
+[ext_resource type="Texture2D" uid="uid://xkmx2bj7sxgi" path="res://assets/reanim/Zombie_snorkle_outerarm_upper.png" id="335_fdhjm"]
+
+[ext_resource type="Texture2D" uid="uid://bfw8vqpm60r8e" path="res://assets/reanim/Zombie_snorkle_outerarm_lower.png" id="336_mmvdr"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_12"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 12
+
+[node name="Card12" unique_id=1469569680 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_12")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie012Snorkle" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1360887040]
+position = Vector2(2, 17)
+scale = Vector2(0.3, 0.3)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie012Snorkle" unique_id=1759620739]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body" unique_id=1817986317]
+position = Vector2(-62, -122)
+
+[node name="Anim_aquarium_death" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=511155102]
+visible = false
+centered = false
+
+[node name="Anim_aquarium_bite" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1597347938]
+visible = false
+centered = false
+
+[node name="Anim_aquarium_swim" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=2114892431]
+visible = false
+centered = false
+
+[node name="Anim_death" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=47587330]
+visible = false
+centered = false
+
+[node name="Anim_eat" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=389171368]
+visible = false
+centered = false
+
+[node name="Anim_uptoeat" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=64192666]
+visible = false
+centered = false
+
+[node name="Anim_swim" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=661628655]
+visible = false
+centered = false
+
+[node name="Anim_jumpinpool" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1265221060]
+visible = false
+centered = false
+
+[node name="Anim_walk" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=552052425]
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1606191724]
+visible = false
+centered = false
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1493977857]
+visible = false
+position = Vector2(0.1, 80.1)
+centered = false
+
+[node name="Zombie_snorkle_innerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1864337500]
+position = Vector2(39.9, 79.5)
+rotation = 5.78053
+scale = Vector2(0.889, 0.889)
+texture = ExtResource("323_75asi")
+centered = false
+
+[node name="Zombie_snorkle_innerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=243325311]
+position = Vector2(45.3, 59.3)
+rotation = 6.17847
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("324_hry64")
+centered = false
+
+[node name="Zombie_snorkle_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=186479871]
+position = Vector2(33.9, 41.1)
+rotation = 5.96728
+scale = Vector2(0.799, 0.75)
+texture = ExtResource("325_fcsht")
+centered = false
+
+[node name="Zombie_snorkle_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=2005923432]
+position = Vector2(52.1, 73)
+rotation = 0.090757
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("326_o2t8c")
+centered = false
+
+[node name="Zombie_snorkle_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=59619523]
+position = Vector2(43.3, 108.6)
+rotation = 6.13483
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("327_8uedi")
+centered = false
+
+[node name="Zombie_snorkle_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1311591883]
+position = Vector2(48.9, 92.8)
+rotation = 6.2221
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("328_ldtun")
+centered = false
+
+[node name="Zombie_snorkle_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1822424326]
+position = Vector2(66.5, 92.7)
+rotation = 0.010472
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("329_3xv8k")
+centered = false
+
+[node name="Zombie_snorkle_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=107970721]
+position = Vector2(63.8, 75.8)
+rotation = 0.040143
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("330_c6nfp")
+centered = false
+
+[node name="Zombie_snorkle_outerleg_toe" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=839419569]
+position = Vector2(33.6, 112.9)
+rotation = 0.013963
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("331_h3kd2")
+centered = false
+
+[node name="Zombie_snorkle_body2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=2000698859]
+position = Vector2(54, 61.3)
+rotation = 0.136136
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("332_frm5j")
+centered = false
+
+[node name="Zombie_snorkle_body1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1974062447]
+position = Vector2(42.5, 32.4)
+rotation = 0.075049
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("333_ns2kx")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=791997961]
+position = Vector2(21.6, -1.3)
+rotation = 0.075049
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("334_rgiyd")
+centered = false
+
+[node name="Anim_head_lips" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=854947762]
+centered = false
+
+[node name="Anim_head_jaw" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=24097081]
+centered = false
+
+[node name="Anim_head_snorkle" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1828481813]
+centered = false
+
+[node name="Zombie_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1709481620]
+position = Vector2(54.7, 78)
+rotation = 6.22559
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("221_f80r2")
+centered = false
+
+[node name="Zombie_snorkle_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1004015926]
+position = Vector2(58.1, 35.4)
+rotation = 0.008727
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("335_fdhjm")
+centered = false
+
+[node name="Zombie_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=225785869]
+position = Vector2(55.6, 65.7)
+rotation = 5.88874
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("336_mmvdr")
+centered = false
+
+[node name="Zombie_snorkle_whitewater2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1649137188]
+visible = false
+centered = false
+
+[node name="Zombie_snorkle_whitewater" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie012Snorkle/Body/BodyCorrect" unique_id=1646650123]
+visible = false
+centered = false

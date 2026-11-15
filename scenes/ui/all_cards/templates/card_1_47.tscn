@@ -1,0 +1,153 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://dlb853xglbi86" path="res://assets/reanim/SpikeRock_spike.png" id="361_8p6b6"]
+
+[ext_resource type="Texture2D" uid="uid://bliq00g5404oc" path="res://assets/reanim/SpikeRock_body.png" id="362_ees34"]
+
+[ext_resource type="Texture2D" uid="uid://cuuocw1e5kx4t" path="res://assets/reanim/Spikerock_bigspike1.png" id="363_4aydd"]
+
+[ext_resource type="Texture2D" uid="uid://bqrlhw3jdog24" path="res://assets/reanim/Spikerock_bigspike2.png" id="364_mkpjk"]
+
+[ext_resource type="Texture2D" uid="uid://bpwrvelgbabpq" path="res://assets/reanim/Spikerock_bigspike3.png" id="365_ea7g5"]
+
+[ext_resource type="Texture2D" uid="uid://dkg4ri5gpndf8" path="res://assets/reanim/SpikeRock_eyebrow.png" id="366_m7q7w"]
+
+[ext_resource type="Texture2D" uid="uid://ckskt1bhtv7nt" path="res://assets/reanim/SpikeRock_mouth.png" id="367_r0uf5"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_47"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 47
+
+[node name="Card47" unique_id=1449970009 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_47")
+
+[node name="Plant047SpikeRock" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=473757868]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock" unique_id=163035836]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant047SpikeRock" unique_id=1120992872]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body" unique_id=2087585462]
+position = Vector2(-41, -63)
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=1957164170]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=555528699]
+visible = false
+centered = false
+
+[node name="Anim_attack" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=48594374]
+centered = false
+
+[node name="Spike1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=1232392406]
+position = Vector2(50.4, 39.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("361_8p6b6")
+centered = false
+
+[node name="Spike7" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=1918092431]
+position = Vector2(59.1, 39.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("361_8p6b6")
+centered = false
+
+[node name="Spike8" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=726457834]
+position = Vector2(6.6, 41)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("361_8p6b6")
+centered = false
+
+[node name="Spike2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=1625470086]
+position = Vector2(42, 39)
+scale = Vector2(0.8, 0.683)
+texture = ExtResource("361_8p6b6")
+centered = false
+
+[node name="Spike3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=1157056196]
+position = Vector2(32.8, 37.3)
+scale = Vector2(0.944, 0.8)
+texture = ExtResource("361_8p6b6")
+centered = false
+
+[node name="Spike4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=402290431]
+position = Vector2(23.7, 39.4)
+scale = Vector2(0.862, 0.8)
+texture = ExtResource("361_8p6b6")
+centered = false
+
+[node name="Spike5" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=487278665]
+position = Vector2(15, 40)
+scale = Vector2(0.862, 0.8)
+texture = ExtResource("361_8p6b6")
+centered = false
+
+[node name="Spike9" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=679978796]
+position = Vector2(0.3, 44.1)
+scale = Vector2(0.755, 0.635)
+texture = ExtResource("361_8p6b6")
+centered = false
+
+[node name="Spike6" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=1165280140]
+position = Vector2(67, 44.9)
+scale = Vector2(0.755, 0.635)
+texture = ExtResource("361_8p6b6")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=2053364072]
+position = Vector2(-0.4, 40)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("362_ees34")
+centered = false
+
+[node name="Bigspike1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=978724284]
+position = Vector2(8.1, 29.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("363_4aydd")
+centered = false
+
+[node name="Bigspike2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=527256986]
+position = Vector2(33, 33.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("364_mkpjk")
+centered = false
+
+[node name="Bigspike3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=764190298]
+position = Vector2(56.8, 29.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("365_ea7g5")
+centered = false
+
+[node name="Anim_eye_leftbrow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=267608219]
+position = Vector2(18.8, 45.5)
+rotation = 6.44899
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("366_m7q7w")
+centered = false
+
+[node name="Anim_eye_rightbrow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=1480053641]
+position = Vector2(61.1, 45.1)
+rotation = 2.87979
+scale = Vector2(0.8, 0.8)
+skew = -3.13985
+texture = ExtResource("366_m7q7w")
+centered = false
+
+[node name="Mouth" type="Sprite2D" parent="CardBg/CharacterStatic/Plant047SpikeRock/Body/BodyCorrect" unique_id=1170616873]
+position = Vector2(28.3, 56.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("367_r0uf5")
+centered = false

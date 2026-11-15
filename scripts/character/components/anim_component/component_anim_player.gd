@@ -2,7 +2,7 @@ extends AnimComponentBase
 class_name AnimComponentPlayer
 ## 只使用AnimationPlayer和自定义状态机处理动画
 
-## 主体动画播放器的路径，可指向角色根节点或独立美术场景。
+## 主体动画播放器的路径；默认沿用角色根节点下的播放器，也可指向独立美术场景。
 @export_node_path("AnimationPlayer") var animation_player_path: NodePath = ^"../AnimationPlayer"
 ## 负责播放主体动画并应用角色速度倍率的播放器。
 @onready var animation_player: AnimationPlayer = get_node(animation_player_path) as AnimationPlayer

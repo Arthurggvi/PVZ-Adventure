@@ -71,6 +71,9 @@ enum E_Influence_Speed_Factor{
 	AdventurePromotionAttackRate, ## 冒险转职攻速倍率，动画与发射计时共用。
 	Stun, ## 眩晕的独立速度因子，停止行动时为 0。
 	ForcedAirborne, ## 被抛起时暂停动作，落地后恢复此通道。
+	DeepColdSlow, ## 独立于原生冰的抗火减速；与原生寒冷减速取较强值。
+	DeepColdFreeze, ## 独立于原生冰的抗火冻结；两个来源均解除才真正解冻。
+	Dynasty, ## 皇朝攻速，同一种增益的所有施放共享一个乘数。
 }
 ## 是否被魅惑
 var is_hypno:bool = false
@@ -86,7 +89,7 @@ var is_can_death_language:=true
 
 ## 速度改变信号 speed_factor_product: 速度系数乘积
 signal signal_update_speed(speed_factor_product:float)
-## 真正由冻结恢复时发出，原生到期与火焰提前解冻共用一次通知。
+## 普通和抗火冻结全部解除时发出，火焰提前解除仅处理普通冻结。
 signal signal_ice_freeze_ended()
 
 @export_group("动画状态")
@@ -213,7 +216,17 @@ func init_random_speed():
 ## [param influent_speed_factor] 本次更新的速度影响因素，最终速度由所有因素相乘得到。
 func update_speed_factor(value: float, influent_speed_factor:E_Influence_Speed_Factor) -> void:
 	influence_speed_factors[influent_speed_factor] = value
-	signal_update_speed.emit(GlobalUtils.get_dic_product(influence_speed_factors))
+	signal_update_speed.emit(speed_factor_product())
+
+## 返回角色合成速度；普通与抗火寒冷重叠时仍为同一种减速强度。
+func speed_factor_product() -> float:
+	var cold_overlap: bool = influence_speed_factors.get(E_Influence_Speed_Factor.IceDecelerateSpeed, 1.0) < 1.0 \
+		and influence_speed_factors.get(E_Influence_Speed_Factor.DeepColdSlow, 1.0) < 1.0 # 两种寒冷的标准减速均为半速。
+	return GlobalUtils.get_dic_product(influence_speed_factors) * (2.0 if cold_overlap else 1.0)
+
+## 从 [param speed_product] 移除皇朝攻速，保留生产与成长原有的速度来源。
+func production_speed_product(speed_product: float) -> float:
+	return speed_product / influence_speed_factors.get(E_Influence_Speed_Factor.Dynasty, 1.0)
 
 #region 死亡、受击相关
 ## 亡语
@@ -311,11 +324,25 @@ func can_receive_negative_effects() -> bool:
 func can_receive_cold() -> bool:
 	return true
 
+## 返回物种当前能否完全冻结；有条件抵抗的僵尸继续只受减速。
+func can_cold_freeze() -> bool:
+	return can_receive_cold()
+
+## 返回命中前是否已处在任一种寒冷减速、完全冻结或冻结值减速中。
+func is_cold_slowed() -> bool:
+	return is_cold_frozen() or influence_speed_factors.get(E_Influence_Speed_Factor.IceDecelerateSpeed, 1.0) < 1.0 \
+		or influence_speed_factors.get(E_Influence_Speed_Factor.DeepColdSlow, 1.0) < 1.0 \
+		or AdventureFreezeChargeEffect.has_points(self)
+
+## 返回是否仍有任一寒冷冻结来源。
+func is_cold_frozen() -> bool:
+	return influence_speed_factors.get(E_Influence_Speed_Factor.IceFreezeSpeed, 1.0) <= 0.0 \
+		or influence_speed_factors.get(E_Influence_Speed_Factor.DeepColdFreeze, 1.0) <= 0.0
+
 ## 返回当前是否冻住或处于真实解冻后一秒保护期；尚无冻结值节点时也生效。
 func is_ice_charge_blocked() -> bool:
 	var recovery: Timer = all_timer.get(E_TimerType.IceChargeRecovery) as Timer # 所有冻结共用的恢复窗口。
-	return influence_speed_factors.get(E_Influence_Speed_Factor.IceFreezeSpeed, 1.0) <= 0.0 \
-		or (is_instance_valid(recovery) and recovery.time_left > 0.0)
+	return is_cold_frozen() or (is_instance_valid(recovery) and recovery.time_left > 0.0)
 
 ## 被冰冻减速
 ## [param time] 本次冰冻减速持续时间，单位为秒。
@@ -335,13 +362,21 @@ func _on_ice_decelerate_timer_timeout() -> void:
 ## 被冰冻控制
 ## [param time] 本次完全冰冻持续时间，单位为秒。
 ## [param new_time_ice_end_decelerate] 冰冻解除后继续减速的时长，单位为秒。
-func be_ice_freeze(time:float, new_time_ice_end_decelerate:float):
-	## 被冰冻掉20血
-	hp_component.Hp_loss(20,BulletRegistry.AttackMode.Real, true, false)
-	if is_death or is_queued_for_deletion():
-		return
+## [param hit_scope] 可观察实际附伤结算，缺省仍是原生冰冻伤害。
+func be_ice_freeze(time: float, new_time_ice_end_decelerate: float, hit_scope: CombatHitScope = null) -> void:
+	hp_component.Hp_loss(20, BulletRegistry.AttackMode.Real, true, false, true, 0, -1, null, hit_scope)
+	apply_ice_freeze_control(time, new_time_ice_end_decelerate)
 
-	self.time_ice_end_decelerate = new_time_ice_end_decelerate
+## 施加 [param time] 秒原生冻结，并安排 [param followup] 秒后续减速。
+## 冰痕满冻结值时使用此纯控制入口；保留物种只减速的原生资格。
+func apply_ice_freeze_control(time: float, followup: float) -> void:
+	if is_death or is_queued_for_deletion() or not can_receive_cold():
+		return
+	if not can_cold_freeze():
+		be_ice_decelerate(time + followup)
+		return
+	on_cold_control()
+	self.time_ice_end_decelerate = followup
 	update_speed_factor(0.0, E_Influence_Speed_Factor.IceFreezeSpeed)
 	body.set_other_color(BodyCharacter.E_ChangeColors.IceColor, Color(0.5, 1, 1))
 	if not is_instance_valid(all_timer[E_TimerType.IceFreeze]):
@@ -366,7 +401,12 @@ func _on_ice_freeze_timer_timeout() -> void:
 	if is_death or is_queued_for_deletion():
 		return
 	be_ice_decelerate(time_ice_end_decelerate)
-	if not was_frozen:
+	if was_frozen:
+		notify_cold_thaw()
+
+## 任一冰冻来源退出时检查是否真正解冻；阶段清理不调用此入口。
+func notify_cold_thaw() -> void:
+	if is_death or is_queued_for_deletion() or is_cold_frozen():
 		return
 	if not is_instance_valid(all_timer[E_TimerType.IceChargeRecovery]):
 		var recovery: Timer = Timer.new() # 即使尚未被施加冻结值，所有原生冰冻结束都登记保护期。
@@ -375,6 +415,10 @@ func _on_ice_freeze_timer_timeout() -> void:
 		all_timer[E_TimerType.IceChargeRecovery] = recovery
 	all_timer[E_TimerType.IceChargeRecovery].start(ICE_CHARGE_RECOVERY_SECONDS)
 	signal_ice_freeze_ended.emit()
+
+## 寒冷控制实际施加时的物种行为；普通角色没有额外反应。
+func on_cold_control() -> void:
+	pass
 
 ## 取消冰冻减速(火焰豌豆\辣椒)
 func cancel_ice():
@@ -386,5 +430,21 @@ func cancel_ice():
 	if is_instance_valid(all_timer[E_TimerType.IceDecelerate]) and all_timer[E_TimerType.IceDecelerate].time_left != 0:
 		all_timer[E_TimerType.IceDecelerate].stop()
 		_on_ice_decelerate_timer_timeout()
+
+## 净化原生冻结和减速，不安排冻后减速，也不启动解冻保护期。
+func clear_cold() -> void:
+	if not is_cold_slowed():
+		return
+	for kind: E_TimerType in [E_TimerType.IceFreeze, E_TimerType.IceDecelerate]: # 只终止寒冷控制计时。
+		var timer: Timer = all_timer.get(kind) # 从未受过对应状态时没有计时器。
+		if is_instance_valid(timer):
+			timer.stop()
+	if is_instance_valid(ice_effect):
+		ice_effect.queue_free()
+	ice_effect = null
+	time_ice_end_decelerate = 0.0
+	if is_cold_frozen():
+		update_speed_factor(1.0, E_Influence_Speed_Factor.IceFreezeSpeed)
+	_on_ice_decelerate_timer_timeout()
 
 #endregion

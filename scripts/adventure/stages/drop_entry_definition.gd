@@ -20,10 +20,18 @@ enum AssetKind { UNSET, ITEM, KEY }
 @export var quantity_max: int = 0
 ## 开启时，装备加成后的单条掉落数量仍不得超过 [member quantity_max]。
 @export var cap_quantity_at_max: bool = false
+## 抽中配方时，随配方发放合成目录中的每种材料，每份配方各带一套。
+@export var include_recipe_materials: bool = false
 ## 仅 CHANCE 使用 0–1；-1 表示该参数不适用于当前规则。
 @export var chance: float = -1.0
 ## 仅 WEIGHTED 使用正整数；不是概率，不要求总和为 1。
 @export var weight: int = 0
+
+## 返回此条目附带的配方材料。材料清单与研究室共用合成目录。
+func included_materials() -> Array:
+	if not include_recipe_materials:
+		return []
+	return AdventureRecipeCatalog.definition(str(asset_id)).get("materials", [])
 
 ## 返回配置错误，不读取资产服务或执行随机抽取。
 func validate() -> PackedStringArray:
@@ -42,6 +50,8 @@ func validate() -> PackedStringArray:
 			var is_key: bool = str(ItemRegistry.get_item_definition(id).get("category", "")) == "key"
 			if (asset_kind == AssetKind.KEY) != is_key:
 				errors.append("掉落资产类别与道具注册类别不一致：" + id)
+	if include_recipe_materials and included_materials().is_empty():
+		errors.append("附带配方材料需要引用有合成材料的配方。")
 	if quantity_min < 1 or quantity_max < quantity_min or quantity_max > PlantCardInstance.MAX_JSON_INTEGER:
 		errors.append("掉落数量区间无效。")
 	if rule == Rule.CHANCE:

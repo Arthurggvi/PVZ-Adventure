@@ -1,0 +1,100 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://8othbxgdaxqc" path="res://assets/reanim/PuffShroom_body.png" id="99_3wquj"]
+
+[ext_resource type="Texture2D" uid="uid://7o5qmisxmqhk" path="res://assets/reanim/PuffShroom_stem.png" id="100_uiicr"]
+
+[ext_resource type="Texture2D" uid="uid://bp35mb8xfhk3r" path="res://assets/reanim/PuffShroom_tip.png" id="101_77hod"]
+
+[ext_resource type="Texture2D" uid="uid://c1s61ypq4l5s7" path="res://assets/reanim/PuffShroom_head.png" id="102_uq7n7"]
+
+[ext_resource type="Texture2D" uid="uid://b3ddxb6ikwr4q" path="res://assets/reanim/PuffShroom_blink2.png" id="103_tvr4e"]
+
+[ext_resource type="Texture2D" uid="uid://yjc7pkf5hdn2" path="res://assets/image/particles/bullet/PuffShroom_puff1.png" id="104_boyy4"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_9"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 9
+
+[node name="Card9" unique_id=681262259 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_9")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant009Puff" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1340241467]
+position = Vector2(1, 10)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff" unique_id=1394377985]
+unique_name_in_owner = true
+visible = false
+scale = Vector2(0.576, 0.5)
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant009Puff" unique_id=811287391]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant009Puff/Body" unique_id=995399884]
+position = Vector2(-41, -63)
+
+[node name="Anim_sleep" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff/Body/BodyCorrect" unique_id=62366074]
+visible = false
+centered = false
+
+[node name="Anim_shooting" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff/Body/BodyCorrect" unique_id=405942271]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff/Body/BodyCorrect" unique_id=858687271]
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff/Body/BodyCorrect" unique_id=1085418773]
+position = Vector2(29.3, 46.6)
+scale = Vector2(0.44, 0.44)
+texture = ExtResource("99_3wquj")
+centered = false
+
+[node name="PuffShroom_stem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff/Body/BodyCorrect" unique_id=749033822]
+position = Vector2(47.6, 51)
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("100_uiicr")
+centered = false
+
+[node name="PuffShroom_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff/Body/BodyCorrect" unique_id=1685683846]
+position = Vector2(49.4, 48.8)
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("101_77hod")
+centered = false
+
+[node name="PuffShroom_head" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff/Body/BodyCorrect" unique_id=406427803]
+position = Vector2(22.4, 28.4)
+scale = Vector2(0.44, 0.44)
+texture = ExtResource("102_uq7n7")
+centered = false
+
+[node name="PuffShroom_eyes" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff/Body/BodyCorrect" unique_id=2147123148]
+visible = false
+centered = false
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff/Body/BodyCorrect" unique_id=1456737540]
+visible = false
+position = Vector2(43.9, 49.2)
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("103_tvr4e")
+centered = false
+
+[node name="PuffShroomPuff1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant009Puff/Body/BodyCorrect" unique_id=131194722]
+visible = false
+position = Vector2(14, 4)
+scale = Vector2(0.5, 0.592593)
+texture = ExtResource("104_boyy4")

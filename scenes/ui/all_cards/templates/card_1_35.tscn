@@ -1,0 +1,212 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://b7uqfdos6ocy7" path="res://assets/reanim/Cabbagepult_basket.png" id="245_etbto"]
+
+[ext_resource type="Texture2D" uid="uid://ypi3oybr0n66" path="res://assets/reanim/Cabbagepult_basket_overlay.png" id="247_qq07m"]
+
+[ext_resource type="Texture2D" uid="uid://b5mr8ey3k5b38" path="res://assets/reanim/Cornpult_husk5.png" id="263_l1yc2"]
+
+[ext_resource type="Texture2D" uid="uid://dhiff2v81wape" path="res://assets/reanim/Cornpult_husk6.png" id="264_2uats"]
+
+[ext_resource type="Texture2D" uid="uid://c34rhce01kmx3" path="res://assets/reanim/Cornpult_body.png" id="265_ch63v"]
+
+[ext_resource type="Texture2D" uid="uid://bbajmrd6xl8hb" path="res://assets/reanim/Cornpult_blink1.png" id="266_hvhik"]
+
+[ext_resource type="Texture2D" uid="uid://bqviq28gmuns3" path="res://assets/reanim/Cornpult_kernal.png" id="267_0ve74"]
+
+[ext_resource type="Texture2D" uid="uid://ckgvs70ot3cw4" path="res://assets/reanim/Cornpult_butter.png" id="268_tmgt8"]
+
+[ext_resource type="Texture2D" uid="uid://im1lwg4ej8fv" path="res://assets/reanim/Cornpult_husk3.png" id="269_bga83"]
+
+[ext_resource type="Texture2D" uid="uid://cytnopd2epjgs" path="res://assets/reanim/Cornpult_husktip3.png" id="270_s6kw2"]
+
+[ext_resource type="Texture2D" uid="uid://bbhqqfta66jy3" path="res://assets/reanim/Cornpult_husk1.png" id="271_whtsg"]
+
+[ext_resource type="Texture2D" uid="uid://cqja5st2uvpp8" path="res://assets/reanim/Cornpult_husktip1.png" id="272_utmk7"]
+
+[ext_resource type="Texture2D" uid="uid://7dsmvhc7gwje" path="res://assets/reanim/Cornpult_husk4.png" id="273_4k8ki"]
+
+[ext_resource type="Texture2D" uid="uid://thxhat42ty1a" path="res://assets/reanim/Cornpult_husk2.png" id="274_ghxkp"]
+
+[ext_resource type="Texture2D" uid="uid://4np7ydpdsxtv" path="res://assets/reanim/Cornpult_husktip2.png" id="275_xbns8"]
+
+[ext_resource type="Texture2D" uid="uid://bmjlqqawxj4f" path="res://assets/reanim/Cornpult_stalk1.png" id="276_jnetc"]
+
+[ext_resource type="Texture2D" uid="uid://ce5wk77hkwut6" path="res://assets/reanim/Cornpult_stalk2.png" id="277_x4ed2"]
+
+[ext_resource type="Texture2D" uid="uid://c0jiwde0862hq" path="res://assets/reanim/Cornpult_stalk4.png" id="278_g74nx"]
+
+[ext_resource type="Texture2D" uid="uid://rlj4anlr1koh" path="res://assets/reanim/Cornpult_stalk3.png" id="279_kkciq"]
+
+[ext_resource type="Texture2D" uid="uid://diyoj22drctsu" path="res://assets/reanim/Cornpult_eyebrow.png" id="280_d31db"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_35"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 35
+
+[node name="Card35" unique_id=359628872 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_35")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant035CornPult" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=578490006]
+position = Vector2(6, 15)
+scale = Vector2(0.45, 0.45)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant035CornPult" unique_id=1060697879]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body" unique_id=2044813572]
+position = Vector2(-45, -67)
+
+[node name="Cornpult_husk5" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=774656746]
+position = Vector2(55.7, 55.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("263_l1yc2")
+centered = false
+
+[node name="Cornpult_husk6" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=617221949]
+position = Vector2(16.8, 55.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("264_2uats")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=1130492893]
+position = Vector2(23.4, 18.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("265_ch63v")
+centered = false
+
+[node name="Cornpult_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=846322619]
+visible = false
+position = Vector2(45.8, 46.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("266_hvhik")
+centered = false
+
+[node name="Cabbagepult_basket" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=254462117]
+position = Vector2(-16.5, 4.6)
+rotation = 0.071558
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("245_etbto")
+centered = false
+
+[node name="Cabbagepult_basket2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=76681593]
+position = Vector2(-16.4, 4.8)
+rotation = 0.071558
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("247_qq07m")
+centered = false
+
+[node name="Cornpult_kernal" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=2127386114]
+position = Vector2(-16.7, 11.1)
+rotation = -0.71384
+scale = Vector2(0.95, 0.95)
+texture = ExtResource("267_0ve74")
+centered = false
+
+[node name="Cornpult_butter" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=2102584478]
+visible = false
+position = Vector2(-22, -18.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("268_tmgt8")
+centered = false
+
+[node name="Cabbagepult_basket_overlay" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=509609060]
+position = Vector2(-16.5, 4.3)
+rotation = 0.071558
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("247_qq07m")
+centered = false
+
+[node name="Cornpult_husk3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=833181829]
+position = Vector2(12.4, 58.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("269_bga83")
+centered = false
+
+[node name="Cornpult_husktip3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=608282491]
+position = Vector2(7.7, 59.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("270_s6kw2")
+centered = false
+
+[node name="Cornpult_husk1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=748348512]
+position = Vector2(19.3, 61.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("271_whtsg")
+centered = false
+
+[node name="Cornpult_husktip1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=1810751351]
+position = Vector2(11.8, 67.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("272_utmk7")
+centered = false
+
+[node name="Cornpult_husk4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=768901379]
+position = Vector2(56.3, 61.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("273_4k8ki")
+centered = false
+
+[node name="Cornpult_husk2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=1722513455]
+position = Vector2(44.9, 63)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("274_ghxkp")
+centered = false
+
+[node name="Cornpult_husktip2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=2003458186]
+position = Vector2(62.5, 65.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("275_xbns8")
+centered = false
+
+[node name="Cornpult_stalk1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=66166136]
+position = Vector2(38.8, 9.4)
+rotation = 0.071558
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("276_jnetc")
+centered = false
+
+[node name="Cornpult_stalk2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=1930887047]
+position = Vector2(26.2, 8.5)
+rotation = 0.071558
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("277_x4ed2")
+centered = false
+
+[node name="Cornpult_stalk4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=1119795636]
+position = Vector2(14, 13.5)
+rotation = 0.333358
+scale = Vector2(0.755, 0.755)
+texture = ExtResource("278_g74nx")
+centered = false
+
+[node name="Cornpult_stalk3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=1926093383]
+position = Vector2(14.6, 16)
+rotation = 0.071558
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("279_kkciq")
+centered = false
+
+[node name="Cornpult_eyebrow1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=1788852542]
+position = Vector2(38.7, 42)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("280_d31db")
+centered = false
+
+[node name="Cornpult_eyebrow2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant035CornPult/Body/BodyCorrect" unique_id=2142530549]
+position = Vector2(64.7, 42.1)
+rotation = 3.14159
+scale = Vector2(0.621, 0.621)
+skew = -3.14159
+texture = ExtResource("280_d31db")
+centered = false

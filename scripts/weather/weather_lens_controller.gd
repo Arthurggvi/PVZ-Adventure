@@ -22,7 +22,7 @@ const LIGHT_FIELD_CLASS = preload("res://scripts/weather/weather_light_field.gd"
 const WIPE_SIMULATION = preload("res://scripts/weather/weather_lens_wipe.gd")
 ## 可复用的镜头水珠状态模拟器。
 var _droplets = DROPLET_SIMULATION.new()
-## 擦拭路径点记录，xy 为 UV，z 为创建时间。
+## 持久擦拭遮罩，记录水膜清除程度与回湿时间。
 var _wipe = WIPE_SIMULATION.new()
 ## 逻辑游戏时间，暂停时不推进。
 var _clock: float = 0.0
@@ -79,7 +79,6 @@ func _apply_profile() -> void:
         _material.set_shader_parameter("droplet_light_gain", profile.light_profile.droplet_response)
     _material.set_shader_parameter("droplet_strength", profile.droplet_strength)
     _material.set_shader_parameter("refraction_strength", profile.refraction_strength)
-    _material.set_shader_parameter("wipe_radius", profile.wipe_radius)
     _material.set_shader_parameter("wipe_recovery_seconds", profile.wipe_recovery_seconds)
     set_weather_strength(_strength)
     _sync_viewport()
@@ -122,6 +121,7 @@ func unregister_light_emitter(emitter: CanvasItem) -> void:
 func _sync_viewport() -> void:
     if _material != null:
         _material.set_shader_parameter("viewport_size", get_viewport().get_visible_rect().size)
+        _wipe.resize(get_viewport().get_visible_rect().size)
 
 
 ## 跟随引擎战斗时间，暂停和恢复自然生效。
@@ -141,7 +141,7 @@ func advance_effect(delta: float, mouse_position: Vector2) -> void:
     _droplets.advance(dt, profile.droplet_speed, mouse_position, profile.wipe_radius,
         get_viewport().get_visible_rect().size)
     _wipe.advance(mouse_position, _clock, get_viewport().get_visible_rect().size,
-        profile.wipe_recovery_seconds)
+        profile.wipe_recovery_seconds, profile.wipe_radius)
     if _clock >= _next_lightning:
         if _strength >= 0.7:
             trigger_lightning()
@@ -165,7 +165,7 @@ func trigger_lightning() -> void:
 
 ## 将擦拭历史和水珠位置统一同步给 GPU Shader。
 func _upload_gpu_state() -> void:
-    _material.set_shader_parameter("wipe_points", _wipe.get_uniform_data())
+    _material.set_shader_parameter("wipe_mask", _wipe.get_texture())
     _material.set_shader_parameter("drops", _droplets.get_uniform_data())
 
 

@@ -224,7 +224,9 @@ func be_ice_decelerate(_time: float) -> void:
 	pass
 
 ## [param _time] 为冻结秒数，[param _new_time_ice_end_decelerate] 为解冻后的减速秒数。
-func be_ice_freeze(_time: float, _new_time_ice_end_decelerate: float) -> void:
+## [param _hit_scope] 为可选冻伤观察组，只有原生冻伤结算才使用。
+func be_ice_freeze(_time: float, _new_time_ice_end_decelerate: float,
+		_hit_scope: CombatHitScope = null) -> void:
 	pass
 
 ## [param _butter_time] 为黄油停顿秒数，乘坐阶段不受黄油影响。

@@ -15,8 +15,8 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="GodotPVZ-Dream"
-config/version="1.1.2"
-run/main_scene="res://scenes/main/01StartMenuCoastal.tscn"
+config/version="1.2.0"
+run/main_scene="res://scenes/main/00Bootstrap.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="uid://dxvlqvahfmjaa"
 config/windows_native_icon="res://pvz_icon.ico"
@@ -26,7 +26,7 @@ config/windows_native_icon="res://pvz_icon.ico"
 Global="*res://scenes/autoload/global.tscn"
 SoundManager="*res://scenes/autoload/sound_manager.tscn"
 SceneRegistry="*res://scripts/autoload/scene_registry.gd"
-AllCards="*res://scenes/autoload/all_cards.tscn"
+AllCards="*res://scripts/autoload/lazy_card_catalog.gd"
 GlobalUtils="*res://scripts/autoload/util/global_utils.gd"
 EventBus="*res://scripts/autoload/event_bus.gd"
 TreePauseManager="*res://scripts/autoload/tree_pause_manager.gd"
@@ -49,6 +49,15 @@ project/assembly_name="GodotPVZ2025"
 enabled=PackedStringArray("res://addons/DragNDropNodes/plugin.cfg", "res://addons/R2Ga_PVZ/plugin.cfg", "res://addons/anim_free_common_tracks/plugin.cfg", "res://addons/anim_player_refactor/plugin.cfg")
 
 [input]
+
+ui_accept={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"device":-1,"keycode":4194309,"physical_keycode":0),
+Object(InputEventKey,"device":-1,"keycode":4194310,"physical_keycode":0),
+Object(InputEventKey,"device":-1,"keycode":32,"physical_keycode":0),
+Object(InputEventJoypadButton,"device":-1,"button_index":0,"pressure":0.0)
+]
+}
 
 ShortcutKeys_Pause={
 "deadzone": 0.2,

@@ -1,0 +1,165 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://dvuugtbourjhs" path="res://assets/reanim/CherryBomb_leftstem.png" id="36_5eqyv"]
+
+[ext_resource type="Texture2D" uid="uid://bmpuc6vb6mfpk" path="res://assets/reanim/CherryBomb_left1.png" id="37_k15qc"]
+
+[ext_resource type="Texture2D" uid="uid://dlayj8ftlothc" path="res://assets/reanim/CherryBomb_lefteye11.png" id="38_s5ym1"]
+
+[ext_resource type="Texture2D" uid="uid://cuv0j6lkkkr5d" path="res://assets/reanim/CherryBomb_lefteye21.png" id="39_wief5"]
+
+[ext_resource type="Texture2D" uid="uid://b6gaqdfa477uw" path="res://assets/reanim/CherryBomb_leftmouth1.png" id="40_0ojfb"]
+
+[ext_resource type="Texture2D" uid="uid://bjdqpef0ve0pg" path="res://assets/reanim/CherryBomb_rightstem.png" id="41_v7gpl"]
+
+[ext_resource type="Texture2D" uid="uid://dspmy0uy0cacv" path="res://assets/reanim/CherryBomb_right1.png" id="42_dap4d"]
+
+[ext_resource type="Texture2D" uid="uid://cfdwh0bhgcrlb" path="res://assets/reanim/CherryBomb_righteye11.png" id="43_nq15w"]
+
+[ext_resource type="Texture2D" uid="uid://d0dmytj04iew5" path="res://assets/reanim/CherryBomb_righteye21.png" id="44_eabf5"]
+
+[ext_resource type="Texture2D" uid="uid://biffa3h6h5rxy" path="res://assets/reanim/CherryBomb_rightmouth1.png" id="45_evstp"]
+
+[ext_resource type="Texture2D" uid="uid://d2cv50584w3k7" path="res://assets/reanim/CherryBomb_leaf3.png" id="46_q0hna"]
+
+[ext_resource type="Texture2D" uid="uid://b6robscgti75e" path="res://assets/reanim/CherryBomb_leaf2tip.png" id="47_44drx"]
+
+[ext_resource type="Texture2D" uid="uid://bjskgh2aep1fi" path="res://assets/reanim/CherryBomb_leaf2.png" id="48_0qgcy"]
+
+[ext_resource type="Texture2D" uid="uid://be4ah7odddsjx" path="res://assets/reanim/CherryBomb_leaf1.png" id="49_eums5"]
+
+[ext_resource type="Texture2D" uid="uid://fh1tkc18o3qe" path="res://assets/reanim/CherryBomb_leaf1tip.png" id="50_6m8rv"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_3"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 3
+
+[node name="Card3" unique_id=216141279 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_3")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant003CherryBomb" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1244618523]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant003CherryBomb" unique_id=1028253321]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body" unique_id=981304139]
+position = Vector2(-42, -67)
+
+[node name="Anim_explode" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=447489800]
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=1053037533]
+visible = false
+centered = false
+
+[node name="CherryBomb_leftstem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=1721626795]
+position = Vector2(31, 17.1)
+rotation = 0.493928
+scale = Vector2(0.599, 0.599)
+texture = ExtResource("36_5eqyv")
+centered = false
+
+[node name="CherryBomb_left1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=106165041]
+position = Vector2(4, 30.9)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("37_k15qc")
+centered = false
+
+[node name="CherryBomb_left3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=1010936678]
+visible = false
+centered = false
+
+[node name="CherryBomb_lefteye11" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=2128467779]
+position = Vector2(8.7, 41.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("38_s5ym1")
+centered = false
+
+[node name="CherryBomb_lefteye21" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=1399485406]
+position = Vector2(21.2, 44.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("39_wief5")
+centered = false
+
+[node name="CherryBomb_leftmouth1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=2118384002]
+position = Vector2(9.2, 52.9)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("40_0ojfb")
+centered = false
+
+[node name="CherryBomb_rightstem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=1681674729]
+position = Vector2(34, 21.9)
+rotation = 6.23432
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("41_v7gpl")
+centered = false
+
+[node name="CherryBomb_right1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=777372071]
+position = Vector2(44.5, 31.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("42_dap4d")
+centered = false
+
+[node name="CherryBomb_right3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=851561582]
+visible = false
+centered = false
+
+[node name="CherryBomb_righteye11" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=451860834]
+position = Vector2(66.7, 42)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("43_nq15w")
+centered = false
+
+[node name="CherryBomb_righteye21" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=1225260650]
+position = Vector2(51.4, 45.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("44_eabf5")
+centered = false
+
+[node name="CherryBomb_rightmouth1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=1831119527]
+position = Vector2(63.1, 50.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("45_evstp")
+centered = false
+
+[node name="CherryBomb_leaf3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=573897577]
+position = Vector2(36.1, 11.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("46_q0hna")
+centered = false
+
+[node name="CherryBomb_leaf2tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=1276896726]
+position = Vector2(25.5, 7.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("47_44drx")
+centered = false
+
+[node name="CherryBomb_leaf2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=1034304421]
+position = Vector2(27.2, 5.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("48_0qgcy")
+centered = false
+
+[node name="CherryBomb_leaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=809975966]
+position = Vector2(23.3, 14.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("49_eums5")
+centered = false
+
+[node name="CherryBomb_leaf1tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant003CherryBomb/Body/BodyCorrect" unique_id=1225123039]
+position = Vector2(18, 14.9)
+scale = Vector2(0.8, 0.871)
+texture = ExtResource("50_6m8rv")
+centered = false

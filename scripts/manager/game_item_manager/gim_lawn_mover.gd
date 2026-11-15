@@ -24,6 +24,9 @@ var all_lawn_movers_type:Array = []
 var all_lawn_movers_global_pos:Array[Vector2] = []
 var all_lawn_movers:Array[LawnMover] = []
 
+## 本局固定小推车开关；新补充的车继承此状态，不写入存档。
+var cheat_fixed_enabled: bool = false
+
 var game_scene:MainSceneRegistry.MainScenes
 
 func _ready() -> void:
@@ -74,10 +77,19 @@ func replenish_lawn_mover():
 				var new_lawn_mover = create_lawn_mover(i, all_lawn_movers_type[i], all_lawn_movers_global_pos[i])
 				all_lawn_movers[i] = new_lawn_mover
 
+## 按 [param enabled] 切换场上所有存活小推车的固定状态，包括已启动且被补车替换登记的旧车。
+func set_cheat_fixed(enabled: bool) -> void:
+	cheat_fixed_enabled = enabled
+	for child: Node in lawn_movers.get_children(): # 直接遍历容器，覆盖仍在场上的已启动车辆。
+		var mower: LawnMover = child as LawnMover # 压扁后的纯视觉残留不受开关影响。
+		if mower != null and not mower.is_destroyed and not mower.is_queued_for_deletion():
+			mower.set_cheat_fixed(enabled)
+
 ## 生成一个小推车
 func create_lawn_mover(lane:int, lawn_mover_type:E_LawnMoverType, global_pos:Vector2)->LawnMover:
 	var new_lawn_mover:LawnMover = LawnMoverSecneMap[lawn_mover_type].instantiate()
 	new_lawn_mover.lane = lane
+	new_lawn_mover.cheat_fixed_enabled = cheat_fixed_enabled
 	new_lawn_mover.z_index = lane * 50 + 40
 	## 由于在ready中会检测屋顶，使用全局位置，因此在add_child之前修改其局部位置
 	new_lawn_mover.position = global_pos - lawn_movers.global_position

@@ -93,7 +93,7 @@ func _run() -> void:
 	var intruder := battle.zombie_manager.create_skill_zombie(CharacterRegistry.ZombieType.Z001Norm, 0, 80)
 	assert(intruder != null)
 	battle.on_zombie_go_home(intruder)
-	await get_tree().create_timer(6.0, true, false, true).timeout
+	await _wait_for_scene(AdventureSession.MAP_SCENE)
 	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
 	assert(not AdventureSession.progress.stage_1_cleared and not AdventureSession.is_unlocked(2))
 	assert(not get_tree().paused)
@@ -129,8 +129,7 @@ func _run() -> void:
 			trophy = item
 	assert(trophy != null)
 	trophy._on_trophy_button_pressed()
-	await get_tree().create_timer(6.0).timeout
-	await _frames()
+	await _wait_for_scene(AdventureSession.MAP_SCENE)
 	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
 	assert(AdventureSession.progress.stage_1_cleared and AdventureSession.is_unlocked(2))
 	await _screenshot("victory-map")
@@ -210,6 +209,17 @@ func _frames() -> void:
 			await get_tree().process_frame
 			continue
 		break
+
+## 等待 [param path] 对应的场景接管场景树，并完成可选的揭幕。
+func _wait_for_scene(path: String) -> void:
+	var deadline: int = Time.get_ticks_msec() + 15000 # 包含原有胜负演出与异步加载的容错上限。
+	while Time.get_ticks_msec() < deadline:
+		var scene: Node = get_tree().current_scene # 切场空帧可以暂时没有当前场景。
+		if is_instance_valid(scene) and scene.scene_file_path == path:
+			await _frames()
+			return
+		await get_tree().process_frame
+	assert(false, "Threaded destination did not become active: " + path)
 
 ## 从真正的持久工具栏地区导航进入地图；等待动效完成再选择。
 func _enter_island_from_menu() -> void:

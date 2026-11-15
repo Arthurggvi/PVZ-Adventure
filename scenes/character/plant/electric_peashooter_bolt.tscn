@@ -1,0 +1,2529 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/plants/electric_peashooter/electric_peashooter_atlas.png" id="ATLASIMAGE_ATLAS_PLANTELECTRICPEASHOOTER_1536_00"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/plants/electric_peashooter/electric_peashooter_hit_atlas.png" id="ATLASIMAGE_ATLAS_PLANTLIGHTNINGREEDHIT_1536_00"]
+
+[sub_resource type="AtlasTexture" id="Texture_000"]
+atlas = ExtResource("ATLASIMAGE_ATLAS_PLANTELECTRICPEASHOOTER_1536_00")
+region = Rect2(534, 722, 206, 80)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Texture_001"]
+atlas = ExtResource("ATLASIMAGE_ATLAS_PLANTELECTRICPEASHOOTER_1536_00")
+region = Rect2(962, 738, 42, 42)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Texture_002"]
+atlas = ExtResource("ATLASIMAGE_ATLAS_PLANTLIGHTNINGREEDHIT_1536_00")
+region = Rect2(231, 1, 2, 2)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Texture_003"]
+atlas = ExtResource("ATLASIMAGE_ATLAS_PLANTLIGHTNINGREEDHIT_1536_00")
+region = Rect2(107, 129, 78, 78)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Texture_004"]
+atlas = ExtResource("ATLASIMAGE_ATLAS_PLANTLIGHTNINGREEDHIT_1536_00")
+region = Rect2(1, 1, 104, 169)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Texture_005"]
+atlas = ExtResource("ATLASIMAGE_ATLAS_PLANTLIGHTNINGREEDHIT_1536_00")
+region = Rect2(107, 1, 122, 126)
+filter_clip = true
+
+[sub_resource type="Animation" id="Animation_bolt"]
+resource_name = "bolt"
+length = 0.5
+step = 0.03333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer00:visible")
+tracks/0/interp = 0
+tracks/0/loop_wrap = false
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer00:texture")
+tracks/1/interp = 0
+tracks/1/loop_wrap = false
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [SubResource("Texture_000")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer00:transform")
+tracks/2/interp = 0
+tracks/2/loop_wrap = false
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(0.7815534, 0, 0, 0.775, -16.4, -35)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer00:self_modulate")
+tracks/3/interp = 0
+tracks/3/loop_wrap = false
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 1), Color(1, 1, 1, 0.87843137), Color(1, 1, 1, 0.75294118), Color(1, 1, 1, 0.62745098), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0.37647059), Color(1, 1, 1, 0.25098039), Color(1, 1, 1, 0.1254902), Color(1, 1, 1, 0)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer01:visible")
+tracks/4/interp = 0
+tracks/4/loop_wrap = false
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer01:texture")
+tracks/5/interp = 0
+tracks/5/loop_wrap = false
+tracks/5/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [SubResource("Texture_001")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer01:transform")
+tracks/6/interp = 0
+tracks/6/loop_wrap = false
+tracks/6/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(0.78571429, 0, 0, 0.78571429, -17.2, -16.7)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer01:self_modulate")
+tracks/7/interp = 0
+tracks/7/loop_wrap = false
+tracks/7/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 1), Color(1, 1, 1, 0.80392157), Color(1, 1, 1, 0.60392157), Color(1, 1, 1, 0.4), Color(1, 1, 1, 0.2), Color(1, 1, 1, 0)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer02:visible")
+tracks/8/interp = 0
+tracks/8/loop_wrap = false
+tracks/8/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer02:texture")
+tracks/9/interp = 0
+tracks/9/loop_wrap = false
+tracks/9/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer02:transform")
+tracks/10/interp = 0
+tracks/10/loop_wrap = false
+tracks/10/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer02:self_modulate")
+tracks/11/interp = 0
+tracks/11/loop_wrap = false
+tracks/11/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer03:visible")
+tracks/12/interp = 0
+tracks/12/loop_wrap = false
+tracks/12/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer03:texture")
+tracks/13/interp = 0
+tracks/13/loop_wrap = false
+tracks/13/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer03:transform")
+tracks/14/interp = 0
+tracks/14/loop_wrap = false
+tracks/14/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer03:self_modulate")
+tracks/15/interp = 0
+tracks/15/loop_wrap = false
+tracks/15/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer04:visible")
+tracks/16/interp = 0
+tracks/16/loop_wrap = false
+tracks/16/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer04:texture")
+tracks/17/interp = 0
+tracks/17/loop_wrap = false
+tracks/17/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer04:transform")
+tracks/18/interp = 0
+tracks/18/loop_wrap = false
+tracks/18/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer04:self_modulate")
+tracks/19/interp = 0
+tracks/19/loop_wrap = false
+tracks/19/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer05:visible")
+tracks/20/interp = 0
+tracks/20/loop_wrap = false
+tracks/20/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer05:texture")
+tracks/21/interp = 0
+tracks/21/loop_wrap = false
+tracks/21/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer05:transform")
+tracks/22/interp = 0
+tracks/22/loop_wrap = false
+tracks/22/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/23/type = "value"
+tracks/23/path = NodePath("Rig/Layer05:self_modulate")
+tracks/23/interp = 0
+tracks/23/loop_wrap = false
+tracks/23/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/24/type = "value"
+tracks/24/path = NodePath("Rig/Layer06:visible")
+tracks/24/interp = 0
+tracks/24/loop_wrap = false
+tracks/24/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/25/type = "value"
+tracks/25/path = NodePath("Rig/Layer06:texture")
+tracks/25/interp = 0
+tracks/25/loop_wrap = false
+tracks/25/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/26/type = "value"
+tracks/26/path = NodePath("Rig/Layer06:transform")
+tracks/26/interp = 0
+tracks/26/loop_wrap = false
+tracks/26/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/27/type = "value"
+tracks/27/path = NodePath("Rig/Layer06:self_modulate")
+tracks/27/interp = 0
+tracks/27/loop_wrap = false
+tracks/27/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/28/type = "value"
+tracks/28/path = NodePath("Rig/Layer07:visible")
+tracks/28/interp = 0
+tracks/28/loop_wrap = false
+tracks/28/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/29/type = "value"
+tracks/29/path = NodePath("Rig/Layer07:texture")
+tracks/29/interp = 0
+tracks/29/loop_wrap = false
+tracks/29/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/30/type = "value"
+tracks/30/path = NodePath("Rig/Layer07:transform")
+tracks/30/interp = 0
+tracks/30/loop_wrap = false
+tracks/30/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/31/type = "value"
+tracks/31/path = NodePath("Rig/Layer07:self_modulate")
+tracks/31/interp = 0
+tracks/31/loop_wrap = false
+tracks/31/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/32/type = "value"
+tracks/32/path = NodePath("Rig/Layer08:visible")
+tracks/32/interp = 0
+tracks/32/loop_wrap = false
+tracks/32/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/33/type = "value"
+tracks/33/path = NodePath("Rig/Layer08:texture")
+tracks/33/interp = 0
+tracks/33/loop_wrap = false
+tracks/33/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/34/type = "value"
+tracks/34/path = NodePath("Rig/Layer08:transform")
+tracks/34/interp = 0
+tracks/34/loop_wrap = false
+tracks/34/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/35/type = "value"
+tracks/35/path = NodePath("Rig/Layer08:self_modulate")
+tracks/35/interp = 0
+tracks/35/loop_wrap = false
+tracks/35/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/36/type = "value"
+tracks/36/path = NodePath("Rig/Layer09:visible")
+tracks/36/interp = 0
+tracks/36/loop_wrap = false
+tracks/36/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/37/type = "value"
+tracks/37/path = NodePath("Rig/Layer09:texture")
+tracks/37/interp = 0
+tracks/37/loop_wrap = false
+tracks/37/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/38/type = "value"
+tracks/38/path = NodePath("Rig/Layer09:transform")
+tracks/38/interp = 0
+tracks/38/loop_wrap = false
+tracks/38/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/39/type = "value"
+tracks/39/path = NodePath("Rig/Layer09:self_modulate")
+tracks/39/interp = 0
+tracks/39/loop_wrap = false
+tracks/39/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/40/type = "value"
+tracks/40/path = NodePath("Rig/Layer10:visible")
+tracks/40/interp = 0
+tracks/40/loop_wrap = false
+tracks/40/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/41/type = "value"
+tracks/41/path = NodePath("Rig/Layer10:texture")
+tracks/41/interp = 0
+tracks/41/loop_wrap = false
+tracks/41/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/42/type = "value"
+tracks/42/path = NodePath("Rig/Layer10:transform")
+tracks/42/interp = 0
+tracks/42/loop_wrap = false
+tracks/42/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/43/type = "value"
+tracks/43/path = NodePath("Rig/Layer10:self_modulate")
+tracks/43/interp = 0
+tracks/43/loop_wrap = false
+tracks/43/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/44/type = "value"
+tracks/44/path = NodePath("Rig/Layer11:visible")
+tracks/44/interp = 0
+tracks/44/loop_wrap = false
+tracks/44/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/45/type = "value"
+tracks/45/path = NodePath("Rig/Layer11:texture")
+tracks/45/interp = 0
+tracks/45/loop_wrap = false
+tracks/45/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/46/type = "value"
+tracks/46/path = NodePath("Rig/Layer11:transform")
+tracks/46/interp = 0
+tracks/46/loop_wrap = false
+tracks/46/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/47/type = "value"
+tracks/47/path = NodePath("Rig/Layer11:self_modulate")
+tracks/47/interp = 0
+tracks/47/loop_wrap = false
+tracks/47/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_hit"]
+resource_name = "hit"
+length = 0.76666667
+step = 0.03333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer00:visible")
+tracks/0/interp = 0
+tracks/0/loop_wrap = false
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer00:texture")
+tracks/1/interp = 0
+tracks/1/loop_wrap = false
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.06666667),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [SubResource("Texture_004"), SubResource("Texture_003")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer00:transform")
+tracks/2/interp = 0
+tracks/2/loop_wrap = false
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.56666667, 0.6, 0.63333333, 0.66666667, 0.7, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(0, -0.9018372, 0.63417151, 0, -82.61191406, 89.14213867), Transform2D(0, -0.90182552, 0.6341598, 0, -82.61172638, 89.14195099), Transform2D(0.23493888, 0, 0, 0.23493888, -9.26966019, -12.47093201), Transform2D(0.21397992, 0, 0, 0.21397992, -7.22423553, -33.85869751), Transform2D(0.19463384, 0, 0, 0.19463384, -2.33615417, -53.12818604), Transform2D(0.17690481, 0, 0, 0.17690481, 5.59456482, -69.67947998), Transform2D(0.16078028, 0, 0, 0.16078028, 19.06797867, -78.96233215), Transform2D(0.14627282, 0, 0, 0.14627282, 32.68403015, -70.87698975), Transform2D(0.13337403, 0, 0, 0.13337403, 39.54275742, -57.82328796), Transform2D(0.12209231, 0, 0, 0.12209231, 43.64412231, -45.8513916), Transform2D(0.11241926, 0, 0, 0.11241926, 46.13816299, -35.21113586), Transform2D(0.10435909, 0, 0, 0.10435909, 47.57486038, -26.35260315), Transform2D(0.09006947, 0, 0, 0.09006947, 54.28992004, -38.97154541), Transform2D(0.07577984, 0, 0, 0.07577984, 69.00497971, -40.44048767), Transform2D(0.06149022, 0, 0, 0.06149022, 78.67003937, -27.50942993), Transform2D(0.11371375, 0, 0, 0.11371375, 79.03226929, 48.41340332), Transform2D(0.1081462, 0, 0, 0.1081462, 82.30761795, 42.62290955), Transform2D(0.10257865, 0, 0, 0.10257865, 87.98296661, 38.88241577), Transform2D(0.0970111, 0, 0, 0.0970111, 94.90831528, 37.941922), Transform2D(0.09143936, 0, 0, 0.09143936, 101.73368301, 39.20151062), Transform2D(0.08587181, 0, 0, 0.08587181, 107.90903168, 42.81101685), Transform2D(0.08030426, 0, 0, 0.08030426, 112.53438034, 48.22052307)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer00:self_modulate")
+tracks/3/interp = 0
+tracks/3/loop_wrap = false
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 0.29019608), Color(1, 1, 1, 0.82745098), Color(1, 1, 1, 1)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer01:visible")
+tracks/4/interp = 0
+tracks/4/loop_wrap = false
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer01:texture")
+tracks/5/interp = 0
+tracks/5/loop_wrap = false
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.06666667),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [SubResource("Texture_003"), SubResource("Texture_002")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer01:transform")
+tracks/6/interp = 0
+tracks/6/loop_wrap = false
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.56666667, 0.6, 0.63333333, 0.66666667, 0.7, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(0.78205015, 0, 0, 0.78205015, -30.16061935, -33.93187561), Transform2D(1.12441048, 0, 0, 1.12441048, -42.91936188, -46.86564331), Transform2D(0.42786407, 0, 0, 0.42786407, -16.11548538, -18.67496109), Transform2D(0.38969421, 0, 0, 0.38969421, -13.45934296, -39.50926361), Transform2D(0.35446167, 0, 0, 0.35446167, -8.00754089, -58.26788025), Transform2D(0.32217407, 0, 0, 0.32217407, 0.43977966, -74.35100403), Transform2D(0.29280853, 0, 0, 0.29280853, 14.38304214, -83.20805588), Transform2D(0.26638794, 0, 0, 0.26638794, 28.42182312, -74.73961487), Transform2D(0.24289703, 0, 0, 0.24289703, 35.65640488, -61.34529495), Transform2D(0.22235107, 0, 0, 0.22235107, 40.08650513, -49.07548218), Transform2D(0.2047348, 0, 0, 0.2047348, 42.86240616, -38.1797905), Transform2D(0.19005585, 0, 0, 0.19005585, 44.53396683, -29.10841293), Transform2D(0.16403198, 0, 0, 0.16403198, 51.66540833, -41.35000916), Transform2D(0.13800812, 0, 0, 0.13800812, 66.79684982, -42.44160538), Transform2D(0.11198425, 0, 0, 0.11198425, 76.87829132, -29.1332016), Transform2D(0.20709229, 0, 0, 0.20709229, 75.71879272, 45.41056519), Transform2D(0.19695282, 0, 0, 0.19695282, 79.15637283, 39.76709366), Transform2D(0.18681335, 0, 0, 0.18681335, 84.99395294, 36.17362213), Transform2D(0.17667389, 0, 0, 0.17667389, 92.08153305, 35.3801506), Transform2D(0.16652679, 0, 0, 0.16652679, 99.0692543, 36.7868721), Transform2D(0.15638733, 0, 0, 0.15638733, 105.40683441, 40.54340057), Transform2D(0.14624786, 0, 0, 0.14624786, 110.19441452, 46.09992905)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer01:self_modulate")
+tracks/7/interp = 0
+tracks/7/loop_wrap = false
+tracks/7/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer02:visible")
+tracks/8/interp = 0
+tracks/8/loop_wrap = false
+tracks/8/keys = {
+"times": PackedFloat32Array(0, 0.73333333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer02:texture")
+tracks/9/interp = 0
+tracks/9/loop_wrap = false
+tracks/9/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [SubResource("Texture_002"), SubResource("Texture_003"), null]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer02:transform")
+tracks/10/interp = 0
+tracks/10/loop_wrap = false
+tracks/10/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.56666667, 0.6, 0.63333333, 0.66666667, 0.7, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1.42424774, 0, 0, 1.42424774, -52.94858322, -54.58346786), Transform2D(2.04774475, 0, 0, 2.04774475, -75.68327789, -76.5579422), Transform2D(0.25478348, 0, 0, 0.25478348, -10.11001129, -5.91124878), Transform2D(0.23892288, 0, 0, 0.23892288, -6.28779907, -22.24929199), Transform2D(0.22390013, 0, 0, 0.22390013, 4.73059845, -34.1038147), Transform2D(0.20970686, 0, 0, 0.20970686, 20.54521942, -36.2746521), Transform2D(0.19635144, 0, 0, 0.19635144, 35.1560257, -31.76196899), Transform2D(0.18382969, 0, 0, 0.18382969, 47.36303635, -23.56568298), Transform2D(0.17214579, 0, 0, 0.17214579, 56.8662323, -13.58587646), Transform2D(0.16129138, 0, 0, 0.16129138, 64.1156517, -3.17238464), Transform2D(0.15127481, 0, 0, 0.15127481, 69.76125641, 6.87462769), Transform2D(0.14209192, 0, 0, 0.14209192, 74.05306549, 16.50524292), Transform2D(0.13374688, 0, 0, 0.13374688, 76.94105988, 25.61937866), Transform2D(0.12623131, 0, 0, 0.12623131, 78.52527771, 34.01719971), Transform2D(0.11955779, 0, 0, 0.11955779, 78.95566177, 41.64845886), Transform2D(0.11371375, 0, 0, 0.11371375, 78.43226929, 48.26340332), Transform2D(0.14757987, 0, 0, 0.14757987, -77.92192078, 16.69730225), Transform2D(0.14259044, 0, 0, 0.14259044, -79.29920425, 25.59543762), Transform2D(0.13796548, 0, 0, 0.13796548, -80.42814713, 33.93640442), Transform2D(0.13368823, 0, 0, 0.13368823, -81.3086731, 41.62053223), Transform2D(0.12977125, 0, 0, 0.12977125, -81.94083939, 48.74757385), Transform2D(0.12621037, 0, 0, 0.12621037, -82.37462692, 55.26761169), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer02:self_modulate")
+tracks/11/interp = 0
+tracks/11/loop_wrap = false
+tracks/11/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer03:visible")
+tracks/12/interp = 0
+tracks/12/loop_wrap = false
+tracks/12/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer03:texture")
+tracks/13/interp = 0
+tracks/13/loop_wrap = false
+tracks/13/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), null]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer03:transform")
+tracks/14/interp = 0
+tracks/14/loop_wrap = false
+tracks/14/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.56666667, 0.6, 0.63333333, 0.66666667, 0.7, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(0.46400452, 0, 0, 0.46400452, -17.53408356, -12.63931427), Transform2D(0.43511963, 0, 0, 0.43511963, -13.24971313, -28.55852661), Transform2D(0.40776062, 0, 0, 0.40776062, -1.79357147, -40.01634369), Transform2D(0.38191223, 0, 0, 0.38191223, 14.43462372, -41.81237946), Transform2D(0.35758972, 0, 0, 0.35758972, 29.43459015, -36.94701996), Transform2D(0.33478546, 0, 0, 0.33478546, 42.00646896, -28.42007217), Transform2D(0.31350708, 0, 0, 0.31350708, 51.85011902, -18.13172913), Transform2D(0.29373932, 0, 0, 0.29373932, 59.4158226, -7.43160477), Transform2D(0.27549744, 0, 0, 0.27549744, 65.35329742, 2.87991486), Transform2D(0.2587738, 0, 0, 0.2587738, 69.91268463, 12.75302277), Transform2D(0.24357605, 0, 0, 0.24357605, 73.04384308, 22.08752594), Transform2D(0.22988892, 0, 0, 0.22988892, 74.84705505, 30.68381042), Transform2D(0.21773529, 0, 0, 0.21773529, 75.47189713, 38.49129715), Transform2D(0.20709229, 0, 0, 0.20709229, 75.11879272, 45.26056519), Transform2D(0.26876831, 0, 0, 0.26876831, -82.22221375, 12.80016174), Transform2D(0.2596817, 0, 0, 0.2596817, -83.45411148, 21.83005295), Transform2D(0.25125885, 0, 0, 0.25125885, -84.44828873, 30.29315109), Transform2D(0.24346924, 0, 0, 0.24346924, -85.20418091, 38.09022827), Transform2D(0.23633575, 0, 0, 0.23633575, -85.72221146, 45.32070541), Transform2D(0.22985077, 0, 0, 0.22985077, -86.05223923, 51.93477554), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer03:self_modulate")
+tracks/15/interp = 0
+tracks/15/loop_wrap = false
+tracks/15/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer04:visible")
+tracks/16/interp = 0
+tracks/16/loop_wrap = false
+tracks/16/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer04:texture")
+tracks/17/interp = 0
+tracks/17/loop_wrap = false
+tracks/17/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333, 0.63333333, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_003"), SubResource("Texture_004"), SubResource("Texture_005"), null]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer04:transform")
+tracks/18/interp = 0
+tracks/18/loop_wrap = false
+tracks/18/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.63333333, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(0.25478348, 0, 0, 0.25478348, -10.96001129, -11.91124878), Transform2D(0.244813, 0, 0, 0.244813, -14.11461639, -28.76514282), Transform2D(0.23519023, 0, 0, 0.23519023, -17.7708046, -44.52587585), Transform2D(0.22593612, 0, 0, 0.22593612, -22.17867126, -59.54385986), Transform2D(0.21702971, 0, 0, 0.21702971, -28.08812103, -73.31868286), Transform2D(0.20848359, 0, 0, 0.20848359, -38.04921112, -83.50059204), Transform2D(0.20028936, 0, 0, 0.20028936, -50.56190338, -76.73942261), Transform2D(0.19245541, 0, 0, 0.19245541, -57.57623596, -63.73533936), Transform2D(0.18497755, 0, 0, 0.18497755, -62.54218979, -50.73825989), Transform2D(0.17785159, 0, 0, 0.17785159, -66.45974579, -37.94810181), Transform2D(0.17108591, 0, 0, 0.17108591, -69.57894211, -25.61502991), Transform2D(0.16467631, 0, 0, 0.16467631, -72.29975967, -14.08896179), Transform2D(0.15861862, 0, 0, 0.15861862, -74.42217941, -3.06981506), Transform2D(0.1529212, 0, 0, 0.1529212, -76.34623947, 7.19224548), Transform2D(0, -0.9018372, 0.63417151, 0, -82.61191406, 89.14213867), Transform2D(0, -0.90165467, 0.63150244, 0, -36.26191406, -5.10786133), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer04:self_modulate")
+tracks/19/interp = 0
+tracks/19/loop_wrap = false
+tracks/19/keys = {
+"times": PackedFloat32Array(0, 0.53333333, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer05:visible")
+tracks/20/interp = 0
+tracks/20/loop_wrap = false
+tracks/20/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer05:texture")
+tracks/21/interp = 0
+tracks/21/loop_wrap = false
+tracks/21/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), SubResource("Texture_005"), null]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer05:transform")
+tracks/22/interp = 0
+tracks/22/loop_wrap = false
+tracks/22/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.63333333, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(0.46400452, 0, 0, 0.46400452, -18.38408356, -18.63931427), Transform2D(0.44584656, 0, 0, 0.44584656, -21.24816132, -35.22991791), Transform2D(0.42832184, 0, 0, 0.42832184, -24.62395401, -50.73654251), Transform2D(0.41146851, 0, 0, 0.41146851, -28.76216736, -65.5101532), Transform2D(0.39524841, 0, 0, 0.39524841, -34.41209564, -79.04978485), Transform2D(0.37968445, 0, 0, 0.37968445, -44.12416229, -89.00601654), Transform2D(0.36476135, 0, 0, 0.36476135, -56.39808502, -82.02846222), Transform2D(0.35049438, 0, 0, 0.35049438, -63.18414612, -68.81750793), Transform2D(0.33687592, 0, 0, 0.33687592, -67.93220444, -55.62296066), Transform2D(0.32389832, 0, 0, 0.32389832, -71.64211884, -42.64462738), Transform2D(0.31157684, 0, 0, 0.31157684, -74.5641716, -30.13289413), Transform2D(0.29990387, 0, 0, 0.29990387, -77.09822159, -18.4375679), Transform2D(0.28887177, 0, 0, 0.28887177, -79.04412766, -7.25845566), Transform2D(0.27849579, 0, 0, 0.27849579, -80.80217209, 3.15405655), Transform2D(0, -0.90165467, 0.63150244, 0, -36.26191406, -5.10786133), Transform2D(-0.61070943, -0.23336574, 0.16345071, -0.86990207, 3.78563538, 127.2490036), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/23/type = "value"
+tracks/23/path = NodePath("Rig/Layer05:self_modulate")
+tracks/23/interp = 0
+tracks/23/loop_wrap = false
+tracks/23/keys = {
+"times": PackedFloat32Array(0, 0.53333333, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/24/type = "value"
+tracks/24/path = NodePath("Rig/Layer06:visible")
+tracks/24/interp = 0
+tracks/24/loop_wrap = false
+tracks/24/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.63333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/25/type = "value"
+tracks/25/path = NodePath("Rig/Layer06:texture")
+tracks/25/interp = 0
+tracks/25/loop_wrap = false
+tracks/25/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333, 0.63333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_003"), SubResource("Texture_005"), null]
+}
+tracks/26/type = "value"
+tracks/26/path = NodePath("Rig/Layer06:transform")
+tracks/26/interp = 0
+tracks/26/loop_wrap = false
+tracks/26/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.63333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(0.19271096, 0, 0, 0.19271096, -8.07739944, -8.5903656), Transform2D(0.18020178, 0, 0, 0.18020178, -2.72044601, -24.39432678), Transform2D(0.16835031, 0, 0, 0.16835031, 5.48351288, -37.86122437), Transform2D(0.15715656, 0, 0, 0.15715656, 15.93447723, -48.54105835), Transform2D(0.14662053, 0, 0, 0.14662053, 28.38244705, -55.53382874), Transform2D(0.1367464, 0, 0, 0.1367464, 41.72740326, -58.33961792), Transform2D(0.12752999, 0, 0, 0.12752999, 54.46936493, -57.65834351), Transform2D(0.11896711, 0, 0, 0.11896711, 65.85835114, -53.8899231), Transform2D(0.11106613, 0, 0, 0.11106613, 75.24432373, -47.88452148), Transform2D(0.10382287, 0, 0, 0.10382287, 82.77730179, -40.89205627), Transform2D(0.09724151, 0, 0, 0.09724151, 88.60726624, -33.76260986), Transform2D(0.09131368, 0, 0, 0.09131368, 92.93425522, -26.64601746), Transform2D(0.08604776, 0, 0, 0.08604776, 96.10823059, -19.99244385), Transform2D(0.08143956, 0, 0, 0.08143956, 98.47921143, -10.75180664), Transform2D(-0.61070943, -0.23336574, 0.16345071, -0.86990207, 3.78563538, 127.2490036), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/27/type = "value"
+tracks/27/path = NodePath("Rig/Layer06:self_modulate")
+tracks/27/interp = 0
+tracks/27/loop_wrap = false
+tracks/27/keys = {
+"times": PackedFloat32Array(0, 0.53333333, 0.63333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/28/type = "value"
+tracks/28/path = NodePath("Rig/Layer07:visible")
+tracks/28/interp = 0
+tracks/28/loop_wrap = false
+tracks/28/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.56666667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/29/type = "value"
+tracks/29/path = NodePath("Rig/Layer07:texture")
+tracks/29/interp = 0
+tracks/29/loop_wrap = false
+tracks/29/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333, 0.56666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), SubResource("Texture_004"), null]
+}
+tracks/30/type = "value"
+tracks/30/path = NodePath("Rig/Layer07:transform")
+tracks/30/interp = 0
+tracks/30/loop_wrap = false
+tracks/30/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.56666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(0.35095978, 0, 0, 0.35095978, -13.69275589, -13.67928238), Transform2D(0.32817841, 0, 0, 0.32817841, -7.97130051, -29.15291367), Transform2D(0.30659485, 0, 0, 0.30659485, 0.5779953, -42.30684967), Transform2D(0.28620911, 0, 0, 0.28620911, 11.35513153, -52.69109039), Transform2D(0.26702118, 0, 0, 0.26702118, 24.11010818, -59.40563583), Transform2D(0.2490387, 0, 0, 0.2490387, 37.74278412, -61.95067902), Transform2D(0.23225403, 0, 0, 0.23225403, 50.75330048, -61.02602692), Transform2D(0.21665955, 0, 0, 0.21665955, 62.3917984, -57.03148651), Transform2D(0.20227051, 0, 0, 0.20227051, 72.00799561, -50.81744385), Transform2D(0.18907928, 0, 0, 0.18907928, 79.75203323, -43.6337059), Transform2D(0.17709351, 0, 0, 0.17709351, 85.77377014, -36.3304657), Transform2D(0.16629791, 0, 0, 0.16629791, 90.27348862, -29.05733719), Transform2D(0.15670776, 0, 0, 0.15670776, 93.60090637, -22.26470642), Transform2D(0.14831543, 0, 0, 0.14831543, 96.10616455, -12.90238037), Transform2D(-0.16780974, -0.41451388, -0.41731118, 0.34357984, 89.08359222, -26.49443512), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/31/type = "value"
+tracks/31/path = NodePath("Rig/Layer07:self_modulate")
+tracks/31/interp = 0
+tracks/31/loop_wrap = false
+tracks/31/keys = {
+"times": PackedFloat32Array(0, 0.53333333, 0.56666667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/32/type = "value"
+tracks/32/path = NodePath("Rig/Layer08:visible")
+tracks/32/interp = 0
+tracks/32/loop_wrap = false
+tracks/32/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/33/type = "value"
+tracks/33/path = NodePath("Rig/Layer08:texture")
+tracks/33/interp = 0
+tracks/33/loop_wrap = false
+tracks/33/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_004"), null]
+}
+tracks/34/type = "value"
+tracks/34/path = NodePath("Rig/Layer08:transform")
+tracks/34/interp = 0
+tracks/34/loop_wrap = false
+tracks/34/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.2, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(0, -0.9018372, 0.63417151, 0, -82.61191406, 89.14213867), Transform2D(0, -0.90182552, 0.6341598, 0, -82.61172638, 89.14195099), Transform2D(0, -0.9018372, 0.63417151, 0, -82.61191406, 89.14213867), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/35/type = "value"
+tracks/35/path = NodePath("Rig/Layer08:self_modulate")
+tracks/35/interp = 0
+tracks/35/loop_wrap = false
+tracks/35/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.13333333, 0.16666667, 0.2, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.75294118), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0.25098039), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/36/type = "value"
+tracks/36/path = NodePath("Rig/Layer09:visible")
+tracks/36/interp = 0
+tracks/36/loop_wrap = false
+tracks/36/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/37/type = "value"
+tracks/37/path = NodePath("Rig/Layer09:texture")
+tracks/37/interp = 0
+tracks/37/loop_wrap = false
+tracks/37/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_003"), SubResource("Texture_005"), null]
+}
+tracks/38/type = "value"
+tracks/38/path = NodePath("Rig/Layer09:transform")
+tracks/38/interp = 0
+tracks/38/loop_wrap = false
+tracks/38/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.2, 0.23333333, 0.3, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(1.46680014, 0, 0, 1.46680014, -55.92823792, -59.79998779), Transform2D(0, -0.90165467, 0.63150244, 0, -36.26191406, -5.10786133), Transform2D(0, -0.901643, 0.63149077, 0, -36.26172638, -5.10804901), Transform2D(0, -0.90165467, 0.63150244, 0, -36.26191406, -5.10786133), Transform2D(0, -0.901643, 0.63149077, 0, -36.26172638, -5.10804901), Transform2D(0, -0.90165467, 0.63150244, 0, -36.26191406, -5.10786133), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/39/type = "value"
+tracks/39/path = NodePath("Rig/Layer09:self_modulate")
+tracks/39/interp = 0
+tracks/39/loop_wrap = false
+tracks/39/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.29019608), Color(1, 1, 1, 0.52941176), Color(1, 1, 1, 0.76470588), Color(1, 1, 1, 1), Color(1, 1, 1, 0.67058824), Color(1, 1, 1, 0.33333333), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/40/type = "value"
+tracks/40/path = NodePath("Rig/Layer10:visible")
+tracks/40/interp = 0
+tracks/40/loop_wrap = false
+tracks/40/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.26666667, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [false, true, false, true, false]
+}
+tracks/41/type = "value"
+tracks/41/path = NodePath("Rig/Layer10:texture")
+tracks/41/interp = 0
+tracks/41/loop_wrap = false
+tracks/41/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.26666667, 0.33333333, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), null, SubResource("Texture_004"), SubResource("Texture_005"), null]
+}
+tracks/42/type = "value"
+tracks/42/path = NodePath("Rig/Layer10:transform")
+tracks/42/interp = 0
+tracks/42/loop_wrap = false
+tracks/42/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.26666667, 0.3, 0.33333333, 0.4, 0.5, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(2.67129517, 0, 0, 2.67129517, -98.66896057, -98.5337677), Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-0.16780974, -0.41451388, -0.41731118, 0.34357984, 89.08359222, -26.49443512), Transform2D(-0.16758783, -0.41404671, -0.41714721, 0.34239686, 89.07739868, -26.43298645), Transform2D(-0.61070943, -0.23336574, 0.16345071, -0.86990207, 3.78563538, 127.2490036), Transform2D(-0.61044086, -0.23206958, 0.16184116, -0.86968047, 3.85721893, 127.1746048), Transform2D(-0.61070943, -0.23336574, 0.16345071, -0.86990207, 3.78563538, 127.2490036), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/43/type = "value"
+tracks/43/path = NodePath("Rig/Layer10:self_modulate")
+tracks/43/interp = 0
+tracks/43/loop_wrap = false
+tracks/43/keys = {
+"times": PackedFloat32Array(0, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0.29019608), Color(1, 1, 1, 1), Color(1, 1, 1, 0.75294118), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0.25098039), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/44/type = "value"
+tracks/44/path = NodePath("Rig/Layer11:visible")
+tracks/44/interp = 0
+tracks/44/loop_wrap = false
+tracks/44/keys = {
+"times": PackedFloat32Array(0, 0.33333333, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/45/type = "value"
+tracks/45/path = NodePath("Rig/Layer11:texture")
+tracks/45/interp = 0
+tracks/45/loop_wrap = false
+tracks/45/keys = {
+"times": PackedFloat32Array(0, 0.33333333, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_004"), null]
+}
+tracks/46/type = "value"
+tracks/46/path = NodePath("Rig/Layer11:transform")
+tracks/46/interp = 0
+tracks/46/loop_wrap = false
+tracks/46/keys = {
+"times": PackedFloat32Array(0, 0.33333333, 0.36666667, 0.46666667, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-0.16780974, -0.41451388, -0.41731118, 0.34357984, 89.08359222, -26.49443512), Transform2D(-0.16758783, -0.41404671, -0.41714721, 0.34239686, 89.07739868, -26.43298645), Transform2D(-0.16780974, -0.41451388, -0.41731118, 0.34357984, 89.08359222, -26.49443512), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/47/type = "value"
+tracks/47/path = NodePath("Rig/Layer11:self_modulate")
+tracks/47/interp = 0
+tracks/47/loop_wrap = false
+tracks/47/keys = {
+"times": PackedFloat32Array(0, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.75294118), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0.25098039), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_hit2"]
+resource_name = "hit2"
+length = 0.83333333
+step = 0.03333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer00:visible")
+tracks/0/interp = 0
+tracks/0/loop_wrap = false
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer00:texture")
+tracks/1/interp = 0
+tracks/1/loop_wrap = false
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [SubResource("Texture_003"), SubResource("Texture_005"), SubResource("Texture_003")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer00:transform")
+tracks/2/interp = 0
+tracks/2/loop_wrap = false
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.56666667, 0.6, 0.63333333, 0.66666667, 0.7, 0.73333333, 0.76666667, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(-0.78205015, 0, 0, 0.78205015, 28.46061935, -33.93187561), Transform2D(-0.62690549, 0, 0, 0.88982314, -4.17385712, -47.21871948), Transform2D(-0.23493888, 0, 0, 0.23493888, 7.56966019, -12.47093201), Transform2D(-0.21397992, 0, 0, 0.21397992, 5.52423553, -33.85869751), Transform2D(-0.19463384, 0, 0, 0.19463384, 0.63615417, -53.12818604), Transform2D(-0.17690481, 0, 0, 0.17690481, -7.29456482, -69.67947998), Transform2D(-0.16078028, 0, 0, 0.16078028, -20.76797867, -78.96233215), Transform2D(-0.14627282, 0, 0, 0.14627282, -34.38403015, -70.87698975), Transform2D(-0.13337403, 0, 0, 0.13337403, -41.24275742, -57.82328796), Transform2D(-0.12209231, 0, 0, 0.12209231, -45.34412231, -45.8513916), Transform2D(-0.11241926, 0, 0, 0.11241926, -47.83816299, -35.21113586), Transform2D(-0.10435909, 0, 0, 0.10435909, -49.27486038, -26.35260315), Transform2D(-0.13374688, 0, 0, 0.13374688, -78.64105988, 25.61937866), Transform2D(-0.12623131, 0, 0, 0.12623131, -80.22527771, 34.01719971), Transform2D(-0.11955779, 0, 0, 0.11955779, -80.65566177, 41.64845886), Transform2D(-0.11371375, 0, 0, 0.11371375, -80.13226929, 48.26340332), Transform2D(-0.11371375, 0, 0, 0.11371375, -80.73226929, 48.41340332), Transform2D(-0.1081462, 0, 0, 0.1081462, -84.00761795, 42.62290955), Transform2D(-0.10257865, 0, 0, 0.10257865, -89.68296661, 38.88241577), Transform2D(-0.0970111, 0, 0, 0.0970111, -96.60831528, 37.941922), Transform2D(-0.09143936, 0, 0, 0.09143936, -103.43368301, 39.20151062), Transform2D(-0.08587181, 0, 0, 0.08587181, -109.60903168, 42.81101685), Transform2D(-0.08030426, 0, 0, 0.08030426, -114.23438034, 48.22052307), Transform2D(-0.07473671, 0, 0, 0.07473671, -117.059729, 54.6800293), Transform2D(-0.78205015, 0, 0, 0.78205015, 28.46061935, -33.93187561)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer00:self_modulate")
+tracks/3/interp = 0
+tracks/3/loop_wrap = false
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.29019608), Color(1, 1, 1, 1)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer01:visible")
+tracks/4/interp = 0
+tracks/4/loop_wrap = false
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer01:texture")
+tracks/5/interp = 0
+tracks/5/loop_wrap = false
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [SubResource("Texture_002"), SubResource("Texture_003"), SubResource("Texture_002")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer01:transform")
+tracks/6/interp = 0
+tracks/6/loop_wrap = false
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.56666667, 0.6, 0.63333333, 0.66666667, 0.7, 0.73333333, 0.76666667, 0.8),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(-1.42424774, 0, 0, 1.42424774, 51.24858322, -54.58346786), Transform2D(-1.12441048, 0, 0, 1.12441048, 41.21936188, -46.86564331), Transform2D(-0.42786407, 0, 0, 0.42786407, 14.41548538, -18.67496109), Transform2D(-0.38969421, 0, 0, 0.38969421, 11.75934296, -39.50926361), Transform2D(-0.35446167, 0, 0, 0.35446167, 6.30754089, -58.26788025), Transform2D(-0.32217407, 0, 0, 0.32217407, -2.13977966, -74.35100403), Transform2D(-0.29280853, 0, 0, 0.29280853, -16.08304214, -83.20805588), Transform2D(-0.26638794, 0, 0, 0.26638794, -30.12182312, -74.73961487), Transform2D(-0.24289703, 0, 0, 0.24289703, -37.35640488, -61.34529495), Transform2D(-0.22235107, 0, 0, 0.22235107, -41.78650513, -49.07548218), Transform2D(-0.2047348, 0, 0, 0.2047348, -44.56240616, -38.1797905), Transform2D(-0.19005585, 0, 0, 0.19005585, -46.23396683, -29.10841293), Transform2D(-0.24357605, 0, 0, 0.24357605, -74.74384308, 22.08752594), Transform2D(-0.22988892, 0, 0, 0.22988892, -76.54705505, 30.68381042), Transform2D(-0.21773529, 0, 0, 0.21773529, -77.17189713, 38.49129715), Transform2D(-0.20709229, 0, 0, 0.20709229, -76.81879272, 45.26056519), Transform2D(-0.20709229, 0, 0, 0.20709229, -77.41879272, 45.41056519), Transform2D(-0.19695282, 0, 0, 0.19695282, -80.85637283, 39.76709366), Transform2D(-0.18681335, 0, 0, 0.18681335, -86.69395294, 36.17362213), Transform2D(-0.17667389, 0, 0, 0.17667389, -93.78153305, 35.3801506), Transform2D(-0.16652679, 0, 0, 0.16652679, -100.7692543, 36.7868721), Transform2D(-0.15638733, 0, 0, 0.15638733, -107.10683441, 40.54340057), Transform2D(-0.14624786, 0, 0, 0.14624786, -111.89441452, 46.09992905), Transform2D(-0.1361084, 0, 0, 0.1361084, -114.88199463, 52.70645752), Transform2D(-1.42424774, 0, 0, 1.42424774, 51.24858322, -54.58346786)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer01:self_modulate")
+tracks/7/interp = 0
+tracks/7/loop_wrap = false
+tracks/7/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer02:visible")
+tracks/8/interp = 0
+tracks/8/loop_wrap = false
+tracks/8/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer02:texture")
+tracks/9/interp = 0
+tracks/9/loop_wrap = false
+tracks/9/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), SubResource("Texture_003"), null]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer02:transform")
+tracks/10/interp = 0
+tracks/10/loop_wrap = false
+tracks/10/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.56666667, 0.6, 0.63333333, 0.66666667, 0.7, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-2.04774475, 0, 0, 2.04774475, 73.98327789, -76.5579422), Transform2D(-0.25478348, 0, 0, 0.25478348, 8.41001129, -5.91124878), Transform2D(-0.23892288, 0, 0, 0.23892288, 4.58779907, -22.24929199), Transform2D(-0.22390013, 0, 0, 0.22390013, -6.43059845, -34.1038147), Transform2D(-0.20970686, 0, 0, 0.20970686, -22.24521942, -36.2746521), Transform2D(-0.19635144, 0, 0, 0.19635144, -36.8560257, -31.76196899), Transform2D(-0.18382969, 0, 0, 0.18382969, -49.06303635, -23.56568298), Transform2D(-0.17214579, 0, 0, 0.17214579, -58.5662323, -13.58587646), Transform2D(-0.16129138, 0, 0, 0.16129138, -65.8156517, -3.17238464), Transform2D(-0.15127481, 0, 0, 0.15127481, -71.46125641, 6.87462769), Transform2D(-0.14209192, 0, 0, 0.14209192, -75.75306549, 16.50524292), Transform2D(-0.17108591, 0, 0, 0.17108591, 67.87894211, -25.61502991), Transform2D(-0.16467631, 0, 0, 0.16467631, 70.59975967, -14.08896179), Transform2D(-0.15861862, 0, 0, 0.15861862, 72.72217941, -3.06981506), Transform2D(-0.1529212, 0, 0, 0.1529212, 74.64623947, 7.19224548), Transform2D(-0.14757987, 0, 0, 0.14757987, 76.22192078, 16.69730225), Transform2D(-0.14259044, 0, 0, 0.14259044, 77.59920425, 25.59543762), Transform2D(-0.13796548, 0, 0, 0.13796548, 78.72814713, 33.93640442), Transform2D(-0.13368823, 0, 0, 0.13368823, 79.6086731, 41.62053223), Transform2D(-0.12977125, 0, 0, 0.12977125, 80.24083939, 48.74757385), Transform2D(-0.12621037, 0, 0, 0.12621037, 80.67462692, 55.26761169), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer02:self_modulate")
+tracks/11/interp = 0
+tracks/11/loop_wrap = false
+tracks/11/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer03:visible")
+tracks/12/interp = 0
+tracks/12/loop_wrap = false
+tracks/12/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer03:texture")
+tracks/13/interp = 0
+tracks/13/loop_wrap = false
+tracks/13/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), null]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer03:transform")
+tracks/14/interp = 0
+tracks/14/loop_wrap = false
+tracks/14/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.56666667, 0.6, 0.63333333, 0.66666667, 0.7, 0.73333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-0.46400452, 0, 0, 0.46400452, 15.83408356, -12.63931427), Transform2D(-0.43511963, 0, 0, 0.43511963, 11.54971313, -28.55852661), Transform2D(-0.40776062, 0, 0, 0.40776062, 0.09357147, -40.01634369), Transform2D(-0.38191223, 0, 0, 0.38191223, -16.13462372, -41.81237946), Transform2D(-0.35758972, 0, 0, 0.35758972, -31.13459015, -36.94701996), Transform2D(-0.33478546, 0, 0, 0.33478546, -43.70646896, -28.42007217), Transform2D(-0.31350708, 0, 0, 0.31350708, -53.55011902, -18.13172913), Transform2D(-0.29373932, 0, 0, 0.29373932, -61.1158226, -7.43160477), Transform2D(-0.27549744, 0, 0, 0.27549744, -67.05329742, 2.87991486), Transform2D(-0.2587738, 0, 0, 0.2587738, -71.61268463, 12.75302277), Transform2D(-0.31157684, 0, 0, 0.31157684, 72.8641716, -30.13289413), Transform2D(-0.29990387, 0, 0, 0.29990387, 75.39822159, -18.4375679), Transform2D(-0.28887177, 0, 0, 0.28887177, 77.34412766, -7.25845566), Transform2D(-0.27849579, 0, 0, 0.27849579, 79.10217209, 3.15405655), Transform2D(-0.26876831, 0, 0, 0.26876831, 80.52221375, 12.80016174), Transform2D(-0.2596817, 0, 0, 0.2596817, 81.75411148, 21.83005295), Transform2D(-0.25125885, 0, 0, 0.25125885, 82.74828873, 30.29315109), Transform2D(-0.24346924, 0, 0, 0.24346924, 83.50418091, 38.09022827), Transform2D(-0.23633575, 0, 0, 0.23633575, 84.02221146, 45.32070541), Transform2D(-0.22985077, 0, 0, 0.22985077, 84.35223923, 51.93477554), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer03:self_modulate")
+tracks/15/interp = 0
+tracks/15/loop_wrap = false
+tracks/15/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer04:visible")
+tracks/16/interp = 0
+tracks/16/loop_wrap = false
+tracks/16/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.63333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer04:texture")
+tracks/17/interp = 0
+tracks/17/loop_wrap = false
+tracks/17/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333, 0.63333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_003"), SubResource("Texture_005"), null]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer04:transform")
+tracks/18/interp = 0
+tracks/18/loop_wrap = false
+tracks/18/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333, 0.63333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-0.25478348, 0, 0, 0.25478348, 9.26001129, -11.91124878), Transform2D(-0.244813, 0, 0, 0.244813, 12.41461639, -28.76514282), Transform2D(-0.23519023, 0, 0, 0.23519023, 16.0708046, -44.52587585), Transform2D(-0.22593612, 0, 0, 0.22593612, 20.47867126, -59.54385986), Transform2D(-0.21702971, 0, 0, 0.21702971, 26.38812103, -73.31868286), Transform2D(-0.20848359, 0, 0, 0.20848359, 36.34921112, -83.50059204), Transform2D(-0.20028936, 0, 0, 0.20028936, 48.86190338, -76.73942261), Transform2D(-0.19245541, 0, 0, 0.19245541, 55.87623596, -63.73533936), Transform2D(-0.18497755, 0, 0, 0.18497755, 60.84218979, -50.73825989), Transform2D(-0.17785159, 0, 0, 0.17785159, 64.75974579, -37.94810181), Transform2D(-0.09724151, 0, 0, 0.09724151, -90.30726624, -33.76260986), Transform2D(-0.09131368, 0, 0, 0.09131368, -94.63425522, -26.64601746), Transform2D(-0.08604776, 0, 0, 0.08604776, -97.80823059, -19.99244385), Transform2D(-0.08143956, 0, 0, 0.08143956, -100.17921143, -10.75180664), Transform2D(-0.62690549, 0, 0, 0.88982314, -4.17385712, -47.21871948), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer04:self_modulate")
+tracks/19/interp = 0
+tracks/19/loop_wrap = false
+tracks/19/keys = {
+"times": PackedFloat32Array(0, 0.53333333, 0.63333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer05:visible")
+tracks/20/interp = 0
+tracks/20/loop_wrap = false
+tracks/20/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer05:texture")
+tracks/21/interp = 0
+tracks/21/loop_wrap = false
+tracks/21/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), null]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer05:transform")
+tracks/22/interp = 0
+tracks/22/loop_wrap = false
+tracks/22/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.43333333, 0.46666667, 0.5, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-0.46400452, 0, 0, 0.46400452, 16.68408356, -18.63931427), Transform2D(-0.44584656, 0, 0, 0.44584656, 19.54816132, -35.22991791), Transform2D(-0.42832184, 0, 0, 0.42832184, 22.92395401, -50.73654251), Transform2D(-0.41146851, 0, 0, 0.41146851, 27.06216736, -65.5101532), Transform2D(-0.39524841, 0, 0, 0.39524841, 32.71209564, -79.04978485), Transform2D(-0.37968445, 0, 0, 0.37968445, 42.42416229, -89.00601654), Transform2D(-0.36476135, 0, 0, 0.36476135, 54.69808502, -82.02846222), Transform2D(-0.35049438, 0, 0, 0.35049438, 61.48414612, -68.81750793), Transform2D(-0.33687592, 0, 0, 0.33687592, 66.23220444, -55.62296066), Transform2D(-0.32389832, 0, 0, 0.32389832, 69.94211884, -42.64462738), Transform2D(-0.17709351, 0, 0, 0.17709351, -87.47377014, -36.3304657), Transform2D(-0.16629791, 0, 0, 0.16629791, -91.97348862, -29.05733719), Transform2D(-0.15670776, 0, 0, 0.15670776, -95.30090637, -22.26470642), Transform2D(-0.14831543, 0, 0, 0.14831543, -97.80616455, -12.90238037), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/23/type = "value"
+tracks/23/path = NodePath("Rig/Layer05:self_modulate")
+tracks/23/interp = 0
+tracks/23/loop_wrap = false
+tracks/23/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/24/type = "value"
+tracks/24/path = NodePath("Rig/Layer06:visible")
+tracks/24/interp = 0
+tracks/24/loop_wrap = false
+tracks/24/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/25/type = "value"
+tracks/25/path = NodePath("Rig/Layer06:texture")
+tracks/25/interp = 0
+tracks/25/loop_wrap = false
+tracks/25/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.4, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_003"), SubResource("Texture_005"), null]
+}
+tracks/26/type = "value"
+tracks/26/path = NodePath("Rig/Layer06:transform")
+tracks/26/interp = 0
+tracks/26/loop_wrap = false
+tracks/26/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-0.19271096, 0, 0, 0.19271096, 6.37739944, -8.5903656), Transform2D(-0.18020178, 0, 0, 0.18020178, 1.02044601, -24.39432678), Transform2D(-0.16835031, 0, 0, 0.16835031, -7.18351288, -37.86122437), Transform2D(-0.15715656, 0, 0, 0.15715656, -17.63447723, -48.54105835), Transform2D(-0.14662053, 0, 0, 0.14662053, -30.08244705, -55.53382874), Transform2D(-0.1367464, 0, 0, 0.1367464, -43.42740326, -58.33961792), Transform2D(-0.12752999, 0, 0, 0.12752999, -56.16936493, -57.65834351), Transform2D(-0.11896711, 0, 0, 0.11896711, -67.55835114, -53.8899231), Transform2D(-0.11106613, 0, 0, 0.11106613, -76.94432373, -47.88452148), Transform2D(-0.10382287, 0, 0, 0.10382287, -84.47730179, -40.89205627), Transform2D(-0.62690549, 0, 0, 0.88982314, -4.17385712, -47.21871948), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/27/type = "value"
+tracks/27/path = NodePath("Rig/Layer06:self_modulate")
+tracks/27/interp = 0
+tracks/27/loop_wrap = false
+tracks/27/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.53333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/28/type = "value"
+tracks/28/path = NodePath("Rig/Layer07:visible")
+tracks/28/interp = 0
+tracks/28/loop_wrap = false
+tracks/28/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/29/type = "value"
+tracks/29/path = NodePath("Rig/Layer07:texture")
+tracks/29/interp = 0
+tracks/29/loop_wrap = false
+tracks/29/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.4, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), SubResource("Texture_005"), null]
+}
+tracks/30/type = "value"
+tracks/30/path = NodePath("Rig/Layer07:transform")
+tracks/30/interp = 0
+tracks/30/loop_wrap = false
+tracks/30/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4, 0.46666667, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-0.35095978, 0, 0, 0.35095978, 11.99275589, -13.67928238), Transform2D(-0.32817841, 0, 0, 0.32817841, 6.27130051, -29.15291367), Transform2D(-0.30659485, 0, 0, 0.30659485, -2.2779953, -42.30684967), Transform2D(-0.28620911, 0, 0, 0.28620911, -13.05513153, -52.69109039), Transform2D(-0.26702118, 0, 0, 0.26702118, -25.81010818, -59.40563583), Transform2D(-0.2490387, 0, 0, 0.2490387, -39.44278412, -61.95067902), Transform2D(-0.23225403, 0, 0, 0.23225403, -52.45330048, -61.02602692), Transform2D(-0.21665955, 0, 0, 0.21665955, -64.0917984, -57.03148651), Transform2D(-0.20227051, 0, 0, 0.20227051, -73.70799561, -50.81744385), Transform2D(-0.18907928, 0, 0, 0.18907928, -81.45203323, -43.6337059), Transform2D(-0.16024408, -0.86035297, -0.6043734, 0.22953546, 57.70093842, -6.76529999), Transform2D(-0.16225253, -0.86050477, -0.60482827, 0.23030524, 57.84053955, -6.77524719), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/31/type = "value"
+tracks/31/path = NodePath("Rig/Layer07:self_modulate")
+tracks/31/interp = 0
+tracks/31/loop_wrap = false
+tracks/31/keys = {
+"times": PackedFloat32Array(0, 0.4, 0.43333333, 0.46666667, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0.25098039), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/32/type = "value"
+tracks/32/path = NodePath("Rig/Layer08:visible")
+tracks/32/interp = 0
+tracks/32/loop_wrap = false
+tracks/32/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.43333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/33/type = "value"
+tracks/33/path = NodePath("Rig/Layer08:texture")
+tracks/33/interp = 0
+tracks/33/loop_wrap = false
+tracks/33/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.43333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_005"), null]
+}
+tracks/34/type = "value"
+tracks/34/path = NodePath("Rig/Layer08:transform")
+tracks/34/interp = 0
+tracks/34/loop_wrap = false
+tracks/34/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.13333333, 0.16666667, 0.2, 0.4, 0.43333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-0.62690549, 0, 0, 0.88981147, -4.17385712, -47.2685318), Transform2D(-0.62690549, 0, 0, 0.88982314, -4.17385712, -47.21871948), Transform2D(-0.62690549, 0, 0, 0.88981147, -4.17385712, -47.2685318), Transform2D(-0.62690549, 0, 0, 0.88982314, -4.17385712, -47.21871948), Transform2D(0.50067664, -0.03985375, -0.02800379, -0.71065018, -5.94666138, 90.77609406), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/35/type = "value"
+tracks/35/path = NodePath("Rig/Layer08:self_modulate")
+tracks/35/interp = 0
+tracks/35/loop_wrap = false
+tracks/35/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.43333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.52941176), Color(1, 1, 1, 0.76470588), Color(1, 1, 1, 1), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/36/type = "value"
+tracks/36/path = NodePath("Rig/Layer09:visible")
+tracks/36/interp = 0
+tracks/36/loop_wrap = false
+tracks/36/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/37/type = "value"
+tracks/37/path = NodePath("Rig/Layer09:texture")
+tracks/37/interp = 0
+tracks/37/loop_wrap = false
+tracks/37/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.2, 0.23333333, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_003"), SubResource("Texture_005"), SubResource("Texture_004"), SubResource("Texture_005"), null]
+}
+tracks/38/type = "value"
+tracks/38/path = NodePath("Rig/Layer09:transform")
+tracks/38/interp = 0
+tracks/38/loop_wrap = false
+tracks/38/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.2, 0.23333333, 0.26666667, 0.33333333, 0.36666667, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-1.46680014, 0, 0, 1.46680014, 54.22823792, -59.79998779), Transform2D(0.50067664, -0.03985375, -0.02800379, -0.71065018, -5.94666138, 90.77609406), Transform2D(0.50055987, -0.0395268, -0.02794548, -0.71056854, -5.94572296, 90.76952515), Transform2D(-0.28820108, -0.23644962, 0.23888017, -0.58800011, -19.04652863, 97.42171173), Transform2D(-0.16225253, -0.86050477, -0.60482827, 0.23030524, 57.84053955, -6.77524719), Transform2D(-0.16024408, -0.86035297, -0.6043734, 0.22953546, 57.70093842, -6.76529999), Transform2D(-0.16225253, -0.86050477, -0.60482827, 0.23030524, 57.84053955, -6.77524719), Transform2D(-0.16024408, -0.86035297, -0.6043734, 0.22953546, 57.70093842, -6.76529999), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/39/type = "value"
+tracks/39/path = NodePath("Rig/Layer09:self_modulate")
+tracks/39/interp = 0
+tracks/39/loop_wrap = false
+tracks/39/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.36666667, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.12156863), Color(1, 1, 1, 0.41568627), Color(1, 1, 1, 0.70980392), Color(1, 1, 1, 0), Color(1, 1, 1, 0.29019608), Color(1, 1, 1, 0.52941176), Color(1, 1, 1, 0.76470588), Color(1, 1, 1, 1), Color(1, 1, 1, 0.75294118), Color(1, 1, 1, 1)]
+}
+tracks/40/type = "value"
+tracks/40/path = NodePath("Rig/Layer10:visible")
+tracks/40/interp = 0
+tracks/40/loop_wrap = false
+tracks/40/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.2, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [false, true, false, true, false]
+}
+tracks/41/type = "value"
+tracks/41/path = NodePath("Rig/Layer10:texture")
+tracks/41/interp = 0
+tracks/41/loop_wrap = false
+tracks/41/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.2, 0.23333333, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), null, SubResource("Texture_005"), SubResource("Texture_004"), null]
+}
+tracks/42/type = "value"
+tracks/42/path = NodePath("Rig/Layer10:transform")
+tracks/42/interp = 0
+tracks/42/loop_wrap = false
+tracks/42/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-2.67129517, 0, 0, 2.67129517, 96.96896057, -98.5337677), Transform2D(1, 0, 0, 1, 0, 0), Transform2D(0.50067664, -0.03985375, -0.02800379, -0.71065018, -5.94666138, 90.77609406), Transform2D(-0.28778062, -0.2360058, 0.23802514, -0.58754332, -18.98958435, 97.30726013), Transform2D(-0.28820108, -0.23644962, 0.23888017, -0.58800011, -19.04652863, 97.42171173), Transform2D(-0.28778062, -0.2360058, 0.23802514, -0.58754332, -18.98958435, 97.30726013), Transform2D(-0.28820108, -0.23644962, 0.23888017, -0.58800011, -19.04652863, 97.42171173), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/43/type = "value"
+tracks/43/path = NodePath("Rig/Layer10:self_modulate")
+tracks/43/interp = 0
+tracks/43/loop_wrap = false
+tracks/43/keys = {
+"times": PackedFloat32Array(0, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 1), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/44/type = "value"
+tracks/44/path = NodePath("Rig/Layer11:visible")
+tracks/44/interp = 0
+tracks/44/loop_wrap = false
+tracks/44/keys = {
+"times": PackedFloat32Array(0, 0.23333333, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/45/type = "value"
+tracks/45/path = NodePath("Rig/Layer11:texture")
+tracks/45/interp = 0
+tracks/45/loop_wrap = false
+tracks/45/keys = {
+"times": PackedFloat32Array(0, 0.23333333, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_005"), null]
+}
+tracks/46/type = "value"
+tracks/46/path = NodePath("Rig/Layer11:transform")
+tracks/46/interp = 0
+tracks/46/loop_wrap = false
+tracks/46/keys = {
+"times": PackedFloat32Array(0, 0.23333333, 0.33333333, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(0.50055987, -0.0395268, -0.02794548, -0.71056854, -5.94572296, 90.76952515), Transform2D(0.50067664, -0.03985375, -0.02800379, -0.71065018, -5.94666138, 90.77609406), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/47/type = "value"
+tracks/47/path = NodePath("Rig/Layer11:self_modulate")
+tracks/47/interp = 0
+tracks/47/loop_wrap = false
+tracks/47/keys = {
+"times": PackedFloat32Array(0, 0.23333333, 0.26666667, 0.3, 0.33333333, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.75294118), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0.25098039), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_hit3"]
+resource_name = "hit3"
+length = 0.36666667
+step = 0.03333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer00:visible")
+tracks/0/interp = 0
+tracks/0/loop_wrap = false
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer00:texture")
+tracks/1/interp = 0
+tracks/1/loop_wrap = false
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [SubResource("Texture_004")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer00:transform")
+tracks/2/interp = 0
+tracks/2/loop_wrap = false
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.2),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(-0.6270324, 0, 0, 0.89358401, 55.37614288, -126.46871948), Transform2D(-0.6270324, 0, 0, 0.8935723, 55.37614288, -126.4685318), Transform2D(-0.6270324, 0, 0, 0.89358401, 55.37614288, -126.46871948), Transform2D(-0.6270324, 0, 0, 0.8935723, 55.37614288, -126.4685318), Transform2D(-0.6270324, 0, 0, 0.89358401, 55.37614288, -126.46871948)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer00:self_modulate")
+tracks/3/interp = 0
+tracks/3/loop_wrap = false
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 0.29019608), Color(1, 1, 1, 0.82745098), Color(1, 1, 1, 1), Color(1, 1, 1, 0.75294118), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0.25098039), Color(1, 1, 1, 0)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer01:visible")
+tracks/4/interp = 0
+tracks/4/loop_wrap = false
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer01:texture")
+tracks/5/interp = 0
+tracks/5/loop_wrap = false
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.06666667),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [SubResource("Texture_003"), SubResource("Texture_005")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer01:transform")
+tracks/6/interp = 0
+tracks/6/loop_wrap = false
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.26666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(-0.78205015, 0, 0, 0.78205015, 28.46061935, -33.93187561), Transform2D(-1.12441048, 0, 0, 1.12441048, 41.21936188, -46.86564331), Transform2D(-0.62690549, 0, 0, 0.88982314, 9.82614288, -47.21871948), Transform2D(-0.62690549, 0, 0, 0.88981147, 9.82614288, -47.2685318), Transform2D(-0.62690549, 0, 0, 0.88982314, 9.82614288, -47.21871948), Transform2D(-0.62690549, 0, 0, 0.88981147, 9.82614288, -47.2685318), Transform2D(-0.62690549, 0, 0, 0.88982314, 9.82614288, -47.21871948)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer01:self_modulate")
+tracks/7/interp = 0
+tracks/7/loop_wrap = false
+tracks/7/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.29019608), Color(1, 1, 1, 0.64705882), Color(1, 1, 1, 1), Color(1, 1, 1, 0.75294118), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0.25098039), Color(1, 1, 1, 0)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer02:visible")
+tracks/8/interp = 0
+tracks/8/loop_wrap = false
+tracks/8/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.13333333),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [true, false, true]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer02:texture")
+tracks/9/interp = 0
+tracks/9/loop_wrap = false
+tracks/9/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [SubResource("Texture_002"), SubResource("Texture_003"), null, SubResource("Texture_005")]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer02:transform")
+tracks/10/interp = 0
+tracks/10/loop_wrap = false
+tracks/10/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.26666667, 0.3, 0.33333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(-1.42424774, 0, 0, 1.42424774, 51.24858322, -54.58346786), Transform2D(-2.04774475, 0, 0, 2.04774475, 73.98327789, -76.5579422), Transform2D(-1.46680014, 0, 0, 1.46680014, 54.22823792, -59.79998779), Transform2D(1, 0, 0, 1, 0, 0), Transform2D(0.50067664, -0.03985375, -0.02800379, -0.71065018, -5.94666138, 102.77609406), Transform2D(-0.08236987, 0.88311153, 0.62073713, 0.11691379, -45.21476593, -127.57543335), Transform2D(-0.08145906, 0.88292469, 0.62060883, 0.1155725, -45.3273407, -127.50084686), Transform2D(-0.08236987, 0.88311153, 0.62073713, 0.11691379, -45.21476593, -127.57543335), Transform2D(-0.08145906, 0.88292469, 0.62060883, 0.1155725, -45.3273407, -127.50084686), Transform2D(-0.08236987, 0.88311153, 0.62073713, 0.11691379, -45.21476593, -127.57543335)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer02:self_modulate")
+tracks/11/interp = 0
+tracks/11/loop_wrap = false
+tracks/11/keys = {
+"times": PackedFloat32Array(0, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.12156863), Color(1, 1, 1, 0), Color(1, 1, 1, 0.33333333), Color(1, 1, 1, 0.67058824), Color(1, 1, 1, 1), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer03:visible")
+tracks/12/interp = 0
+tracks/12/loop_wrap = false
+tracks/12/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.16666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [false, true, false, true]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer03:texture")
+tracks/13/interp = 0
+tracks/13/loop_wrap = false
+tracks/13/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.16666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), null, SubResource("Texture_005")]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer03:transform")
+tracks/14/interp = 0
+tracks/14/loop_wrap = false
+tracks/14/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.16666667, 0.2, 0.23333333, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-2.67129517, 0, 0, 2.67129517, 96.96896057, -98.5337677), Transform2D(1, 0, 0, 1, 0, 0), Transform2D(0.50055987, -0.0395268, -0.02794548, -0.71056854, -5.89572296, 102.76952515), Transform2D(0.50067664, -0.03985375, -0.02800379, -0.71065018, -5.94666138, 102.77609406), Transform2D(0.50055987, -0.0395268, -0.02794548, -0.71056854, -5.89572296, 102.76952515), Transform2D(0.50067664, -0.03985375, -0.02800379, -0.71065018, -5.94666138, 102.77609406)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer03:self_modulate")
+tracks/15/interp = 0
+tracks/15/loop_wrap = false
+tracks/15/keys = {
+"times": PackedFloat32Array(0, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.56470588), Color(1, 1, 1, 1), Color(1, 1, 1, 0.67058824), Color(1, 1, 1, 0.33333333), Color(1, 1, 1, 0)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer04:visible")
+tracks/16/interp = 0
+tracks/16/loop_wrap = false
+tracks/16/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer04:texture")
+tracks/17/interp = 0
+tracks/17/loop_wrap = false
+tracks/17/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer04:transform")
+tracks/18/interp = 0
+tracks/18/loop_wrap = false
+tracks/18/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer04:self_modulate")
+tracks/19/interp = 0
+tracks/19/loop_wrap = false
+tracks/19/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer05:visible")
+tracks/20/interp = 0
+tracks/20/loop_wrap = false
+tracks/20/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer05:texture")
+tracks/21/interp = 0
+tracks/21/loop_wrap = false
+tracks/21/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer05:transform")
+tracks/22/interp = 0
+tracks/22/loop_wrap = false
+tracks/22/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/23/type = "value"
+tracks/23/path = NodePath("Rig/Layer05:self_modulate")
+tracks/23/interp = 0
+tracks/23/loop_wrap = false
+tracks/23/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/24/type = "value"
+tracks/24/path = NodePath("Rig/Layer06:visible")
+tracks/24/interp = 0
+tracks/24/loop_wrap = false
+tracks/24/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/25/type = "value"
+tracks/25/path = NodePath("Rig/Layer06:texture")
+tracks/25/interp = 0
+tracks/25/loop_wrap = false
+tracks/25/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/26/type = "value"
+tracks/26/path = NodePath("Rig/Layer06:transform")
+tracks/26/interp = 0
+tracks/26/loop_wrap = false
+tracks/26/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/27/type = "value"
+tracks/27/path = NodePath("Rig/Layer06:self_modulate")
+tracks/27/interp = 0
+tracks/27/loop_wrap = false
+tracks/27/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/28/type = "value"
+tracks/28/path = NodePath("Rig/Layer07:visible")
+tracks/28/interp = 0
+tracks/28/loop_wrap = false
+tracks/28/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/29/type = "value"
+tracks/29/path = NodePath("Rig/Layer07:texture")
+tracks/29/interp = 0
+tracks/29/loop_wrap = false
+tracks/29/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/30/type = "value"
+tracks/30/path = NodePath("Rig/Layer07:transform")
+tracks/30/interp = 0
+tracks/30/loop_wrap = false
+tracks/30/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/31/type = "value"
+tracks/31/path = NodePath("Rig/Layer07:self_modulate")
+tracks/31/interp = 0
+tracks/31/loop_wrap = false
+tracks/31/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/32/type = "value"
+tracks/32/path = NodePath("Rig/Layer08:visible")
+tracks/32/interp = 0
+tracks/32/loop_wrap = false
+tracks/32/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/33/type = "value"
+tracks/33/path = NodePath("Rig/Layer08:texture")
+tracks/33/interp = 0
+tracks/33/loop_wrap = false
+tracks/33/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/34/type = "value"
+tracks/34/path = NodePath("Rig/Layer08:transform")
+tracks/34/interp = 0
+tracks/34/loop_wrap = false
+tracks/34/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/35/type = "value"
+tracks/35/path = NodePath("Rig/Layer08:self_modulate")
+tracks/35/interp = 0
+tracks/35/loop_wrap = false
+tracks/35/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/36/type = "value"
+tracks/36/path = NodePath("Rig/Layer09:visible")
+tracks/36/interp = 0
+tracks/36/loop_wrap = false
+tracks/36/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/37/type = "value"
+tracks/37/path = NodePath("Rig/Layer09:texture")
+tracks/37/interp = 0
+tracks/37/loop_wrap = false
+tracks/37/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/38/type = "value"
+tracks/38/path = NodePath("Rig/Layer09:transform")
+tracks/38/interp = 0
+tracks/38/loop_wrap = false
+tracks/38/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/39/type = "value"
+tracks/39/path = NodePath("Rig/Layer09:self_modulate")
+tracks/39/interp = 0
+tracks/39/loop_wrap = false
+tracks/39/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/40/type = "value"
+tracks/40/path = NodePath("Rig/Layer10:visible")
+tracks/40/interp = 0
+tracks/40/loop_wrap = false
+tracks/40/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/41/type = "value"
+tracks/41/path = NodePath("Rig/Layer10:texture")
+tracks/41/interp = 0
+tracks/41/loop_wrap = false
+tracks/41/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/42/type = "value"
+tracks/42/path = NodePath("Rig/Layer10:transform")
+tracks/42/interp = 0
+tracks/42/loop_wrap = false
+tracks/42/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/43/type = "value"
+tracks/43/path = NodePath("Rig/Layer10:self_modulate")
+tracks/43/interp = 0
+tracks/43/loop_wrap = false
+tracks/43/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/44/type = "value"
+tracks/44/path = NodePath("Rig/Layer11:visible")
+tracks/44/interp = 0
+tracks/44/loop_wrap = false
+tracks/44/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/45/type = "value"
+tracks/45/path = NodePath("Rig/Layer11:texture")
+tracks/45/interp = 0
+tracks/45/loop_wrap = false
+tracks/45/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/46/type = "value"
+tracks/46/path = NodePath("Rig/Layer11:transform")
+tracks/46/interp = 0
+tracks/46/loop_wrap = false
+tracks/46/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/47/type = "value"
+tracks/47/path = NodePath("Rig/Layer11:self_modulate")
+tracks/47/interp = 0
+tracks/47/loop_wrap = false
+tracks/47/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_hit4"]
+resource_name = "hit4"
+length = 0.4
+step = 0.03333333
+tracks/0/type = "value"
+tracks/0/path = NodePath("Rig/Layer00:visible")
+tracks/0/interp = 0
+tracks/0/loop_wrap = false
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Rig/Layer00:texture")
+tracks/1/interp = 0
+tracks/1/loop_wrap = false
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.36666667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [SubResource("Texture_003"), SubResource("Texture_004"), SubResource("Texture_005")]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Rig/Layer00:transform")
+tracks/2/interp = 0
+tracks/2/loop_wrap = false
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.36666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(-0.78205015, 0, 0, 0.78205015, 28.46061935, -33.93187561), Transform2D(0, -0.9018372, -0.63417151, 0, 80.91191406, 89.14213867), Transform2D(0, -0.90182552, -0.6341598, 0, 80.91172638, 89.14195099), Transform2D(0, -0.9018372, -0.63417151, 0, 80.91191406, 89.14213867), Transform2D(0, -0.90182552, -0.6341598, 0, 80.91172638, 89.14195099), Transform2D(0, -0.9018372, -0.63417151, 0, 80.91191406, 89.14213867), Transform2D(0, -0.90165467, -0.63150244, 0, 34.56191406, -5.10786133)]
+}
+tracks/3/type = "value"
+tracks/3/path = NodePath("Rig/Layer00:self_modulate")
+tracks/3/interp = 0
+tracks/3/loop_wrap = false
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.29019608), Color(1, 1, 1, 0.82745098), Color(1, 1, 1, 1), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0)]
+}
+tracks/4/type = "value"
+tracks/4/path = NodePath("Rig/Layer01:visible")
+tracks/4/interp = 0
+tracks/4/loop_wrap = false
+tracks/4/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [true]
+}
+tracks/5/type = "value"
+tracks/5/path = NodePath("Rig/Layer01:texture")
+tracks/5/interp = 0
+tracks/5/loop_wrap = false
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.03333333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [SubResource("Texture_002"), SubResource("Texture_005")]
+}
+tracks/6/type = "value"
+tracks/6/path = NodePath("Rig/Layer01:transform")
+tracks/6/interp = 0
+tracks/6/loop_wrap = false
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.36666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(-1.42424774, 0, 0, 1.42424774, 51.24858322, -54.58346786), Transform2D(0, -0.90165467, -0.63150244, 0, 34.56191406, -5.10786133), Transform2D(0, -0.901643, -0.63149077, 0, 34.56172638, -5.10804901), Transform2D(0, -0.90165467, -0.63150244, 0, 34.56191406, -5.10786133), Transform2D(0, -0.901643, -0.63149077, 0, 34.56172638, -5.10804901), Transform2D(0, -0.90165467, -0.63150244, 0, 34.56191406, -5.10786133), Transform2D(-0.62674201, -0.11846362, -0.08297334, 0.89280896, 91.60869293, -64.11272125)]
+}
+tracks/7/type = "value"
+tracks/7/path = NodePath("Rig/Layer01:self_modulate")
+tracks/7/interp = 0
+tracks/7/loop_wrap = false
+tracks/7/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.29019608), Color(1, 1, 1, 0.64705882), Color(1, 1, 1, 1), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0)]
+}
+tracks/8/type = "value"
+tracks/8/path = NodePath("Rig/Layer02:visible")
+tracks/8/interp = 0
+tracks/8/loop_wrap = false
+tracks/8/keys = {
+"times": PackedFloat32Array(0, 0.03333333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+tracks/9/type = "value"
+tracks/9/path = NodePath("Rig/Layer02:texture")
+tracks/9/interp = 0
+tracks/9/loop_wrap = false
+tracks/9/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_003"), SubResource("Texture_005")]
+}
+tracks/10/type = "value"
+tracks/10/path = NodePath("Rig/Layer02:transform")
+tracks/10/interp = 0
+tracks/10/loop_wrap = false
+tracks/10/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.26666667, 0.3, 0.33333333, 0.36666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-1.12441048, 0, 0, 1.12441048, 41.21936188, -46.86564331), Transform2D(-0.48918643, 0.52920366, 0.38511338, 0.32813774, -32.98450012, -19.33607483), Transform2D(-0.48743487, 0.52920366, 0.3848218, 0.32721633, -33.10796051, -19.32124786), Transform2D(-0.48918643, 0.52920366, 0.38511338, 0.32813774, -32.98450012, -19.33607483), Transform2D(-0.62674201, -0.11846362, -0.08297334, 0.89280896, 91.60869293, -64.11272125), Transform2D(-0.62666027, -0.1167938, -0.08229686, 0.89256403, 91.54649353, -64.18561859), Transform2D(-0.62674201, -0.11846362, -0.08297334, 0.89280896, 91.60869293, -64.11272125), Transform2D(-0.62666027, -0.1167938, -0.08229686, 0.89256403, 91.54649353, -64.18561859), Transform2D(-0.62674201, -0.11846362, -0.08297334, 0.89280896, 91.60869293, -64.11272125), Transform2D(-0.48918643, 0.52920366, 0.38511338, 0.32813774, -32.98450012, -19.33607483)]
+}
+tracks/11/type = "value"
+tracks/11/path = NodePath("Rig/Layer02:self_modulate")
+tracks/11/interp = 0
+tracks/11/loop_wrap = false
+tracks/11/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1, 0.13333333, 0.16666667, 0.2, 0.23333333, 0.26666667, 0.3, 0.33333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.12156863), Color(1, 1, 1, 0.56470588), Color(1, 1, 1, 1), Color(1, 1, 1, 0), Color(1, 1, 1, 0.33333333), Color(1, 1, 1, 0.67058824), Color(1, 1, 1, 1), Color(1, 1, 1, 0.50196078), Color(1, 1, 1, 0)]
+}
+tracks/12/type = "value"
+tracks/12/path = NodePath("Rig/Layer03:visible")
+tracks/12/interp = 0
+tracks/12/loop_wrap = false
+tracks/12/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.1, 0.16666667, 0.36666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [false, true, false, true, false]
+}
+tracks/13/type = "value"
+tracks/13/path = NodePath("Rig/Layer03:texture")
+tracks/13/interp = 0
+tracks/13/loop_wrap = false
+tracks/13/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.16666667, 0.36666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), SubResource("Texture_003"), null, SubResource("Texture_005"), null]
+}
+tracks/14/type = "value"
+tracks/14/path = NodePath("Rig/Layer03:transform")
+tracks/14/interp = 0
+tracks/14/loop_wrap = false
+tracks/14/keys = {
+"times": PackedFloat32Array(0, 0.03333333, 0.06666667, 0.1, 0.16666667, 0.23333333, 0.36666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-2.04774475, 0, 0, 2.04774475, 73.98327789, -76.5579422), Transform2D(-1.46680014, 0, 0, 1.46680014, 54.22823792, -59.79998779), Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-0.48743487, 0.52920366, 0.3848218, 0.32721633, -33.10796051, -19.32124786), Transform2D(-0.48918643, 0.52920366, 0.38511338, 0.32813774, -32.98450012, -19.33607483), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/15/type = "value"
+tracks/15/path = NodePath("Rig/Layer03:self_modulate")
+tracks/15/interp = 0
+tracks/15/loop_wrap = false
+tracks/15/keys = {
+"times": PackedFloat32Array(0, 0.16666667, 0.2, 0.23333333, 0.36666667),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0.67058824), Color(1, 1, 1, 0.33333333), Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+tracks/16/type = "value"
+tracks/16/path = NodePath("Rig/Layer04:visible")
+tracks/16/interp = 0
+tracks/16/loop_wrap = false
+tracks/16/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [false, true, false]
+}
+tracks/17/type = "value"
+tracks/17/path = NodePath("Rig/Layer04:texture")
+tracks/17/interp = 0
+tracks/17/loop_wrap = false
+tracks/17/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [null, SubResource("Texture_002"), null]
+}
+tracks/18/type = "value"
+tracks/18/path = NodePath("Rig/Layer04:transform")
+tracks/18/interp = 0
+tracks/18/loop_wrap = false
+tracks/18/keys = {
+"times": PackedFloat32Array(0, 0.06666667, 0.1),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0), Transform2D(-2.67129517, 0, 0, 2.67129517, 96.96896057, -98.5337677), Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/19/type = "value"
+tracks/19/path = NodePath("Rig/Layer04:self_modulate")
+tracks/19/interp = 0
+tracks/19/loop_wrap = false
+tracks/19/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/20/type = "value"
+tracks/20/path = NodePath("Rig/Layer05:visible")
+tracks/20/interp = 0
+tracks/20/loop_wrap = false
+tracks/20/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/21/type = "value"
+tracks/21/path = NodePath("Rig/Layer05:texture")
+tracks/21/interp = 0
+tracks/21/loop_wrap = false
+tracks/21/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/22/type = "value"
+tracks/22/path = NodePath("Rig/Layer05:transform")
+tracks/22/interp = 0
+tracks/22/loop_wrap = false
+tracks/22/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/23/type = "value"
+tracks/23/path = NodePath("Rig/Layer05:self_modulate")
+tracks/23/interp = 0
+tracks/23/loop_wrap = false
+tracks/23/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/24/type = "value"
+tracks/24/path = NodePath("Rig/Layer06:visible")
+tracks/24/interp = 0
+tracks/24/loop_wrap = false
+tracks/24/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/25/type = "value"
+tracks/25/path = NodePath("Rig/Layer06:texture")
+tracks/25/interp = 0
+tracks/25/loop_wrap = false
+tracks/25/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/26/type = "value"
+tracks/26/path = NodePath("Rig/Layer06:transform")
+tracks/26/interp = 0
+tracks/26/loop_wrap = false
+tracks/26/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/27/type = "value"
+tracks/27/path = NodePath("Rig/Layer06:self_modulate")
+tracks/27/interp = 0
+tracks/27/loop_wrap = false
+tracks/27/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/28/type = "value"
+tracks/28/path = NodePath("Rig/Layer07:visible")
+tracks/28/interp = 0
+tracks/28/loop_wrap = false
+tracks/28/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/29/type = "value"
+tracks/29/path = NodePath("Rig/Layer07:texture")
+tracks/29/interp = 0
+tracks/29/loop_wrap = false
+tracks/29/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/30/type = "value"
+tracks/30/path = NodePath("Rig/Layer07:transform")
+tracks/30/interp = 0
+tracks/30/loop_wrap = false
+tracks/30/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/31/type = "value"
+tracks/31/path = NodePath("Rig/Layer07:self_modulate")
+tracks/31/interp = 0
+tracks/31/loop_wrap = false
+tracks/31/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/32/type = "value"
+tracks/32/path = NodePath("Rig/Layer08:visible")
+tracks/32/interp = 0
+tracks/32/loop_wrap = false
+tracks/32/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/33/type = "value"
+tracks/33/path = NodePath("Rig/Layer08:texture")
+tracks/33/interp = 0
+tracks/33/loop_wrap = false
+tracks/33/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/34/type = "value"
+tracks/34/path = NodePath("Rig/Layer08:transform")
+tracks/34/interp = 0
+tracks/34/loop_wrap = false
+tracks/34/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/35/type = "value"
+tracks/35/path = NodePath("Rig/Layer08:self_modulate")
+tracks/35/interp = 0
+tracks/35/loop_wrap = false
+tracks/35/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/36/type = "value"
+tracks/36/path = NodePath("Rig/Layer09:visible")
+tracks/36/interp = 0
+tracks/36/loop_wrap = false
+tracks/36/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/37/type = "value"
+tracks/37/path = NodePath("Rig/Layer09:texture")
+tracks/37/interp = 0
+tracks/37/loop_wrap = false
+tracks/37/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/38/type = "value"
+tracks/38/path = NodePath("Rig/Layer09:transform")
+tracks/38/interp = 0
+tracks/38/loop_wrap = false
+tracks/38/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/39/type = "value"
+tracks/39/path = NodePath("Rig/Layer09:self_modulate")
+tracks/39/interp = 0
+tracks/39/loop_wrap = false
+tracks/39/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/40/type = "value"
+tracks/40/path = NodePath("Rig/Layer10:visible")
+tracks/40/interp = 0
+tracks/40/loop_wrap = false
+tracks/40/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/41/type = "value"
+tracks/41/path = NodePath("Rig/Layer10:texture")
+tracks/41/interp = 0
+tracks/41/loop_wrap = false
+tracks/41/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/42/type = "value"
+tracks/42/path = NodePath("Rig/Layer10:transform")
+tracks/42/interp = 0
+tracks/42/loop_wrap = false
+tracks/42/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/43/type = "value"
+tracks/43/path = NodePath("Rig/Layer10:self_modulate")
+tracks/43/interp = 0
+tracks/43/loop_wrap = false
+tracks/43/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+tracks/44/type = "value"
+tracks/44/path = NodePath("Rig/Layer11:visible")
+tracks/44/interp = 0
+tracks/44/loop_wrap = false
+tracks/44/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/45/type = "value"
+tracks/45/path = NodePath("Rig/Layer11:texture")
+tracks/45/interp = 0
+tracks/45/loop_wrap = false
+tracks/45/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [null]
+}
+tracks/46/type = "value"
+tracks/46/path = NodePath("Rig/Layer11:transform")
+tracks/46/interp = 0
+tracks/46/loop_wrap = false
+tracks/46/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Transform2D(1, 0, 0, 1, 0, 0)]
+}
+tracks/47/type = "value"
+tracks/47/path = NodePath("Rig/Layer11:self_modulate")
+tracks/47/interp = 0
+tracks/47/loop_wrap = false
+tracks/47/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="library"]
+_data = {
+&"bolt": SubResource("Animation_bolt"),
+&"hit": SubResource("Animation_hit"),
+&"hit2": SubResource("Animation_hit2"),
+&"hit3": SubResource("Animation_hit3"),
+&"hit4": SubResource("Animation_hit4")
+}
+
+[node name="ElectricPeashooterBolt" type="Node2D"]
+
+[node name="Rig" type="Node2D" parent="."]
+scale = Vector2(0.7, 0.7)
+
+[node name="Layer00" type="Sprite2D" parent="Rig"]
+centered = false
+texture = SubResource("Texture_000")
+transform = Transform2D(0.7815534, 0, 0, 0.775, -16.4, -35)
+self_modulate = Color(1, 1, 1, 0)
+
+[node name="Layer01" type="Sprite2D" parent="Rig"]
+centered = false
+texture = SubResource("Texture_001")
+transform = Transform2D(0.78571429, 0, 0, 0.78571429, -17.2, -16.7)
+self_modulate = Color(1, 1, 1, 0)
+
+[node name="Layer02" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer03" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer04" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer05" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer06" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer07" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer08" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer09" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer10" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="Layer11" type="Sprite2D" parent="Rig"]
+centered = false
+visible = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("library")}

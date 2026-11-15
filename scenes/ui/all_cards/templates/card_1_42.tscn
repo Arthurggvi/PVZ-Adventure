@@ -1,0 +1,178 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cy3xu8ug3gd2" path="res://assets/reanim/PeaShooter_backleaf.png" id="3_xm6ba"]
+
+[ext_resource type="Texture2D" uid="uid://cyknr5ymersct" path="res://assets/reanim/PeaShooter_backleaf_lefttip.png" id="4_2m5n3"]
+
+[ext_resource type="Texture2D" uid="uid://i7fngqj5l36a" path="res://assets/reanim/PeaShooter_backleaf_righttip.png" id="5_utnli"]
+
+[ext_resource type="Texture2D" uid="uid://300aew7liup" path="res://assets/reanim/PeaShooter_frontleaf.png" id="8_jrvjq"]
+
+[ext_resource type="Texture2D" uid="uid://nj6m28m6k5p1" path="res://assets/reanim/PeaShooter_frontleaf_righttip.png" id="9_lppa3"]
+
+[ext_resource type="Texture2D" uid="uid://dit0i5evvco14" path="res://assets/reanim/PeaShooter_frontleaf_lefttip.png" id="10_xa6hp"]
+
+[ext_resource type="Texture2D" uid="uid://cu06igj1jmdy" path="res://assets/reanim/SunFlower_head.png" id="34_q3g05"]
+
+[ext_resource type="Texture2D" uid="uid://6sig2vr6hn5j" path="res://assets/reanim/SunFlower_blink2.png" id="35_f8qha"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://bcsssndvstlo6" path="res://assets/reanim/TwinSunflower_stem1.png" id="317_mmvdr"]
+
+[ext_resource type="Texture2D" uid="uid://cevy23vhp8je5" path="res://assets/reanim/TwinSunflower_leaf.png" id="318_d0h7s"]
+
+[ext_resource type="Texture2D" uid="uid://d2gj7ao0ev5ce" path="res://assets/reanim/TwinSunflower_stem2.png" id="319_ncr51"]
+
+[ext_resource type="Texture2D" uid="uid://bes1j4xm667cw" path="res://assets/reanim/SunFlower_double_petals.png" id="320_ov1cb"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_42"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 42
+
+[node name="Card42" unique_id=1671214571 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_42")
+
+[node name="Plant042TwinSunFlower" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=119072149]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower" unique_id=968687905]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower" unique_id=1356954870]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body" unique_id=730102790]
+position = Vector2(-42, -69)
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=566429378]
+visible = false
+centered = false
+
+[node name="Anim_blink2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=1549156754]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=890528182]
+centered = false
+
+[node name="Backleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=1009966804]
+position = Vector2(27.7, 53)
+scale = Vector2(0.555, 0.555)
+texture = ExtResource("3_xm6ba")
+centered = false
+
+[node name="Backleaf_left_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=1941654305]
+position = Vector2(25, 53.9)
+scale = Vector2(0.555, 0.555)
+texture = ExtResource("4_2m5n3")
+centered = false
+
+[node name="Backleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=608936434]
+position = Vector2(47, 52.9)
+scale = Vector2(0.555, 0.555)
+texture = ExtResource("5_utnli")
+centered = false
+
+[node name="TwinSunflower_stem2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=1715583559]
+position = Vector2(16.8, 38.4)
+scale = Vector2(0.8, 0.912)
+skew = -0.16057
+texture = ExtResource("317_mmvdr")
+centered = false
+
+[node name="TwinSunflower_leaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=127970522]
+position = Vector2(23.8, 46.9)
+rotation = 2.65116
+scale = Vector2(0.592, 0.592)
+skew = -3.13985
+texture = ExtResource("318_d0h7s")
+centered = false
+
+[node name="TwinSunflower_stem1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=80668802]
+position = Vector2(42.3, 21.2)
+scale = Vector2(0.8, 0.868)
+skew = 0.0331613
+texture = ExtResource("319_ncr51")
+centered = false
+
+[node name="TwinSunflower_leaf11" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=1184327460]
+position = Vector2(55.2, 33.1)
+rotation = 0.307178
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("318_d0h7s")
+centered = false
+
+[node name="TwinSunflower_leaf12" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=1141073159]
+position = Vector2(51.2, 40.9)
+rotation = -2.86583
+scale = Vector2(0.594, 0.594)
+skew = 3.13985
+texture = ExtResource("318_d0h7s")
+centered = false
+
+[node name="Frontleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=1994695005]
+position = Vector2(22.8, 54.4)
+scale = Vector2(0.555, 0.555)
+texture = ExtResource("8_jrvjq")
+centered = false
+
+[node name="Frontleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=1815904543]
+position = Vector2(56.3, 56)
+scale = Vector2(0.555, 0.555)
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Frontleaf_left_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=880880313]
+position = Vector2(19.4, 61.6)
+scale = Vector2(0.555, 0.555)
+texture = ExtResource("10_xa6hp")
+centered = false
+
+[node name="Sunflower_double_petals1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=522140919]
+position = Vector2(36.9, -3.2)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("320_ov1cb")
+centered = false
+
+[node name="Anim_face2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=1526425088]
+position = Vector2(43.4, 2)
+scale = Vector2(0.6, 0.534)
+texture = ExtResource("34_q3g05")
+centered = false
+
+[node name="Sunflower_double_petals2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=439418]
+position = Vector2(-3.8, 14.1)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("320_ov1cb")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=778586822]
+position = Vector2(2.6, 19.5)
+scale = Vector2(0.6, 0.534)
+texture = ExtResource("34_q3g05")
+centered = false
+
+[node name="SunFlower_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=3137089]
+visible = false
+position = Vector2(12.2, 24)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("35_f8qha")
+centered = false
+
+[node name="SunFlower_blink2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=307331653]
+visible = false
+position = Vector2(52.9, 6.7)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("35_f8qha")
+centered = false
+
+[node name="Marker2DCreateSun" type="Marker2D" parent="CardBg/CharacterStatic/Plant042TwinSunFlower/Body/BodyCorrect" unique_id=1247074317]
+position = Vector2(43, 27)

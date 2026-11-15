@@ -30,7 +30,7 @@ func _chance(star: int, amount: int, fodder_star: int, type_id: int = 1,
 
 func _run() -> void:
 	assert(OS.get_user_data_dir().contains("research-core-test"))
-	assert(Recipes.all_ids().size() == 51)
+	assert(Recipes.all_ids().size() == 52)
 	var three_material_plants: Array[int] = [3, 5, 6, 8, 13, 15, 16, 19, 20, 21, 23, 24, 28, 40, 49]
 	for plant_type: int in range(1, 50):
 		if plant_type > 40 and plant_type < 49:
@@ -157,6 +157,23 @@ func _run() -> void:
 		assert(inventory.get_card(uid).is_empty())
 	assert(inventory.get_item_count("fertilizer_lv1") == 0)
 	assert(wallet.coin_value == coins_before_upgrade - Enhancement.COST)
+	# Lightning Reed uses the regular recipe transaction: one scroll, two materials, 2000 coins.
+	assert(Recipes.recipe_id(CharacterRegistry.PlantType.P050LightningReed) == "recipe_p050")
+	assert(Recipes.definition("recipe_p050").materials == ["aquatic_fiber", "charge_crystal"])
+	assert(inventory.add_item("recipe_p050", 1))
+	assert(inventory.add_item("aquatic_fiber", 1))
+	assert(inventory.add_item("charge_crystal", 1))
+	var reed_choice := {"recipe_id": "recipe_p050"}
+	var reed_quote: Dictionary = service.quote("craft", reed_choice)
+	assert(reed_quote.ready and reed_quote.fee == 2000)
+	var before_reed_coin: int = wallet.coin_value
+	var reed_result: Dictionary = service.execute("craft", reed_choice)
+	assert(reed_result.ok and inventory.get_card(reed_result.uid).plant_type == 50)
+	assert(inventory.get_card(reed_result.uid).stars == 0)
+	for id: String in ["recipe_p050", "aquatic_fiber", "charge_crystal"]:
+		assert(inventory.get_item_count(id) == 0)
+	assert(wallet.coin_value == before_reed_coin - 2000)
+	assert(not service.execute("craft", reed_choice).ok)
 	print("RESEARCH_CORE_PASS recipes=", Recipes.all_ids().size(), ", promotions, rollback, enhancement curve and settlement")
 	service = null
 	wallet.free()

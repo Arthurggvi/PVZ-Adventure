@@ -1,0 +1,169 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://cy3xu8ug3gd2" path="res://assets/reanim/PeaShooter_backleaf.png" id="3_xm6ba"]
+
+[ext_resource type="Texture2D" uid="uid://cyknr5ymersct" path="res://assets/reanim/PeaShooter_backleaf_lefttip.png" id="4_2m5n3"]
+
+[ext_resource type="Texture2D" uid="uid://i7fngqj5l36a" path="res://assets/reanim/PeaShooter_backleaf_righttip.png" id="5_utnli"]
+
+[ext_resource type="Texture2D" uid="uid://yxv2bpco6d57" path="res://assets/reanim/PeaShooter_stalk_bottom.png" id="6_1j6ba"]
+
+[ext_resource type="Texture2D" uid="uid://bu8g84fe1ni48" path="res://assets/reanim/PeaShooter_stalk_top.png" id="7_1qg83"]
+
+[ext_resource type="Texture2D" uid="uid://300aew7liup" path="res://assets/reanim/PeaShooter_frontleaf.png" id="8_jrvjq"]
+
+[ext_resource type="Texture2D" uid="uid://nj6m28m6k5p1" path="res://assets/reanim/PeaShooter_frontleaf_righttip.png" id="9_lppa3"]
+
+[ext_resource type="Texture2D" uid="uid://dit0i5evvco14" path="res://assets/reanim/PeaShooter_frontleaf_lefttip.png" id="10_xa6hp"]
+
+[ext_resource type="Texture2D" uid="uid://dvlvifhp7gqg6" path="res://assets/reanim/SnowPea_crystals1.png" id="66_sh77m"]
+
+[ext_resource type="Texture2D" uid="uid://cwt4uqjqsibcq" path="res://assets/reanim/SnowPea_crystals2.png" id="67_tnx54"]
+
+[ext_resource type="Texture2D" uid="uid://djckbtre6csg1" path="res://assets/reanim/SnowPea_crystals3.png" id="68_cxn6a"]
+
+[ext_resource type="Texture2D" uid="uid://btm8ff66rlov2" path="res://assets/reanim/SnowPea_head.png" id="69_52fob"]
+
+[ext_resource type="Texture2D" uid="uid://duih4ey3fvuom" path="res://assets/reanim/SnowPea_mouth.png" id="70_w46wv"]
+
+[ext_resource type="Texture2D" uid="uid://deyg0fepgpbq6" path="res://assets/reanim/SnowPea_blink1.png" id="71_yjayj"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_6"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 6
+
+[node name="Card6" unique_id=1924829943 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_6")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant006SnowPea" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1351292902]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant006SnowPea" unique_id=379844234]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body" unique_id=48843489]
+position = Vector2(-43, -69)
+
+[node name="Backleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect" unique_id=1729126251]
+position = Vector2(27.6, 54.372)
+scale = Vector2(0.58108, 0.49616)
+texture = ExtResource("3_xm6ba")
+centered = false
+
+[node name="Backleaf_left_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect" unique_id=332587231]
+position = Vector2(24.968, 54.636)
+rotation = 0.0432145
+scale = Vector2(0.6008, 0.51756)
+texture = ExtResource("4_2m5n3")
+centered = false
+
+[node name="Backleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect" unique_id=1966578887]
+position = Vector2(47.636, 54.068)
+rotation = 0.0239461
+scale = Vector2(0.65996, 0.51756)
+texture = ExtResource("5_utnli")
+centered = false
+
+[node name="Stalk_bottom" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect" unique_id=1568417397]
+position = Vector2(37.772, 49.76)
+rotation = 0.170973
+scale = Vector2(0.559, 0.71044)
+skew = -0.0595508
+texture = ExtResource("6_1j6ba")
+centered = false
+
+[node name="Stalk_top" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect" unique_id=251379342]
+position = Vector2(33.408, 37.592)
+rotation = 0.148772
+scale = Vector2(0.56204, 0.82632)
+skew = -0.0583638
+texture = ExtResource("7_1qg83")
+centered = false
+
+[node name="Frontleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect" unique_id=1709824107]
+position = Vector2(22.332, 55.236)
+scale = Vector2(0.57272, 0.52892)
+texture = ExtResource("8_jrvjq")
+centered = false
+
+[node name="Frontleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect" unique_id=1869900587]
+position = Vector2(55.832, 56.368)
+rotation = -0.121964
+scale = Vector2(0.69072, 0.54732)
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Frontleaf_tip_left" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect" unique_id=1625725870]
+position = Vector2(19.668, 60.832)
+rotation = 0.111421
+scale = Vector2(0.61216, 0.54664)
+texture = ExtResource("10_xa6hp")
+centered = false
+
+[node name="Anim_stem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect" unique_id=121814671]
+position = Vector2(39.44, 43.228)
+centered = false
+
+[node name="stem_correct" type="Node2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect/Anim_stem" unique_id=1927442283]
+position = Vector2(-37.6, -48.7)
+
+[node name="SnowPea_crystals1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect/Anim_stem/stem_correct" unique_id=1247368822]
+position = Vector2(10.2, 15.9)
+rotation = -0.050615
+scale = Vector2(0.551, 0.503)
+skew = 0.050615
+texture = ExtResource("66_sh77m")
+centered = false
+
+[node name="SnowPea_crystals2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect/Anim_stem/stem_correct" unique_id=725284577]
+position = Vector2(11, 18.3)
+rotation = -0.050615
+scale = Vector2(0.551, 0.503)
+skew = 0.050615
+texture = ExtResource("67_tnx54")
+centered = false
+
+[node name="SnowPea_crystals3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect/Anim_stem/stem_correct" unique_id=700754551]
+position = Vector2(7.7, 26.3)
+rotation = -0.050615
+scale = Vector2(0.551, 0.503)
+skew = 0.050615
+texture = ExtResource("68_cxn6a")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect/Anim_stem/stem_correct" unique_id=2137420168]
+position = Vector2(19.2, 17.8)
+scale = Vector2(0.555, 0.5)
+texture = ExtResource("69_52fob")
+centered = false
+
+[node name="SnowPea_mouth" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect/Anim_stem/stem_correct" unique_id=448702257]
+position = Vector2(52.4, 17.8)
+scale = Vector2(0.555, 0.5)
+texture = ExtResource("70_w46wv")
+centered = false
+
+[node name="Idle_shoot_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect/Anim_stem/stem_correct" unique_id=172834683]
+visible = false
+centered = false
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect/Anim_stem/stem_correct" unique_id=886655276]
+visible = false
+position = Vector2(37.5, 23.5)
+scale = Vector2(0.555, 0.555)
+texture = ExtResource("71_yjayj")
+centered = false
+
+[node name="Marker2DBullet" type="Marker2D" parent="CardBg/CharacterStatic/Plant006SnowPea/Body/BodyCorrect/Anim_stem/stem_correct" unique_id=1227975349]
+position = Vector2(60.9452, 30.6411)

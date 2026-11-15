@@ -90,7 +90,7 @@ func show_boss(type_id: int, phase: int, info: Dictionary) -> void:
 		_world.remove_child(_effects)
 		_effects.queue_free()
 	_phase = clampi(phase, 1, 2)
-	_visual = (Data.VISUALS[type_id] as PackedScene).instantiate() as Node2D
+	_visual = (load(Data.VISUALS[type_id]) as PackedScene).instantiate() as Node2D
 	_general = _visual as BlackGeneralVisual
 	_actor = Node2D.new()
 	_effects = Node2D.new()
@@ -169,7 +169,6 @@ func stop() -> void:
 	if is_instance_valid(_player):
 		_player.stop()
 	if is_instance_valid(_general):
-		_general.stop_windup_sound()
 		_general.retire_charge_effects()
 	if is_instance_valid(_camera):
 		_camera.stop_shake()
@@ -242,8 +241,6 @@ func _process(delta: float) -> void:
 	if _general != null and _clip == &"charge":
 		_step_charge(delta)
 		return
-	if _general != null and _clip == &"windup":
-		_general.advance_windup_sound(delta)
 	_remaining = maxf(0.0, _remaining - delta)
 	var progress: float = clampf(1.0 - _remaining / _duration, 0.0, 1.0) # 当前段归一化进度。
 	if _clip in [&"run", &"walk"]:
@@ -256,7 +253,7 @@ func _step_charge(delta: float) -> void:
 	_general.sample_charge_trail(STAGE_CELL_WIDTH)
 	var feet: Vector2 = _actor.global_position # 移动前的脚底位置，用于烟带和起步冲击。
 	var reached_end: bool = _move_charge_actor(_actor, delta) # 空跑道只提供停止线。
-	_general.advance_charge_effects(feet, delta)
+	_general.advance_charge_effects(feet)
 	_camera.position.x = _camera_home.x + _actor.position.x * 0.85
 	if reached_end:
 		_general.finish_charge_effects()

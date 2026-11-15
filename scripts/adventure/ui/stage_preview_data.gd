@@ -56,6 +56,7 @@ static func _block(phase: StagePhaseDefinition) -> Dictionary:
 		"enemies": _enemies(phase),
 		"bosses": _bosses(phase),
 		"drops": _drops(phase.drop_table),
+		"clear_drops": _clear_drops(phase.events),
 	}
 
 ## 末波即使没有写进 flag_waves 也会被规划器当作大波，这里与预算口径保持一致。
@@ -110,6 +111,15 @@ static func _boss_drops(events: Array[StageEventDefinition], encounter_id: Strin
 			rows.append_array(_drops(event.action_drop_table))
 	return rows
 
+## 返回 [param events] 在本阶段胜利时追加的掉落候选。
+static func _clear_drops(events: Array[StageEventDefinition]) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = [] # 汇总胜利事件的奖励，用于单独显示通关掉落。
+	for event: StageEventDefinition in events: # 仅展示结算时发放的奖励。
+		if event != null and event.trigger == StageEventDefinition.Trigger.BATTLE_END \
+				and event.action == StageEventDefinition.Action.REQUEST_DROP:
+			rows.append_array(_drops(event.action_drop_table))
+	return rows
+
 ## 掉落条目按“配方 → 肥料 → 其他”分组展示，同组内保持资源声明顺序。
 ## 网格只画图标，因此同时给出数量与配方头像所需字段。
 static func _drops(table: DropTable) -> Array[Dictionary]:
@@ -123,25 +133,33 @@ static func _drops(table: DropTable) -> Array[Dictionary]:
 			var item_id := str(entry.asset_id)
 			var definition: Dictionary = ItemRegistry.get_item_definition(item_id)
 			var is_recipe: bool = str(definition.get("category", "")) == "recipe"
-			var row := {
-				"id": item_id,
-				"icon": ItemArt.icon_uri(item_id),
-				"backing": ItemArt.backing_uri(item_id),
-				"plant_type": int(Recipes.definition(item_id).get("plant_type", 0)) if is_recipe else 0,
-				"count": entry.quantity_min,
-				"cap": entry.quantity_max if entry.cap_quantity_at_max else 0,
-			}
+			var plant_type: int = int(Recipes.definition(item_id).get("plant_type", 0)) if is_recipe else 0 # 仅配方叠加植物头像。
+			var cap: int = entry.quantity_max if entry.cap_quantity_at_max else 0 # 0 表示不显示上限。
+			var row: Dictionary = _drop_row(item_id, entry.quantity_min, plant_type, cap) # 保留现有显示次序。
 			if is_recipe:
 				recipes.append(row)
 			elif definition.has("fertilizer_level"):
 				fertilizers.append(row)
 			else:
 				others.append(row)
+			for material_id: String in entry.included_materials(): # 奖励抽中配方时附带的材料也展示在同组。
+				others.append(_drop_row(material_id, entry.quantity_min))
 	var rows: Array[Dictionary] = []
 	rows.append_array(recipes)
 	rows.append_array(fertilizers)
 	rows.append_array(others)
 	return rows
+
+## 返回 [param item_id] 的图标数据；[param count] 是基础数量，[param plant_type] 和 [param cap] 为可选角标数据。
+static func _drop_row(item_id: String, count: int, plant_type: int = 0, cap: int = 0) -> Dictionary:
+	return {
+		"id": item_id,
+		"icon": ItemArt.icon_uri(item_id),
+		"backing": ItemArt.backing_uri(item_id),
+		"plant_type": plant_type,
+		"count": count,
+		"cap": cap,
+	}
 
 
 ## 波次区间文字；没有固定波次的物种由 Boss 或事件召唤产生。

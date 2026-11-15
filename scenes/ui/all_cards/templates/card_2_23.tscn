@@ -1,0 +1,333 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://dbgta7mnwqmxv" path="res://assets/reanim/Zombie_catapult_crank.png" id="627_mmvdr"]
+
+[ext_resource type="Texture2D" uid="uid://dc50je3mbyxqd" path="res://assets/reanim/Zombie_catapult_driver_innerarm_hand.png" id="628_d0h7s"]
+
+[ext_resource type="Texture2D" uid="uid://grrlkhsmdaus" path="res://assets/reanim/Zombie_catapult_driver_innerarm_lower.png" id="629_ncr51"]
+
+[ext_resource type="Texture2D" uid="uid://v1pbx1hjnpiu" path="res://assets/reanim/Zombie_catapult_driver_innerarm_upper.png" id="630_ov1cb"]
+
+[ext_resource type="Texture2D" uid="uid://dspnky2khnwlo" path="res://assets/reanim/Zombie_catapult_crankarm.png" id="631_ks0wj"]
+
+[ext_resource type="Texture2D" uid="uid://b022q0tuxv03c" path="res://assets/reanim/Zombie_catapult_driver_innerleg_foot.png" id="632_ylgpa"]
+
+[ext_resource type="Texture2D" uid="uid://cgsq4m4ol017g" path="res://assets/reanim/Zombie_catapult_driver_innerleg_lower.png" id="633_whuge"]
+
+[ext_resource type="Texture2D" uid="uid://sn16smg82irk" path="res://assets/reanim/Zombie_catapult_driver_innerleg_upper.png" id="634_ffws3"]
+
+[ext_resource type="Texture2D" uid="uid://4ex41lh5yjh3" path="res://assets/reanim/Zombie_catapult_driver_body.png" id="635_ft85b"]
+
+[ext_resource type="Texture2D" uid="uid://bfvcbd3ofrh73" path="res://assets/reanim/Zombie_catapult_driver_mouth.png" id="636_vcv46"]
+
+[ext_resource type="Texture2D" uid="uid://c7elpcd0fkgmi" path="res://assets/reanim/Zombie_catapult_driver_head.png" id="637_vo1g1"]
+
+[ext_resource type="Texture2D" uid="uid://jt32h48h2e3u" path="res://assets/reanim/Zombie_catapult_driver_outerleg_foot.png" id="638_bqk8l"]
+
+[ext_resource type="Texture2D" uid="uid://bk7dd8wsaiq34" path="res://assets/reanim/Zombie_catapult_driver_outerleg_lower.png" id="639_ed5ns"]
+
+[ext_resource type="Texture2D" uid="uid://c8exx8x8d3oij" path="res://assets/reanim/Zombie_catapult_driver_outerleg_upper.png" id="640_6nvl2"]
+
+[ext_resource type="Texture2D" uid="uid://b3y425ma5g4ae" path="res://assets/reanim/Zombie_catapult_driver_hankie.png" id="641_augfe"]
+
+[ext_resource type="Texture2D" uid="uid://b618sbh3i83iq" path="res://assets/reanim/Zombie_catapult_driver_outerarm_hand.png" id="642_7x32i"]
+
+[ext_resource type="Texture2D" uid="uid://c6pylm880wsxx" path="res://assets/reanim/Zombie_catapult_driver_outerarm_upper.png" id="643_5hyh1"]
+
+[ext_resource type="Texture2D" uid="uid://4j02ry0yqis4" path="res://assets/reanim/Zombie_catapult_driver_outerarm_lower.png" id="644_stc33"]
+
+[ext_resource type="Texture2D" uid="uid://btg5xblar4uhd" path="res://assets/reanim/LawnMower_wheel2.png" id="645_agc5q"]
+
+[ext_resource type="Texture2D" uid="uid://c15v0wb1xhoog" path="res://assets/reanim/Zombie_catapult_body.png" id="646_7dndd"]
+
+[ext_resource type="Texture2D" uid="uid://chc6aif3yafku" path="res://assets/reanim/Zombie_catapult_spring.png" id="647_3bba4"]
+
+[ext_resource type="Texture2D" uid="uid://62mufq1k2us2" path="res://assets/reanim/Zombie_catapult_pole_withball.png" id="648_5d2eo"]
+
+[ext_resource type="Texture2D" uid="uid://chjakwpcvn1n4" path="res://assets/reanim/Zombie_catapult_basket.png" id="649_aliup"]
+
+[ext_resource type="Texture2D" uid="uid://c01klhv14falj" path="res://assets/reanim/Zombie_catapult_basketball.png" id="650_63kfc"]
+
+[ext_resource type="Texture2D" uid="uid://d2qiop1kdtso4" path="res://assets/reanim/Zombie_catapult_basket_overlay.png" id="651_ij2p4"]
+
+[ext_resource type="Texture2D" uid="uid://de8gk86hm1rty" path="res://assets/reanim/LawnMower_wheelpiece.png" id="652_77b3v"]
+
+[ext_resource type="Texture2D" uid="uid://cfnmyrrrgjq48" path="res://assets/reanim/Zombie_catapult_siding.png" id="653_8nnpu"]
+
+[ext_resource type="Texture2D" uid="uid://dnuxrp7f2oytd" path="res://assets/reanim/Zombie_catapult_body_overlay1.png" id="654_x3u1p"]
+
+[ext_resource type="Texture2D" uid="uid://kqbv87deorvb" path="res://assets/reanim/Zombie_catapult_body_overlay2.png" id="655_4u2fm"]
+
+[ext_resource type="Texture2D" uid="uid://3skoldjcqlhg" path="res://assets/reanim/Zombie_catapult_engine.png" id="656_yk8om"]
+
+[ext_resource type="Texture2D" uid="uid://da0sel5di6efk" path="res://assets/reanim/Zombie_catapult_manhole.png" id="657_tqqbd"]
+
+[ext_resource type="Texture2D" uid="uid://dfirly70a7iwi" path="res://assets/reanim/Zombie_catapult_manhole_overlay.png" id="658_8p6b6"]
+
+[ext_resource type="Texture2D" uid="uid://cpq11yiv1ya0l" path="res://assets/reanim/Zombie_catapult_tape.png" id="659_ees34"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_23"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 23
+
+[node name="Card23" unique_id=2060060093 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_23")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie023Catapult" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=458158841]
+position = Vector2(2, 17)
+scale = Vector2(0.25, 0.25)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie023Catapult" unique_id=181744848]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body" unique_id=1174797049]
+position = Vector2(-75, -128)
+
+[node name="Zombie_catapult_crank" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1294548033]
+position = Vector2(16.1, 52.8)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("627_mmvdr")
+centered = false
+
+[node name="Zombie_catapult_driver_innerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1698594250]
+position = Vector2(16.4, 47)
+rotation = 0.242601
+scale = Vector2(0.74, 0.74)
+texture = ExtResource("628_d0h7s")
+centered = false
+
+[node name="Zombie_catapult_driver_innerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1556731660]
+position = Vector2(50.1, 41.6)
+rotation = 1.09956
+scale = Vector2(0.741, 0.754)
+skew = 0.190241
+texture = ExtResource("629_ncr51")
+centered = false
+
+[node name="Zombie_catapult_driver_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=191318080]
+position = Vector2(64.1, 29.1)
+rotation = 1.15017
+scale = Vector2(0.8, 0.715)
+skew = -0.284489
+texture = ExtResource("630_ov1cb")
+centered = false
+
+[node name="Zombie_catapult_crankarm" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1628233510]
+position = Vector2(16, 52.8)
+rotation = -6.28144
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("631_ks0wj")
+centered = false
+
+[node name="Zombie_catapult_driver_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=348332187]
+position = Vector2(63, 98.5)
+scale = Vector2(0.741, 0.741)
+texture = ExtResource("632_ylgpa")
+centered = false
+
+[node name="Zombie_catapult_driver_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1399605798]
+position = Vector2(61.5, 93.1)
+scale = Vector2(0.741, 0.741)
+texture = ExtResource("633_whuge")
+centered = false
+
+[node name="Zombie_catapult_driver_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1132698507]
+position = Vector2(63.5, 75.7)
+scale = Vector2(0.741, 0.741)
+texture = ExtResource("634_ffws3")
+centered = false
+
+[node name="Zombie_catapult_driver_body" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=2132903084]
+position = Vector2(50.4, 15.2)
+scale = Vector2(0.741, 0.741)
+texture = ExtResource("635_ft85b")
+centered = false
+
+[node name="Zombie_catapult_driver_mouth" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=433388923]
+position = Vector2(40.8, 27.8)
+scale = Vector2(0.741, 0.741)
+texture = ExtResource("636_vcv46")
+centered = false
+
+[node name="Zombie_catapult_driver_head" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1651277699]
+position = Vector2(33.8, -1.7)
+scale = Vector2(0.741, 0.741)
+texture = ExtResource("637_vo1g1")
+centered = false
+
+[node name="Zombie_catapult_driver_outerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=684748630]
+position = Vector2(76.7, 105)
+scale = Vector2(0.778, 0.741)
+texture = ExtResource("638_bqk8l")
+centered = false
+
+[node name="Zombie_catapult_driver_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=573739258]
+position = Vector2(88.3, 87.9)
+scale = Vector2(0.741, 0.741)
+texture = ExtResource("639_ed5ns")
+centered = false
+
+[node name="Zombie_catapult_driver_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1189042171]
+position = Vector2(88, 64.2)
+scale = Vector2(0.741, 0.741)
+texture = ExtResource("640_6nvl2")
+centered = false
+
+[node name="Zombie_catapult_driver_hankie" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=29216838]
+position = Vector2(114.6, 61.5)
+scale = Vector2(0.741, 0.741)
+texture = ExtResource("641_augfe")
+centered = false
+
+[node name="Zombie_catapult_driver_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=168435521]
+position = Vector2(59.2, 62)
+rotation = 0.680678
+scale = Vector2(0.737, 0.742)
+skew = 0.029671
+texture = ExtResource("642_7x32i")
+centered = false
+
+[node name="Zombie_catapult_driver_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=907402338]
+position = Vector2(71.5, 28.7)
+rotation = 0.113446
+scale = Vector2(0.741, 0.741)
+texture = ExtResource("643_5hyh1")
+centered = false
+
+[node name="Zombie_catapult_driver_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=755657665]
+position = Vector2(68.8, 51)
+rotation = 0.324631
+scale = Vector2(0.737, 0.743)
+skew = 0.0314162
+texture = ExtResource("644_stc33")
+centered = false
+
+[node name="Zombie_catapult_innerwheel_rear1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=882403678]
+position = Vector2(9.6, 89)
+texture = ExtResource("645_agc5q")
+centered = false
+
+[node name="Zombie_catapult_innerwheel_rear2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1103968114]
+position = Vector2(84.4, 89.2)
+texture = ExtResource("645_agc5q")
+centered = false
+
+[node name="Zombie_catapult_body" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=2708094]
+position = Vector2(-2.4, 58.5)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("646_7dndd")
+centered = false
+
+[node name="Zombie_catapult_spring" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1511241791]
+position = Vector2(10.9, 87.3)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("647_3bba4")
+centered = false
+
+[node name="Zombie_catapult_pole" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=303729491]
+position = Vector2(3, 29.1)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("648_5d2eo")
+centered = false
+
+[node name="Zombie_catapult_basket" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1943520764]
+position = Vector2(71.8, 77.8)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("649_aliup")
+centered = false
+
+[node name="Zombie_catapult_basketball" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1474029573]
+position = Vector2(76.2, 76.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("650_63kfc")
+centered = false
+
+[node name="Zombie_catapult_basketball2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=936466235]
+position = Vector2(93.7, 72.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("650_63kfc")
+centered = false
+
+[node name="Zombie_catapult_basketball3" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=247143600]
+position = Vector2(97.8, 81)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("650_63kfc")
+centered = false
+
+[node name="Zombie_catapult_basketball4" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1669815145]
+position = Vector2(82.1, 85)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("650_63kfc")
+centered = false
+
+[node name="Zombie_catapult_basket_overlay" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=322121104]
+position = Vector2(71.8, 79.6)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("651_ij2p4")
+centered = false
+
+[node name="LawnMower_wheelpiece" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1731628133]
+position = Vector2(48.9, 109.7)
+rotation = 3.14159
+skew = -3.14159
+texture = ExtResource("652_77b3v")
+centered = false
+
+[node name="Zombie_catapult_outerwheel_front1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=2038311499]
+position = Vector2(24.5, 113.3)
+rotation = -6.28144
+texture = ExtResource("645_agc5q")
+centered = false
+
+[node name="Zombie_catapult_siding" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=352958633]
+position = Vector2(-9.4, 84.6)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("653_8nnpu")
+centered = false
+
+[node name="Zombie_catapult_body_overlays" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1081310475]
+position = Vector2(81, 105.3)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("654_x3u1p")
+centered = false
+
+[node name="Zombie_catapult_body_overlays2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=5398033]
+position = Vector2(27.3, 69.3)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("655_4u2fm")
+centered = false
+
+[node name="Zombie_catapult_engine" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=807988147]
+position = Vector2(44.1, 76.3)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("656_yk8om")
+centered = false
+
+[node name="Zombie_catapult_manhole" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1016618008]
+position = Vector2(92.8, 96.4)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("657_tqqbd")
+centered = false
+
+[node name="Zombie_catapult_manhole_overlay" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=1144712281]
+position = Vector2(96.3, 98.2)
+rotation = -6.28144
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("658_8p6b6")
+centered = false
+
+[node name="Zombie_catapult_tape" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie023Catapult/Body/BodyCorrect" unique_id=138102727]
+position = Vector2(79.8, 115.2)
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("659_ees34")
+centered = false

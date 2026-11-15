@@ -5,6 +5,8 @@ extends Control
 const DESIGN_SIZE := Vector2(1920, 1080)
 ## 地图素材根路径。
 const ASSET_ROOT := "res://assets/adventure/zombie_island/"
+## 正式地图默认使用的净空背景；创建首帧时只读取最终选择的那张。
+const CLEAN_BACKGROUND := "res://assets/adventure/environment_fx/v1/sky_cleanup_v1/backgrounds/zombie_island_sky_clean_1920x1080.png"
 ## 地图节点实现。
 const StageButton = preload("res://scripts/adventure/island_stage_button.gd")
 ## 引导实现。
@@ -19,6 +21,8 @@ const PreviewPanel = preload("res://scripts/adventure/ui/stage_preview_panel.gd"
 const PreviewData = preload("res://scripts/adventure/ui/stage_preview_data.gd")
 ## 复用的环境场景，位于背景与关卡按钮之间。
 const ENVIRONMENT = preload("res://scenes/environment/zombie_island_fx.tscn")
+## 环境组件提供配置中的动态资源路径，不在地图重建第二份美术清单。
+const EnvironmentResources = preload("res://scripts/environment/environment_layer.gd")
 ## 总环境开关，关闭后停止内部动画与气泡。
 @export var environment_fx_enabled := true:
 	set(value):
@@ -41,6 +45,25 @@ var canvas: Control
 var preview: Control
 ## 已解析的关卡配置，首次悬停时读取；解析结果已深拷贝，不污染共享资源。
 var _stage_definitions: Dictionary = {}
+
+## 声明地图首屏动态依赖，供统一过渡在入树前后台准备；不构造地图或更改存档。
+static func get_initial_resource_paths() -> PackedStringArray:
+	var paths := PackedStringArray([CLEAN_BACKGROUND, "res://assets/fonts/方正少儿_GBK.ttf",
+		"res://data/PVZ_theme.tres", "res://assets/adventure/audio/mus_town.wav"]) # 共用主题与城镇音乐。
+	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ASSET_ROOT + "layout.json")) # 轻量地图布局。
+	for stage: Dictionary in layout.get("stages", []): # 六个按钮的实际纹理路径。
+		paths.append(ASSET_ROOT + str(stage.button))
+	var environment_state: SceneState = ENVIRONMENT.get_state() # 从既有场景读取环境配置地址。
+	for index: int in environment_state.get_node_property_count(0):
+		if environment_state.get_node_property_name(0, index) == &"configuration":
+			paths.append_array(EnvironmentResources.resource_paths(str(environment_state.get_node_property_value(0, index))))
+	if AdventureSession.progress != null and not AdventureSession.progress.intro_completed:
+		paths.append(SceneRegistry.PATHS[&"CRAZY_DAVE"])
+		var references: Array[ResourceCardReference] = [ # 新手对话只展示两张赠卡。
+			ResourceCardReference.create(ResourceCardReference.CardType.Plant, CharacterRegistry.PlantType.P001PeaShooterSingle),
+			ResourceCardReference.create(ResourceCardReference.CardType.Plant, CharacterRegistry.PlantType.P002SunFlower)]
+		paths.append_array(AllCards.get_resource_paths(references))
+	return paths
 ## 地图上没有难度分流弹窗，挑战总从普通阶段开始。
 func is_adventure_toolbar_blocked() -> bool:
 	return is_instance_valid(canvas) and canvas.has_node("Intro")
@@ -60,7 +83,7 @@ func _ready() -> void:
 	add_child(canvas)
 	# 背景纹理与节点都在同一设计空间，由外层等比缩放。
 	background = TextureRect.new()
-	background.texture = load(ASSET_ROOT + "map/zombie_island_background_1920x1080.png")
+	background.texture = load(CLEAN_BACKGROUND if use_clean_sky else ASSET_ROOT + "map/zombie_island_background_1920x1080.png")
 	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	background.size = DESIGN_SIZE
@@ -71,6 +94,7 @@ func _ready() -> void:
 	_apply_environment()
 	# 只读取布局配置，不改动原 PNG，也不画节点路线。
 	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(ASSET_ROOT + "layout.json"))
+	var label_offsets: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://resources/adventure/island_label_offsets.json")) # 六个按钮共享一份标签布局。
 	preview = PreviewPanel.new() # 建按钮期间只持有引用，面板最后加入以覆盖节点。
 	for stage: Dictionary in layout.stages: # 六个关卡共用同一实现。
 		var node := StageButton.new() # 独立贴图按钮与动态文字层。
@@ -80,7 +104,7 @@ func _ready() -> void:
 		var cleared: bool = AdventureStageCatalog.is_cleared(
 			Global.global_game_state.adventure_state, AdventureStageRegistry.stage_id(stage.id),
 			StagePhaseDefinition.Kind.NORMAL)
-		node.configure(stage, unlocked, cleared, _select_stage.bind(stage.id))
+		node.configure(stage, unlocked, cleared, _select_stage.bind(stage.id), label_offsets)
 		if unlocked: # 未解锁关卡不参与悬停预览，按钮自身也不可按下。
 			node.mouse_entered.connect(_hover_stage.bind(stage, node, cleared))
 			node.mouse_exited.connect(preview.cancel)
@@ -106,13 +130,13 @@ func _fit_canvas() -> void:
 
 ## 在同一1920×1080空间中替换候选引用，不改变地图、按钮或存档状态。
 func _apply_environment() -> void:
-	background.texture = load("res://assets/adventure/environment_fx/v1/sky_cleanup_v1/backgrounds/zombie_island_sky_clean_1920x1080.png" if use_clean_sky else ASSET_ROOT + "map/zombie_island_background_1920x1080.png")
+	background.texture = load(CLEAN_BACKGROUND if use_clean_sky else ASSET_ROOT + "map/zombie_island_background_1920x1080.png")
 	environment.set_flags(environment_fx_enabled, use_clean_sky)
 
 ## 单一关卡入口；解锁与入场条件由按钮状态和会话入口判定。
 func _select_stage(stage_id: int) -> void:
 	if AdventureSession.is_unlocked(stage_id):
-		AdventureSession.enter_stage(stage_id)
+		AdventureSession.enter_stage(stage_id, StagePhaseDefinition.Kind.NORMAL, $SceneTransition)
 
 ## 悬停节点时请求情报预览，普通阶段通关后才解析配置。
 ## [param stage] 为 layout.json 条目，[param node] 提供面板锚点，[param cleared] 来自本轮已算好的进度。
@@ -129,5 +153,4 @@ func _stage_definition(stage_number: int) -> StageDefinition:
 
 ## 经复用遮幕返回原有菜单；只增加表现时序，保留进度、音乐和原返回目的地。
 func _return_menu() -> void:
-	AdventureSession.adventure_active = false
 	$SceneTransition.change_scene(Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu])

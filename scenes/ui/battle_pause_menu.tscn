@@ -1,0 +1,160 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/image/ui/ui_main_game_menu/option_dialog.png" id="1_panel"]
+[ext_resource type="Script" path="res://scripts/ui/ui_main_game_menu/battle_pause_menu.gd" id="2_menu"]
+[ext_resource type="Script" path="res://scripts/ui/PVZ_button_base.gd" id="3_button"]
+[ext_resource type="Texture2D" path="res://assets/image/ui/ui_main_game_menu/btn_dialog_back_2.png" id="4_return"]
+[ext_resource type="BitMap" path="res://assets/image/ui/ui_main_game_menu/btn_dialog_back_2_mask.png" id="5_return_mask"]
+[ext_resource type="Script" path="res://scripts/ui/audio_volume_slider.gd" id="6_volume"]
+
+[node name="BattlePauseMenu" type="TextureRect"]
+visible = false
+custom_minimum_size = Vector2(412, 483)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -206.0
+offset_top = -241.5
+offset_right = 206.0
+offset_bottom = 241.5
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_panel")
+expand_mode = 1
+stretch_mode = 3
+script = ExtResource("2_menu")
+
+[node name="Audio" type="GridContainer" parent="."]
+layout_mode = 0
+offset_left = 101.0
+offset_top = 184.0
+offset_right = 303.0
+offset_bottom = 257.0
+mouse_filter = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="MusicLabel" type="Label" parent="Audio"]
+layout_mode = 2
+theme_type_variation = &"Label2"
+theme_override_colors/font_color = Color(0.91, 0.9, 0.97, 1)
+theme_override_constants/outline_size = 0
+text = "背景音乐"
+
+[node name="MusicVolume" type="HSlider" parent="Audio"]
+custom_minimum_size = Vector2(100, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("6_volume")
+
+[node name="SoundLabel" type="Label" parent="Audio"]
+layout_mode = 2
+theme_type_variation = &"Label2"
+theme_override_colors/font_color = Color(0.91, 0.9, 0.97, 1)
+theme_override_constants/outline_size = 0
+text = "游戏音效"
+
+[node name="SoundVolume" type="HSlider" parent="Audio"]
+custom_minimum_size = Vector2(100, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("6_volume")
+bus_name = &"SFX"
+
+[node name="Actions" type="Control" parent="."]
+layout_mode = 0
+offset_left = 101.0
+offset_top = 279.5
+offset_right = 303.0
+offset_bottom = 360.5
+mouse_filter = 2
+
+[node name="RestartButton" type="BaseButton" parent="Actions"]
+layout_mode = 0
+offset_right = 202.0
+offset_bottom = 37.0
+mouse_filter = 1
+script = ExtResource("3_button")
+
+[node name="Panel" type="Panel" parent="Actions/RestartButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_type_variation = &"PanelButtonBG"
+
+[node name="Label" type="Label" parent="Actions/RestartButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "重新开始"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ExitButton" type="BaseButton" parent="Actions"]
+layout_mode = 0
+offset_top = 44.0
+offset_right = 202.0
+offset_bottom = 81.0
+mouse_filter = 1
+script = ExtResource("3_button")
+
+[node name="Panel" type="Panel" parent="Actions/ExitButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+theme_type_variation = &"PanelButtonBG"
+
+[node name="Label" type="Label" parent="Actions/ExitButton"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "主菜单"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Return" type="TextureButton" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -180.0
+offset_top = -100.0
+offset_right = 180.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 1
+texture_normal = ExtResource("4_return")
+texture_pressed = ExtResource("4_return")
+texture_click_mask = ExtResource("5_return_mask")
+script = ExtResource("3_button")
+
+[node name="Label" type="Label" parent="Return"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -26.5
+offset_right = 100.0
+offset_bottom = 26.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 50
+text = "返回游戏"
+
+[connection signal="pressed" from="Actions/RestartButton" to="." method="restart_battle"]
+[connection signal="pressed" from="Actions/ExitButton" to="." method="return_main_menu"]
+[connection signal="pressed" from="Return" to="." method="return_button_pressed"]

@@ -181,14 +181,15 @@ func get_all_hp():
 
 ## [param amount] 为强制调整量；[param mode] 决定分流，[param drop]、[param sfx]、[param extra_drop] 保留表现开关。
 ## 全量强制致死清除旧护甲及破甲回调中新授的护甲；部分卸甲和未死亡者保留原有护甲规则。
+## [param hit_scope] 保留强制处决的真实死因，不改变护甲分流。
 func apply_unblocked_loss(amount: int,
 		mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm,
-		drop: bool = true, sfx: bool = true, extra_drop: bool = true) -> void:
+		drop: bool = true, sfx: bool = true, extra_drop: bool = true, hit_scope: CombatHitScope = null) -> void:
 	var full_elimination: bool = amount >= get_all_hp() # 必须在回调授甲前冻结本次是否请求清空全部血池。
 	if full_elimination and bonus_armor > 0:
 		bonus_armor = 0
 		bonus_armor_changed.emit(0)
-	super.apply_unblocked_loss(amount, mode, drop, sfx, extra_drop)
+	super.apply_unblocked_loss(amount, mode, drop, sfx, extra_drop, hit_scope)
 	if full_elimination and is_death and bonus_armor > 0:
 		bonus_armor = 0 # 报纸破损可能在本次旁路中授甲；死亡后不能留下幽灵生命池。
 		bonus_armor_changed.emit(0)
@@ -215,7 +216,7 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 ## [param armor_multiplier] 仅放大装备防具损伤，默认一倍；临时生命池与本体沿用原伤害。
 ## [param bonus_damage] 普通、穿透或背击携带的同击附伤；[param bonus_cap] 为放大后上限，-1 不限制。
 ## [param receipt] 可选字典，报告实际承伤者及损失；无敌、旧尸体和强制生命调整均记零战斗损失。
-## [param hit_scope] 在保护者转移完成后、发出受击事件前消费，重复承伤回报零损失。
+## [param hit_scope] 在保护者转移完成后、发出受击事件前消费；重复承伤回报零损失并标记 duplicate_hit，区别于格挡归零。
 ## 返回本次从存活变死亡的实际受击者；转移伤害时可返回保护者。
 func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 		is_drop_on_death: bool, trigger_be_attack_SFX: bool, is_drop_2: bool = true,
@@ -233,6 +234,8 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 					is_drop_on_death, trigger_be_attack_SFX, is_drop_2, armor_multiplier, bonus_damage, bonus_cap, receipt, hit_scope)
 	# 转移先决定真正承伤者；不能在原接触目标提前占用资格。
 	if hit_scope != null and not hit_scope.try_claim(owner_character):
+		if receipt is Dictionary:
+			receipt["duplicate_hit"] = true
 		return null
 	# 只有本次受击产生的状态变化算击杀，已死亡的角色不重复回报。
 	var was_alive: bool = not is_death
@@ -257,7 +260,7 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 			resolved = maxi(1, resolved)
 		attack_value = _absorb_bonus_armor(resolved)
 	## 掉血标志, 1:本体 2:一类防具 4:二类防具
-	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value, armor_multiplier, receipt)
+	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value, armor_multiplier, receipt, hit_scope)
 
 	var res_hp = get_all_hp()
 	# A gear-loss trigger can award armor in this impact. The received-hit

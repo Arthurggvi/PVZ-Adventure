@@ -1,0 +1,137 @@
+{
+  "attack_start_1": {
+    "media_id": 250540312,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "attack_start_2": {
+    "media_id": 862958996,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "attack_start_3": {
+    "media_id": 1071391712,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "attack_fire_body_1": {
+    "media_id": 416962660,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "attack_fire_body_2": {
+    "media_id": 554927371,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "attack_fire_body_3": {
+    "media_id": 713319033,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "attack_fire_zap_1": {
+    "media_id": 978743153,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "attack_fire_zap_2": {
+    "media_id": 25693215,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "attack_fire_zap_3": {
+    "media_id": 1025905378,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "bolt_fire_1": {
+    "media_id": 393746225,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "bolt_fire_2": {
+    "media_id": 243966881,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "bolt_fire_3": {
+    "media_id": 228101180,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "idle_1": {
+    "media_id": 862893369,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "idle_2": {
+    "media_id": 127144045,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "idle_3": {
+    "media_id": 69279661,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "idle_4": {
+    "media_id": 61530407,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "idle_5": {
+    "media_id": 1000472156,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "idle_6": {
+    "media_id": 95892747,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "idle_7": {
+    "media_id": 263688270,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "idle_8": {
+    "media_id": 426818655,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": -10.0
+  },
+  "idle_9": {
+    "media_id": 870641816,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "plantfood_fire_1": {
+    "media_id": 257634974,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "plantfood_fire_2": {
+    "media_id": 231585987,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "plantfood_fire_3": {
+    "media_id": 454156335,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "plantfood_start_1": {
+    "media_id": 3198855,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "plantfood_start_2": {
+    "media_id": 26694119,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  },
+  "plantfood_start_3": {
+    "media_id": 671065673,
+    "source_bank": "PLANT_ELECTRICPEASHOOTER.BNK",
+    "group_gain_db": 0
+  }
+}

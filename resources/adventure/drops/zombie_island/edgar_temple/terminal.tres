@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="DropTable" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="Table"]
+
+[resource]
+script = ExtResource("Table")
+table_id = &"zombie_island.edgar_temple.terminal.drops"
+allow_empty = true

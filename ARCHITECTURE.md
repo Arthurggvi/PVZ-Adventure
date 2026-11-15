@@ -2,14 +2,14 @@
 
 ## 启动、场景与界面
 
-`project.godot` 启动 `scenes/main/01StartMenuCoastal.tscn`。`Global` 提供角色注册、档案与存档服务。`SceneRegistry` 管辅助场景，`MainSceneRegistry.MainScenesMap` 管主场景。地图经同一注册表返回海滨。
+`project.godot` 启动 `scenes/main/00Bootstrap.tscn`，由 `SceneTransition` 异步进入 `01StartMenuCoastal.tscn`。海滨、地图与战场复用 `SceneTransition.change_scene()`。战斗和返图只在目标场景被接受后提交状态。`SceneRegistry` 管辅助场景，`MainSceneRegistry.MainScenesMap` 管主场景。见 [启动与场景加载](docs/adventure/startup_loading.md)。
 
-建筑、地图按钮和工具栏共用 `AdventureToolbar.feature_status()` 与 `request_feature()`。工具栏控制器持有模态窗口，`map_navigation.gd` 持有临时地区选择器。新功能在 `scripts/adventure/ui/toolbar_features.gd` 登记，并在工具栏控制器注册权限查询和动作。渲染与建筑命中见 [海滨菜单](docs/adventure/main_menu_runtime_pipeline.md)。
+建筑、地图按钮和工具栏共用 `AdventureToolbar.feature_status()` 与 `request_feature()`。工具栏和地区选择器使用 `ResourceBatch` 准备首屏依赖。工具栏控制器持有已就绪的模态窗口，`map_navigation.gd` 持有临时地区选择器。新功能在 `scripts/adventure/ui/toolbar_features.gd` 登记，并在工具栏控制器注册权限查询和动作。渲染与建筑命中见 [海滨菜单](docs/adventure/main_menu_runtime_pipeline.md)。
 
 ## 关卡、天气与 Boss
 
 - `AdventureStageRegistry.resolve()` 组合 `resources/adventure/stages/zombie_island_default.tres` 和 `overrides/`。进场由 `AdventureStageCatalog` 校验前置、钥匙、阶段和地形。扩展关卡时沿用 `scripts/adventure/stages/` 的 Resource 接口，检查波次、固定行号、物种能力、事件和战利品。
-- `AdventureSession.enter_stage()` 经 `AdventureBattleEnvironmentAdapter.build()` 生成 `ResourceLevelData`，再加载前院、后院或屋顶战场。`AdventureBattleRuntime` 连接波次、遭遇和墓碑导演。`AdventureContinuationController` 在当前战场里推进下一阶段。
+- `AdventureSession.enter_stage()` 经 `AdventureBattleEnvironmentAdapter.build()` 生成 `ResourceLevelData`，再准备本局依赖及前院、后院或屋顶战场。`AdventureBattleRuntime` 连接波次、遭遇和墓碑导演。`AdventureContinuationController` 在当前战场里推进下一阶段。
 - `BackgroundManager` 将阶段的 `WeatherSequence` 交给 `BattleWeatherDirector`。后者以受暂停控制的战斗时间驱动雨幕、光场和湿镜头。第四关噩梦的预设位于 `resources/weather/`。
 - `AdventureBossDirector` 管队列，`AdventureBossEncounter` 管波次暂停、援军和退出结果。角色沿 `ZB000Base`、`ZombieManager` 和生命组件进入战斗结算。技能参数在 `resources/zombie_boss/`，冷却和目标属于战场实例。
 

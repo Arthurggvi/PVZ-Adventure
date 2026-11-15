@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://cbhaawnc37cwe" path="res://assets/reanim/LilyPad_body.png" id="147_mesb1"]
+
+[ext_resource type="Texture2D" uid="uid://dmmcjbsd028oj" path="res://assets/reanim/LilyPad_blink1.png" id="148_j48rv"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_17"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 17
+
+[node name="Card17" unique_id=467513342 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_17")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant017LilyPad" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1802705201]
+position = Vector2(3, 15)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant017LilyPad" unique_id=2037620515]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant017LilyPad" unique_id=197084988]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant017LilyPad/Body" unique_id=29249758]
+position = Vector2(-44, -67)
+
+[node name="shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant017LilyPad/Body/BodyCorrect" unique_id=1341504124]
+visible = false
+position = Vector2(40, 61)
+texture = ExtResource("98_ev02b")
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant017LilyPad/Body/BodyCorrect" unique_id=200111099]
+position = Vector2(-0.2, 5.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("147_mesb1")
+centered = false
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant017LilyPad/Body/BodyCorrect" unique_id=1595433841]
+visible = false
+position = Vector2(46, 50)
+scale = Vector2(0.735294, 0.695652)
+texture = ExtResource("148_j48rv")
+centered = false

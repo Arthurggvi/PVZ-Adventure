@@ -1,0 +1,226 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://c56eve4tvxpgc" path="res://assets/reanim/Zombie_innerarm_hand.png" id="196_pct5d"]
+
+[ext_resource type="Texture2D" uid="uid://duyqfy4j8isia" path="res://assets/reanim/Zombie_outerarm_hand.png" id="221_f80r2"]
+
+[ext_resource type="Texture2D" uid="uid://dqnjs14nj7c2g" path="res://assets/reanim/Zombie_paper_glasses.png" id="263_3b2rx"]
+
+[ext_resource type="Texture2D" uid="uid://ck4bw8mi7jb85" path="res://assets/reanim/Zombie_pogo_stick3.png" id="500_y566d"]
+
+[ext_resource type="Texture2D" uid="uid://cjk0trx5oo7r0" path="res://assets/reanim/Zombie_pogo_stick2.png" id="501_x27we"]
+
+[ext_resource type="Texture2D" uid="uid://b6d1m7jkgrxl4" path="res://assets/reanim/Zombie_pogo_stick.png" id="509_xhdep"]
+
+[ext_resource type="Texture2D" uid="uid://dcl73lips6w62" path="res://assets/reanim/Zombie_pogo_stickhands.png" id="510_p3hfi"]
+
+[ext_resource type="Texture2D" uid="uid://b4vbh746dhyol" path="res://assets/reanim/Zombie_pogo_innerarm_lower.png" id="514_sma26"]
+
+[ext_resource type="Texture2D" uid="uid://cwegs0y3yh745" path="res://assets/reanim/Zombie_pogo_innerarm_upper.png" id="515_f80r2"]
+
+[ext_resource type="Texture2D" uid="uid://ddx81cmfuhkdp" path="res://assets/reanim/Zombie_pogo_innerleg_upper.png" id="517_s6nef"]
+
+[ext_resource type="Texture2D" uid="uid://ckkq20wh4bgsd" path="res://assets/reanim/Zombie_pogo_outerleg_lower.png" id="519_oyv8q"]
+
+[ext_resource type="Texture2D" uid="uid://bsebt1k241sxy" path="res://assets/reanim/Zombie_pogo_outerleg_upper.png" id="520_wbb0f"]
+
+[ext_resource type="Texture2D" uid="uid://cdaqfqaw05eih" path="res://assets/reanim/Zombie_pogo_outerleg_foot.png" id="521_t5s4d"]
+
+[ext_resource type="Texture2D" uid="uid://cf1nba13h70sk" path="res://assets/reanim/Zombie_pogo_body.png" id="522_kthx8"]
+
+[ext_resource type="Texture2D" uid="uid://b5446iq4ix6m0" path="res://assets/reanim/Zombie_pogo_head.png" id="523_g1ryr"]
+
+[ext_resource type="Texture2D" uid="uid://ba71sctfnfjta" path="res://assets/reanim/Zombie_pogo_jaw.png" id="524_pa72g"]
+
+[ext_resource type="Texture2D" uid="uid://cevu2nadxinnt" path="res://assets/reanim/Zombie_pogo_hair.png" id="525_m72vq"]
+
+[ext_resource type="Texture2D" uid="uid://cdksg6b67b4dx" path="res://assets/reanim/Zombie_pogo_outerarm_upper.png" id="526_rmihr"]
+
+[ext_resource type="Texture2D" uid="uid://bqfrj0aekidyt" path="res://assets/reanim/Zombie_pogo_outerarm_lower.png" id="527_ff6ab"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_19"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 19
+
+[node name="Card19" unique_id=1567830005 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_19")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie019Pogo" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1868703801]
+position = Vector2(2, 17)
+scale = Vector2(0.3, 0.3)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie019Pogo" unique_id=168264395]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body" unique_id=61725096]
+position = Vector2(-43.3334, -130)
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=1430581282]
+visible = false
+position = Vector2(40, 40)
+centered = false
+
+[node name="Anim_innerarm3" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=248925053]
+visible = false
+position = Vector2(1.1, 121.2)
+rotation = 4.6164
+scale = Vector2(0.794, 0.794)
+texture = ExtResource("196_pct5d")
+centered = false
+
+[node name="Anim_innerarm2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=86391922]
+position = Vector2(33.6, 53)
+rotation = 6.96037
+scale = Vector2(0.593, 1.122)
+skew = 0.275762
+texture = ExtResource("514_sma26")
+centered = false
+
+[node name="Anim_innerarm1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=651511764]
+position = Vector2(29, 39.7)
+rotation = 6.34427
+scale = Vector2(0.929, 0.905)
+skew = -0.0959934
+texture = ExtResource("515_f80r2")
+centered = false
+
+[node name="Zombie_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=707003087]
+position = Vector2(32.7, 79.5)
+rotation = -6.04582
+scale = Vector2(0.72, 0.797)
+texture = ExtResource("519_oyv8q")
+centered = false
+
+[node name="Zombie_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=1692204874]
+position = Vector2(43.5, 65)
+rotation = 6.47168
+scale = Vector2(0.92, 0.944)
+skew = 0.436332
+texture = ExtResource("517_s6nef")
+centered = false
+
+[node name="Zombie_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=1877694887]
+position = Vector2(12, 103.1)
+rotation = -6.5572
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("521_t5s4d")
+centered = false
+
+[node name="Zombie_pogo_stick3" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=1888969574]
+position = Vector2(31.9, 122.5)
+rotation = -0.089012
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("500_y566d")
+centered = false
+
+[node name="Zombie_pogo_stick2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=564520490]
+position = Vector2(16.7, 91.2)
+rotation = -0.085521
+scale = Vector2(0.8, 0.882)
+texture = ExtResource("501_x27we")
+centered = false
+
+[node name="Zombie_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=2094682931]
+position = Vector2(50, 81.5)
+rotation = 0.293215
+scale = Vector2(0.721, 0.805)
+skew = 0.132645
+texture = ExtResource("519_oyv8q")
+centered = false
+
+[node name="Zombie_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=2029273312]
+position = Vector2(60.6, 57.9)
+rotation = 0.53058
+scale = Vector2(0.753, 0.797)
+texture = ExtResource("520_wbb0f")
+centered = false
+
+[node name="Zombie_outerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=101958505]
+position = Vector2(25.9, 105.8)
+rotation = -0.230383
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("521_t5s4d")
+centered = false
+
+[node name="Zombie_body" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=2026805462]
+position = Vector2(32.5, 24.8)
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("522_kthx8")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=158391635]
+position = Vector2(4.7, 8.4)
+rotation = -0.139626
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("523_g1ryr")
+centered = false
+
+[node name="Anim_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=1923958438]
+position = Vector2(16.9, 38.5)
+rotation = -0.1309
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("524_pa72g")
+centered = false
+
+[node name="Anim_head_glasses" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=1724873232]
+position = Vector2(6, 27.9)
+rotation = 6.00742
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("263_3b2rx")
+centered = false
+
+[node name="Anim_hair" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=538800578]
+position = Vector2(0.2, 7.7)
+rotation = -0.221657
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("525_m72vq")
+centered = false
+
+[node name="Zombie_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=1094184999]
+visible = false
+position = Vector2(11.5, 134)
+rotation = 4.29351
+scale = Vector2(0.781, 0.781)
+texture = ExtResource("221_f80r2")
+centered = false
+
+[node name="Zombie_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=1919460674]
+position = Vector2(47, 37.3)
+rotation = 6.05106
+scale = Vector2(0.741, 0.754)
+texture = ExtResource("526_rmihr")
+centered = false
+
+[node name="Zombie_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=516331255]
+position = Vector2(53.9, 50.3)
+rotation = 6.97608
+scale = Vector2(0.682, 0.81)
+skew = 0.0820304
+texture = ExtResource("527_ff6ab")
+centered = false
+
+[node name="Zombie_pogo_stick" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=1761073338]
+position = Vector2(7.8, 65.1)
+rotation = -0.047124
+scale = Vector2(0.8, 0.801)
+skew = -0.0488691
+texture = ExtResource("509_xhdep")
+centered = false
+
+[node name="Zombie_pogo_stickhands" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie019Pogo/Body/BodyCorrect" unique_id=1637503519]
+position = Vector2(7.8, 65.1)
+rotation = -0.047124
+scale = Vector2(0.799, 0.799)
+skew = -0.0488691
+texture = ExtResource("510_p3hfi")
+centered = false

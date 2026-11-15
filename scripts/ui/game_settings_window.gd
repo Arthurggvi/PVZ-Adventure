@@ -7,17 +7,14 @@ signal closed
 
 ## 复用冒险界面的木纹贴图。
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
-## 高级页的显示名与 ConfigService 现有属性对应，沿用其信号及持久化字段。
-const GAMEPLAY_OPTIONS := {
-	&"disappear_spare_card_Placeholder": "隐藏未选植物卡槽",
-	&"display_plant_HP_label": "显示植物血量",
-	&"display_zombie_HP_label": "显示僵尸血量",
-	&"card_slot_top_mouse_focus": "焦点卡槽自动置顶",
-	&"fog_is_static": "静态浓雾",
-	&"plant_be_shovel_front": "预铲除植物置顶",
-	&"open_all_level": "开放所有关卡",
-	&"track_bullet_mouse": "追踪子弹跟随鼠标",
-}
+## 设置首屏只动态读取标题木纹，其他样式由脚本创建。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+
+## 返回设置窗口的动态美术依赖。
+static func get_initial_resource_paths() -> PackedStringArray:
+	return ResourcePaths.skin(PackedStringArray(["panels/wood_ninepatch.png"]))
+## 与战斗暂停菜单共用的音量滑块。
+const VolumeSlider = preload("res://scripts/ui/audio_volume_slider.gd")
 ## 弹窗以基准视口像素布局，小窗口下才额外缩放。
 const DESIGN := Vector2(468, 296)
 ## 纸面控件的正文色。
@@ -36,7 +33,8 @@ var _closing := false
 
 ## 在全屏输入遮罩内构建紧凑的桌面设置窗。
 func _ready() -> void:
-	_previous_focus = get_viewport().gui_get_focus_owner()
+	var opener: WeakRef = get_meta("modal_opener_focus") as WeakRef if has_meta("modal_opener_focus") else null # 异步入口保存真正的打开按钮，不返回已释放的加载反馈。
+	_previous_focus = opener.get_ref() as Control if opener != null else get_viewport().gui_get_focus_owner()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade := ColorRect.new() # 保留背景辨识度，由根节点拦截鼠标。
@@ -80,30 +78,11 @@ func _ready() -> void:
 	_label(general, "窗口模式", Rect2(14, 145, 114, 28), 17)
 	var fullscreen := _add_fullscreen_toggle(general) # 浏览窗口模式时可用空格切换。
 	var done := _close_button("完成", Rect2(354, 252, 98, 32)) # 设置即时应用，按钮只负责关闭。
-	var page_button := Button.new() # 常规与高级页共用标题栏和页脚。
-	page_button.name = "PageButton"
-	page_button.text = "高级选项"
-	page_button.position = Vector2(16, 252)
-	page_button.size = Vector2(108, 32)
-	page_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	_panel.add_child(page_button)
-	var advanced := _make_advanced_page(general) # 沿用原有的配置字段及保存流程。
-	var general_controls: Array[Control] = [music, effects, fullscreen] # 常规页的键盘阅读顺序。
-	page_button.pressed.connect(func() -> void:
-		advanced.visible = not advanced.visible
-		general.visible = not advanced.visible
-		page_button.text = "常规设置" if advanced.visible else "高级选项"
-		var order: Array[Control] = [] # 只连接当前页可见的焦点控件。
-		if advanced.visible:
-			for child: Control in advanced.get_children(): # 各行按阅读顺序加入焦点链。
-				order.append(child)
-		else:
-			order.assign(general_controls)
-		order.append_array([page_button, done, close])
-		_set_focus_order(order)
-	)
-	_set_focus_order([music, effects, fullscreen, page_button, done, close])
-	music.grab_focus()
+	_set_focus_order([music, effects, fullscreen, done, close])
+	if is_visible_in_tree():
+		music.grab_focus()
+	else:
+		visibility_changed.connect(music.grab_focus, CONNECT_ONE_SHOT) # 隐藏构造完成后，真实显示时再接管键盘焦点。
 
 	resized.connect(_fit)
 	_fit()
@@ -111,50 +90,12 @@ func _ready() -> void:
 	_fade = create_tween()
 	_fade.tween_property(self, "modulate:a", 1.0, 0.12)
 
-## 在 [param general] 的同一位置返回高级页，切换时沿用现有玩家配置。
-func _make_advanced_page(general: Panel) -> Panel:
-	var page := Panel.new() # 与常规页共用内页尺寸和配色。
-	page.name = "Advanced"
-	page.position = general.position
-	page.size = general.size
-	page.add_theme_stylebox_override("panel", general.get_theme_stylebox("panel"))
-	_panel.add_child(page)
-	page.hide()
-	var index := 0 # 每列四个开关，按配置顺序从左列排到右列。
-	for key: StringName in GAMEPLAY_OPTIONS: # 属性名直接交给原配置服务。
-		var toggle := CheckBox.new() # 当前选项的勾选状态。
-		toggle.text = GAMEPLAY_OPTIONS[key]
-		toggle.position = Vector2(12 + 210 * floori(index / 4.0), 14 + 40 * (index % 4))
-		toggle.size = Vector2(202, 30)
-		toggle.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		toggle.button_pressed = bool(Global.config_service.get(key))
-		toggle.toggled.connect(_set_gameplay_option.bind(key))
-		page.add_child(toggle)
-		index += 1
-	return page
-
-## 将 [param enabled] 写入 [param key] 对应的配置属性并保存到当前档案。
-func _set_gameplay_option(enabled: bool, key: StringName) -> void:
-	Global.config_service.set(key, enabled)
-	Global.config_service.save_config()
-
 ## 在 [param page] 的 [param y] 处添加 [param caption] 和对应 [param bus_name] 的滑块，并返回焦点控件。
 func _add_audio_slider(page: Control, caption: String, bus_name: StringName, y: float) -> HSlider:
 	_label(page, caption, Rect2(14, y, 114, 30), 17)
-	var slider := HSlider.new() # 调节指定总线的线性音量。
+	var slider := VolumeSlider.new() # 调节指定总线的线性音量。
 	slider.name = bus_name
-	var bus := AudioServer.get_bus_index(bus_name) # 音量仍由游戏的音频总线管理。
-	slider.max_value = 1.0
-	slider.step = 0.01
-	if bus < 0:
-		slider.editable = false
-		push_warning("找不到音频总线：" + String(bus_name))
-	else:
-		slider.set_value_no_signal(clampf(SoundManager.get_volum(bus), 0.0, 1.0))
-		slider.value_changed.connect(func(value: float) -> void:
-			SoundManager.set_volume(bus, value)
-			Global.config_service.save_config()
-		)
+	slider.bus_name = bus_name
 	slider.accessibility_name = caption
 	slider.position = Vector2(138, y)
 	slider.size = Vector2(222, 30)

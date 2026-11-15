@@ -85,6 +85,7 @@ static func build(parent: VBoxContainer, section: String, service: RefCounted, r
 		"player": _player(parent, service, report)
 		"coins": _coins(parent, service, report)
 		"stages": _stages(parent, service, report)
+		"quests": _quests(parent, service, report)
 		"battle": _battle(parent, service, report)
 		"saves": _saves(parent, service, report)
 
@@ -267,6 +268,25 @@ static func _stages(root: VBoxContainer, service: RefCounted, report: Callable) 
 	_button(root, "全部普通关卡通关（无奖励）", func(): report.call(service.clear_stage(6, false)))
 	_note(root, "真实结算遵守 Boss / 战斗事件条件；未满足时使用“标记通关”跳过奖励。")
 
+## 在 [param root] 列出全部任务；[param service] 提交领奖或设施解锁，[param report] 显示结果。
+static func _quests(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
+	_title(root, "任务奖励")
+	_note(root, "可领取尚未解锁或未完成的任务奖励。日常任务每期可领一次。")
+	var choice := _select(root) # 显示正式任务分组和标题，用稳定 ID 领取。
+	choice.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	for task: Dictionary in AdventureQuestCatalog.TASKS: # 包含当前档案尚未接取的任务。
+		choice.add_item("%s · %s" % [task.group, task.title])
+		choice.set_item_metadata(choice.item_count - 1, task.id)
+	if choice.item_count > 0:
+		choice.select(0)
+	var claim := _button(root, "强制领取奖励", func() -> void: # 每次只领取选中任务。
+		if choice.selected >= 0:
+			report.call(service.force_claim_quest(str(choice.get_selected_metadata()))))
+	claim.disabled = choice.item_count == 0
+	_title(root, "设施解锁")
+	_note(root, "开放任务入口、研究室、图书馆和戴夫商店，并跳过解锁引导。")
+	_button(root, "一键解锁全部设施", func(): report.call(service.unlock_all_facilities()))
+
 ## 在 [param parent] 放置由 [param id] 标识的 [param caption] 开关。
 ## 切换时调用 [param action]，失败则恢复原状态，最后用 [param report] 显示结果。
 static func _battle_toggle(parent: VBoxContainer, id: StringName, caption: String,
@@ -305,6 +325,8 @@ static func _battle(root: VBoxContainer, service: RefCounted, report: Callable) 
 	_battle_toggle(toggles, &"instant_kill", "秒杀", Callable(service, "set_battle_instant_kill"), report)
 	_battle_toggle(toggles, &"no_card_cooldown", "卡牌无冷却", Callable(service, "set_battle_no_card_cooldown"), report)
 	_battle_toggle(toggles, &"infinite_sun", "无限阳光", Callable(service, "set_battle_infinite_sun"), report)
+	_battle_toggle(toggles, &"fixed_mowers", "固定小推车", Callable(service, "set_battle_fixed_mowers"), report)
+	_note(root, "固定小推车：车停在当前位置，碰到的同行僵尸直接被碾死，本局有效。")
 	refresh_battle_toggles(root, service)
 	_note(root, "僵尸类型")
 	var zombie: OptionButton = _select(root) # 选项 ID 直接使用僵尸注册表枚举值。

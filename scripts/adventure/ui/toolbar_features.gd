@@ -12,6 +12,9 @@ const ENTRIES: Array[Dictionary] = [
 	{"id": "settings", "label": "设置", "asset": "icon_settings.png"},
 ]
 
+## 只由场景建筑提供的入口，参与同一权限门面但不重复占用底部工具栏。
+const SCENE_FEATURES: Array[String] = ["library", "shop"]
+
 ## Only existing, selected user profiles may open the canonical adventure entrance.
 static func can_open_map() -> bool:
 	if Global.user_manager == null or Global.global_game_state == null:
@@ -20,7 +23,10 @@ static func can_open_map() -> bool:
 	return not name.is_empty() and Global.user_manager.all_user_name.has(name) \
 		and Global.global_game_state.adventure_state != null
 
+## 查询 [param feature_id] 是否为工具栏或建筑支持的功能。
 static func is_known(feature_id: String) -> bool:
+	if feature_id in SCENE_FEATURES:
+		return true
 	for entry: Dictionary in ENTRIES:
 		if entry.id == feature_id:
 			return true

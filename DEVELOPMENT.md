@@ -21,7 +21,7 @@ $p = Start-Process $godot -ArgumentList $arguments -Wait -PassThru -RedirectStan
 if ($p.ExitCode) { throw "导入失败 ($($p.ExitCode))" }
 ```
 
-导入后查看两份日志中的资源、脚本和 UID 诊断。也可以在编辑器打开 `project.godot` 后按 F5。APPDATA 设置仅影响当前终端及其子进程。
+导入后查看两份日志中的资源、脚本和 UID 诊断。也可以在编辑器打开 `project.godot` 后按 F5，通过 Bootstrap 进入海滨菜单。改动卡牌总览或逐卡场景后运行 `python tools/card_catalog.py` 更新清单，再运行 `python tools/card_catalog.py --check` 核对。APPDATA 设置仅影响当前终端及其子进程。
 
 ## 测试
 

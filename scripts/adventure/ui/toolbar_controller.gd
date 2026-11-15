@@ -2,27 +2,31 @@
 extends "res://scripts/adventure/ui/toolbar_entry_host.gd"
 
 ## 工具栏纯表现及按钮交互。
-const View = preload("res://scripts/adventure/ui/toolbar_view.gd")
+const View = "res://scripts/adventure/ui/toolbar_view.gd"
 ## 普通背包窗口。
-const Inventory = preload("res://scripts/adventure/ui/inventory_window.gd")
+const Inventory = "res://scripts/adventure/ui/inventory_window.gd"
 ## 研究室场景外壳。
-const Research = preload("res://scripts/adventure/ui/research_lab_stage.gd")
+const Research = "res://scripts/adventure/ui/research_lab_stage.gd"
 ## 角色窗口接入同一模态生命周期。
-const Player = preload("res://scripts/adventure/ui/player_window.gd")
+const Player = "res://scripts/adventure/ui/player_window.gd"
 ## 设置窗口参与工具栏模态互斥。
-const Settings = preload("res://scripts/ui/game_settings_window.gd")
+const Settings = "res://scripts/ui/game_settings_window.gd"
 ## 任务面板复用工具栏模态窗口入口。
-const Quests = preload("res://scripts/adventure/ui/quest_window.gd")
+const Quests = "res://scripts/adventure/ui/quest_window.gd"
 ## 冒险图鉴复用同一模态生命周期，独立于原版图鉴场景。
-const Almanac = preload("res://scripts/adventure/ui/almanac_window.gd")
+const Almanac = "res://scripts/adventure/ui/almanac_window.gd"
+## 图书馆建筑使用独立书籍面板，复用相同模态生命周期。
+const Library = "res://scripts/adventure/ui/library_window.gd"
+## 戴夫全屏商店复用建筑入口与统一模态生命周期。
+const Shop = "res://scripts/adventure/shop/shop_window.gd"
 ## 首关后教学编排使用独立表现层，不占用任务或研究服务职责。
-const Onboarding = preload("res://scripts/adventure/ui/quest_onboarding.gd")
+const Onboarding = "res://scripts/adventure/ui/quest_onboarding.gd"
 ## 教学层随当前宿主销毁表现，业务节点随档案保存。
 var _onboarding: CanvasLayer
 ## 识别档案对象替换，及时释放旧档案的模态窗口和教学引用。
 var _bound_state: AdventureState
 ## 地图导航窗口及切场编排。
-const MapNavigation = preload("res://scripts/adventure/ui/map_navigation.gd")
+const MapNavigation = "res://scripts/adventure/ui/map_navigation.gd"
 ## 只有显式加入该组的场景显示工具栏。
 const HOST_GROUP := &"adventure_toolbar_surface"
 ## 当前场景身份，用于切场时释放表现引用。
@@ -31,16 +35,9 @@ var _host_scene: Node
 var _navigation: Node
 
 func _ready() -> void:
-	layer = 50 # Below existing SceneTransition (100), above ordinary map art.
+	layer = 50 # 高于普通地图、低于 SceneTransition 的 100 层遮幕。
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_view = View.new()
-	_view.name = "ToolbarView"
-	add_child(_view)
-	_view.feature_pressed.connect(_on_feature_pressed)
-	_navigation = MapNavigation.new()
-	_navigation.name = "MapNavigation"
-	add_child(_navigation)
-	_navigation.navigation_state_changed.connect(_sync_input)
+	# Bootstrap 不具备工具栏宿主资格，当前只注册业务回调，不创建 HUD 或窗口。
 	get_tree().scene_changed.connect(_on_scene_changed)
 	Global.user_manager.signal_users_update.connect(_refresh)
 	Global.quests_changed.connect(_refresh)
@@ -49,37 +46,61 @@ func _ready() -> void:
 	register_feature("research", Callable(self, "can_open_research"), Callable(self, "_open_research"))
 	register_feature("quests", Callable(self, "_can_open_quests"), Callable(self, "_open_quests"))
 	register_feature("almanac", Callable(self, "_can_open_inventory"), Callable(self, "_open_almanac"))
+	register_feature("library", Callable(self, "_can_open_library"), Callable(self, "_open_library"))
 	register_feature("player", Callable(self, "_can_open_player"), Callable(self, "_open_player"))
+	register_feature("shop", Callable(self, "_can_open_shop"), Callable(self, "_open_shop"))
 	register_feature("settings", Callable(self, "_can_open_settings"), toggle_settings)
-	_onboarding = Onboarding.new()
+	_on_scene_changed()
+
+## 唯一表现层创建入口，只在有效游戏宿主上构造工具栏、导航与教学。
+func _ensure_presenter() -> void:
+	if is_instance_valid(_view):
+		return
+	_view = (load(View) as Script).new() as AdventureToolbarView
+	_view.name = "ToolbarView"
+	add_child(_view)
+	_view.feature_pressed.connect(_on_feature_pressed)
+	_navigation = (load(MapNavigation) as Script).new()
+	_navigation.name = "MapNavigation"
+	add_child(_navigation)
+	_navigation.navigation_state_changed.connect(_sync_input)
+	_onboarding = (load(Onboarding) as Script).new()
 	_onboarding.toolbar = self
 	add_child(_onboarding)
-	_on_scene_changed()
 
 ## [param _delta] 为帧间隔，档案切换期间没有状态时也继续更新工具栏。
 func _process(_delta: float) -> void:
-	# current 是当前档案的冒险状态；无档案时清理旧窗口。
-	var current: AdventureState = Global.global_game_state.adventure_state if Global.global_game_state != null else null
+	_sync_profile_context()
+	_poll_modal_loading()
+	# 场景控制工具栏整体可见性，模态和导航只禁止输入，不复制 HUD。
+	_sync_input()
+	if _host_allowed and is_instance_valid(_view) and _view._available.get("inventory", false) != _can_open_inventory():
+		_refresh()
+
+## 请求 [param feature_id] 前先接纳真实档案，避免下帧把新档案的请求当作旧窗口撤销。
+func request_feature(feature_id: String) -> bool:
+	_sync_profile_context()
+	return super.request_feature(feature_id)
+
+## 原生档案选择可以在同一输入帧更新状态；公开入口和逐帧检查共用此同步边界。
+func _sync_profile_context() -> void:
+	var current: AdventureState = Global.global_game_state.adventure_state if Global.global_game_state != null else null # 当前权威档案对象。
 	if current != _bound_state:
 		_bound_state = current
 		_apply_host_scene(get_tree().current_scene)
-	# Scene ownership controls visibility; temporary modal input locks never hide the HUD.
-	_sync_input()
-	if _host_allowed and _view._available.get("inventory", false) != _can_open_inventory():
-		_refresh()
 
 func _sync_input() -> void:
 	var allowed: bool = _host_allowed and is_instance_valid(_host_scene) and not get_tree().paused \
-		and not _navigation.is_open()
+		and is_instance_valid(_navigation) and not _navigation.is_open()
 	if allowed and _host_scene.has_method("is_adventure_toolbar_blocked"):
 		allowed = not bool(_host_scene.call("is_adventure_toolbar_blocked"))
 	if allowed == _interactive:
 		return
 	_interactive = allowed
-	_view.set_interaction_enabled(allowed)
+	if is_instance_valid(_view):
+		_view.set_interaction_enabled(allowed)
 
-## SceneTree.scene_changed can be delivered with zero or one argument across launch paths.
-## Resolve the authoritative current scene after the notification, not from its payload.
+## SceneTree.scene_changed 参数随入口不同；延迟读取权威 current_scene。
 func _on_scene_changed(_signal_scene: Node = null) -> void:
 	_sync_scene_from_tree.call_deferred()
 
@@ -87,21 +108,26 @@ func _sync_scene_from_tree() -> void:
 	_apply_host_scene(get_tree().current_scene)
 
 func _apply_host_scene(scene: Node) -> void:
+	_cancel_modal_loading()
 	if is_instance_valid(_onboarding):
 		_onboarding.reset()
-	_navigation.close()
+	if is_instance_valid(_navigation):
+		_navigation.close()
 	if is_instance_valid(_modal):
 		_modal.queue_free()
 	_modal = null
 	_modal_feature = ""
 	_host_scene = scene
-	_view.reset_for_scene()
 	_host_allowed = is_instance_valid(scene) and scene.is_in_group(HOST_GROUP)
+	if _host_allowed:
+		_ensure_presenter()
+		_view.reset_for_scene()
+		_view.show()
 	visible = _host_allowed
 	_sync_input()
 	_refresh()
 
-## Same navigation entry for the menu ship and any map toolbar.
+## 海滨港口与岛屿工具栏共用地图导航门面。
 func open_map_navigation() -> bool:
 	return request_feature("map")
 
@@ -144,6 +170,22 @@ func _open_quests() -> void:
 func _open_almanac() -> void:
 	_toggle_modal("almanac", Almanac)
 
+## 当前档案完成千锤百炼后才允许通过建筑和教学入口打开图书馆。
+func _can_open_library() -> bool:
+	return _can_open_inventory() and AdventureQuestService.feature_unlocked(Global.global_game_state.adventure_state, "library")
+
+## 图书馆窗口复用统一模态生命周期。
+func _open_library() -> void:
+	_toggle_modal("library", Library)
+
+## 商店需要当前档案完成开店剧情，且当前不在冒险战斗中。
+func _can_open_shop() -> bool:
+	return _can_open_player() and AdventureQuestService.feature_unlocked(Global.global_game_state.adventure_state, "shop")
+
+## 主菜单商店建筑进入全屏戴夫页面。
+func _open_shop() -> void:
+	_toggle_modal("shop", Shop)
+
 ## 角色无需独立解锁进度；有效档案且不在冒险战斗时可以访问。
 func _can_open_player() -> bool:
 	return _can_open_inventory() and not AdventureSession.owns_battle(Global.game_para)
@@ -158,6 +200,7 @@ func _can_open_settings() -> bool:
 
 ## 从工具栏齿轮打开设置，沿用模态互斥和关闭行为。
 func toggle_settings() -> void:
+	_sync_profile_context() # 保留直接调用设置入口时的同帧换档保护。
 	_toggle_modal("settings", Settings)
 
 func _refresh() -> void:
@@ -173,9 +216,9 @@ func _refresh() -> void:
 
 ## 为教学提供已校验的当前上下文；背包等其他模态存在时不抢占输入。
 func guide_context() -> Dictionary:
-	return {"ready": _host_allowed and _interactive and _can_open_inventory() and (not is_instance_valid(_modal) or _modal_feature in ["quests", "research"]),
+	return {"ready": not _modal_loading and _host_allowed and _interactive and _can_open_inventory() and (not is_instance_valid(_modal) or _modal_feature in ["quests", "research", "library"]),
 		"state": Global.global_game_state.adventure_state if _can_open_inventory() else null,
-		"quests": modal_for("quests"), "research": modal_for("research")}
+		"quests": modal_for("quests"), "research": modal_for("research"), "library": modal_for("library")}
 
 ## 展开并定位 [param feature_id] 的真实按钮；不绕过正常功能入口。
 func guide_feature(feature_id: String) -> Control:

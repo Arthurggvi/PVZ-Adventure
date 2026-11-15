@@ -221,13 +221,19 @@ func character_death() -> void:
 	loss_iron_item()
 	body_correct.position = _grounded_body_position
 
+## 持杆期间仅允许寒冷减速，落地后恢复完全冻结资格。
+func can_cold_freeze() -> bool:
+	return not is_pogo and super()
+
 ## 持杆时冰冻只造成减速。
 ## [param time] 为冻结秒数，[param new_time_ice_end_decelerate] 为后续减速秒数。
-func be_ice_freeze(time: float, new_time_ice_end_decelerate: float) -> void:
+## [param hit_scope] 为可选冻伤观察组，只有原生冻伤结算才使用。
+func be_ice_freeze(time: float, new_time_ice_end_decelerate: float,
+		hit_scope: CombatHitScope = null) -> void:
 	if is_pogo:
 		be_ice_decelerate(time + new_time_ice_end_decelerate)
 	else:
-		super(time, new_time_ice_end_decelerate)
+		super(time, new_time_ice_end_decelerate, hit_scope)
 
 ## [param butter_time] 为停顿秒数，持杆时先落回地面再停顿。
 func be_butter(butter_time: float = 4.0) -> void:

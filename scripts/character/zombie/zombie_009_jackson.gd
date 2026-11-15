@@ -15,6 +15,10 @@ var animation_origin_speed:float
 var dancer_id:int= -1
 ## 是否已成功召唤过援军；魅惑更换舞团管理器后仍按后续召唤计算间隔。
 var has_summoned_reinforcements := false
+## 最近使用的原版或实例换图滑步资源；只保留一个来源，避免不同美术持续累积缓存。
+static var _battle_moonwalk_source: Animation
+## 与最近来源对应的只读战斗动画库；各播放器独立计时，缓存替换不改动已挂载的旧库。
+static var _battle_moonwalk_cache: AnimationLibrary
 #region 重写父类的方法
 
 #region 初始化相关
@@ -40,15 +44,26 @@ func _init_dance():
 	jackson_manager.zombie_dancers[-1] = self
 	dance_manager_replaced.emit(jackson_manager)
 	state_machine.jackson_manager = jackson_manager
-	# 战斗使用非循环滑步；图鉴和白公爵仍使用原有的循环资源。
-	var battle_library := AnimationLibrary.new()
-	# 只复制滑步，避免修改展示和首领场景共用的动画。
-	var moonwalk := animation_player.get_animation(&"moonwalk").duplicate() as Animation
-	moonwalk.loop_mode = Animation.LOOP_NONE
-	battle_library.add_animation(&"moonwalk", moonwalk)
-	animation_player.add_animation_library(&"battle", battle_library)
+	# 同源战斗滑步共享非循环副本；图鉴、白公爵和已换图来源都保留各自原资源。
+	animation_player.add_animation_library(&"battle",
+		_shared_battle_moonwalk(animation_player.get_animation(&"moonwalk")))
 	## 初始化状态为入场状态
 	state_machine.init_state(JacksonStateMachine.E_JacksonStatus.Enter)
+
+
+## 返回非空 [param source] 对应的只读战斗动画库；仅复制滑步并关闭循环，绝不修改原资源。
+## 相同来源复用最近缓存，不同来源新建库；调用方只挂载和播放，不修改返回的库或片段。
+static func _shared_battle_moonwalk(source: Animation) -> AnimationLibrary:
+	if _battle_moonwalk_source == source and _battle_moonwalk_cache != null:
+		return _battle_moonwalk_cache
+	var battle_library := AnimationLibrary.new() # 完整构建后才替换缓存，旧播放器仍持有自己的库引用。
+	var moonwalk := source.duplicate() as Animation # 只复制当前来源，保留其专属贴图和所有动画轨道。
+	moonwalk.loop_mode = Animation.LOOP_NONE
+	battle_library.add_animation(&"moonwalk", moonwalk)
+	_battle_moonwalk_source = source
+	_battle_moonwalk_cache = battle_library
+	return battle_library
+
 
 ## 随机初始化角色速度,继承重写
 func init_random_speed():
@@ -75,7 +90,7 @@ func update_speed_factor(value: float, change_speed_factor:E_Influence_Speed_Fac
 	if is_death:
 		return
 	influence_speed_factors[change_speed_factor] = value
-	jackson_manager.change_speed_factor_product(dancer_id, GlobalUtils.get_dic_product(influence_speed_factors))
+	jackson_manager.change_speed_factor_product(dancer_id, speed_factor_product())
 
 ## 舞王由管理器修改速度
 func manager_update_anim_speed(speed_factor_product:float):

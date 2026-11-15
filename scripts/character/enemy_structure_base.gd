@@ -45,7 +45,9 @@ func be_ice_decelerate(_time: float) -> void:
 	pass
 
 ## [param _time]、[param _followup] 为冻结及后续减速秒数；设施既不冻结也不承受冻结附伤。
-func be_ice_freeze(_time: float, _followup: float) -> void:
+## [param _hit_scope] 为可选冻伤观察组，只有原生冻伤结算才使用。
+func be_ice_freeze(_time: float, _followup: float,
+		_hit_scope: CombatHitScope = null) -> void:
 	pass
 
 ## 设施保持敌方阵营，不接受原生魅惑直调。

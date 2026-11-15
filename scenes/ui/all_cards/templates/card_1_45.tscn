@@ -1,0 +1,147 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://300aew7liup" path="res://assets/reanim/PeaShooter_frontleaf.png" id="8_jrvjq"]
+
+[ext_resource type="Texture2D" uid="uid://nj6m28m6k5p1" path="res://assets/reanim/PeaShooter_frontleaf_righttip.png" id="9_lppa3"]
+
+[ext_resource type="Texture2D" uid="uid://dit0i5evvco14" path="res://assets/reanim/PeaShooter_frontleaf_lefttip.png" id="10_xa6hp"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://clbtu1usmi6eq" path="res://assets/reanim/WinterMelon_basket.png" id="344_ffws3"]
+
+[ext_resource type="Texture2D" uid="uid://ver1n4vt6qk6" path="res://assets/reanim/WinterMelon_projectile.png" id="345_ft85b"]
+
+[ext_resource type="Texture2D" uid="uid://befie17xriefc" path="res://assets/reanim/WinterMelon_basket_overlay.png" id="346_vcv46"]
+
+[ext_resource type="Texture2D" uid="uid://d0euui5ylwvyt" path="res://assets/reanim/WinterMelon_stalk.png" id="347_vo1g1"]
+
+[ext_resource type="Texture2D" uid="uid://dqhqywy1kt6hq" path="res://assets/reanim/WinterMelon_melon.png" id="348_bqk8l"]
+
+[ext_resource type="Texture2D" uid="uid://5orh8ivtbhi7" path="res://assets/reanim/WinterMelon_blink1.png" id="349_ed5ns"]
+
+[ext_resource type="Texture2D" uid="uid://cff3s0svy7rsa" path="res://assets/reanim/WinterMelon_eyebrow.png" id="350_6nvl2"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_45"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 45
+
+[node name="Card45" unique_id=1365108407 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_45")
+
+[node name="Plant045WinterMelon" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=618981311]
+position = Vector2(8, 16)
+scale = Vector2(0.45, 0.45)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon" unique_id=1982727106]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant045WinterMelon" unique_id=1326833921]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body" unique_id=1143511196]
+position = Vector2(-41, -69)
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=1153242299]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=651939929]
+centered = false
+
+[node name="Anim_shooting" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=998952299]
+visible = false
+centered = false
+
+[node name="Frontleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=1647142133]
+position = Vector2(26.8, 57.4)
+rotation = -2.45917
+scale = Vector2(0.572, 0.444)
+skew = 3.13985
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Frontleaf_tip_left" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=2024084150]
+position = Vector2(64.8, 48.7)
+rotation = 2.51327
+scale = Vector2(0.572, 0.498)
+skew = -3.13985
+texture = ExtResource("10_xa6hp")
+centered = false
+
+[node name="Cabbagepult_basket" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=1801930885]
+position = Vector2(-25.9, 4.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("344_ffws3")
+centered = false
+
+[node name="Melonpult_mellon" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=533244634]
+position = Vector2(-27.6, -26.9)
+rotation = 0.219911
+scale = Vector2(0.999, 0.999)
+texture = ExtResource("345_ft85b")
+centered = false
+
+[node name="Cabbagepult_basket_overlay" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=766076991]
+position = Vector2(-25.9, 14.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("346_vcv46")
+centered = false
+
+[node name="Melonpult_stalk" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=1837519234]
+position = Vector2(16.5, 18.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("347_vo1g1")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=687126189]
+position = Vector2(15.3, 33.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("348_bqk8l")
+centered = false
+
+[node name="Melonpult_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=1307437470]
+visible = false
+position = Vector2(35.3, 47.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("349_ed5ns")
+centered = false
+
+[node name="Melonpult_eyebrow1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=2135740140]
+position = Vector2(53.4, 45.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("350_6nvl2")
+centered = false
+
+[node name="Melonpult_eyebrow2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=185535775]
+position = Vector2(35.5, 47)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("350_6nvl2")
+centered = false
+
+[node name="Frontleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=1004890891]
+position = Vector2(23.3, 54.6)
+rotation = 0.10472
+scale = Vector2(0.572, 0.444)
+texture = ExtResource("8_jrvjq")
+centered = false
+
+[node name="Frontleaf_right_tip1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=680749804]
+position = Vector2(57.6, 59.3)
+rotation = 0.10472
+scale = Vector2(0.572, 0.444)
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Frontleaf_tip_left1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant045WinterMelon/Body/BodyCorrect" unique_id=1312626370]
+position = Vector2(19.4, 59.4)
+rotation = 0.10472
+scale = Vector2(0.572, 0.498)
+texture = ExtResource("10_xa6hp")
+centered = false

@@ -29,7 +29,8 @@ static func validate_affordability(profile: WaveProfile, multiplier: int,
 	for band: WaveBandDefinition in profile.bands: # 同一波段共用物种和等阶。
 		if band == null:
 			continue
-		var candidates: Array[Dictionary] = _build_candidates(band.zombie_weights, band.tier_weights, threat) # 与实际抽样共用战力计算。
+		var candidates: Array[Dictionary] = _build_candidates(band.zombie_weights, band.tier_weights, threat,
+			band.species_tier_weights) # 与实际抽样共用战力计算。
 		var lowest_cost: int = 0 # 零表示还没有有效候选。
 		for candidate: Dictionary in candidates: # 找到能够填充每一波的最便宜组合。
 			lowest_cost = candidate.cost if lowest_cost == 0 else mini(lowest_cost, candidate.cost)
@@ -87,7 +88,8 @@ static func build_plan(profile: WaveProfile, wave_number: int, wave_power_limit:
 			var choice: Dictionary = _pick_candidate(scheduled_candidates, rng) # 预排组无需竞争随机池预算。
 			plan.append({"zombie_type": choice.zombie_type, "tier_id": choice.tier_id,
 				"threat_cost": choice.cost, "row": group.row})
-	var candidates: Array[Dictionary] = _build_candidates(band.zombie_weights, band.tier_weights, tier_threat) # 随机池组合。
+	var candidates: Array[Dictionary] = _build_candidates(band.zombie_weights, band.tier_weights, tier_threat,
+		band.species_tier_weights) # 随机池组合。
 	var remaining: int = wave_power_limit # 预排组只占用数量容量。
 	while plan.size() < max_zombies:
 		var choice: Dictionary = _pick_candidate(candidates, rng, remaining) # 在剩余预算内抽取。
@@ -98,16 +100,22 @@ static func build_plan(profile: WaveProfile, wave_number: int, wave_power_limit:
 	return plan
 
 ## 从 [param species_weights] 与 [param tier_weights] 构造组合，[param tier_threat] 为等阶战力倍率。
+## [param species_tier_weights] 可按物种覆盖等阶权重；未列出的物种沿用 [param tier_weights]。
 static func _build_candidates(species_weights: Dictionary, tier_weights: Dictionary,
-		tier_threat: Dictionary) -> Array[Dictionary]:
+		tier_threat: Dictionary, species_tier_weights: Dictionary = {}) -> Array[Dictionary]:
 	var candidates: Array[Dictionary] = [] # 仅包含有正权重和合法战力的组合。
 	for zombie_type: int in species_weights: # 遍历待加入的物种。
 		var species_weight: int = species_weights[zombie_type] # 独立物种权重。
 		var base_power: int = int(CharacterRegistry.ZombieSpawnPower.get(zombie_type, 0)) # 未注册时不生成。
 		if species_weight <= 0 or base_power <= 0:
 			continue
-		for tier_id: StringName in tier_weights: # 为该物种枚举启用的等阶。
-			var tier_weight: int = tier_weights[tier_id] # 独立等阶权重。
+		var species_tiers: Dictionary = tier_weights # 默认与同池其他物种共享等阶权重。
+		if species_tier_weights.has(zombie_type): # 单物种覆盖用于同波段内不同 1/2 阶比例。
+			var override: Variant = species_tier_weights[zombie_type]
+			if override is Dictionary:
+				species_tiers = override
+		for tier_id: StringName in species_tiers: # 为该物种枚举启用的等阶。
+			var tier_weight: int = int(species_tiers[tier_id]) # 独立等阶权重。
 			if tier_weight <= 0 or not tier_threat.has(tier_id):
 				continue
 			var factor: float = float(tier_threat[tier_id]) # 此等阶的预算倍率。

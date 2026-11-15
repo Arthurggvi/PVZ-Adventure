@@ -14,6 +14,10 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 	var lily_events: Array[Dictionary] = [] # 睡莲仅维护真实承托植物的周期效果。
 	var bloomerang_events: Array[Dictionary] = [] # 回旋镖由原株单时钟发射，弹体各自保存飞行规则。
 	var repeater_events: Array[Dictionary] = [] # 双发只追加本轮总发数，每颗独立抽取一种变种。
+	var snow_pea_events: Array[Dictionary] = [] # 寒冰射手事件交给原生发射上的转职控制器。
+	var electric_pea_events: Array[Dictionary] = [] # 电能豌豆参数由原株在入树前冻结。
+	var jalapeno_events: Array[Dictionary] = [] # 辣椒规则入树前冻结，仍用原生引信。
+	var ice_shroom_events: Array[Dictionary] = [] # 寒冰菇转职由原生冰冻引爆入口结算。
 	for event: Dictionary in events: # 每本书的事件只进入对应机制，不复制运行时状态。
 		match str(event.get("kind", "")):
 			"negative_effect_immunity":
@@ -49,6 +53,36 @@ static func apply_events(plant: Plant000Base, record: PlantCardInstance, events:
 					bloomerang_events.append(event)
 				elif kind.begins_with("repeater_"):
 					repeater_events.append(event)
+				elif kind.begins_with("snow_pea_"):
+					snow_pea_events.append(event)
+				elif kind.begins_with("electric_pea_"):
+					electric_pea_events.append(event)
+				elif kind.begins_with("jalapeno_"):
+					jalapeno_events.append(event)
+				elif kind.begins_with("ice_shroom_"):
+					ice_shroom_events.append(event)
+	if not ice_shroom_events.is_empty():
+		if not plant is Plant015IceShroom:
+			push_error("寒冰菇转职事件只能挂载于寒冰菇")
+			return false
+		(plant as Plant015IceShroom).configure_promotions(record.uid, ice_shroom_events)
+	if not jalapeno_events.is_empty():
+		if not plant is Plant021Jalapeno:
+			push_error("火爆辣椒转职事件需要对应的战斗植物")
+			return false
+		(plant as Plant021Jalapeno).configure_promotions(record.uid, jalapeno_events)
+	if not electric_pea_events.is_empty():
+		if not plant is Plant052ElectricPeashooter:
+			push_error("电能豌豆转职事件需要对应的战斗植物")
+			return false
+		(plant as Plant052ElectricPeashooter).configure_promotions(electric_pea_events)
+	if not snow_pea_events.is_empty():
+		if not plant is Plant006SnowPea:
+			push_error("寒冰射手转职事件需要对应的战斗植物")
+			return false
+		var snow_pea := AdventureSnowPeaPromotion.new() # 先冻结选择，入树后只连接原生攻击信号。
+		snow_pea.configure(plant as Plant006SnowPea, snow_pea_events)
+		plant.add_child(snow_pea)
 	if not repeater_events.is_empty():
 		if not plant is Plant008PeaShooterDouble:
 			push_error("双发射手转职事件需要对应的战斗植物")

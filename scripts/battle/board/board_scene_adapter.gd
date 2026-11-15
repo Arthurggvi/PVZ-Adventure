@@ -50,6 +50,9 @@ static func align_legacy_water_lanes(game: MainGameManager) -> void:
 ## 适配旧 [param plant_root] / [param zombie_root]，保留原关节点和最终逻辑顺序。
 static func _adopt_legacy(game: MainGameManager, board: BoardRuntime,
 		plant_root: Node2D, zombie_root: Node2D) -> void:
+	if not Global.main_scene_registry.matches_legacy_spawn_rows(game.game_para.game_sences, zombie_root):
+		push_error("基础战场行布局与 MainSceneRegistry 静态行协议不一致。")
+		return
 	var rows: Array[Node] = plant_root.get_children() # 读取原行节点，保持已有场景路径与 owner。
 	var types: Array[CharacterRegistry.ZombieRowType] = game.game_para.terrain_rows # 旧行覆盖协议。
 	if rows.size() != zombie_root.get_child_count() or (not types.is_empty() and types.size() != rows.size()):

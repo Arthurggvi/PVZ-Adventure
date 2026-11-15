@@ -1,0 +1,156 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://4sxgyon4yjgp" path="res://assets/reanim/Zombie_yeti_outerarm_upper.png" id="524_myaes"]
+
+[ext_resource type="Texture2D" uid="uid://b4181mgonyrat" path="res://assets/reanim/Zombie_yeti_innerarm_hand.png" id="533_538tb"]
+
+[ext_resource type="Texture2D" uid="uid://dmghbko85ro0" path="res://assets/reanim/Zombie_yeti_innerarm_upper.png" id="534_tlmrg"]
+
+[ext_resource type="Texture2D" uid="uid://ik6y7t3urs87" path="res://assets/reanim/Zombie_yeti_innerarm_lower.png" id="535_obfqn"]
+
+[ext_resource type="Texture2D" uid="uid://de3rqicu6w5mf" path="res://assets/reanim/Zombie_yeti_innerleg_foot.png" id="536_rhdxd"]
+
+[ext_resource type="Texture2D" uid="uid://coj3iinjlcyoh" path="res://assets/reanim/Zombie_yeti_innerleg_lower.png" id="537_mdwhi"]
+
+[ext_resource type="Texture2D" uid="uid://bgn67j62rb15y" path="res://assets/reanim/Zombie_yeti_innerleg_upper.png" id="538_ws3wi"]
+
+[ext_resource type="Texture2D" uid="uid://y6qpheq4wtpw" path="res://assets/reanim/Zombie_yeti_body.png" id="539_37mnq"]
+
+[ext_resource type="Texture2D" uid="uid://b3hwp8avit5jh" path="res://assets/reanim/Zombie_yeti_outerleg_foot.png" id="540_8b3b0"]
+
+[ext_resource type="Texture2D" uid="uid://s6c54d4v82nf" path="res://assets/reanim/Zombie_yeti_outerleg_lower.png" id="541_kktxj"]
+
+[ext_resource type="Texture2D" uid="uid://o1w8vr3buyh1" path="res://assets/reanim/Zombie_yeti_outerleg_upper.png" id="542_vb4q3"]
+
+[ext_resource type="Texture2D" uid="uid://6tey5xi7w50r" path="res://assets/reanim/Zombie_yeti_head.png" id="543_075na"]
+
+[ext_resource type="Texture2D" uid="uid://d3hb8vj2xmqq3" path="res://assets/reanim/Zombie_yeti_jaw.png" id="544_104i6"]
+
+[ext_resource type="Texture2D" uid="uid://bi21vvuc0dj7t" path="res://assets/reanim/Zombie_yeti_outerarm_hand.png" id="545_8gf3e"]
+
+[ext_resource type="Texture2D" uid="uid://b440tq6jamx1u" path="res://assets/reanim/Zombie_yeti_outerarm_lower.png" id="547_16q0t"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_20"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 20
+
+[node name="Card20" unique_id=1590995948 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_20")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie020Yeti" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1964773530]
+position = Vector2(2, 17)
+scale = Vector2(0.3, 0.3)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie020Yeti" unique_id=1586759980]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body" unique_id=43535794]
+position = Vector2(-43.3333, -130)
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=16808068]
+visible = false
+centered = false
+
+[node name="Zombie_yeti_innerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=2095198981]
+position = Vector2(1.4, 83.5)
+rotation = 0.118682
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("533_538tb")
+centered = false
+
+[node name="Zombie_yeti_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=2117388067]
+position = Vector2(-1.5, 28.6)
+scale = Vector2(0.643, 0.72)
+texture = ExtResource("534_tlmrg")
+centered = false
+
+[node name="Zombie_yeti_innerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=1006633378]
+position = Vector2(1.7, 51.6)
+rotation = 0.118682
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("535_obfqn")
+centered = false
+
+[node name="Zombie_yeti_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=1802822321]
+position = Vector2(5.5, 121.1)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("536_rhdxd")
+centered = false
+
+[node name="Zombie_yeti_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=492528627]
+position = Vector2(10.9, 96)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("537_mdwhi")
+centered = false
+
+[node name="Zombie_yeti_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=97406425]
+position = Vector2(9.7, 82.1)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("538_ws3wi")
+centered = false
+
+[node name="Zombie_yeti_body" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=2036043129]
+position = Vector2(5.3, 11.7)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("539_37mnq")
+centered = false
+
+[node name="Zombie_yeti_outerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=866496072]
+position = Vector2(32.1, 123.8)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("540_8b3b0")
+centered = false
+
+[node name="Zombie_yeti_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=455670459]
+position = Vector2(44.1, 94.7)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("541_kktxj")
+centered = false
+
+[node name="Zombie_yeti_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=1795346885]
+position = Vector2(34.9, 76.1)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("542_vb4q3")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=994441459]
+position = Vector2(-12.6, -10.3)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("543_075na")
+centered = false
+
+[node name="Anim_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=601121513]
+position = Vector2(2.5, 33.9)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("544_104i6")
+centered = false
+
+[node name="Zombie_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=1424661985]
+position = Vector2(41, 87.1)
+rotation = 0.089012
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("545_8gf3e")
+centered = false
+
+[node name="Zombie_yeti_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=1963006720]
+position = Vector2(37.6, 27.3)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("524_myaes")
+centered = false
+
+[node name="Zombie_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie020Yeti/Body/BodyCorrect" unique_id=2140986607]
+position = Vector2(44.4, 56.6)
+rotation = 0.089012
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("547_16q0t")
+centered = false

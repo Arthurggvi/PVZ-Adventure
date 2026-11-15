@@ -1,0 +1,125 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://h5yqjc7mrtnq" path="res://assets/reanim/Starfruit_body.png" id="243_t5hu3"]
+
+[ext_resource type="Texture2D" uid="uid://h7nxedbfin5i" path="res://assets/reanim/Starfruit_smile.png" id="244_hhrn3"]
+
+[ext_resource type="Texture2D" uid="uid://wf2x5qqmfvn4" path="res://assets/reanim/Starfruit_leaf.png" id="245_h1ydm"]
+
+[ext_resource type="Texture2D" uid="uid://c0vuf4cwcahb" path="res://assets/reanim/Starfruit_stem.png" id="246_se6ca"]
+
+[ext_resource type="Texture2D" uid="uid://uv0xujpwswfl" path="res://assets/reanim/Starfruit_eyes1.png" id="247_l6g5p"]
+
+[ext_resource type="Texture2D" uid="uid://dreggrqvdh5x6" path="res://assets/image/projectile/Projectile_star.png" id="248_6cpq0"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_30"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 30
+
+[node name="Card30" unique_id=162192561 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_30")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant030StarFruit" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1043259063]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit" unique_id=816081010]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant030StarFruit" unique_id=1616964112]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body" unique_id=77095358]
+position = Vector2(-42, -62)
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=1036382740]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=783268097]
+centered = false
+
+[node name="Anim_shoot" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=998142545]
+visible = false
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=1431500608]
+position = Vector2(3.1, 9.7)
+scale = Vector2(0.706, 0.706)
+texture = ExtResource("243_t5hu3")
+centered = false
+
+[node name="Starfruit_mouth" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=421988591]
+visible = false
+position = Vector2(-39, -37)
+centered = false
+
+[node name="Starfruit_smile" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=465382645]
+position = Vector2(34.6, 35.3)
+scale = Vector2(0.706, 0.706)
+texture = ExtResource("244_hhrn3")
+centered = false
+
+[node name="Starfruit_leaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=1676876430]
+position = Vector2(26.7, 5.2)
+scale = Vector2(0.706, 0.706)
+texture = ExtResource("245_h1ydm")
+centered = false
+
+[node name="Starfruit_stem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=1251945547]
+position = Vector2(29.3, 6.4)
+scale = Vector2(0.706, 0.706)
+texture = ExtResource("246_se6ca")
+centered = false
+
+[node name="Starfruit_eyes" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=785867772]
+visible = false
+position = Vector2(29.2, 25.8)
+scale = Vector2(0.706, 0.714)
+texture = ExtResource("247_l6g5p")
+centered = false
+
+[node name="Starfruit_eyes2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=1869423494]
+visible = false
+position = Vector2(29, 26)
+scale = Vector2(0.706, 0.714)
+texture = ExtResource("247_l6g5p")
+centered = false
+
+[node name="Projectile" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=329608849]
+visible = false
+position = Vector2(33, -14)
+texture = ExtResource("248_6cpq0")
+
+[node name="Projectile2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=1395018971]
+visible = false
+position = Vector2(0, -31)
+texture = ExtResource("248_6cpq0")
+
+[node name="Projectile3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=787561336]
+visible = false
+position = Vector2(-31, 0)
+texture = ExtResource("248_6cpq0")
+
+[node name="Projectile4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=981516618]
+visible = false
+position = Vector2(0, 31)
+texture = ExtResource("248_6cpq0")
+
+[node name="Projectile5" type="Sprite2D" parent="CardBg/CharacterStatic/Plant030StarFruit/Body/BodyCorrect" unique_id=1000440103]
+visible = false
+position = Vector2(34, 19)
+texture = ExtResource("248_6cpq0")

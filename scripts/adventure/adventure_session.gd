@@ -3,6 +3,8 @@ extends Node
 const MAP_SCENE := "res://scenes/adventure/zombie_island.tscn"
 const Progress = preload("res://scripts/adventure/island_progress.gd")
 const RewardService = preload("res://scripts/adventure/adventure_reward_service.gd")
+## 只收集本关动态依赖路径，由统一过渡异步准备，不在会话中读取重型资源。
+const BattleResources = preload("res://scripts/ui/transitions/battle_resource_plan.gd")
 signal battle_finished(stage_id: int, result: String)
 ## 关卡全程唯一状态机；每个阶段都有独立的胜利事务。
 enum ChallengeState {
@@ -65,18 +67,20 @@ func _reset_battle_attempt() -> void:
 	boss_exit_results.clear()
 	pending_reward.clear()
 	battle_failed = false
-func open_adventure() -> bool:
-	# 当前确实仍在地图时才可复用；从菜单或战斗返回后须重新完成场景切换。
+## 初始化冒险会话的合法身份及首次启程标记，但不执行场景切换。
+## 首次启程是持久事务，场景资源失败时允许重试且不重复发奖。
+func prepare_adventure() -> bool:
 	var scene: Node = get_tree().current_scene
 	if adventure_active and is_instance_valid(scene) and scene.scene_file_path == MAP_SCENE:
 		return true
+	AdventureStageRegistry.begin_map_visit()
 	adventure_active = false
 	progress = null
 	entry_error = ""
 	error_message = ""
 	var profile: String = Global.user_manager.curr_user_name
 	if profile.is_empty() or not Global.user_manager.all_user_name.has(profile) \
-		or not DirAccess.dir_exists_absolute("user://" + profile):
+			or not DirAccess.dir_exists_absolute("user://" + profile):
 		entry_error = "请先从主菜单左上角创建或选择玩家档案。"
 		return false
 	progress = Progress.new(Global.global_game_state.adventure_state)
@@ -89,8 +93,16 @@ func open_adventure() -> bool:
 			entry_error = "无法保存冒险初始化状态。"
 			return false
 	notice = ""
+	return true
+
+func open_adventure() -> bool:
+	if not prepare_adventure():
+		return false
+	if get_tree().current_scene != null and get_tree().current_scene.scene_file_path == MAP_SCENE:
+		return true
 	return_to_map()
 	return true
+
 func is_unlocked(stage_id: int) -> bool:
 	if progress == null:
 		return false
@@ -150,19 +162,20 @@ func complete_intro() -> bool:
 func enter_lawn() -> void:
 	enter_stage(1, StagePhaseDefinition.Kind.NORMAL)
 ## 统一配置入口；场景、卡槽、波次种类均由已验证的 StageDefinition 生成。
-func enter_stage(stage_number: int, phase_kind: int = StagePhaseDefinition.Kind.NORMAL) -> bool:
+func enter_stage(stage_number: int, phase_kind: int = StagePhaseDefinition.Kind.NORMAL,
+		transition: Node = null) -> bool:
 	if progress == null or not progress.intro_completed:
 		return false
 	if phase_kind != StagePhaseDefinition.Kind.NORMAL:
 		error_message = "只能从普通阶段进入；噩梦在本次普通阶段完成后续战。"
 		return false
-	error_message = AdventureStageCatalog.entry_error(
-		stage_number, phase_kind, Global.global_game_state.adventure_state, Global.adventure_inventory)
+	var stage: StageDefinition = AdventureStageCatalog.load_stage(stage_number) # 本次点击唯一解析结果，校验和构建共用。
+	error_message = AdventureStageCatalog.entry_error_for_stage(
+		stage_number, stage, phase_kind, Global.global_game_state.adventure_state, Global.adventure_inventory)
 	if not error_message.is_empty():
 		return false
-	var stage: StageDefinition = AdventureStageCatalog.load_stage(stage_number) # 读取已验证的关卡定义。
 	var phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(stage, phase_kind) # 首次进入从普通阶段开始。
-	return _start_battle_attempt(stage_number, stage, phase)
+	return _start_battle_attempt(stage_number, stage, phase, transition)
 
 ## 重开 [param level] 所属的当前阶段；噩梦继续使用已经取得的本阶段进入资格。
 func restart_battle(level: ResourceLevelData) -> bool:
@@ -173,15 +186,34 @@ func restart_battle(level: ResourceLevelData) -> bool:
 
 ## 以 [param stage_number]、[param stage] 和 [param phase] 创建一局全新的战斗。
 ## 切场失败时保留原会话；成功后在新场景入树前发布本局参数。
-func _start_battle_attempt(stage_number: int, stage: StageDefinition, phase: StagePhaseDefinition) -> bool:
-	var level: ResourceLevelData = AdventureBattleEnvironmentAdapter.build(stage, phase) # 每局重新从阶段定义生成旧引擎的参数投影。
+func _start_battle_attempt(stage_number: int, stage: StageDefinition, phase: StagePhaseDefinition,
+		transition: Node = null) -> bool:
+	var level: ResourceLevelData = AdventureBattleEnvironmentAdapter.build(stage, phase)
 	if level == null:
 		error_message = "无法从本局环境及阶段配置构建战斗。"
 		return false
-	var scene_path: String = Global.main_scene_registry.MainScenesMap.get(level.game_sences, "") # 关卡环境指定战斗场景。
-	if scene_path.is_empty() or get_tree().change_scene_to_file(scene_path) != OK:
+	level.max_choosed_card_num = maxi(stage.max_selected_cards,
+		Global.global_game_state.adventure_state.shop.card_slots)
+	var scene_path: String = Global.main_scene_registry.MainScenesMap.get(level.game_sences, "")
+	if scene_path.is_empty():
+		error_message = "关卡场景未注册。"
+		return false
+	if transition != null:
+		# 战场只由统一过渡加载，SceneTree 接受资源后才发布本局快照。
+		if not transition.change_scene(scene_path,
+				_commit_battle_entry.bind(stage_number, stage, phase, level), BattleResources.paths(level)):
+			error_message = "战斗场景加载请求未被接受。"
+			return false
+		return true
+	if get_tree().change_scene_to_file(scene_path) != OK:
 		error_message = "关卡场景加载失败。"
 		return false
+	_commit_battle_entry(stage_number, stage, phase, level)
+	return true
+
+## 目标战场入树前的唯一业务提交入口，禁止提前修改 Global.game_para。
+func _commit_battle_entry(stage_number: int, stage: StageDefinition,
+		phase: StagePhaseDefinition, level: ResourceLevelData) -> void:
 	_reset_battle_attempt()
 	active_stage_number = stage_number
 	active_stage = stage
@@ -190,7 +222,7 @@ func _start_battle_attempt(stage_number: int, stage: StageDefinition, phase: Sta
 	Global.game_para = active_level
 	error_message = ""
 	_reset_battle_controls()
-	return true
+
 ## 接收备战画面按 UID 选择的卡，仅确认时冻结快照和更新当前玩家的历史卡组。
 func confirm_selected_cards(cards: Array[Card]) -> bool:
 	if not owns_battle(Global.game_para) or active_stage == null or active_phase == null or not battle_loadout.is_empty():
@@ -214,7 +246,7 @@ func confirm_selected_cards(cards: Array[Card]) -> bool:
 		profiles.append(profile)
 		occupied_slots += profile.selection_slot_cost()
 		uids.append(uid)
-	if not CardSlotRules.can_start(active_stage.max_selected_cards, cards.size(), occupied_slots):
+	if not CardSlotRules.can_start(active_level.max_choosed_card_num, cards.size(), occupied_slots):
 		return false
 	var state: AdventureState = Global.global_game_state.adventure_state
 	var previous_uids: Array[String] = state.selected_card_uids.duplicate()
@@ -330,7 +362,7 @@ func begin_terminal() -> bool:
 func _begin_followup(phase: StagePhaseDefinition, key_id: StringName, key_count: int, consume: bool) -> bool:
 	var occupied_slots: int = _frozen_loadout_slot_count() # 续战沿用本局冻结配方，不重读已变化的库存。
 	if phase == null or occupied_slots < 0 \
-			or not CardSlotRules.can_start(active_stage.max_selected_cards, battle_loadout.size(), occupied_slots):
+			or active_level == null or not CardSlotRules.can_start(active_level.max_choosed_card_num, battle_loadout.size(), occupied_slots):
 		error_message = "下一阶段与当前卡组不兼容。"
 		return false
 	if consume:
@@ -426,9 +458,12 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 		error_message = "奖励入账失败，请检查库存容量。"
 		return false
 	# 在写入通关事实前记录事件，避免同一次事件计入刚解锁的后继任务。
-	var before_quests: Dictionary = state.quests.to_dict()
+	var before_quests: Dictionary = state.quests.to_dict() # 通关存档失败时随奖励一起回滚任务。
+	# 结算重试复用同一阶段的种植记录。
+	var played_plants: PackedInt32Array = runtime.played_plant_types if runtime != null else PackedInt32Array()
+	var quest_day: String = AdventureQuestService.today() # 通关事件与后续前置同步使用同一周期。
 	AdventureQuestService.record_event(state, "stage_cleared", "%s/%s" % [stage.stage_id,
-		AdventureStageCatalog.phase_slug(active_phase_kind)], AdventureQuestService.today())
+		AdventureStageCatalog.phase_slug(active_phase_kind)], quest_day, played_plants)
 	if not claim_id.is_empty():
 		state.claimed_rewards[claim_id] = true
 		if not skip_combat_checks:
@@ -441,6 +476,7 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 		state.quests = AdventureQuestState.from_dict(before_quests)
 		return false
 	AdventureStageCatalog.mark_cleared(state, stage.stage_id, active_phase_kind)
+	AdventureQuestService.synchronize(state, quest_day)
 	if runtime != null and not runtime.pending_region_flags.is_empty():
 		var region: Dictionary = state.regions.get(AdventureStageCatalog.REGION_ID, {}).duplicate(true)
 		var flags: Dictionary = region.get("event_flags", {}).duplicate(true)
@@ -535,11 +571,22 @@ func abandon_battle() -> void:
 		battle_finished.emit(active_stage_number, "abandoned")
 	return_to_map()
 func return_to_map() -> void:
+	var scene: Node = get_tree().current_scene
+	var transition: Node = scene.get_node_or_null("SceneTransition") if is_instance_valid(scene) else null
+	if transition != null:
+		if not transition.change_scene(MAP_SCENE, _commit_map_return):
+			error_message = "地图切换已经进行中，或目标资源不可用。"
+		return
+	_commit_map_return()
+	get_tree().change_scene_to_file(MAP_SCENE)
+
+## 仅在返回地图成功时清理战斗状态，加载失败仍可重试。
+func _commit_map_return() -> void:
+	AdventureStageRegistry.begin_map_visit()
 	adventure_active = true
 	_clear_active_battle()
 	Global.game_para = null
 	_reset_battle_controls()
-	get_tree().change_scene_to_file(MAP_SCENE)
 
 ## 离开旧战场时解除暂停、恢复正常速度与鼠标显示。
 func _reset_battle_controls() -> void:

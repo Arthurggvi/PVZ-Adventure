@@ -18,17 +18,19 @@ static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEf
 		var eligible: bool = effects != null and PlayerEffects.is_random_loot(str(entry.asset_id)) # 来源规则在计算处判定。
 		match entry.rule:
 			DropEntryDefinition.Rule.GUARANTEED:
-				_add(items, str(entry.asset_id), entry.quantity_min)
+				_add_entry(items, entry, entry.quantity_min)
 			DropEntryDefinition.Rule.CHANCE:
 				var chance: float = minf(1.0, entry.chance * effects.drop_chance_multiplier) if eligible else entry.chance # 相对概率封顶。
 				if rng.randf() < chance:
 					var quantity: int = _random_quantity(entry, rng, effects) # 生成时只应用一次数量加成。
 					if quantity < 1:
 						return {"ok": false}
-					_add(items, str(entry.asset_id), quantity)
+					_add_entry(items, entry, quantity)
 			DropEntryDefinition.Rule.WEIGHTED:
 				weighted.append(entry)
-	for draw: int in range(table.weighted_draw_count):
+	for draw: int in range(table.weighted_draw_count): # 每次尝试最多选中一个候选。
+		if table.weighted_draw_chance < 1.0 and rng.randf() >= table.weighted_draw_chance:
+			continue
 		var total := 0
 		for option: DropEntryDefinition in weighted:
 			total += option.weight
@@ -42,7 +44,7 @@ static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEf
 				var quantity: int = _random_quantity(option, rng, effects) # 加权选中后的数量可加成，权重不整体乘倍。
 				if quantity < 1:
 					return {"ok": false}
-				_add(items, str(option.asset_id), quantity)
+				_add_entry(items, option, quantity)
 				if table.weighted_selection == DropTable.WeightedSelection.WITHOUT_REPLACEMENT:
 					weighted.remove_at(i)
 				break
@@ -90,6 +92,12 @@ static func _fill_quantity(items: Dictionary, candidates: Array[String], require
 	for missing: int in range(maxi(0, required - total)):
 		_add(items, candidates[rng.randi_range(0, candidates.size() - 1)], 1)
 	return true
+
+## 把抽中的 [param entry] 写入 [param items]；每份 [param count] 配方可附带一套材料。
+static func _add_entry(items: Dictionary, entry: DropEntryDefinition, count: int) -> void:
+	_add(items, str(entry.asset_id), count)
+	for material_id: String in entry.included_materials(): # 随配方发放，不单独抽概率或装备倍率。
+		_add(items, material_id, count)
 
 static func _add(items: Dictionary, id: String, count: int) -> void:
 	items[id] = int(items.get(id, 0)) + count

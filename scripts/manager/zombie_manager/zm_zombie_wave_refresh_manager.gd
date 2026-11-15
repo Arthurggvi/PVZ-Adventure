@@ -63,9 +63,10 @@ var curr_refresh_status:=E_RefreshStatus.DisableRefresh
 var _refresh_generation: int = 0
 ## 本轮刷新请求只能投递一次；挂起时保留 CompleteRefresh 状态，恢复后投递。
 var _delivered_generation: int = -1
-## Boss 遭遇期间只挂起自然刷新，保留剩余时间与当前提前刷新条件。
+## 暂停自然刷新时保留剩余时间与当前提前刷新条件。
 var _is_suspended: bool = false
 
+## 暂停正常倒计时和允许提前刷新的最短波间隔。
 func suspend_refresh() -> void:
 	if _is_suspended:
 		return
@@ -73,16 +74,23 @@ func suspend_refresh() -> void:
 	wave_norm_refresh_timer.paused = true
 	wave_min_time_timer.paused = true
 
+## 恢复原计时，并补查暂停期间已经达到的提前刷新条件。
 func resume_refresh() -> void:
 	if not _is_suspended:
 		return
 	_is_suspended = false
 	wave_norm_refresh_timer.paused = false
 	wave_min_time_timer.paused = false
-	# 已接受的刷新请求属于当前自然波次，不因 Boss 暂停而丢失。
+	# 已接受的刷新请求属于当前自然波次，挂起期间继续保留。
 	if curr_refresh_status == E_RefreshStatus.CompleteRefresh \
 			and _delivered_generation != _refresh_generation:
 		_deliver_refresh.call_deferred(_refresh_generation)
+	elif curr_refresh_status == E_RefreshStatus.AwaitRefresh and not _classic_spawn_timing:
+		if curr_can_refresh_type == E_RefreshType.TotalRefresh:
+			judge_total_refresh(zombie_manager.natural_refresh_zombie_count)
+		elif curr_can_refresh_type == E_RefreshType.HalfRefresh \
+				and (wave_current_health <= refresh_health or zombie_manager.natural_refresh_zombie_count <= 0):
+			_trigger_refresh()
 ## 当前可以的刷新类型,不可以选Norm正常刷新
 var curr_can_refresh_type = E_RefreshType.Null
 ## 波次总血量

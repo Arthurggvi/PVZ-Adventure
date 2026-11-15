@@ -123,11 +123,9 @@ func be_ice_decelerate(time: float) -> void:
 	super(time)
 
 
-## [param time] 冻结时长，单位为秒。
-## [param new_time_ice_end_decelerate] 冻结结束后继续减速的时间，单位为秒。
-func be_ice_freeze(time: float, new_time_ice_end_decelerate: float) -> void:
+## 普通冻结和深寒共用熄灭火把的物种入口。
+func on_cold_control() -> void:
 	_set_torch_lit(false)
-	super(time, new_time_ice_end_decelerate)
 
 
 ## 受到有效火伤后解除冰冻并重新点燃火把。

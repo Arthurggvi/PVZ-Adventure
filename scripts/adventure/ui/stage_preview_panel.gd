@@ -207,12 +207,14 @@ func _build_block(block: Dictionary) -> void:
 			_content.add_child(_enemy_row(enemy))
 		for boss: Dictionary in bosses:
 			_content.add_child(_boss_row(boss))
-	var drops: Array = block.get("drops", [])
-	_content.add_child(_caption("波次掉落"))
-	if drops.is_empty():
-		_content.add_child(_line("本阶段没有配置掉落。", 20, Color("9fb3a6")))
-	else:
+	var drops: Array = block.get("drops", []) # 由阶段的基础掉落表提供。
+	if not drops.is_empty():
+		_content.add_child(_caption("波次掉落"))
 		_content.add_child(_drop_grid(drops))
+	var clear_drops: Array = block.get("clear_drops", []) # 阶段胜利时额外抽取的候选。
+	if not clear_drops.is_empty():
+		_content.add_child(_caption("通关掉落"))
+		_content.add_child(_drop_grid(clear_drops))
 	for boss: Dictionary in bosses: # 标明每组击败奖励对应的 Boss。
 		var boss_drops: Array = boss.get("drops", []) # 击败该 Boss 后追加的掉落条目。
 		if not boss_drops.is_empty():

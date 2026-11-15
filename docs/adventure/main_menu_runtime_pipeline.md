@@ -1,6 +1,6 @@
 # 海滨主菜单运行管线
 
-正式场景为 `scenes/main/01StartMenuCoastal.tscn`。地图通过 `MainSceneRegistry.StartMenu` 返回，地区选择由常驻 `AdventureToolbar/MapNavigation` 管理。
+正式菜单为 `scenes/main/01StartMenuCoastal.tscn`。冷启动由 `00Bootstrap.tscn` 通过 `SceneTransition` 交接，地图通过 `MainSceneRegistry.StartMenu` 返回。常驻 `AdventureToolbar/MapNavigation` 按需准备地区选择器的首屏资源。见 [启动与场景加载](startup_loading.md)。
 
 - `assets/adventure/main_menu/coastal/texture_catalog.json` 将逻辑贴图名映射为原生纹理资源。 `asset_store.gd` 按宿主复用纹理和精确浮点光场，设计坐标为 1672×941。
 - `config/daily_cycle.json` 存放 24 小时环的基准照明。 `menu_clock.gd` 只用本机时间决定光色。船、风、水各有独立周期，动作推进用单调秒。预览通过 `set_preview_hour()` 和 `use_local_time()` 切换。

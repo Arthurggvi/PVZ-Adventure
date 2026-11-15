@@ -13,6 +13,24 @@ var _claim_button: Button
 var reward_playing := false
 ## 共享木框、羊皮纸、按钮和文字绘制入口。
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
+## 任务簿的动态皮肤和初次远征奖励美术由自身声明。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+
+## 准备首屏任务详情，不创建其他任务的奖励卡面。
+static func get_initial_resource_paths() -> PackedStringArray:
+	var paths: PackedStringArray = ResourcePaths.frame() # 列表按钮与当前详情公共素材。
+	paths.append_array(ResourcePaths.skin(PackedStringArray(["controls/filter_field.png", "slots/item_slot_normal.png",
+		"res://assets/adventure/ui/bottom_bar/icons/icon_quests.png"]), PackedStringArray(["buttons/action_neutral", "buttons/action_confirm"])))
+	if Global.global_game_state != null:
+		for task: Dictionary in AdventureQuestService.rows(Global.global_game_state.adventure_state):
+			if str(task.id) != "first_expedition":
+				continue
+			var rows: Array[Dictionary] = [] # 只取当前选中任务的奖励。
+			for reward: Dictionary in task.get("items", []):
+				rows.append(ResourcePaths.ItemArt.entry(str(reward.id)).merged({"id": str(reward.id),
+					"plant_type": int(Recipes.definition(str(reward.id)).get("plant_type", 0))}))
+			ResourcePaths.inventory_rows(paths, rows)
+	return paths
 ## 共享道具图标解析入口。
 const ItemArt = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 ## 静态目录与当前玩家的任务服务。
@@ -157,6 +175,10 @@ func _select_task(id: String) -> void:
 
 ## 绘制 [param task] 的说明与奖励，按钮状态由真实任务进度决定。
 func _render_details(task: Dictionary) -> void:
+	if task.get("letter", false):
+		_render_letter(task)
+		_render_claim_button(task)
+		return
 	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2.ZERO, Vector2(1000, 364), 30)
 	Art.label(_details, str(task.group) + "  /  僵尸岛", Vector2(38, 24), Vector2(800, 32), 20, Color("79613d"))
 	Art.label(_details, task.title, Vector2(38, 60), Vector2(920, 65), 43)
@@ -173,12 +195,18 @@ func _render_details(task: Dictionary) -> void:
 	Art.label(_details, task.progress, Vector2(861, 297), Vector2(90, 38), 21, Color("596b31"))
 	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2(0, 382), Vector2(1000, 296), 30)
 	Art.label(_details, "任务奖励", Vector2(38, 401), Vector2(240, 43), 28)
-	Art.label(_details, "EXP: %d" % task.exp, Vector2(40, 449), Vector2(265, 42), 29, Color("596b31"))
-	Art.label(_details, "%d$" % task.coins, Vector2(334, 449), Vector2(250, 42), 29)
-	Art.label(_details, "道具" if not task.items.is_empty() else "道具：无", Vector2(40, 504), Vector2(150, 34), 22)
+	if int(task.exp) > 0:
+		Art.label(_details, "EXP: %d" % task.exp, Vector2(40, 449), Vector2(265, 42), 29, Color("596b31"))
+	if int(task.coins) > 0:
+		Art.label(_details, "%d$" % task.coins, Vector2(334, 449), Vector2(250, 42), 29)
 	if "research" in task.unlocks:
 		Art.label(_details, "领取后解锁研究室", Vector2(624, 454), Vector2(335, 38), 23, Color("596b31"))
+	if "library" in task.unlocks:
+		Art.label(_details, "完成任务解锁图书馆", Vector2(624, 454), Vector2(335, 38), 23, Color("596b31"))
+	if "shop" in task.unlocks:
+		Art.label(_details, "与戴夫谈完后解锁商店", Vector2(624, 454), Vector2(335, 38), 23, Color("596b31"))
 	if not task.items.is_empty():
+		Art.label(_details, "道具", Vector2(40, 504), Vector2(150, 34), 22)
 		for index: int in 5: # 奖励统一展示五个空槽，已有物品填入对应位置。
 			var pos := Vector2(40 + index * 96, 548) # 槽位之间保留间距。
 			Art.image(_details, "slots/item_slot_normal.png", pos, Vector2(80, 80))
@@ -195,7 +223,50 @@ func _render_details(task: Dictionary) -> void:
 				if not backing.is_empty():
 					Art.slot_frame(_details, pos, Vector2(80, 80))
 				Art.count_badge(_details, "×%d" % reward.count, pos + Vector2(77, 77))
-	# 领取前仍会再次核验当前档案和任务周期。
+	if task.has("equipment_reward"):
+		_render_equipment_reward(task, Vector2(40, 548))
+	_render_claim_button(task)
+
+## 展示 [param task] 的活动信和时装奖励；正文可滚动，奖励与领取按钮保持可见。
+func _render_letter(task: Dictionary) -> void:
+	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2.ZERO, Vector2(1000, 491), 30)
+	Art.label(_details, task.group, Vector2(48, 22), Vector2(900, 34), 22, Color("24685b"))
+	Art.label(_details, task.title, Vector2(46, 56), Vector2(904, 68), 50, Color("8d3725"))
+	var letter := RichTextLabel.new() # 大段正文独立滚动，末句用 Godot 内置彩虹动效。
+	letter.position = Vector2(50, 129)
+	letter.size = Vector2(900, 345)
+	letter.bbcode_enabled = true
+	letter.add_theme_font_override("normal_font", FONT)
+	letter.add_theme_font_size_override("normal_font_size", 25)
+	letter.add_theme_constant_override("line_separation", 3)
+	letter.add_theme_color_override("default_color", Color("483525"))
+	letter.text = task.description
+	letter.meta_clicked.connect(_open_author_profile)
+	_details.add_child(letter)
+	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2(0, 507), Vector2(1000, 171), 30)
+	Art.label(_details, "活动奖励", Vector2(39, 520), Vector2(270, 38), 26, Color("24685b"))
+	_render_equipment_reward(task, Vector2(39, 565))
+
+## 以 [param pos] 绘制 [param task] 的装备图标及名称；活动别名可与角色装备名并列显示。
+func _render_equipment_reward(task: Dictionary, pos: Vector2) -> void:
+	var equipment: EquipmentDefinition = EquipmentCatalog.definition(task.equipment_reward) # 复用角色面板的装备定义。
+	if equipment == null:
+		return
+	var title: String = task.get("equipment_label", equipment.display_name) # 活动时装可显示玩家熟悉的别名。
+	Art.image(_details, "slots/item_slot_normal.png", pos, Vector2(82, 82))
+	Art.image(_details, equipment.icon.resource_path, pos + Vector2(8, 8), Vector2(66, 66))
+	Art.label(_details, title, pos + Vector2(102, 2), Vector2(510, 42), 33, Color("185f8c"))
+	Art.label(_details, equipment.display_name if title != equipment.display_name else equipment.description,
+		pos + Vector2(104, 45), Vector2(510, 34), 24)
+
+## 将活动信中点击的 [param meta] 与作者主页核对后交给系统浏览器。
+func _open_author_profile(meta: Variant) -> void:
+	if str(meta) == Catalog.AUTHOR_PROFILE_URL:
+		OS.shell_open(Catalog.AUTHOR_PROFILE_URL)
+
+## 为 [param task] 绘制共用的领奖入口；实际点击时重新核验档案和周期。
+func _render_claim_button(task: Dictionary) -> void:
+	# 固定位置与新手引导和礼盒演出的坐标对齐。
 	var claim := Art.action_button(_details, "已领取" if task.status == "claimed" else "领取奖励", "buttons/action_confirm", Vector2(695, 551), Vector2(260, 74), _claim_reward)
 	_claim_button = claim
 	claim.disabled = task.status != "complete"
@@ -208,7 +279,7 @@ func _claim_reward() -> void:
 	if Global.global_game_state.adventure_state != _opened_state or not Global.save_service.is_current_profile_loaded():
 		request_close()
 		return
-	# 服务一次提交物品、金币、经验和领取状态。
+	# 服务一次提交物品、装备、金币、经验和领取状态。
 	var issue := AdventureQuestService.claim(_opened_state, Global.adventure_inventory, Global.global_game_state,
 		Global.save_service.save_now, _selected, _period, AdventureQuestService.today())
 	if issue.is_empty():

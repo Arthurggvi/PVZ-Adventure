@@ -1,0 +1,90 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://djsyco71dq21c" path="res://assets/reanim/Caltrop_body.png" id="182_bga83"]
+
+[ext_resource type="Texture2D" uid="uid://bt8vfd40soar2" path="res://assets/reanim/Caltrop_horn1.png" id="183_s6kw2"]
+
+[ext_resource type="Texture2D" uid="uid://fa60cdkuf7oe" path="res://assets/reanim/Caltrop_horn2.png" id="184_whtsg"]
+
+[ext_resource type="Texture2D" uid="uid://dbjgn3in4at66" path="res://assets/reanim/Caltrop_horn3.png" id="185_utmk7"]
+
+[ext_resource type="Texture2D" uid="uid://dsvk38sshl42f" path="res://assets/reanim/Caltrop_horn4.png" id="186_4k8ki"]
+
+[ext_resource type="Texture2D" uid="uid://b4dihaqonj4k4" path="res://assets/reanim/Caltrop_blink1.png" id="187_ghxkp"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_22"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 22
+
+[node name="Card22" unique_id=532544829 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_22")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant022Caltrop" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=906414627]
+position = Vector2(1, 10)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant022Caltrop" unique_id=821772573]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant022Caltrop" unique_id=168924044]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant022Caltrop/Body" unique_id=1519991751]
+position = Vector2(-39, -69)
+
+[node name="Anim_attack" type="Sprite2D" parent="CardBg/CharacterStatic/Plant022Caltrop/Body/BodyCorrect" unique_id=1120732045]
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant022Caltrop/Body/BodyCorrect" unique_id=2132941746]
+visible = false
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant022Caltrop/Body/BodyCorrect" unique_id=2048015623]
+position = Vector2(-0.5, 44.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("182_bga83")
+centered = false
+
+[node name="Caltrop_horn1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant022Caltrop/Body/BodyCorrect" unique_id=1723004680]
+position = Vector2(8.1, 45.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("183_s6kw2")
+centered = false
+
+[node name="Caltrop_horn2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant022Caltrop/Body/BodyCorrect" unique_id=813011829]
+position = Vector2(24, 41.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("184_whtsg")
+centered = false
+
+[node name="Caltrop_horn3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant022Caltrop/Body/BodyCorrect" unique_id=919869837]
+position = Vector2(45.4, 43)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("185_utmk7")
+centered = false
+
+[node name="Caltrop_horn4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant022Caltrop/Body/BodyCorrect" unique_id=1148526264]
+position = Vector2(56.5, 49.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("186_4k8ki")
+centered = false
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant022Caltrop/Body/BodyCorrect" unique_id=701087545]
+visible = false
+position = Vector2(19.4, 60.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("187_ghxkp")
+centered = false

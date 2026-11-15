@@ -1,0 +1,128 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://osds5r8hvsmb" path="res://assets/reanim/Wallnut_body.png" id="51_ocwvu"]
+
+[ext_resource type="Texture2D" uid="uid://cpbkvykx6yq07" path="res://assets/reanim/Wallnut_twitch.png" id="52_dc0c5"]
+
+[ext_resource type="Texture2D" uid="uid://co3e8k6uwm4hi" path="res://assets/reanim/Wallnut_blink1.png" id="53_vm05c"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Animation" id="Animation_msri8"]
+length = 2.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body/BowlingCenter:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.5, 1, 1.5, 2),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 0,
+"values": [0.0, 1.5707964, 3.1415927, 4.712389, 6.2831855]
+}
+
+[sub_resource type="Animation" id="Animation_ea7g5"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Body/BowlingCenter:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_7lapw"]
+_data = {
+&"Bowling": SubResource("Animation_msri8"),
+&"RESET": SubResource("Animation_ea7g5")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_m7q7w"]
+animation = &"Bowling"
+
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_r0uf5"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_te8ao"]
+graph_offset = Vector2(-287, 71)
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_r0uf5")
+nodes/TimeScale/position = Vector2(120, 140)
+nodes/Animation/node = SubResource("AnimationNodeAnimation_m7q7w")
+nodes/Animation/position = Vector2(-60, 140)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
+
+[sub_resource type="Resource" id="CardReference_1_1003"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 1003
+
+[node name="Card3" unique_id=516623084 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_1003")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant1003WallNutBowling" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=2118977056]
+position = Vector2(2, 21)
+scale = Vector2(0.4, 0.4)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant1003WallNutBowling" unique_id=927135555]
+scale = Vector2(2, 2)
+
+[node name="BowlingCenter" type="Node2D" parent="CardBg/CharacterStatic/Plant1003WallNutBowling/Body" unique_id=1821211545]
+position = Vector2(0, -25)
+scale = Vector2(0.99999994, 0.99999994)
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant1003WallNutBowling/Body/BowlingCenter" unique_id=1187459253]
+position = Vector2(0, 25.000004)
+scale = Vector2(1.0000001, 1.0000001)
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Plant1003WallNutBowling/Body/BowlingCenter/BodyCorrect" unique_id=296265366]
+position = Vector2(-42.5, -69.5)
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant1003WallNutBowling/Body/BowlingCenter/BodyCorrect" unique_id=145269405]
+position = Vector2(-42.5, -69.5)
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant1003WallNutBowling/Body/BowlingCenter/BodyCorrect" unique_id=3866025]
+position = Vector2(-38.663, -61.2476)
+rotation = -0.0454682
+scale = Vector2(0.7, 0.68937)
+texture = ExtResource("51_ocwvu")
+centered = false
+
+[node name="Anim_blink_twitch" type="Sprite2D" parent="CardBg/CharacterStatic/Plant1003WallNutBowling/Body/BowlingCenter/BodyCorrect" unique_id=110642257]
+visible = false
+position = Vector2(-14.5894, -8.3159)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("52_dc0c5")
+centered = false
+
+[node name="Anim_blink_twice" type="Sprite2D" parent="CardBg/CharacterStatic/Plant1003WallNutBowling/Body/BowlingCenter/BodyCorrect" unique_id=667310840]
+visible = false
+position = Vector2(-15.7894, -22.3159)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("53_vm05c")
+centered = false
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="CardBg/CharacterStatic/Plant1003WallNutBowling" unique_id=132458938]
+libraries/ = SubResource("AnimationLibrary_7lapw")
+
+[node name="AnimationTree" type="AnimationTree" parent="CardBg/CharacterStatic/Plant1003WallNutBowling" unique_id=295653723]
+tree_root = SubResource("AnimationNodeBlendTree_te8ao")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../AnimationPlayer")
+parameters/TimeScale/scale = 1.0

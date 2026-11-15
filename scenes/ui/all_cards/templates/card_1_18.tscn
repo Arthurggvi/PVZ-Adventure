@@ -1,0 +1,66 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://db3ehuxapn0l1" path="res://assets/reanim/Squash_stem.png" id="149_e810v"]
+
+[ext_resource type="Texture2D" uid="uid://irbh4snyltu1" path="res://assets/reanim/Squash_body.png" id="150_6r2gs"]
+
+[ext_resource type="Texture2D" uid="uid://bgijsa0y0ayos" path="res://assets/reanim/Squash_eyes.png" id="151_meyin"]
+
+[ext_resource type="Texture2D" uid="uid://kewigqip7qgf" path="res://assets/reanim/Squash_eyebrows.png" id="152_kktyo"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_18"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 18
+
+[node name="Card18" unique_id=720293163 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_18")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant018Squash" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1360856270]
+position = Vector2(1, 16)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant018Squash" unique_id=756472503]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant018Squash" unique_id=1822761528]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant018Squash/Body" unique_id=1672118185]
+position = Vector2(-41, -75)
+
+[node name="Squash_stem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant018Squash/Body/BodyCorrect" unique_id=1693911557]
+position = Vector2(33.4, -1.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("149_e810v")
+centered = false
+
+[node name="Squash_body" type="Sprite2D" parent="CardBg/CharacterStatic/Plant018Squash/Body/BodyCorrect" unique_id=2036895292]
+position = Vector2(6.6, 5.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("150_6r2gs")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant018Squash/Body/BodyCorrect" unique_id=1647643202]
+position = Vector2(33.2, 30)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("151_meyin")
+centered = false
+
+[node name="Anim_eye" type="Sprite2D" parent="CardBg/CharacterStatic/Plant018Squash/Body/BodyCorrect" unique_id=2080616011]
+position = Vector2(25.3, 18.9)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("152_kktyo")
+centered = false

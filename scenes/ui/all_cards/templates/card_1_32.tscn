@@ -1,0 +1,147 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://c5i3v2h1dou6p" path="res://assets/reanim/Magnetshroom_stem.png" id="237_ocwvu"]
+
+[ext_resource type="Texture2D" uid="uid://dnmepex12p3xq" path="res://assets/reanim/Magnetshroom_stemcap.png" id="238_dc0c5"]
+
+[ext_resource type="Texture2D" uid="uid://3rd1uiq8lpn8" path="res://assets/reanim/Magnetshroom_head1.png" id="239_vm05c"]
+
+[ext_resource type="Texture2D" uid="uid://2snv65tl4xk6" path="res://assets/reanim/Magnetshroom_stemcap_overlay.png" id="240_xqigo"]
+
+[ext_resource type="Texture2D" uid="uid://dl3cfd2n18484" path="res://assets/reanim/Magnetshroom_eye1.png" id="241_vfoxv"]
+
+[ext_resource type="Texture2D" uid="uid://cac85x53tvblx" path="res://assets/reanim/Magnetshroom_eyeblink3.png" id="242_ro17d"]
+
+[ext_resource type="Texture2D" uid="uid://b03m7og0h7653" path="res://assets/reanim/Magnetshroom_eyebrow.png" id="243_aaf5m"]
+
+[ext_resource type="Texture2D" uid="uid://j4xw4erjse5o" path="res://assets/reanim/Magnetshroom_idle_electric3.png" id="244_q36sf"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_32"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 32
+
+[node name="Card32" unique_id=317619598 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_32")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant032MagnetShroom" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1205356488]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom" unique_id=879927308]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom" unique_id=1185238877]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body" unique_id=572261454]
+position = Vector2(-43, -68)
+
+[node name="Magnetshroom_stem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=1220932660]
+position = Vector2(37.808, 58.952)
+scale = Vector2(0.6, 0.5964)
+skew = 0.133971
+texture = ExtResource("237_ocwvu")
+centered = false
+
+[node name="Magnetshroom_stemcap" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=1768689488]
+position = Vector2(30.66, 45.808)
+rotation = 0.114703
+scale = Vector2(0.59748, 0.5894)
+skew = -0.00258304
+texture = ExtResource("238_dc0c5")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=1511399575]
+position = Vector2(11.536, -5.296)
+rotation = 0.144514
+scale = Vector2(0.599, 0.58988)
+skew = 0.00705081
+texture = ExtResource("239_vm05c")
+centered = false
+
+[node name="Magnetshroom_stemcap_overlay" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=2073303363]
+position = Vector2(30.46, 45.856)
+rotation = 0.114703
+scale = Vector2(0.604, 0.5894)
+skew = -0.00258304
+texture = ExtResource("240_xqigo")
+centered = false
+
+[node name="Anim_eyes" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=174755995]
+position = Vector2(38.112, 38.808)
+rotation = 0.144514
+scale = Vector2(0.599, 0.58988)
+skew = 0.00705081
+texture = ExtResource("241_vfoxv")
+centered = false
+
+[node name="Anim_eyes2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=2006949327]
+position = Vector2(53.312, 36.468)
+rotation = 0.144514
+scale = Vector2(0.569, 0.5604)
+skew = 0.00705081
+texture = ExtResource("241_vfoxv")
+centered = false
+
+[node name="Anim_eyes21" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=571109211]
+visible = false
+centered = false
+
+[node name="Anim_eyes22" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=1914653945]
+visible = false
+centered = false
+
+[node name="Blink2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=191211410]
+visible = false
+position = Vector2(49.1, 31)
+scale = Vector2(0.542, 0.549)
+texture = ExtResource("242_ro17d")
+centered = false
+
+[node name="Blink1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=652100870]
+visible = false
+position = Vector2(34.3, 35.8)
+scale = Vector2(0.595, 0.603)
+texture = ExtResource("242_ro17d")
+centered = false
+
+[node name="Magnetshroom_eyebrows" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=1045087901]
+position = Vector2(44.312, 37.02)
+rotation = 1.3261
+scale = Vector2(0.58888, 0.598)
+skew = 0.00705071
+texture = ExtResource("243_aaf5m")
+centered = false
+
+[node name="Magnetshroom_eyebrows2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=1876353783]
+position = Vector2(52.064, 34.972)
+rotation = 1.95365
+scale = Vector2(0.5904, 0.59648)
+skew = -3.1522
+texture = ExtResource("243_aaf5m")
+centered = false
+
+[node name="Magnetshroom_spot" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=1034356725]
+visible = false
+centered = false
+
+[node name="Magnetshroom_shock" type="Sprite2D" parent="CardBg/CharacterStatic/Plant032MagnetShroom/Body/BodyCorrect" unique_id=1787616839]
+visible = false
+position = Vector2(31.7, 10.4)
+rotation = 0.075049
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("244_q36sf")
+centered = false

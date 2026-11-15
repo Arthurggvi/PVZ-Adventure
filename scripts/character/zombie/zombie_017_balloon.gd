@@ -60,6 +60,12 @@ func be_blow_away():
 	AdventureZombieWindGust.blow_target(self, 4, true)
 
 
+## 气球僵尸的寒冷冻结按原生规则转换为减速。
+func can_cold_freeze() -> bool:
+	return false
+
 ## 被冰冻控制
-func be_ice_freeze(time:float, new_time_ice_end_decelerate:float):
+## [param _hit_scope] 为可选冻伤观察组，只有原生冻伤结算才使用。
+func be_ice_freeze(time: float, new_time_ice_end_decelerate: float,
+		_hit_scope: CombatHitScope = null) -> void:
 	be_ice_decelerate(time + new_time_ice_end_decelerate)

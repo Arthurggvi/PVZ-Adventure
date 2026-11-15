@@ -51,7 +51,7 @@ func _on_grow_timer_timeout() -> void:
 
 ## [param speed_factor] 为角色速度乘积；停止或尚未开始时也保存倍率，由计时器保留进度与零速。
 func update_grow_speed(speed_factor: float) -> void:
-	grow_timer.set_speed_scale(speed_factor)
+	grow_timer.set_speed_scale(production_speed_product(speed_factor))
 
 ## [param _attack_zombie] 是本次啃食者；仅我是僵尸模式沿用原版受击产阳光。
 func _be_zombie_eat_once_special(_attack_zombie: Zombie000Base) -> void:

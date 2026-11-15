@@ -1,0 +1,58 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://bx76a21ng1hd1" path="res://assets/reanim/Tallnut_body.png" id="193_d31db"]
+
+[ext_resource type="Texture2D" uid="uid://df5yxhm82xo61" path="res://assets/reanim/Tallnut_blink1.png" id="194_5wf4j"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_24"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 24
+
+[node name="Card24" unique_id=1366197649 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_24")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant024TallNut" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1252409293]
+position = Vector2(1, 14)
+scale = Vector2(0.3, 0.3)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant024TallNut" unique_id=173190330]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant024TallNut" unique_id=780992481]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant024TallNut/Body" unique_id=851637956]
+position = Vector2(-43, -74)
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant024TallNut/Body/BodyCorrect" unique_id=655172070]
+position = Vector2(0, -37.1)
+scale = Vector2(0.8, 0.816)
+texture = ExtResource("193_d31db")
+centered = false
+
+[node name="Anim_blink_twice" type="Sprite2D" parent="CardBg/CharacterStatic/Plant024TallNut/Body/BodyCorrect" unique_id=170721484]
+visible = false
+position = Vector2(31.2, -15)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("194_5wf4j")
+centered = false
+
+[node name="Anim_blink_thrice" type="Sprite2D" parent="CardBg/CharacterStatic/Plant024TallNut/Body/BodyCorrect" unique_id=460201769]
+visible = false
+position = Vector2(31.2, -15)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("194_5wf4j")
+centered = false

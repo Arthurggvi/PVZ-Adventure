@@ -16,7 +16,7 @@ static func entries(phase: StagePhaseDefinition) -> Array[Dictionary]:
 			if band == null:
 				continue
 			_merge_pool(result, band.zombie_weights, band.tier_weights,
-				Vector2i(band.first_wave, band.last_wave))
+				Vector2i(band.first_wave, band.last_wave), band.species_tier_weights)
 		for group: WaveSpawnGroup in profile.scheduled_spawns: # 预排出怪：展示其覆盖的波次区间。
 			if group == null:
 				continue
@@ -49,12 +49,18 @@ static func zombie_types(phase: StagePhaseDefinition) -> Array[CharacterRegistry
 	return types
 
 ## 把一组权重池按 [param waves] 区间并入结果；权重非正的物种不参与预览。
+## [param species_tier_weights] 可按物种覆盖等阶集合；未列出的物种沿用 [param tier_weights]。
 static func _merge_pool(result: Array[Dictionary], zombie_weights: Dictionary,
-		tier_weights: Dictionary, waves: Vector2i) -> void:
-	var tiers := _positive_tiers(tier_weights) # 同一池子的所有物种共享等阶集合。
+		tier_weights: Dictionary, waves: Vector2i, species_tier_weights: Dictionary = {}) -> void:
 	for zombie_type: CharacterRegistry.ZombieType in zombie_weights:
-		if zombie_weights[zombie_type] > 0:
-			_merge(result, zombie_type, tiers, waves)
+		if zombie_weights[zombie_type] <= 0:
+			continue
+		var species_tiers: Dictionary = tier_weights # 默认与同池其他物种共享等阶集合。
+		if species_tier_weights.has(zombie_type): # 单物种覆盖用于同波段内不同等阶比例。
+			var override: Variant = species_tier_weights[zombie_type]
+			if override is Dictionary:
+				species_tiers = override
+		_merge(result, zombie_type, _positive_tiers(species_tiers), waves)
 
 ## 把 [param zombie_type] 合并进同名条目；[param waves] 为零向量时只补充等阶。
 static func _merge(result: Array[Dictionary], zombie_type: CharacterRegistry.ZombieType,

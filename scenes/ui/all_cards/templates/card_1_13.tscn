@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://cbgu3a2jxkthd" path="res://assets/reanim/HypnoShroom_body.png" id="125_kmbfw"]
+
+[ext_resource type="Texture2D" uid="uid://dmch2r8l3fn1c" path="res://assets/reanim/HypnoShroom_eye1.png" id="126_fshmy"]
+
+[ext_resource type="Texture2D" uid="uid://c3tp56xwnaj8k" path="res://assets/reanim/HypnoShroom_head.png" id="127_clqwo"]
+
+[ext_resource type="Texture2D" uid="uid://bm4iskcgxt1lx" path="res://assets/reanim/HypnoShroom_eye2.png" id="128_26tgv"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_13"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 13
+
+[node name="Card13" unique_id=719286915 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_13")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant013HypnoShroom" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1980502472]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant013HypnoShroom" unique_id=666287406]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant013HypnoShroom" unique_id=253479072]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant013HypnoShroom/Body" unique_id=1839802710]
+position = Vector2(-38, -72)
+
+[node name="Layer 1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant013HypnoShroom/Body/BodyCorrect" unique_id=1183139651]
+position = Vector2(24.6606, 38.0129)
+scale = Vector2(0.8, 0.759742)
+skew = 0.0798222
+texture = ExtResource("125_kmbfw")
+centered = false
+
+[node name="Layer 3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant013HypnoShroom/Body/BodyCorrect" unique_id=1042090177]
+position = Vector2(47.7788, 51.7659)
+rotation = 1.33814
+scale = Vector2(0.74481, 0.74481)
+texture = ExtResource("126_fshmy")
+centered = false
+
+[node name="Layer 2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant013HypnoShroom/Body/BodyCorrect" unique_id=1933449654]
+position = Vector2(23.5598, 3.01288)
+rotation = 0.213366
+scale = Vector2(0.809477, 0.721485)
+texture = ExtResource("127_clqwo")
+centered = false
+
+[node name="Layer 4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant013HypnoShroom/Body/BodyCorrect" unique_id=1337687708]
+position = Vector2(48.5917, 59.1788)
+rotation = -1.33639
+scale = Vector2(0.799174, 0.799174)
+texture = ExtResource("128_26tgv")
+centered = false

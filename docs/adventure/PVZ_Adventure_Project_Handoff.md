@@ -1,6 +1,12 @@
 # PVZ-Adventure 项目交接
 
-从 `project.godot`、场景、脚本与配置资源核对仓库现状。正式启动入口为 `scenes/main/01StartMenuCoastal.tscn`。
+从 `project.godot`、场景、脚本与配置资源核对仓库现状。
+
+## 启动/加载权威协议
+
+`scenes/main/00Bootstrap.tscn` 经统一的 `SceneTransition.change_scene()` 进入正式海滨菜单。地图、战斗与返图沿用同一接口，战斗状态只在目标场景被接受后提交。卡牌、角色、音效及工具栏沿用既有惰性门面。各入口的依赖所有权、失败恢复与图形验收见 [启动与场景加载](startup_loading.md)。
+
+## 开发入口
 
 - [DEVELOPMENT](../../DEVELOPMENT.md) 记录引擎版本、素材还原、测试和 Windows 导出。
 - [ARCHITECTURE](../../ARCHITECTURE.md) 记录关卡、续战、棋盘、水路、天气、Boss、卡牌和存档。

@@ -59,14 +59,16 @@ func resolve_damage(damage: int, bonus_damage: int = 0, bonus_cap: int = -1) -> 
 	return mini(resolved, maxi(1, ceili(float(max_hp) * max_single_hit_fraction)))
 
 ## 处决与铲除无视护甲池；当生命被强制清空时一并清除幽灵护甲。
+## [param amount] 为强制损失；[param mode]、[param drop]、[param sfx]、[param extra_drop] 沿用基类表现参数。
+## [param hit_scope] 只传递本次命中资格和死因，普通铲除无需提供。
 func apply_unblocked_loss(amount: int,
 		mode: BulletRegistry.AttackMode = BulletRegistry.AttackMode.Norm,
-		drop: bool = true, sfx: bool = true, extra_drop: bool = true) -> void:
+		drop: bool = true, sfx: bool = true, extra_drop: bool = true, hit_scope: CombatHitScope = null) -> void:
 	if amount >= curr_hp and bonus_armor > 0:
 		bonus_armor = 0
 		bonus_armor_changed.emit(0)
 		_update_armor_label()
-	super.apply_unblocked_loss(amount, mode, drop, sfx, extra_drop)
+	super.apply_unblocked_loss(amount, mode, drop, sfx, extra_drop, hit_scope)
 
 func _update_armor_label() -> void:
 	if is_instance_valid(_armor_label):

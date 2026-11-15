@@ -87,11 +87,12 @@
       "id": "town",
       "name": "城镇",
       "slot": 1,
-      "enabled": false,
+      "enabled": true,
       "preview": "art/previews/town_future_concept.png",
       "frame": "art/frames/map_preview_frame_compact.png",
+      "states_prefix": "art/states/island_",
       "disabled_overlay": "art/states/town_disabled.png",
-      "selection_action": null
+      "selection_action": "return_to_main_menu"
     }
   ],
   "close": {
@@ -128,8 +129,7 @@
     ]
   },
   "input": {
-    "town_disabled_pointer": true,
-    "town_disabled_keyboard": true,
+    "town_focusable": true,
     "zombie_island_focusable": true
   },
   "notes": [
@@ -138,6 +138,6 @@
     "Zombie Island card west of engraved ship (near right-bottom part of parchment).",
     "Entire 304x184 clickable card includes complete reinforced frame and integrated label, 3.923% of paper.",
     "Never bake destination preview, lock, frame, labels, or button states into parchment.",
-    "Town remains disabled. Reuse player save, music and existing entry route."
+    "Town returns to the current main menu, or dismisses the picker when already there."
   ]
 }

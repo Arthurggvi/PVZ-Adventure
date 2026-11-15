@@ -25,6 +25,10 @@ func _ready() -> void:
 func _start_mower():
 	if is_destroyed or is_queued_for_deletion():
 		return
+	# 固定状态只吞噬接触目标，不启动行驶。
+	if cheat_fixed_enabled:
+		_mower_run_all_zombie_on_start()
+		return
 	is_moving = true
 	SoundManager.play_other_SFX("pool_cleaner")
 	animation_player.play("PoolCleaner_land")
@@ -36,9 +40,12 @@ func suck_end():
 	move_speed = ori_move_speed
 	is_zombie = false
 
-## 小推车碾压一个僵尸
+## 吞噬 [param zombie] 并切换吸入状态；死亡或待删除的目标不会重复结算。
 func _mower_run_one_zombie(zombie :Zombie000Base):
 	if is_destroyed or is_queued_for_deletion() or not is_instance_valid(zombie) or zombie.is_queued_for_deletion():
+		return
+	# 已由其他重叠区域触发死亡的目标不再重复处理。
+	if zombie.is_death:
 		return
 	zombie.character_death_disappear()
 	move_speed = ori_move_speed / 4

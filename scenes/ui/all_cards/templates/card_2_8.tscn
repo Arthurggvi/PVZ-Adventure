@@ -1,0 +1,209 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://cbftqok26jk60" path="res://assets/reanim/Zombie_jaw.png" id="215_bymx4"]
+
+[ext_resource type="Texture2D" uid="uid://btcmk221m1aan" path="res://assets/reanim/Zombie_hair.png" id="224_uyuvp"]
+
+[ext_resource type="Texture2D" uid="uid://bcflmap7cnipd" path="res://assets/reanim/zombie_football_leftarm_upper.png" id="266_55fvp"]
+
+[ext_resource type="Texture2D" uid="uid://dlm2f57ue81fc" path="res://assets/reanim/Zombie_football_leftleg_foot.png" id="267_2633o"]
+
+[ext_resource type="Texture2D" uid="uid://ptuhnp3vr8qx" path="res://assets/reanim/Zombie_football_leftleg_lower.png" id="268_btljo"]
+
+[ext_resource type="Texture2D" uid="uid://dpl6wunn4e6wg" path="res://assets/reanim/Zombie_football_leftleg_upper.png" id="269_3m0s2"]
+
+[ext_resource type="Texture2D" uid="uid://bxxq1q4mkg2t0" path="res://assets/reanim/Zombie_football_lowerbody.png" id="270_083vf"]
+
+[ext_resource type="Texture2D" uid="uid://cmw2qhqmhe48y" path="res://assets/reanim/Zombie_football_rightleg_lower.png" id="271_7d5so"]
+
+[ext_resource type="Texture2D" uid="uid://dhqn0kq0l8w77" path="res://assets/reanim/Zombie_football_rightleg_foot.png" id="272_4q5tm"]
+
+[ext_resource type="Texture2D" uid="uid://bvpuw3u3s02h1" path="res://assets/reanim/Zombie_football_rightleg_upper.png" id="273_ynd4q"]
+
+[ext_resource type="Texture2D" uid="uid://cel4tbhm2xtmu" path="res://assets/reanim/Zombie_football_upperbody2.png" id="274_kffce"]
+
+[ext_resource type="Texture2D" uid="uid://dt6ar4pm7imqq" path="res://assets/reanim/Zombie_football_leftarm_eatinglower.png" id="275_h5yms"]
+
+[ext_resource type="Texture2D" uid="uid://b55qe6fahdpfr" path="res://assets/reanim/Zombie_football_upperbody.png" id="276_f0j7s"]
+
+[ext_resource type="Texture2D" uid="uid://dmo2wh8qt8sbs" path="res://assets/reanim/Zombie_football_head.png" id="277_dwcap"]
+
+[ext_resource type="Texture2D" uid="uid://chb4u28vimala" path="res://assets/reanim/zombie_football_rightarm_upper.png" id="278_u6b2i"]
+
+[ext_resource type="Texture2D" uid="uid://cjlkil1206rkg" path="res://assets/reanim/zombie_football_rightarm_lower.png" id="279_wkfu2"]
+
+[ext_resource type="Texture2D" uid="uid://dprhf5svj4qjm" path="res://assets/reanim/Zombie_football_upperbody3.png" id="280_1v751"]
+
+[ext_resource type="Texture2D" uid="uid://bek8y26ispaan" path="res://assets/reanim/Zombie_football_helmet.png" id="281_v1a6f"]
+
+[ext_resource type="Texture2D" uid="uid://btuhpsdmvqa64" path="res://assets/reanim/Zombie_football_leftarm_eatinghand.png" id="282_sc7yu"]
+
+[ext_resource type="Texture2D" uid="uid://cd1d8mx2srg18" path="res://assets/reanim/zombie_football_rightarm_hand.png" id="283_bdye7"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_8"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 8
+
+[node name="Card8" unique_id=1129151109 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_8")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie009Football" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=2095245997]
+position = Vector2(2, 17)
+scale = Vector2(0.3, 0.3)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie009Football" unique_id=697917326]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie009Football/Body" unique_id=1330927407]
+position = Vector2(-73, -129)
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=333149672]
+position = Vector2(-59.8, 70.1)
+centered = false
+
+[node name="Zombie_football_leftarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1781791148]
+position = Vector2(39.4, 59.5)
+rotation = 6.59385
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("266_55fvp")
+centered = false
+
+[node name="Zombie_football_leftleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=117011935]
+position = Vector2(36.6, 112.2)
+rotation = 6.23083
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("267_2633o")
+centered = false
+
+[node name="Zombie_football_leftleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=361919219]
+position = Vector2(48.9, 100)
+rotation = 6.18196
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("268_btljo")
+centered = false
+
+[node name="Zombie_football_leftleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1805629188]
+position = Vector2(49.6, 80.5)
+rotation = 0.127409
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("269_3m0s2")
+centered = false
+
+[node name="Zombie_football_lowerbody" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=168034240]
+position = Vector2(56.3, 75.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("270_083vf")
+centered = false
+
+[node name="Zombie_football_rightleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1178689698]
+position = Vector2(81.4, 108.8)
+rotation = 6.09469
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("271_7d5so")
+centered = false
+
+[node name="Zombie_football_rightleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1558879921]
+position = Vector2(69.8, 125.7)
+rotation = 6.21337
+scale = Vector2(0.708, 0.708)
+texture = ExtResource("272_4q5tm")
+centered = false
+
+[node name="Zombie_football_rightleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=95825717]
+position = Vector2(73.4, 81.1)
+rotation = 0.127409
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("273_ynd4q")
+centered = false
+
+[node name="Zombie_football_upperbody2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1881460874]
+position = Vector2(15.4, 21.1)
+rotation = 6.25701
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("274_kffce")
+centered = false
+
+[node name="Zombie_football_leftarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=684834292]
+position = Vector2(18, 69)
+rotation = 6.19243
+scale = Vector2(0.796, 0.796)
+texture = ExtResource("275_h5yms")
+centered = false
+
+[node name="Zombie_football_upperbody" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1506918032]
+position = Vector2(15, 21.6)
+rotation = 6.25701
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("276_f0j7s")
+centered = false
+
+[node name="Anim_hair" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1868235038]
+position = Vector2(26.7, 7.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("224_uyuvp")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=237701111]
+position = Vector2(30.5, 10.2)
+rotation = 6.25701
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("277_dwcap")
+centered = false
+
+[node name="Zombie_football_rightarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=960769900]
+position = Vector2(80.6, 62.9)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("278_u6b2i")
+centered = false
+
+[node name="Zombie_football_rightarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1147884431]
+position = Vector2(64, 67.7)
+rotation = 6.18719
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("279_wkfu2")
+centered = false
+
+[node name="Zombie_football_upperbody3" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1881692638]
+position = Vector2(15, 21.6)
+rotation = 6.25701
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("280_1v751")
+centered = false
+
+[node name="Anim_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=301956870]
+position = Vector2(38.1, 44.8)
+rotation = 6.20465
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("215_bymx4")
+centered = false
+
+[node name="Zombie_football_helmet" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1750345472]
+position = Vector2(25.8, 2.8)
+rotation = 6.23432
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("281_v1a6f")
+centered = false
+
+[node name="Zombie_football_leftarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=180805834]
+position = Vector2(-6.6, 56.8)
+rotation = -0.13439
+scale = Vector2(0.9, 0.9)
+texture = ExtResource("282_sc7yu")
+centered = false
+
+[node name="Zombie_football_rightarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie009Football/Body/BodyCorrect" unique_id=1847346320]
+position = Vector2(44.1, 69.3)
+rotation = 0.10472
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("283_bdye7")
+centered = false

@@ -1133,3 +1133,14 @@ tracks/93/keys = {
 "update": 1,
 "values": [true]
 }
+tracks/94/type = "method"
+tracks/94/imported = false
+tracks/94/enabled = true
+tracks/94/path = NodePath(".")
+tracks/94/interp = 1
+tracks/94/loop_wrap = false
+tracks/94/keys = {
+"times": PackedFloat32Array(0.266667, 0.633333),
+"transitions": PackedFloat32Array(1, 1),
+"values": [{"args": [], "method": &"_on_charge_footfall"}, {"args": [], "method": &"_on_charge_footfall"}]
+}

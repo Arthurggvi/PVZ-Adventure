@@ -11,6 +11,7 @@ func _run() -> void:
 	var ui: AdventureResearchWindow = Research.new()
 	get_tree().root.add_child(ui)
 	await get_tree().create_timer(0.32).timeout
+	await _wait_for_content(ui)
 	assert(ui.mode == "craft")
 	assert(ui.ui.content.get_child_count() >= 4)
 	assert(get_tree().root.get_node("AdventureToolbar")._hooks.has("research"))
@@ -19,14 +20,17 @@ func _run() -> void:
 		" scaled=",ui.ui.canvas.scale)
 	await _click(ui.ui.tabs["upgrade"].get_global_rect().get_center())
 	assert(ui.mode == "upgrade", "Mode tab must receive mouse event")
+	await _wait_for_content(ui)
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png("user://research_upgrade_in_game.png")
 	await _click(ui.ui.tabs["promotion"].get_global_rect().get_center())
 	assert(ui.mode == "promotion")
+	await _wait_for_content(ui)
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png("user://research_promotion_in_game.png")
 	await _click(ui.ui.tabs["craft"].get_global_rect().get_center())
 	assert(ui.mode == "craft")
+	await _wait_for_content(ui)
 	assert(Global.global_game_state.coin_value == initial_coins)
 	await RenderingServer.frame_post_draw
 	var screenshot := get_viewport().get_texture().get_image()
@@ -36,6 +40,13 @@ func _run() -> void:
 	assert(not is_instance_valid(ui))
 	print("RESEARCH_UI_SMOKE_PASS single panel, three tabs, close, no writes")
 	get_tree().quit(0)
+
+## [param window] 的可见候选装配结束后再执行原有截图，不把请求接受当作绘制完成。
+func _wait_for_content(window: AdventureResearchWindow) -> void:
+	var deadline: int = Time.get_ticks_msec() + 12000 # 只作为异常上限，不用于性能断言。
+	while Time.get_ticks_msec() < deadline and not window.is_content_ready():
+		await get_tree().process_frame
+	assert(window.is_content_ready())
 
 func _click(pos: Vector2) -> void:
 	var motion := InputEventMouseMotion.new()

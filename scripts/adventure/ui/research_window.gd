@@ -13,6 +13,38 @@ const Picker = preload("res://scripts/adventure/ui/research_slot_picker.gd")
 const Feedback = preload("res://scripts/adventure/ui/research_feedback.gd")
 ## 与背包复用面板、按钮与模态交互。
 const InventoryDialog = preload("res://scripts/adventure/ui/inventory_dialog.gd")
+## 只读首屏依赖，复用既有卡牌与物品路径。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+## 窗口范围内的可见格子装配，不为屏幕外候选建立卡面。
+const VisualQueue = preload("res://scripts/adventure/ui/prepared_visual_queue.gd")
+## 当前窗口唯一的可见预览队列。
+var visual_queue: VisualQueue
+
+## 首屏可见候选完成后才结束入口反馈。
+func is_content_ready() -> bool:
+	return visual_queue != null and visual_queue.is_content_ready()
+
+## 准备合成页首屏候选和当前工作槽，其他模式不参与首次打开。
+static func get_initial_resource_paths() -> PackedStringArray:
+	var paths: PackedStringArray = ResourcePaths.frame() # 研究室共有布局和状态贴图。
+	paths.append_array(ResourcePaths.skin(PackedStringArray(["icons/category_recipes.png", "icons/category_plants.png",
+		"overlays/star_filled.png", "slots/empty_plant_symbol.png", "slots/plant_slot_hover_frame.png",
+		"slots/plant_slot_selected_frame.png", "slots/item_slot_hover_frame.png", "slots/item_slot_selected_frame.png"]),
+		PackedStringArray(["tabs/tab", "slots/item_slot", "slots/plant_slot", "buttons/action_confirm", "buttons/action_danger"])))
+	if Global.global_game_state == null or Global.adventure_inventory == null:
+		return paths
+	var service := Service.new(Global.global_game_state.adventure_state, Global.adventure_inventory,
+		Global.global_game_state, Global.save_service.save_now) # 仅查询，不调用执行或保存。
+	var picker := Picker.new("craft", Global.config_service.get_research_selection("craft")) # 恢复同一选择协议。
+	var primary: Array[Dictionary] = service.options("craft", picker.key_for(Picker.Slot.RECIPE))
+	picker.refresh_selection("craft", service, primary)
+	var preview: Dictionary = service.quote("craft", picker.operation_choice("craft")) # 真实当前工作槽。
+	var rows: Array[Dictionary] = picker.candidates(service, primary, preview).slice(0, 24) # 六行四列首屏。
+	rows.append({"plant_type": int(preview.get("plant_type", 0))})
+	for slot: Dictionary in preview.get("slots", []):
+		rows.append({"id": str(slot.get("id", ""))})
+	ResourcePaths.inventory_rows(paths, rows)
+	return paths
 var mode := "craft"
 var with_background := false
 ## 进出动画的共同根节点，由组合窗口在入树前设置。独立窗口默认使用自身。
@@ -38,6 +70,8 @@ var _confirmation: InventoryDialog
 var _fade: Tween
 
 func _ready() -> void:
+	visual_queue = VisualQueue.new()
+	add_child(visual_queue)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if transition_root == null:

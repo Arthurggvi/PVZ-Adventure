@@ -1,0 +1,159 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://ddxjngjxjdtdk" path="res://assets/reanim/Zombie_imp_arm1.png" id="670_45g8r"]
+
+[ext_resource type="Texture2D" uid="uid://c4eemc3cx7mbg" path="res://assets/reanim/Zombie_imp_innerleg_foot.png" id="671_cnu4l"]
+
+[ext_resource type="Texture2D" uid="uid://bfdqxpkrvtt6l" path="res://assets/reanim/Zombie_imp_innerleg_lower.png" id="672_vxcot"]
+
+[ext_resource type="Texture2D" uid="uid://dbj3x8slo88o4" path="res://assets/reanim/Zombie_imp_innerleg_upper.png" id="673_3fnx5"]
+
+[ext_resource type="Texture2D" uid="uid://cdrpn1fmfqwtb" path="res://assets/reanim/Zombie_imp_outerleg_foot.png" id="674_knh0l"]
+
+[ext_resource type="Texture2D" uid="uid://cjwumjuatvjj6" path="res://assets/reanim/Zombie_imp_outerleg_lower.png" id="675_junvc"]
+
+[ext_resource type="Texture2D" uid="uid://dkmedjv0adl8g" path="res://assets/reanim/Zombie_imp_outerleg_upper.png" id="676_jlrij"]
+
+[ext_resource type="Texture2D" uid="uid://ch83b6tlimfef" path="res://assets/reanim/Zombie_imp_body2.png" id="677_w8qdd"]
+
+[ext_resource type="Texture2D" uid="uid://bg2catlsjn2ti" path="res://assets/reanim/Zombie_imp_body1.png" id="678_e83gd"]
+
+[ext_resource type="Texture2D" uid="uid://d1go0q5nsl4id" path="res://assets/reanim/Zombie_imp_head.png" id="679_aber1"]
+
+[ext_resource type="Texture2D" uid="uid://bxfjkhuk7tayi" path="res://assets/reanim/Zombie_imp_jaw.png" id="680_brt1f"]
+
+[ext_resource type="Texture2D" uid="uid://s58kvgbmcik2" path="res://assets/reanim/Zombie_imp_arm2.png" id="684_bh1la"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_25"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 25
+
+[node name="Card25" unique_id=421426974 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_25")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie025Imp" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=761870060]
+position = Vector2(2, 17)
+scale = Vector2(0.33, 0.33)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie025Imp" unique_id=1990291510]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body" unique_id=632310003]
+position = Vector2(-55, -120)
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=1904302934]
+position = Vector2(-59.8, 90.1)
+centered = false
+
+[node name="Zombie_imp_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=787028261]
+position = Vector2(30.4, 89.2)
+rotation = 5.57284
+scale = Vector2(0.907, 0.907)
+texture = ExtResource("670_45g8r")
+centered = false
+
+[node name="Zombie_imp_innerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=860941745]
+position = Vector2(25.4, 95.2)
+rotation = 5.83464
+scale = Vector2(0.848, 0.907)
+texture = ExtResource("684_bh1la")
+centered = false
+
+[node name="Zombie_imp_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=349818761]
+position = Vector2(45.1, 114)
+rotation = 6.26399
+scale = Vector2(0.999, 0.999)
+texture = ExtResource("671_cnu4l")
+centered = false
+
+[node name="Zombie_imp_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=75255146]
+position = Vector2(47.4, 111.2)
+rotation = 6.26399
+scale = Vector2(0.999, 0.999)
+texture = ExtResource("672_vxcot")
+centered = false
+
+[node name="Zombie_imp_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=1987544017]
+position = Vector2(44, 103.1)
+rotation = 6.04582
+scale = Vector2(0.999, 0.999)
+texture = ExtResource("673_3fnx5")
+centered = false
+
+[node name="Zombie_imp_body2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=1935544006]
+position = Vector2(42.1, 89.5)
+rotation = 0.191986
+scale = Vector2(1.001, 1)
+skew = -0.0523597
+texture = ExtResource("677_w8qdd")
+centered = false
+
+[node name="Zombie_imp_body1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=1524698524]
+position = Vector2(37.5, 63.2)
+rotation = 0.139626
+texture = ExtResource("678_e83gd")
+centered = false
+
+[node name="Zombie_imp_outerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=1771200152]
+position = Vector2(46.1, 116.2)
+rotation = 6.24479
+scale = Vector2(0.999, 0.999)
+texture = ExtResource("674_knh0l")
+centered = false
+
+[node name="Zombie_imp_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=1305498579]
+position = Vector2(49.1, 109.7)
+rotation = 6.1296
+scale = Vector2(0.999, 1.229)
+texture = ExtResource("675_junvc")
+centered = false
+
+[node name="Zombie_imp_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=1166414512]
+position = Vector2(51.9, 99.1)
+rotation = 0.301942
+scale = Vector2(0.999, 0.999)
+texture = ExtResource("676_jlrij")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=93500479]
+position = Vector2(34.3, 41.9)
+rotation = 0.219911
+scale = Vector2(0.999, 0.999)
+texture = ExtResource("679_aber1")
+centered = false
+
+[node name="Anim_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=1545687608]
+position = Vector2(34, 66.4)
+rotation = 0.153589
+scale = Vector2(0.999, 0.999)
+texture = ExtResource("680_brt1f")
+centered = false
+
+[node name="Zombie_imp_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=2108869418]
+position = Vector2(47.8, 91)
+rotation = 5.53793
+scale = Vector2(1.017, 1.027)
+skew = 0.0471235
+texture = ExtResource("670_45g8r")
+centered = false
+
+[node name="Zombie_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body/BodyCorrect" unique_id=1071789974]
+position = Vector2(43, 104.9)
+rotation = 5.43496
+scale = Vector2(1.06, 1.024)
+skew = 0.0471241
+texture = ExtResource("684_bh1la")
+centered = false
+
+[node name="NodeDrop" type="Node2D" parent="CardBg/CharacterStatic/Zombie025Imp/Body" unique_id=800870518]
+visible = false

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="StageEventDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="Event"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="Table"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="Entry"]
+
+[sub_resource type="Resource" id="recipe_p052"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.edgar_temple.terminal.doctor.drops.recipe_p052"
+rule = 3
+asset_kind = 1
+asset_id = &"recipe_p052"
+quantity_min = 1
+quantity_max = 1
+
+[sub_resource type="Resource" id="BossDrops"]
+script = ExtResource("Table")
+table_id = &"zombie_island.edgar_temple.terminal.doctor.drops"
+entries = Array[ExtResource("Entry")]([
+SubResource("recipe_p052")
+])
+
+[resource]
+script = ExtResource("Event")
+event_id = &"zombie_island.edgar_temple.terminal.doctor.defeat_drops"
+trigger = 9
+order = 0
+repeat_rule = 1
+encounter_id = &"zombie_island.edgar_temple.terminal.doctor"
+boss_exit_reason = 2
+action = 5
+action_drop_table = SubResource("BossDrops")

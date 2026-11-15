@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/transitions/bootstrap.gd" id="boot"]
+[ext_resource type="PackedScene" path="res://scenes/ui/transitions/SceneTransition.tscn" id="transition"]
+
+[node name="Bootstrap" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("boot")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08235294, 0.1764706, 0.14509805, 1)
+
+[node name="SceneTransition" parent="." instance=ExtResource("transition")]
+reveal_on_ready = false

@@ -92,6 +92,10 @@ func configure(plant: Plant000Base, bomb: BombComponentNorm, uid: String,
 		_shock = _square_profile(fusion_radius + extra_range) if fusion_radius > 0 \
 			else _circle_profile(native_shape.radius + maxf(_pitch.x, _pitch.y) * extra_range,
 				bomb.bomb_lane + extra_range)
+	# 首爆由原组件播放，必须在激活前注入与追爆一致的转职表现参数。
+	var visual := bomb.bomb_effect as BombEffectCherryBomb # 只调整樱桃自己的特效实例。
+	if visual != null:
+		_configure_visual(visual)
 	return true
 
 
@@ -238,22 +242,15 @@ func _shock_survivors() -> void:
 			float(rule.flight), float(rule.height), landed)
 
 
-## [param cells] 是实际波及地块。火焰在地面稀疏分布，灼伤沿用本次爆炸的地面范围。
+## [param cells] 是完整波及地块。地火覆盖全部格子，灼伤沿用本次爆炸的地面范围。
 func _ignite_ground(cells: Array[PlantCell]) -> void:
 	if is_instance_valid(_burn_zone) and not _burn_zone.is_queued_for_deletion():
 		_burn_zone.refresh()
 		return
-	# 沿中心行列标出少量残火，避免把整片爆炸区铺满特效。
-	var points := PackedVector2Array() # 地火表现的世界位置。
-	for cell: PlantCell in cells: # 用中心行列的锚点布置表现。
-		if cell.row_col.x == _cell.row_col.x or cell.row_col.y == _cell.row_col.y:
-			points.append(cell.get_slot_anchor_global_position(CharacterRegistry.PlacePlantInCell.Norm))
-	if points.is_empty():
-		points.append(_visual_origin)
 	var rule: Dictionary = _rules["cherry_combustion"] # 星级修正后的每跳伤害已在首爆冻结。
 	_burn_zone = AdventureCherryBurnZone.new()
 	_burn_zone.ignite(_game, _hit_origin, _lane, _blast, _burn_damage,
-		float(rule.interval), float(rule.duration), points)
+		float(rule.interval), float(rule.duration), cells)
 
 
 ## 在 [param at] 播放原版爆炸表现，[param small] 表示恶果的小型烟团。
@@ -265,7 +262,21 @@ func _show_blast(at: Vector2, small: bool) -> void:
 		effect.scale *= SMALL_BLAST_SCALE
 	_game.bombs.add_child(effect)
 	effect.global_position = at
+	_configure_visual(effect, not small)
 	effect.activate_bomb_effect()
+
+
+## 向 [param effect] 注入纯表现快照；[param echo] 区分子母雷的追爆，恶果仍保留小型预算。
+func _configure_visual(effect: BombEffectCherryBomb, echo: bool = false) -> void:
+	effect.configure_presentation(_rules, _profile_size(_blast),
+		_profile_size(_shock) if _shock != null else Vector2.ZERO, echo)
+
+
+## 返回 [param profile] 的世界包围尺寸，让聚变、震爆视觉随真实范围扩张。
+func _profile_size(profile: CombatExplosionProfile) -> Vector2:
+	if profile.shape is RectangleShape2D:
+		return (profile.shape as RectangleShape2D).size
+	return Vector2.ONE * (profile.shape as CircleShape2D).radius * 2.0
 
 
 ## 返回 [param radius] 格的矩形范围，包含中心格。

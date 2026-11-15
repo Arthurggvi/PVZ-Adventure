@@ -85,9 +85,9 @@ func disable_component(is_enable_factor: E_IsEnableFactor) -> void:
 	if not is_enabling:
 		create_sun_timer.stop()
 
-## [param speed_product] 为角色速度乘积；禁用期间也同步倍率，零速保留计时任务。
+## [param speed_product] 为角色速度乘积；阳光生产仅保留原有速度来源，零速保留计时任务。
 func owner_update_speed(speed_product: float) -> void:
-	create_sun_timer.set_speed_scale(speed_product)
+	create_sun_timer.set_speed_scale((owner as Character000Base).production_speed_product(speed_product))
 
 ## 每轮生产后抽取后续基础间隔，并重新启动原版计时器。
 func change_production_interval() -> void:

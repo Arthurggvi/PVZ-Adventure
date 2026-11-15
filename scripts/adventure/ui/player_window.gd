@@ -6,6 +6,18 @@ class_name PlayerWindow
 signal closed
 ## 复用背包的素材确认弹窗。
 const InventoryDialog = preload("res://scripts/adventure/ui/inventory_dialog.gd")
+## 首屏动态皮肤和装备底图的路径解析，不创建装备实例。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+
+## 角色原图和装备定义由脚本依赖加载；这里只补充运行时拼接的皮肤路径。
+static func get_initial_resource_paths() -> PackedStringArray:
+	var paths: PackedStringArray = ResourcePaths.frame() # 已展示的面板及交互状态。
+	paths.append_array(ResourcePaths.skin(PackedStringArray(["res://assets/adventure/ui/bottom_bar/icons/icon_player.png",
+		"slots/item_slot_hover_frame.png", "slots/item_slot_selected_frame.png"]),
+		PackedStringArray(["slots/item_slot", "buttons/action_confirm", "buttons/action_danger"])))
+	for filename: String in ["outfit_backing.png", "experience_card_backing.png", "item_card_backing.png", "collector_backing.png"]:
+		ResourcePaths.append(paths, "res://assets/adventure/ui/player/backings/" + filename)
+	return paths
 ## 打开时绑定的档案身份。
 var _opened_state: AdventureState
 ## 子面板只接收展示投影。

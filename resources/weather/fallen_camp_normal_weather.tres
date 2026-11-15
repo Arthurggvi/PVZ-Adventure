@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeatherSequence" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/weather/weather_sequence.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/weather/weather_keyframe.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/weather/fallen_camp_sand_visual.tres" id="3"]
+
+[sub_resource type="Resource" id="FirstDust"]
+script = ExtResource("2")
+time_seconds = 0.0
+sand = 0.12
+
+[sub_resource type="Resource" id="DriftingSand"]
+script = ExtResource("2")
+time_seconds = 12.0
+sand = 0.28
+
+[resource]
+script = ExtResource("1")
+sand_visual_profile = ExtResource("3")
+frames = Array[ExtResource("2")]([SubResource("FirstDust"), SubResource("DriftingSand")])

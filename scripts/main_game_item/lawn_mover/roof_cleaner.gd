@@ -16,7 +16,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if is_moving:
+	if is_moving and not cheat_fixed_enabled:
 		move_x = move_speed * delta
 		position.x += move_x
 
@@ -38,6 +38,10 @@ func update_move_dir_y_correct(curr_move_dir_y_correct_slope:Vector2):
 func _start_mower():
 	# 覆盖基类的启动入口也要拦截销毁当帧的延迟信号。
 	if is_destroyed or is_queued_for_deletion():
+		return
+	# 屋顶车复用固定碰撞击杀，不启动坡面移动。
+	if cheat_fixed_enabled:
+		_mower_run_all_zombie_on_start()
 		return
 	is_moving = true
 	animation_player.play("RoofCleaner")

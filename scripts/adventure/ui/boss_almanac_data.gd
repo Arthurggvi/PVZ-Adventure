@@ -12,8 +12,8 @@ const STORIES: Dictionary = {
 }
 ## 纯视觉资源不携带 Boss 的技能执行器、碰撞、血量或奖励。
 const VISUALS: Dictionary = {
-	CharacterRegistry.ZombieBossType.ZB002BlackGeneral: preload("res://scenes/character/zombie_boss/black_general_visual.tscn"),
-	CharacterRegistry.ZombieBossType.ZB003WhiteDuke: preload("res://scenes/character/zombie_boss/white_duke_visual.tscn"),
+	CharacterRegistry.ZombieBossType.ZB002BlackGeneral: "res://scenes/character/zombie_boss/black_general_visual.tscn",
+	CharacterRegistry.ZombieBossType.ZB003WhiteDuke: "res://scenes/character/zombie_boss/white_duke_visual.tscn",
 }
 
 ## 返回按 [param search] 过滤的 Boss 目录；直接开放查看，不写入玩家发现记录。
@@ -36,7 +36,7 @@ static func title_for(type_id: int) -> String:
 static func profile(type_id: int) -> Dictionary:
 	if not TYPES.has(type_id):
 		return {}
-	var packed: PackedScene = CharacterRegistry.ZombieBossInfo[type_id][CharacterRegistry.ZombieBossInfoAttribute.BossScenes] # 实战注册场景。
+	var packed: PackedScene = Global.character_registry.get_zombie_boss_info(type_id, CharacterRegistry.ZombieBossInfoAttribute.BossScenes) # 实战注册场景。
 	var source := packed.instantiate() as ZB000Base # 仅读取导出值，绝不运行出战初始化。
 	var hp := source.get_node("HpComponent") as HpComponent # 与实战一致的最大生命。
 	var result: Dictionary = {

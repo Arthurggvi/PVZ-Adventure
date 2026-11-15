@@ -15,6 +15,28 @@ static var _loaded := false
 ## [param tier_id] AdventureZombieTierCatalog 的等阶 ID。
 ## 返回原版纹理路径至替代 Texture2D 的映射；缺图或配置非法时整组回退。
 static func textures_for(zombie_type: int, tier_id: StringName) -> Dictionary:
+	var source_paths: Dictionary = _source_paths(zombie_type, tier_id) # 与准备清单共用继承、覆盖和路径校验。
+	var textures: Dictionary = {} # 整组成功后才返回，保留缺图时的原版回退。
+	for original_path: String in source_paths: # 解析器已确认两侧路径均为合法纹理路径。
+		var replacement_path: String = source_paths[original_path] # 调用方提前准备的最终替代纹理。
+		var replacement: Texture2D = load(replacement_path) as Texture2D # 已准备时只取引擎资源缓存。
+		if replacement == null:
+			push_warning("僵尸等阶贴图格式错误：" + replacement_path)
+			return {}
+		textures[original_path] = replacement
+	return textures
+
+## 返回 [param zombie_type]、[param tier_id] 实际使用的替代纹理路径，不加载或实例化资源。
+## 共享部件、物种继承与覆盖均沿用实际装配的同一解析器。
+static func resource_paths(zombie_type: int, tier_id: StringName) -> PackedStringArray:
+	var result := PackedStringArray() # 不提前准备其他阶级或其他物种。
+	for path: String in _source_paths(zombie_type, tier_id).values(): # 多个原分件可能共用一张替代纹理。
+		if not result.has(path):
+			result.append(path)
+	return result
+
+## 校验并解析 [param zombie_type]、[param tier_id] 的原图到替代路径映射，不读取 Texture2D。
+static func _source_paths(zombie_type: int, tier_id: StringName) -> Dictionary:
 	if tier_id == &"base":
 		return {}
 	_load_once()
@@ -41,7 +63,6 @@ static func textures_for(zombie_type: int, tier_id: StringName) -> Dictionary:
 	source_paths.merge(resolved["paths"], true)
 	if source_paths.is_empty():
 		return {}
-	var textures: Dictionary = {}
 	for original_path: Variant in source_paths:
 		var replacement_path: Variant = source_paths[original_path]
 		if not (original_path is String and replacement_path is String):
@@ -55,12 +76,7 @@ static func textures_for(zombie_type: int, tier_id: StringName) -> Dictionary:
 				replacement_path, "Texture2D"):
 			push_warning("僵尸等阶贴图缺失：" + original_path + " / " + replacement_path)
 			return {}
-		var replacement: Texture2D = load(replacement_path) as Texture2D
-		if replacement == null:
-			push_warning("僵尸等阶贴图格式错误：" + replacement_path)
-			return {}
-		textures[original_path] = replacement
-	return textures
+	return source_paths
 
 ## 递归解析物种映射：父物种在先，子物种在后；防止循环继承。
 ## 任何无效继承关系都整组拒绝，不在游戏中使用部分替换。

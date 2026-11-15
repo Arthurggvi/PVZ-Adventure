@@ -17,6 +17,9 @@ static func toggle_states() -> Dictionary:
 	if game == null:
 		return {}
 	var states: Dictionary = {&"instant_kill": game.zombie_manager.cheat_instant_kill_enabled} # 秒杀独立于卡槽模式。
+	var mowers: GIM_LawnMover = game.game_item_manager.gim_lawn_mover # 小推车开关由本局管理器维护。
+	if is_instance_valid(mowers):
+		states[&"fixed_mowers"] = mowers.cheat_fixed_enabled
 	var slot: CardSlotBattle = game.card_manager.card_slot_battle # 阳光和冷却开关由普通卡槽维护。
 	if is_instance_valid(slot):
 		states[&"no_card_cooldown"] = slot.cheat_no_cooldown_enabled
@@ -52,6 +55,17 @@ static func set_infinite_sun(enabled: bool) -> Dictionary:
 		return {"ok": false, "message": "当前战斗没有使用普通出战卡槽。"}
 	slot.set_cheat_infinite_sun(enabled)
 	return {"ok": true, "message": "已开启无限阳光。" if enabled else "已关闭无限阳光。"}
+
+## 按 [param enabled] 固定本局现有及后续补充的小推车，保留碰撞击杀并返回操作结果。
+static func set_fixed_mowers(enabled: bool) -> Dictionary:
+	var game: MainGameManager = _active_battle() # 切场、选卡和结算期间不操作旧战场。
+	if game == null:
+		return {"ok": false, "message": "请在正式战斗中切换固定小推车。"}
+	var mowers: GIM_LawnMover = game.game_item_manager.gim_lawn_mover # 不复活已消耗的小推车。
+	if not is_instance_valid(mowers):
+		return {"ok": false, "message": "当前战斗没有小推车管理器。"}
+	mowers.set_cheat_fixed(enabled)
+	return {"ok": true, "message": "已开启固定小推车。" if enabled else "已关闭固定小推车。"}
 
 ## 在兼容的行生成 [param zombie_type]，并应用 [param tier_id]。
 ## [param all_lanes] 为 true 时预检整张战场，每条实际存在的行各生成一个实例。

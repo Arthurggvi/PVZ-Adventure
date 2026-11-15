@@ -1,0 +1,186 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://cbftqok26jk60" path="res://assets/reanim/Zombie_jaw.png" id="215_bymx4"]
+
+[ext_resource type="Texture2D" uid="uid://bmlrbmgapvcwf" path="res://assets/reanim/Zombie_bobsled1.png" id="355_7dndd"]
+
+[ext_resource type="Texture2D" uid="uid://c6e7inu4hdwtl" path="res://assets/reanim/Zombie_bobsled_innerarm_lower.png" id="356_3bba4"]
+
+[ext_resource type="Texture2D" uid="uid://bo21tgjclapyd" path="res://assets/reanim/Zombie_bobsled_innerarm_hand.png" id="357_5d2eo"]
+
+[ext_resource type="Texture2D" uid="uid://dsnjenmyyu77r" path="res://assets/reanim/Zombie_bobsled_innerarm_upper.png" id="358_aliup"]
+
+[ext_resource type="Texture2D" uid="uid://0gx3ayi51is4" path="res://assets/reanim/Zombie_bobsled_innerleg_lower.png" id="359_63kfc"]
+
+[ext_resource type="Texture2D" uid="uid://bmb6eenacltp4" path="res://assets/reanim/Zombie_bobsled_innerleg_foot.png" id="360_ij2p4"]
+
+[ext_resource type="Texture2D" uid="uid://bkk37dmmr7gy" path="res://assets/reanim/Zombie_bobsled_innerleg_upper.png" id="361_77b3v"]
+
+[ext_resource type="Texture2D" uid="uid://bq4fxua8cmdxd" path="res://assets/reanim/Zombie_bobsled_body2.png" id="362_8nnpu"]
+
+[ext_resource type="Texture2D" uid="uid://soj6oy61chxe" path="res://assets/reanim/Zombie_bobsled_body1.png" id="363_x3u1p"]
+
+[ext_resource type="Texture2D" uid="uid://r5dfpn7vwmsb" path="res://assets/reanim/Zombie_bobsled_outerleg_foot2.png" id="364_4u2fm"]
+
+[ext_resource type="Texture2D" uid="uid://btbf0qrhq3cq3" path="res://assets/reanim/Zombie_bobsled_outerleg_foot1.png" id="365_yk8om"]
+
+[ext_resource type="Texture2D" uid="uid://caygtc1obvhm4" path="res://assets/reanim/Zombie_bobsled_outerleg_lower.png" id="366_tqqbd"]
+
+[ext_resource type="Texture2D" uid="uid://bjegvw88beopj" path="res://assets/reanim/Zombie_bobsled_outerleg_upper.png" id="367_8p6b6"]
+
+[ext_resource type="Texture2D" uid="uid://db5qju8swnl8" path="res://assets/reanim/Zombie_bobsled_newhead.png" id="368_ees34"]
+
+[ext_resource type="Texture2D" uid="uid://b6mx2j7yxpic0" path="res://assets/reanim/Zombie_bobsled_outerarm_lower.png" id="369_4aydd"]
+
+[ext_resource type="Texture2D" uid="uid://dsmqlevppxh3t" path="res://assets/reanim/Zombie_bobsled_outerarm_hand.png" id="370_mkpjk"]
+
+[ext_resource type="Texture2D" uid="uid://ccwkitu7mcah4" path="res://assets/reanim/Zombie_bobsled_outerarm_upper.png" id="371_ea7g5"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_14"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 14
+
+[node name="Card14" unique_id=1351811432 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_14")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Zombie014Bobsled" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=337583889]
+position = Vector2(2, 17)
+scale = Vector2(0.32, 0.32)
+
+[node name="ZombieBobsled1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled" unique_id=1795023870]
+position = Vector2(62.5, -40.625)
+texture = ExtResource("355_7dndd")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Zombie014Bobsled" unique_id=1939254936]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body" unique_id=1068707258]
+position = Vector2(-42, -128)
+
+[node name="_ground" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1093397921]
+visible = false
+centered = false
+
+[node name="Zombie_dolphinrider_innerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1411566752]
+position = Vector2(23.1, 71.6)
+scale = Vector2(0.8, 0.876)
+texture = ExtResource("356_3bba4")
+centered = false
+
+[node name="Zombie_dolphinrider_innerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=930702455]
+position = Vector2(16.5, 86.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("357_5d2eo")
+centered = false
+
+[node name="Zombie_dolphinrider_innerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=775427942]
+position = Vector2(22.8, 57)
+scale = Vector2(0.8, 0.876)
+texture = ExtResource("358_aliup")
+centered = false
+
+[node name="Zombie_dolphinrider_innerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1514756224]
+position = Vector2(35.4, 99.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("359_63kfc")
+centered = false
+
+[node name="Zombie_dolphinrider_innerleg_foot" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1086256931]
+position = Vector2(27.6, 118.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("360_ij2p4")
+centered = false
+
+[node name="Zombie_dolphinrider_innerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1887610014]
+position = Vector2(38.6, 70.5)
+rotation = 0.013963
+scale = Vector2(0.72, 0.8)
+texture = ExtResource("361_77b3v")
+centered = false
+
+[node name="Zombie_dolphinrider_body2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1509677033]
+position = Vector2(40.6, 68.2)
+scale = Vector2(0.8, 0.889)
+texture = ExtResource("362_8nnpu")
+centered = false
+
+[node name="Zombie_dolphinrider_body1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1402715509]
+position = Vector2(23.6, 43)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("363_x3u1p")
+centered = false
+
+[node name="Zombie_dolphinrider_outerleg_foot2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=781383052]
+position = Vector2(41.8, 125.1)
+rotation = 0.07854
+scale = Vector2(0.8, 0.739)
+texture = ExtResource("364_4u2fm")
+centered = false
+
+[node name="Zombie_dolphinrider_outerleg_foot1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1170796773]
+position = Vector2(52.6, 126.6)
+rotation = 6.18196
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("365_yk8om")
+centered = false
+
+[node name="Zombie_dolphinrider_outerleg_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1165645697]
+position = Vector2(49.8, 106.3)
+rotation = 0.076794
+scale = Vector2(0.806, 0.761)
+skew = 6.12611
+texture = ExtResource("366_tqqbd")
+centered = false
+
+[node name="Zombie_dolphinrider_outerleg_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1142212830]
+position = Vector2(49.1, 79.2)
+scale = Vector2(0.8, 0.827)
+texture = ExtResource("367_8p6b6")
+centered = false
+
+[node name="Zombie_outerarm_lowereating" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1924267187]
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1496863102]
+position = Vector2(-2.9, 17)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("368_ees34")
+centered = false
+
+[node name="Anim_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=2068002477]
+position = Vector2(5.9, 51.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("215_bymx4")
+centered = false
+
+[node name="Zombie_outerarm_handeating" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1626629624]
+centered = false
+
+[node name="Zombie_outerarm_lower" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1400328988]
+position = Vector2(57.1, 62.8)
+scale = Vector2(0.8, 0.852)
+skew = 6.22733
+texture = ExtResource("369_4aydd")
+centered = false
+
+[node name="Zombie_outerarm_hand" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=276469335]
+position = Vector2(50, 82.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("370_mkpjk")
+centered = false
+
+[node name="Zombie_dolphinrider_outerarm_upper" type="Sprite2D" parent="CardBg/CharacterStatic/Zombie014Bobsled/Body/BodyCorrect" unique_id=1392134149]
+position = Vector2(42.1, 48.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("371_ea7g5")
+centered = false

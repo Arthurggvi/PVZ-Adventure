@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="StageEventDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="Event"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="Table"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="Entry"]
+
+[sub_resource type="Resource" id="fallen_camp"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.edgar_temple.normal.clear_keys.fallen_camp"
+rule = 2
+asset_kind = 2
+asset_id = &"zombie_island.fallen_camp.nightmare_key"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="lawn"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.edgar_temple.normal.clear_keys.lawn"
+rule = 2
+asset_kind = 2
+asset_id = &"lawn_nightmare_key"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="grave_upstream"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.edgar_temple.normal.clear_keys.grave_upstream"
+rule = 2
+asset_kind = 2
+asset_id = &"zombie_island.grave_upstream.nightmare_key"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="grave_downstream"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.edgar_temple.normal.clear_keys.grave_downstream"
+rule = 2
+asset_kind = 2
+asset_id = &"zombie_island.grave_downstream.nightmare_key"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="Keys"]
+script = ExtResource("Table")
+table_id = &"zombie_island.edgar_temple.normal.clear_keys"
+entries = Array[ExtResource("Entry")]([
+SubResource("fallen_camp"),
+SubResource("lawn"),
+SubResource("grave_upstream"),
+SubResource("grave_downstream")
+])
+weighted_draw_count = 2
+weighted_selection = 2
+
+[resource]
+script = ExtResource("Event")
+event_id = &"zombie_island.edgar_temple.normal.clear_keys"
+trigger = 10
+order = 0
+repeat_rule = 1
+action = 5
+action_drop_table = SubResource("Keys")

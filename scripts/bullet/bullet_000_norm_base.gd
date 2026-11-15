@@ -214,13 +214,26 @@ func _attack_enemy(enemy:Character000Base):
 		# 僵王直接使用角色伤害入口，不转换成普通僵尸或套用其防具规则。
 		var was_alive: bool = not enemy.is_death # 只回报本次实际从存活变为死亡的僵王。
 		var bonus: Vector2i = _impact_bonus(enemy) # 局部冻结命中前附伤，Boss 受击窗口仍由角色入口检查。
-		enemy.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx, bonus.x, bonus.y)
+		enemy.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx, bonus.x, bonus.y, _impact_receipt())
 		if was_alive and is_instance_valid(enemy) and enemy is ZB000Base and enemy.is_death:
 			last_impact_casualty = enemy
 	elif enemy is Zombie000Base:
 		_attack_zombie(enemy)
 	elif enemy is Plant000Base:
 		_attack_plant(enemy)
+
+## [param _enemy] 为已经通过去重与碰撞资格的本次目标。
+## 返回本次结束后是否继续飞行；默认遵守原设定的命中上限。
+func _continues_after_hit(_enemy: Character000Base) -> bool:
+	return max_attack_num == -1 or curr_attack_num < max_attack_num
+
+## 返回本击的可选生命回执；普通弹体默认不分配或记录。
+func _impact_receipt() -> Variant:
+	return null
+
+## 子类有独立穿透策略时可保留原命中特效供后续复用。
+func _copies_continuing_hit_effect() -> bool:
+	return false
 
 ## 对 [param zombie] 使用当前模式；直线子类仍可选择背击模式。
 func _attack_zombie(zombie: Zombie000Base):
@@ -231,12 +244,18 @@ func _attack_zombie(zombie: Zombie000Base):
 func _hit_zombie(zombie: Zombie000Base, mode: BulletRegistry.AttackMode) -> Zombie000Base:
 	var armor: float = attack_context.armor_multiplier if attack_context != null else 1.0 # 默认攻击完全沿用一倍防具消耗。
 	var bonus: Vector2i = _impact_bonus(zombie) # 保护者分流前冻结原目标数据，不能二次读取新的承伤者。
-	last_impact_casualty = (zombie.hp_component as HpComponentZombie).apply_hit(
-		attack_value, mode, true, trigger_be_attack_sfx, true, armor, bonus.x, bonus.y)
+	last_impact_casualty = _apply_zombie_impact(zombie, mode, armor, bonus)
 	if is_instance_valid(zombie) and is_instance_valid(zombie.body):
 		zombie.body.body_light()
 	return last_impact_casualty as Zombie000Base
 
+
+## [param zombie]、[param mode]、[param armor] 与 [param bonus] 是已冻结的本击参数。
+## 返回真实死者；子类可提供回执和结算群组。
+func _apply_zombie_impact(zombie: Zombie000Base, mode: BulletRegistry.AttackMode,
+		armor: float, bonus: Vector2i) -> Zombie000Base:
+	return (zombie.hp_component as HpComponentZombie).apply_hit(
+		attack_value, mode, true, trigger_be_attack_sfx, true, armor, bonus.x, bonus.y)
 
 ## 对 [param plant] 所在格的有效目标造成伤害；同帧被移除的目标不再调用受击接口。
 func _attack_plant(plant:Plant000Base):
@@ -289,6 +308,7 @@ func attack_once(enemy:Character000Base):
 		attack_value = attack_context.modify_damage(attack_value, enemy)
 	last_impact_damage = attack_value
 	last_impact_casualty = null
+	var continues: bool = _continues_after_hit(enemy) # 扣血前判定通行资格，当前附加状态不参与。
 	## 对敌人造成伤害
 	_attack_enemy(enemy)
 	attack_value = original_damage
@@ -301,7 +321,8 @@ func attack_once(enemy:Character000Base):
 	if bullet_effect.is_bullet_effect:
 		# 穿透弹会继续飞行；中途命中特效复制后脱离，原始特效留给最后一次命中。
 		var effect: BulletEffect000Base = bullet_effect
-		if not promotion_hit_factors.is_empty() and curr_attack_num < max_attack_num:
+		if (not promotion_hit_factors.is_empty() and curr_attack_num < max_attack_num) \
+				or (continues and _copies_continuing_hit_effect()):
 			effect = bullet_effect.duplicate() as BulletEffect000Base
 			add_child(effect)
 			effect.owner = self
@@ -312,5 +333,5 @@ func attack_once(enemy:Character000Base):
 
 	## 判断是否进入删除队列
 	impact_resolved.emit(enemy, global_position)
-	if max_attack_num != -1 and curr_attack_num >= max_attack_num:
+	if not continues:
 		queue_free()

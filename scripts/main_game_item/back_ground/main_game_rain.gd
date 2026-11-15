@@ -8,6 +8,8 @@ class_name MainGameRain
 @export_range(0.0, 1.0, 0.01) var peak_particle_ratio: float = 0.0
 ## 可复用的多层雨幕参数；未指定时继续使用默认中雨参数。
 @export var visual_profile: RainVisualProfile
+## 可选降雨混音预设，由天气时间轴提供；空值只播放原版雨声。
+var rain_audio_profile: RainAudioProfile
 ## 原有 GPU 雨滴节点。
 @onready var rain_particles: GPUParticles2D = $rainParticles
 ## 原有第一层空间雾。
@@ -33,7 +35,7 @@ func _ready() -> void:
     set_intensity(initial_intensity)
 
 
-## 更新原版雨幕密度、两层雾及独立雨声音量。
+## 更新原版雨幕密度、两层雾及随雨势变化的雨声混音。
 ## [param value] 目标雨强度，0=无雨，1=原场景完整雨势。
 func set_intensity(value: float) -> void:
     _intensity = clampf(value, 0.0, 1.0)
@@ -47,7 +49,12 @@ func set_intensity(value: float) -> void:
     rain_fog_detail.modulate.a = _intensity
     storm_renderer.set_intensity(_intensity)
     if is_instance_valid(Global.main_game):
-        SoundManager.set_rain_intensity(_intensity)
+        var gains := Vector2(_intensity, 0.0) # 未配置预设时，原版雨声随雨势线性变化。
+        var storm_stream: AudioStream # 预设提供的暴雨循环音轨，空值时不播放。
+        if rain_audio_profile != null:
+            gains = rain_audio_profile.sample(_intensity)
+            storm_stream = rain_audio_profile.storm_stream
+        SoundManager.set_rain_mix(gains, storm_stream)
 
 
 ## 绑定当前战场唯一的离屏光场，雨线和水花采用同样的受光数据。

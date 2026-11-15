@@ -55,7 +55,7 @@ func _test() -> void:
 			_require(rules.regular_interval == 3 and rules.regular_count == Vector2i(1, 2),
 				"natural graves every three waves")
 			_require(rules.flag_summons_one_per_grave == bool(spec["banner"]),
-				"flag zombies from the existing graves in both grave stages")
+				"flag-wave zombies from existing graves on both grave stages")
 			var expected_flag: Vector2i = Vector2i(2, 3) if int(spec["stage"]) == 3 else Vector2i.ZERO
 			_require(rules.flag_count == expected_flag, "banner grave quantities")
 			for number: int in range(1, 11):
@@ -83,9 +83,7 @@ func _test() -> void:
 					"fixed grave event runs once")
 				_require(not grave_events.has(event.wave), "no duplicate grave event at the same wave")
 				grave_events[event.wave] = event.action_count
-			var expected_events: Dictionary = {} # 第三关仅用自然规则，第四关额外配置固定墓碑。
-			if int(spec["stage"]) == 4:
-				expected_events = {0: 8, 30: 8, 40: 8} if phase.kind == StagePhaseDefinition.Kind.NIGHTMARE else {0: 6}
+			var expected_events: Dictionary = {0: 8, 30: 8, 40: 8} if phase.kind == StagePhaseDefinition.Kind.NIGHTMARE else {0: 6}
 			_require(grave_events == expected_events, "fixed grave count and wave schedule")
 	# Placement candidates must skip plants, special blockers and existing tombstones.
 	var grid := PlantCellManager.new()

@@ -94,7 +94,7 @@
 
 ## 5｜本轮证据与交付边界
 
-交付工作目录：`C:\Dev\Tools\ArtControl\runs\main-menu-effects-access-20261112`。
+交付工作目录：`D:\Dev\Tools\ArtControl\runs\main-menu-effects-access-20261112`。
 
 已用正式宿主在无autoload空工程实际运行：经典hover→扫光替换、研究室呼吸及闪烁、水面drift→ripples及独立速度、错误输入拒绝、文件重载回到默认。默认昼夜/hover与修改前截图比较：夜间完全一致，白天最大差1/255且仅1像素，属于本次shader运算路径的量化差异，不能写成全图逐位相同。
 

@@ -1,0 +1,94 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://bxf2w1rk7r03s" path="res://assets/reanim/Torchwood_spark.png" id="188_xbns8"]
+
+[ext_resource type="Texture2D" uid="uid://c3chyllw8wp1c" path="res://assets/reanim/Torchwood_fire1a.png" id="189_jnetc"]
+
+[ext_resource type="Texture2D" uid="uid://dejh82cbf5y5q" path="res://assets/reanim/Torchwood_body.png" id="190_x4ed2"]
+
+[ext_resource type="Texture2D" uid="uid://dskdfdfajmrkk" path="res://assets/reanim/Torchwood_mouth.png" id="191_g74nx"]
+
+[ext_resource type="Texture2D" uid="uid://cwhpp4e3mm63u" path="res://assets/reanim/Torchwood_eyes1.png" id="192_kkciq"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_23"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 23
+
+[node name="Card23" unique_id=1221586297 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_23")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant023TorchWood" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=138527030]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant023TorchWood" unique_id=1033674616]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant023TorchWood" unique_id=379439140]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant023TorchWood/Body" unique_id=114270147]
+position = Vector2(-40, -67)
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant023TorchWood/Body/BodyCorrect" unique_id=1420408663]
+centered = false
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant023TorchWood/Body/BodyCorrect" unique_id=77013662]
+visible = false
+centered = false
+
+[node name="Layer 35" type="Sprite2D" parent="CardBg/CharacterStatic/Plant023TorchWood/Body/BodyCorrect" unique_id=1458284329]
+position = Vector2(58.5, 36.5)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("188_xbns8")
+centered = false
+
+[node name="Layer 33" type="Sprite2D" parent="CardBg/CharacterStatic/Plant023TorchWood/Body/BodyCorrect" unique_id=964936320]
+position = Vector2(32.7, 33.1)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("188_xbns8")
+centered = false
+
+[node name="Layer 34" type="Sprite2D" parent="CardBg/CharacterStatic/Plant023TorchWood/Body/BodyCorrect" unique_id=603872801]
+visible = false
+centered = false
+
+[node name="Torchwood_fire1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant023TorchWood/Body/BodyCorrect" unique_id=1232903696]
+position = Vector2(17.9, -12.2)
+scale = Vector2(0.715, 1.032)
+texture = ExtResource("189_jnetc")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant023TorchWood/Body/BodyCorrect" unique_id=1335466849]
+position = Vector2(7, 27.8)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("190_x4ed2")
+centered = false
+
+[node name="Torchwood_mouth" type="Sprite2D" parent="CardBg/CharacterStatic/Plant023TorchWood/Body/BodyCorrect" unique_id=1305382553]
+position = Vector2(23, 42.6)
+rotation = -0.006981
+scale = Vector2(0.742, 0.8)
+skew = 0.006981
+texture = ExtResource("191_g74nx")
+centered = false
+
+[node name="Torchwood_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant023TorchWood/Body/BodyCorrect" unique_id=468397453]
+visible = false
+position = Vector2(30.3, 38.9)
+scale = Vector2(0.737, 0.787)
+texture = ExtResource("192_kkciq")
+centered = false

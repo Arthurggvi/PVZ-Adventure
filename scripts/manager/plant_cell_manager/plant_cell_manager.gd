@@ -415,18 +415,24 @@ func plant_cell_pre_plant(plant_cell:PlantCell, plant_type:CharacterRegistry.Pla
 func create_tombstone(new_num:int):
 	tomb_stone_manager.create_tombstone(new_num)
 
-## 火爆辣椒爆炸特效
-## [lane:int]:行
+## 为 [param lane] 行的现有地块播放原版火焰。
 func jalapeno_bomb_effect(lane:int):
-	for plant_cell:PlantCell in board.row_cells(lane):
-		var fire_new:BombEffectFire = SceneRegistry.FIRE.instantiate()
-		## 修改其图层
-		fire_new.z_index = lane * 50 + 40
-		fire_new.z_as_relative = false
+	for plant_cell: PlantCell in board.row_cells(lane): # 跳过稀疏棋盘的空格。
+		show_jalapeno_fire(plant_cell)
 
-		plant_cell.add_child(fire_new)
-		fire_new.global_position = plant_cell.global_position + Vector2(plant_cell.size.x / 2, plant_cell.size.y)
-		fire_new.activate_bomb_effect()
+## 在 [param cell] 播放原生火焰并返回实例。[param ground] 启用由爆炸控制器回收的残火。
+func show_jalapeno_fire(cell: PlantCell, ground: bool = false) -> BombEffectFire:
+	var fire: BombEffectFire = SceneRegistry.FIRE.instantiate() # 独立表现，随地块及平台运动。
+	fire.z_index = cell.row_col.x * 50 + 40
+	fire.z_as_relative = false
+	cell.add_child(fire)
+	fire.global_position = cell.global_position + Vector2(cell.size.x / 2, cell.size.y)
+	if ground:
+		fire.scale *= 0.55
+		fire.animation_player.play(&"fire_flame")
+	else:
+		fire.activate_bomb_effect()
+	return fire
 
 func jalapeno_bomb_item_lane(lane:int):
 	## 梯子

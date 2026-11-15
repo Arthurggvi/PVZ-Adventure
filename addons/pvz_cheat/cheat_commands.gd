@@ -116,6 +116,34 @@ func enter_stage(stage: int, nightmare: bool) -> Dictionary:
 func settle_current() -> Dictionary:
 	return stage_service.settle_current()
 
+## 强制领取当前档案中 [param id] 对应的任务奖励；复用正常领奖的入账、保存和回滚。
+func force_claim_quest(id: String) -> Dictionary:
+	if not available():
+		return result(false, "请先选择有效的玩家存档。")
+	var wallet: GlobalGameState = Global.global_game_state # 领奖服务复核钱包和库存的档案归属。
+	var issue: String = AdventureQuestService.claim(wallet.adventure_state, Global.adventure_inventory,
+		wallet, Global.save_service.save_now, id, "", AdventureQuestService.today(), true) # 强制领取使用当前周期。
+	if not issue.is_empty():
+		return result(false, issue)
+	Global.player_changed.emit()
+	Global.quests_changed.emit()
+	var task: Dictionary = AdventureQuestCatalog.definition(id) # 用正式名称反馈刚刚提交的任务。
+	return result(true, "已领取「%s」的奖励。" % task.title)
+
+## 为当前档案永久开放设施，保存成功后刷新入口，失败时恢复解锁状态。
+func unlock_all_facilities() -> Dictionary:
+	if not available():
+		return result(false, "请先选择有效的玩家存档。")
+	var state: AdventureState = Global.global_game_state.adventure_state # 解锁只作用于当前档案。
+	if state.facilities_unlocked_by_cheat:
+		return result(true, "全部设施已解锁。")
+	state.facilities_unlocked_by_cheat = true
+	if not Global.save_service.save_now():
+		state.facilities_unlocked_by_cheat = false
+		return result(false, "保存失败，设施解锁已回滚。")
+	Global.quests_changed.emit()
+	return result(true, "已解锁全部设施。")
+
 ## 返回当前战斗可用的开关状态，供修改器同步显示。
 func battle_toggle_states() -> Dictionary:
 	return Battle.toggle_states()
@@ -131,6 +159,10 @@ func set_battle_no_card_cooldown(enabled: bool) -> Dictionary:
 ## 按 [param enabled] 切换本局无限阳光，返回战斗命令结果。
 func set_battle_infinite_sun(enabled: bool) -> Dictionary:
 	return Battle.set_infinite_sun(enabled)
+
+## 按 [param enabled] 切换本局固定小推车，返回战斗命令结果。
+func set_battle_fixed_mowers(enabled: bool) -> Dictionary:
+	return Battle.set_fixed_mowers(enabled)
 
 ## 生成指定 [param zombie_type] 和 [param tier_id]；[param all_lanes] 为 true 时每行一只。
 func spawn_battle_zombies(zombie_type: int, tier_id: StringName, all_lanes: bool) -> Dictionary:

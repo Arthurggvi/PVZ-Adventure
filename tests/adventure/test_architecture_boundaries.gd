@@ -91,6 +91,11 @@ func _run() -> void:
 	adversarial_band.zombie_weights[CharacterRegistry.ZombieType.Z012Snorkle] = 1
 	assert(not AdventureBattleEnvironmentAdapter.validate_terrain(adversarial_stage).is_empty())
 	adversarial_stage.environment.scene = MainSceneRegistry.MainScenes.MainGameBack
+	# 此处刻意把陆地关卡改成泳池，只测试随机物种的水陆判定。
+	# 原关卡噩梦的固定第3/4路撑杆僵尸仍是陆地排程，不属于本隔离案例。
+	for test_phase: StagePhaseDefinition in adversarial_stage.phases:
+		if test_phase.wave_profile != null:
+			test_phase.wave_profile.scheduled_spawns.clear()
 	assert(AdventureBattleEnvironmentAdapter.validate_terrain(adversarial_stage).is_empty())
 	adversarial_band.zombie_weights.clear()
 	adversarial_band.zombie_weights[CharacterRegistry.ZombieType.Z011Duckytube] = 1

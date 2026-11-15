@@ -13,8 +13,10 @@ var lane: int = -1
 ## 车身精灵容器，被碾压时复制当前姿态作为无碰撞的视觉残留。
 @onready var body: Node2D = $Body
 
-## 是否已启动；被碾压时立即停止移动。
+## 是否已启动；固定开关仅暂停位移，关闭后已启动的车继续移动。
 var is_moving: bool = false
+## 本局固定状态：禁止行驶但保留碰撞击杀，未启动的车不会因此被消耗。
+var cheat_fixed_enabled: bool = false
 ## 被碾压后立即置为 true，阻止排队删除前的启动、攻击和重复碾压。
 var is_destroyed: bool = false
 ## 超出屏幕500像素删除
@@ -26,7 +28,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if is_moving:
+	if is_moving and not cheat_fixed_enabled:
 		position.x += move_speed * delta
 
 		if not screen_rect.has_point(global_position):
@@ -44,11 +46,19 @@ func _on_area_entered(area: Area2D) -> void:
 		if lane == zombie.lane:
 			_on_lane_zombie_enter(zombie)
 
-## 当同行僵尸进入
+## 按 [param enabled] 固定本车；开启时也处理已重叠的僵尸，不改变原有启动状态。
+func set_cheat_fixed(enabled: bool) -> void:
+	cheat_fixed_enabled = enabled
+	if enabled and is_node_ready() and not is_destroyed and not is_queued_for_deletion():
+		_mower_run_all_zombie_on_start()
+
+## 当同行 [param zombie] 进入时，固定车直接碾压，普通车沿用启动过滤。
 func _on_lane_zombie_enter(zombie :Zombie000Base):
 	if is_destroyed or is_queued_for_deletion():
 		return
-	if not is_moving:
+	if cheat_fixed_enabled:
+		_mower_run_one_zombie(zombie)
+	elif not is_moving:
 		start_trigger_filter(zombie)
 	else:
 		_mower_run_one_zombie(zombie)
@@ -69,12 +79,16 @@ func _start_mower():
 	# 矿工信号可能在本车被碾压后、正式释放前到达，不能再次启动。
 	if is_destroyed or is_queued_for_deletion():
 		return
+	# 矿工的延迟启动信号也不能让固定车启动或被记作已消耗。
+	if cheat_fixed_enabled:
+		_mower_run_all_zombie_on_start()
+		return
 	is_moving = true
 	animation_player.play("LawnMower_normal")
 	SoundManager.play_other_SFX("lawnmower")
 	_mower_run_all_zombie_on_start()
 
-## 启动时碾压当前所有的僵尸
+## 启动或开启固定状态时，碾压检测范围内当前重叠的同行僵尸。
 func _mower_run_all_zombie_on_start():
 	# 碰撞快照可能包含已释放的区域，先验证引用，再转换为强类型节点。
 	for area_reference: Variant in area_2d.get_overlapping_areas():
@@ -94,9 +108,12 @@ func _mower_run_all_zombie_on_start():
 			if lane == zombie.lane:
 				_mower_run_one_zombie(zombie)
 
-## 小推车碾压一个僵尸
+## 碾压 [param zombie] 并保留原有死亡演出；死亡或待删除的目标不会重复结算。
 func _mower_run_one_zombie(zombie :Zombie000Base):
 	if is_destroyed or is_queued_for_deletion() or not is_instance_valid(zombie) or zombie.is_queued_for_deletion():
+		return
+	# 同一僵尸可能有多个重叠区域，死亡演出期间不重复碾压。
+	if zombie.is_death:
 		return
 	zombie.be_mowered_run(self)
 

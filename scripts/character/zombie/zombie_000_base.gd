@@ -517,10 +517,21 @@ func be_grap_in_pool():
 ## 承受 [param attack_value] 点爆炸伤害，返回本次实际击杀的僵尸。
 ## [param is_cherry_bomb] 为 true 时，普通致死爆炸使用原版灰烬演出。
 ## [param armor_multiplier] 只传递装备防具倍率，不改变灰烬、穿透与转伤行为。
-func be_bomb(attack_value: int, is_cherry_bomb: bool = false, armor_multiplier: float = 1.0) -> Zombie000Base:
+## [param hit_scope] 可观察并去重同一爆炸的实际承伤者。
+func be_bomb(attack_value: int, is_cherry_bomb: bool = false, armor_multiplier: float = 1.0,
+		hit_scope: CombatHitScope = null) -> Zombie000Base:
 	is_can_death_language = false
+	var scope: CombatHitScope = hit_scope # 灰烬爆炸明确属于烧死，代伤者也接收同一来源。
+	if scope == null and is_cherry_bomb:
+		scope = CombatHitScope.new()
+	var previous_cause: CombatHitScope.DeathCause = scope.death_cause if scope != null else CombatHitScope.DeathCause.NORMAL # 不污染调用方复用的群组。
+	if is_cherry_bomb:
+		scope.death_cause = CombatHitScope.DeathCause.FIRE
 	var casualty: Zombie000Base = (hp_component as HpComponentZombie).apply_hit(
-		attack_value, BulletRegistry.AttackMode.Penetration, false, false, true, armor_multiplier) # 可能是承受转移伤害的保护者。
+		attack_value, BulletRegistry.AttackMode.Penetration, false, false, true, armor_multiplier,
+		0, -1, null, scope) # 可能是承受转移伤害的保护者。
+	if scope != null:
+		scope.death_cause = previous_cause
 	if is_death and not _preserves_blast_death_animation():
 		## 在在灰烬动画条件下
 		if is_cherry_bomb and (not is_swimming or not curr_be_attack_status != E_BeAttackStatusZombie.IsDownGround):

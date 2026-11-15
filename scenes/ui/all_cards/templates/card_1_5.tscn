@@ -1,0 +1,171 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://bo22elcj4cnrl" path="res://assets/reanim/PotatoMine_rock4.png" id="54_xqigo"]
+
+[ext_resource type="Texture2D" uid="uid://cwcs1c31vf7xx" path="res://assets/reanim/PotatoMine_rock2.png" id="55_vfoxv"]
+
+[ext_resource type="Texture2D" uid="uid://blo1ft25x0qrk" path="res://assets/reanim/PotatoMine_body.png" id="56_ro17d"]
+
+[ext_resource type="Texture2D" uid="uid://bem7ao15bhj4u" path="res://assets/reanim/PotatoMine_stem.png" id="57_aaf5m"]
+
+[ext_resource type="Texture2D" uid="uid://dkbjqmbwj7dts" path="res://assets/reanim/PotatoMine_eyes.png" id="58_q36sf"]
+
+[ext_resource type="Texture2D" uid="uid://nqtupvaignh1" path="res://assets/reanim/PotatoMine_blink2.png" id="59_cd272"]
+
+[ext_resource type="Texture2D" uid="uid://bilk171gldfxp" path="res://assets/reanim/PotatoMine_rock3.png" id="60_t5hu3"]
+
+[ext_resource type="Texture2D" uid="uid://co2k82lctyh32" path="res://assets/reanim/PotatoMine_rock1.png" id="61_hhrn3"]
+
+[ext_resource type="Texture2D" uid="uid://bu4nphfht0ry0" path="res://assets/reanim/PotatoMine_rock6.png" id="62_h1ydm"]
+
+[ext_resource type="Texture2D" uid="uid://cfpjpv8v0tdgo" path="res://assets/reanim/PotatoMine_rock5.png" id="63_se6ca"]
+
+[ext_resource type="Texture2D" uid="uid://ycnbibi4ckni" path="res://assets/reanim/PotatoMine_light1.png" id="64_l6g5p"]
+
+[ext_resource type="Texture2D" uid="uid://bq2lokhlqte6s" path="res://assets/reanim/PotatoMine_light2.png" id="65_6cpq0"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_5"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 5
+
+[node name="Card5" unique_id=797065346 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_5")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant005PotatoMine" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1706701896]
+position = Vector2(1, 10)
+scale = Vector2(0.5, 0.5)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant005PotatoMine" unique_id=67577441]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body" unique_id=374499871]
+position = Vector2(-31, -56)
+scale = Vector2(0.8, 0.8)
+
+[node name="Anim_mashed" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=1413761115]
+visible = false
+centered = false
+
+[node name="PotatoMine_rock4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=1721693653]
+position = Vector2(61.2, 60.8)
+scale = Vector2(0.59, 0.59)
+texture = ExtResource("54_xqigo")
+centered = false
+
+[node name="PotatoMine_rock2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=1757794416]
+position = Vector2(-7, 60.4)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("55_vfoxv")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=2013556272]
+position = Vector2(-2.26791, 28.3815)
+scale = Vector2(0.808951, 0.789778)
+texture = ExtResource("56_ro17d")
+centered = false
+
+[node name="PotatoMine_stem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=488855467]
+visible = false
+position = Vector2(19.1, 37)
+scale = Vector2(0.836, 0.8)
+texture = ExtResource("57_aaf5m")
+centered = false
+
+[node name="Anim_eye" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=1550806211]
+position = Vector2(30.8136, 50.4543)
+scale = Vector2(0.8, 0.77842)
+texture = ExtResource("58_q36sf")
+centered = false
+
+[node name="PotatoMine_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=446725693]
+visible = false
+position = Vector2(8.23299, 12.6175)
+scale = Vector2(1e-05, 1e-05)
+texture = ExtResource("59_cd272")
+centered = false
+
+[node name="PotatoMine_rock41" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=1891023993]
+position = Vector2(18.9864, 65.8)
+rotation = 0.139626
+scale = Vector2(0.507, 0.502)
+texture = ExtResource("54_xqigo")
+centered = false
+
+[node name="PotatoMine_rock3b" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=1551801705]
+position = Vector2(26.4, 69.5)
+rotation = -0.286234
+scale = Vector2(0.755136, 0.768136)
+texture = ExtResource("60_t5hu3")
+centered = false
+
+[node name="PotatoMine_rock1b" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=1524696824]
+position = Vector2(56.5864, 81.3)
+rotation = -2.25148
+scale = Vector2(0.792, 0.792)
+texture = ExtResource("61_hhrn3")
+centered = false
+
+[node name="PotatoMine_rock6b" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=2121268808]
+position = Vector2(57.9, 68.2)
+rotation = -0.029671
+scale = Vector2(0.88, 0.822)
+texture = ExtResource("62_h1ydm")
+centered = false
+
+[node name="PotatoMine_rock5b" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=1554445016]
+position = Vector2(0.8, 67.5)
+rotation = -0.094248
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("63_se6ca")
+centered = false
+
+[node name="Anim_light" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=1520417469]
+position = Vector2(28.2, 12.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("64_l6g5p")
+centered = false
+
+[node name="Anim_glow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=2024656930]
+visible = false
+position = Vector2(21.1, 5.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("65_6cpq0")
+centered = false
+
+[node name="PotatoMine_rock6" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=1402848014]
+position = Vector2(7.6, 72.3864)
+rotation = -3.50811
+scale = Vector2(0.792, 0.792)
+texture = ExtResource("62_h1ydm")
+centered = false
+
+[node name="PotatoMine_rock1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=490808094]
+position = Vector2(23.8, 75.2)
+rotation = -3.39816
+scale = Vector2(0.792136, 0.792136)
+texture = ExtResource("61_hhrn3")
+centered = false
+
+[node name="PotatoMine_rock3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=90425724]
+position = Vector2(85.4, 74.2136)
+rotation = 2.87979
+scale = Vector2(0.793136, 0.793136)
+texture = ExtResource("60_t5hu3")
+centered = false
+
+[node name="PotatoMine_rock5" type="Sprite2D" parent="CardBg/CharacterStatic/Plant005PotatoMine/Body/BodyCorrect" unique_id=393405719]
+position = Vector2(38.5, 70.4)
+rotation = 0.022689
+scale = Vector2(0.797, 0.797)
+texture = ExtResource("63_se6ca")
+centered = false

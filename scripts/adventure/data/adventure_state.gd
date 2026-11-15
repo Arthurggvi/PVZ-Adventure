@@ -3,6 +3,10 @@ extends RefCounted
 class_name AdventureState
 
 const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
+## 图书馆独立货架协议；字段缺失的旧档使用未开馆状态。
+const LibraryStock = preload("res://scripts/adventure/library/library_stock.gd")
+## 商店购买记录独立编码，旧档缺失时默认六槽。
+const ShopState = preload("res://scripts/adventure/shop/shop_state.gd")
 
 ## 第一阶段协议版本，未知版本不自动初始化或迁移。
 var schema_version: int = 1
@@ -28,10 +32,16 @@ var player_level: int = 1
 var equipment: PlayerEquipmentState = PlayerEquipmentState.new()
 ## 任务进度和日常周期随同一档案保存。
 var quests: AdventureQuestState = AdventureQuestState.new()
+## 修改器为当前档案开放设施；默认按正常任务和教学条件解锁。
+var facilities_unlocked_by_cheat: bool = false
 ## 已完成的教学步骤；只保存业务节点，不保存窗口、动画或临时选择。
 var tutorial_steps: Dictionary[String, bool] = {}
 ## 永久发现的物种键（plant:编号 / zombie:编号）；不保存阶级或界面状态。
 var almanac_discoveries: Dictionary[String, bool] = {}
+## 每日书籍与售出状态，不持久化窗口选择。
+var library: LibraryStock = LibraryStock.new()
+## 每日限购、永久槽位与购买版本属于当前玩家档案。
+var shop: ShopState = ShopState.new()
 
 ## 记录 [param kind] 类别的 [param type_id]；首次发现返回 true，重复或非法输入不改变状态。
 func discover_character(kind: String, type_id: int) -> bool:
@@ -45,6 +55,10 @@ func discover_character(kind: String, type_id: int) -> bool:
 
 ## 返回深拷贝的 JSON 基础数据；非法内存状态返回空字典，不泄漏对象引用。
 func to_dict() -> Dictionary:
+	if shop == null or ShopState.from_dict(shop.to_dict()) == null:
+		return {}
+	if library == null or LibraryStock.from_dict(library.to_dict()) == null:
+		return {}
 	if not _is_json_value(regions) or quests == null or AdventureQuestState.from_dict(quests.to_dict()) == null \
 			or equipment == null or PlayerEquipmentState.from_dict(equipment.to_dict()) == null:
 		return {}
@@ -58,11 +72,15 @@ func to_dict() -> Dictionary:
 		"card_order_uids": card_order_uids.duplicate(), "next_card_id": next_card_id, "regions": regions.duplicate(true),
 		"claimed_rewards": claimed_rewards.duplicate(true)} # 所有嵌套容器独立于运行态。
 	data["quests"] = quests.to_dict()
+	if facilities_unlocked_by_cheat:
+		data["facilities_unlocked_by_cheat"] = true
 	data["experience"] = experience
 	data["player_level"] = player_level
 	data["equipment"] = equipment.to_dict()
 	data["tutorial_steps"] = tutorial_steps.duplicate()
 	data["almanac_discoveries"] = almanac_discoveries.duplicate()
+	data["library"] = library.to_dict()
+	data["shop"] = shop.to_dict()
 	return data if from_dict(data) != null else {}
 
 ## 从 [param data] 校验并创建独立状态；非法结构、版本、UID、出战列表或数量返回 null。
@@ -81,6 +99,12 @@ static func from_dict(data: Variant) -> AdventureState:
 	if data.has("card_order_uids") and not data.card_order_uids is Array:
 		return null
 	var state := AdventureState.new() # 所有容器和卡片都在此新实例中恢复。
+	state.shop = ShopState.from_dict(data.get("shop", {}))
+	if state.shop == null:
+		return null
+	state.library = LibraryStock.from_dict(data.get("library", {}))
+	if state.library == null:
+		return null
 	var discoveries: Variant = data.get("almanac_discoveries", {}) # 旧档没有发现域，后续从持有植物补录。
 	if not discoveries is Dictionary:
 		return null
@@ -118,6 +142,10 @@ static func from_dict(data: Variant) -> AdventureState:
 		state.quests = AdventureQuestState.from_dict(data.quests)
 		if state.quests == null:
 			return null
+	var facilities_override: Variant = data.get("facilities_unlocked_by_cheat", false) # 旧档沿用正常解锁规则。
+	if not facilities_override is bool:
+		return null
+	state.facilities_unlocked_by_cheat = facilities_override
 	state.next_card_id = int(data.next_card_id)
 	for card_uid: Variant in data.cards: # UID 必须规范、与卡内一致，并小于下一个分配编号。
 		var number: int = PlantCardInstance.uid_number(card_uid) # 当前已有卡的编号。

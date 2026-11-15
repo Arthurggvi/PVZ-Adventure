@@ -39,19 +39,13 @@ func _skill(card: Card, tier: int) -> String:
 		return ""
 	return str(snapshot.get("promotion_%d" % tier, ""))
 
-## The owned tier-four book empowers every sunflower planted from the deck.
-func _has_flower_field_in_deck() -> bool:
-	for planted_card: Card in _slots.curr_cards:
-		if _skill(planted_card, 4) == FLOWER_FIELD:
-			return true
-	return false
-
 func _on_card_committed(card: Card, consumed_free: bool) -> void:
 	if card == null or card.card_reference == null:
 		return
 	if card.card_reference.card_type != ResourceCardReference.CardType.Plant:
 		return
-	if card.card_reference.content_id == SUNFLOWER and _has_flower_field_in_deck():
+	# 花田由本次成功种植的卡牌自身的四阶转职触发。
+	if _skill(card, 4) == FLOWER_FIELD:
 		for other: Card in _slots.curr_cards:
 			if other.card_reference != null and other.card_reference.card_type == ResourceCardReference.CardType.Plant \
 					and other.card_reference.content_id != SUNFLOWER:

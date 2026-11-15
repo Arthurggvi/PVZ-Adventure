@@ -1,0 +1,109 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://cktibggsi1jj" path="res://assets/reanim/Jalapeno_stem.png" id="174_q0gty"]
+
+[ext_resource type="Texture2D" uid="uid://hqee4ag4ittk" path="res://assets/reanim/Jalapeno_body.png" id="175_03qhc"]
+
+[ext_resource type="Texture2D" uid="uid://bln0hxmmktyex" path="res://assets/reanim/Jalapeno_mouth.png" id="176_l1yc2"]
+
+[ext_resource type="Texture2D" uid="uid://dg0urs411rllm" path="res://assets/reanim/Jalapeno_eye1.png" id="177_2uats"]
+
+[ext_resource type="Texture2D" uid="uid://oi3otxyuk3li" path="res://assets/reanim/Jalapeno_eye2.png" id="178_ch63v"]
+
+[ext_resource type="Texture2D" uid="uid://b4t56wxmfhp6u" path="res://assets/reanim/Jalapeno_cheek.png" id="179_hvhik"]
+
+[ext_resource type="Texture2D" uid="uid://crbckbw317krk" path="res://assets/reanim/Jalapeno_eyebrow1.png" id="180_0ve74"]
+
+[ext_resource type="Texture2D" uid="uid://4p7jqmj2ot5i" path="res://assets/reanim/Jalapeno_eyebrow2.png" id="181_tmgt8"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_21"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 21
+
+[node name="Card21" unique_id=1552000344 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_21")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant021Jalapeno" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=564857407]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno" unique_id=904675528]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant021Jalapeno" unique_id=1540077050]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body" unique_id=1561776336]
+position = Vector2(-42, -71)
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=1794220625]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=9689709]
+visible = false
+centered = false
+
+[node name="Anim_explode" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=1777821825]
+centered = false
+
+[node name="Jalapeno_stem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=623330030]
+position = Vector2(33, 2.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("174_q0gty")
+centered = false
+
+[node name="Jalapeno_body" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=2144489109]
+position = Vector2(17.1, 10.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("175_03qhc")
+centered = false
+
+[node name="Jalapeno_mouth" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=781060398]
+position = Vector2(27.2, 34.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("176_l1yc2")
+centered = false
+
+[node name="Jalapeno_eye1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=1315263882]
+position = Vector2(21.3, 19.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("177_2uats")
+centered = false
+
+[node name="Jalapeno_eye2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=256860454]
+position = Vector2(41, 25)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("178_ch63v")
+centered = false
+
+[node name="Jalapeno_cheek" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=1747722650]
+position = Vector2(42.1, 29.1)
+scale = Vector2(0.631, 0.8)
+texture = ExtResource("179_hvhik")
+centered = false
+
+[node name="Jalapeno_eyebrow1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=629640538]
+position = Vector2(22.3, 15.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("180_0ve74")
+centered = false
+
+[node name="Jalapeno_eyebrow2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant021Jalapeno/Body/BodyCorrect" unique_id=112765500]
+position = Vector2(39.9, 21.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("181_tmgt8")
+centered = false

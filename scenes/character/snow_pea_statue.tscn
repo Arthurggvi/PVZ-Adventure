@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/character_000_base.tscn" id="base"]
+[ext_resource type="Script" path="res://scripts/character/snow_pea_statue.gd" id="statue"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_static.gd" id="anim"]
+
+[node name="SnowPeaStatue" instance=ExtResource("base")]
+script = ExtResource("statue")
+random_speed_range = Vector2(1, 1)
+
+[node name="Shadow" parent="." index="0"]
+visible = false
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("anim")
+
+[node name="HpComponent" parent="." index="3"]
+visible = false
+max_hp = 1
+
+[node name="ProgressBarHp" type="ProgressBar" parent="HpComponent"]
+unique_name_in_owner = true
+max_value = 1.0
+show_percentage = false
+
+[node name="LabelHp" type="Label" parent="HpComponent"]
+unique_name_in_owner = true
+
+[node name="HurtBoxDetection" parent="HurtBoxComponent" index="0"]
+collision_layer = 4
+
+[node name="HurtBoxReal" parent="HurtBoxComponent" index="1"]
+collision_layer = 512
+
+[connection signal="combat_health_lost" from="HpComponent" to="." method="_on_combat_health_lost"]

@@ -282,9 +282,9 @@ func validate_boss_parameters() -> PackedStringArray:
 		errors.append("boss_type 未在角色注册表中注册：%s。" % boss_type)
 	else:
 		# 注册条目中的场景定义，用于确认所选僵王类型能够生成。
-		var boss_info: Dictionary = CharacterRegistry.ZombieBossInfo[boss_type]
-		# 仅检查场景可实例化性，不在关卡参数校验阶段创建僵王节点。
-		var scene := boss_info.get(CharacterRegistry.ZombieBossInfoAttribute.BossScenes) as PackedScene
+				# 仅检查场景可实例化性，不在关卡参数校验阶段创建僵王节点。
+		var scene := Global.character_registry.get_zombie_boss_info(
+			boss_type, CharacterRegistry.ZombieBossInfoAttribute.BossScenes) as PackedScene
 		if scene == null or not scene.can_instantiate():
 			errors.append("注册的僵王场景无效或无法实例化。")
 

@@ -28,8 +28,9 @@ func _ready() -> void:
 	motion.opened.connect(_on_opened)
 	motion.closed.connect(close_requested.emit)
 	resized.connect(_fit_canvas)
-	var catalog := Catalog.new() # 本界面独立、无全局状态的配置读取器。
-	layout = catalog.load_layout()
+	var catalog := Catalog.new() # 独立打开场景仍可读取配置；正式入口移交已经验证的同一份布局。
+	if layout.is_empty():
+		layout = catalog.load_layout()
 	if layout.is_empty():
 		_fit_canvas()
 		motion.play_open()

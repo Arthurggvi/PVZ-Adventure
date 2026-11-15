@@ -1,0 +1,137 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://dk1nraow67nfq" path="res://assets/reanim/Cattail_paw2.png" id="332_7x32i"]
+
+[ext_resource type="Texture2D" uid="uid://yeq0wkhh7ocq" path="res://assets/reanim/Cattail_paw3.png" id="333_5hyh1"]
+
+[ext_resource type="Texture2D" uid="uid://imy0eqi3xw8o" path="res://assets/reanim/Cattail_tail.png" id="334_stc33"]
+
+[ext_resource type="Texture2D" uid="uid://b7n0a7ih4mvcr" path="res://assets/reanim/Cattail_tail2.png" id="335_agc5q"]
+
+[ext_resource type="Texture2D" uid="uid://dgj32utlkf8f0" path="res://assets/reanim/Cattail_spike.png" id="336_7dndd"]
+
+[ext_resource type="Texture2D" uid="uid://djx3mvue4t6nu" path="res://assets/reanim/Cattail_tail2_overlay.png" id="337_3bba4"]
+
+[ext_resource type="Texture2D" uid="uid://dikvd4i8v635g" path="res://assets/reanim/Cattail_head.png" id="338_5d2eo"]
+
+[ext_resource type="Texture2D" uid="uid://ch4khbbbwhh0d" path="res://assets/reanim/Cattail_paw1.png" id="339_aliup"]
+
+[ext_resource type="Texture2D" uid="uid://bpm3pvlhwnqxk" path="res://assets/reanim/Cattail_hat.png" id="340_63kfc"]
+
+[ext_resource type="Texture2D" uid="uid://xmsfwuavj25e" path="res://assets/reanim/Cattail_blink1.png" id="341_ij2p4"]
+
+[ext_resource type="Texture2D" uid="uid://j427peyuyp0f" path="res://assets/reanim/Cattail_eyebrow1.png" id="342_77b3v"]
+
+[ext_resource type="Texture2D" uid="uid://del4hhtgqb4fr" path="res://assets/reanim/Cattail_eyebrow2.png" id="343_8nnpu"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_44"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 44
+
+[node name="Card44" unique_id=256695208 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_44")
+
+[node name="Plant044Cattail" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=339455041]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail" unique_id=601705727]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant044Cattail" unique_id=1873726664]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body" unique_id=1674334360]
+position = Vector2(-42, -66)
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=1333452914]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=2012955634]
+centered = false
+
+[node name="Anim_shooting" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=1830064170]
+visible = false
+centered = false
+
+[node name="Cattail_paw2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=552017783]
+position = Vector2(6.5, 54)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("332_7x32i")
+centered = false
+
+[node name="Cattail_paw3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=1277658893]
+position = Vector2(57.8, 50.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("333_5hyh1")
+centered = false
+
+[node name="Cattail_tail" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=1080206292]
+position = Vector2(2.4, 33.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("334_stc33")
+centered = false
+
+[node name="Cattail_tail2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=1927831188]
+position = Vector2(-1.4, 4.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("335_agc5q")
+centered = false
+
+[node name="Cattail_spike" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=135907960]
+position = Vector2(8.3, 2.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("336_7dndd")
+centered = false
+
+[node name="Cattail_tail2_overlay" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=230004374]
+position = Vector2(-0.7, 8.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("337_3bba4")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=1425473673]
+position = Vector2(26, 25.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("338_5d2eo")
+centered = false
+
+[node name="Cattail_paw1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=1805265992]
+position = Vector2(31.2, 59.4)
+scale = Vector2(0.85, 0.85)
+texture = ExtResource("339_aliup")
+centered = false
+
+[node name="Cattail_hat" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=1212991108]
+position = Vector2(11.8, 9.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("340_63kfc")
+centered = false
+
+[node name="Cattail_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=387395237]
+visible = false
+position = Vector2(41.1, 33.8)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("341_ij2p4")
+centered = false
+
+[node name="Cattail_eyebrow1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=1103895606]
+position = Vector2(38.6, 34)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("342_77b3v")
+centered = false
+
+[node name="Cattail_eyebrow2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant044Cattail/Body/BodyCorrect" unique_id=1233712511]
+position = Vector2(60.9, 31.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("343_8nnpu")
+centered = false

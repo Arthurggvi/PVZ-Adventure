@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="DropTable" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="Table"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="Entry"]
+
+[sub_resource type="Resource" id="recipe_p021"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.edgar_temple.nightmare.boss_drops.recipe_p021"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p021"
+quantity_min = 1
+quantity_max = 1
+include_recipe_materials = true
+weight = 1
+
+[sub_resource type="Resource" id="recipe_p015"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.edgar_temple.nightmare.boss_drops.recipe_p015"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p015"
+quantity_min = 1
+quantity_max = 1
+include_recipe_materials = true
+weight = 1
+
+[resource]
+script = ExtResource("Table")
+table_id = &"zombie_island.edgar_temple.nightmare.boss_drops"
+entries = Array[ExtResource("Entry")]([
+SubResource("recipe_p021"),
+SubResource("recipe_p015")
+])
+weighted_draw_count = 1
+weighted_draw_chance = 0.3
+weighted_selection = 1

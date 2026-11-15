@@ -19,6 +19,22 @@ const BossSkin = preload("res://scripts/adventure/ui/boss_almanac_style.gd")
 const DESIGN := Vector2(1480, 830)
 ## 现有中文界面字体。
 const FONT = preload("res://assets/fonts/方正少儿_GBK.ttf")
+## 图鉴只准备可见头像与当前详情，不打开全部物种预览。
+const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+## 与场景切换共用的资源批次实现。
+const ResourceBatch = preload("res://scripts/ui/transitions/resource_load_batch.gd")
+## 当前唯一预览准备请求。
+var _preview_batch: ResourceBatch
+## 准备请求的物种、阶级和目录版本，旧详情结果不得入树。
+var _preview_job: Dictionary = {}
+## 本窗口已取得的预览资源，关闭后统一释放。
+var _preview_resources: Dictionary = {}
+## 已装配头像的物种集合，只对应当前目录。
+var _drawn_portraits: Dictionary[int, bool] = {}
+## 分类或搜索更新时递增的目录身份。
+var _directory_revision := 0
+## 详情刷新请求，优先于滚动目录头像。
+var _detail_pending := false
 ## 左侧三列头像卡的设计尺寸，预留滚动条后仍能放下三列。
 const TILE_SIZE := Vector2(121, 140)
 ## 打开时所属档案，切档时不继续展示旧记录。
@@ -65,6 +81,111 @@ var _tier_rail: Control
 var _tier_buttons: Array[Button] = []
 ## 防止关闭动画期间重复操作。
 var _closing := false
+
+## 仅声明首屏公共皮肤，角色资源由可见范围和选择决定。
+static func get_initial_resource_paths() -> PackedStringArray:
+	var paths: PackedStringArray = ResourcePaths.frame() # 图鉴面板与按钮的固定美术。
+	paths.append_array(ResourcePaths.skin(PackedStringArray(["controls/search_field.png", "icons/search_magnifier.png",
+		"res://assets/adventure/ui/bottom_bar/icons/icon_deck.png"]), PackedStringArray(["tabs/tab", "slots/plant_slot"])))
+	return paths
+
+## 首屏可见头像及选中详情就绪后，模态宿主才移除可取消反馈。
+func is_content_ready() -> bool:
+	if _directory_scroll == null or _detail_pending or _preview_batch != null:
+		return false
+	var bounds: Rect2 = _directory_scroll.get_global_rect() # 只等待首屏，滚动到新区域后继续按需准备。
+	for type_id: int in _tiles:
+		if not _drawn_portraits.has(type_id) and bounds.intersects(_tiles[type_id].get_global_rect()):
+			return false
+	return true
+
+## 每帧最多构造一个预览，先准备选中详情，再准备真正可见的目录卡。
+func _process(_delta: float) -> void:
+	if _closing or _directory == null:
+		return
+	if _preview_batch != null:
+		var status: int = _preview_batch.poll() # 未完成时只轮询，不阻塞取得资源。
+		if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			return
+		var job: Dictionary = _preview_job # 完成后的局部身份快照。
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			_preview_resources[job.key] = _preview_batch.resources.duplicate()
+		_preview_batch = null
+		_preview_job = {}
+		if int(job.revision) != _directory_revision or str(job.kind) != _kind:
+			return
+		if bool(job.detail):
+			if int(job.type_id) == _selected and int(job.tier) == _tier:
+				_detail_pending = false
+				if status == ResourceLoader.THREAD_LOAD_LOADED:
+					_draw_detail()
+				else:
+					_clear(_details)
+					Art.label(_details, "暂时无法加载，请重新选择。", Vector2(20, 40), Vector2(700, 60), 24)
+		else:
+			_draw_portrait(int(job.type_id), status == ResourceLoader.THREAD_LOAD_LOADED)
+		return
+	if _detail_pending and _selected != 0:
+		_start_preview(_selected, true)
+		return
+	var visible_bounds: Rect2 = _directory_scroll.get_global_rect() # 滚动区外的头像不请求资源。
+	for type_id: int in _tiles:
+		if not _drawn_portraits.has(type_id) and visible_bounds.intersects(_tiles[type_id].get_global_rect()):
+			_start_preview(type_id, false)
+			return
+
+## 准备 [param type_id] 的当前详情或头像；[param detail] 决定完成后的呈现位置。
+func _start_preview(type_id: int, detail: bool) -> void:
+	var tier: int = _tier if detail else 1 # 目录头像始终一阶；详情按当前选择准备动态美术。
+	var key: String = "%s:%d:%d" % [_kind, type_id, tier] # 同物种的不同阶级不能共用“已准备”标记。
+	if _preview_resources.has(key):
+		if detail:
+			_detail_pending = false
+			_draw_detail()
+		else:
+			_draw_portrait(type_id, true)
+		return
+	var paths := PackedStringArray() # 只有实际选中或进入滚动视口的物种会进入批次。
+	if _kind == "boss":
+		ResourcePaths.append(paths, str(CharacterRegistry.ZombieBossInfo.get(type_id, {}).get(CharacterRegistry.ZombieBossInfoAttribute.BossScenes, "")))
+		ResourcePaths.append(paths, str(BossData.VISUALS.get(type_id, "")))
+	else:
+		paths = ResourcePaths.character(_kind, type_id, tier)
+	_preview_job = {"key": key, "type_id": type_id, "kind": _kind, "tier": tier, "detail": detail, "revision": _directory_revision}
+	_preview_batch = ResourceBatch.new()
+	if _preview_batch.start(paths) != OK:
+		AdventureToolbar.retire_resource_batch(_preview_batch)
+		_preview_batch = null
+		if detail:
+			_detail_pending = false
+		else:
+			_drawn_portraits[type_id] = true
+
+## 为当前目录的 [param type_id] 创建头像；[param loaded] 为 false 时保留名称而不阻塞其他物种。
+func _draw_portrait(type_id: int, loaded: bool) -> void:
+	if not _tiles.has(type_id):
+		return
+	_drawn_portraits[type_id] = true
+	if not loaded:
+		return
+	var button: Button = _tiles[type_id] # 头像始终属于已存在的目录按钮。
+	if _kind == "boss":
+		var portrait := TextureRect.new() # Boss 资料仅在该头像可见时读取。
+		portrait.texture = BossData.profile(type_id).portrait
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		button.add_child(portrait)
+		portrait.position = Vector2(15, 13)
+		portrait.size = Vector2(91, 86)
+	else:
+		Preview.draw_thumbnail(button, _kind, type_id, Rect2(15, 13, 91, 86))
+
+## 离场和关闭只移交请求回收，不能同步等待后台资源。
+func _exit_tree() -> void:
+	if _preview_batch != null:
+		AdventureToolbar.retire_resource_batch(_preview_batch)
+		_preview_batch = null
 
 ## 建立复用素材布局，并绑定档案与发现变化通知。
 func _ready() -> void:
@@ -165,6 +286,8 @@ func _refresh() -> void:
 	if _closing or _state != Global.global_game_state.adventure_state:
 		return
 	_clear(_directory)
+	_directory_revision += 1
+	_drawn_portraits.clear()
 	_tiles.clear()
 	for kind: String in _tabs: # 保持分类按钮状态与当前目录一致。
 		_tabs[kind].set_pressed_no_signal(kind == _kind)
@@ -177,17 +300,6 @@ func _refresh() -> void:
 		button.custom_minimum_size = TILE_SIZE
 		button.tooltip_text = title
 		button.accessibility_name = title
-		if _kind == "boss":
-			var portrait := TextureRect.new() # Boss 沿用实战头像，不走普通僵尸注册表。
-			portrait.texture = BossData.profile(type_id).portrait
-			portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			button.add_child(portrait)
-			portrait.position = Vector2(15, 13)
-			portrait.size = Vector2(91, 86)
-		else:
-			Preview.draw_thumbnail(button, _kind, type_id, Rect2(15, 13, 91, 86))
 		var caption: Label = Art.label(button, title, Vector2(10, 102), Vector2(101, 26), 18) # 卡片下部统一保留名称区。
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -224,6 +336,15 @@ func _choose_tier(tier: int) -> void:
 
 ## 重建形象和说明；保持阶级选择器节点，切换时保留键盘焦点。
 func _render_detail() -> void:
+	_detail_pending = _selected != 0
+	_clear(_details)
+	if _detail_pending:
+		Art.label(_details, "正在加载…", Vector2(20, 40), Vector2(700, 60), 24)
+	else:
+		_draw_detail()
+
+## 已选物种资源就绪后才构造详情与待机形象。
+func _draw_detail() -> void:
 	_clear(_details)
 	_boss_story.visible = _kind == "boss" and _selected != 0
 	_directory_scroll.size.y = 150 if _kind == "boss" else 462

@@ -1,0 +1,133 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://300aew7liup" path="res://assets/reanim/PeaShooter_frontleaf.png" id="8_jrvjq"]
+
+[ext_resource type="Texture2D" uid="uid://nj6m28m6k5p1" path="res://assets/reanim/PeaShooter_frontleaf_righttip.png" id="9_lppa3"]
+
+[ext_resource type="Texture2D" uid="uid://dit0i5evvco14" path="res://assets/reanim/PeaShooter_frontleaf_lefttip.png" id="10_xa6hp"]
+
+[ext_resource type="Texture2D" uid="uid://b7uqfdos6ocy7" path="res://assets/reanim/Cabbagepult_basket.png" id="245_etbto"]
+
+[ext_resource type="Texture2D" uid="uid://ypi3oybr0n66" path="res://assets/reanim/Cabbagepult_basket_overlay.png" id="247_qq07m"]
+
+[ext_resource type="Texture2D" uid="uid://cyq6qjfok78qm" path="res://assets/reanim/Melonpult_melon.png" id="305_7ny8r"]
+
+[ext_resource type="Texture2D" uid="uid://bfprc4gnain57" path="res://assets/reanim/Melonpult_stalk.png" id="306_fc5ck"]
+
+[ext_resource type="Texture2D" uid="uid://jc04bawcark1" path="res://assets/reanim/Melonpult_body.png" id="307_k5sko"]
+
+[ext_resource type="Texture2D" uid="uid://b545xxdmuws6t" path="res://assets/reanim/Melonpult_blink1.png" id="308_a810k"]
+
+[ext_resource type="Texture2D" uid="uid://bw5pn01hh1dfv" path="res://assets/reanim/Melonpult_eyebrow.png" id="309_2248j"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_40"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 40
+
+[node name="Card40" unique_id=1690049935 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_40")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant040MelonPult" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1117972847]
+position = Vector2(9, 14)
+scale = Vector2(0.45, 0.45)
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant040MelonPult" unique_id=1393689492]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body" unique_id=265751243]
+position = Vector2(-42, -65)
+
+[node name="Frontleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=984107610]
+position = Vector2(26.8, 57.4)
+rotation = -2.45917
+scale = Vector2(0.572, 0.444)
+skew = 3.13985
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Frontleaf_tip_left" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=149215538]
+position = Vector2(64.8, 48.7)
+rotation = 2.51327
+scale = Vector2(0.572, 0.498)
+skew = -3.13985
+texture = ExtResource("10_xa6hp")
+centered = false
+
+[node name="Cabbagepult_basket" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=938175250]
+position = Vector2(-23.9, 9.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("245_etbto")
+centered = false
+
+[node name="Melonpult_mellon" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=781379716]
+position = Vector2(-34, -15.3)
+texture = ExtResource("305_7ny8r")
+centered = false
+
+[node name="Cabbagepult_basket_overlay" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=1250850672]
+position = Vector2(-23.9, 9.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("247_qq07m")
+centered = false
+
+[node name="Melonpult_stalk" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=336780764]
+position = Vector2(16.5, 21.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("306_fc5ck")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=1216883832]
+position = Vector2(15.3, 33.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("307_k5sko")
+centered = false
+
+[node name="Melonpult_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=1247975569]
+visible = false
+position = Vector2(35.3, 47.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("308_a810k")
+centered = false
+
+[node name="Melonpult_eyebrow1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=1065439986]
+position = Vector2(53.4, 45.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("309_2248j")
+centered = false
+
+[node name="Melonpult_eyebrow2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=1679025991]
+position = Vector2(35.5, 47)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("309_2248j")
+centered = false
+
+[node name="Frontleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=786467211]
+position = Vector2(23.3, 54.6)
+rotation = 0.10472
+scale = Vector2(0.572, 0.444)
+texture = ExtResource("8_jrvjq")
+centered = false
+
+[node name="Frontleaf_right_tip1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=1966411543]
+position = Vector2(57.6, 59.3)
+rotation = 0.10472
+scale = Vector2(0.572, 0.444)
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Frontleaf_tip_left1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant040MelonPult/Body/BodyCorrect" unique_id=525907415]
+position = Vector2(19.4, 59.4)
+rotation = 0.10472
+scale = Vector2(0.572, 0.498)
+texture = ExtResource("10_xa6hp")
+centered = false

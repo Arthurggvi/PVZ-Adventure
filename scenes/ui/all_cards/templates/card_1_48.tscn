@@ -1,0 +1,163 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://beptqgafsc8dp" path="res://assets/reanim/CobCannon_wheel.png" id="368_te8ao"]
+
+[ext_resource type="Texture2D" uid="uid://c650cxd5fsti8" path="res://assets/reanim/CobCannon_log.png" id="369_msri8"]
+
+[ext_resource type="Texture2D" uid="uid://dhpv2m52i8tnu" path="res://assets/reanim/CobCannon_fuse.png" id="370_7lapw"]
+
+[ext_resource type="Texture2D" uid="uid://dev0upxoidgky" path="res://assets/reanim/CobCannon_husk4.png" id="371_pupom"]
+
+[ext_resource type="Texture2D" uid="uid://bw1eaerjcpf15" path="res://assets/reanim/CobCannon_husk3.png" id="372_b70e6"]
+
+[ext_resource type="Texture2D" uid="uid://c0b2nxclwkjxn" path="res://assets/reanim/CobCannon_cob.png" id="373_45g8r"]
+
+[ext_resource type="Texture2D" uid="uid://dnkk3vyykr511" path="res://assets/reanim/CobCannon_husk2.png" id="374_cnu4l"]
+
+[ext_resource type="Texture2D" uid="uid://dg8oaxgqbdu2g" path="res://assets/reanim/CobCannon_husk1.png" id="375_vxcot"]
+
+[ext_resource type="Texture2D" uid="uid://bjfgnxqtsjeal" path="res://assets/reanim/CobCannon_blink1.png" id="376_3fnx5"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_48"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 48
+
+[node name="Card48" unique_id=2067154220 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_48")
+
+[node name="CharacterStatic" parent="CardBg" index="1"]
+position = Vector2(12, 31)
+
+[node name="Plant048CobCannon" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=253528666]
+position = Vector2(1, 14)
+scale = Vector2(0.3, 0.3)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon" unique_id=1315135023]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant048CobCannon" unique_id=630359275]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body" unique_id=1914026821]
+position = Vector2(-37, -75)
+
+[node name="Anim_unarmed_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1868810672]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1562031041]
+visible = false
+centered = false
+
+[node name="Anim_shooting" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=736483227]
+centered = false
+
+[node name="Anim_charge" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1472979900]
+visible = false
+centered = false
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1987401573]
+visible = false
+centered = false
+
+[node name="CobCannon_backwheels" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=127829984]
+position = Vector2(31.7, -5.7)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("368_te8ao")
+centered = false
+
+[node name="CobCannon_backwheels2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1328909252]
+position = Vector2(98.6, -5.7)
+scale = Vector2(0.72, 0.72)
+texture = ExtResource("368_te8ao")
+centered = false
+
+[node name="CobCannon_log2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=451414912]
+position = Vector2(15.2, 11.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("369_msri8")
+centered = false
+
+[node name="CobCannon_fuse" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1165344083]
+position = Vector2(-12.5, 19.5)
+rotation = -0.783653
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("370_7lapw")
+centered = false
+
+[node name="CobCannon_husk4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1067681754]
+position = Vector2(51.2, 5.3)
+texture = ExtResource("371_pupom")
+centered = false
+
+[node name="CobCannon_husk4_2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1550209492]
+visible = false
+self_modulate = Color(1, 1, 1, 0)
+position = Vector2(51.4, 5.3)
+texture = ExtResource("371_pupom")
+centered = false
+
+[node name="CobCannon_husk3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1708782295]
+position = Vector2(67.2, -8.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("372_b70e6")
+centered = false
+
+[node name="CobCannon_husk3_2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=498627074]
+visible = false
+self_modulate = Color(1, 1, 1, 0)
+position = Vector2(67.3, -8.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("372_b70e6")
+centered = false
+
+[node name="CobCannon_cob" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1240683037]
+position = Vector2(24.1, -6.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("373_45g8r")
+centered = false
+
+[node name="CobCannon_husk2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1743890789]
+position = Vector2(13.5, 0.3)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("374_cnu4l")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=274895980]
+position = Vector2(11.8, -17.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("375_vxcot")
+centered = false
+
+[node name="CobCannon_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=525225116]
+visible = false
+position = Vector2(51.8, 0)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("376_3fnx5")
+centered = false
+
+[node name="CobCannon_log1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1544468255]
+position = Vector2(6.2, 35)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("369_msri8")
+centered = false
+
+[node name="CobCannon_outerwheels" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=631340455]
+position = Vector2(13, 31.9)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("368_te8ao")
+centered = false
+
+[node name="CobCannon_outerwheels2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant048CobCannon/Body/BodyCorrect" unique_id=1171823834]
+position = Vector2(87.3, 31.9)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("368_te8ao")
+centered = false

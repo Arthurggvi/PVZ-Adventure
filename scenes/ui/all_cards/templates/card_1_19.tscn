@@ -1,0 +1,295 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://cy3xu8ug3gd2" path="res://assets/reanim/PeaShooter_backleaf.png" id="3_xm6ba"]
+
+[ext_resource type="Texture2D" uid="uid://cyknr5ymersct" path="res://assets/reanim/PeaShooter_backleaf_lefttip.png" id="4_2m5n3"]
+
+[ext_resource type="Texture2D" uid="uid://i7fngqj5l36a" path="res://assets/reanim/PeaShooter_backleaf_righttip.png" id="5_utnli"]
+
+[ext_resource type="Texture2D" uid="uid://300aew7liup" path="res://assets/reanim/PeaShooter_frontleaf.png" id="8_jrvjq"]
+
+[ext_resource type="Texture2D" uid="uid://nj6m28m6k5p1" path="res://assets/reanim/PeaShooter_frontleaf_righttip.png" id="9_lppa3"]
+
+[ext_resource type="Texture2D" uid="uid://dit0i5evvco14" path="res://assets/reanim/PeaShooter_frontleaf_lefttip.png" id="10_xa6hp"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://bw2pvvmcjf1mb" path="res://assets/reanim/ThreePeater_stem3.png" id="153_etbto"]
+
+[ext_resource type="Texture2D" uid="uid://d0leur1vjn341" path="res://assets/reanim/ThreePeater_stem1.png" id="154_jnm8r"]
+
+[ext_resource type="Texture2D" uid="uid://dtult3nryexps" path="res://assets/reanim/ThreePeater_stem2.png" id="155_qq07m"]
+
+[ext_resource type="Texture2D" uid="uid://i81mtytc2pod" path="res://assets/reanim/ThreePeater_headleaf1.png" id="156_ap7r3"]
+
+[ext_resource type="Texture2D" uid="uid://xcqhwarudb01" path="res://assets/reanim/ThreePeater_head.png" id="157_o7it4"]
+
+[ext_resource type="Texture2D" uid="uid://b20h77g62nvj3" path="res://assets/reanim/ThreePeater_blink1.png" id="158_w8min"]
+
+[ext_resource type="Texture2D" uid="uid://806ya6s6keow" path="res://assets/reanim/ThreePeater_mouth.png" id="159_7f486"]
+
+[ext_resource type="Texture2D" uid="uid://c4rbih2yuv0vx" path="res://assets/image/projectile/ProjectilePea.png" id="160_ih4no"]
+
+[ext_resource type="Texture2D" uid="uid://bvcab6e1lqyff" path="res://assets/reanim/ThreePeater_headleaf3.png" id="161_angoc"]
+
+[ext_resource type="Texture2D" uid="uid://ctjycabm2oguh" path="res://assets/reanim/ThreePeater_headleaf2.png" id="162_yrvmv"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_19"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 19
+
+[node name="Card19" unique_id=682103061 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_19")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant019ThreePeater" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1423405400]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater" unique_id=1808551010]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant019ThreePeater" unique_id=1126473839]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body" unique_id=319182531]
+position = Vector2(-42, -69)
+
+[node name="Backleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=1309708522]
+position = Vector2(27.6675, 53.6975)
+scale = Vector2(0.56795, 0.526099)
+texture = ExtResource("3_xm6ba")
+centered = false
+
+[node name="Backleaf_left_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=1890609757]
+position = Vector2(24.9, 54.265)
+rotation = 0.0202899
+scale = Vector2(0.577926, 0.536399)
+texture = ExtResource("4_2m5n3")
+centered = false
+
+[node name="Backleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=213294054]
+position = Vector2(47.365, 53.465)
+rotation = 0.0104291
+scale = Vector2(0.607477, 0.536399)
+texture = ExtResource("5_utnli")
+centered = false
+
+[node name="ThreePeater_stem3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=844736844]
+position = Vector2(21.2576, 19.505)
+rotation = 0.0422826
+scale = Vector2(0.64, 0.664576)
+texture = ExtResource("153_etbto")
+centered = false
+
+[node name="ThreePeater_stem1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=299193970]
+position = Vector2(29.0601, 42.3724)
+rotation = -0.0879201
+scale = Vector2(0.64, 0.677201)
+skew = 0.0510086
+texture = ExtResource("154_jnm8r")
+centered = false
+
+[node name="ThreePeater_stem2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=793296846]
+position = Vector2(21.0749, 31.2724)
+rotation = -0.0214247
+scale = Vector2(0.64, 0.647152)
+skew = -0.0405803
+texture = ExtResource("155_qq07m")
+centered = false
+
+[node name="Frontleaf" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=397214774]
+position = Vector2(22.5675, 54.865)
+scale = Vector2(0.563975, 0.54205)
+texture = ExtResource("8_jrvjq")
+centered = false
+
+[node name="Frontleaf_right_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=2125632025]
+position = Vector2(56.0675, 56.1)
+rotation = -0.0591251
+scale = Vector2(0.622427, 0.55135)
+texture = ExtResource("9_lppa3")
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=790462649]
+position = Vector2(19.5, 61.235)
+rotation = 0.0556773
+scale = Vector2(0.583901, 0.55135)
+texture = ExtResource("10_xa6hp")
+centered = false
+
+[node name="Anim_head1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=680002558]
+position = Vector2(54.2625, 50.235)
+centered = false
+
+[node name="Node2D" type="Node2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head1" unique_id=566525765]
+position = Vector2(-51.3189, -51.1473)
+
+[node name="ThreePeater_head1_leaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head1/Node2D" unique_id=915348622]
+position = Vector2(42.8, 38.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("156_ap7r3")
+centered = false
+
+[node name="Anim_face1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head1/Node2D" unique_id=2118034990]
+position = Vector2(50.5, 34.9)
+rotation = 0.251327
+scale = Vector2(0.638, 0.616)
+skew = 0.0209444
+texture = ExtResource("157_o7it4")
+centered = false
+
+[node name="ThreePeater_head1_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head1/Node2D" unique_id=1281239135]
+visible = false
+position = Vector2(58.9, 38.9)
+rotation = 0.256563
+scale = Vector2(0.707, 0.626)
+texture = ExtResource("158_w8min")
+centered = false
+
+[node name="ThreePeater_head1_blink2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head1/Node2D" unique_id=1708991359]
+visible = false
+position = Vector2(58.9, 38.9)
+rotation = 0.256563
+scale = Vector2(0.707, 0.626)
+texture = ExtResource("158_w8min")
+centered = false
+
+[node name="ThreePeater_mouth1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head1/Node2D" unique_id=971252962]
+position = Vector2(67.9, 32.4)
+rotation = 0.251327
+scale = Vector2(0.638, 0.616)
+skew = 0.0209444
+texture = ExtResource("159_7f486")
+centered = false
+
+[node name="Projectile" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head1/Node2D" unique_id=1042718431]
+visible = false
+position = Vector2(75.1682, 45.4086)
+texture = ExtResource("160_ih4no")
+
+[node name="Anim_head3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=785678086]
+position = Vector2(23.3251, 21.0375)
+centered = false
+
+[node name="Node2D" type="Node2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head3" unique_id=2031626990]
+position = Vector2(-20.4577, -22.2722)
+
+[node name="ThreePeater_head3_leaf3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head3/Node2D" unique_id=1124504622]
+position = Vector2(13.3625, 14.2074)
+rotation = 0.122577
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("161_angoc")
+centered = false
+
+[node name="ThreePeater_head3_leaf2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head3/Node2D" unique_id=1511001817]
+position = Vector2(10.4601, 10.0124)
+rotation = 0.155566
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("162_yrvmv")
+centered = false
+
+[node name="ThreePeater_head3_leaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head3/Node2D" unique_id=111160387]
+position = Vector2(8.76006, 7.08236)
+rotation = 0.0888541
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("156_ap7r3")
+centered = false
+
+[node name="Anim_face3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head3/Node2D" unique_id=1056185052]
+position = Vector2(15.1675, 5.43994)
+scale = Vector2(0.64, 0.652102)
+texture = ExtResource("157_o7it4")
+centered = false
+
+[node name="ThreePeater_head3_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head3/Node2D" unique_id=1307027187]
+visible = false
+position = Vector2(24.5, 8.8)
+rotation = 0.022689
+scale = Vector2(0.684, 0.683)
+texture = ExtResource("158_w8min")
+centered = false
+
+[node name="ThreePeater_head3_blink2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head3/Node2D" unique_id=622150331]
+visible = false
+position = Vector2(24.4697, 7.40452)
+rotation = 0.022689
+scale = Vector2(0.684, 0.683)
+texture = ExtResource("158_w8min")
+centered = false
+
+[node name="ThreePeater_mouth3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head3/Node2D" unique_id=14427182]
+position = Vector2(31.7, -0.0275504)
+scale = Vector2(0.64, 0.627176)
+texture = ExtResource("159_7f486")
+centered = false
+
+[node name="Projectile" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head3/Node2D" unique_id=545147147]
+visible = false
+position = Vector2(43.359, 12.1988)
+texture = ExtResource("160_ih4no")
+
+[node name="Anim_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect" unique_id=1452249585]
+position = Vector2(33.5399, 33.0399)
+centered = false
+
+[node name="Node2D" type="Node2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head2" unique_id=1066162801]
+position = Vector2(-34.1467, -35.2009)
+
+[node name="ThreePeater_head2_leaf2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head2/Node2D" unique_id=2138046623]
+position = Vector2(26.8975, 22.4074)
+rotation = 0.188982
+scale = Vector2(0.799, 0.799)
+texture = ExtResource("162_yrvmv")
+centered = false
+
+[node name="ThreePeater_head2_leaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head2/Node2D" unique_id=637738181]
+position = Vector2(26.8926, 18.6774)
+rotation = 0.345499
+scale = Vector2(0.798, 0.798)
+texture = ExtResource("156_ap7r3")
+centered = false
+
+[node name="Anim_face2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head2/Node2D" unique_id=2063499541]
+position = Vector2(33, 16.205)
+rotation = 0.275108
+scale = Vector2(0.642325, 0.682176)
+skew = -0.0330312
+texture = ExtResource("157_o7it4")
+centered = false
+
+[node name="ThreePeater_mouth2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head2/Node2D" unique_id=352185782]
+position = Vector2(50.2675, 13.6749)
+rotation = 0.275108
+scale = Vector2(0.642325, 0.682176)
+skew = -0.0330312
+texture = ExtResource("159_7f486")
+centered = false
+
+[node name="ThreePeater_head2_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head2/Node2D" unique_id=1941319005]
+visible = false
+position = Vector2(41.6, 21.6)
+rotation = 0.29147
+scale = Vector2(0.696, 0.752)
+skew = -0.0244346
+texture = ExtResource("158_w8min")
+centered = false
+
+[node name="ThreePeater_head2_blink2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant019ThreePeater/Body/BodyCorrect/Anim_head2/Node2D" unique_id=1337290014]
+visible = false
+position = Vector2(41.64, 20.8592)
+rotation = 0.29147
+scale = Vector2(0.696, 0.752)
+skew = -0.0244346
+texture = ExtResource("158_w8min")
+centered = false

@@ -1,0 +1,122 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://yjc7pkf5hdn2" path="res://assets/image/particles/bullet/PuffShroom_puff1.png" id="104_boyy4"]
+
+[ext_resource type="Texture2D" uid="uid://b5v5vannbipgc" path="res://assets/reanim/FumeShroom_body.png" id="108_fwmnw"]
+
+[ext_resource type="Texture2D" uid="uid://dvjtgvsprc5em" path="res://assets/reanim/FumeShroom_blink2.png" id="109_sjawy"]
+
+[ext_resource type="Texture2D" uid="uid://bdecyr5u832mx" path="res://assets/reanim/FumeShroom_head.png" id="110_gad1q"]
+
+[ext_resource type="Texture2D" uid="uid://b8hsdl8m0la2k" path="res://assets/reanim/FumeShroom_spout.png" id="111_uxwjg"]
+
+[ext_resource type="Texture2D" uid="uid://dlwrjkajjpdsb" path="res://assets/reanim/FumeShroom_tip.png" id="112_gtpcu"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_11"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 11
+
+[sub_resource type="CurveTexture" id="CurveTexture_p2ylm"]
+
+[sub_resource type="Curve" id="Curve_27sef"]
+_limits = [0.0, 500.0, 0.0, 1.0]
+_data = [Vector2(0, 145.455), 0.0, 1914.43, 0, 0, Vector2(0.733831, 500), -369.389, -369.389, 0, 0, Vector2(1, 0), -1713.29, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_asf73"]
+curve = SubResource("Curve_27sef")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_smv18"]
+particle_flag_disable_z = true
+spread = 3.0
+initial_velocity_min = 200.0
+initial_velocity_max = 400.0
+radial_velocity_min = -88.0
+radial_velocity_max = 100.0
+radial_velocity_curve = SubResource("CurveTexture_p2ylm")
+velocity_limit_curve = SubResource("CurveTexture_asf73")
+gravity = Vector3(0, 0, 0)
+
+[node name="Card11" unique_id=913302585 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_11")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant011FumeShroom" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=1188858698]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant011FumeShroom" unique_id=1770559933]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant011FumeShroom" unique_id=1065522042]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant011FumeShroom/Body" unique_id=1738782318]
+position = Vector2(-36, -59)
+scale = Vector2(0.9, 0.9)
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant011FumeShroom/Body/BodyCorrect" unique_id=1404181331]
+position = Vector2(9.8, 38.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("108_fwmnw")
+centered = false
+
+[node name="DoomShroom_eyes" type="Sprite2D" parent="CardBg/CharacterStatic/Plant011FumeShroom/Body/BodyCorrect" unique_id=494622307]
+visible = false
+centered = false
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant011FumeShroom/Body/BodyCorrect" unique_id=1143311197]
+visible = false
+position = Vector2(43, 50)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("109_sjawy")
+centered = false
+
+[node name="DoomShroom_head" type="Sprite2D" parent="CardBg/CharacterStatic/Plant011FumeShroom/Body/BodyCorrect" unique_id=2031549088]
+position = Vector2(5.3, -2.7)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("110_gad1q")
+centered = false
+
+[node name="DoomShroom_spout" type="Sprite2D" parent="CardBg/CharacterStatic/Plant011FumeShroom/Body/BodyCorrect" unique_id=693232645]
+position = Vector2(67.8, 16.4)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("111_uxwjg")
+centered = false
+
+[node name="DoomShroom_tip" type="Sprite2D" parent="CardBg/CharacterStatic/Plant011FumeShroom/Body/BodyCorrect" unique_id=893928839]
+position = Vector2(74.1, 14.2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("112_gtpcu")
+centered = false
+
+[node name="PuffShroomPuff1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant011FumeShroom/Body/BodyCorrect" unique_id=813966087]
+visible = false
+position = Vector2(43, 38)
+scale = Vector2(0.5, 0.592593)
+texture = ExtResource("104_boyy4")
+
+[node name="Bullet_FX" type="Node2D" parent="CardBg/CharacterStatic/Plant011FumeShroom/Body/BodyCorrect" unique_id=423568110]
+position = Vector2(-42, -46)
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="CardBg/CharacterStatic/Plant011FumeShroom/Body/BodyCorrect/Bullet_FX" unique_id=1560921890]
+z_index = 600
+z_as_relative = false
+emitting = false
+amount = 30
+texture = ExtResource("104_boyy4")
+lifetime = 0.8
+one_shot = true
+process_material = SubResource("ParticleProcessMaterial_smv18")

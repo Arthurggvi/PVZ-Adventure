@@ -5,6 +5,8 @@ extends RefCounted
 const Data = preload("res://scripts/adventure/ui/almanac_data.gd")
 ## 豌豆射手的实战和图鉴待机共用的转职外观。
 const PeaArt = preload("res://scripts/adventure/plant_art/adventure_peashooter_promotion_art.gd")
+## 电能豌豆的待机预览与卡面共用电系等阶配色。
+const ElectricPeaArt = preload("res://scripts/adventure/plant_art/adventure_electric_peashooter_promotion_art.gd")
 
 ## 在 [param parent] 的 [param bounds] 中绘制 [param kind]、[param type_id] 的一阶目录缩略图。
 ## 返回是否绘制成功；只在目录中缩短超出本体的旗杆和撑杆。
@@ -74,6 +76,8 @@ static func draw_idle(parent: Control, kind: String, type_id: int, tier: int, bo
 					AdventureSunflowerPromotionArt.apply_to_body(body, tier - 1)
 				AdventureLightningReedPromotionArt.PLANT_TYPE:
 					AdventureLightningReedPromotionArt.apply_to_body(body, tier - 1)
+				ElectricPeaArt.PLANT_TYPE:
+					ElectricPeaArt.apply_to_body(body, tier - 1)
 	elif character is Zombie000Base:
 		var id: StringName = Data.tier_id(tier) # 只应用美术和对应色调。
 		character.zombie_type = type_id as CharacterRegistry.ZombieType

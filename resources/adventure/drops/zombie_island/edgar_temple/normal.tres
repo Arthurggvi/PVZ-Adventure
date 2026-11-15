@@ -1,0 +1,44 @@
+[gd_resource type="Resource" script_class="DropTable" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="Table"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="Entry"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/pea_stem.tres" id="pea_stem"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/pea_pod.tres" id="pea_pod"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/frost_crystal.tres" id="frost_crystal"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/plant_starch.tres" id="plant_starch"]
+
+[sub_resource type="Resource" id="recipe_p008"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.edgar_temple.normal.drops.recipe_p008"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p008"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="recipe_p006"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.edgar_temple.normal.drops.recipe_p006"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p006"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[resource]
+script = ExtResource("Table")
+table_id = &"zombie_island.edgar_temple.normal.drops"
+entries = Array[ExtResource("Entry")]([
+SubResource("recipe_p008"),
+SubResource("recipe_p006"),
+ExtResource("pea_stem"),
+ExtResource("pea_pod"),
+ExtResource("frost_crystal"),
+ExtResource("plant_starch")
+])
+min_material_count = 6
+min_recipe_count = 1
+weighted_draw_count = 1
+weighted_selection = 1

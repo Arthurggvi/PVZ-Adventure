@@ -78,11 +78,16 @@ static func validate_terrain(stage: StageDefinition) -> PackedStringArray:
 		rows.clear()
 		for lane: BoardLaneDefinition in layout.lane_definitions(): # 显式攻击行无需匹配旧场景节点数。
 			rows.append(lane.spawn_type)
-	elif not rows.is_empty():
-		var scene_rows: Array[CharacterRegistry.ZombieRowType] = _read_spawn_rows(scene) # 原版场景行数约束
-		if scene_rows.is_empty() or rows.size() != scene_rows.size():
+	else:
+		var scene_rows: Array[CharacterRegistry.ZombieRowType] = Global.main_scene_registry.get_legacy_spawn_rows(scene) # 原版静态行协议。
+		if scene_rows.is_empty():
+			errors.append("当前冒险场景缺少静态出怪行配置。")
+			return errors
+		if not rows.is_empty() and rows.size() != scene_rows.size():
 			errors.append("冒险关卡自定义行数与战场场景不一致")
 			return errors
+		if rows.is_empty():
+			rows = scene_rows
 	var terrain: CharacterRegistry.ZombieRowType = ResourceLevelData.resolve_terrain_type(scene, rows)
 	for phase: StagePhaseDefinition in stage.phases:
 		if phase == null:
@@ -99,11 +104,6 @@ static func validate_terrain(stage: StageDefinition) -> PackedStringArray:
 		for group: WaveSpawnGroup in phase.wave_profile.scheduled_spawns: # 随机选行的组只需上面的场景地形校验。
 			if group == null or group.row <= 0:
 				continue
-			if rows.is_empty():
-				rows = _read_spawn_rows(scene)
-				if rows.is_empty():
-					errors.append("无法读取预排出怪所需的地图行。")
-					return errors
 			if group.row > rows.size():
 				errors.append("阶段 %s 第%d波的预排出怪行号 %d 超出地图范围。" % [phase.phase_id, group.wave, group.row])
 				continue
@@ -115,24 +115,3 @@ static func validate_terrain(stage: StageDefinition) -> PackedStringArray:
 				if not ZombieRow.supports_spawn(spawn_type, rows[group.row - 1]):
 					errors.append("阶段 %s 第%d波的僵尸 %s 无法生成在第%d行。" % [phase.phase_id, group.wave, zombie_type, group.row])
 	return errors
-
-## 按战场的节点顺序读取 [param scene] 的行地形；临时实例不入树，因此不会启动战斗。
-static func _read_spawn_rows(scene: MainSceneRegistry.MainScenes) -> Array[CharacterRegistry.ZombieRowType]:
-	var rows: Array[CharacterRegistry.ZombieRowType] = [] # 无有效行返回空数组。
-	var path: String = Global.main_scene_registry.MainScenesMap.get(scene, "") # 场景注册表中的战场资源。
-	if path.is_empty():
-		return rows
-	var packed: PackedScene = load(path) as PackedScene # 实际战场布局，包含继承的行配置。
-	if packed == null or not packed.can_instantiate():
-		return rows
-	var battle: Node = packed.instantiate() # 离树检查，不触发战场节点的 _ready。
-	var root: Node = battle.get_node_or_null(^"ZombiesRoot") # 与运行时使用同一行容器。
-	if root != null:
-		for child: Node in root.get_children(): # 行序与战场运行时一致。
-			var row: ZombieRow = child as ZombieRow # 非行节点表示场景布局无效。
-			if row == null or not row.has_node(^"ZombieCreatePosition"):
-				rows.clear()
-				break
-			rows.append(row.zombie_row_type)
-	battle.free()
-	return rows

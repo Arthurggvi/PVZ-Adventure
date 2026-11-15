@@ -1,0 +1,146 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://ce7fkg5hv8s6l" path="res://assets/reanim/GoldMagnet_stem.png" id="351_5hyh1"]
+
+[ext_resource type="Texture2D" uid="uid://b68nx5vy75ff1" path="res://assets/reanim/GoldMagnet_leaf5.png" id="352_stc33"]
+
+[ext_resource type="Texture2D" uid="uid://mq76seqkalyk" path="res://assets/reanim/GoldMagnet_leaf1.png" id="353_agc5q"]
+
+[ext_resource type="Texture2D" uid="uid://dxacxekqdua7b" path="res://assets/reanim/GoldMagnet_leaf4.png" id="354_7dndd"]
+
+[ext_resource type="Texture2D" uid="uid://btfp5akxhw6m5" path="res://assets/reanim/GoldMagnet_head1.png" id="355_3bba4"]
+
+[ext_resource type="Texture2D" uid="uid://55ygswjd4ypj" path="res://assets/reanim/GoldMagnet_eyebrow.png" id="356_5d2eo"]
+
+[ext_resource type="Texture2D" uid="uid://cmt5pfp2mwnlc" path="res://assets/reanim/GoldMagnet_leaf2.png" id="357_aliup"]
+
+[ext_resource type="Texture2D" uid="uid://x8844lkm77fv" path="res://assets/reanim/GoldMagnet_leaf3.png" id="358_63kfc"]
+
+[ext_resource type="Texture2D" uid="uid://cfoe638mubffa" path="res://assets/reanim/GoldMagnet_blink1.png" id="359_ij2p4"]
+
+[ext_resource type="Texture2D" uid="uid://cvjgt37odcqvd" path="res://assets/reanim/GoldMagnet_smallspark3.png" id="360_77b3v"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_46"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 46
+
+[node name="Card46" unique_id=922167473 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_46")
+
+[node name="Plant046GoldMagnet" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=294257282]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet" unique_id=249301236]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet" unique_id=1311349168]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body" unique_id=2085351591]
+position = Vector2(-41, -71)
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=1084659497]
+visible = false
+centered = false
+
+[node name="Anim_idle" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=1283861389]
+centered = false
+
+[node name="Anim_attract" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=611982291]
+visible = false
+centered = false
+
+[node name="GoldMagnet_stem" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=716791942]
+position = Vector2(36.664, 53.444)
+scale = Vector2(0.55, 0.5738)
+skew = -0.127826
+texture = ExtResource("351_5hyh1")
+centered = false
+
+[node name="GoldMagnet_leaf5" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=1843851858]
+position = Vector2(47.232, 57.472)
+rotation = 0.336918
+scale = Vector2(0.549, 0.549)
+texture = ExtResource("352_stc33")
+centered = false
+
+[node name="GoldMagnet_leaf5_2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=1935033455]
+position = Vector2(45.332, 63.928)
+rotation = -2.81424
+scale = Vector2(0.36828, 0.37472)
+skew = 3.22963
+texture = ExtResource("352_stc33")
+centered = false
+
+[node name="GoldMagnet_leaf1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=1961902132]
+position = Vector2(18.276, 47.188)
+rotation = 0.0363024
+scale = Vector2(0.55, 0.55)
+skew = 0.0296005
+texture = ExtResource("353_agc5q")
+centered = false
+
+[node name="GoldMagnet_leaf4" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=568158330]
+position = Vector2(49.136, 40.972)
+rotation = -0.0641578
+scale = Vector2(0.55228, 0.55)
+skew = 0.0641578
+texture = ExtResource("354_7dndd")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=680517695]
+position = Vector2(-10.536, -13.412)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("355_3bba4")
+centered = false
+
+[node name="GoldMagnet_eyebrow1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=2063656164]
+position = Vector2(27.62, 37.604)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("356_5d2eo")
+centered = false
+
+[node name="GoldMagnet_eyebrow11" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=1456032740]
+position = Vector2(46.32, 34.204)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("356_5d2eo")
+centered = false
+
+[node name="GoldMagnet_leaf2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=1028808377]
+position = Vector2(26.22, 50.26)
+rotation = 0.179908
+scale = Vector2(0.55028, 0.55072)
+skew = 0.0955043
+texture = ExtResource("357_aliup")
+centered = false
+
+[node name="GoldMagnet_leaf3" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=663037217]
+position = Vector2(42.264, 45.8)
+rotation = -0.0482403
+scale = Vector2(0.551, 0.55)
+skew = 0.0447496
+texture = ExtResource("358_63kfc")
+centered = false
+
+[node name="GoldMagnet_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=1473317615]
+visible = false
+position = Vector2(29.3, 38.5)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("359_ij2p4")
+centered = false
+
+[node name="GoldMagnet_sparks" type="Sprite2D" parent="CardBg/CharacterStatic/Plant046GoldMagnet/Body/BodyCorrect" unique_id=46817320]
+visible = false
+position = Vector2(15.9, 0)
+scale = Vector2(0.482, 0.55)
+texture = ExtResource("360_77b3v")
+centered = false

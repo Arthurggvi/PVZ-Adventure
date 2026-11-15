@@ -1,0 +1,165 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="2_5pqky"]
+
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="3_m4n4y"]
+
+[ext_resource type="Texture2D" uid="uid://d0hpo2yp78fwc" path="res://assets/image/plant/plantshadow.png" id="98_ev02b"]
+
+[ext_resource type="Texture2D" uid="uid://yjc7pkf5hdn2" path="res://assets/image/particles/bullet/PuffShroom_puff1.png" id="104_boyy4"]
+
+[ext_resource type="Texture2D" uid="uid://d1ync1uai7er" path="res://assets/reanim/ScaredyShroom_head_inner.png" id="129_rktly"]
+
+[ext_resource type="Texture2D" uid="uid://btr2esyduvxjn" path="res://assets/reanim/ScaredyShroom_stem.png" id="130_uksgt"]
+
+[ext_resource type="Texture2D" uid="uid://dmc0tn8f0rcd5" path="res://assets/reanim/ScaredyShroom_eye2.png" id="131_vhqax"]
+
+[ext_resource type="Texture2D" uid="uid://c45k6lpypwgxb" path="res://assets/reanim/ScaredyShroom_eye_big.png" id="132_66qyl"]
+
+[ext_resource type="Texture2D" uid="uid://cj53l4356v4lt" path="res://assets/reanim/ScaredyShroom_mouth.png" id="133_myaes"]
+
+[ext_resource type="Texture2D" uid="uid://bmomuy6csllx2" path="res://assets/reanim/ScaredyShroom_lips.png" id="134_srly0"]
+
+[ext_resource type="Texture2D" uid="uid://bhy6v2sefb34e" path="res://assets/reanim/ScaredyShroom_eye1.png" id="135_5k3ad"]
+
+[ext_resource type="Texture2D" uid="uid://4jhqxlj4kfll" path="res://assets/reanim/ScaredyShroom_head.png" id="136_7rrjh"]
+
+[ext_resource type="Texture2D" uid="uid://808cqw3e0phy" path="res://assets/reanim/ScaredyShroom_head2.png" id="137_y566d"]
+
+[ext_resource type="Texture2D" uid="uid://b1ju30d8vymd8" path="res://assets/reanim/ScaredyShroom_eyebrow1.png" id="138_x27we"]
+
+[ext_resource type="Texture2D" uid="uid://ciqsgbjvs6q4g" path="res://assets/reanim/ScaredyShroom_eyebrow2.png" id="139_xhdep"]
+
+[ext_resource type="Texture2D" uid="uid://w0k4h0pyu6su" path="res://assets/reanim/ScaredyShroom_sweat.png" id="140_p3hfi"]
+
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_1_14"]
+script = ExtResource("card_reference")
+card_type = 1
+content_id = 14
+
+[node name="Card14" unique_id=621799473 instance=ExtResource("2_5pqky")]
+layout_mode = 2
+card_reference = SubResource("CardReference_1_14")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("3_m4n4y")
+
+[node name="Plant014ScaredyShroom" type="Node2D" parent="CardBg/CharacterStatic" index="0" unique_id=793470170]
+position = Vector2(1, 14)
+scale = Vector2(0.5, 0.5)
+
+[node name="Shadow" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom" unique_id=540480858]
+visible = false
+texture = ExtResource("98_ev02b")
+
+[node name="Body" type="Node2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom" unique_id=485776023]
+
+[node name="BodyCorrect" type="Node2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body" unique_id=1914311294]
+position = Vector2(-36, -72)
+
+[node name="Anim_blink" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=1573554166]
+visible = false
+centered = false
+
+[node name="ScaredyShroom_head_inner" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=976669531]
+position = Vector2(22.5, 25.6)
+scale = Vector2(0.762, 0.8)
+texture = ExtResource("129_rktly")
+centered = false
+
+[node name="Anim_face" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=327784904]
+position = Vector2(27.6, 35.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("130_uksgt")
+centered = false
+
+[node name="Anim_eye2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=892991874]
+position = Vector2(39.4, 33.1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("131_vhqax")
+centered = false
+
+[node name="ScaredyShroom_eye_big2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=1201153787]
+visible = false
+position = Vector2(40.3, 64.5)
+scale = Vector2(0.7, 0.7)
+texture = ExtResource("132_66qyl")
+centered = false
+
+[node name="ScaredyShroom_mouth" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=1771859230]
+position = Vector2(38.5, 43.6)
+scale = Vector2(1.6, 0.8)
+texture = ExtResource("133_myaes")
+centered = false
+
+[node name="ScaredyShroom_lips" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=1141746851]
+position = Vector2(43.5, 39.5)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("134_srly0")
+centered = false
+
+[node name="Anim_eye1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=1844667024]
+position = Vector2(33.4, 34.9)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("135_5k3ad")
+centered = false
+
+[node name="ScaredyShroom_eye_big1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=1639023173]
+visible = false
+position = Vector2(31.3, 64)
+scale = Vector2(0.91, 0.91)
+texture = ExtResource("132_66qyl")
+centered = false
+
+[node name="ScaredyShroom_head" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=1411833227]
+position = Vector2(5.2, 6.6)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("136_7rrjh")
+centered = false
+
+[node name="ScaredyShroom_head2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=40848063]
+visible = false
+self_modulate = Color(1, 1, 1, 0)
+position = Vector2(21, 31.1)
+rotation = 0.483456
+scale = Vector2(0.833, 0.82)
+skew = 0.0523601
+texture = ExtResource("137_y566d")
+centered = false
+
+[node name="ScaredyShroom_eyebrow1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=359171351]
+position = Vector2(28.2, 30)
+scale = Vector2(1.018, 0.8)
+texture = ExtResource("138_x27we")
+centered = false
+
+[node name="ScaredyShroom_eyebrow2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=304222965]
+position = Vector2(38.6, 26.5)
+texture = ExtResource("139_xhdep")
+centered = false
+
+[node name="ScaredyShroom_sweat2" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=1246309666]
+visible = false
+self_modulate = Color(1, 1, 1, 0)
+position = Vector2(51.6, 56.7)
+scale = Vector2(1.138, 1.397)
+texture = ExtResource("140_p3hfi")
+centered = false
+
+[node name="ScaredyShroom_sweat1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=2106061214]
+visible = false
+self_modulate = Color(1, 1, 1, 0)
+position = Vector2(25.2, 56.7)
+rotation = 3.14159
+scale = Vector2(1.138, 1.397)
+skew = -3.14159
+texture = ExtResource("140_p3hfi")
+centered = false
+
+[node name="PuffShroomPuff1" type="Sprite2D" parent="CardBg/CharacterStatic/Plant014ScaredyShroom/Body/BodyCorrect" unique_id=339741191]
+visible = false
+position = Vector2(18, 2)
+scale = Vector2(0.5, 0.592593)
+texture = ExtResource("104_boyy4")

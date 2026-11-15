@@ -2,6 +2,13 @@
 extends TextureRect
 class_name CardSlotCandidate
 
+## 冒险候选卡按库存顺序分帧装配后发送；普通模式在 _ready 内同步完成。
+signal content_ready()
+## 单次冒险装配的目标预算，单位微秒；单张卡不可拆分，完成后再让出下一帧。
+const BUILD_SLICE_USEC := 4000
+## 候选卡、页面及索引都已完成，父卡槽此后才能连接点击与恢复预选。
+var _content_ready := false
+
 ## 普通备选页面的挂载节点。
 @onready var all_card_page: Control = $AllCardPage
 ## 植物页面的占位布局模板。
@@ -31,36 +38,48 @@ var all_show_page_imitater: Array[GridContainer] = []
 ## 模仿卡页面的零起点页码。
 var curr_page_imitater: int = 0
 
-## 根据目录稳定顺序分页，仅展示包含已解锁内容的页面。
+## 根据目录稳定顺序分页；冒险大量库存按时间预算让帧，普通模式不进入让帧分支。
 func _ready() -> void:
 	if AdventureSession.owns_battle(Global.game_para):
-		_create_candidate_pages(ResourceCardReference.CardType.Plant, grid_container_plant, all_card_page, false, true)
 		card_imitater.hide()
+		await _create_candidate_pages(ResourceCardReference.CardType.Plant, grid_container_plant, all_card_page, false, true)
 	else:
-		_create_candidate_pages(ResourceCardReference.CardType.Plant, grid_container_plant, all_card_page)
-		_create_candidate_pages(ResourceCardReference.CardType.Zombie, grid_container_zombie, all_card_page)
-		_create_candidate_pages(ResourceCardReference.CardType.Plant, grid_container_plant_imitater, all_card_page_imitater, true)
+		await _create_candidate_pages(ResourceCardReference.CardType.Plant, grid_container_plant, all_card_page)
+		await _create_candidate_pages(ResourceCardReference.CardType.Zombie, grid_container_zombie, all_card_page)
+		await _create_candidate_pages(ResourceCardReference.CardType.Plant, grid_container_plant_imitater, all_card_page_imitater, true)
+	if not is_inside_tree() or is_queued_for_deletion():
+		return
 	if not all_show_page.is_empty():
 		all_show_page[0].visible = true
 	if not all_show_page_imitater.is_empty():
 		all_show_page_imitater[0].visible = true
 	label_page.text = "1/" + str(all_show_page.size()) if not all_show_page.is_empty() else "0/0"
 	card_imitater.signal_card_click.connect(imitater_card_slot_appear)
+	_content_ready = true
+	content_ready.emit()
+
+## 返回所有候选页是否完成；查询不会继续构造卡牌或改变页面顺序。
+func is_content_ready() -> bool:
+	return _content_ready
 
 ## 使用 [param card_type] 的目录顺序复制 [param grid_template] 到 [param page_root]。
 ## [param imitate] 为 true 时为植物创建模仿修饰，不修改目录共享引用。
 ## 普通僵尸页末尾追加僵王目录，各引用保留自身类别，不受关卡自动出场类型影响。
+## [param adventure_mode] 为 true 时按库存快照构造，每片预算用尽后让帧；离场后停止。
 func _create_candidate_pages(card_type: int, grid_template: GridContainer, page_root: Control, imitate: bool = false, adventure_mode: bool = false) -> void:
-	var page_capacity: int = grid_template.get_child_count()
+	var page_capacity: int = grid_template.get_child_count() # 保持原占位数量与分页规则。
 	if page_capacity <= 0:
 		push_error("CardSlotCandidate：备选页面缺少卡片占位。")
 		return
-	page_root.remove_child(grid_template)
-	var pages: Array[GridContainer] = []
-	var records: Array[Dictionary] = []
 	if adventure_mode:
-		for build: Dictionary in Global.adventure_inventory.list_cards():
-			var reference := ResourceCardReference.create(ResourceCardReference.CardType.Plant, int(build["plant_type"]))
+		grid_template.hide() # 跨帧保留在所属场景，切场释放时不会遗留脱树模板。
+	else:
+		page_root.remove_child(grid_template)
+	var pages: Array[GridContainer] = [] # 完成的页保持原库存顺序。
+	var records: Array[Dictionary] = [] # 一次性冻结库存数据，跨帧不重新读取玩家卡片。
+	if adventure_mode:
+		for build: Dictionary in Global.adventure_inventory.list_cards(): # UID 与原顺序同时保留。
+			var reference := ResourceCardReference.create(ResourceCardReference.CardType.Plant, int(build["plant_type"])) # 物种只用于选择卡面。
 			records.append({"reference": reference, "build": build})
 	else:
 		var references: Array[ResourceCardReference] = AllCards.get_references(card_type)
@@ -72,12 +91,18 @@ func _create_candidate_pages(card_type: int, grid_template: GridContainer, page_
 				reference.is_imitater = true
 			records.append({"reference": reference})
 
-	var card_index := 0
-	for record: Dictionary in records:
-		var reference: ResourceCardReference = record["reference"]
+	var card_index := 0 # 已接纳的卡片数量，决定页面及页内占位。
+	var slice_started_usec: int = Time.get_ticks_usec() # 当前构造片段的主线程开始时间。
+	for record: Dictionary in records: # 同种植物的多个 UID 始终各自构造独立实例。
+		if adventure_mode and card_index > 0 and Time.get_ticks_usec() - slice_started_usec >= BUILD_SLICE_USEC:
+			await get_tree().process_frame
+			if not is_inside_tree() or is_queued_for_deletion():
+				return
+			slice_started_usec = Time.get_ticks_usec()
+		var reference: ResourceCardReference = record["reference"] # 本卡的基础身份与可选模仿修饰。
 		if not AllCards.is_battle_card(reference):
 			continue
-		var new_card: Card = AllCards.create_card(reference, Card.CardContext.Selection)
+		var new_card: Card = AllCards.create_card(reference, Card.CardContext.Selection) # 可移动到出战槽的独立卡。
 		if new_card == null:
 			continue
 		if adventure_mode:
@@ -85,13 +110,13 @@ func _create_candidate_pages(card_type: int, grid_template: GridContainer, page_
 			if new_card.plant_spawn_profile == null:
 				new_card.free()
 				continue
-		var page_index: int = floori(float(card_index) / float(page_capacity))
+		var page_index: int = floori(float(card_index) / float(page_capacity)) # 不因让帧改变分页边界。
 		if page_index >= pages.size():
-			var page: GridContainer = grid_template.duplicate() as GridContainer
+			var page: GridContainer = grid_template.duplicate() as GridContainer # 每页仅复制原有空占位布局。
 			page.visible = false
 			page_root.add_child(page)
 			pages.append(page)
-		var container: CardCandidateContainer = SceneRegistry.CARD_CANDIDATE_CONTAINER.instantiate()
+		var container: CardCandidateContainer = SceneRegistry.CARD_CANDIDATE_CONTAINER.instantiate() # 候选占位与本卡共同入树。
 		container.init_card_in_seed_chooser(new_card)
 		pages[page_index].get_child(card_index % page_capacity).add_child(container)
 		container.visible = true if adventure_mode else _is_unlocked(reference)

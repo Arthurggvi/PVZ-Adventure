@@ -90,13 +90,10 @@ func _battle_active() -> bool:
 ## [param delta] 物理秒数；移动和行动等待受角色速度影响，插旗冷却按战斗时间计。
 func _physics_process(delta: float) -> void:
 	if not _battle_active():
-		visual.stop_windup_sound()
 		visual.retire_charge_effects()
 		_clear_charge_shadows()
 		return
 	behavior.advance_flag_cooldown(delta)
-	if state == State.WINDUP:
-		visual.advance_windup_sound(delta)
 	var step: float = delta * _speed # 经角色控制效果缩放的逻辑时间。
 	if step <= 0.0:
 		return
@@ -151,7 +148,6 @@ func _apply_boss_visual_phase(phase: int, animated: bool) -> void:
 		_enter_phase_two_look()
 		return
 	boss_target_lane = -1
-	visual.stop_windup_sound()
 	charge.cancel()
 	visual.retire_charge_effects()
 	_transitioning = true
@@ -168,7 +164,7 @@ func _enter_phase_two_look() -> void:
 		if is_instance_valid(flag) and not flag.is_death and not flag.is_queued_for_deletion():
 			flag.enter_phase_two(config.phase_two_block)
 
-## 蓄力开始立刻播放一次践踏，随后由物理时钟重播直到起跑。
+## 播放蓄力动作，等动画和转场召唤结束后起跑。
 func _begin_windup() -> void:
 	_waiting_for_phase_summons = false
 	state = State.WINDUP
@@ -191,7 +187,7 @@ func _advance_charge(step: float) -> void:
 	var completed: bool = charge.advance(self, _game.plant_cell_manager.all_plant_cells[lane], step) # 伤害可能同步触发阶段中断。
 	if state != State.CHARGE or is_death:
 		return
-	visual.advance_charge_effects(feet, step)
+	visual.advance_charge_effects(feet)
 	if completed:
 		visual.finish_charge_effects()
 		state = State.STOP
@@ -432,7 +428,6 @@ func character_death() -> void:
 	state = State.DYING
 	charge.cancel()
 	visual.retire_charge_effects()
-	visual.stop_windup_sound()
 	_clear_charge_shadows()
 	_clear_flags()
 	super.character_death()

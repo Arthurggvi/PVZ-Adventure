@@ -6,6 +6,9 @@
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="3_band"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="4_profile"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/wave_spawn_group.gd" id="5_spawn"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="6_event"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/mus_volcanic_island_night_pre.mp3" id="7_music_normal"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/mus_volcanic_island_night_elite.mp3" id="8_music_nightmare"]
 [ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/grave_upstream/normal.tres" id="NormalDrops"]
 [ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/grave_upstream/nightmare.tres" id="NightmareDrops"]
 
@@ -16,6 +19,168 @@ regular_count = Vector2i(1, 2)
 flag_count = Vector2i(2, 3)
 flag_summons_one_per_grave = true
 flag_zombie_delay_seconds = 1.0
+
+[sub_resource type="Resource" id="NormalOpening"]
+script = ExtResource("3_band")
+band_id = &"zombie_island.grave_upstream.normal.opening"
+first_wave = 1
+last_wave = 3
+minimum_regular_power = 2
+zombie_weights = Dictionary[int, int]({
+1: 6,
+2: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+species_tier_weights = {
+1: {
+&"base": 1,
+&"veteran": 1
+},
+2: {
+&"base": 1
+}
+}
+
+[sub_resource type="Resource" id="NormalCones"]
+script = ExtResource("3_band")
+band_id = &"zombie_island.grave_upstream.normal.cones"
+first_wave = 4
+last_wave = 10
+minimum_regular_power = 4
+zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 3,
+2: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+species_tier_weights = {
+1: {
+&"base": 1,
+&"veteran": 1
+},
+3: {
+&"base": 2,
+&"veteran": 1
+},
+2: {
+&"base": 1
+}
+}
+
+[sub_resource type="Resource" id="NormalPapers"]
+script = ExtResource("3_band")
+band_id = &"zombie_island.grave_upstream.normal.papers"
+first_wave = 11
+last_wave = 20
+minimum_regular_power = 6
+zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 3,
+6: 2,
+2: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+species_tier_weights = {
+1: {
+&"base": 1,
+&"veteran": 1
+},
+3: {
+&"base": 2,
+&"veteran": 1
+},
+6: {
+&"base": 2,
+&"veteran": 1
+},
+2: {
+&"base": 1
+}
+}
+
+[sub_resource type="Resource" id="NormalDancers"]
+script = ExtResource("3_band")
+band_id = &"zombie_island.grave_upstream.normal.dancers"
+first_wave = 21
+last_wave = 30
+minimum_regular_power = 8
+zombie_weights = Dictionary[int, int]({
+1: 6,
+3: 3,
+6: 2,
+9: 1,
+2: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+species_tier_weights = {
+1: {
+&"base": 1,
+&"veteran": 1
+},
+3: {
+&"base": 2,
+&"veteran": 1
+},
+6: {
+&"base": 2,
+&"veteran": 1
+},
+9: {
+&"base": 1
+},
+2: {
+&"base": 1
+}
+}
+
+[sub_resource type="Resource" id="NormalWave3Cones"]
+script = ExtResource("5_spawn")
+wave = 3
+count_range = Vector2i(2, 2)
+zombie_weights = Dictionary[int, int]({
+3: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"base": 1
+})
+
+[sub_resource type="Resource" id="NormalFirstFlagPapers"]
+script = ExtResource("5_spawn")
+wave = 10
+count_range = Vector2i(2, 2)
+zombie_weights = Dictionary[int, int]({
+6: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"veteran": 1
+})
+
+[sub_resource type="Resource" id="NormalSecondFlagDancer"]
+script = ExtResource("5_spawn")
+wave = 20
+count_range = Vector2i(1, 1)
+zombie_weights = Dictionary[int, int]({
+9: 1
+})
+tier_weights = Dictionary[StringName, int]({
+&"veteran": 1
+})
+
+[sub_resource type="Resource" id="NormalProfile"]
+script = ExtResource("4_profile")
+profile_id = &"zombie_island.grave_upstream.normal.waves"
+wave_count = 30
+flag_waves = Array[int]([10, 20])
+scheduled_spawns = Array[ExtResource("5_spawn")]([SubResource("NormalWave3Cones"), SubResource("NormalFirstFlagPapers"), SubResource("NormalSecondFlagDancer")])
+bands = Array[ExtResource("3_band")]([SubResource("NormalOpening"), SubResource("NormalCones"), SubResource("NormalPapers"), SubResource("NormalDancers")])
 
 [sub_resource type="Resource" id="NightmareOpening"]
 script = ExtResource("3_band")
@@ -266,6 +431,44 @@ flag_waves = Array[int]([10, 20, 30, 40])
 scheduled_spawns = Array[ExtResource("5_spawn")]([SubResource("NightmareBucketRow1"), SubResource("NightmareBucketRow2"), SubResource("NightmareBucketRow3"), SubResource("NightmareBucketRow4"), SubResource("NightmareBucketRow5"), SubResource("NightmareScreenDoorRow1"), SubResource("NightmareScreenDoorRow2"), SubResource("NightmareScreenDoorRow3"), SubResource("NightmareScreenDoorRow4"), SubResource("NightmareScreenDoorRow5"), SubResource("NightmareWave30Dancers"), SubResource("NightmareWave40Dancers")])
 bands = Array[ExtResource("3_band")]([SubResource("NightmareOpening"), SubResource("NightmareBuckets"), SubResource("NightmareScreenDoors"), SubResource("NightmareElite"), SubResource("NightmareFinal")])
 
+[sub_resource type="Resource" id="NormalStartGraves"]
+script = ExtResource("6_event")
+event_id = &"zombie_island.grave_upstream.normal.start_graves"
+trigger = 1
+order = 0
+repeat_rule = 1
+action = 9
+action_count = 6
+
+[sub_resource type="Resource" id="NightmareStartGraves"]
+script = ExtResource("6_event")
+event_id = &"zombie_island.grave_upstream.nightmare.start_graves"
+trigger = 1
+order = 0
+repeat_rule = 1
+action = 9
+action_count = 8
+
+[sub_resource type="Resource" id="NightmareWave30Graves"]
+script = ExtResource("6_event")
+event_id = &"zombie_island.grave_upstream.nightmare.wave30_graves"
+trigger = 3
+order = 0
+repeat_rule = 1
+wave = 30
+action = 9
+action_count = 8
+
+[sub_resource type="Resource" id="NightmareWave40Graves"]
+script = ExtResource("6_event")
+event_id = &"zombie_island.grave_upstream.nightmare.wave40_graves"
+trigger = 3
+order = 0
+repeat_rule = 1
+wave = 40
+action = 9
+action_count = 8
+
 [resource]
 script = ExtResource("1_override")
 battle_background_texture = ExtResource("battlebg")
@@ -273,7 +476,12 @@ daytime_override = 0
 daytime_sun_override = 1
 normal_gravestone_rules = SubResource("NaturalGravestones")
 nightmare_gravestone_rules = SubResource("NaturalGravestones")
+normal_wave_profile = SubResource("NormalProfile")
 nightmare_wave_profile = SubResource("NightmareProfile")
 normal_drop_table = ExtResource("NormalDrops")
 nightmare_drop_table = ExtResource("NightmareDrops")
+additional_normal_events = Array[ExtResource("6_event")]([SubResource("NormalStartGraves")])
+additional_nightmare_events = Array[ExtResource("6_event")]([SubResource("NightmareStartGraves"), SubResource("NightmareWave30Graves"), SubResource("NightmareWave40Graves")])
+normal_battle_music = ExtResource("7_music_normal")
+nightmare_battle_music = ExtResource("8_music_nightmare")
 replace_nightmare_bosses = true

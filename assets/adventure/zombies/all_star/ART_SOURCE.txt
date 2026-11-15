@@ -4,11 +4,11 @@ AUTHORITATIVE ORIGINAL SOURCE
 Plants vs. Zombies 2 International 5.8.1 (version 232); historical archive:
 https://archive.org/details/pv-z-2-android
 Original source archive (remote PC):
-C:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/pvz2_5_8_1_original.zip
+D:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/pvz2_5_8_1_original.zip
 Original OBB:
-C:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/pvz2_main_5_8_1.obb
+ZIP member: com.ea.game.pvz2_row/main.232.com.ea.game.pvz2_row.obb
 Official PAM from Resource Group ZombieModernAllStarGroup_Common:
-C:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/original_allstar_source/ZOMBIE_MODERN_ALLSTAR.PAM
+D:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/original_allstar_source/ZOMBIE_MODERN_ALLSTAR.PAM
 Original textures from group ZombieModernAllStarGroup_1536, atlas ZOMBIE_MODERN_ALLSTAR_1536_BGRA.png;
 37 authored images/atlas rectangles read from original PROPERTIES/RESOURCES.RTON.
 Original audio from ZombieModernAllStarAudio, Wwise BNK: 21 audio clips;
@@ -48,7 +48,7 @@ positive original PAM offset convention.
 The source uniform was RED. The requested BLACK version changes only palette/appearance,
 and preserves original game component geometry, frame sequencing and choreography.
 The original red texture atlas and PAM evidence remain outside the game at
-C:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/original_allstar_source/.
+D:/Dev/PvZ/_review/all_star/pvz2_original_5_8_1/original_allstar_source/.
 Only the black palette adaptation required at runtime ships in original/black.
 
 Original gameplay configuration: `Packages/PropertySheets.rton`,

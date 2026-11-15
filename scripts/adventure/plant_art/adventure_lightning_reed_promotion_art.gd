@@ -50,7 +50,7 @@ static func apply_to_body(body: Node2D, rank: int) -> bool:
 	for child: Node in rig.get_children():
 		if child is Sprite2D:
 			sprites.append(child)
-	return _apply(visual, sprites, rank, BODY_HEIGHT)
+	return apply_palette(visual, sprites, rank, BODY_HEIGHT)
 
 
 ## 给独立卡面 [param preview] 应用 [param rank] 转外观，涵盖持卡预览和技能书头像。
@@ -65,7 +65,7 @@ static func apply_to_preview(preview: Node2D, rank: int) -> bool:
 	var artwork := visual.get_node_or_null(^"Artwork") as Sprite2D
 	if artwork == null:
 		return false
-	return _apply(visual, [artwork], rank, PORTRAIT_HEIGHT)
+	return apply_palette(visual, [artwork], rank, PORTRAIT_HEIGHT)
 
 
 ## 为一次放电的 [param effect] 应用 [param rank] 转配色。各帧的透明度和动画时长由原场景决定。
@@ -86,7 +86,8 @@ static func apply_to_effect(effect: Node2D, rank: int) -> void:
 
 ## 复用 [param anchor] 上的外观节点，为 [param sprites] 设置 [param rank] 与局部 [param height]。
 ## 传入 0 时撤下根光和本次着色，供卡面更换出战快照时恢复原始图案。
-static func _apply(anchor: Node2D, sprites: Array[Sprite2D], rank: int, height: float) -> bool:
+## 电系植物共用此入口，保持同一色表、根光与坐标换算，不复制着色规则。
+static func apply_palette(anchor: Node2D, sprites: Array[Sprite2D], rank: int, height: float) -> bool:
 	if rank < 0 or rank > PALETTES.size() or sprites.is_empty():
 		return false
 	# 同一外观锚点只放一套根光，反复切换转职时复用该节点。

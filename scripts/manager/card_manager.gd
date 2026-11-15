@@ -55,6 +55,8 @@ func _on_hm_character_clear_card(curr_card:Card):
 	for temp_card in curr_temp_cards:
 		temp_card.mouse_filter_start()
 
+## 创建当前模式卡槽；普通卡槽等待冒险候选装配后才发布可用的出战卡引用。
+## 调用方应等待此方法完成，原版和其他模式没有分帧构造时仍同步完成。
 func init_manager() -> void:
 	self.card_mode = game_para.card_mode
 	self.is_shovel = game_para.is_shovel
@@ -68,7 +70,9 @@ func init_manager() -> void:
 		ConstLevelData.E_CardMode.Norm:
 			card_slot_norm = load("res://scenes/card_slot/card_slot_norm.tscn").instantiate()
 			card_slot_root.add_child(card_slot_norm)
-			card_slot_norm.init_card_slot_norm(game_para)
+			await card_slot_norm.init_card_slot_norm(game_para)
+			if not is_inside_tree() or is_queued_for_deletion():
+				return
 			card_slot_battle = card_slot_norm.card_slot_battle
 			card_slot_root.curr_cards = card_slot_battle.curr_cards
 
