@@ -71,12 +71,12 @@ func _copy_pose(zombie: Zombie000Base, feet: Vector2) -> void:
 ## 在安全阶段使用 [param feet] 安装设施；[param original] 只在原死亡事务结束后隐藏原身体。
 func _mount(feet: Vector2, original: WeakRef) -> void:
 	if not _shot.battle.is_active():
-		free()
+		queue_free()
 		return
 	var corpse := original.get_ref() as Zombie000Base # 原僵尸可能已由死亡动画直接释放。
 	if is_instance_valid(corpse):
 		if not corpse.is_death:
-			free()
+			queue_free()
 			return
 		corpse.body.hide()
 		corpse.shadow.hide()
