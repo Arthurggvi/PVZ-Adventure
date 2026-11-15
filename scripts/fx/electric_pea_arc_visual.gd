@@ -27,10 +27,12 @@ class Burst extends RefCounted:
 	var age: float = 0.0
 	## 首次强放电和随后较弱回闪的两条固定主路径。
 	var paths: Array[PackedVector2Array] = []
-	## 两次主路径各自的短枝列表，每次最多三条。
-	var branches: Array = []
-	## 命中时向外散开的六条固定碎电弧，坐标相对终点。
-	var sparks: Array[PackedVector2Array] = []
+	## 两次主路径各自最多三条短枝，缓存为独立端点对供同色批绘。
+	var branches: Array[PackedVector2Array] = []
+	## 命中时向外散开的六条固定碎电弧端点对，坐标相对终点。
+	var sparks := PackedVector2Array()
+	## 复用的火花画布端点，每帧只更新坐标，不重复分配六份折线数组。
+	var spark_points := PackedVector2Array()
 
 
 ## 当前有界的短时放电列表，原始和折射放电共用预算。
@@ -109,15 +111,16 @@ func _append(shot: ElectricPeaShotContext, start: Vector2, finish: Vector2, dela
 		var angle: float = float(index) * TAU / 6.0 + (noise(seed, index + 110) - 0.5) * 0.62 # 各扇区一条，轮廓保持不对称。
 		var ray: Vector2 = Vector2.from_angle(angle) # 火花由中心径向散出。
 		var reach: float = lerpf(7.0, 15.0, noise(seed, index + 130)) # 命中尺寸保持紧凑。
-		burst.sparks.append(make_path(ray * 2.0, ray * reach, seed + index * 17, 2.8, 4.0, 4))
+		burst.sparks.append_array(_path_segments(make_path(ray * 2.0, ray * reach, seed + index * 17, 2.8, 4.0, 4)))
+	burst.spark_points.resize(burst.sparks.size())
 	_bursts.append(burst)
 	set_process(true)
 	queue_redraw()
 
 
 ## 为 [param path] 生成最多三条短分叉；[param seed] 决定固定根部与方向，不产生新的命中点。
-static func _make_branches(path: PackedVector2Array, seed: int) -> Array[PackedVector2Array]:
-	var branches: Array[PackedVector2Array] = [] # 返回独立短枝，主线再长也不增加总数。
+static func _make_branches(path: PackedVector2Array, seed: int) -> PackedVector2Array:
+	var branches := PackedVector2Array() # 三条短枝转成互不连接的端点对，主线再长也不增加总数。
 	var direction: Vector2 = (path[-1] - path[0]).normalized() # 短枝略朝原电流方向延伸。
 	var normal: Vector2 = direction.orthogonal() # 奇偶分叉落在主线两侧。
 	var reach: float = minf(path[0].distance_to(path[-1]) * 0.16, 17.0) # 极短连接不会长出比主线更大的分叉。
@@ -128,8 +131,17 @@ static func _make_branches(path: PackedVector2Array, seed: int) -> Array[PackedV
 		var root: Vector2 = path[root_index] # 枝线必须实际接到当前主线。
 		var side: float = -1.0 if index % 2 == 0 else 1.0 # 两侧轮流出现，避免梳子状排布。
 		var finish: Vector2 = root + (direction * 0.46 + normal * side) * reach * lerpf(0.55, 1.0, noise(seed, index + 20)) # 每枝长度不同。
-		branches.append(make_path(root, finish, seed + index * 29, 2.4, 5.0, 4))
+		branches.append_array(_path_segments(make_path(root, finish, seed + index * 29, 2.4, 5.0, 4)))
 	return branches
+
+
+## 将 [param path] 的连续折线转换为独立端点对，保留每一段几何且不连接不同短枝；少于两点时返回空数组。
+static func _path_segments(path: PackedVector2Array) -> PackedVector2Array:
+	var segments := PackedVector2Array() # 只在放电建立时展开，绘制时直接复用。
+	for index: int in range(1, path.size()): # 相邻两点各形成一段，拐角点供前后两段共用。
+		segments.append(path[index - 1])
+		segments.append(path[index])
+	return segments
 
 
 ## [param delta] 为游戏秒；暂停只检查战场有效性，不推进放电、跳跃等待或命中余辉。
@@ -162,8 +174,7 @@ func _draw() -> void:
 		var path: PackedVector2Array = _prefix(burst.paths[phase], minf(1.0, burst.age / TRAVEL_TIME)) # 前沿快速逐段抵达目标。
 		draw_strand(self, path, burst.colors, energy)
 		if burst.age >= TRAVEL_TIME:
-			for branch: PackedVector2Array in burst.branches[phase]: # 短枝低于主弧亮度，不制造假目标端点。
-				_draw_filament(branch, burst.colors, energy * 0.48)
+			_draw_filament(burst.branches[phase], burst.colors, energy * 0.48)
 			_draw_impact(burst)
 
 
@@ -178,12 +189,12 @@ static func _prefix(path: PackedVector2Array, fraction: float) -> PackedVector2A
 	return visible
 
 
-## 用 [param colors] 及 [param energy] 绘制低于主线亮度的 [param points] 短枝或火花。
+## 用 [param colors] 及 [param energy] 批绘低于主线亮度的 [param points] 短枝或火花端点对；空数组或透明时不提交绘制。
 func _draw_filament(points: PackedVector2Array, colors: Dictionary, energy: float) -> void:
-	if energy <= 0.001:
+	if points.is_empty() or energy <= 0.001:
 		return
-	draw_polyline(points, Color(colors.rim, energy * 0.28), 2.6, true)
-	draw_polyline(points, Color(colors.core, energy * 0.88), 0.7, true)
+	draw_multiline(points, Color(colors.rim, energy * 0.28), 2.6, true)
+	draw_multiline(points, Color(colors.core, energy * 0.88), 0.7, true)
 
 
 ## 绘制 [param burst] 抵达目标后的亮核与碎电弧；没有扩张圆环或遮挡目标的大面积色块。
@@ -191,11 +202,13 @@ func _draw_impact(burst: Burst) -> void:
 	var age: float = burst.age - TRAVEL_TIME # 命中从电弧前沿抵达时开始衰减。
 	var fade: float = pow(maxf(0.0, 1.0 - age / 0.18), 1.7) # 火花比主线略晚熄灭，保留命中落点。
 	var flash: float = maxf(0.0, 1.0 - age / 0.055) # 中心亮核仅保留三帧左右。
-	draw_circle(burst.impact, 8.0, Color(burst.colors.glow, flash * 0.07))
-	draw_circle(burst.impact, 4.0, Color(burst.colors.rim, flash * 0.19))
-	draw_circle(burst.impact, 1.8, Color(burst.colors.core, flash * 0.95))
-	for spark: PackedVector2Array in burst.sparks: # 六条碎弧只有轻微径向外移，尺寸始终受控。
-		var points := PackedVector2Array() # 相对火花坐标转回当前画布。
-		for point: Vector2 in spark: # 不改变固定折角，只做统一的短促外扩。
-			points.append(burst.impact + point * (1.0 + age * 1.6))
-		_draw_filament(points, burst.colors, fade * 0.82)
+	if flash > 0.001:
+		draw_circle(burst.impact, 8.0, Color(burst.colors.glow, flash * 0.07))
+		draw_circle(burst.impact, 4.0, Color(burst.colors.rim, flash * 0.19))
+		draw_circle(burst.impact, 1.8, Color(burst.colors.core, flash * 0.95))
+	if fade * 0.82 <= 0.001:
+		return
+	var expansion: float = 1.0 + age * 1.6 # 六条碎弧共用原有短促外扩，不改变固定折角和宽度。
+	for index: int in range(burst.sparks.size()): # 复用放电建立时分配的数组，将相对端点写回当前画布。
+		burst.spark_points[index] = burst.impact + burst.sparks[index] * expansion
+	_draw_filament(burst.spark_points, burst.colors, fade * 0.82)
