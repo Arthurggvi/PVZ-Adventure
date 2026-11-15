@@ -6,14 +6,18 @@ class_name DropTable
 enum WeightedSelection { UNSET, WITH_REPLACEMENT, WITHOUT_REPLACEMENT }
 ## 可跨配置复用的静态掉落表 ID。
 @export var table_id: StringName = &""
-## 强类型条目列表，禁止空条目和重复 ID。
+## 强类型条目列表，禁止空条目和重复 ID；整表可显式留空。
 @export var entries: Array[DropEntryDefinition] = []
+## 阶段仅发事件奖励时，可显式声明基础掉落表为空。
+@export var allow_empty: bool = false
 ## 结算后补齐的数量保底；仅从本表的素材/配方候选中补足。
 @export var min_material_count: int = 0
 @export var min_recipe_count: int = 0
 @export var min_distinct_materials: int = 0
-## 加权池抽取次数，不影响独立概率和固定发放条目。
+## 加权池抽取尝试次数，不影响独立概率和固定发放条目。
 @export var weighted_draw_count: int = 0
+## 每次加权抽取成功的概率，默认必定选中池内一个条目。
+@export_range(0.0, 1.0) var weighted_draw_chance: float = 1.0
 ## 加权池的放回策略，不隐式选择。
 @export var weighted_selection: WeightedSelection = WeightedSelection.UNSET
 
@@ -22,8 +26,10 @@ func validate() -> PackedStringArray:
 	var errors := PackedStringArray() # 表与各条目错误合并返回。
 	if str(table_id).strip_edges().is_empty():
 		errors.append("掉落表缺少稳定 ID。")
-	if entries.is_empty():
+	if entries.is_empty() and not allow_empty:
 		errors.append("掉落表为空。")
+	if not is_finite(weighted_draw_chance) or weighted_draw_chance < 0.0 or weighted_draw_chance > 1.0:
+		errors.append("加权抽取概率必须在 0–1 之间。")
 	var ids: Dictionary = {} # 条目 ID 在本表内唯一。
 	if min_material_count < 0 or min_recipe_count < 0 or min_distinct_materials < 0:
 		errors.append("掉落保底数量不得为负数。")
@@ -57,6 +63,6 @@ func validate() -> PackedStringArray:
 			errors.append("加权池必须显式配置正抽取次数及放回策略。")
 		if weighted_selection == WeightedSelection.WITHOUT_REPLACEMENT and weighted_draw_count > weighted_count:
 			errors.append("无放回抽取次数超过加权池条目数。")
-	elif weighted_draw_count != 0 or weighted_selection != WeightedSelection.UNSET:
-		errors.append("空加权池不能配置抽取次数或策略。")
+	elif weighted_draw_count != 0 or weighted_selection != WeightedSelection.UNSET or weighted_draw_chance != 1.0:
+		errors.append("空加权池不能配置抽取次数、概率或策略。")
 	return errors

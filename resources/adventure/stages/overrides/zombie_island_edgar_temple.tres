@@ -5,8 +5,16 @@
 [ext_resource type="Resource" path="res://resources/adventure/stages/boards/zombie_island_edgar_temple.tres" id="board"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/boss_encounter_definition.gd" id="boss"]
 [ext_resource type="Script" path="res://scripts/adventure/stages/stage_phase_definition.gd" id="phase"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="event"]
 [ext_resource type="Resource" path="res://resources/adventure/stages/waves/zombie_island_edgar_temple_normal.tres" id="normal"]
 [ext_resource type="Resource" path="res://resources/adventure/stages/waves/zombie_island_edgar_temple_nightmare.tres" id="nightmare"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/edgar_temple/normal.tres" id="normal_drops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/edgar_temple/normal_clear_keys.tres" id="clear_keys"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/edgar_temple/nightmare.tres" id="nightmare_drops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/edgar_temple/nightmare_black_general.tres" id="general_drops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/edgar_temple/nightmare_white_duke.tres" id="duke_drops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/edgar_temple/terminal.tres" id="terminal_drops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/edgar_temple/terminal_doctor.tres" id="doctor_drops"]
 
 [sub_resource type="Resource" id="BlackGeneralRetreat"]
 script = ExtResource("boss")
@@ -170,7 +178,9 @@ skill_summon_tier = &"elite"
 script = ExtResource("phase")
 phase_id = &"zombie_island.edgar_temple.terminal"
 kind = 3
+drop_table = ExtResource("terminal_drops")
 boss_encounters = Array[ExtResource("boss")]([SubResource("TerminalDoctor")])
+events = Array[ExtResource("event")]([ExtResource("doctor_drops")])
 
 [resource]
 script = ExtResource("1_override")
@@ -180,6 +190,10 @@ daytime_override = 0
 daytime_sun_override = 0
 normal_wave_profile = ExtResource("normal")
 nightmare_wave_profile = ExtResource("nightmare")
+normal_drop_table = ExtResource("normal_drops")
+nightmare_drop_table = ExtResource("nightmare_drops")
+additional_normal_events = Array[ExtResource("event")]([ExtResource("clear_keys")])
+additional_nightmare_events = Array[ExtResource("event")]([ExtResource("general_drops"), ExtResource("duke_drops")])
 replace_nightmare_bosses = true
 nightmare_bosses = Array[ExtResource("boss")]([SubResource("BlackGeneralRetreat"), SubResource("WhiteDukeRetreat"), SubResource("BlackGeneralFinal"), SubResource("WhiteDukeFinal")])
 terminal_key_id = &"zombie_island.edgar_temple.nightmare_key_lower"
