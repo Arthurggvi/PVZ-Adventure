@@ -6,6 +6,7 @@
 [node name="CherryBlast" type="Node2D"]
 visible = false
 script = ExtResource("1_blast")
+cherry_presentation = true
 
 [node name="ExplosiveFont" type="Sprite2D" parent="."]
 texture = ExtResource("2_powie")
