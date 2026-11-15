@@ -38,7 +38,7 @@ S7B港口与S8风动已通过。当前9A为建筑入口交互候选：真实功�
 ## 命令
 
 ```powershell
-$entry='C:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
+$entry='D:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
 $work='C:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112'
 $tools='C:\Dev\Tools\ArtControl\config.json'
 python $entry build --workspace $work --tools-config $tools

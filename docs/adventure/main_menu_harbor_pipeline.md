@@ -57,7 +57,7 @@
 
 单入口：
 ```powershell
-$entry='C:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
+$entry='D:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
 $work='C:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112'
 $tools='C:\Dev\Tools\ArtControl\config.json'
 python $entry all --workspace $work --tools-config $tools

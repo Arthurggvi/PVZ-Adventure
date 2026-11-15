@@ -55,9 +55,9 @@
 在隔离用户目录**串行**运行。Windows GUI 版 Godot 通过输出管道 `| Out-String` 等待进程结束，不能只连续启动多个 `& $exe`；各测试使用自己要求的隔离目录标记：
 
 ```powershell
-$review = "C:\Dev\PvZ\_review\interaction_loading_20261114"
+$review = "D:\Dev\PvZ\_review\interaction_loading_20261114"
 $exe = "C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe"
-$project = "C:\Dev\PvZ\PVZ-Adventure"
+$project = "D:\Dev\PvZ\PVZ-Adventure"
 function Invoke-LoadingCheck {
     param([string]$Name, [string[]]$GodotArgs)
     $env:APPDATA = Join-Path $review $Name
@@ -80,7 +80,7 @@ Invoke-LoadingCheck -Name "transition-frame-test" -GodotArgs @("--max-fps", "60"
 
 - 退出码不是唯一判断：逐份排除 `SCRIPT ERROR`、解析错误和 `FAIL`，再核对日志的实际覆盖范围。Headless shader backend 不能代表 GPU 首帧；图形帧测试按 `frame_post_draw` 验证淡出中间透明度，不能用 Headless 替代。
 - 关联改动须覆盖首次/重复请求、非法资源、失败恢复、取消/换档/离场、交接回调顺序和独立玩家档连续性。`ui_accept` 保留 Enter、数字键盘 Enter、Space 和手柄 A，导航验收应走真实功能门面。
-- 本轮图形诊断资料位于仓外 `C:\Dev\PvZ\_review\interaction_loading_20261114`：`interaction_diagnostic.gd/.tscn` 和 `run_interaction_diagnostic.ps1`，隔离目录必须含 `startup-interaction-test`。`all/routes` 经过真实菜单、地图选择器、地图、首次/第二次关卡1与返图；`all/modals` 记录背包、图鉴、角色、设置的首次/第二次打开，并输出 JSON、日志与 PNG。未解锁的研究室/图书馆/商店须明确记录未覆盖，不能把新档诊断称为全功能验收。
+- 本轮图形诊断资料位于仓外 `D:\Dev\PvZ\_review\interaction_loading_20261114`：`interaction_diagnostic.gd/.tscn` 和 `run_interaction_diagnostic.ps1`，隔离目录必须含 `startup-interaction-test`。`all/routes` 经过真实菜单、地图选择器、地图、首次/第二次关卡1与返图；`all/modals` 记录背包、图鉴、角色、设置的首次/第二次打开，并输出 JSON、日志与 PNG。未解锁的研究室/图书馆/商店须明确记录未覆盖，不能把新档诊断称为全功能验收。
 - 诊断端点分别是菜单可见且解除遮幕、地图解除遮幕、战斗 `card_manager.is_norm_appeared`、窗口 `modal_for()/is_content_ready()`；选卡标记早于候选槽入场动画稳定，因此截图另等动画结束。入口同步调用时间、到就绪耗时、墙钟帧间隔分开记录；帧间隔包含渲染/调度等待，不等同纯 CPU 时间。`all` 先跑战斗，后续窗口资源可能已预热；需要冷窗口数据时另开 `modals` 进程。
 - 本轮接入与诊断入口不表示已取得性能或验收结论。实测结论必须引用对应日志/JSON及运行条件；冷/温启动至少各三次，区分引擎 Autoload、Bootstrap→菜单、点击→内容就绪、图形首帧和发行包，不把不同文件缓存状态的单次结果算成加速比例。
 - **上一轮历史基线（2026-11-14，非本轮点击后交互数据）**：Headless Autoload 原两次约 6.84–6.86 秒；上一轮极短启动三次 2165/2134/2156ms，中位数约 2.156 秒。独立 Bootstrap→交互菜单当时为 Headless 683ms、Windows 图形 1094ms。这些范围不同，均不能证明本轮首次地图、关卡或窗口变快，也不等同发行包冷启动。上一轮五帧即退出三次正常的记录同样不能代替本轮资源批次退出检查。
@@ -107,7 +107,7 @@ Invoke-LoadingCheck -Name "transition-frame-test" -GodotArgs @("--max-fps", "60"
 
 ## 七、初版花园加载表现历史验收（2026-11-14）
 
-以下记录对应精简文案与动效之前的初版（提交 `c1169f71`），只作历史证据，不能代替当前第四节实现的重新验收。该轮日志、图形驱动与截图保存在仓外 `C:\Dev\PvZ\_review\garden_loading_20261114`。编辑器导入记录为 `editor_parse.log`；以下 **八项既有验收均记录 PASS**，分别对应目录中的同名 `.stdout.log` / `.stderr.log`，未新增测试套件：
+以下记录对应精简文案与动效之前的初版（提交 `c1169f71`），只作历史证据，不能代替当前第四节实现的重新验收。该轮日志、图形驱动与截图保存在仓外 `D:\Dev\PvZ\_review\garden_loading_20261114`。编辑器导入记录为 `editor_parse.log`；以下 **八项既有验收均记录 PASS**，分别对应目录中的同名 `.stdout.log` / `.stderr.log`，未新增测试套件：
 
 | 既有验收 | 本轮确认范围 |
 |---|---|
@@ -128,6 +128,6 @@ Invoke-LoadingCheck -Name "transition-frame-test" -GodotArgs @("--max-fps", "60"
 
 ## 八、精简表现修订验收（2026-11-14）
 
-当前版本的记录位于仓外 `C:\Dev\PvZ\_review\quiet_loading_20261114`。第七节列出的八项既有测试重新执行，全部退出码为0并记录功能断言PASS；`test_threaded_battle_route`退出仍出现5个ObjectDB实例和2个资源未释放的告警/错误，其余部分测试及图形预览仍有ObjectDB退出告警。测试中没有解析错误、SCRIPT ERROR或功能FAIL；这里仅确认功能断言，不能称作无错误运行。没有新增仓库测试。
+当前版本的记录位于仓外 `D:\Dev\PvZ\_review\quiet_loading_20261114`。第七节列出的八项既有测试重新执行，全部退出码为0并记录功能断言PASS；`test_threaded_battle_route`退出仍出现5个ObjectDB实例和2个资源未释放的告警/错误，其余部分测试及图形预览仍有ObjectDB退出告警。测试中没有解析错误、SCRIPT ERROR或功能FAIL；这里仅确认功能断言，不能称作无错误运行。没有新增仓库测试。
 
 `quiet_preview_1794671365.json`、`preview.stdout.log`及六张`preview_1794671365_*.png`记录四种全屏尺寸和紧凑/失败表现。图形断言确认正常加载无可见说明标签、四种尺寸插画位置保持静止、隐藏停止处理；模态约0.2秒时内容仍透明，约0.75秒时小提示可见；退出立即释放鼠标/输入/焦点，0.2秒后释放旧节点。正式切场采样源16帧、目标48帧，无表现空帧，进度和内容透明度保持连续。驱动有明确的截图观察等待，不是加载性能测量，也不构成正式流程的等待时间。

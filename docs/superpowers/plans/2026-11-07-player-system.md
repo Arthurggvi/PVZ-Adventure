@@ -50,7 +50,7 @@
 - Ruling: 原素材含数字，直接显示对应完整角标；不拆底图或重复叠字。
 - Ruling: assets 默认忽略，增加仅针对 assets/adventure/ui/player 的白名单，确保素材与脚本可以一起交付，不修改其他资源的忽略范围。
 - 独立只读复核完成，无 Critical/Important 发现；未进行故障注入或真实档案交互测试。
-- 完整项目 Godot 4.7.2 headless editor 导入退出 0，未见 ERROR/WARNING。隔离 user:// 的真实 UI 渲染退出 0、无错误，产物 C:/Dev/PvZ/_review/player-panel-preview.png。
+- 完整项目 Godot 4.7.2 headless editor 导入退出 0，未见 ERROR/WARNING。隔离 user:// 的真实 UI 渲染退出 0、无错误，产物 D:/Dev/PvZ/_review/player-panel-preview.png。
 - 单脚本 --check-only 不能提供本项目 Autoload 上下文，报连带依赖错误，不作为本项目解析结论；改用完整编辑器加载与隔离渲染确认。
 - 隔离预览发现并修复不受支持的 %g 格式符、SVG text 图标，调整长装备名、文字对比度和经验条。未新增或运行测试；仅更新已有测试失效的模态引用。
 - 已有用户工作区改动保留，未提交或推送。

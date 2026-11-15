@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- 在 C:/Dev/PvZ/PVZ-Adventure 当前干净 develop 检出施工；不创建额外工作树。
+- 在 D:/Dev/PvZ/PVZ-Adventure 当前干净 develop 检出施工；不创建额外工作树。
 - 当前只有 zombie_island 可进入，town 始终不可进入；JSON 字符串不能执行脚本。
 - 唯一美术源 assets/adventure/destination_picker/v1_2/layout.json；1920×1080 等比缩放，最低 1066×600。
 - 不新增 Autoload、存档、播放器，不改地图/战斗/进度/环境 FX；开关界面不写盘。

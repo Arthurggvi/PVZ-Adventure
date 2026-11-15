@@ -22,19 +22,19 @@ func _run() -> void:
 	assert(ui.mode == "upgrade", "Mode tab must receive mouse event")
 	await _wait_for_content(ui)
 	await RenderingServer.frame_post_draw
-	get_viewport().get_texture().get_image().save_png("C:/Dev/PvZ/_review/research_upgrade_in_game.png")
+	get_viewport().get_texture().get_image().save_png("D:/Dev/PvZ/_review/research_upgrade_in_game.png")
 	await _click(ui.ui.tabs["promotion"].get_global_rect().get_center())
 	assert(ui.mode == "promotion")
 	await _wait_for_content(ui)
 	await RenderingServer.frame_post_draw
-	get_viewport().get_texture().get_image().save_png("C:/Dev/PvZ/_review/research_promotion_in_game.png")
+	get_viewport().get_texture().get_image().save_png("D:/Dev/PvZ/_review/research_promotion_in_game.png")
 	await _click(ui.ui.tabs["craft"].get_global_rect().get_center())
 	assert(ui.mode == "craft")
 	await _wait_for_content(ui)
 	assert(Global.global_game_state.coin_value == initial_coins)
 	await RenderingServer.frame_post_draw
 	var screenshot := get_viewport().get_texture().get_image()
-	screenshot.save_png("C:/Dev/PvZ/_review/research_frontend_in_game.png")
+	screenshot.save_png("D:/Dev/PvZ/_review/research_frontend_in_game.png")
 	ui.request_close()
 	await get_tree().create_timer(0.23).timeout
 	assert(not is_instance_valid(ui))

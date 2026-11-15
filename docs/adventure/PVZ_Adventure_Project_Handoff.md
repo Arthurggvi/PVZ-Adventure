@@ -4,9 +4,10 @@
 
 ## 0｜权威入口、施工纪律（先读）
 
-- **工程与引擎**：`C:\Dev\PvZ\PVZ-Adventure`（Git `develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时优先远程只读审计，获授权后直接施工，避免让用户手工搬运文件。
-- **本交接文档唯一原件**：`C:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。Git 跟踪入口 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 是**同一 NTFS 硬链接**，不应独立编辑/替换。改动需原位写入，并用 `fsutil hardlink list` 验证仍为同一文件。
-- **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `C:\Dev\PvZ\_review\<module>` 用于临时审查；`C:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。源码备份只放仓外，不能让带全局类名的旧脚本进入 Godot 扫描范围；解析时须确认类索引指向正式源码。
+- **工程与引擎**：`D:\Dev\PvZ\PVZ-Adventure`（Git `develop`）；Godot 4.7.2：`C:\Users\Arthu\Desktop\Godot_v4.7.2-stable_win64.exe`。Sancho 在线时优先远程只读审计，获授权后直接施工，避免让用户手工搬运文件。
+- **本交接文档唯一原件**：`D:\Dev\PvZ\_reference\project_docs\PVZ_Adventure_Project_Handoff.md`。Git 跟踪入口 `docs/adventure/PVZ_Adventure_Project_Handoff.md` 是**同一 NTFS 硬链接**，不应独立编辑/替换。改动需原位写入，并用 `fsutil hardlink list` 验证仍为同一文件。
+- **资源权威范围**：`res://assets/adventure/`（新增素材）、`res://assets/reanim/`（原版分件）、`res://animation/`、`res://scenes/`、`res://scripts/`、`res://resources/`。仓外 `D:\Dev\PvZ\_review\<module>` 用于临时审查；`D:\Dev\PvZ\_reference` 为持久参考。游戏运行时不能依赖仓外文件。源码备份只放仓外，不能让带全局类名的旧脚本进入 Godot 扫描范围；解析时须确认类索引指向正式源码。
+- **素材参考库**：`_reference/FVM-Reborn/sounds/` 保留完整音乐和音效，`_reference/FVM-Official-UI-References/resource/image/` 保留已采用的等级角标和道具原图。两套参考库采用 Git 稀疏检出，上游提交和素材来源可追溯。
 - **主菜单运行/制作入口**：启动入口 `scenes/main/00Bootstrap.tscn`；正式菜单 `scenes/main/01StartMenuCoastal.tscn`；维护 `docs/adventure/main_menu_runtime_pipeline.md`；离线构建/发布/录制统一 `tools/art_bake/main_menu/menu.py`。9B已接当地时间与真实UI，不再使用占位主菜单。
 - **施工顺序**：检查 Git 和连接 → 读本文及权威代码/资源 → 复现并定位根因 → 设计通用接口与状态所有权 → 直接重构旧实现 → Godot 导入/解析检查 → 按 AGENTS.md 在明确获授权时运行测试/实机验收 → 必要时 Catbox 手机验收 → 仅暂存本轮文件并提交。
 - **仓库纪律**：先 `git status --short`、`git log -1`，保护并行工作区；禁止未授权的 `git reset`、`git clean`、`git add .` 和 `git push`。提交前 `git diff --cached --check` 并逐项核对暂存清单。被 `.gitignore` 忽略的新美术资源，必要时定向 `git add -f`。
@@ -22,7 +23,7 @@
 - **关卡解析与地形**：`enter_stage` 一次解析，同一个配置交给 `entry_error_for_stage` 与构建；Registry 缓存私有合并模板，对外深拷贝，editor feature 运行在重新进入地图时显式失效。地形校验使用 `BoardDefinition` 或 `MainSceneRegistry.LEGACY_SPAWN_ROWS`，不加载/实例化战场读行数；真实旧战场装配时在地形覆盖前核对静态表与节点。首次配置读取仍是同步步骤。
 - **模态生命周期**：`request_feature` 先过正式解锁条件，立即提供可取消反馈，异步准备脚本及首屏依赖；主线程构造、可选 `is_content_ready()` 完成后才发布到 `modal_for()`。取消、换档、重载和离场撤销旧请求资格；当前可见项通过 `prepared_visual_queue.gd` 按需准备、每帧最多构造一个预览，不能预建整本图鉴或隐藏页签。
 - **业务状态与揭幕**：`MapNavigation` 校验玩家后切场；`AdventureSession._commit_battle_entry/_commit_map_return` 仅在目标被接纳后发布/回收战斗状态。战斗基场景共享过渡；海滨菜单提供 `is_visual_ready()`，再等待真实绘制帧揭幕。加载百分比仅反映资源批次，不代表可选卡或窗口内容就绪。
-- **验收与计时边界**：详细契约及串行隔离命令见 `docs/adventure/startup_loading.md`；Windows GUI Godot 输出接 `| Out-String` 等待进程结束后再跑下一项。仓外本轮日志/JSON/PNG位于 `C:\Dev\PvZ\_review\interaction_loading_20261114`，记录入口同步耗时、内容就绪和帧间隔；未解锁窗口明确列为未覆盖。上一轮 Autoload/Bootstrap 基线只作历史记录，不能作为本轮首次关卡或窗口提速证据，源码接入不能写成验收通过。
+- **验收与计时边界**：详细契约及串行隔离命令见 `docs/adventure/startup_loading.md`；Windows GUI Godot 输出接 `| Out-String` 等待进程结束后再跑下一项。仓外本轮日志/JSON/PNG位于 `D:\Dev\PvZ\_review\interaction_loading_20261114`，记录入口同步耗时、内容就绪和帧间隔；未解锁窗口明确列为未覆盖。上一轮 Autoload/Bootstrap 基线只作历史记录，不能作为本轮首次关卡或窗口提速证据，源码接入不能写成验收通过。
 
 ## 1｜核心系统权威总线
 
@@ -164,7 +165,7 @@
 - **时间调参**：运行config/daily_cycle.json为24小时环形关键帧：深夜→黎明→清晨→白天→黄昏→夜晚，午夜连续。menu_clock读当地时间并平滑校准，daily_cycle只产显示参数；动画用单调计时，任务/战斗日期不由菜单控制。set_preview_hour/use_local_time是同一路径的制作覆盖，不修改系统时间。
 - **真实UI/业务**：原User选择器提取为scenes/ui/profile_selector.tscn，复用SaveService事务；HUD显示真实头像/等级/名字并在切档后同步。功能台设置共用工具栏入口；帮助更新当前操作；退出确认后保存，失败留在菜单。布局在ui_layout.json，窗口阻塞与建筑/工具栏互斥统一。
 - **建筑入口**：沿用9A稳定命中与动态同步高亮；图书馆→真实图鉴、研究室→原研究功能、港口/船→地图。家/商店仍未开放、皮卡无独立入口。解锁由同一toolbar_entry_host查询/请求，不存于美术配置。
-- **2026-11-13视觉整理**：日间方向光、暮色冷暖、远景空气透视和夜间暖窗已重调；母图与31份纹理不变。船/风/水分为8.4/9.6/11.2秒，低幅错相灯光由显式动作时钟驱动。入口用 `building_entry_badge.gd` 显示图鉴/研究室/启程，原命中几何不变；锁定原因仅聚焦显示。档案经 `configure_coastal_presentation()` 使用296×118小卡片，其他场景保持原布局。正式调色、运动与entries现由runtime_inputs保护，旧制作发布不得覆盖；重建蒙版时需明确同步正式几何。核对目录 `C:\Dev\PvZ\_review\menu_polish_20261113`：五时段、牌面原生点击打开研究/地图导航/图鉴/档案、键盘焦点、锁定与模态遮挡、1066×800命中及144帧动作片段；原生日志无脚本/材质错误，未运行测试套件或进入战斗。
+- **2026-11-13视觉整理**：日间方向光、暮色冷暖、远景空气透视和夜间暖窗已重调；母图与31份纹理不变。船/风/水分为8.4/9.6/11.2秒，低幅错相灯光由显式动作时钟驱动。入口用 `building_entry_badge.gd` 显示图鉴/研究室/启程，原命中几何不变；锁定原因仅聚焦显示。档案经 `configure_coastal_presentation()` 使用296×118小卡片，其他场景保持原布局。正式调色、运动与entries现由runtime_inputs保护，旧制作发布不得覆盖；重建蒙版时需明确同步正式几何。核对目录 `D:\Dev\PvZ\_review\menu_polish_20261113`：五时段、牌面原生点击打开研究/地图导航/图鉴/档案、键盘焦点、锁定与模态遮挡、1066×800命中及144帧动作片段；原生日志无脚本/材质错误，未运行测试套件或进入战斗。
 - **实际核对**：本轮隔离录制含240帧全天、556帧真实档案切换/设置帮助/功能窗口/地图往返/退出保存；午夜前后最大像素差0，旧菜单宿主入地图后释放。原生资源逐份重开像素一致，空工程PCK绘制与正式背景最大差昼0/夜1。最终原生日志无脚本/材质ERROR或退出泄漏报告。
 - **发布与复现**：menu.py publish-runtime / runtime-preview / runtime-preview-images为单入口。交付在 `C:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112`。运行daily_cycle/ui_layout为正式权威，不被旧制作目录覆盖；原生资源包已验证可搬迁，但未安装exe模板、未导出完整游戏exe。
 - **边界**：只操作PVZ-Menu9B-Isolated-20261112演示档案，未读写正式玩家存档；没有进入战斗/验收合成事务，没有物理睡眠唤醒或全平台性能验证。未新增/运行游戏测试套件；旧版本专用美术探针已标明退役，不作为新菜单通过证据。实机短采样数据与详细限制见维护页，不夸大为完整回归或发布保证。

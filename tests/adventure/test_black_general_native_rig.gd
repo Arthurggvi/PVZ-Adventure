@@ -1,7 +1,7 @@
 extends SceneTree
 ## Native animation QA. Copy only visual Sprite2D nodes, never gameplay components.
 const FOOTBALL: PackedScene = preload("res://scenes/character/zombie/zombie_008_football.tscn")
-const OUTPUT := "C:/Dev/PvZ/_review/black_general/native_football_reference"
+const OUTPUT := "D:/Dev/PvZ/_review/black_general/native_football_reference"
 func _initialize() -> void:
 	call_deferred("_run")
 func _run() -> void:

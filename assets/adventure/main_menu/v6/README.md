@@ -34,10 +34,10 @@
 在 PowerShell 中进入解压目录后执行：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install_to_godot.ps1 -ProjectRoot "C:\Dev\PvZ\PVZ-Adventure"
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install_to_godot.ps1 -ProjectRoot "D:\Dev\PvZ\PVZ-Adventure"
 ```
 
-资源会创建于 `C:\Dev\PvZ\PVZ-Adventure\assets\adventure\main_menu\v6\`，相应 Godot 路径为 `res://assets/adventure/main_menu/v6/`。若该版本目标已存在，安装脚本将拒绝覆盖，以保护已有修改。
+资源会创建于 `D:\Dev\PvZ\PVZ-Adventure\assets\adventure\main_menu\v6\`，相应 Godot 路径为 `res://assets/adventure/main_menu/v6/`。若该版本目标已存在，安装脚本将拒绝覆盖，以保护已有修改。
 
 ## 技术和视觉限制
 

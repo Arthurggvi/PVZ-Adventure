@@ -56,7 +56,7 @@
 ## 5｜发布、预览与资源包复现
 
 ```powershell
-$entry='C:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
+$entry='D:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
 $tools='C:\Dev\Tools\ArtControl\config.json'
 # 从已批准制作目录重新发布31份原生贴图；不会覆盖运行daily_cycle/ui_layout/effect_profile。
 python $entry publish-runtime --workspace C:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112 --tools-config $tools
@@ -103,4 +103,4 @@ hover材质替换、四组灯光呼吸/闪烁、水面算法与独立周期统�
 - 入口名称牌使用独立 `building_entry_badge.gd`：图鉴、研究室、启程；不再展示功能串和“点击进入”。牌匾穿透鼠标，位置落在原建筑命中范围内；权限与模态仍由同一工具栏门面查询，锁定原因只在指向时显示。
 - 档案通过 `configure_coastal_presentation()` 显式启用296×118紧凑布局；存档动作位于卡片内。菜单位置/比例由ui_layout控制；地图和战斗未启用时继续原有构造。
 - 运行调色、运动和入口表现已成为正式配置：`daily_cycle/ui_layout/effect_profile/time_profile/motion/wind/entries` 均由runtime_inputs保护，旧工作目录发布贴图不会覆盖调参。若重建入口蒙版，须将新的几何同时明确同步到正式entries并核对牌匾位置；只发布贴图不能代替几何同步。
-- 当前核对与截图目录：`C:\Dev\PvZ\_review\menu_polish_20261113`。使用独立用户目录 `PVZ-Menu-Polish-Isolated-20261113` 的演示档案，未运行游戏测试套件。第6节的数据属于原9B交付，不能当作本轮性能或完整流程验收。
+- 当前核对与截图目录：`D:\Dev\PvZ\_review\menu_polish_20261113`。使用独立用户目录 `PVZ-Menu-Polish-Isolated-20261113` 的演示档案，未运行游戏测试套件。第6节的数据属于原9B交付，不能当作本轮性能或完整流程验收。

@@ -26,4 +26,4 @@
 - 独立审查发现并修正：寒冰伤害触发阶段后迟到控制、冲锋伤害回调覆盖阶段状态、换行 reparent 导致光环误移除、卸甲/处决被格挡抵消。保龄球对设施沿用无护甲固定伤害。
 - 未新增或运行测试/游戏。编辑器模式导入与黑将军/令旗场景载入、资源引用扫描以及 `git diff --check` 用于静态核对。
 - 单脚本 `--check-only` 缺少本项目 autoload 上下文，引发 Global/GlobalUtils/SoundManager 未定义连锁错误；此命令不作为有效编译证据，改用完整项目编辑器导入。
-- 检查日志位于工作区外 `C:/Dev/PvZ/_review/black_general_final_import_0.log` 和 `black_general_final_import_1.log`。实际战斗节奏、动画视觉与音效体感仍需游戏内验收。
+- 检查日志位于工作区外 `D:/Dev/PvZ/_review/black_general_final_import_0.log` 和 `black_general_final_import_1.log`。实际战斗节奏、动画视觉与音效体感仍需游戏内验收。
