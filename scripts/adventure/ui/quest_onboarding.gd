@@ -13,7 +13,7 @@ const DIALOGUE = preload("res://resources/adventure/dave_research_intro.tres")
 const SHOP_DIALOGUE = preload("res://resources/adventure/dave_shop_unlock.tres")
 ## 图书馆教学依次介绍真实页签和可执行的操作。
 const LIBRARY_PAGES := [
-	{"mode": "today", "text": "今日书籍\n每天免费换一批书，用金币购买。\n也可以花金币立即刷新书架。"},
+	{"mode": "today", "text": "今日书籍\n书架每天 00:00 自动更新，用金币买书。\n每天可花金币手动换一批，仅限一次。"},
 	{"mode": "convert", "text": "书籍转换\n投入两本同阶转职书，\n随机换成一本不同的同阶转职书。"},
 	{"mode": "synthesize", "text": "书籍合成\n投入三本同植物、同阶转职书，\n合成一本该植物的下一阶转职书。"},
 ]

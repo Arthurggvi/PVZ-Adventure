@@ -39,7 +39,7 @@ func shelf() -> Dictionary:
 func ensure_today() -> Dictionary:
 	return _run("daily")
 
-## 付费刷新 [param revision] 对应货架；旧版本或跨日请求拒绝扣费。
+## 付费刷新 [param revision] 对应的当天货架，每天仅成功提交一次。
 func refresh(revision: int) -> Dictionary:
 	return _run("refresh", revision)
 
@@ -129,8 +129,10 @@ func _execute(action: String, revision: int, slot: int, ids: Array[String]) -> D
 			if action == "daily" and not current.day.is_empty() and current.day >= today:
 				return {"ok": true, "changed": false}
 			if action == "refresh":
-				if revision != current.revision or current.day.is_empty() or current.day < today:
+				if revision != current.revision or current.day.is_empty() or current.day != today:
 					return _error("书架已更新，请重新选择")
+				if current.refresh_used:
+					return _error("今日已换一批，明日 00:00 后可再次使用")
 				fee = Rules.REFRESH_COST
 			if fee > _wallet.coin_value:
 				return _error("金币不足")
@@ -139,7 +141,8 @@ func _execute(action: String, revision: int, slot: int, ids: Array[String]) -> D
 			next_stock.offers = Rules.draw_shelf(_rng)
 			if next_stock.offers.size() != Rules.SHELF_SIZE:
 				return _error("书目尚未就绪")
-			next_stock.day = today if current.day < today else current.day
+			next_stock.day = today
+			next_stock.refresh_used = action == "refresh"
 			next_stock.revision += 1
 		"buy":
 			if revision != current.revision or current.day.is_empty() or current.day < today \

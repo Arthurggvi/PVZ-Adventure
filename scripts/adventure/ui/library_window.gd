@@ -105,10 +105,11 @@ func _render() -> void:
 	if not _is_current():
 		return
 	var shelf: Dictionary = _service.shelf() # 过期且未成功保存的新货架显示重试入口，不显示无法购买的旧货位。
-	if str(shelf.day) < AdventureQuestService.today():
+	var today: String = AdventureQuestService.today() # 同次绘制共用日期，更新失败或时钟回拨时不允许付费换书。
+	if str(shelf.day) < today:
 		shelf.offers = []
 	_view.render({"mode": _mode, "tier": _tier, "coins": Global.global_game_state.coin_value,
-		"shelf": shelf, "selected": _selected.duplicate(), "result": _result,
+		"shelf": shelf, "today": today, "selected": _selected.duplicate(), "result": _result,
 		"available": _service.available(_mode, _selected, _tier) if _mode != "today" else [],
 		"quote": _service.quote(_mode, _selected) if _mode != "today" else {"ready": false}})
 

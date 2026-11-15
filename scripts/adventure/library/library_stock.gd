@@ -5,6 +5,8 @@ extends RefCounted
 const Books = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
 ## 最近一次生成货架的本机自然日，空字符串表示尚未开馆。
 var day := ""
+## [member day] 当天的付费换书机会是否已用完，生成新一天的货架时重置。
+var refresh_used := false
 ## 货架版本；每次换日或付费刷新递增，拦截旧按钮提交。
 var revision := 0
 ## 五个货位，各保存书 ID 与是否售出。
@@ -12,19 +14,20 @@ var offers: Array[Dictionary] = []
 
 ## 返回不共享容器的存档数据。
 func to_dict() -> Dictionary:
-	return {"day": day, "revision": revision, "offers": offers.duplicate(true)}
+	return {"day": day, "refresh_used": refresh_used, "revision": revision, "offers": offers.duplicate(true)}
 
-## 从 [param data] 恢复独立货架；旧档空字典兼容，损坏内容返回 null。
+## 从 [param data] 恢复独立货架；旧档缺少付费换书标记时默认未用，损坏内容返回 null。
 static func from_dict(data: Variant) -> RefCounted:
 	if not data is Dictionary:
 		return null
 	var stock := new() # 返回的状态不会复用原始 JSON 容器。
 	if data.is_empty():
 		return stock
+	var used: Variant = data.get("refresh_used", false) # 旧货架的版本同时包含自动更新，无法从版本推算当天用量。
 	if not data.get("day") is String or not data.get("offers") is Array \
-			or not PlantCardInstance.is_nonnegative_integer(data.get("revision")):
+			or not used is bool or not PlantCardInstance.is_nonnegative_integer(data.get("revision")):
 		return null
-	if data.day == "" and data.revision == 0 and data.offers.is_empty():
+	if data.day == "" and not used and data.revision == 0 and data.offers.is_empty():
 		return stock
 	var parts: PackedStringArray = data.day.split("-") # 严格验证自然日，保证字符串可按时间比较。
 	if parts.size() != 3 or data.day.length() != 10:
@@ -46,5 +49,6 @@ static func from_dict(data: Variant) -> RefCounted:
 			return null
 		stock.offers.append({"id": offer.id, "sold": offer.sold})
 	stock.day = data.day
+	stock.refresh_used = used
 	stock.revision = int(data.revision)
 	return stock

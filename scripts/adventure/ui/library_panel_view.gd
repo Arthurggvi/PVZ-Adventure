@@ -108,12 +108,15 @@ func render(model: Dictionary) -> void:
 ## 绘制 [param model] 中的五个独立货位，按钮携带当前货架版本。
 func _today(model: Dictionary) -> void:
 	Art.label(_body, "每日甄选", Vector2(54, 5), Vector2(300, 42), 28, Color("ffe8b0"))
-	var period: Label = Art.label(_body, "每日 00:00 更新", Vector2(54, 48), Vector2(450, 32), 20, Color("d7bc8c")) # 概率放入悬停，不占主要阅读空间。
+	var period: Label = Art.label(_body, "每日 00:00 更新 · 换一批每日限 1 次", Vector2(54, 48), Vector2(450, 32), 20, Color("d7bc8c")) # 概率放入悬停，不占主要阅读空间。
 	period.mouse_filter = Control.MOUSE_FILTER_STOP
 	period.tooltip_text = "一阶 39.5% · 二阶 27.6% · 三阶 19.4% · 四阶 13.5%"
-	var refresh_button: Button = Art.action_button(_body, "换一批 · 3,000", "buttons/action_neutral",
-		Vector2(1090, 9), Vector2(290, 62), _emit.bind("refresh", int(model.shelf.revision))) # 明示刷新金币成本。
-	refresh_button.disabled = int(model.coins) < Rules.REFRESH_COST or model.shelf.offers.is_empty()
+	var is_current_day: bool = model.shelf.day == model.today # 只有当天生成的货架可手动换书。
+	var refresh_used: bool = is_current_day and model.shelf.refresh_used # 已用状态只对应本机今天。
+	var refresh_caption: String = "今日已换一批" if refresh_used else "换一批 · %s" % money(Rules.REFRESH_COST) # 显示当日用量或金币费用。
+	var refresh_button: Button = Art.action_button(_body, refresh_caption, "buttons/action_neutral",
+		Vector2(1090, 9), Vector2(290, 62), _emit.bind("refresh", int(model.shelf.revision))) # 提交货架版本以拦截过期操作。
+	refresh_button.disabled = not is_current_day or refresh_used or int(model.coins) < Rules.REFRESH_COST or model.shelf.offers.is_empty()
 	if model.shelf.offers.is_empty():
 		_centered(_body, "书架暂未就绪", Vector2(300, 220), Vector2(840, 80), 28)
 		Art.action_button(_body, "重新加载", "buttons/action_neutral", Vector2(610, 325), Vector2(220, 60), _emit.bind("retry", null))
