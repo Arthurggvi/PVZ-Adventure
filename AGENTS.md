@@ -27,3 +27,8 @@
 - 所有正式场景转换必须复用 `SceneTransition.change_scene(path, after_switch)`；禁止为新区域、新模式或 Boss 再造 Loader、同步黑幕切场、独立全局缓存。回调只在场景被接纳后提交战斗态，失败保留原场景并恢复输入。
 - `AllCards`、`CharacterRegistry`、`SceneRegistry`、`SoundManager`、`AdventureToolbar` 已有统一的惰性资源入口。扩展时只维护权威资源注册和门面，不得让 Autoload 随物种增加而重新预加载所有资源。
 - 相关改动必须在隔离 `user://` 下运行 `tests/adventure/test_lazy_startup.tscn`、`test_lazy_audio.tscn`、`test_threaded_scene_loading.tscn`、`test_boot_to_menu.tscn`、`test_threaded_battle_route.tscn`、`test_lazy_toolbar_modal.tscn`；同时核对导航验收及图形过渡帧测试。测速要区分引擎 Autoload、Bootstrap 到就绪、图形首帧与实际发行包，不能混算。
+
+# 本地运行日志与临时产物
+
+- Godot 验证使用隔离的 `user://` 和单次运行目录，日志与临时输出放在项目所在数据盘。运行前设置超时，并同时限制终端输出和 Godot 自己写的日志。普通诊断每次运行默认最多保留 8 MiB 日志。遇到同一脚本错误连续刷屏时，停止本次验证进程，留首个堆栈及必要的日志尾部。
+- `_review` 只留有明确用途的最小验收证据及必要源件。预览先用少量代表帧。验收后清理本次生成的临时工程、隔离测试档、逐帧图、重复解包和可重建缓存。优先复用现有工程与资源，保留正式存档和原始素材。
