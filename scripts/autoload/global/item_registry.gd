@@ -71,7 +71,7 @@ const BASE_ITEMS: Dictionary = {
 	"recipe_p014": {"subject": "胆小菇", "category": "recipe"},
 	"recipe_p015": {"subject": "寒冰菇", "category": "recipe"},
 	"recipe_p016": {"subject": "毁灭菇", "category": "recipe"},
-	"recipe_p017": {"subject": "荷叶", "category": "recipe"},
+	"recipe_p017": {"subject": "睡莲", "category": "recipe"},
 	"recipe_p018": {"subject": "窝瓜", "category": "recipe"},
 	"recipe_p019": {"subject": "三线射手", "category": "recipe"},
 	"recipe_p020": {"subject": "缠绕水草", "category": "recipe"},
