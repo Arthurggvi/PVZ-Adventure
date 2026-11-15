@@ -184,7 +184,8 @@ func _on_animation_finished(animation_name: StringName) -> void:
 			and not is_death and _animation.current_animation in [&"", animation_name]:
 		_animation.play(&"idle")
 
-## 离树取消旧动作并解除全局订阅；返回信号仍须通过原战场和地格门禁。
+## 离场取消旧动作；手套换格保留同一战场中的攻击与冷却进度。
 func _exit_tree() -> void:
-	_cancel_attack()
+	if not is_being_relocated:
+		_cancel_attack()
 	EventBus.unsubscribe("main_game_progress_update", _on_progress_changed)

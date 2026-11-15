@@ -150,6 +150,8 @@ static func product_texture(offer: Dictionary, portrait: bool = false) -> Textur
 				return item.portrait if portrait and item.portrait != null else item.icon
 		"slots":
 			return preload("res://assets/image/store/Store_PacketUpgrade.png")
+		"glove":
+			return preload("res://assets/image/garden/Zen_GardenGlove.png")
 	return null
 
 ## 在 [param parent] 的 [param rect] 显示 [param texture]，保持图像比例。

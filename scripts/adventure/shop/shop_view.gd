@@ -78,7 +78,7 @@ func _ready() -> void:
 	_refresh_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_shelf = Shelf.new()
 	_shelf.position = Vector2(390, 190)
-	_shelf.size = Vector2(988, 494)
+	_shelf.size = Vector2(988, 508)
 	add_child(_shelf)
 	_shelf.selected.connect(_select)
 	Style.panel(self, Rect2(366, 716, 1040, 66), Color("203127"), Style.LINE, 18)

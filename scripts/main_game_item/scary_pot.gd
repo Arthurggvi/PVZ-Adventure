@@ -219,14 +219,23 @@ func open_zombie(zombie_type:CharacterRegistry.ZombieType):
 #endregion
 
 #region 植物交互
+## 登记 [param plant] 的透视来源；同株仍在照明范围中时保留原登记。
 func add_plant_can_look_pot(plant:Plant000Base):
+	if all_plant_influence_look_pot.has(plant):
+		return
 	all_plant_influence_look_pot.append(plant)
 	plant.signal_character_death.connect(erase_plant_can_look_pot.bind(plant))
 	if not is_can_loot_pot:
 		start_loot_pot()
 
+## [param plant] 死亡或移出照明范围时解除登记；其他光源仍可照亮本罐。
 func erase_plant_can_look_pot(plant:Plant000Base):
+	if not all_plant_influence_look_pot.has(plant):
+		return
 	all_plant_influence_look_pot.erase(plant)
+	var on_death: Callable = erase_plant_can_look_pot.bind(plant) # 与原来登记的同株死亡回调匹配。
+	if plant.signal_character_death.is_connected(on_death):
+		plant.signal_character_death.disconnect(on_death)
 	if all_plant_influence_look_pot.is_empty():
 		end_loot_pot()
 

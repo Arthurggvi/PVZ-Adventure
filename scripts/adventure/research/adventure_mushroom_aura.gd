@@ -46,6 +46,7 @@ func _bind() -> void:
 	_plant.tree_exiting.connect(_schedule_exit_cleanup)
 	_plant.child_entered_tree.connect(_on_source_child_entered)
 	_plant.child_exiting_tree.connect(_on_source_child_exiting)
+	_game.board.plant_relocated.connect(_on_board_change)
 	for cell: PlantCell in _game.board.cells(): # 只订阅变化，实际刷新仅查询来源九宫格。
 		cell.signal_plant_create.connect(_on_board_change.unbind(2))
 		cell.signal_plant_free.connect(_on_board_change.unbind(2))
@@ -58,7 +59,7 @@ func _bind() -> void:
 	# 父节点 ready 早于占位登记，恢复事务也可能推迟种植通知。
 	_refresh.call_deferred()
 
-## 普通种植、铲除和伴生变化均即时重算本来源。
+## 种植、移除或换格后即时重算本来源。
 func _on_board_change() -> void:
 	_refresh()
 

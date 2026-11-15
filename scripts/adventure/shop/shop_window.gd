@@ -113,7 +113,8 @@ func _describe() -> void:
 	var offer: Dictionary = _service.quote(_selected) # 不用上一次点击时的余量或价格。
 	if offer.is_empty():
 		return
-	_view.dave.say(str(offer.speech) if not offer.sold else ("这件你已经有啦。" if offer.get("unique", false) else "这件卖完啦。"))
+	_view.dave.say(str(offer.speech) if not offer.sold or offer.kind == "glove" \
+		else ("这件你已经有啦。" if offer.get("unique", false) else "这件卖完啦。"))
 
 ## 解释 [param action] 和 [param id]；确认期间不接受商品与页签切换。
 func _on_action(action: String, id: String) -> void:

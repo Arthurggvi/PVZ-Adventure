@@ -30,6 +30,8 @@ var lanes: Array[BoardLaneDefinition] = []
 var _restore_owner: RefCounted
 ## 种植地形变更通知；不承担卡槽费用结算。
 signal terrain_changed(cell: PlantCell)
+## 已有植株换位完成；邻接效果刷新，不触发新种植或死亡的收益。
+signal plant_relocated
 
 ## 初始化行容器，[param lane_definitions] 的数组顺序就是战斗行号。
 func configure_lanes(lane_definitions: Array[BoardLaneDefinition]) -> void:

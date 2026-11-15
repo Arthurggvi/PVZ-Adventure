@@ -9,12 +9,15 @@ var day := ""
 var daily_purchases: Dictionary[String, int] = {}
 ## 玩家永久可携带卡槽数量。
 var card_slots: int = Catalog.BASE_SLOTS
+## 一次性购买后永久开放冒险战斗手套；旧档默认为未解锁。
+var glove_unlocked := false
 ## 每笔成功购买递增；确认单只能使用当前版本。
 var revision := 0
 
 ## 返回不共享容器的序列化数据。
 func to_dict() -> Dictionary:
-	return {"day": day, "daily_purchases": daily_purchases.duplicate(), "card_slots": card_slots, "revision": revision}
+	return {"day": day, "daily_purchases": daily_purchases.duplicate(), "card_slots": card_slots,
+		"glove_unlocked": glove_unlocked, "revision": revision}
 
 ## 校验 [param data] 并返回独立状态；旧档缺失域使用六槽，损坏域拒绝加载。
 static func from_dict(data: Variant) -> RefCounted:
@@ -25,6 +28,7 @@ static func from_dict(data: Variant) -> RefCounted:
 		return result
 	if not data.get("day") is String or not valid_day(data.day) \
 			or not data.get("daily_purchases") is Dictionary \
+			or not data.get("glove_unlocked", false) is bool \
 			or not PlantCardInstance.is_nonnegative_integer(data.get("revision")) \
 			or not PlantCardInstance.is_nonnegative_integer(data.get("card_slots")) \
 			or data.card_slots < Catalog.BASE_SLOTS or data.card_slots > Catalog.MAX_SLOTS:
@@ -38,6 +42,7 @@ static func from_dict(data: Variant) -> RefCounted:
 		result.daily_purchases[id] = int(data.daily_purchases[id])
 	result.day = data.day
 	result.card_slots = int(data.card_slots)
+	result.glove_unlocked = data.get("glove_unlocked", false)
 	result.revision = int(data.revision)
 	return result
 

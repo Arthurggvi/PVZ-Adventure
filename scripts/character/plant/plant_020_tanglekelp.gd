@@ -10,6 +10,10 @@ class_name Plant020Tanglekelp
 ## 海草是一次性攻击，防止等待动画期间重复响应索敌信号。
 var _is_attacking: bool = false
 
+## 拖拽开始后要在原水域完成下沉动作。
+func can_relocate() -> bool:
+	return not _is_attacking
+
 
 func ready_norm_signal_connect():
 	super()

@@ -110,6 +110,7 @@ func _cancel_volley() -> void:
 	_extra_left = 0
 	set_physics_process(false)
 
-## 离树时取消尚未发射的队列。
+## 离场取消尚未发射的队列；手套换格后仍从原株的新位置发射。
 func _exit_tree() -> void:
-	_cancel_volley()
+	if not _plant.is_being_relocated:
+		_cancel_volley()

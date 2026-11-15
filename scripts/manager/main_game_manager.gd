@@ -52,6 +52,16 @@ const ProfileHud = preload("res://scripts/adventure/ui/adventure_profile_hud.gd"
 @onready var camera_2d: MainGameCamera = %Camera2D
 @onready var ui_remind_word: UIRemindWord = %UIRemindWord
 @onready var level_info: LevelInfo = $CanvasLayerUI/LevelInfo
+## 正式战斗中显示当前速度，暂停期间不接收输入。
+@onready var _battle_speed_button: Button = %BattleSpeedButton
+## 已购买手套的冒险战斗才显示此入口。
+@onready var battle_glove_button: Button = %BattleGloveButton
+## 开启二倍速前的物理频率；为零时表示当前没有接管引擎速度。
+var _normal_physics_ticks: int = 0
+## 开启二倍速前的引擎倍率，保留场景自带调试设置。
+var _normal_engine_scale: float = 1.0
+## 开启二倍速前的全局倍率。
+var _normal_global_scale: float = 1.0
 
 #endregion
 
@@ -136,6 +146,7 @@ var main_game_progress := E_MainGameProgress.NONE:
 	set(value):
 		main_game_progress = value
 		_refresh_battle_profile_hud_visibility()
+		_refresh_battle_tools()
 		EventBus.push_event("main_game_progress_update", [value])
 
 #endregion
@@ -189,6 +200,7 @@ func set_game_para() -> void:
 func _exit_tree() -> void:
 	## 避免切场景后主游戏节点已释放，Global 仍持有野指针
 	if Global.main_game == self:
+		_reset_battle_speed()
 		Global.main_game = null
 
 func _ready() -> void:
@@ -289,6 +301,58 @@ func _setup_battle_profile_hud() -> void:
 func _refresh_battle_profile_hud_visibility() -> void:
 	if is_instance_valid(battle_profile_hud):
 		battle_profile_hud.visible = main_game_progress == E_MainGameProgress.MAIN_GAME
+
+## 仅当前档案已购买时，允许在其冒险战斗内使用手套。
+func has_battle_glove() -> bool:
+	if not AdventureSession.owns_battle(game_para) or Global.global_game_state == null:
+		return false
+	var state: AdventureState = Global.global_game_state.adventure_state # 解锁状态属于当前玩家档案。
+	return state != null and state.shop != null and state.shop.glove_unlocked
+
+## 选卡、结算和轮间过渡隐藏战斗工具，并结束本轮的临时操作。
+func _refresh_battle_tools() -> void:
+	if not is_instance_valid(_battle_speed_button):
+		return
+	var in_combat: bool = main_game_progress == E_MainGameProgress.MAIN_GAME # 准备红字结束后才开放操作。
+	_battle_speed_button.visible = in_combat
+	battle_glove_button.visible = in_combat and has_battle_glove()
+	if not battle_glove_button.visible:
+		hand_manager.cancel_glove()
+	if not in_combat:
+		_reset_battle_speed()
+
+## 切换本轮战斗速度；同步提高物理频率以保持每步的命中检测精度。
+func _toggle_battle_speed() -> void:
+	if main_game_progress != E_MainGameProgress.MAIN_GAME or get_tree().paused \
+			or get_tree().current_scene != self:
+		_battle_speed_button.set_pressed_no_signal(_normal_physics_ticks > 0)
+		return
+	SoundManager.play_other_SFX(&"tap")
+	if _normal_physics_ticks > 0:
+		_reset_battle_speed()
+		return
+	_normal_physics_ticks = Engine.physics_ticks_per_second
+	_normal_engine_scale = Engine.time_scale
+	_normal_global_scale = Global.time_scale
+	Engine.physics_ticks_per_second = _normal_physics_ticks * 2
+	Engine.time_scale = 2.0
+	Global.time_scale = 2.0
+	_battle_speed_button.text = "2×"
+	_battle_speed_button.set_pressed_no_signal(true)
+
+## 回收本轮倍率，保留退出或重开流程已主动恢复的速度。
+func _reset_battle_speed() -> void:
+	if _normal_physics_ticks == 0:
+		return
+	Engine.physics_ticks_per_second = _normal_physics_ticks
+	_normal_physics_ticks = 0
+	if Engine.time_scale == 2.0:
+		Engine.time_scale = _normal_engine_scale
+	if Global.time_scale == 2.0:
+		Global.time_scale = _normal_global_scale
+	if is_instance_valid(_battle_speed_button):
+		_battle_speed_button.text = "1×"
+		_battle_speed_button.set_pressed_no_signal(false)
 
 ## 主游戏管理器事件总线订阅
 func event_bus_subscribe():

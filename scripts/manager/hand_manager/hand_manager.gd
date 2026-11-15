@@ -1,5 +1,5 @@
 extends MainGameSubManager
-## 管理手持角色（植物、僵尸）、道具（铲子）
+## 管理手持角色（植物、僵尸）及战斗道具。
 ## 类似状态机
 class_name HandManager
 
@@ -11,7 +11,7 @@ class_name HandManager
 enum E_HandManagerStatus{
 	Null, 		## 手上什么都没拿
 	Character,	## 手持角色 植物、僵尸
-	Item,		## 手持道具 铲子 （TODO: 锤子手套）
+	Item,		## 手持铲子或手套
 }
 
 ## 当前手持管理器状态
@@ -78,6 +78,29 @@ func _click_shovel() -> void:
 	if curr_plant_cell:
 		_on_cell_mouse_enter(curr_plant_cell)
 
+## 点击图标切换手套；同一局中卡片、铲子和手套由同一个手持状态互斥管理。
+func _click_glove() -> void:
+	if not main_game.has_battle_glove() or main_game.main_game_progress != MainGameManager.E_MainGameProgress.MAIN_GAME \
+			or get_tree().paused:
+		main_game.battle_glove_button.set_pressed_no_signal(false)
+		return
+	SoundManager.play_other_SFX(&"tap2")
+	if is_holding_glove():
+		cancel_glove()
+		return
+	curr_hm_status = E_HandManagerStatus.Item
+	hm_item.click_glove()
+	_refresh_board_hover(true)
+
+## 返回当前手持道具是否是手套，供取消操作和玉米加农炮输入分流。
+func is_holding_glove() -> bool:
+	return curr_hm_status == E_HandManagerStatus.Item and hm_item.curr_hm_item_status == HM_Item.E_HmItemStatus.Glove
+
+## 结束手套交互并撤销其高亮；其他道具和卡片沿用原手持状态。
+func cancel_glove() -> void:
+	if is_holding_glove():
+		curr_hm_status = E_HandManagerStatus.Null
+
 ## 鼠标点击cell
 func _on_click_cell(plant_cell:PlantCell):
 	_refresh_board_hover()
@@ -90,8 +113,8 @@ func _on_click_cell(plant_cell:PlantCell):
 			hm_character.click_cell(plant_cell)
 			curr_hm_status = E_HandManagerStatus.Null
 		E_HandManagerStatus.Item:
-			hm_item.click_cell(plant_cell)
-			curr_hm_status = E_HandManagerStatus.Null
+			if hm_item.click_cell(plant_cell):
+				curr_hm_status = E_HandManagerStatus.Null
 
 ## 鼠标进入cell
 func _on_cell_mouse_enter(_plant_cell: PlantCell) -> void:
@@ -107,9 +130,11 @@ func _input(event):
 		_refresh_board_hover()
 	## 当前手持状态不为空且鼠标点击事件
 	if curr_hm_status != E_HandManagerStatus.Null and event is InputEventMouseButton:
+		var on_glove_button: bool = is_holding_glove() \
+			and get_viewport().gui_get_hovered_control() == main_game.battle_glove_button # 再点图标由按钮自己的切换入口取消。
 		## 右键点击 或左鍵点击空白
 		if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed or\
-		event.button_index == MOUSE_BUTTON_LEFT and event.pressed and not curr_plant_cell:
+		event.button_index == MOUSE_BUTTON_LEFT and event.pressed and not curr_plant_cell and not on_glove_button:
 			SoundManager.play_other_SFX("tap2")
 			curr_hm_status = E_HandManagerStatus.Null
 

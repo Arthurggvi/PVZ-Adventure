@@ -55,6 +55,9 @@ func quote(id: String) -> Dictionary:
 		result.price = Catalog.slot_price(_state.shop.card_slots)
 		sold = _state.shop.card_slots >= Catalog.MAX_SLOTS
 		status = "已达11槽" if sold else "当前 %d 槽 → %d 槽" % [_state.shop.card_slots, _state.shop.card_slots + 1]
+	elif result.kind == "glove":
+		sold = _state.shop.glove_unlocked
+		status = "已拥有" if sold else "永久解锁"
 	elif bool(result.get("unique", false)):
 		sold = _state.equipment.owned.values().has(str(result.asset))
 		status = "已拥有" if sold else "永久解锁"
@@ -81,7 +84,7 @@ func buy(token: Dictionary) -> Dictionary:
 	_committing = false
 	return result
 
-## 持锁处理 [param token]；扣款、发货、限购和扩容必须作为同一事务保存。
+## 持锁处理 [param token]；扣款、发货与永久升级必须作为同一事务保存。
 func _commit(token: Dictionary) -> Dictionary:
 	var offer: Dictionary = quote(str(token.get("id", ""))) # 不能使用 UI 传入的任意价格或目标物品。
 	if offer.is_empty() or offer.token != token:
@@ -110,6 +113,8 @@ func _commit(token: Dictionary) -> Dictionary:
 			granted = not equipment_uid.is_empty()
 		"slots":
 			next_stock.card_slots += 1
+		"glove":
+			next_stock.glove_unlocked = true
 		_:
 			granted = false
 	if granted:

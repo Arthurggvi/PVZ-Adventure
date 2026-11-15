@@ -80,6 +80,7 @@ func _bind() -> void:
 	_plant.tree_exiting.connect(_schedule_exit_cleanup)
 	_plant.child_entered_tree.connect(_on_child_entered)
 	_plant.child_exiting_tree.connect(_on_child_exiting)
+	_game.board.plant_relocated.connect(_refresh)
 	for cell: PlantCell in _game.board.cells(): # 仅监听结构事件；每次群落仍只查询受益者自己的九宫格。
 		cell.signal_plant_create.connect(_refresh.unbind(2))
 		cell.signal_plant_free.connect(_refresh.unbind(2))

@@ -119,6 +119,7 @@ func _launch_potatoes(count: int) -> void:
 		bullet.launch(_game, _mine.global_position,
 			target["point"], int(target["lane"]), _latest_blast, visual)
 
+## 离场回收独立爆炸模板；手套换格继续沿用本株模板和引信。
 func _exit_tree() -> void:
-	if is_instance_valid(_visual_template):
+	if is_instance_valid(_visual_template) and not _mine.is_being_relocated:
 		_visual_template.free()

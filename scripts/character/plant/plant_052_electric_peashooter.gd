@@ -193,7 +193,8 @@ func _notification(what: int) -> void:
 		if _symbiosis != null:
 			_symbiosis.clear()
 
-## 离树清除尚未离手的动作并解除全局事件订阅。
+## 离场清除尚未离手的动作；手套换格保留同一战场中的攻击与冷却进度。
 func _exit_tree() -> void:
-	_cancel_attack()
+	if not is_being_relocated:
+		_cancel_attack()
 	EventBus.unsubscribe("main_game_progress_update", _on_progress_changed)

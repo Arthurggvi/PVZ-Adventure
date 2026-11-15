@@ -203,7 +203,7 @@ func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 	return placement.commit() if placement != null else null
 
 ## 提交已完整预检的 [param placement]；读档事务用 [param notify] 延后成功通知。[br]
-## 此处不构造实体、不解码存档；真实占用、承托接线仍只有本入口写入。
+## 此处不构造实体、不解码存档；统一写入新生植株的真实占用与承托关系。
 func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Plant000Base:
 	assert(placement.cell == self and not placement.committed)
 	var plant: Plant000Base = placement.plant # 准备阶段构造并初始化的实例。
@@ -219,9 +219,7 @@ func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Pl
 	else:
 		plant_container_node[condition.place_plant_in_cell].add_child(plant)
 	if placement.origin == PlacementOrigin.Companion:
-		_companion_plants[int(placement.species)] = plant
-		plant.signal_character_death.connect(one_companion_free.bind(plant), CONNECT_ONE_SHOT)
-		plant.tree_exited.connect(_on_companion_tree_exited.bind(int(placement.species), plant.get_instance_id()))
+		_register_companion(plant)
 	else:
 		for cell: PlantCell in placement.footprint: # 普通放置才写入独占层及承托状态。
 			cell.plant_in_cell[condition.place_plant_in_cell] = plant
@@ -250,6 +248,100 @@ func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Pl
 		signal_plant_create.emit(self, plant.plant_type)
 
 	return plant
+
+## 登记同格 [param plant] 的伴生身份及生命周期；种植和手套换格共用。
+func _register_companion(plant: Plant000Base) -> void:
+	var species: int = int(plant.plant_type) # 伴生已经完成物种解析，不能是模仿者中间体。
+	_companion_plants[species] = plant
+	plant.signal_character_death.connect(one_companion_free.bind(plant), CONNECT_ONE_SHOT)
+	plant.tree_exited.connect(_on_companion_tree_exited.bind(species, plant.get_instance_id()))
+
+## [param plant] 必须是本格登记的活株；绑定原格的临时动作、梯子和正在承托的底座无法移动。
+func can_lift_plant(plant: Plant000Base) -> bool:
+	if board == null or not board.allows_mutation() or not is_instance_valid(plant) \
+			or plant.is_queued_for_deletion() or not plant.is_inside_tree() or plant.is_death \
+			or plant.is_being_relocated or plant.plant_cell != self or not plant_entities().has(plant) \
+			or plant.battle_placement_cells.is_empty() or not plant.can_relocate():
+		return false
+	if plant is Plant999Imitater or plant is Plant012GraveBuster or plant is Plant036CoffeeBean:
+		return false
+	for source: PlantCell in plant.battle_placement_cells: # 任一被梯子占用的地块都会锁住整株多格植物。
+		if not is_instance_valid(source) or source.is_queued_for_deletion() or is_instance_valid(source.ladder):
+			return false
+	return not plant is Plant000DownBase or not _support_layers_occupied()
+
+## 返回 [param plant] 移到 [param destination] 所需的合法占格；空数组表示松手失败，原株保持在原处。
+func relocation_footprint(plant: Plant000Base, destination: PlantCell) -> Array[PlantCell]:
+	if not can_lift_plant(plant) or not is_instance_valid(destination) or destination == self \
+			or destination.board != board or not destination.is_visible_in_tree():
+		return []
+	var condition: ResourcePlantCondition = Global.character_registry.get_plant_info(
+		plant.spawn_species_id(), CharacterRegistry.PlantInfoAttribute.PlantConditionResource) # 复用现有物种占格和种植限制。
+	if condition != null and plant.plant_spawn_profile != null:
+		condition = plant.plant_spawn_profile.placement_condition(condition)
+	if condition == null:
+		return []
+	var slot: CharacterRegistry.PlacePlantInCell = condition.place_plant_in_cell # 已有实例落在同一种植层。
+	var companion: bool = _companion_plants.get(int(plant.plant_type)) == plant # 伴生使用独立名额。
+	if companion and not destination.can_host_companion(int(plant.plant_type)):
+		return []
+	if not companion and plant_in_cell.get(slot) != plant:
+		return []
+	if plant is Plant000DownBase and destination._support_layers_occupied():
+		return []
+	var footprint: Array[PlantCell] = condition.placement_cells(destination) # 多格植物由棋盘查实际相邻格。
+	if footprint.size() != plant.battle_placement_cells.size() or not footprint.has(destination):
+		return []
+	for target: PlantCell in footprint: # 每个目标格都要仍在棋盘上，且未绑定梯子。
+		if not is_instance_valid(target) or target.is_queued_for_deletion() or not target.is_visible_in_tree() \
+				or is_instance_valid(target.ladder):
+			return []
+	return footprint if condition.judge_relocation_allowed(destination, footprint, plant, companion) else []
+
+## 把 [param plant] 原实例换到 [param destination]；只在完整预检后改占格，成功返回 true。
+## 不调用种植或死亡结算，血量、卡牌归属、动画和计时器随原实例保留。
+func relocate_plant(plant: Plant000Base, destination: PlantCell) -> bool:
+	var footprint: Array[PlantCell] = relocation_footprint(plant, destination) # 点击时复核，预览结果不能直接提交。
+	if footprint.is_empty():
+		return false
+	var species: int = int(plant.plant_type) # 用于解绑原格的伴生登记。
+	var companion: bool = _companion_plants.get(species) == plant # 普通层与伴生层各自移交原身份。
+	var slot: CharacterRegistry.PlacePlantInCell = CharacterRegistry.PlacePlantInCell.Norm \
+		if companion else plant_in_cell.find_key(plant) as CharacterRegistry.PlacePlantInCell # 对应目标容器。
+	var support: Plant000DownBase = plant as Plant000DownBase # 非承托植物不改底层投影。
+	plant.is_being_relocated = true
+	if support != null:
+		_detach_support_layers()
+	if companion:
+		_companion_plants.erase(species)
+		plant.signal_character_death.disconnect(one_companion_free.bind(plant))
+		plant.tree_exited.disconnect(_on_companion_tree_exited.bind(species, plant.get_instance_id()))
+	else:
+		for source: PlantCell in plant.battle_placement_cells: # 清空整株原占格，重叠部分也一起重接死亡信号。
+			source.plant_in_cell[slot] = null
+			plant.signal_character_death.disconnect(source.one_plant_free.bind(plant))
+		for target: PlantCell in footprint: # 重挂前登记新占格，入树回调读到的是新位置。
+			target.plant_in_cell[slot] = plant
+			plant.signal_character_death.connect(target.one_plant_free.bind(plant))
+	plant.battle_placement_cells = footprint
+	plant.update_battle_cell(destination)
+	_reparent_plant_content(plant, destination.plant_container_node[slot], false)
+	if companion:
+		destination._register_companion(plant)
+	if support != null:
+		_sync_support_terrain_condition()
+		destination._sync_support_terrain_condition()
+		destination._attach_support_layers(support)
+	plant.is_being_relocated = false
+	board.plant_relocated.emit()
+	return true
+
+## 普通层、壳层和伴生都可依附在底座上；允许单独移动空底座。
+func _support_layers_occupied() -> bool:
+	for slot: CharacterRegistry.PlacePlantInCell in _support_slot_anchors: # 直接检查真正挂载的内容容器。
+		if plant_container_node[slot].get_child_count() > 0:
+			return true
+	return false
 
 ## [param species] 在本格有独立伴生名额；排队释放期间仍保留名额，避免重复计数。
 func can_host_companion(species: int) -> bool:
@@ -363,7 +455,7 @@ func _attach_support_layers(support: Plant000DownBase) -> void:
 	for slot: CharacterRegistry.PlacePlantInCell in _support_slot_anchors:
 		var anchor: Control = _support_slot_anchors[slot]
 		var content: Node2D = plant_container_node[slot]
-		_reparent_support_content(content, support.down_plant_container, true)
+		_reparent_plant_content(content, support.down_plant_container, true)
 		content.global_position = anchor.global_position - support.plant_up_position
 
 ## 承托物死亡/铲除时恢复原锚点，避免缓存世界坐标造成跨行漂移。
@@ -371,12 +463,12 @@ func _detach_support_layers() -> void:
 	for slot: CharacterRegistry.PlacePlantInCell in _support_slot_anchors:
 		var anchor: Control = _support_slot_anchors[slot]
 		var content: Node2D = plant_container_node[slot]
-		_reparent_support_content(content, anchor, false)
+		_reparent_plant_content(content, anchor, false)
 		content.position = Vector2.ZERO
 
 ## 将 [param content] 搬到 [param target]，按 [param keep_global] 保留世界变换；不重置植物动作进度。
-## SpeedTimer 真实离树仍终止任务，只有本次同步承托搬迁显式恢复原有的活动任务。
-func _reparent_support_content(content: Node2D, target: Node, keep_global: bool) -> void:
+## SpeedTimer 真实离树仍终止任务；同步换格和承托重挂恢复原活动任务。
+func _reparent_plant_content(content: Node2D, target: Node, keep_global: bool) -> void:
 	var clocks: Array[Dictionary] = [] # 原生秒数保留零速冻结时的剩余量，无需再次除以速度。
 	for node: Node in content.find_children("*", "Timer", true, false): # 只捕获声明了离树停止的变速计时器。
 		var timer := node as SpeedTimer # 普通Timer不改变其原有生命周期。

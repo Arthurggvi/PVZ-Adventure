@@ -35,7 +35,7 @@ func _ready() -> void:
 	_scroll.follow_focus = true
 	add_child(_scroll)
 	var alignment := CenterContainer.new() # 单排垂直居中；内容超过视口时自然撑高并交给滚动容器。
-	alignment.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	alignment.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	alignment.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_scroll.add_child(alignment)
 	_grid = GridContainer.new()
@@ -92,11 +92,13 @@ func render(offers: Array[Dictionary], selected_id: String, locked: bool) -> voi
 		_transition.tween_property(_grid, "modulate:a", 1.0, 0.20).set_trans(Tween.TRANS_SINE)
 	_fit_columns()
 
-## 列数只依赖容器宽度，给某一类增加商品不改变单卡尺寸或页面结构。
+## 按可容纳宽度计算行数，再均衡分列；四件商品在宽屏货架上为居中的两行两列。
 func _fit_columns() -> void:
 	if _grid == null:
 		return
-	_grid.columns = maxi(1, floori((size.x - SCROLL_GUTTER + GAP) / (ProductCard.CARD_SIZE.x + GAP)))
+	var capacity: int = maxi(1, floori((size.x - SCROLL_GUTTER + GAP) / (ProductCard.CARD_SIZE.x + GAP))) # 一行最多能放下的卡片。
+	var rows: int = maxi(1, ceili(float(_ids.size()) / capacity)) # 宽度不足时仍保持最少行数。
+	_grid.columns = maxi(1, ceili(float(_ids.size()) / rows))
 
 ## 点击 [param id] 仅发出选择意图。
 func _select(id: String) -> void:

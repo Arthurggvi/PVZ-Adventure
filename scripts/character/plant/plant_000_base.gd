@@ -104,6 +104,8 @@ func spawn_species_id() -> int:
 	return int(plant_type)
 ## 实际放置事务提交的完整地块声明，死亡记录不凭当前画面反推多格范围。
 var battle_placement_cells: Array[PlantCell] = []
+## 同步换格造成的离树仅用于重挂原节点；组件可据此保留计时和登记。
+var is_being_relocated := false
 ## 铲除、升级替换与场景清理显式关闭尸体记录；正常消耗与战斗死亡保持开启。
 var death_recording_enabled: bool = true
 ## 复生后的永久最大生命比例，存档单独保存，不修改来源卡牌配方。
@@ -219,6 +221,21 @@ func ready_norm():
 		sleep_component.judge_is_sleeping()
 
 	GlobalUtils.update_plant_cell_slope_y_array(plant_cell, node2d_detect_in_slope)
+
+## 默认允许换格；正在执行依赖原格位置的动作时由具体植物拒绝。
+func can_relocate() -> bool:
+	return true
+
+## 更新本株到 [param destination] 的格子和攻击行，按高度差修正检测节点，保留战斗状态。
+func update_battle_cell(destination: PlantCell) -> void:
+	var height_delta: float = plant_cell.get_ground_height() - destination.get_ground_height() # 撤回旧坡面偏移后再应用新高度。
+	plant_cell = destination
+	row_col = destination.row_col
+	lane = row_col.x
+	if not is_zero_approx(height_delta):
+		for detector: Node2D in node2d_detect_in_slope: # 只移动仍存活的检测节点，身体随父容器换位。
+			if is_instance_valid(detector):
+				detector.position.y += height_delta
 
 ## 初始化展示角色
 func ready_show():

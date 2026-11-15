@@ -74,20 +74,8 @@ func judge_is_can_plant(plant_cell: PlantCell, curr_plant_type: CharacterRegistr
 	if companion and (is_purple_card or is_special_plants or footprint.size() != 1 \
 			or place_plant_in_cell != CharacterRegistry.PlacePlantInCell.Norm):
 		return false
-	for target: PlantCell in footprint: # 所有占用地块共享固有地形限制。
-		if not is_instance_valid(target) or target.board != plant_cell.board:
-			return false
-		if plant_cell.board_definition != null and (target.board_definition == null \
-			or target.board_definition.surface_id != plant_cell.board_definition.surface_id):
-			return false
-		if not target.is_terrain_planting_allowed():
-			return false
-		for tag: StringName in required_terrain_tags: # 新物种可声明能力而无需认识地形种类。
-			if target.board_terrain == null or not target.board_terrain.tags.has(tag):
-				return false
-		for tag: StringName in forbidden_terrain_tags: # 禁止能力优先于物种特殊规则。
-			if target.board_terrain != null and target.board_terrain.tags.has(tag):
-				return false
+	if not _terrain_allows_footprint(plant_cell, footprint):
+		return false
 	if is_purple_card:
 		var cells: Array[PlantCell] = placement_cells(plant_cell)
 		if cells.is_empty():
@@ -111,6 +99,39 @@ func judge_is_can_plant(plant_cell: PlantCell, curr_plant_type: CharacterRegistr
 				occupant.spawn_species_id(), CharacterRegistry.PlantInfoAttribute.PlantConditionResource)
 			if occupant_condition != null and occupant_condition.placement_cells(occupant.plant_cell).size() > 1:
 				return false
+	return true
+
+## 验证 [param footprint] 内各地块与 [param origin] 同一战场与平台，且满足种植能力标签。
+func _terrain_allows_footprint(origin: PlantCell, footprint: Array[PlantCell]) -> bool:
+	for target: PlantCell in footprint: # 每个实际占格都要能承载这株植物。
+		if not is_instance_valid(target) or target.board != origin.board:
+			return false
+		if origin.board_definition != null and (target.board_definition == null \
+			or target.board_definition.surface_id != origin.board_definition.surface_id):
+			return false
+		if not target.is_terrain_planting_allowed():
+			return false
+		for tag: StringName in required_terrain_tags: # 地块必须满足全部所需能力。
+			if target.board_terrain == null or not target.board_terrain.tags.has(tag):
+				return false
+		for tag: StringName in forbidden_terrain_tags: # 命中任一禁用能力即拒绝。
+			if target.board_terrain != null and target.board_terrain.tags.has(tag):
+				return false
+	return true
+
+## 在 [param cell] 以 [param footprint] 安置已有 [param plant]；[param companion] 沿用伴生的独立名额。
+## 已升级的植物免除升级前置，多格范围允许覆盖它自己原有的占格。
+func judge_relocation_allowed(cell: PlantCell, footprint: Array[PlantCell], plant: Plant000Base,
+		companion: bool) -> bool:
+	if not is_purple_card:
+		return judge_is_can_plant(cell, plant.plant_type, companion)
+	if not _terrain_allows_footprint(cell, footprint) or not upgrade_footprint_available(footprint):
+		return false
+	for target: PlantCell in footprint: # 覆盖其他植物或壳层仍按实际格子阻挡。
+		var occupant: Plant000Base = target.plant_in_cell.get(place_plant_in_cell) # 原株自身可在重叠格继续占位。
+		if not target.can_common_plant or not (plant_condition & target.curr_condition) \
+				or (is_instance_valid(occupant) and occupant != plant):
+			return false
 	return true
 
 ## 在 [param cell] 复生 [param species] 按普通占位，只免除已完成的紫卡前置；空间资格照常验证。

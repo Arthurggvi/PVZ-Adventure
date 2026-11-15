@@ -2,6 +2,8 @@
 
 [ext_resource type="PackedScene" path="res://scenes/ui/boss_hp_progress_bar.tscn" id="boss_hp_progress"]
 [ext_resource type="PackedScene" path="res://scenes/ui/transitions/SceneTransition.tscn" id="scene_transition_runtime"]
+[ext_resource type="Texture2D" uid="uid://d4lqo87x72hwx" path="res://assets/image/garden/Zen_GardenGlove.png" id="battle_glove"]
+[ext_resource type="Texture2D" uid="uid://b48l4yjq0j5mo" path="res://assets/image/ui/ui_main_game_menu/UI_BG/button_BG.png" id="battle_tool_bg"]
 [ext_resource type="Script" uid="uid://c7dr2016dfdoo" path="res://scripts/manager/main_game_manager.gd" id="1_7dde3"]
 [ext_resource type="Script" uid="uid://b2rst408m72au" path="res://scripts/manager/hand_manager/hand_manager.gd" id="3_acpf0"]
 [ext_resource type="Script" uid="uid://duphb7sb466c0" path="res://scripts/manager/hand_manager/hm_character.gd" id="4_ee3wa"]
@@ -74,6 +76,53 @@ size = Vector2(150, 600)
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_41ccn"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jbbka"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tool_normal"]
+texture = ExtResource("battle_tool_bg")
+texture_margin_left = 13.0
+texture_margin_top = 9.0
+texture_margin_right = 13.0
+texture_margin_bottom = 9.0
+content_margin_left = 5.0
+content_margin_top = 3.0
+content_margin_right = 5.0
+content_margin_bottom = 3.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tool_hover"]
+texture = ExtResource("battle_tool_bg")
+texture_margin_left = 13.0
+texture_margin_top = 9.0
+texture_margin_right = 13.0
+texture_margin_bottom = 9.0
+content_margin_left = 5.0
+content_margin_top = 3.0
+content_margin_right = 5.0
+content_margin_bottom = 3.0
+modulate_color = Color(1.2, 1.2, 1.2, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tool_active"]
+texture = ExtResource("battle_tool_bg")
+texture_margin_left = 13.0
+texture_margin_top = 9.0
+texture_margin_right = 13.0
+texture_margin_bottom = 9.0
+content_margin_left = 5.0
+content_margin_top = 3.0
+content_margin_right = 5.0
+content_margin_bottom = 3.0
+modulate_color = Color(0.84, 1.25, 0.77, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tool_focus"]
+draw_center = false
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.84, 0.87, 0.59, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ybhi1"]
 
@@ -437,6 +486,18 @@ centered = false
 offset = Vector2(-14, -70)
 script = ExtResource("35_mjx71")
 
+[node name="GloveDropTarget" type="Polygon2D" parent="CanvasLayerTemp"]
+unique_name_in_owner = true
+visible = false
+antialiased = true
+
+[node name="RealGlove" type="Sprite2D" parent="CanvasLayerTemp"]
+unique_name_in_owner = true
+visible = false
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("battle_glove")
+offset = Vector2(28, 18)
+
 [node name="CanvasLayerEffect" type="CanvasLayer" parent="." unique_id=877702786]
 layer = 30
 script = ExtResource("51_qfhda")
@@ -762,6 +823,54 @@ text = "菜单"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="BattleSpeedButton" type="Button" parent="CanvasLayerUI/All_UI"]
+unique_name_in_owner = true
+process_mode = 1
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -171.0
+offset_top = 4.0
+offset_right = -115.0
+offset_bottom = 38.0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.96, 0.94, 0.85, 1)
+theme_override_colors/font_pressed_color = Color(0.89, 1, 0.72, 1)
+theme_override_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_tool_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_tool_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_tool_active")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_tool_active")
+theme_override_styles/focus = SubResource("StyleBoxFlat_tool_focus")
+toggle_mode = true
+text = "1×"
+
+[node name="BattleGloveButton" type="Button" parent="CanvasLayerUI/All_UI"]
+unique_name_in_owner = true
+process_mode = 1
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -81.0
+offset_top = 47.0
+offset_right = -27.0
+offset_bottom = 81.0
+mouse_default_cursor_shape = 2
+accessibility_name = "手套"
+theme_override_styles/normal = SubResource("StyleBoxTexture_tool_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_tool_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_tool_active")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_tool_active")
+theme_override_styles/focus = SubResource("StyleBoxFlat_tool_focus")
+toggle_mode = true
+icon = ExtResource("battle_glove")
+icon_alignment = 1
+expand_icon = true
+
 [node name="BattlePauseMenu" parent="CanvasLayerUI/All_UI" unique_id=575921648 node_paths=PackedStringArray("dialog") instance=ExtResource("battle_pause_menu")]
 unique_name_in_owner = true
 layout_mode = 1
@@ -852,3 +961,5 @@ debug_color = Color(0, 0.6, 0.69803923, 0.20392157)
 [connection signal="area_entered" from="CanvasLayerBG/Background/Home/Area2DHome" to="CanvasLayerBG/Background/Home" method="_on_area_2d_home_area_entered"]
 [connection signal="pressed" from="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/UIShovel/Button" to="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/UIShovel" method="_on_button_pressed"]
 [connection signal="pressed" from="CanvasLayerUI/All_UI/MainGameMenuButton" to="CanvasLayerUI/All_UI/BattlePauseMenu" method="appear_menu"]
+[connection signal="pressed" from="CanvasLayerUI/All_UI/BattleSpeedButton" to="." method="_toggle_battle_speed"]
+[connection signal="pressed" from="CanvasLayerUI/All_UI/BattleGloveButton" to="Manager/HandManager" method="_click_glove"]

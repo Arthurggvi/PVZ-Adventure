@@ -23,6 +23,10 @@ var target_x: float = 0.0
 ## 本次落地是否已结算；重复动画事件不能再次伤害同一批目标。
 var _has_squashed: bool = false
 
+## 起跳前已锁定原格的落点，攻击过程中不接受换格。
+func can_relocate() -> bool:
+	return not is_attack
+
 func ready_norm_signal_connect():
 	super()
 	detect_component.signal_can_attack.connect(attack_start)

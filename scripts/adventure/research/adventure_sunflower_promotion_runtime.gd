@@ -22,6 +22,7 @@ func setup(owner_game: MainGameManager) -> void:
 func _ready() -> void:
 	if not is_instance_valid(game) or not is_instance_valid(game.card_manager):
 		return
+	game.board.plant_relocated.connect(_on_board_changed)
 	_slots = game.card_manager.card_slot_battle
 	if _slots != null:
 		_slots.signal_card_committed.connect(_on_card_committed)

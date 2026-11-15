@@ -25,6 +25,10 @@ var charge_cd_timer:Timer
 ## 是否充能
 @export var is_charge := false
 
+## 瞄准或发射时锁定炮位，充能过程中可保留计时换格。
+func can_relocate() -> bool:
+	return not is_attack and not cob_cannon_target.is_activate
+
 func ready_norm():
 	super()
 	cob_cannon_bright_dark()
@@ -100,6 +104,8 @@ func _on_area_2d_mouse_exited() -> void:
 
 @warning_ignore("unused_parameter")
 func _on_area_2d_input_event(viewport: Node, event: InputEvent, shape_idx: int) -> void:
+	if is_instance_valid(Global.main_game) and Global.main_game.hand_manager.is_holding_glove():
+		return
 	## 有子弹时左键点击,准备发射
 	if is_bullet and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		cob_cannon_target.activate_it()

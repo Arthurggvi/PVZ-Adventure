@@ -9,7 +9,7 @@ const MAX_SLOTS := 11
 const CATEGORIES: Array[String] = ["daily", "permanent", "special"]
 ## 分类中文名。
 const CATEGORY_NAMES: Dictionary = {"daily": "每日商品", "permanent": "常驻商品", "special": "特殊商品"}
-## 商品配置：item 发普通背包，equipment 发角色装备，slots 扩容；daily_limit 缺省为不限量。
+## 商品配置：item 发普通背包，equipment 发角色装备，slots 扩容，glove 解锁战斗工具。
 const PRODUCTS: Array[Dictionary] = [
 	{"id": "seedling_pot", "category": "daily", "kind": "item", "asset": "seedling_pot", "title": "保育花盆", "price": 5000, "daily_limit": 2,
 		"tag": "强化保护", "description": "强化失败时，保留主卡原有星级。", "speech": "强化失败不掉星，稳当！"},
@@ -31,6 +31,8 @@ const PRODUCTS: Array[Dictionary] = [
 		"tag": "永久时装", "description": "解锁向日葵娘时装；在角色页装备，切换角色立绘。", "speech": "换上向日葵娘，满身阳光！"},
 	{"id": "card_slot", "category": "special", "kind": "slots", "asset": "", "title": "可携带卡槽 +1", "price": 3000,
 		"tag": "永久升级", "description": "永久增加一个冒险可携带卡槽，上限11槽。每次购买后价格翻倍。", "speech": "永久多带一张卡！"},
+	{"id": "glove", "category": "special", "kind": "glove", "asset": "", "title": "手套", "price": 20000,
+		"description": "在冒险战斗中移动植物。", "speech": "先选植物，再选落点。"},
 ]
 
 ## 返回 [param id] 的独立商品定义；未知 ID 返回空字典。

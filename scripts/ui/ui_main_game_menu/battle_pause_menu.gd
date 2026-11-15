@@ -30,14 +30,14 @@ func _input(event: InputEvent) -> void:
 		_set_menu_open(not visible)
 
 
-## 等待按钮按下动画后打开菜单。
+## 按实际时间等待按钮动画，再打开菜单。
 func appear_menu() -> void:
-	await get_tree().create_timer(0.1).timeout
+	await get_tree().create_timer(0.1, true, false, true).timeout
 	_set_menu_open(true)
 
-## 等待按钮按下动画后返回游戏。
+## 按实际时间等待按钮动画，再返回游戏。
 func return_button_pressed() -> void:
-	await get_tree().create_timer(0.1).timeout
+	await get_tree().create_timer(0.1, true, false, true).timeout
 	_set_menu_open(false)
 
 ## [param is_open] 同步菜单显示与菜单暂停因素，保留其他暂停因素。

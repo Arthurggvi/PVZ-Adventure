@@ -22,6 +22,7 @@ func setup(battle: MainGameManager) -> void:
 func _ready() -> void:
 	if not is_instance_valid(game) or not is_instance_valid(game.plant_cell_manager):
 		return
+	game.board.plant_relocated.connect(_on_board_change)
 	for row: Array in game.plant_cell_manager.all_plant_cells:
 		for cell: PlantCell in row:
 			cell.signal_plant_create.connect(_on_board_change.unbind(2))
