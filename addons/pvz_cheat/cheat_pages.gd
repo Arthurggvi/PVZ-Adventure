@@ -325,6 +325,8 @@ static func _battle(root: VBoxContainer, service: RefCounted, report: Callable) 
 	_battle_toggle(toggles, &"instant_kill", "秒杀", Callable(service, "set_battle_instant_kill"), report)
 	_battle_toggle(toggles, &"no_card_cooldown", "卡牌无冷却", Callable(service, "set_battle_no_card_cooldown"), report)
 	_battle_toggle(toggles, &"infinite_sun", "无限阳光", Callable(service, "set_battle_infinite_sun"), report)
+	_battle_toggle(toggles, &"fixed_mowers", "固定小推车", Callable(service, "set_battle_fixed_mowers"), report)
+	_note(root, "固定小推车：车停在当前位置，碰到的同行僵尸直接被碾死，本局有效。")
 	refresh_battle_toggles(root, service)
 	_note(root, "僵尸类型")
 	var zombie: OptionButton = _select(root) # 选项 ID 直接使用僵尸注册表枚举值。
