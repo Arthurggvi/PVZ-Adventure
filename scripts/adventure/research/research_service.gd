@@ -63,21 +63,33 @@ func quote(mode: String, choice: Dictionary) -> Dictionary:
 			return _promotion_quote(choice)
 	return {"ready": false, "message": "未知研究功能。"}
 
+## 返回 [param id] 的合成报价，包括卷轴、材料的实时持有量和实际缺项。
 func _craft_quote(id: String) -> Dictionary:
-	var recipe: Dictionary = Recipes.definition(id)
+	if id.is_empty():
+		return {"ready": false, "message": "请先从左侧选择配方。"}
+	var recipe: Dictionary = Recipes.definition(id) # 报价字段只写入目录返回的副本。
 	if recipe.is_empty():
-		return {"ready": false, "message": "请选择已登记的配方。"}
-	var material_slots: Array[Dictionary] = []
-	var enough := inventory.get_item_count(id) > 0 and wallet.coin_value >= Recipes.COST
-	for material_id: String in recipe.materials:
-		var owned: int = inventory.get_item_count(material_id)
-		material_slots.append({"id": material_id, "owned": owned, "required": 1})
+		return {"ready": false, "message": "所选配方已失效，请重新选择。"}
+	var required_items: Array = [id] + recipe.materials # 先校验一次性配方卷轴，再校验各取一份的材料。
+	var slots: Array[Dictionary] = [] # 预览与缺项提示共用同一份库存数量。
+	var missing_items := PackedStringArray() # 只记录需要补齐的道具名称和数量。
+	for item_id: String in required_items:
+		var owned: int = inventory.get_item_count(item_id) # 仍可预览已经耗尽的配方。
+		slots.append({"id": item_id, "owned": owned, "required": 1})
 		if owned < 1:
-			enough = false
-	recipe["slots"] = material_slots
+			var item_name: String = str(ItemRegistry.get_item_definition(item_id).get("name", item_id)) # 使用背包中的道具名。
+			missing_items.append("%s ×1" % item_name)
+	var message: String = "" # 条件满足时留空，否则累加本次实际缺项。
+	if not missing_items.is_empty():
+		message = "缺少%s。" % "、".join(missing_items)
+	var coin_shortfall: int = Recipes.COST - wallet.coin_value # 余额等于费用时允许合成。
+	if coin_shortfall > 0:
+		message += "金币还差 %d。" % coin_shortfall
+	recipe["scroll"] = slots.pop_front()
+	recipe["slots"] = slots
 	recipe["fee"] = Recipes.COST
-	recipe["ready"] = enough
-	recipe["message"] = "可合成" if enough else "缺少配方、材料或金币。"
+	recipe["ready"] = message.is_empty()
+	recipe["message"] = "可合成" if message.is_empty() else message
 	return recipe
 
 func _upgrade_quote(choice: Dictionary) -> Dictionary:

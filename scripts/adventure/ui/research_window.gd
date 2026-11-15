@@ -209,6 +209,7 @@ func _render() -> void:
 	ui.action_text.text = Meta.title(mode)
 	# 有效档案可点击操作按钮查看不足原因，真正执行前仍重新报价。
 	ui.action.disabled = _busy or _closing or service == null
+	ui.action.tooltip_text = str(_preview.get("message", "")) if mode == "craft" and not _preview.get("ready", false) else ""
 	var coin_balance: int = Global.global_game_state.coin_value if Global.global_game_state != null else 0 # 页首与操作报价使用同一余额。
 	ui.coin.text = "$%d" % coin_balance
 	View.render(self, ui.content, mode, _options, _preview, _picker,
