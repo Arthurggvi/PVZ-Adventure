@@ -20,8 +20,9 @@ func _run() -> void:
 	# 续战测试的钥匙由测试档预置，正式关卡奖励不发放。
 	assert(Global.adventure_inventory.add_item("lawn_nightmare_key", 1))
 	map._select_stage(1)
-	_add_test_encounters()
 	await _wait_battle()
+	# 正式切场只在接受战场后发布活动关卡。
+	_add_test_encounters()
 	var battle: MainGameManager = Global.main_game
 	assert(AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NORMAL)
 	# 通过真实自然波次和清怪接口推进普通清场，再使用预置钥匙续战。
