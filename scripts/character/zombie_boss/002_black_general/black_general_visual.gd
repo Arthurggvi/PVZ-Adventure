@@ -26,14 +26,10 @@ const MAP := {
 const FLAG_FLAME = preload("res://scripts/character/zombie_boss/002_black_general/black_general_flag_flame.gd")
 ## 二阶段冲锋剪影，场外可使用角色的展示模式。
 const SILHOUETTE_SCENE: PackedScene = preload("res://scenes/character/zombie_boss/black_general_charge_silhouette.tscn")
-## 蓄力连踩使用原有践踏音效，间隔以未乘角色速度的游戏秒计。
+## 起跑、落脚和急停共用的原有践踏音效。
 const STOMP_SOUND: AudioStream = preload("res://assets/audio/SFX/zombie/gargantuar_thump.ogg")
-## 连续践踏之间的游戏秒数。
-const STOMP_INTERVAL: float = 0.22
 ## 本体拖影比转阶段分身拖影更实。
 const CHARGE_TRAIL_OPACITY: float = 0.74
-## 本体每两次落步震动之间的冲锋秒数。
-const CHARGE_SHAKE_INTERVAL: float = 0.34
 ## 从起跑到停止线的距离比例，用于布置三个剪影。
 const SILHOUETTE_PATH_FRACTIONS := [0.22, 0.50, 0.78]
 
@@ -55,16 +51,12 @@ var _shake_camera: Callable
 var _next_trail_x: float = 0.0
 ## 当前正在沿冲锋路线伸展的烟带。
 var _charge_wake: BlackGeneralChargeWake
-## 到下一次落步震动的冲锋秒数。
-var _shake_wait: float = 0.0
 ## 二阶段沿路线尚未越过的剪影世界横坐标。
 var _silhouette_marks: Array[float] = []
 ## 剪影在战斗中的行号，-1 时采用展示模式。
 var _charge_lane: int = -1
-## 蓄力专用音轨，离开蓄力即可停止重复践踏。
+## 本体首次冲锋时创建的践踏音轨，随冲锋中断或舞台关闭而停止。
 var _stomp_player: AudioStreamPlayer
-## 距下次践踏的游戏秒数。
-var _stomp_wait: float = 0.0
 
 ## 默认应用一阶段美术。
 func _ready() -> void:
@@ -78,20 +70,11 @@ func bind_effects(actor: Node2D, motion_host: Node2D, ground_host: Node2D, shake
 	_ground_host = ground_host
 	_shake_camera = shake_camera
 
-## 播放 [param action]，沿用实战步频和角色受控速度倍率；蓄力动作同步启动践踏音轨。
+## 播放 [param action]，沿用实战步频和角色受控速度倍率。
 func play_action(action: StringName) -> void:
 	if not player.has_animation(action):
 		push_error("BlackGeneralVisual: missing action %s" % action)
 		return
-	stop_windup_sound()
-	if action == &"windup" and is_instance_valid(_actor):
-		if _stomp_player == null:
-			_stomp_player = AudioStreamPlayer.new()
-			_stomp_player.stream = STOMP_SOUND
-			_stomp_player.bus = &"SFX"
-			add_child(_stomp_player)
-		_stomp_wait = STOMP_INTERVAL
-		_stomp_player.play()
 	$Body.modulate.a = 1.0
 	player.play(action, -1.0, CHARGE_ANIMATION_SPEED if action == &"charge" else 1.0)
 
@@ -124,20 +107,6 @@ func set_phase2(enabled: bool) -> void:
 	else:
 		smoke.stop()
 
-## 用 [param delta] 推进蓄力踏地声；已播完蓄力但仍等待战场时，也可继续按原间隔播放。
-func advance_windup_sound(delta: float) -> void:
-	if not is_instance_valid(_stomp_player):
-		return
-	_stomp_wait -= delta
-	if _stomp_wait <= 0.0:
-		_stomp_player.play()
-		_stomp_wait += STOMP_INTERVAL
-
-## 中断蓄力时立刻切断原音轨。
-func stop_windup_sound() -> void:
-	if is_instance_valid(_stomp_player):
-		_stomp_player.stop()
-
 ## 在当前主体脚下播放实战举旗的黑焰。
 func play_flag_flame() -> void:
 	FLAG_FLAME.new().ignite(_ground_host, _actor.global_position, _actor.z_index + 1)
@@ -146,7 +115,6 @@ func play_flag_flame() -> void:
 func begin_charge_effects(stop_x: float, lane: int = -1) -> void:
 	retire_charge_effects()
 	_next_trail_x = _actor.global_position.x
-	_shake_wait = 0.0
 	_charge_lane = lane
 	if _phase2 and stop_x < _next_trail_x:
 		for fraction: float in SILHOUETTE_PATH_FRACTIONS: # 沿实际路线分布落点。
@@ -158,18 +126,15 @@ func sample_charge_trail(spacing: float) -> void:
 		BlackGeneralChargeTrail.spawn(self, _motion_host, _actor.z_index - 1, CHARGE_TRAIL_OPACITY)
 		_next_trail_x = _actor.global_position.x - spacing
 
-## 从 [param feet] 到主体当前位置铺开烟带；[param step] 为已乘角色速度的冲锋秒数。
-func advance_charge_effects(feet: Vector2, step: float) -> void:
+## 从移动前的 [param feet] 到主体当前位置铺开烟带；首次移动时触发起跑冲击。
+func advance_charge_effects(feet: Vector2) -> void:
 	if _actor.global_position.x >= feet.x:
 		return
 	if _charge_wake == null:
 		_charge_wake = BlackGeneralChargeWake.spawn(_motion_host, feet, _actor.z_index - 2, 1.0)
 		BlackGeneralShadowBurst.erupt(_motion_host, feet, _actor.z_index - 1, 0.82)
+		_play_charge_impact(Vector2(4.0, 7.0), 0.24)
 	_charge_wake.follow(_actor.global_position.x)
-	_shake_wait -= step
-	if _shake_wait <= 0.0 and _shake_camera.is_valid():
-		_shake_camera.call(Vector2(4.0, 7.0), 0.24)
-		_shake_wait += CHARGE_SHAKE_INTERVAL
 	while not _silhouette_marks.is_empty() and _actor.global_position.x <= _silhouette_marks[0]:
 		var x: float = _silhouette_marks.pop_front() # 每个落点只生成一次，即使本帧越过多个。
 		_place_silhouette(x)
@@ -187,20 +152,38 @@ func _place_silhouette(x: float) -> void:
 	_ground_host.add_child(silhouette)
 	silhouette.imprint(self, _actor.global_position)
 
-## 真实走过路线后触发急停的黑焰冲击和震动，再把烟带交还给其淡出演出。
+## 让烟带在原地淡出；本体实际移动过才触发急停的黑焰、音效和震动。
 func finish_charge_effects() -> void:
-	if is_instance_valid(_charge_wake):
-		BlackGeneralShadowBurst.erupt(_motion_host, _actor.global_position, _actor.z_index + 1, 1.20)
-		if _shake_camera.is_valid():
-			_shake_camera.call(Vector2(6.0, 10.0), 0.36)
+	var moved: bool = is_instance_valid(_charge_wake) # 烟带只在本体实际移动后创建。
 	retire_charge_effects()
+	if moved:
+		BlackGeneralShadowBurst.erupt(_motion_host, _actor.global_position, _actor.z_index + 1, 1.20)
+		_play_charge_impact(Vector2(6.0, 10.0), 0.36)
 
-## 取消剩余落点，让已经铺开的烟带在原地自然耗散。
+## 停止践踏并取消剩余落点，让已经铺开的烟带在原地自然耗散。
 func retire_charge_effects() -> void:
+	if is_instance_valid(_stomp_player):
+		_stomp_player.stop()
 	_silhouette_marks.clear()
 	if is_instance_valid(_charge_wake) and _charge_wake.is_inside_tree():
 		_charge_wake.retire(1.44)
 	_charge_wake = null
+
+## 冲锋动画的落脚关键帧；仅在本体已经起跑且冲锋仍有效时触发。
+func _on_charge_footfall() -> void:
+	if is_instance_valid(_charge_wake) and player.current_animation == &"charge":
+		_play_charge_impact(Vector2(4.0, 7.0), 0.24)
+
+## 同时播放一记践踏和镜头震动，使用 [param amplitude]（像素）与 [param duration]（秒）。
+func _play_charge_impact(amplitude: Vector2, duration: float) -> void:
+	if _stomp_player == null:
+		_stomp_player = AudioStreamPlayer.new()
+		_stomp_player.stream = STOMP_SOUND
+		_stomp_player.bus = &"SFX"
+		add_child(_stomp_player)
+	_stomp_player.play()
+	if _shake_camera.is_valid():
+		_shake_camera.call(amplitude, duration)
 
 ## 动画关键帧通知举旗。
 func _emit_flag_raised() -> void:
