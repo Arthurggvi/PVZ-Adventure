@@ -54,7 +54,7 @@ const ProfileHud = preload("res://scripts/adventure/ui/adventure_profile_hud.gd"
 @onready var level_info: LevelInfo = $CanvasLayerUI/LevelInfo
 ## 正式战斗中显示当前速度，暂停期间不接收输入。
 @onready var _battle_speed_button: Button = %BattleSpeedButton
-## 已购买手套的冒险战斗才显示此入口。
+## 出战卡栏就绪后，已购买手套的冒险战斗在铲子旁显示此入口。
 @onready var battle_glove_button: Button = %BattleGloveButton
 ## 开启二倍速前的物理频率；为零时表示当前没有接管引擎速度。
 var _normal_physics_ticks: int = 0
@@ -315,10 +315,9 @@ func _refresh_battle_tools() -> void:
 		return
 	var in_combat: bool = main_game_progress == E_MainGameProgress.MAIN_GAME # 准备红字结束后才开放操作。
 	_battle_speed_button.visible = in_combat
-	battle_glove_button.visible = in_combat and has_battle_glove()
-	if not battle_glove_button.visible:
-		hand_manager.cancel_glove()
 	if not in_combat:
+		battle_glove_button.hide()
+		hand_manager.cancel_glove()
 		_reset_battle_speed()
 
 ## 切换本轮战斗速度；同步提高物理频率以保持每步的命中检测精度。

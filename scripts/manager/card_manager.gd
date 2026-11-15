@@ -150,6 +150,9 @@ func card_slot_update_main_game():
 					card.card_change_cool_time(0)
 	if is_shovel:
 		card_slot_root.ui_shovel.visible = true
+	# 等出战卡栏就位再显示手套，避免开战动画期间工具单独出现在左上角。
+	main_game.battle_glove_button.visible = main_game.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME \
+		and main_game.has_battle_glove()
 
 ## 待选卡槽卡槽消失
 func card_slot_disappear_choose():

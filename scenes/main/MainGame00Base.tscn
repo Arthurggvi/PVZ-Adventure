@@ -77,6 +77,29 @@ size = Vector2(150, 600)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jbbka"]
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_glove_normal"]
+texture = ExtResource("42_pmw6j")
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_glove_hover"]
+texture = ExtResource("42_pmw6j")
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+modulate_color = Color(1.18, 1.14, 1.08, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_glove_active"]
+texture = ExtResource("42_pmw6j")
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+modulate_color = Color(1.32, 1.26, 0.88, 1)
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tool_normal"]
 texture = ExtResource("battle_tool_bg")
 texture_margin_left = 13.0
@@ -394,20 +417,25 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_41ccn")
 layout_mode = 2
 mouse_filter = 1
 
-[node name="UIShovel" type="TextureRect" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer" unique_id=719393000]
-unique_name_in_owner = true
-visible = false
+[node name="BattleTools" type="HBoxContainer" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_right = 70.0
 offset_bottom = 72.0
-grow_horizontal = 0
+grow_horizontal = 1
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="UIShovel" type="TextureRect" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/BattleTools" unique_id=719393000]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(70, 72)
+layout_mode = 2
 texture = ExtResource("42_pmw6j")
 script = ExtResource("43_erab5")
 
-[node name="Shovel" type="TextureRect" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/UIShovel" unique_id=481486094]
+[node name="Shovel" type="TextureRect" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/BattleTools/UIShovel" unique_id=481486094]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -420,7 +448,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("4_w5iw5")
 
-[node name="Button" type="Button" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/UIShovel" unique_id=1370536051]
+[node name="Button" type="Button" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/BattleTools/UIShovel" unique_id=1370536051]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -436,7 +464,7 @@ theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_jbbka")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_jbbka")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_jbbka")
 
-[node name="Label" type="Label" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/UIShovel" unique_id=1021801188]
+[node name="Label" type="Label" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/BattleTools/UIShovel" unique_id=1021801188]
 layout_mode = 0
 offset_left = 54.0
 offset_top = 50.0
@@ -447,6 +475,23 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 text = "F"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="BattleGloveButton" type="Button" parent="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/BattleTools"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(64, 72)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+accessibility_name = "手套"
+theme_override_styles/normal = SubResource("StyleBoxTexture_glove_normal")
+theme_override_styles/hover = SubResource("StyleBoxTexture_glove_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_glove_active")
+theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_glove_active")
+theme_override_styles/focus = SubResource("StyleBoxFlat_tool_focus")
+toggle_mode = true
+icon = ExtResource("battle_glove")
+icon_alignment = 1
+expand_icon = true
 
 [node name="CanvasLayerFG" type="CanvasLayer" parent="." unique_id=1245328214]
 layer = 5
@@ -831,10 +876,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -171.0
-offset_top = 4.0
-offset_right = -115.0
-offset_bottom = 38.0
+offset_left = -80.0
+offset_top = 47.0
+offset_right = -24.0
+offset_bottom = 81.0
 mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0.96, 0.94, 0.85, 1)
 theme_override_colors/font_pressed_color = Color(0.89, 1, 0.72, 1)
@@ -846,30 +891,6 @@ theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_tool_active")
 theme_override_styles/focus = SubResource("StyleBoxFlat_tool_focus")
 toggle_mode = true
 text = "1×"
-
-[node name="BattleGloveButton" type="Button" parent="CanvasLayerUI/All_UI"]
-unique_name_in_owner = true
-process_mode = 1
-visible = false
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -81.0
-offset_top = 47.0
-offset_right = -27.0
-offset_bottom = 81.0
-mouse_default_cursor_shape = 2
-accessibility_name = "手套"
-theme_override_styles/normal = SubResource("StyleBoxTexture_tool_normal")
-theme_override_styles/hover = SubResource("StyleBoxTexture_tool_hover")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_tool_active")
-theme_override_styles/hover_pressed = SubResource("StyleBoxTexture_tool_active")
-theme_override_styles/focus = SubResource("StyleBoxFlat_tool_focus")
-toggle_mode = true
-icon = ExtResource("battle_glove")
-icon_alignment = 1
-expand_icon = true
 
 [node name="BattlePauseMenu" parent="CanvasLayerUI/All_UI" unique_id=575921648 node_paths=PackedStringArray("dialog") instance=ExtResource("battle_pause_menu")]
 unique_name_in_owner = true
@@ -959,7 +980,7 @@ debug_color = Color(0, 0.6, 0.69803923, 0.20392157)
 [connection signal="timeout" from="Manager/ZombieManager/HammerZombieManager/HammerZombieTimer" to="Manager/ZombieManager/HammerZombieManager" method="_on_hammer_zombie_timer_timeout"]
 [connection signal="timeout" from="Manager/ZombieManager/CheckZombieEndWaveTimer" to="Manager/ZombieManager" method="_on_check_zombie_end_wave_timer_timeout"]
 [connection signal="area_entered" from="CanvasLayerBG/Background/Home/Area2DHome" to="CanvasLayerBG/Background/Home" method="_on_area_2d_home_area_entered"]
-[connection signal="pressed" from="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/UIShovel/Button" to="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/UIShovel" method="_on_button_pressed"]
+[connection signal="pressed" from="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/BattleTools/UIShovel/Button" to="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/BattleTools/UIShovel" method="_on_button_pressed"]
+[connection signal="pressed" from="CanvasLayerCardSlot/CardSlotRoot/CardSlotContainer/ShovelContainer/BattleTools/BattleGloveButton" to="Manager/HandManager" method="_click_glove"]
 [connection signal="pressed" from="CanvasLayerUI/All_UI/MainGameMenuButton" to="CanvasLayerUI/All_UI/BattlePauseMenu" method="appear_menu"]
 [connection signal="pressed" from="CanvasLayerUI/All_UI/BattleSpeedButton" to="." method="_toggle_battle_speed"]
-[connection signal="pressed" from="CanvasLayerUI/All_UI/BattleGloveButton" to="Manager/HandManager" method="_click_glove"]
