@@ -167,7 +167,7 @@
 - **建筑入口**：沿用9A稳定命中与动态同步高亮；图书馆→真实图鉴、研究室→原研究功能、港口/船→地图。家/商店仍未开放、皮卡无独立入口。解锁由同一toolbar_entry_host查询/请求，不存于美术配置。
 - **2026-11-13视觉整理**：日间方向光、暮色冷暖、远景空气透视和夜间暖窗已重调；母图与31份纹理不变。船/风/水分为8.4/9.6/11.2秒，低幅错相灯光由显式动作时钟驱动。入口用 `building_entry_badge.gd` 显示图鉴/研究室/启程，原命中几何不变；锁定原因仅聚焦显示。档案经 `configure_coastal_presentation()` 使用296×118小卡片，其他场景保持原布局。正式调色、运动与entries现由runtime_inputs保护，旧制作发布不得覆盖；重建蒙版时需明确同步正式几何。核对目录 `D:\Dev\PvZ\_review\menu_polish_20261113`：五时段、牌面原生点击打开研究/地图导航/图鉴/档案、键盘焦点、锁定与模态遮挡、1066×800命中及144帧动作片段；原生日志无脚本/材质错误，未运行测试套件或进入战斗。
 - **实际核对**：本轮隔离录制含240帧全天、556帧真实档案切换/设置帮助/功能窗口/地图往返/退出保存；午夜前后最大像素差0，旧菜单宿主入地图后释放。原生资源逐份重开像素一致，空工程PCK绘制与正式背景最大差昼0/夜1。最终原生日志无脚本/材质ERROR或退出泄漏报告。
-- **发布与复现**：menu.py publish-runtime / runtime-preview / runtime-preview-images为单入口。交付在 `C:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112`。运行daily_cycle/ui_layout为正式权威，不被旧制作目录覆盖；原生资源包已验证可搬迁，但未安装exe模板、未导出完整游戏exe。
+- **发布与复现**：menu.py publish-runtime / runtime-preview / runtime-preview-images为单入口。交付在 `D:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112`。运行daily_cycle/ui_layout为正式权威，不被旧制作目录覆盖；原生资源包已验证可搬迁，但未安装exe模板、未导出完整游戏exe。
 - **边界**：只操作PVZ-Menu9B-Isolated-20261112演示档案，未读写正式玩家存档；没有进入战斗/验收合成事务，没有物理睡眠唤醒或全平台性能验证。未新增/运行游戏测试套件；旧版本专用美术探针已标明退役，不作为新菜单通过证据。实机短采样数据与详细限制见维护页，不夸大为完整回归或发布保证。
 
 ## 5.2｜主菜单效果：参数可达、算法替换与重载
@@ -179,7 +179,7 @@
 - **水面扩展**：water_surface.gdshaderinc只拥有表面位移/亮纹；water_effect负责drift/ripples/still与独立周期，保留岸线/遮挡和船体合成。水速改变不改船phase；普通幅度在motion.water，接触波纹仍独立。
 - **所有权与生效**：effect_profile与daily_cycle/ui_layout是运行所有，发布旧制作资产时不得覆盖。参数索引明确区分即时重载、重进菜单、重建蒙版/浮点场、显式发布；风/几何/业务不因本次例子扩张重构。
 - **接口历史核对（2026-11-12）**：正式宿主空工程完成三个案例、错误配置保留状态、文件重载恢复默认及全天参数提交不覆盖灯光调制。当时中性默认夜景/hover与基线像素完全一致，白天只有1像素相差1/255；该结论不适用于11月13日重新调色的默认表现。未新增/运行游戏测试套件、未加载玩家服务。
-- **复现**：`menu.py effects-preview --workspace <独立目录> --tools-config <原生工具配置>`；本轮证据目录 `C:\Dev\Tools\ArtControl\runs\main-menu-effects-access-20261112`。制作预览复用正式组件，不维护第二套效果算法。
+- **复现**：`menu.py effects-preview --workspace <独立目录> --tools-config <原生工具配置>`；本轮证据目录 `D:\Dev\Tools\ArtControl\runs\main-menu-effects-access-20261112`。制作预览复用正式组件，不维护第二套效果算法。
 
 ## 6｜验收与交接收口
 

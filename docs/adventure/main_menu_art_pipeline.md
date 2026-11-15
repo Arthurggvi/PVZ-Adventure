@@ -6,12 +6,12 @@
 
 ## 0｜权威入口与已完成边界
 
-- 原生工具入口 **A**：`C:\Dev\Tools\ArtControl`；`config.json` 保存 Python/GIMP/Godot 路径，`artctl.py` 调用原生进程并保留日志。当前无新增付费软件、无额外常驻 MCP 服务。
+- 原生工具入口 **A**：`D:\Dev\Tools\ArtControl`；`config.json` 保存 Python/GIMP/Godot 路径，`artctl.py` 调用原生进程并保留日志。当前无新增付费软件、无额外常驻 MCP 服务。
 - 母图与 UI 工作副本 **S2**：`A\runs\main-menu-master-stage2-20261112`。`MainMenu_Master_Working_v01.xcf` 是下一阶段 XCF 构建输入；`layer_profile_proposed.png`、`layer_console_proposed.png`、`layer_toolbar_expanded.png` 供整图占位预览读取。不可当作临时文件删除。
 - 已批准的研究室样板 **S3**：`A\runs\main-menu-stage3-lab-20261112`。原图、结构数据、脚本、技术贴图与实际渲染结果均在此；`MainMenu_Lab_Lighting_Working_v02.xcf` 为分层查看/编辑工作文件。
 - **唯一母图**：`S3\master_original.png`，1672×941；SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。1920×1080 是设计画布/预览规格，不能据此拉伸或改写母图坐标。
 - 当前完成：研究室及有限邻近地面的灰度权重、大面法线、窗灯/溢光、同源昼夜参数与移动光向样板；用户已认可局部观感。其余区域仍保持原图。没有完成全景昼夜、船体动画、本机时钟绑定或正式菜单替换。
-- 这些仓外路径属于**制作环境**。正式实装时只能使用仓内资源与配置，不能让游戏依赖 `C:\Dev\Tools`、生成脚本或某台机器的绝对路径。
+- 这些仓外路径属于**制作环境**。正式实装时只能使用仓内资源与配置，不能让游戏依赖 `D:\Dev\Tools`、生成脚本或某台机器的绝对路径。
 
 ## 1｜从源数据到预览的唯一链路
 
@@ -77,7 +77,7 @@ v02.xcf 的 `00_ORIGINAL` 层内容和位置锁定；`60_LAB_BASE_REPAIR` 为可
 为保留已批准样板，以下先在同一 runs 父目录下创建新调整目录，仅复制输入与脚本。不要搬走 S2；XCF 构建按相邻 S2 路径读取，整图 UI 合成还引用当前绝对 S2 路径。制作环境尚非可任意搬迁的一键独立包。
 
 ```powershell
-$root = 'C:\Dev\Tools\ArtControl'
+$root = 'D:\Dev\Tools\ArtControl'
 $src = Join-Path $root 'runs\main-menu-stage3-lab-20261112'
 $work = Join-Path $root ('runs\main-menu-stage3-lab-adjust-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
 New-Item -ItemType Directory -Path $work -ErrorAction Stop | Out-Null

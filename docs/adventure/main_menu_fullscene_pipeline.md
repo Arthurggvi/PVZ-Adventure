@@ -42,14 +42,14 @@ MainMenu_FullScene_Lighting_v03.xcf：可编辑的原图保护层、工作底图
 - UI 位于材质外的独立节点，透明区域自然露出变暗的背景；不透明文字/图标不随场景压暗。
 
 ## 复现（当前 Sancho 制作环境）
-本机目录：C:\Dev\Tools\ArtControl\runs\main-menu-stage4-fullscene-20261112。
-依赖：已验证的 ArtControl 原生启动器、Python/Pillow/NumPy/OpenCV、GIMP、Godot。配置在 C:\Dev\Tools\ArtControl\config.json。
+本机目录：D:\Dev\Tools\ArtControl\runs\main-menu-stage4-fullscene-20261112。
+依赖：已验证的 ArtControl 原生启动器、Python/Pillow/NumPy/OpenCV、GIMP、Godot。配置在 D:\Dev\Tools\ArtControl\config.json。
 
 在新副本中编辑，不覆盖已交付基线。把本目录的母图、scene_config、time_profile、ui 文件夹和上述脚本复制到新目录，保留相对路径；本轮代码不再依赖上一阶段绝对路径。
 
 ```powershell
-$root='C:\Dev\Tools\ArtControl'
-$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage4-fullscene-20261112'
+$root='D:\Dev\Tools\ArtControl'
+$work='D:\Dev\Tools\ArtControl\runs\main-menu-stage4-fullscene-20261112'
 $python=(Get-Content "$root\config.json" -Raw | ConvertFrom-Json).python
 & $python "$work\build_scene_maps.py"
 if($LASTEXITCODE -ne 0){throw 'Map build failed'}

@@ -6,7 +6,7 @@
 ## 状态与来源
 上一轮 S7 港口动态已被用户退回，不能继续标为通过。本轮在独立目录重做，不覆盖原母图或 S6 已认可静态光照；旧 S7 保留作前后反例。
 
-当前制作目录：`C:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112`。
+当前制作目录：`D:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112`。
 权威代码：`tools/art_bake/main_menu`，单入口仍为 `menu.py`。
 唯一母图 SHA256：`71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`，1672×941。
 没有调用生图，也没有新增船、柱子或道具。船体幅度/周期沿用原配置，没有靠降低运动幅度隐藏问题。
@@ -58,8 +58,8 @@
 单入口：
 ```powershell
 $entry='D:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
-$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112'
-$tools='C:\Dev\Tools\ArtControl\config.json'
+$work='D:\Dev\Tools\ArtControl\runs\main-menu-stage7b-harbor-rework-20261112'
+$tools='D:\Dev\Tools\ArtControl\config.json'
 python $entry all --workspace $work --tools-config $tools
 ```
 

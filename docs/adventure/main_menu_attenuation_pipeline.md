@@ -16,7 +16,7 @@
 ## 改动范围与统一模型
 唯一母图为 1672×941，SHA256：71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02。
 S5 原工作目录、地表整理、shader 和 time_profile 均保留原样。新工作目录：
-C:\Dev\Tools\ArtControl\runs\main-menu-stage6-attenuation-20261112
+D:\Dev\Tools\ArtControl\runs\main-menu-stage6-attenuation-20261112
 
 局部受光采用统一公式：
 `A(d) = I / (d*d + core*core) * max(1 - (d/range)^4, 0)^2 * max(dot(N,L), 0)`
@@ -59,8 +59,8 @@ C:\Dev\Tools\ArtControl\runs\main-menu-stage6-attenuation-20261112
 先复制本阶段到新的调整目录，保留相对路径。依赖已接通的 ArtControl、Python/Pillow/NumPy/OpenCV、Godot 和 GIMP，无新增软件。
 
 ```powershell
-$root='C:\Dev\Tools\ArtControl'
-$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage6-attenuation-20261112'
+$root='D:\Dev\Tools\ArtControl'
+$work='D:\Dev\Tools\ArtControl\runs\main-menu-stage6-attenuation-20261112'
 $python=(Get-Content "$root\config.json" -Raw | ConvertFrom-Json).python
 & $python "$work\build_attenuation.py"
 if($LASTEXITCODE -ne 0){throw 'Field build failed'}

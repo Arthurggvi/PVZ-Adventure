@@ -5,7 +5,7 @@
 - **正式启动场景**：`res://scenes/main/01StartMenuCoastal.tscn`。`project.godot` 与 `MainSceneRegistry.StartMenu` 已同时切换，地图返回也只读注册表。
 - **运行组件**：`scripts/ui/start_menu/coastal/`；**运行材质**：`shaders/ui/main_menu/`；**发布资源**：`assets/adventure/main_menu/coastal/`。
 - **制作入口**：`tools/art_bake/main_menu/menu.py`。制作端的scene_host/wind_layer/entry_highlight/time_profile只是继承正式实现的入口，不能在其中重新实现一份算法。
-- **本轮交付目录**：`C:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112`。母图/分层制作基线仍在各已批准阶段，正式运行不依赖这些绝对路径。
+- **本轮交付目录**：`D:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112`。母图/分层制作基线仍在各已批准阶段，正式运行不依赖这些绝对路径。
 - **母图**：1672×941，SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。本轮未生图、未重画任何场景物件。
 
 ## 1｜运行与制作的所有权
@@ -57,13 +57,13 @@
 
 ```powershell
 $entry='D:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
-$tools='C:\Dev\Tools\ArtControl\config.json'
+$tools='D:\Dev\Tools\ArtControl\config.json'
 # 从已批准制作目录重新发布31份原生贴图；不会覆盖运行daily_cycle/ui_layout/effect_profile。
-python $entry publish-runtime --workspace C:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112 --tools-config $tools
+python $entry publish-runtime --workspace D:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112 --tools-config $tools
 # 使用正式场景/真实业务，在独立user目录录制；不修改生产存档。
-python $entry runtime-preview --workspace C:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112 --tools-config $tools
+python $entry runtime-preview --workspace D:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112 --tools-config $tools
 # 只整理已有真实输出，不重新打开游戏服务。
-python $entry runtime-preview-images --workspace C:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112 --tools-config $tools
+python $entry runtime-preview-images --workspace D:\Dev\Tools\ArtControl\runs\main-menu-stage9b-runtime-20261112 --tools-config $tools
 ```
 
 只改运行时刻、色温、UI位置不必重做法线；改母图结构或制作贴图先走已有构建管线，再显式发布。`runtime_inputs.json` 列出唯一发布输入集合。制作工具不自动把新生成素材覆盖成正式资源。

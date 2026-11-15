@@ -58,12 +58,12 @@
 
 ## 可复现入口与隔离演示
 权威工具入口：`tools/art_bake/main_menu/menu.py`。
-本轮资产目录：`C:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112`。
+本轮资产目录：`D:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112`。
 
 ```powershell
 $entry='D:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
-$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112'
-$tools='C:\Dev\Tools\ArtControl\config.json'
+$work='D:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112'
+$tools='D:\Dev\Tools\ArtControl\config.json'
 python $entry entries --workspace $work --tools-config $tools
 # 仅重排已录制真实帧，不再次启动游戏服务：
 python $entry entries-preview --workspace $work --tools-config $tools

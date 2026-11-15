@@ -15,7 +15,7 @@
 - previews/night_ui.jpg、night_ui_1066x600.jpg：沿用真实 UI 素材的独立占位预览，未接正式交互。
 
 ## 权威来源与调整节点
-本机目录：`C:\Dev\Tools\ArtControl\runs\main-menu-stage5-static-finish-20261112`。
+本机目录：`D:\Dev\Tools\ArtControl\runs\main-menu-stage5-static-finish-20261112`。
 唯一原图：`master_original.png`，1672×941，SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。
 S4 原始文件保持不动；baseline/ 保留 S4 日/暮/夜截图供比较。不要拿重新生成的日夜图片替换任何输入。
 
@@ -71,8 +71,8 @@ S4 原始文件保持不动；baseline/ 保留 S4 日/暮/夜截图供比较。�
 依赖现有 ArtControl、Python/Pillow/NumPy/OpenCV、Godot、GIMP；字体只用于栅格化标题，不在源包中。
 
 ```powershell
-$root='C:\Dev\Tools\ArtControl'
-$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage5-static-finish-20261112'
+$root='D:\Dev\Tools\ArtControl'
+$work='D:\Dev\Tools\ArtControl\runs\main-menu-stage5-static-finish-20261112'
 $python=(Get-Content "$root\config.json" -Raw | ConvertFrom-Json).python
 & $python "$work\build_scene_maps.py"
 if($LASTEXITCODE -ne 0){throw 'Base maps failed'}

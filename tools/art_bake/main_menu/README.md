@@ -13,8 +13,8 @@ S7B港口与S8风动已通过。当前9A为建筑入口交互候选：真实功�
 
 ## 权威入口
 - 代码：本目录。`menu.py` 是唯一命令入口；`python/` 为确定性构建器，`godot/` 为共享受光/动态宿主与捕获代码。`.gdignore` 避免生产游戏自动导入制作工具。
-- 当前资产工作目录：`C:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112`。
-- 原生工具路径：`C:\Dev\Tools\ArtControl\config.json`，复用现有 `artctl.py`。不安装新服务、不开放端口。
+- 当前资产工作目录：`D:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112`。
+- 原生工具路径：`D:\Dev\Tools\ArtControl\config.json`，复用现有 `artctl.py`。不安装新服务、不开放端口。
 - `workspace/runtime` 是自动部署的执行副本，不得在里面修改权威源码。交付包将本目录作为 `pipeline_source/` 保存，可指向新的工作目录。
 
 ## 简单修改应该改哪里
@@ -39,8 +39,8 @@ S7B港口与S8风动已通过。当前9A为建筑入口交互候选：真实功�
 
 ```powershell
 $entry='D:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
-$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112'
-$tools='C:\Dev\Tools\ArtControl\config.json'
+$work='D:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112'
+$tools='D:\Dev\Tools\ArtControl\config.json'
 python $entry build --workspace $work --tools-config $tools
 python $entry render --workspace $work --tools-config $tools
 python $entry preview --workspace $work --tools-config $tools
@@ -108,7 +108,7 @@ https://docs.godotengine.org/en/stable/classes/class_viewporttexture.html
 - `building_entry_hit/layer`归游戏UI代码；`toolbar_entry_host`是原工具栏共用门面而非第二管理器。制作代码只负责视觉与记录，不保存玩家业务状态。
 - `entry_highlight`在受光后、风/船变换前，关闭即透传S8。可见蒙版R与内侧边G由entry_assets派生，RGBA中的颜色含义不能与旧法线控制图混用。
 - 原生预览使用独立user目录与原游戏资源；临时演示档案明确标注。native_project是资源链接和派生manifest，不是独立可发布包，禁止递归打包或对其额外执行editor导入。
-- 当前资产目录为 `C:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112`。新原生交互需要完整原工程；原all/render仍是离线美术捕获，不伪装为可点击窗口。
+- 当前资产目录为 `D:\Dev\Tools\ArtControl\runs\main-menu-stage9a-entries-20261112`。新原生交互需要完整原工程；原all/render仍是离线美术捕获，不伪装为可点击窗口。
 - 详细职责、已开放入口与未完成边界见 `docs/adventure/main_menu_entries_pipeline.md`。图鉴/研究室/地图真实打开，家/商店未开放，最终功能台/档案按钮仍待9B整合。
 
 ## 效果可替换性与案例入口

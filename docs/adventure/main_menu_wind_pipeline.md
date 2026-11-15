@@ -19,7 +19,7 @@
 
 ## 权威代码、数据与复现
 代码：`tools/art_bake/main_menu`。统一入口仍为 `menu.py`。
-工作目录：`C:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112`。
+工作目录：`D:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112`。
 原母图：1672×941，SHA256 `71ed1970fb89c206a4b97fd6dde9cca1c3792b23e3f6f574d0839b6dfdc2ed02`。
 
 管线：
@@ -65,8 +65,8 @@
 
 ```powershell
 $entry='D:\Dev\PvZ\PVZ-Adventure\tools\art_bake\main_menu\menu.py'
-$work='C:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112'
-$tools='C:\Dev\Tools\ArtControl\config.json'
+$work='D:\Dev\Tools\ArtControl\runs\main-menu-stage8-wind-20261112'
+$tools='D:\Dev\Tools\ArtControl\config.json'
 python $entry all --workspace $work --tools-config $tools
 ```
 
