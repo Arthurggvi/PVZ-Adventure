@@ -58,7 +58,8 @@ const TASKS: Array[Dictionary] = [
 	"description": "通关墓地下游的普通阶段。", "objective": "通关墓地下游普通阶段",
 	"event": "stage_cleared", "target": "zombie_island.grave_downstream/normal", "daily": false, "accept_history": true,
 	"requires_completed": ["dusk_approaches"], "min_level": 0, "activation_mode": "all", "count": 1,
-	"exp": 1000, "coins": 2000, "unlocks": [], "items": ENHANCEMENT_REWARDS},
+	"exp": 1000, "coins": 2000, "unlocks": [], "items": ENHANCEMENT_REWARDS + [
+		{"id": "recipe_p017", "count": 1}, {"id": "aquatic_fiber", "count": 1}, {"id": "plant_fiber", "count": 1}]},
 	{"id": "strike_at_the_heart", "group": "主线任务", "title": "直捣黄龙",
 	"description": "通关埃德加神殿的普通阶段。领奖后听戴夫说说埃德加的线索，谈完即可解锁城镇商店。",
 	"objective": "通关埃德加神殿普通阶段",
