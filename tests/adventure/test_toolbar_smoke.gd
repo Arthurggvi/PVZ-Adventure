@@ -7,23 +7,9 @@ func _ready() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
-	var bar: CanvasLayer = get_node("/root/AdventureToolbar")
-	var view: AdventureToolbarView = bar.get_node("ToolbarView")
-	if bar.visible or view._buttons.size() != 7 or view.get_parent() != bar:
-		return _fail("Unregistered scene or seven-slot persistent layer")
-	if view._available.get("inventory", false) != bar._can_open_inventory():
-		return _fail("Inventory gate must reflect current profile, not outdated test assumptions")
-	if view._available.get("research", false) != bar.can_open_research():
-		return _fail("Research gate must reflect quest reward claim")
-	for id in ["quests"]:
-		if view._available.get(id, false) != bar._can_open_quests():
-			return _fail("Quest gate must reflect first normal stage clear: " + id)
-	if view._available.has("empty") or view._available.get("settings", true):
-		return _fail("Unexpected reserved slot or settings available without a host")
-	for id: String in view._icons:
-		var source: Texture2D = view._icons[id].texture
-		if source == null or not source.resource_path.begins_with("res://assets/adventure/ui/bottom_bar/"):
-			return _fail("Missing real toolbar art: " + id)
+	var bar: CanvasLayer = get_node("/root/AdventureToolbar") # 正式工具栏门面。
+	if bar.visible or is_instance_valid(bar._view) or bar.feature_status("settings").allowed:
+		return _fail("An unregistered scene must keep the presenter lazy and settings unavailable")
 	for path in ["res://scenes/main/01StartMenuCoastal.tscn", AdventureSession.MAP_SCENE]:
 		var scene := (load(path) as PackedScene).instantiate()
 		var registered := scene.is_in_group("adventure_toolbar_surface")
@@ -57,6 +43,22 @@ func _run() -> void:
 	await get_tree().process_frame
 	if not bar.visible or not bar._interactive:
 		return _fail("Coastal menu map entry did not show the persistent toolbar")
+	var view: AdventureToolbarView = bar.get_node("ToolbarView") # 注册海滨宿主后才可读取实际七槽视图。
+	if view._buttons.size() != 7 or view.get_parent() != bar:
+		return _fail("Wrong slot count or persistent layer parent")
+	if view._available.get("inventory", false) != bar._can_open_inventory():
+		return _fail("Inventory gate must reflect current profile, not outdated test assumptions")
+	if view._available.get("research", false) != bar.can_open_research():
+		return _fail("Research gate must reflect quest reward claim")
+	for id in ["quests"]:
+		if view._available.get(id, false) != bar._can_open_quests():
+			return _fail("Quest gate must reflect first normal stage clear: " + id)
+	if view._available.has("empty"):
+		return _fail("Unexpected reserved slot")
+	for id: String in view._icons:
+		var source: Texture2D = view._icons[id].texture
+		if source == null or not source.resource_path.begins_with("res://assets/adventure/ui/bottom_bar/"):
+			return _fail("Missing real toolbar art: " + id)
 	real_menu.entry_layer.controls["harbor"].activated.emit("harbor")
 	await get_tree().create_timer(0.10).timeout
 	if not bar._navigation.is_open() or not bar.visible or bar._interactive:
@@ -71,6 +73,7 @@ func _run() -> void:
 	var holder := Control.new()
 	holder.add_to_group("adventure_toolbar_surface")
 	get_tree().root.add_child(holder)
+	get_tree().current_scene = holder
 	bar._apply_host_scene(holder)
 	if not bar.visible or not bar._interactive:
 		return _fail("Map root did not activate toolbar")
@@ -116,9 +119,11 @@ func _run() -> void:
 	await get_tree().process_frame
 	var non_map := Control.new()
 	get_tree().root.add_child(non_map)
+	get_tree().current_scene = non_map
 	bar._apply_host_scene(non_map)
 	if bar.visible:
 		return _fail("Non-map gameplay scene incorrectly shows toolbar")
+	get_tree().current_scene = holder
 	bar._apply_host_scene(holder)
 	if not bar.visible or view.get_instance_id() != original_id:
 		return _fail("Toolbar was re-created or failed to return after map switch")

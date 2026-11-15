@@ -17,6 +17,7 @@ GRAPHICAL = {
     "test_scene_transition_frames", "test_threaded_battle_route", "test_toolbar_smoke",
 }
 ERROR = re.compile(r"^(?:SCRIPT ERROR:|SHADER ERROR:|ERROR:|FAIL\b)")
+FATAL_SCRIPT = re.compile(r"^SCRIPT ERROR: (?:Parse Error|Assertion failed|Invalid access)")
 MARKER = re.compile(r"^(?:PASS\b|ALL_STAR_ORIGINAL_|[A-Z0-9_]+_(?:PASS|OK)|Tab\+O_HIT_PASS)")
 FIXTURES = {"test_loading_target"}
 LOG_LIMIT = 3 * 1024 * 1024
@@ -43,6 +44,9 @@ def run_bounded(command: list[str], project: Path, env: dict, log: Path, engine_
                 pending = lines.pop()
                 for line in lines:
                     decoded = line.decode("utf-8", errors="replace").strip()
+                    if FATAL_SCRIPT.search(decoded):
+                        reason = "script failure"
+                        break
                     if ERROR.search(decoded):
                         occurrences[decoded] += 1
                         if occurrences[decoded] > 20:
