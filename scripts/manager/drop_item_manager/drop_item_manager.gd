@@ -33,6 +33,15 @@ func gold_magnet_attract_once(target_pos: Vector2) -> void:
 			drop.be_attract_gold_magnet(target_pos)
 
 
+## 在 [param origin] 掷出一份旗帜波配方 [param recipe_id]；拾取时入账，未拾取则留给奖杯收取。
+func spawn_flag_recipe(recipe_id: StringName, origin: Vector2) -> void:
+	var pickup: MaterialPickup = BattleDropService.spawn(BattleDropService.MaterialPickupScene,
+		dim_coin.all_drop_coin_parent, dim_coin.coin_bank_label.marker_2d_coin_target, origin, true) as MaterialPickup # 配方不随时间消失。
+	if pickup != null:
+		pickup.setup_item(recipe_id)
+		BattleDropService.throw_pickup(pickup)
+
+
 ## 从奖杯的世界坐标 [param origin] 抛出已入账的 [param items]，相同物品合为一堆。
 ## 实体留在场上供手动收取，也可随奖杯批量收取。
 func spawn_victory_floor_items(items: Dictionary, origin: Vector2) -> void:

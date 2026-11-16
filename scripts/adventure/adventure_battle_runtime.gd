@@ -126,10 +126,17 @@ func _on_wave_started(wave_number: int) -> void:
 			zombies._try_finish_wave.call_deferred(zombies.main_game.camera_2d.get_screen_center_position())
 
 ## 每只僵尸按出生波分别登记，前波残敌晚死也要触发属于前波的清波事件。
+## [param wave_number] 的敌方 [param count] 首次归零时，旗帜波判定一次配方掉落。
 func _on_natural_count(wave_number: int, count: int) -> void:
-	if not zombies.is_game_running() or count != 0 or wave_number < 1 or _cleared_waves.has(wave_number):
+	if _battle_ended or not zombies.is_game_running() or count != 0 \
+			or wave_number < 1 or _cleared_waves.has(wave_number):
 		return
 	_cleared_waves[wave_number] = true
+	if phase.wave_profile != null and phase.wave_profile.flag_wave_numbers().has(wave_number):
+		var recipe_id: StringName = AdventureRewardService.roll_flag_recipe(phase.drop_table, _reward_rng) # 只抽当前阶段的配方。
+		if not recipe_id.is_empty():
+			var game: MainGameManager = zombies.main_game # 使用当前战场的掉落层和相机。
+			game.drop_item_manager.spawn_flag_recipe(recipe_id, game.camera_2d.get_screen_center_position())
 	_fire(StageEventDefinition.Trigger.WAVE_CLEARED, wave_number)
 	_begin_matching_boss(BossEncounterDefinition.Timing.WAVE_CLEARED, wave_number)
 

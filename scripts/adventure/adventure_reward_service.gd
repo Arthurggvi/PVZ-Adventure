@@ -7,12 +7,28 @@ class_name AdventureRewardService
 const FIRST_CLEAR_COIN_VALUES := {"diamond": 1000, "gold": 50, "silver": 10}
 ## 地区存档中按领取 ID 保存尚未拾取的各面额钱币数量。
 const PENDING_FIRST_CLEAR_COINS := "pending_first_clear_coins"
-## 每个阶段的基础图纸结算轮数，每轮都复用关卡配置的随机规则和保底。
-const BASE_RECIPE_ROLLS := 2
+## 每个阶段沿用原有的配方保底结算轮数。
+const RECIPE_FLOOR_ROLLS := 2
+## 每次清完旗帜波时从该阶段配方池掉出一份配方的概率。
+const FLAG_RECIPE_CHANCE := 0.5
+
+## 从 [param table] 中按物品 ID 去重后等概率选一份配方；[param rng] 未命中或无候选时返回空 ID。
+static func roll_flag_recipe(table: DropTable, rng: RandomNumberGenerator) -> StringName:
+	if table == null or rng.randf() >= FLAG_RECIPE_CHANCE:
+		return &""
+	var recipe_ids: Array[StringName] = [] # 本阶段可以从旗帜波掉出的配方。
+	for entry: DropEntryDefinition in table.entries: # 只使用常规阶段掉落表中的条目。
+		if entry != null and _is_recipe(entry.asset_id) and not recipe_ids.has(entry.asset_id):
+			recipe_ids.append(entry.asset_id)
+	if recipe_ids.is_empty():
+		return &""
+	return recipe_ids[rng.randi_range(0, recipe_ids.size() - 1)]
 
 ## 用 [param rng] 抽取 [param table]，返回总奖励与其中计入保底的物品。
 ## [param effects] 仅修正随机材料和消耗品，固定与补齐奖励保持原配置。
-static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEffects = null) -> Dictionary:
+## [param recipe_floor_only] 开启时配方只按固定条目和保底发放，随机配方由旗帜波处理。
+static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEffects = null,
+		recipe_floor_only: bool = false) -> Dictionary:
 	if table == null or rng == null or not table.validate().is_empty():
 		return {"ok": false}
 	var items: Dictionary = {}
@@ -23,6 +39,8 @@ static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEf
 			DropEntryDefinition.Rule.GUARANTEED:
 				_add_entry(items, entry, entry.quantity_min)
 			DropEntryDefinition.Rule.CHANCE:
+				if recipe_floor_only and _is_recipe(entry.asset_id):
+					continue
 				var chance: float = minf(1.0, entry.chance * effects.drop_chance_multiplier) if eligible else entry.chance # 相对概率封顶。
 				if rng.randf() < chance:
 					var quantity: int = _random_quantity(entry, rng, effects) # 生成时只应用一次数量加成。
@@ -44,10 +62,12 @@ static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEf
 			var option: DropEntryDefinition = weighted[i]
 			choice -= option.weight
 			if choice <= 0:
-				var quantity: int = _random_quantity(option, rng, effects) # 加权选中后的数量可加成，权重不整体乘倍。
-				if quantity < 1:
-					return {"ok": false}
-				_add_entry(items, option, quantity)
+				# 结算时保留共享池原有权重，抽中配方后交给原有的数量保底补齐。
+				if not recipe_floor_only or not _is_recipe(option.asset_id):
+					var quantity: int = _random_quantity(option, rng, effects) # 加权选中后的数量可加成，权重不整体乘倍。
+					if quantity < 1:
+						return {"ok": false}
+					_add_entry(items, option, quantity)
 				if table.weighted_selection == DropTable.WeightedSelection.WITHOUT_REPLACEMENT:
 					weighted.remove_at(i)
 				break
@@ -124,23 +144,27 @@ static func _add_entry(items: Dictionary, entry: DropEntryDefinition, count: int
 static func _add(items: Dictionary, id: String, count: int) -> void:
 	items[id] = int(items.get(id, 0)) + count
 
+## 判断 [param item_id] 是否是道具目录中的配方。
+static func _is_recipe(item_id: StringName) -> bool:
+	return str(ItemRegistry.get_item_definition(str(item_id)).get("category", "")) == "recipe"
+
 ## 按 [param phase]、[param table]、[param claimed] 与 [param boss_defeated] 合并基础和首通奖励。
 ## [param rng] 决定本次抽取，[param effects] 仅进入随机掉落计算，首通奖励不加成；不修改玩家资产。
 static func prepare(phase: StagePhaseDefinition, table: DropTable,
 		claimed: Dictionary, boss_defeated: bool, rng: RandomNumberGenerator, effects: PlayerEffects = null) -> Dictionary:
-	var result: Dictionary = roll(table, rng, effects) # 首轮结算基表中的所有物品。
+	var result: Dictionary = roll(table, rng, effects, true) # 首轮结算材料、固定奖励与保底。
 	if not result.get("ok", false):
 		return {"ok": false}
 	var items: Dictionary = result["items"] # 胜利事务入账的总数量。
 	var floor_items: Dictionary = result["floor_items"] # 随奖杯展示的保底份数。
-	for _draw: int in range(1, BASE_RECIPE_ROLLS): # 额外轮次保留同一掉落表的概率、放回和保底规则。
-		var extra: Dictionary = roll(table, rng) # 基础图纸的独立抽取结果。
+	for _draw: int in range(1, RECIPE_FLOOR_ROLLS): # 额外轮次补齐原有配方保底。
+		var extra: Dictionary = roll(table, rng, null, true) # 此轮的固定配方与保底数量。
 		if not extra.get("ok", false):
 			return {"ok": false}
 		var extra_items: Dictionary = extra["items"] # 额外轮次中可并入的道具。
 		var extra_floor_items: Dictionary = extra["floor_items"] # 此轮计入保底的数量。
 		for item_id: String in extra_items: # 额外轮次仅并入图纸，其他类别按首轮结算。
-			if str(ItemRegistry.get_item_definition(item_id).get("category", "")) != "recipe":
+			if not _is_recipe(StringName(item_id)):
 				continue
 			_add(items, item_id, int(extra_items[item_id]))
 			var floor_amount: int = int(extra_floor_items.get(item_id, 0)) # 此图纸在本轮保底内的份数。

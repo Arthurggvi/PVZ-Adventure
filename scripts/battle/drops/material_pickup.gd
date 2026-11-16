@@ -34,7 +34,7 @@ func _ready() -> void:
 	super._ready()
 	_start_idle_motion()
 
-## 设置 [param id] 与 [param amount]，并将图标缩放至战场尺寸；结算掉落还显示堆叠和配方植物。
+## 设置 [param id] 与 [param amount] 并缩放图标；配方附植物头像，结算掉落还显示堆叠。
 func setup_item(id: StringName, amount := 1) -> void:
 	item_id = id
 	quantity = maxi(1, amount)
@@ -48,16 +48,17 @@ func setup_item(id: StringName, amount := 1) -> void:
 	var longest: float = float(maxi(texture.get_width(), texture.get_height())) # 最长边决定等比缩放系数。
 	if longest > 0.0:
 		icon.scale = Vector2.ONE * (ICON_PIXELS / longest)
-	if settled_reward:
-		var definition: Dictionary = ItemRegistry.get_item_definition(str(id)) # 数量与提示使用本物品的背包定义。
+	var definition: Dictionary = ItemRegistry.get_item_definition(str(id)) # 提示和配方分类来自背包定义。
+	var is_recipe: bool = str(definition.get("category", "")) == "recipe" # 卷轴需要显示对应植物。
+	if settled_reward or is_recipe:
 		quantity_label.text = "×%d" % quantity
 		quantity_label.visible = quantity > 1
 		if button != null:
 			button.tooltip_text = str(definition.get("name", str(id)))
-		if str(definition.get("category", "")) == "recipe":
-			var recipe: Dictionary = AdventureRecipeCatalog.definition(str(id)) # 卷轴纸面共享贴图，用植物头像区分配方。
-			ItemArt.add_recipe_portrait(icon.get_parent(), int(recipe.get("plant_type", 0)),
-				icon.position, 0.42 * ICON_PIXELS / 58.0)
+	if is_recipe:
+		var recipe: Dictionary = AdventureRecipeCatalog.definition(str(id)) # 卷轴纸面共享贴图，用植物头像区分配方。
+		ItemArt.add_recipe_portrait(icon.get_parent(), int(recipe.get("plant_type", 0)),
+			icon.position, 0.42 * ICON_PIXELS / 58.0)
 
 ## 抛出瞬间做一次弹出缩放，让掉落更容易被注意到。
 func launch(relative_target: Vector2) -> void:
