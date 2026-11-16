@@ -8,7 +8,7 @@ const FIRST_CLEAR_COIN_VALUES := {"diamond": 1000, "gold": 50, "silver": 10}
 ## 地区存档中按领取 ID 保存尚未拾取的各面额钱币数量。
 const PENDING_FIRST_CLEAR_COINS := "pending_first_clear_coins"
 ## 每个阶段的基础图纸结算轮数，每轮都复用关卡配置的随机规则和保底。
-const BASE_RECIPE_ROLLS := 4
+const BASE_RECIPE_ROLLS := 2
 
 ## 用 [param rng] 抽取 [param table]，返回总奖励与其中计入保底的物品。
 ## [param effects] 仅修正随机材料和消耗品，固定与补齐奖励保持原配置。

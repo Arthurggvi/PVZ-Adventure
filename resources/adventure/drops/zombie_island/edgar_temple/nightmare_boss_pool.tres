@@ -33,5 +33,5 @@ SubResource("recipe_p021"),
 SubResource("recipe_p015")
 ])
 weighted_draw_count = 1
-weighted_draw_chance = 0.3
+weighted_draw_chance = 0.6
 weighted_selection = 1
