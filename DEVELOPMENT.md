@@ -34,6 +34,8 @@ python tools/release/run_tests.py $godot test_water_surface_integration test_whi
 
 ## Windows x64 发布
 
+PVZ-Adventure 的正式发行使用 `pvz-adventure-v<版本>` 标签。1.0.0 的标签为 `pvz-adventure-v1.0.0`。
+
 从 Godot 模板管理器安装同为 **4.7.2 stable 标准版** 的模板。Windows 模板目录为当前 `APPDATA\Godot\export_templates\4.7.2.stable`，发布版使用 `windows_release_x86_64.exe`。若使用隔离 APPDATA，将模板装到对应目录。 [Godot 4.7.2 官方下载](https://godotengine.org/download/archive/4.7.2-stable/)
 
 ```powershell
