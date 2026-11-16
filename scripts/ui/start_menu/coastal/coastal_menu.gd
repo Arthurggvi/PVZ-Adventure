@@ -148,8 +148,8 @@ func _notification(what: int) -> void:
 		clock.resync(false)
 		_last_ticks=Time.get_ticks_usec()
 	elif what==NOTIFICATION_WM_CLOSE_REQUEST:
-		if not _entries_blocked():
-			dialogs.open_exit_confirmation(not Global.user_manager.curr_user_name.is_empty())
+		AdventureToolbar.close_map_navigation()
+		dialogs.open_exit_confirmation(not Global.user_manager.curr_user_name.is_empty())
 
 func _exit_tree() -> void:
 	get_tree().auto_accept_quit=_old_auto_quit

@@ -16,7 +16,7 @@ var _host_allowed := false
 var _interactive := false
 ## 唯一模态窗口引用。
 var _modal: Control
-## 模态所属功能；同功能可关闭，其他功能不抢占。
+## 模态所属功能；重复请求可关闭，切换功能时撤销旧请求。
 var _modal_feature := ""
 ## 每次打开、取消、换档和离场都会改变的请求身份。
 var _modal_request_id := 0
@@ -53,10 +53,10 @@ func feature_status(feature_id: String) -> Dictionary:
 		var requirements := {"research": "领取「初次远征」奖励后开放", "library": "完成「千锤百炼」后开放",
 			"shop": "完成「直捣黄龙」并与戴夫交谈后开放"} # 按功能说明进度条件。
 		reason = requirements.get(feature_id, "尚未解锁") if loaded else "请先选择存档"
-	var allowed: bool = _host_allowed and _interactive and unlocked and (not is_instance_valid(_modal) or _modal_feature == feature_id) # 所有来源共用。
+	var allowed: bool = _host_allowed and _interactive and unlocked # 普通功能窗口开启时仍接受工具栏切换。
 	return {"known":true,"unlocked":unlocked,"allowed":allowed,"reason":reason}
 
-## [param feature_id] 通过相同条件打开/关闭；返回是否接受请求，失败不产生窗口。
+## [param feature_id] 通过相同条件打开、关闭或替换窗口；返回是否接受请求。
 func request_feature(feature_id: String) -> bool:
 	var status: Dictionary = feature_status(feature_id) # 提交时重新检查，不能相信上帧hover。
 	if not status.allowed:
@@ -64,6 +64,8 @@ func request_feature(feature_id: String) -> bool:
 	var hook: Dictionary = _hooks[feature_id] # 同一注册调用，不另建研究室或地图。
 	if not hook.open.is_valid():
 		return false
+	if is_instance_valid(_modal) and _modal_feature != feature_id:
+		_discard_current_modal()
 	var result: Variant = hook.open.call() # 地图可返回失败，普通模态入口为void。
 	return result if result is bool else true
 
@@ -108,6 +110,7 @@ func _toggle_modal(feature_id: String, screen_path: String) -> void:
 	_modal = LoadingView.new()
 	_modal_feature = feature_id
 	add_child(_modal)
+	move_child(_view, get_child_count() - 1) # 加载中也保留工具栏入口，其他区域由反馈遮罩拦截。
 	_modal.closed.connect(_release_modal.bind(_modal))
 	_modal.tree_exited.connect(_release_modal.bind(_modal))
 	_modal_batch = ResourceBatch.new()
@@ -129,7 +132,7 @@ func _poll_modal_loading() -> void:
 		_release_modal(_modal)
 		return
 	if is_instance_valid(_building_modal):
-		if not _building_modal.has_method("is_content_ready") or _building_modal.call("is_content_ready"):
+		if _interactive and (not _building_modal.has_method("is_content_ready") or _building_modal.call("is_content_ready")):
 			_publish_modal()
 		return
 	if _modal_batch == null:
@@ -180,7 +183,7 @@ func _materialize_modal(request_id: int) -> void:
 	_building_modal.set_process_input(false)
 	_building_modal.set_process_unhandled_input(false)
 	_building_modal.set_process_unhandled_key_input(false)
-	move_child(_modal, get_child_count() - 1)
+	move_child(_building_modal, _modal.get_index()) # 新窗口在反馈后方准备，工具栏仍在最上方。
 
 ## [param request_id] 对应的窗口在公开前自行退出时恢复可关闭反馈，避免留下等待状态。
 func _preparing_modal_exited(request_id: int) -> void:
@@ -203,7 +206,6 @@ func _publish_modal() -> void:
 	window.set_process_unhandled_input(true)
 	window.set_process_unhandled_key_input(true)
 	feedback.dismiss() # 已发布窗口立即可交互，旧反馈只作短淡出，不再拥有取消资格。
-	move_child(_view, get_child_count() - 1)
 	_view.visible = not bool(window.get_meta("covers_toolbar", false))
 	window.closed.connect(_release_modal.bind(window))
 	window.tree_exited.connect(_release_modal.bind(window))
@@ -246,6 +248,14 @@ func _exit_tree() -> void:
 	_cancel_modal_loading()
 	for batch: ResourceBatch in _retired_modal_batches: # 生命周期结束后没有后续帧可轮询。
 		batch.finish_on_exit()
+
+## 切换功能时立即移除旧窗口的输入和发布资格，资源继续异步回收。
+func _discard_current_modal() -> void:
+	var window: Control = _modal # 可能是加载反馈，也可能是已就绪的窗口。
+	window.hide()
+	window.process_mode = Node.PROCESS_MODE_DISABLED
+	_release_modal(window)
+	window.queue_free()
 
 ## 仅释放 [param window] 自身；旧回调不能清空新实例。
 func _release_modal(window: Control) -> void:

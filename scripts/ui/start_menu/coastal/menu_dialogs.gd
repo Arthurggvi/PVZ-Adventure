@@ -10,6 +10,10 @@ const Art=preload("res://scripts/adventure/ui/inventory_skin.gd")
 const FONT=preload("res://assets/fonts/方正少儿_GBK.ttf")
 ## 覆盖整个菜单的模态遮罩容器。
 var surface: Control
+## 退出确认时移至档案选择器上方，阻止鼠标点击穿透。
+var _shade: ColorRect
+## 取消退出时可恢复的原控件，等待期间可能随旧窗口关闭而销毁。
+var _previous_exit_focus: Control
 ## 负责档案切换的既有选择器。
 var selector: Control
 ## 确认退出和保存失败共用的木框窗口。
@@ -30,10 +34,10 @@ func _ready() -> void:
 	surface = Control.new()
 	add_child(surface)
 	surface.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var shade := ColorRect.new() # 顶层全屏GUI阻挡，档案菜单没有穿透区。
-	shade.color = Color(0, 0, 0, 0.55)
-	surface.add_child(shade)
-	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_shade = ColorRect.new()
+	_shade.color = Color(0, 0, 0, 0.55)
+	surface.add_child(_shade)
+	_shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	selector = Selector.instantiate()
 	surface.add_child(selector)
 	selector.visibility_changed.connect(_sync)
@@ -75,6 +79,12 @@ func _ready() -> void:
 	confirm.focus_next = confirm.get_path_to(cancel)
 	confirm.focus_previous = confirm.focus_next
 	confirm.focus_neighbor_left = confirm.focus_next
+	confirm.focus_neighbor_right = NodePath(".")
+	confirm.focus_neighbor_top = NodePath(".")
+	confirm.focus_neighbor_bottom = NodePath(".")
+	cancel.focus_neighbor_left = NodePath(".")
+	cancel.focus_neighbor_top = NodePath(".")
+	cancel.focus_neighbor_bottom = NodePath(".")
 	panel.hide()
 	_sync()
 
@@ -91,8 +101,10 @@ func open_profiles() -> void:
 
 ## 响应窗口关闭请求；[param has_profile] 决定显示存档或访客提示。
 func open_exit_confirmation(has_profile: bool) -> void:
-	if is_open():
+	if panel.visible:
 		return
+	_previous_exit_focus = get_viewport().gui_get_focus_owner()
+	surface.move_child(_shade, selector.get_index())
 	title.text = "退出游戏？"
 	message.text = "退出前会自动存档。" if has_profile else "未选择存档，进度不会保存。"
 	cancel.text = "取消"
@@ -108,7 +120,11 @@ func open_exit_confirmation(has_profile: bool) -> void:
 ## 仅关闭当前小窗口；原档案选择器由自己的确认/取消事务关闭。
 func close_panel() -> void:
 	panel.hide()
+	surface.move_child(_shade, 0)
 	_sync()
+	if is_instance_valid(_previous_exit_focus) and _previous_exit_focus.is_visible_in_tree():
+		_previous_exit_focus.grab_focus()
+	_previous_exit_focus = null
 
 ## 在退出窗口内提示保存失败，并提供返回主菜单的操作。
 func show_save_error() -> void:
@@ -124,10 +140,14 @@ func show_save_error() -> void:
 func _sync() -> void:
 	surface.visible=is_open()
 
+## 退出确认优先消费 [param event] 的取消操作，避免关闭下层功能窗口。
+func _input(event: InputEvent) -> void:
+	if panel.visible and event.is_action_pressed("ui_cancel"):
+		get_viewport().set_input_as_handled()
+		close_panel()
+
+## 其余未被控件消费的 [param event] 继续交由原档案选择器处理。
 func _unhandled_key_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and is_open():
-		if panel.visible:
-			close_panel()
-		elif selector.visible:
-			selector._on_button_cancel_pressed() # 原选择器保持未选择档案时的拒绝逻辑。
+	if selector.visible and event.is_action_pressed("ui_cancel"):
+		selector._on_button_cancel_pressed() # 原选择器保持未选择档案时的拒绝逻辑。
 		get_viewport().set_input_as_handled()

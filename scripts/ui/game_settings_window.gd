@@ -34,7 +34,10 @@ var _closing := false
 ## 在全屏输入遮罩内构建紧凑的桌面设置窗。
 func _ready() -> void:
 	var opener: WeakRef = get_meta("modal_opener_focus") as WeakRef if has_meta("modal_opener_focus") else null # 异步入口保存真正的打开按钮，不返回已释放的加载反馈。
-	_previous_focus = opener.get_ref() as Control if opener != null else get_viewport().gui_get_focus_owner()
+	if opener != null:
+		_previous_focus = opener.get_ref() as Control
+	elif not has_meta("preparing_modal"):
+		_previous_focus = get_viewport().gui_get_focus_owner()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade := ColorRect.new() # 保留背景辨识度，由根节点拦截鼠标。
@@ -235,7 +238,9 @@ func request_close() -> void:
 	_fade.tween_property(self, "modulate:a", 0.0, 0.10)
 	_fade.tween_callback(func() -> void:
 		closed.emit()
-		if is_instance_valid(_previous_focus) and _previous_focus.is_visible_in_tree():
+		var focus: Control = get_viewport().gui_get_focus_owner() # 更上层对话框可能已接管焦点。
+		if (focus == null or is_ancestor_of(focus)) \
+				and is_instance_valid(_previous_focus) and _previous_focus.is_visible_in_tree():
 			_previous_focus.grab_focus()
 		queue_free()
 	)

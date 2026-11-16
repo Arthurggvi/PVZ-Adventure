@@ -49,7 +49,7 @@ func _ready() -> void:
 	register_feature("library", Callable(self, "_can_open_library"), Callable(self, "_open_library"))
 	register_feature("player", Callable(self, "_can_open_player"), Callable(self, "_open_player"))
 	register_feature("shop", Callable(self, "_can_open_shop"), Callable(self, "_open_shop"))
-	register_feature("settings", Callable(self, "_can_open_settings"), toggle_settings)
+	register_feature("settings", Callable(self, "_can_open_settings"), _open_settings)
 	_on_scene_changed()
 
 ## 唯一表现层创建入口，只在有效游戏宿主上构造工具栏、导航与教学。
@@ -71,15 +71,16 @@ func _ensure_presenter() -> void:
 ## [param _delta] 为帧间隔，档案切换期间没有状态时也继续更新工具栏。
 func _process(_delta: float) -> void:
 	_sync_profile_context()
-	_poll_modal_loading()
-	# 场景控制工具栏整体可见性，模态和导航只禁止输入，不复制 HUD。
+	# 先检查宿主是否有更上层的对话框，避免加载完成的窗口抢走键盘焦点。
 	_sync_input()
+	_poll_modal_loading()
 	if _host_allowed and is_instance_valid(_view) and _view._available.get("inventory", false) != _can_open_inventory():
 		_refresh()
 
 ## 请求 [param feature_id] 前先接纳真实档案，避免下帧把新档案的请求当作旧窗口撤销。
 func request_feature(feature_id: String) -> bool:
 	_sync_profile_context()
+	_sync_input()
 	return super.request_feature(feature_id)
 
 ## 原生档案选择可以在同一输入帧更新状态；公开入口和逐帧检查共用此同步边界。
@@ -111,8 +112,7 @@ func _apply_host_scene(scene: Node) -> void:
 	_cancel_modal_loading()
 	if is_instance_valid(_onboarding):
 		_onboarding.reset()
-	if is_instance_valid(_navigation):
-		_navigation.close()
+	close_map_navigation()
 	if is_instance_valid(_modal):
 		_modal.queue_free()
 	_modal = null
@@ -131,9 +131,14 @@ func _apply_host_scene(scene: Node) -> void:
 func open_map_navigation() -> bool:
 	return request_feature("map")
 
+## 宿主退出或变更时撤销地区选择及其加载，释放导航输入。
+func close_map_navigation() -> void:
+	if is_instance_valid(_navigation):
+		_navigation.close()
+
 ## 门面校验后的既有地图导航动作。
 func _open_map() -> bool:
-	if not _host_allowed or not is_instance_valid(_host_scene) or is_instance_valid(_modal):
+	if not _host_allowed or not is_instance_valid(_host_scene):
 		return false
 	return _navigation.open_from(_host_scene)
 
@@ -198,9 +203,12 @@ func _open_player() -> void:
 func _can_open_settings() -> bool:
 	return _host_allowed
 
-## 从工具栏齿轮打开设置，沿用模态互斥和关闭行为。
+## 打开、切换或关闭设置，直接调用也经过统一功能入口。
 func toggle_settings() -> void:
-	_sync_profile_context() # 保留直接调用设置入口时的同帧换档保护。
+	request_feature("settings")
+
+## 设置窗口的构造由此唯一指定。
+func _open_settings() -> void:
 	_toggle_modal("settings", Settings)
 
 func _refresh() -> void:
