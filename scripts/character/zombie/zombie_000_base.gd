@@ -501,13 +501,6 @@ func be_mowered_run_anim_norm(lawn_mover:LawnMover):
 		await get_tree().create_timer(0.1).timeout
 
 
-## 角色在泳池中死亡,泳池死亡动画调用
-func in_water_death_start():
-	var tween = create_tween()
-	# 仅移动y轴，在1.5秒内下移200像素
-	tween.tween_property(body, "position:y", body.position.y + 80, 2)
-	#swim_box_component.in_water_death_start()
-
 ## 被水草缠住,
 func be_grap_in_pool():
 	attack_component.disable_component(ComponentNormBase.E_IsEnableFactor.Death)
