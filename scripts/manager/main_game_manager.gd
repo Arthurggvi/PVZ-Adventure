@@ -739,17 +739,26 @@ func _finish_round_victory(glo_pos: Vector2) -> void:
 
 	print("=======================游戏结束，您获胜了=======================")
 	# 本轮唯一奖杯，由已接受的胜利请求创建。
-	if AdventureSession.owns_battle(game_para):
-		if not AdventureSession.settle_victory():
-			main_game_progress = E_MainGameProgress.GAME_OVER
-			zombie_manager.zombie_wave_manager.stop_wave_refresh()
-			AdventureSession.prompt_victory_retry(_finish_round_victory.bind(glo_pos))
-			return
-		# 已经过续战检查点的阶段在选择前生成钱堆，其余阶段在奖杯旁生成。
+	var is_adventure: bool = AdventureSession.owns_battle(game_para) # 冒险需要先保存奖励，再播放结算演出。
+	if is_adventure and not AdventureSession.settle_victory():
+		main_game_progress = E_MainGameProgress.GAME_OVER
+		zombie_manager.zombie_wave_manager.stop_wave_refresh()
+		AdventureSession.prompt_victory_retry(_finish_round_victory.bind(glo_pos))
+		return
+	main_game_progress = E_MainGameProgress.GAME_OVER
+	if is_adventure:
+		# 续战检查点已演出本阶段的钱币，其余阶段在奖杯入场前演出。
 		if AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.TERMINAL \
 				or (AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE \
 					and AdventureSession.active_stage.terminal_key_id.is_empty()):
-			drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase, glo_pos)
+			var presentation: Tween = drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase) # 首通钱币落稳后再生成奖杯。
+			if presentation != null:
+				# 终末允许带着剩余援军结算，演出期间停住战场。
+				TreePauseManager.start_tree_pause(TreePauseManager.E_PauseFactor.AdventureContinue)
+				await presentation.finished
+				TreePauseManager.end_tree_pause(TreePauseManager.E_PauseFactor.AdventureContinue)
+				if not is_inside_tree() or is_queued_for_deletion():
+					return
 		drop_item_manager.spawn_victory_floor_items(AdventureSession.take_victory_floor_items(), glo_pos)
 	var trophy = SceneRegistry.TROPHY.instantiate()
 	canvas_layer_temp.add_child(trophy)
@@ -768,7 +777,6 @@ func _finish_round_victory(glo_pos: Vector2) -> void:
 
 ## 奖杯抛出
 func throw_to(node:Node2D, target_pos: Vector2, duration: float = 1.0):
-	main_game_progress = E_MainGameProgress.GAME_OVER
 	var start_pos = node.position
 	var peak_pos = start_pos.lerp(target_pos, 0.5)
 	peak_pos.y -= 50  # 向上抛

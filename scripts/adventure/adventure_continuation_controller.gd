@@ -22,7 +22,11 @@ func complete_checkpoint(glo_pos: Vector2) -> void:
 	if not AdventureSession.settle_victory():
 		AdventureSession.prompt_victory_retry(complete_checkpoint.bind(glo_pos))
 		return
-	game.drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase, glo_pos)
+	var presentation: Tween = game.drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase) # 续战弹窗等中央钱币落稳后再显示。
+	if presentation != null:
+		await presentation.finished
+		if not is_instance_valid(game) or not game.is_inside_tree() or game.is_queued_for_deletion():
+			return
 	if _can_offer_followup():
 		_show_offer(glo_pos)
 	else:

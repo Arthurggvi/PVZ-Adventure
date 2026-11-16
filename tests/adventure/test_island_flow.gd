@@ -117,6 +117,10 @@ func _run() -> void:
 	for flag: FlagProgressBarFlag in waves.flag_progress_bar.flag_arr: # 两次大波均应升旗。
 		assert(flag.flag.position.y == -10.0)
 	# 普通胜利不发放钥匙，空库存直接完成挑战并生成奖杯。
+	var reward_deadline: int = Time.get_ticks_msec() + 5000 # 给首通钱币演出和奖杯创建预留真实时间。
+	while AdventureSession.challenge_state != AdventureSession.ChallengeState.COMPLETE \
+			and Time.get_ticks_msec() < reward_deadline:
+		await get_tree().process_frame
 	assert(AdventureSession.challenge_state == AdventureSession.ChallengeState.COMPLETE)
 	assert(battle.adventure_continuation.dialog == null)
 	Engine.time_scale = 1.0

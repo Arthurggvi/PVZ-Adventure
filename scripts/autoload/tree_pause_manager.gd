@@ -9,7 +9,7 @@ enum E_PauseFactor {
 	Menu,			## 菜单
 	GameOver,		## 游戏结束
 	ReChooseCard,	## 重新选卡
-	AdventureContinue,	## 普通阶段结算后询问是否继续噩梦
+	AdventureContinue,	## 冒险阶段结算演出与续战询问
 }
 
 ## 各暂停因素是否生效；任一值为 true 时暂停场景树。

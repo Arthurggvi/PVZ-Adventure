@@ -35,6 +35,9 @@ func _run() -> void:
 		await get_tree().create_timer(0.2, true, false, true).timeout
 	assert(AdventureSession.challenge_state == AdventureSession.ChallengeState.NORMAL_COMPLETE)
 	assert(Global.adventure_inventory.get_item_count("lawn_nightmare_key") == 1)
+	var offer_deadline: int = Time.get_ticks_msec() + 5000 # 续战弹窗在首通钱币落稳后挂载。
+	while battle.adventure_continuation.dialog == null and Time.get_ticks_msec() < offer_deadline:
+		await get_tree().process_frame
 	assert(battle.adventure_continuation.dialog != null)
 	Engine.time_scale = 1.0
 	battle.adventure_continuation.dialog.confirmed.emit(1)
@@ -111,6 +114,10 @@ func _run() -> void:
 	assert(AdventureStageCatalog.is_cleared(Global.global_game_state.adventure_state,
 		AdventureStageCatalog.LAWN_ID, StagePhaseDefinition.Kind.NIGHTMARE))
 	assert(battle._round_end_claimed and battle.main_game_progress == MainGameManager.E_MainGameProgress.GAME_OVER)
+	var trophy_deadline: int = Time.get_ticks_msec() + 5000 # 等可能存在的首通钱币演出结束，取得真实奖杯。
+	while not battle.canvas_layer_temp.has_node("Trophy") and Time.get_ticks_msec() < trophy_deadline:
+		await get_tree().process_frame
+	assert(battle.canvas_layer_temp.get_node_or_null("Trophy") is Trophy)
 	battle.win_main_game()
 	await _frames()
 	assert(AdventureSession.active_level == null)

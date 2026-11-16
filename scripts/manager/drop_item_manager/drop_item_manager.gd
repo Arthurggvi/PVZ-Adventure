@@ -6,7 +6,9 @@ class_name DropItemManager
 ## 每枚首通钱币最多采样的落点数；钱堆较密时从候选中挑出最宽松的落点。
 const FIRST_CLEAR_LANDING_ATTEMPTS := 20
 ## 首通钱币优先保留的中心间距，占视口短边的比例。
-const FIRST_CLEAR_COIN_GAP_RATIO := 0.05
+const FIRST_CLEAR_COIN_GAP_RATIO := 0.065
+## 首通钱币逐枚入场的间隔（真实秒）。
+const FIRST_CLEAR_DROP_INTERVAL := 0.075
 ## 胜利保底和首通钱币在奖杯收取时的飞行时间（秒）。
 const VICTORY_FLIGHT_SECONDS := 0.26
 ## 首通同批两枚之间的启动间隔（秒）。
@@ -78,13 +80,14 @@ func spawn_victory_floor_items(items: Dictionary, origin: Vector2) -> void:
 		BattleDropService.throw_pickup(pickup, screen_to_local * (center + offset) - pickup.position)
 
 
-## 从 [param phase] 的已保存余量生成钱堆；[param origin] 是清场或 Boss 死亡的世界坐标。
-func spawn_first_clear_coins(phase: StagePhaseDefinition, origin: Vector2) -> void:
+## 从 [param phase] 的已保存余量生成钱币，在视口中央播放下落与回弹。
+## 返回演出时间轴供结算界面等待；没有余量时返回 null。
+func spawn_first_clear_coins(phase: StagePhaseDefinition) -> Tween:
 	var claim_id: String = AdventureRewardService.first_clear_claim_id(phase) # 每个阶段单独持久化。
 	var counts: Dictionary = AdventureRewardService.pending_first_clear_coins(
 		Global.global_game_state.adventure_state, claim_id) # 包括先前通关后未拾取的余量。
 	if counts.is_empty():
-		return
+		return null
 	var scenes: Dictionary[String, PackedScene] = {
 		"diamond": SceneRegistry.COIN_DIAMOND,
 		"gold": SceneRegistry.COIN_GOLD,
@@ -94,41 +97,37 @@ func spawn_first_clear_coins(phase: StagePhaseDefinition, origin: Vector2) -> vo
 	for denomination: String in scenes: # 只实例化三种已知钱币。
 		for _copy: int in range(int(counts.get(denomination, 0))): # 展开此面额的剩余枚数。
 			denominations.append(denomination)
+	if denominations.is_empty():
+		return null
 	denominations.shuffle()
 
 	var parent: Node2D = dim_coin.all_drop_coin_parent # 战场掉落画布随相机移动。
 	var viewport: Rect2 = get_viewport().get_visible_rect() # 在可见范围内安排钱堆。
-	var canvas_to_screen: Transform2D = parent.get_canvas_transform() # 世界坐标到屏幕坐标。
-	var screen_to_local: Transform2D = parent.get_global_transform_with_canvas().affine_inverse() # 抛出需要父节点局部坐标。
-	var screen_origin: Vector2 = (canvas_to_screen * origin).clamp(
-		viewport.position + Vector2(50, 80), viewport.end - Vector2(50, 50)) # 避免屏外 Boss 生成看不到的抛洒。
-	var center_x: float = 0.67 if phase.kind == StagePhaseDefinition.Kind.NIGHTMARE else 0.33 # 两阶段的钱堆并排。
-	if AdventureSession.active_stage != null and not AdventureSession.active_stage.terminal_key_id.is_empty():
-		# 有终末阶段时为三组首通钱堆留出位置，避免续战后叠在一起。
-		match phase.kind:
-			StagePhaseDefinition.Kind.NORMAL:
-				center_x = 0.17
-			StagePhaseDefinition.Kind.NIGHTMARE:
-				center_x = 0.50
-			StagePhaseDefinition.Kind.TERMINAL:
-				center_x = 0.83
-	var center: Vector2 = viewport.position + viewport.size * Vector2(
-		center_x + randf_range(-0.012, 0.012), randf_range(0.60, 0.70)) # 在各阶段的落点区域内随机移动堆心。
-	var pile_scale: float = clampf(sqrt(float(denominations.size()) / 30.0), 0.30, 1.0) # 按剩余数量缩放，约 30 枚达到完整钱堆大小。
-	var radii: Vector2 = viewport.size * Vector2(
-		randf_range(0.105, 0.12), randf_range(0.13, 0.17)) * pile_scale # 随机改变钱堆的宽高，边缘留出显示空间。
+	var local_to_screen: Transform2D = parent.get_global_transform_with_canvas() # 掉落层的局部坐标转为视口坐标。
+	var screen_to_local: Transform2D = local_to_screen.affine_inverse() # 将演出位置转换回钱币的父节点坐标。
+	var landings: Array[Vector2] = [] # 记录续战留在场上的钱币及本次选中的落点。
+	for drop: Node in parent.get_children(): # 给先前阶段仍可拾取的钱币留出间距。
+		if drop is Coin and not drop.is_get and not drop.is_queued_for_deletion() \
+				and not drop.first_clear_claim_id.is_empty():
+			landings.append(local_to_screen * drop.position)
+	var center: Vector2 = viewport.get_center() # 各阶段统一以可见屏幕的中心为堆心。
+	var pile_scale: float = clampf(sqrt(float(denominations.size() + landings.size()) / 30.0), 0.35, 1.45) # 随场上总枚数扩大钱堆，保留屏幕边缘的空隙。
+	var radii: Vector2 = viewport.size * Vector2(0.215, 0.225) * pile_scale # 中央落点区域的横纵半径。
 	var gap: float = minf(viewport.size.x, viewport.size.y) * FIRST_CLEAR_COIN_GAP_RATIO # 屏幕坐标中的优先间距。
-	var landings: Array[Vector2] = [] # 保存本阶段已选的落点，用于限制钱币重叠。
-	var sounded: Array[String] = [] # 各面额只播一次抛出或落地音效。
-	for denomination: String in denominations: # 按打乱后的顺序生成实体，让三种钱币混在一起。
+	var spawn_y: float = viewport.position.y - maxf(80.0, viewport.size.y * 0.11) # 从屏幕上沿外完整入场。
+	var drift: float = viewport.size.x * 0.04 # 单枚钱币进场的最大横向偏移。
+	var rebound: Vector2 = Vector2(0.0, -viewport.size.y * 0.017) # 落地后向屏幕上方轻弹的位移。
+	var sounded: Array[String] = [] # 各面额只播一次进场或落地音效。
+	var rain_seconds: float = 0.0 # 用最后一枚钱币的回弹结束时间控制后续界面。
+	for index: int in range(denominations.size()): # 按打乱后的顺序错开入场，让三种钱币混在一起。
+		var denomination: String = denominations[index] # 本枚钱币的面额键。
+		var landing: Vector2 = _pick_first_clear_landing(center, radii, landings, gap * gap) # 本枚钱币的屏幕落点。
+		landings.append(landing)
 		var coin: Coin = scenes[denomination].instantiate() as Coin # 每枚钱币独立拾取与入账。
 		coin.first_clear_claim_id = claim_id
 		coin.first_clear_denomination = denomination
 		coin.coin_value = AdventureRewardService.FIRST_CLEAR_COIN_VALUES[denomination]
 		coin.exist_time = 0.0
-		coin.auto_collect_on_landing = false
-		coin.duration = randf_range(0.42, 0.82)
-		coin.peak_height = randf_range(75.0, 125.0)
 		coin.scale = Vector2.ONE * 0.8
 		if sounded.has(denomination):
 			coin.launch_sound = &""
@@ -136,13 +135,15 @@ func spawn_first_clear_coins(phase: StagePhaseDefinition, origin: Vector2) -> vo
 		else:
 			sounded.append(denomination)
 		coin.setup(dim_coin.coin_bank_label.marker_2d_coin_target)
+		coin.position = screen_to_local * Vector2(landing.x + randf_range(-drift, drift), spawn_y)
 		parent.add_child(coin)
-		coin.position = screen_to_local * screen_origin
-		var landing: Vector2 = _pick_first_clear_landing(center, radii, landings, gap * gap) # 本枚钱币的屏幕落点。
-		landings.append(landing)
-		coin.launch(screen_to_local * landing - coin.position)
-		# 普通结算后的续战提示会暂停战斗，钱堆仍在提示框后落地。
-		coin.tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		rain_seconds = coin.fall_from_sky(screen_to_local * landing,
+			screen_to_local * (landing + rebound), index * FIRST_CLEAR_DROP_INTERVAL)
+
+	# 随战斗节点释放的独立时间轴，玩家提前拾取钱币时仍能推进结算界面。
+	var presentation: Tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS).set_ignore_time_scale(true)
+	presentation.tween_interval(rain_seconds)
+	return presentation
 
 
 ## 在以 [param center] 为中心、[param radii] 为横纵半径的椭圆内挑选屏幕落点。
@@ -150,10 +151,12 @@ func spawn_first_clear_coins(phase: StagePhaseDefinition, origin: Vector2) -> vo
 ## 尝试次数用完时，返回离最近一枚钱币最远的候选。
 func _pick_first_clear_landing(center: Vector2, radii: Vector2,
 		landings: Array[Vector2], gap_squared: float) -> Vector2:
+	if landings.is_empty():
+		return center
 	var best: Vector2 = center # 未达到优先间距时采用的候选落点。
 	var best_clearance: float = -1.0 # 最佳候选到最近落点的距离平方，负值表示尚未找到候选。
 	for _attempt: int in range(FIRST_CLEAR_LANDING_ATTEMPTS): # 限制密集钱堆的采样开销。
-		var candidate: Vector2 = center + Vector2.from_angle(randf() * TAU) * randf() * radii # 等概率取半径，让堆心更密。
+		var candidate: Vector2 = center + Vector2.from_angle(randf() * TAU) * sqrt(randf()) * radii # 在椭圆内均匀采样面积。
 		var clearance: float = INF # 候选到最近落点的距离平方；尚无落点时直接采用候选。
 		for landing: Vector2 in landings: # 每个已选落点都可能挡住本枚钱币。
 			clearance = minf(clearance, candidate.distance_squared_to(landing))
