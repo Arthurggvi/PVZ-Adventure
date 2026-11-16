@@ -463,6 +463,8 @@ const SFXOtherMap := {
 	&"plant2":"res://assets/audio/SFX/plant_create/plant2.ogg",
 	## 植物种植在水上
 	&"plant_water": "res://assets/audio/SFX/plant_create/plant_water.ogg",
+	## 缠绕水草抓住目标
+	&"floop": "res://assets/audio/sounds/floop.ogg",
 	## 僵尸入水音效、水花音效
 	&"zombie_entering_water": "res://assets/audio/SFX/zombie/zombie_entering_water.ogg",
 	## -------- 小推车 --------

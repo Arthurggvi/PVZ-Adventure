@@ -212,7 +212,6 @@ visible = false
 script = ExtResource("16_44l6r")
 
 [node name="Body" type="Node2D" parent="GrapComponent" index="0"]
-position = Vector2(-85, -86)
 
 [node name="Layer 29" type="Sprite2D" parent="GrapComponent/Body" index="0"]
 position = Vector2(56, 15.8)

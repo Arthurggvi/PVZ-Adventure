@@ -1115,6 +1115,16 @@ _data = {
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ofqwu"]
 animation = &"Zombie_dolphinrider_death"
 
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_water_death"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_water_death"]
+nodes/output/position = Vector2(470, 80)
+nodes/Animation/node = SubResource("AnimationNodeAnimation_ofqwu")
+nodes/Animation/position = Vector2(40, 80)
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_water_death")
+nodes/TimeScale/position = Vector2(240, 80)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
+
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_yl8if"]
 animation = &"Zombie_dolphinrider_dolphinjump"
 
@@ -1168,12 +1178,8 @@ advance_mode = 2
 advance_expression = "is_attack"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_pa3ew"]
-advance_mode = 2
-advance_expression = "is_death"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_y7qvo"]
-advance_mode = 2
-advance_expression = "is_death"
+xfade_time = 0.2
+advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ftjjv"]
 advance_mode = 2
@@ -1201,7 +1207,7 @@ advance_expression = "not is_swimming"
 
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_ydrci"]
 states/Start/position = Vector2(146, 114)
-states/Zombie_dolphinrider_death/node = SubResource("AnimationNodeAnimation_ofqwu")
+states/Zombie_dolphinrider_death/node = SubResource("AnimationNodeBlendTree_water_death")
 states/Zombie_dolphinrider_death/position = Vector2(848, 575)
 states/Zombie_dolphinrider_dolphinjump/node = SubResource("AnimationNodeAnimation_yl8if")
 states/Zombie_dolphinrider_dolphinjump/position = Vector2(663, 354)
@@ -1219,7 +1225,7 @@ states/Zombie_dolphinrider_walk/node = SubResource("AnimationNodeAnimation_wm8bi
 states/Zombie_dolphinrider_walk/position = Vector2(386, 434)
 states/Zombie_dolphinrider_walkdolphin/node = SubResource("AnimationNodeAnimation_iwwki")
 states/Zombie_dolphinrider_walkdolphin/position = Vector2(344, 212)
-transitions = ["Start", "Zombie_dolphinrider_idle", SubResource("AnimationNodeStateMachineTransition_a1ed3"), "Zombie_dolphinrider_idle", "Zombie_dolphinrider_walkdolphin", SubResource("AnimationNodeStateMachineTransition_0u6g7"), "Zombie_dolphinrider_walkdolphin", "Zombie_dolphinrider_jumpinpool", SubResource("AnimationNodeStateMachineTransition_lrg8e"), "Zombie_dolphinrider_jumpinpool", "Zombie_dolphinrider_ride", SubResource("AnimationNodeStateMachineTransition_08gle"), "Zombie_dolphinrider_ride", "Zombie_dolphinrider_dolphinjump", SubResource("AnimationNodeStateMachineTransition_hjt17"), "Zombie_dolphinrider_dolphinjump", "Zombie_dolphinrider_swim", SubResource("AnimationNodeStateMachineTransition_cu1bl"), "Zombie_dolphinrider_swim", "Zombie_dolphinrider_eat", SubResource("AnimationNodeStateMachineTransition_pn8q5"), "Zombie_dolphinrider_eat", "Zombie_dolphinrider_death", SubResource("AnimationNodeStateMachineTransition_pa3ew"), "Zombie_dolphinrider_swim", "Zombie_dolphinrider_death", SubResource("AnimationNodeStateMachineTransition_y7qvo"), "Zombie_dolphinrider_swim", "Zombie_dolphinrider_walk", SubResource("AnimationNodeStateMachineTransition_ftjjv"), "Zombie_dolphinrider_walk", "Zombie_dolphinrider_death", SubResource("AnimationNodeStateMachineTransition_s4dol"), "Start", "Zombie_dolphinrider_walkdolphin", SubResource("AnimationNodeStateMachineTransition_38nik"), "Zombie_dolphinrider_eat", "Zombie_dolphinrider_swim", SubResource("AnimationNodeStateMachineTransition_xujkh"), "Zombie_dolphinrider_dolphinjump", "Zombie_dolphinrider_walk", SubResource("AnimationNodeStateMachineTransition_t72tt"), "Zombie_dolphinrider_ride", "Zombie_dolphinrider_walk", SubResource("AnimationNodeStateMachineTransition_gwu51")]
+transitions = ["Start", "Zombie_dolphinrider_idle", SubResource("AnimationNodeStateMachineTransition_a1ed3"), "Zombie_dolphinrider_idle", "Zombie_dolphinrider_walkdolphin", SubResource("AnimationNodeStateMachineTransition_0u6g7"), "Zombie_dolphinrider_walkdolphin", "Zombie_dolphinrider_jumpinpool", SubResource("AnimationNodeStateMachineTransition_lrg8e"), "Zombie_dolphinrider_jumpinpool", "Zombie_dolphinrider_ride", SubResource("AnimationNodeStateMachineTransition_08gle"), "Zombie_dolphinrider_ride", "Zombie_dolphinrider_dolphinjump", SubResource("AnimationNodeStateMachineTransition_hjt17"), "Zombie_dolphinrider_dolphinjump", "Zombie_dolphinrider_swim", SubResource("AnimationNodeStateMachineTransition_cu1bl"), "Zombie_dolphinrider_swim", "Zombie_dolphinrider_eat", SubResource("AnimationNodeStateMachineTransition_pn8q5"), "Zombie_dolphinrider_swim", "Zombie_dolphinrider_walk", SubResource("AnimationNodeStateMachineTransition_ftjjv"), "Zombie_dolphinrider_walk", "Zombie_dolphinrider_death", SubResource("AnimationNodeStateMachineTransition_s4dol"), "Start", "Zombie_dolphinrider_walkdolphin", SubResource("AnimationNodeStateMachineTransition_38nik"), "Zombie_dolphinrider_eat", "Zombie_dolphinrider_swim", SubResource("AnimationNodeStateMachineTransition_xujkh"), "Zombie_dolphinrider_dolphinjump", "Zombie_dolphinrider_walk", SubResource("AnimationNodeStateMachineTransition_t72tt"), "Zombie_dolphinrider_ride", "Zombie_dolphinrider_walk", SubResource("AnimationNodeStateMachineTransition_gwu51"), "Zombie_dolphinrider_swim", "Zombie_dolphinrider_death", SubResource("AnimationNodeStateMachineTransition_pa3ew"), "Zombie_dolphinrider_eat", "Zombie_dolphinrider_death", SubResource("AnimationNodeStateMachineTransition_pa3ew")]
 graph_offset = Vector2(-18, 148)
 
 [sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_6bvct"]
@@ -1537,9 +1543,11 @@ libraries/ = SubResource("AnimationLibrary_bab66")
 [node name="MoveComponent" parent="." index="7"]
 ori_speed = 80.0
 
-[node name="SwimBoxComponent" parent="." index="8" node_paths=PackedStringArray("special_splash_pos_node")]
+[node name="SwimBoxComponent" parent="." index="8" node_paths=PackedStringArray("special_splash_pos_node", "whitewater")]
 script = ExtResource("44_gwu51")
 special_splash_pos_node = NodePath("../Body/Marker2DSpecialSplash")
+waterline_offset = 5.0
+whitewater = [NodePath("../Body/BodyCorrect/Zombie_dolphinrider_whitewater")]
 
 [node name="CollisionShape2D" parent="SwimBoxComponent/Area2D" index="0"]
 position = Vector2(-10, -40)

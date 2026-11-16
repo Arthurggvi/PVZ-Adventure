@@ -62,6 +62,17 @@ func _random_sprit_appear():
 		sprite.visible = [true, false].pick_random()
 
 
+## 普僵及其变体在接触水域时立刻切入原版泳池死亡动作。
+func character_death() -> void:
+	super()
+	if curr_be_attack_status == E_BeAttackStatusZombie.IsDraggedUnder:
+		return
+	if is_swimming or swim_box_component.water_contact_area.touching_water:
+		is_swimming = true
+		anim_death_start()
+		swim_box_component.play_water_death(&"Zombie_waterdeath", randf_range(24.0, 30.0))
+
+
 ## 死亡动画开始时,将里面的胳膊显示(旗帜\铁门)
 func anim_death_start():
 	anim_innerarm.visible = true

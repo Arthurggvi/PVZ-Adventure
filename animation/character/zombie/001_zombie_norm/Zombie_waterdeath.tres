@@ -1,10 +1,12 @@
-[gd_resource type="Animation" load_steps=6 format=3 uid="uid://c3fe8anuxphw5"]
+[gd_resource type="Animation" load_steps=8 format=3 uid="uid://c3fe8anuxphw5"]
 
 [ext_resource type="Texture2D" uid="uid://dbkxku0odlron" path="res://assets/reanim/Zombie_duckytube_inwater.png" id="14_fuck"]
 [ext_resource type="Texture2D" uid="uid://ok2l7mfg4lev" path="res://assets/reanim/Zombie_whitewater1.png" id="15_fuck"]
 [ext_resource type="Texture2D" uid="uid://bkyr6if5u2b5t" path="res://assets/reanim/Zombie_snorkle_whitewater3.png" id="26_fuck"]
 [ext_resource type="Texture2D" uid="uid://ygiii0wcrdqo" path="res://assets/reanim/Zombie_snorkle_whitewater1.png" id="27_fuck"]
 [ext_resource type="Texture2D" uid="uid://but82r6h7qmdr" path="res://assets/reanim/Zombie_snorkle_whitewater2.png" id="28_fuck"]
+[ext_resource type="Texture2D" uid="uid://ddlkkrp74v64f" path="res://assets/reanim/Zombie_outerarm_upper2.png" id="outerarm_damaged"]
+[ext_resource type="Texture2D" uid="uid://p818sqhhvuk3" path="res://assets/reanim/Zombie_outerarm_upper.png" id="outerarm_normal"]
 
 [resource]
 resource_name = "Zombie_waterdeath"
@@ -689,10 +691,10 @@ tracks/56/path = NodePath("Body/BodyCorrect/Zombie_whitewater2/Zombie_whitewater
 tracks/56/interp = 1
 tracks/56/loop_wrap = true
 tracks/56/keys = {
-"times": PackedFloat32Array(0, 0, 0.166667, 0.166667, 0.333333, 0.333333, 0.5, 0.5, 0.666667, 0.666667, 0.833333, 0.833333, 1, 1, 1.166667, 1.166667, 1.333333, 1.333333, 1.5, 1.5, 1.666667, 1.666667, 1.833333, 1.833333, 2, 2),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 0,
-"values": [ExtResource("15_fuck"), ExtResource("15_fuck"), ExtResource("27_fuck"), ExtResource("27_fuck"), ExtResource("26_fuck"), ExtResource("26_fuck"), ExtResource("28_fuck"), ExtResource("28_fuck"), ExtResource("27_fuck"), ExtResource("27_fuck"), ExtResource("26_fuck"), ExtResource("26_fuck"), ExtResource("28_fuck"), ExtResource("28_fuck"), ExtResource("27_fuck"), ExtResource("27_fuck"), ExtResource("26_fuck"), ExtResource("26_fuck"), ExtResource("28_fuck"), ExtResource("28_fuck"), ExtResource("27_fuck"), ExtResource("27_fuck"), ExtResource("26_fuck"), ExtResource("26_fuck"), ExtResource("28_fuck"), ExtResource("28_fuck")]
+"times": PackedFloat32Array(0, 0.083333, 0.166667, 0.25, 0.333333, 0.416667, 0.5, 0.583333, 0.666667, 0.75, 0.833333, 0.916667, 1, 1.083333, 1.166667, 1.25, 1.333333, 1.416667, 1.5, 1.583333, 1.666667, 1.75, 1.833333, 1.916667, 2),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [ExtResource("15_fuck"), ExtResource("26_fuck"), ExtResource("27_fuck"), ExtResource("28_fuck"), ExtResource("26_fuck"), ExtResource("27_fuck"), ExtResource("28_fuck"), ExtResource("26_fuck"), ExtResource("27_fuck"), ExtResource("28_fuck"), ExtResource("26_fuck"), ExtResource("27_fuck"), ExtResource("28_fuck"), ExtResource("26_fuck"), ExtResource("27_fuck"), ExtResource("28_fuck"), ExtResource("26_fuck"), ExtResource("27_fuck"), ExtResource("28_fuck"), ExtResource("26_fuck"), ExtResource("27_fuck"), ExtResource("28_fuck"), ExtResource("26_fuck"), ExtResource("27_fuck"), ExtResource("28_fuck")]
 }
 tracks/57/type = "value"
 tracks/57/imported = false
@@ -755,4 +757,16 @@ tracks/61/keys = {
 "args": [],
 "method": &"_fade_and_remove"
 }]
+}
+tracks/62/type = "value"
+tracks/62/imported = false
+tracks/62/enabled = true
+tracks/62/path = NodePath("Body/BodyCorrect/Zombie_outerarm_upper/Zombie_outerarm_upper:texture")
+tracks/62/interp = 1
+tracks/62/loop_wrap = true
+tracks/62/keys = {
+"times": PackedFloat32Array(0, 1.75),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [ExtResource("outerarm_damaged"), ExtResource("outerarm_normal")]
 }

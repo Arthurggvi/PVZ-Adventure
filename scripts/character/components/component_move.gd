@@ -129,7 +129,7 @@ func _ready() -> void:
 	super()
 	curr_speed = ori_speed
 	set_physics_process(false)
-	owner_zombie.signal_character_death.connect(_stop_forced_displacement)
+	owner_zombie.signal_character_death.connect(cancel_forced_displacement)
 
 ## 返回是否正在被抛起。纯水平击退只占用移动，抛起还会暂停攻击和动画。
 func is_forced_airborne() -> bool:
@@ -176,9 +176,10 @@ func is_fleeing() -> bool:
 	return not _flee_sources.is_empty()
 
 
-## 强制位移的公共资格门禁；载具不接受击退、抛起和换行，保留自身原生移动。
+## 强制位移的公共资格门禁；载具和已被水草抓住的僵尸不接受击退、抛起或换行。
 func can_receive_forced_displacement() -> bool:
 	return is_inside_tree() and is_instance_valid(owner_zombie) and not owner_zombie.is_death \
+		and owner_zombie.curr_be_attack_status != Zombie000Base.E_BeAttackStatusZombie.IsDraggedUnder \
 		and not owner_zombie.is_queued_for_deletion() and not owner_zombie.is_vehicle()
 
 
@@ -235,7 +236,7 @@ func apply_forced_displacement(offset: Vector2, seconds: float = 0.0,
 ## 按物理帧 [param delta] 推进各轨迹，全部更新后再触发落地或吹飞结算。
 func _physics_process(delta: float) -> void:
 	if owner_zombie.is_death or owner_zombie.is_queued_for_deletion():
-		_stop_forced_displacement()
+		cancel_forced_displacement()
 		return
 	var completed: Array[Callable] = [] # 回调可结束战斗或新增位移，延迟到更新所有轨迹之后。
 	for kind: E_ForcedMotion in _forced_motions.keys(): # 键快照允许删除已完成的轨迹。
@@ -291,8 +292,8 @@ func _update_forced_motion_state() -> void:
 	set_physics_process(not _forced_motions.is_empty())
 
 
-## 死亡时取消所有位移和完成回调，并清除身体的抛高偏移。
-func _stop_forced_displacement() -> void:
+## 抓取或死亡时取消所有位移和完成回调，并清除身体的抛高偏移。
+func cancel_forced_displacement() -> void:
 	if _forced_motions.is_empty():
 		return
 	_forced_motions.clear()

@@ -1,13 +1,18 @@
 extends Zombie000Base
 class_name Zombie012Snorkle
 
-## 角色死亡
-func character_death():
+## 入水后以 14 帧每秒播放潜水僵尸专属死亡，使用自己的水线和白浪。
+func character_death() -> void:
 	super()
-	## 不在泳池中，死亡后消失
+	if curr_be_attack_status == E_BeAttackStatusZombie.IsDraggedUnder:
+		return
 	if not is_swimming:
 		await get_tree().create_timer(2.0, false).timeout
 		queue_free()
+	elif curr_be_attack_status == E_BeAttackStatusZombie.IsJumpInPool:
+		queue_free() # 初代的入水阶段没有死亡动作。
+	else:
+		swim_box_component.play_water_death(&"Zombie_snorkle_death", 14.0)
 
 
 ## 改变攻击状态攻击

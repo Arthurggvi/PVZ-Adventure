@@ -1617,10 +1617,10 @@ tracks/132/path = NodePath("Body/BodyCorrect/Zombie_snorkle_whitewater:texture")
 tracks/132/interp = 1
 tracks/132/loop_wrap = true
 tracks/132/keys = {
-"times": PackedFloat32Array(0, 0, 0.166667, 0.166667, 0.333333, 0.333333, 0.5, 0.5, 0.666667, 0.666667, 0.833333, 0.833333, 1, 1, 1.16667, 1.16667, 1.33333, 1.33333, 1.5, 1.5, 1.66667, 1.66667, 1.83333, 1.83333, 2, 2, 2.16667, 2.16667, 2.33333, 2.33333, 2.5, 2.5, 2.66667, 2.66667, 2.75, 2.83333),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-"update": 0,
-"values": [ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("19_fuck"), ExtResource("19_fuck"), ExtResource("20_fuck"), ExtResource("20_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("19_fuck"), ExtResource("19_fuck"), ExtResource("20_fuck"), ExtResource("20_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("19_fuck"), ExtResource("19_fuck"), ExtResource("20_fuck"), ExtResource("20_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("19_fuck"), ExtResource("19_fuck"), ExtResource("20_fuck"), ExtResource("20_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck"), ExtResource("19_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck")]
+"times": PackedFloat32Array(0, 0.083333, 0.166667, 0.25, 0.333333, 0.416667, 0.5, 0.583333, 0.666667, 0.75, 0.833333, 0.916667, 1, 1.083333, 1.166667, 1.25, 1.333333, 1.416667, 1.5, 1.583333, 1.666667, 1.75, 1.833333, 1.916667, 2, 2.083333, 2.166667, 2.25, 2.333333, 2.416667, 2.5, 2.583333, 2.666667, 2.75),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
+"update": 1,
+"values": [ExtResource("18_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("20_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("20_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("20_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("20_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("20_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("20_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("20_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("20_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("20_fuck"), ExtResource("18_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck"), ExtResource("20_fuck"), ExtResource("19_fuck"), ExtResource("18_fuck")]
 }
 tracks/133/type = "value"
 tracks/133/imported = false
@@ -1719,4 +1719,76 @@ tracks/140/keys = {
 "args": [],
 "method": &"_fade_and_remove"
 }]
+}
+tracks/141/type = "value"
+tracks/141/imported = false
+tracks/141/enabled = true
+tracks/141/path = NodePath("Body/BodyCorrect/Anim_head1:visible")
+tracks/141/interp = 1
+tracks/141/loop_wrap = true
+tracks/141/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/142/type = "value"
+tracks/142/imported = false
+tracks/142/enabled = true
+tracks/142/path = NodePath("Body/BodyCorrect/Anim_head_lips:visible")
+tracks/142/interp = 1
+tracks/142/loop_wrap = true
+tracks/142/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/143/type = "value"
+tracks/143/imported = false
+tracks/143/enabled = true
+tracks/143/path = NodePath("Body/BodyCorrect/Anim_head_jaw:visible")
+tracks/143/interp = 1
+tracks/143/loop_wrap = true
+tracks/143/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/144/type = "value"
+tracks/144/imported = false
+tracks/144/enabled = true
+tracks/144/path = NodePath("Body/BodyCorrect/Anim_head_snorkle:visible")
+tracks/144/interp = 1
+tracks/144/loop_wrap = true
+tracks/144/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/145/type = "value"
+tracks/145/imported = false
+tracks/145/enabled = true
+tracks/145/path = NodePath("Body/BodyCorrect/Zombie_outerarm_hand:visible")
+tracks/145/interp = 1
+tracks/145/loop_wrap = true
+tracks/145/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+tracks/146/type = "value"
+tracks/146/imported = false
+tracks/146/enabled = true
+tracks/146/path = NodePath("Body/BodyCorrect/Zombie_outerarm_lower:visible")
+tracks/146/interp = 1
+tracks/146/loop_wrap = true
+tracks/146/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
 }

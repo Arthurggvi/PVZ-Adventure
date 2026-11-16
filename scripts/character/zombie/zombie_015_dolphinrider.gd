@@ -84,10 +84,17 @@ func zombie_jump_in_pool_end():
 
 	jump_component.enable_component(ComponentNormBase.E_IsEnableFactor.Default)
 
-## 角色死亡
-func character_death():
+## 徒手游泳时播放专属死亡，骑行、入水和跃起时直接退场。
+func character_death() -> void:
 	super()
-	## 如果骑着海豚死亡,没有对应死亡动画
-	if is_ride:
+	if curr_be_attack_status == E_BeAttackStatusZombie.IsDraggedUnder:
+		return
+	if is_swimming:
+		if is_ride or curr_be_attack_status == E_BeAttackStatusZombie.IsJump \
+				or curr_be_attack_status == E_BeAttackStatusZombie.IsJumpInPool:
+			queue_free()
+		else:
+			swim_box_component.play_water_death(&"Zombie_dolphinrider_death", randf_range(24.0, 30.0))
+	elif is_ride:
 		await get_tree().create_timer(2.0, false).timeout
 		queue_free()

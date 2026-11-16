@@ -1,10 +1,12 @@
-[gd_resource type="Animation" load_steps=8 format=3 uid="uid://d4j14at5jjq0x"]
+[gd_resource type="Animation" load_steps=10 format=3 uid="uid://d4j14at5jjq0x"]
 
 [ext_resource type="Texture2D" uid="uid://ckjv486u35x8i" path="res://assets/reanim/Tanglekelp_grab_back1.png" id="10_fuck"]
+[ext_resource type="Texture2D" uid="uid://b5taaf1nfuirb" path="res://assets/reanim/Tanglekelp_grab_back2.png" id="grab_back2"]
 [ext_resource type="Texture2D" uid="uid://cpaau5e20yh4i" path="res://assets/reanim/Tanglekelp_grab_back3.png" id="12_fuck"]
 [ext_resource type="Texture2D" uid="uid://cutxgswhgpst5" path="res://assets/reanim/Tanglekelp_grab_back4.png" id="13_fuck"]
 [ext_resource type="Texture2D" uid="uid://d0ouejxyysvbb" path="res://assets/reanim/Tanglekelp_grab_front1.png" id="14_fuck"]
 [ext_resource type="Texture2D" uid="uid://xed7ebsp133v" path="res://assets/reanim/Tanglekelp_grab_front2.png" id="15_fuck"]
+[ext_resource type="Texture2D" uid="uid://doj7h55uca5gf" path="res://assets/reanim/Tanglekelp_grab_front3.png" id="grab_front3"]
 [ext_resource type="Texture2D" uid="uid://mgie0352rst4" path="res://assets/reanim/Tanglekelp_grab_front4.png" id="17_fuck"]
 [ext_resource type="Texture2D" uid="uid://bl4iyenxksu5k" path="res://assets/reanim/Tanglekelp_grab_front5.png" id="18_fuck"]
 
@@ -19,10 +21,10 @@ tracks/0/path = NodePath("Body/Layer 29:visible")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.25, 0.333333, 0.333333),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
-"update": 0,
-"values": [true, true, false, false]
+"times": PackedFloat32Array(0, 0.333333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -79,10 +81,10 @@ tracks/5/path = NodePath("Body/Layer 29:texture")
 tracks/5/interp = 1
 tracks/5/loop_wrap = true
 tracks/5/keys = {
-"times": PackedFloat32Array(0, 0, 0.166667, 0.166667, 0.25, 0.333333),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
-"update": 0,
-"values": [ExtResource("10_fuck"), ExtResource("10_fuck"), ExtResource("12_fuck"), ExtResource("12_fuck"), ExtResource("13_fuck"), ExtResource("13_fuck")]
+"times": PackedFloat32Array(0, 0.083333, 0.166667, 0.25),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [ExtResource("10_fuck"), ExtResource("grab_back2"), ExtResource("12_fuck"), ExtResource("13_fuck")]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -163,10 +165,10 @@ tracks/12/path = NodePath("Body/Layer 32:texture")
 tracks/12/interp = 1
 tracks/12/loop_wrap = true
 tracks/12/keys = {
-"times": PackedFloat32Array(0, 0.083333, 0.083333, 0.25, 0.333333, 0.333333),
-"transitions": PackedFloat32Array(1, 1, 1, 1, 1, 1),
-"update": 0,
-"values": [ExtResource("14_fuck"), ExtResource("15_fuck"), ExtResource("15_fuck"), ExtResource("17_fuck"), ExtResource("18_fuck"), ExtResource("18_fuck")]
+"times": PackedFloat32Array(0, 0.083333, 0.166667, 0.25, 0.333333),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [ExtResource("14_fuck"), ExtResource("15_fuck"), ExtResource("grab_front3"), ExtResource("17_fuck"), ExtResource("18_fuck")]
 }
 tracks/13/type = "value"
 tracks/13/imported = false

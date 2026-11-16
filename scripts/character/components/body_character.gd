@@ -225,23 +225,20 @@ func zombie_body_up_from_ground(up_time:float = 1.0):
 	await tween.finished
 	body_mask_end()
 
-## 僵尸从水下出来(珊瑚僵尸)
-func zombie_body_up_from_pool():
-	body_mask_start()
-	pose_position.y += 100
-	# 本次身体上浮的补间，将下移后的身体恢复到原高度，结束后关闭遮罩。
-	var tween :Tween = create_tween()
-	tween.tween_property(self, ^"pose_position:y", pose_position.y - 100.0, 1.0)
-	await tween.finished
-	body_mask_end()
-
-## 身体在当前body节点以上的显示,以下透明,需要转为画布坐标
-func body_mask_start():
+## 隐藏 [param cutoff_world_y] 以下的身体，省略时沿用脚点的屏幕坐标遮罩。
+## [param unclipped] 中的水面部件保持完整绘制；每个身体使用独立遮罩。
+func body_mask_start(cutoff_world_y: float = NAN, unclipped: Array[CanvasItem] = []) -> void:
 	material = BODY_MASK.duplicate()
-	material.set_shader_parameter(&"cutoff_y", GlobalUtils.world_to_screen(owner.global_position).y)
-	# 当前身体子节点，用于让对应的身体部件继承父级材质。
-	for child in get_children():
-		GlobalUtils.node_use_parent_material(child)
+	# 水线使用世界坐标，避免跟随镜头滚动或身体下沉。
+	var use_world: bool = not is_nan(cutoff_world_y)
+	var cutoff_y: float = cutoff_world_y if use_world else GlobalUtils.world_to_screen(owner.global_position).y # 按对应坐标系传入着色器。
+	material.set_shader_parameter(&"use_world_coordinates", use_world)
+	material.set_shader_parameter(&"cutoff_y", cutoff_y)
+	for child: Node in get_children(): # 身体下也可能挂有动画播放器。
+		if child is Node2D:
+			GlobalUtils.node_use_parent_material(child)
+	for art: CanvasItem in unclipped: # 白浪可以横跨身体的裁切边界。
+		art.use_parent_material = false
 
 ## 结束身体在当前body节点以上的显示,以下透明
 func body_mask_end():

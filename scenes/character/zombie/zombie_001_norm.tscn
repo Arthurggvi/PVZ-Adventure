@@ -1203,6 +1203,16 @@ animation = &"Zombie_swim"
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_2b8si"]
 animation = &"Zombie_waterdeath"
 
+[sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_water_death"]
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_water_death"]
+nodes/output/position = Vector2(470, 80)
+nodes/Animation/node = SubResource("AnimationNodeAnimation_2b8si")
+nodes/Animation/position = Vector2(40, 80)
+nodes/TimeScale/node = SubResource("AnimationNodeTimeScale_water_death")
+nodes/TimeScale/position = Vector2(240, 80)
+node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"Animation"]
+
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_gdkty"]
 animation = &"Zombie_eat"
 
@@ -1241,10 +1251,8 @@ advance_mode = 2
 advance_expression = "is_swimming"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_vbiek"]
-break_loop_at_end = true
-switch_mode = 2
-advance_mode = 2
-advance_expression = "is_death"
+xfade_time = 0.2
+advance_mode = 1
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_oy52n"]
 xfade_time = 0.2
@@ -1280,12 +1288,6 @@ xfade_time = 0.2
 advance_mode = 2
 advance_expression = "is_attack"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_fh72l"]
-break_loop_at_end = true
-switch_mode = 2
-advance_mode = 2
-advance_expression = "is_death and is_swimming"
-
 [sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_xuj3g"]
 states/Death/node = SubResource("AnimationNodeStateMachine_feh1y")
 states/Death/position = Vector2(593, 186)
@@ -1296,11 +1298,11 @@ states/Walk/node = SubResource("AnimationNodeStateMachine_d1iv7")
 states/Walk/position = Vector2(506, 100)
 states/Zombie_swim/node = SubResource("AnimationNodeAnimation_u5bc8")
 states/Zombie_swim/position = Vector2(728, -14)
-states/Zombie_waterdeath/node = SubResource("AnimationNodeAnimation_2b8si")
+states/Zombie_waterdeath/node = SubResource("AnimationNodeBlendTree_water_death")
 states/Zombie_waterdeath/position = Vector2(909, 37)
 states/eat/node = SubResource("AnimationNodeBlendTree_risgh")
 states/eat/position = Vector2(738, 105)
-transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_gm2ot"), "Idle", "Walk", SubResource("AnimationNodeStateMachineTransition_yxb45"), "Walk", "Death", SubResource("AnimationNodeStateMachineTransition_1rytp"), "Start", "Walk", SubResource("AnimationNodeStateMachineTransition_nk4os"), "Walk", "Zombie_swim", SubResource("AnimationNodeStateMachineTransition_i8bqt"), "Zombie_swim", "Zombie_waterdeath", SubResource("AnimationNodeStateMachineTransition_vbiek"), "Zombie_swim", "Walk", SubResource("AnimationNodeStateMachineTransition_oy52n"), "eat", "Death", SubResource("AnimationNodeStateMachineTransition_7rguq"), "Walk", "eat", SubResource("AnimationNodeStateMachineTransition_0ouek"), "eat", "Walk", SubResource("AnimationNodeStateMachineTransition_jwitv"), "eat", "Zombie_swim", SubResource("AnimationNodeStateMachineTransition_o6eay"), "Zombie_swim", "eat", SubResource("AnimationNodeStateMachineTransition_r5bwh"), "eat", "Zombie_waterdeath", SubResource("AnimationNodeStateMachineTransition_fh72l")]
+transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_gm2ot"), "Idle", "Walk", SubResource("AnimationNodeStateMachineTransition_yxb45"), "Walk", "Death", SubResource("AnimationNodeStateMachineTransition_1rytp"), "Start", "Walk", SubResource("AnimationNodeStateMachineTransition_nk4os"), "Walk", "Zombie_swim", SubResource("AnimationNodeStateMachineTransition_i8bqt"), "Zombie_swim", "Walk", SubResource("AnimationNodeStateMachineTransition_oy52n"), "eat", "Death", SubResource("AnimationNodeStateMachineTransition_7rguq"), "Walk", "eat", SubResource("AnimationNodeStateMachineTransition_0ouek"), "eat", "Walk", SubResource("AnimationNodeStateMachineTransition_jwitv"), "eat", "Zombie_swim", SubResource("AnimationNodeStateMachineTransition_o6eay"), "Zombie_swim", "eat", SubResource("AnimationNodeStateMachineTransition_r5bwh"), "Idle", "Zombie_waterdeath", SubResource("AnimationNodeStateMachineTransition_vbiek"), "Walk", "Zombie_waterdeath", SubResource("AnimationNodeStateMachineTransition_vbiek"), "Zombie_swim", "Zombie_waterdeath", SubResource("AnimationNodeStateMachineTransition_vbiek"), "eat", "Zombie_waterdeath", SubResource("AnimationNodeStateMachineTransition_vbiek")]
 graph_offset = Vector2(122, -90)
 
 [sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_nk4os"]
@@ -1798,9 +1800,10 @@ centered = false
 [node name="AnimLib" type="AnimationPlayer" parent="CharredComponent/ZombieCharred/CharredCorrect" parent_id_path=PackedInt32Array(2136149623) index="12" unique_id=1773840643]
 libraries/ = SubResource("AnimationLibrary_bab66")
 
-[node name="SwimBoxComponent" parent="." index="8" unique_id=981994492]
+[node name="SwimBoxComponent" parent="." index="8" unique_id=981994492 node_paths=PackedStringArray("whitewater")]
 script = ExtResource("55_b4qrn")
 body_change_swim = SubResource("Resource_gdkty")
+whitewater = [NodePath("../Body/BodyCorrect/Zombie_whitewater"), NodePath("../Body/BodyCorrect/Zombie_whitewater2")]
 
 [node name="AnimationTree" type="AnimationTree" parent="." index="11" unique_id=341889001]
 deterministic = false

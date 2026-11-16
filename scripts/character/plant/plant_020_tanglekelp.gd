@@ -1,6 +1,9 @@
 extends Plant000Base
 class_name Plant020Tanglekelp
 
+## 从抓取开始到植物格冒水花的初代时点，单位秒。
+const PLANT_SPLASH_AT: float = 0.8
+
 ## 仅普通僵尸使用的拖拽表现与处决组件。
 @onready var grap_component: GrapComponent = $GrapComponent
 ## 查找当前仍处于受击范围内的目标。
@@ -32,25 +35,28 @@ func start_grap_zombie():
 	blink_component.disable_component(ComponentNormBase.E_IsEnableFactor.Attack)
 	grap_in_pool(enemy)
 
-## [param target_zombie] 已确认的本次目标。普通僵尸拖入水中，僵王只扣血，两者都会消耗海草。
-func grap_in_pool(target_zombie:Character000Base):
-	if target_zombie is ZB000Base or target_zombie is EnemyStructureBase:
+## 消耗自身以攻击 [param target_zombie]。普通目标进入初代抓取演出，僵王和构筑物承受穿透伤害。
+func grap_in_pool(target_zombie: Character000Base) -> void:
+	if target_zombie is Zombie000Base:
+		grap_component.grab_zombie(target_zombie)
+		await get_tree().create_timer(PLANT_SPLASH_AT, false).timeout
+		if is_death or is_queued_for_deletion() or not is_instance_valid(plant_cell):
+			return
+		Splash.spawn(plant_cell, global_position + Vector2(0, 10), 1.3)
+		await get_tree().create_timer(GrapComponent.HOLD_SECONDS + GrapComponent.SINK_SECONDS - PLANT_SPLASH_AT, false).timeout
+	else:
 		target_zombie.be_attacked_bullet(battle_damage(boss_attack_value), BulletRegistry.AttackMode.Penetration, false, false)
-	elif target_zombie is Zombie000Base:
-		grap_component.activate_it_to_grap_zombie(target_zombie)
-	await get_tree().create_timer(0.3).timeout
-	if is_death or is_queued_for_deletion() or not is_instance_valid(plant_cell):
-		return
-	# 海草自身下沉时的水花，不把特效或拖拽组件挂到僵王身体上。
-	var splash:Splash = SceneRegistry.SPLASH.instantiate()
-	plant_cell.add_child(splash)
-	splash.global_position = global_position + Vector2(0, 10)
-
-	# 仅移动海草，僵王机甲的位置与动画始终由其自身状态机控制。
-	var tween:Tween = create_tween()
-	tween.tween_property(self, "position", position + Vector2(0, 10), 0.5)
-	await tween.finished
-
+		await _sink_after_boss_hit()
 	if not is_death and not is_queued_for_deletion():
 		character_death()
+
+## 僵王与构筑物的扩展分支沿用植物自己的下沉表现。
+func _sink_after_boss_hit() -> void:
+	await get_tree().create_timer(0.3, false).timeout
+	if is_death or is_queued_for_deletion() or not is_instance_valid(plant_cell):
+		return
+	Splash.spawn(plant_cell, global_position + Vector2(0, 10))
+	var tween: Tween = create_tween() # 只补间水草的退场位置。
+	tween.tween_property(self, ^"position:y", 10.0, 0.5).as_relative()
+	await tween.finished
 

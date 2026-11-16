@@ -109,9 +109,11 @@ func inherited_child_modifier() -> ZombieSpawnModifier:
 var participates_natural_refresh: bool = true
 ## 战场内换行会短暂离树；管理器在这次重挂期间保留原有登记。
 var is_changing_lane := false
-## 僵尸当前状态
+## 僵尸当前受击状态。抓取是终态，上浮、下潜等动画回调不能解除锁定。
 var curr_be_attack_status:E_BeAttackStatusZombie=E_BeAttackStatusZombie.IsNorm:
 	set(value):
+		if curr_be_attack_status == E_BeAttackStatusZombie.IsDraggedUnder:
+			return
 		curr_be_attack_status = value
 		signal_status_update.emit()
 
@@ -147,6 +149,7 @@ enum E_BeAttackStatusZombie{
 	IsSky = 8,			## 空中
 	IsDownGround = 16,	## 地下
 	IsJumpInPool = 32,	## 跳入泳池,该状态无法被高建国拦截
+	IsDraggedUnder = 64,	## 已被缠绕水草抓住，仅由拖拽动画结算。
 }
 
 #endregion
@@ -419,7 +422,8 @@ func change_is_swimming(value:bool):
 	move_component.update_move_factor(true, MoveComponent.E_MoveFactor.IsSwimingChange)
 	await get_tree().create_timer(0.2).timeout
 	move_component.update_move_factor(false, MoveComponent.E_MoveFactor.IsSwimingChange)
-	shadow.visible = not value
+	if not swim_box_component.swim_pose_locked:
+		shadow.visible = not is_swimming
 
 #region 僵尸受伤、死亡、
 ## 角色死亡
@@ -427,14 +431,15 @@ func character_death():
 	_capture_tier_death_state()
 	super()
 	hurt_box_component.disable_component(ComponentNormBase.E_IsEnableFactor.Death)
-	swim_box_component._on_owner_is_death()
+	swim_box_component.lock_swim_pose()
 	#attack_component.queue_free()
 
-## 僵尸死亡后逐渐透明，最后删除节点
-func _fade_and_remove():
-	var tween = create_tween()  # 自动创建并绑定Tween节点
-	tween.tween_property(self, "modulate:a", 0.0, 1.0)  # 1秒内透明度降为0
-	tween.tween_callback(queue_free)  # 动画完成后删除僵尸
+## 死亡动画播完后淡出并释放角色；初代泳池死亡只保留 0.1 秒尾帧。
+func _fade_and_remove() -> void:
+	var fade_seconds: float = 0.1 if is_swimming else 1.0 # 水面白浪只短暂停留。
+	var tween: Tween = create_tween() # 角色退场时一并结束淡出。
+	tween.tween_property(self, ^"modulate:a", 0.0, fade_seconds)
+	tween.tween_callback(queue_free)
 
 ## 死亡不消失(海草\TODO:小推车)
 func character_death_not_disappear():
@@ -501,11 +506,14 @@ func be_mowered_run_anim_norm(lawn_mover:LawnMover):
 		await get_tree().create_timer(0.1).timeout
 
 
-## 被水草缠住,
-func be_grap_in_pool():
+## 被水草缠住后锁定目标、动作及游泳过渡，等待拖拽动画结算。
+func begin_pool_grab() -> void:
+	curr_be_attack_status = E_BeAttackStatusZombie.IsDraggedUnder
 	attack_component.disable_component(ComponentNormBase.E_IsEnableFactor.Death)
-	anim_component.stop_anim()
+	hurt_box_component.disable_component(ComponentNormBase.E_IsEnableFactor.Death)
 	move_component.update_move_factor(true, MoveComponent.E_MoveFactor.IsDeath)
+	move_component.cancel_forced_displacement()
+	swim_box_component.lock_swim_pose()
 
 ## 承受 [param attack_value] 点爆炸伤害，返回本次实际击杀的僵尸。
 ## [param is_cherry_bomb] 为 true 时，普通致死爆炸使用原版灰烬演出。
@@ -602,9 +610,10 @@ func is_stunned() -> bool:
 	return influence_speed_factors.get(E_Influence_Speed_Factor.Stun, 1.0) == 0.0
 
 
-## 返回是否因眩晕、恐惧或抛起暂停攻击行为；移动只检查眩晕和强制轨迹，恐惧仍能逃跑。
+## 返回是否因水草缠绕、眩晕、恐惧或抛起暂停攻击和跳跃行为。
 func is_action_suspended() -> bool:
-	return is_stunned() or (is_instance_valid(move_component) and (
+	return curr_be_attack_status == E_BeAttackStatusZombie.IsDraggedUnder \
+			or is_stunned() or (is_instance_valid(move_component) and (
 		move_component.is_forced_airborne() or move_component.is_fleeing()))
 
 
