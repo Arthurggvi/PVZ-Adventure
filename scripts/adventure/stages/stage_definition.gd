@@ -7,6 +7,10 @@ const DEFAULT_CARD_SLOTS: int = 6
 
 ## 关卡稳定 ID，不使用场景文件名、列表下标或展示文本替代。
 @export var stage_id: StringName = &""
+## 可选专属战场路径；为空时使用原版环境场景注册表。
+@export_file("*.tscn") var battle_scene: String = ""
+## 可选来源地区地图；空值保持僵尸岛旧入口。
+@export_file("*.tscn") var return_scene: String = ""
 ## 复用原版地形/环境/战斗参数模板，阶段只注入自己的动态规则。
 @export var environment: AdventureBattleEnvironment
 ## 单次关卡入场统一选卡/预览；噩梦继承同一组卡和战场。
@@ -25,6 +29,9 @@ func validate(known_tier_ids: Array[StringName] = [], known_key_ids: Array[Strin
 	var errors := PackedStringArray() # 汇总所有静态错误，不自动修复或变更配置。
 	if str(stage_id).strip_edges().is_empty():
 		errors.append("关卡缺少稳定 ID。")
+	for path: String in [battle_scene, return_scene]: # 只验证路径，不加载战场。
+		if not path.is_empty() and not ResourceLoader.exists(path, "PackedScene"):
+			errors.append("关卡场景路径不存在：" + path)
 	if environment == null:
 		errors.append("关卡缺少冒险环境配置。")
 	else:

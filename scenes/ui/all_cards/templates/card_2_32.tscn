@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="card_base"]
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="packet"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/hunter/portrait.png" id="portrait"]
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_32"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 32
+
+[node name="CardHunter" instance=ExtResource("card_base")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_32")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("packet")
+
+[node name="ZombieHunter" type="Node2D" parent="CardBg/CharacterStatic" index="0"]
+
+[node name="Portrait" type="Sprite2D" parent="CardBg/CharacterStatic/ZombieHunter"]
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("portrait")

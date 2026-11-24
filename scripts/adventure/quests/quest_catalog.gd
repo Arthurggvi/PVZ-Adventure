@@ -25,10 +25,17 @@ const EDGAR_KEYS := {
 	"zombie_island.edgar_temple.nightmare_key": "zombie_island.edgar_temple/nightmare",
 	"zombie_island.edgar_temple.nightmare_key_lower": "zombie_island.edgar_temple/terminal",
 }
+## 每日战斗击杀目标，供任务目录和高频计数共用。
+const FRONTLINE_SWEEP := {"id": "daily_frontline_sweep", "group": "日常任务", "title": "前线扫荡",
+	"description": "击杀 1000 只僵尸。\n\n每天零点刷新，按本机日期计算。请在刷新前领取奖励。",
+	"objective": "击杀 1000 只僵尸", "event": "zombie_defeated", "target": "", "daily": true, "accept_history": false,
+	"requires_completed": [], "min_level": 0, "activation_mode": "all", "count": 1000,
+	"exp": 2000, "coins": 20000, "unlocks": [], "items": []}
 ## 稳定 ID 与业务规则；accept_history 仅用于可从现有永久状态恢复的目标。
 ## 空 event 表示根据当前状态判断完成；completion_level 可指定目标等级。
 ## required_plant_type 要求在本次通关的战斗中实际使用该植物卡。
 ## adventure_boss_defeated 匹配指定遭遇的击败；history_claim 可补记能证明该击败的旧首通记录。
+## additional_equipment_rewards 每个 ID 发放一件独立实例，也开放给已领取原奖励的档案补领一次。
 const TASKS: Array[Dictionary] = [
 	{"id": "first_expedition", "group": "主线任务", "title": "初次远征",
 	"description": "通过草坪的普通关卡。\n\n领取奖励后解锁研究室功能，并开启主线任务「初次制卡」。", "objective": "通过草坪的普通关卡",
@@ -125,11 +132,12 @@ const TASKS: Array[Dictionary] = [
 	"requires_completed": [], "min_level": 0, "activation_mode": "all", "count": 1,
 	"exp": 5000, "coins": 2000, "unlocks": [], "items": [{"id": "fertilizer_lv3", "count": 1},
 		{"id": "growth_agent_lv3", "count": 1}, {"id": "seedling_pot", "count": 1}]},
+	FRONTLINE_SWEEP,
 	{"id": "thank_you", "group": "活动任务", "title": "感谢有你！", "description": THANK_YOU_LETTER,
 	"letter": true, "event": "", "target": "", "daily": false, "accept_history": false,
 	"requires_completed": ["first_expedition"], "min_level": 0, "activation_mode": "all", "count": 1,
 	"exp": 0, "coins": 0, "unlocks": [], "items": [], "equipment_reward": "deepseek_whale",
-	"equipment_label": "DeepSeek 鲸鱼娘时装"},
+	"equipment_label": "DeepSeek 鲸鱼娘时装", "additional_equipment_rewards": ["sun_collector", "drop_collector"]},
 ]
 
 ## 返回 [param id] 的独立定义，未知 ID 返回空字典。

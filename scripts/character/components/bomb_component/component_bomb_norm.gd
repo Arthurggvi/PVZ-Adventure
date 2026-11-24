@@ -4,7 +4,7 @@ class_name BombComponentNorm
 
 ## 爆炸表现，与伤害筛选独立触发。
 @onready var bomb_effect: BombEffectBase = $BombEffect
-## 冒险技能的可选结算入口；不设置时保留所有原版范围与伤害逻辑。
+## 冒险技能的可选结算入口；回调明确返回 false 时交还原版范围与伤害。
 var damage_resolver: Callable
 
 ## 爆炸特效
@@ -14,8 +14,9 @@ func _start_bomb_fx():
 ## 将原版区域交给通用植物爆炸结算，转职可接管几何范围和后续效果。
 func _bomb_all_enemy():
 	if damage_resolver.is_valid():
-		damage_resolver.call()
-		return
+		var handled: Variant = damage_resolver.call() # 已接管的旧回调仍可不返回值。
+		if not handled is bool or handled:
+			return
 	var context: PlantAttackContext = (owner as Plant000Base).capture_attack_context() if owner is Plant000Base else null # 本轮爆炸的来源快照。
 	CombatExplosion.resolve_plant_blast(area_2d_bomb.get_overlapping_areas(), owner.lane,
-		bomb_lane, can_attack_zombie_status, resolved_damage(), is_cherry_bomb, context)
+		bomb_lane, can_attack_zombie_status, resolved_damage(), is_cherry_bomb, context, boss_blast_damage_cap())

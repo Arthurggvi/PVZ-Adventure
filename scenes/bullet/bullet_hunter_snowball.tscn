@@ -1,0 +1,75 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/bullet/bullet_000_linear_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/zombie/hunter/hunter_snowball.gd" id="2_snowball"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/hunter/snowball.png" id="3_snowball_texture"]
+[ext_resource type="Script" path="res://scripts/character/zombie/hunter/hunter_snowball_hit.gd" id="4_hit"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/hunter/snowball_splat_large.png" id="5_splat_large"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/hunter/snowball_splat_small.png" id="6_splat_small"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/hunter/snowball_fragment.png" id="7_fragment"]
+[ext_resource type="Script" path="res://scripts/character/zombie/hunter/hunter_snowball_movement.gd" id="8_movement"]
+[ext_resource type="Script" path="res://scripts/bullet/component/movement/bullet_movement_parabola.gd" id="9_arc"]
+
+[sub_resource type="CircleShape2D" id="SnowballCollision"]
+radius = 9.0
+
+[node name="HunterSnowball" instance=ExtResource("1_base")]
+script = ExtResource("2_snowball")
+bullet_camp = 2
+max_attack_num = 1
+attack_value = 0
+can_attack_plant_status = 9
+speed = 360.0
+direction = Vector2(-1, 0)
+max_distance = 2000.0
+trigger_be_attack_sfx = false
+type_bullet_SFX = 0
+is_can_up = false
+
+[node name="BulletShadow" parent="." index="0"]
+scale = Vector2(0.7, 0.7)
+
+[node name="BulletBody" parent="Body" index="0"]
+texture = ExtResource("3_snowball_texture")
+
+[node name="BulletEffect" parent="." index="2"]
+script = ExtResource("4_hit")
+
+[node name="LargeSplat" type="Sprite2D" parent="BulletEffect/AllParticles2D" index="0"]
+rotation = 0.2
+scale = Vector2(0.65, 0.65)
+texture = ExtResource("5_splat_large")
+
+[node name="SmallSplat" type="Sprite2D" parent="BulletEffect/AllParticles2D" index="1"]
+position = Vector2(-3, 5)
+rotation = 1.1
+texture = ExtResource("6_splat_small")
+
+[node name="FragmentLeft" type="Sprite2D" parent="BulletEffect/AllParticles2D" index="2"]
+position = Vector2(-6, -4)
+scale = Vector2(0.65, 0.65)
+texture = ExtResource("7_fragment")
+
+[node name="FragmentUpper" type="Sprite2D" parent="BulletEffect/AllParticles2D" index="3"]
+position = Vector2(5, -2)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("7_fragment")
+
+[node name="FragmentLower" type="Sprite2D" parent="BulletEffect/AllParticles2D" index="4"]
+position = Vector2(1, 7)
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("7_fragment")
+
+[node name="Area2DAttack" parent="." index="3"]
+collision_mask = 1281
+
+[node name="CollisionShape2D" parent="Area2DAttack" index="0"]
+shape = SubResource("SnowballCollision")
+
+[node name="MovementComponent" parent="." index="4"]
+script = ExtResource("8_movement")
+
+[node name="Parabola" type="Node2D" parent="MovementComponent"]
+script = ExtResource("9_arc")
+parabola_height = -32.0
+enemy_pos_corr_value = Vector2(0, 0)

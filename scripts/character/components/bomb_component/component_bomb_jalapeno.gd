@@ -19,10 +19,10 @@ func _start_bomb_fx():
 func _play_native_lane() -> void:
 	var cell: PlantCell = owner_plant.plant_cell # 世界地格仅提供视觉位置，不参与本函数的伤害结算。
 	if is_instance_valid(cell) and cell.board != null:
-		for lane_cell: PlantCell in cell.board.row_cells(owner_plant.row_col.x): # 稀疏行只显示实际存在的地块。
+		for lane_cell: PlantCell in cell.board.row_cells(owner_plant.lane): # 稀疏行只显示实际存在的地块。
 			JalapenoFireVisual.spawn_cell(lane_cell, owner_plant.row_col.y)
 	else:
-		EventBus.push_event("jalapeno_bomb_effect", [owner_plant.row_col.x])
+		EventBus.push_event("jalapeno_bomb_effect", [owner_plant.lane])
 
 ## 在原生引信内结算一次。战局条件不成立时沿用原版三事件。
 func _bomb_all_enemy():
@@ -30,6 +30,6 @@ func _bomb_all_enemy():
 		if AdventureJalapenoBlast.try_detonate(owner_plant, can_attack_zombie_status):
 			return
 		_play_native_lane()
-	EventBus.push_event("jalapeno_bomb_lane_zombie", [owner_plant.row_col.x, resolved_damage()])
-	EventBus.push_event("jalapeno_bomb_item_lane", [owner_plant.row_col.x])
+	EventBus.push_event("jalapeno_bomb_lane_zombie", [owner_plant.lane, resolved_damage(), boss_blast_damage_cap()])
+	EventBus.push_event("jalapeno_bomb_item_lane", [owner_plant.lane])
 

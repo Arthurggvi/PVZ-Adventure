@@ -13,9 +13,9 @@ const BOOKS: Dictionary = {
 		"title": "深寒", "summary": "冻结与减速变为不会被火焰解除的特殊寒冷，两种效果各延长2秒。", "plant_type": 15, "tier": 2,
 		"effects": [{"kind": "ice_shroom_deep_cold", "extra_seconds": 2.0}]},
 	"promotion_ice_shroom_quick_freeze": {
-		"title": "速冻", "summary": "本卡冷却缩短2秒，每冻结一名僵尸获得15阳光。", "plant_type": 15, "tier": 2,
+		"title": "速冻", "summary": "本卡冷却缩短2秒，冻结时长延长2秒，每冻结一名僵尸获得15阳光。", "plant_type": 15, "tier": 2,
 		"effects": [{"kind": "stat", "stat": "cooldown", "flat": -2.0},
-			{"kind": "ice_shroom_quick_freeze", "sun_per_target": 15}]},
+			{"kind": "ice_shroom_quick_freeze", "sun_per_target": 15, "extra_freeze_seconds": 2.0}]},
 	"promotion_ice_shroom_world": {
 		"title": "世界", "summary": "冻结期间，自然刷怪也会暂停。", "plant_type": 15, "tier": 3,
 		"effects": [{"kind": "ice_shroom_world"}]},

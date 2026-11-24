@@ -70,18 +70,23 @@ func advance(boss: ZB002BlackGeneral, cells: Array, delta: float, shadow: Node2D
 			if shadow != null:
 				AdventurePlantNegativeEffects.apply(plant, AdventurePlantNegativeEffects.Kind.DEGRADATION, 0, SHADOW_DEGRADATION)
 				continue
-			# 致死前复制压扁表现，扣血仍只经过一次生命组件，不对高血植物执行处决。
-			if plant.hp_component.resolve_damage(boss.config.charge_damage) >= plant.hp_component.curr_hp:
-				plant.body.be_flattened_body()
-			plant.be_attacked_bullet(boss.config.charge_damage, BulletRegistry.AttackMode.Penetration, false, false)
-			if plant.is_death:
+			# 按实际致死播放压扁，守护或护甲抵消的伤害不会预演死亡。
+			var health: HpComponent = plant.hp_component # 只为当前这笔同步伤害监听。
+			var flatten := func(_cause: CombatHitScope.DeathCause) -> void: plant.body.be_flattened_body()
+			health.before_death.connect(flatten, CONNECT_ONE_SHOT)
+			var receipt: Dictionary = {} # 冲锋击杀预算计入实际承伤者。
+			plant.be_attacked_bullet(boss.config.charge_damage, BulletRegistry.AttackMode.Penetration, false, false, 0, -1, receipt,
+				CombatHitScope.for_plant_attack(boss, CombatHitScope.PlantImpact.CRUSH))
+			if is_instance_valid(health) and health.before_death.is_connected(flatten):
+				health.before_death.disconnect(flatten)
+			if is_instance_valid(receipt.get("casualty")):
 				_kills += 1
 			if boss.is_death or not active:
 				return true
 			if _kill_limit > 0 and _kills >= _kill_limit:
-				boss.global_position.x = minf(from_x, bounds.end.x)
+				boss.move_charge_to(boss, minf(from_x, bounds.end.x))
 				active = false
 				return true
-	actor.global_position.x = to_x
+	boss.move_charge_to(actor, to_x)
 	active = to_x > stop_x
 	return not active

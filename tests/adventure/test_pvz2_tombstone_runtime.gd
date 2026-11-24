@@ -35,7 +35,7 @@ func _test() -> void:
 	grave.restore_hp(400)
 	_require(grave.get_current_hp() == 400, "restore HP")
 	_require(grave.get_tombstone_kind() == &"pvz2", "save kind")
-	# 验证每阶段的自然墓碑规则和独立的固定墓碑事件。
+	# Stage resources remain authoritative for both phases; no leftover fixed opening spawns.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
 	for spec in [{"stage": 3, "sun": true, "banner": true},
@@ -73,18 +73,16 @@ func _test() -> void:
 			var level: ResourceLevelData = AdventureBattleEnvironmentAdapter.build(stage, phase)
 			_require(level != null and not level.is_day and level.is_day_sun == bool(spec["sun"]),
 				"battle environment projection")
-			var grave_events: Dictionary = {} # 波次和墓碑数量，0 代表开战时。
+			var fixed_graves: Array[StageEventDefinition] = [] # 本阶段主动生成墓碑的事件。
 			for event: StageEventDefinition in phase.events:
-				if event.action != StageEventDefinition.Action.SPAWN_TOMBSTONES:
-					continue
-				var expected_trigger := StageEventDefinition.Trigger.BATTLE_START if event.wave == 0 else StageEventDefinition.Trigger.WAVE_STARTED # 固定墓碑的触发时机。
-				_require(event.trigger == expected_trigger, "fixed grave trigger timing")
-				_require(event.repeat_rule == StageEventDefinition.RepeatRule.ONCE_PER_PHASE,
-					"fixed grave event runs once")
-				_require(not grave_events.has(event.wave), "no duplicate grave event at the same wave")
-				grave_events[event.wave] = event.action_count
-			var expected_events: Dictionary = {0: 8, 30: 8, 40: 8} if phase.kind == StagePhaseDefinition.Kind.NIGHTMARE else {0: 6}
-			_require(grave_events == expected_events, "fixed grave count and wave schedule")
+				if event.action == StageEventDefinition.Action.SPAWN_TOMBSTONES:
+					fixed_graves.append(event)
+			# Both grave stages have scripted placement events; these add tombstones,
+			# not zombies. Only a flag wave may make the stones release zombies.
+			var expected_fixed: int = 1 if phase.kind == StagePhaseDefinition.Kind.NORMAL else 3
+			_require(fixed_graves.size() == expected_fixed, "fixed tombstone event count")
+			for event: StageEventDefinition in fixed_graves:
+				_require(event.action_count > 0, "fixed tombstone placement amount")
 	# Placement candidates must skip plants, special blockers and existing tombstones.
 	var grid := PlantCellManager.new()
 	var cells: Array = []

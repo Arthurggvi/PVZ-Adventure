@@ -1,0 +1,552 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/transport_airship/hover.webp" id="hover"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/transport_airship/cargo.webp" id="cargo"]
+
+[sub_resource type="AtlasTexture" id="hover_00"]
+atlas = ExtResource("hover")
+region = Rect2(2, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_01"]
+atlas = ExtResource("hover")
+region = Rect2(230, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_02"]
+atlas = ExtResource("hover")
+region = Rect2(458, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_03"]
+atlas = ExtResource("hover")
+region = Rect2(686, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_04"]
+atlas = ExtResource("hover")
+region = Rect2(914, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_05"]
+atlas = ExtResource("hover")
+region = Rect2(1142, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_06"]
+atlas = ExtResource("hover")
+region = Rect2(1370, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_07"]
+atlas = ExtResource("hover")
+region = Rect2(1598, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_08"]
+atlas = ExtResource("hover")
+region = Rect2(2, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_09"]
+atlas = ExtResource("hover")
+region = Rect2(230, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_10"]
+atlas = ExtResource("hover")
+region = Rect2(458, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_11"]
+atlas = ExtResource("hover")
+region = Rect2(686, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_12"]
+atlas = ExtResource("hover")
+region = Rect2(914, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_13"]
+atlas = ExtResource("hover")
+region = Rect2(1142, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_14"]
+atlas = ExtResource("hover")
+region = Rect2(1370, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_15"]
+atlas = ExtResource("hover")
+region = Rect2(1598, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_16"]
+atlas = ExtResource("hover")
+region = Rect2(2, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_17"]
+atlas = ExtResource("hover")
+region = Rect2(230, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_18"]
+atlas = ExtResource("hover")
+region = Rect2(458, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_19"]
+atlas = ExtResource("hover")
+region = Rect2(686, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_20"]
+atlas = ExtResource("hover")
+region = Rect2(914, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_21"]
+atlas = ExtResource("hover")
+region = Rect2(1142, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_22"]
+atlas = ExtResource("hover")
+region = Rect2(1370, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_23"]
+atlas = ExtResource("hover")
+region = Rect2(1598, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_24"]
+atlas = ExtResource("hover")
+region = Rect2(2, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_25"]
+atlas = ExtResource("hover")
+region = Rect2(230, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_26"]
+atlas = ExtResource("hover")
+region = Rect2(458, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_27"]
+atlas = ExtResource("hover")
+region = Rect2(686, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_28"]
+atlas = ExtResource("hover")
+region = Rect2(914, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_29"]
+atlas = ExtResource("hover")
+region = Rect2(1142, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_30"]
+atlas = ExtResource("hover")
+region = Rect2(1370, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_31"]
+atlas = ExtResource("hover")
+region = Rect2(1598, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_32"]
+atlas = ExtResource("hover")
+region = Rect2(2, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_33"]
+atlas = ExtResource("hover")
+region = Rect2(230, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_34"]
+atlas = ExtResource("hover")
+region = Rect2(458, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_35"]
+atlas = ExtResource("hover")
+region = Rect2(686, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_36"]
+atlas = ExtResource("hover")
+region = Rect2(914, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_37"]
+atlas = ExtResource("hover")
+region = Rect2(1142, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_38"]
+atlas = ExtResource("hover")
+region = Rect2(1370, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_39"]
+atlas = ExtResource("hover")
+region = Rect2(1598, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_40"]
+atlas = ExtResource("hover")
+region = Rect2(2, 1142, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_41"]
+atlas = ExtResource("hover")
+region = Rect2(230, 1142, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_42"]
+atlas = ExtResource("hover")
+region = Rect2(458, 1142, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_43"]
+atlas = ExtResource("hover")
+region = Rect2(686, 1142, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="hover_44"]
+atlas = ExtResource("hover")
+region = Rect2(914, 1142, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_00"]
+atlas = ExtResource("cargo")
+region = Rect2(2, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_01"]
+atlas = ExtResource("cargo")
+region = Rect2(230, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_02"]
+atlas = ExtResource("cargo")
+region = Rect2(458, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_03"]
+atlas = ExtResource("cargo")
+region = Rect2(686, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_04"]
+atlas = ExtResource("cargo")
+region = Rect2(914, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_05"]
+atlas = ExtResource("cargo")
+region = Rect2(1142, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_06"]
+atlas = ExtResource("cargo")
+region = Rect2(1370, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_07"]
+atlas = ExtResource("cargo")
+region = Rect2(1598, 2, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_08"]
+atlas = ExtResource("cargo")
+region = Rect2(2, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_09"]
+atlas = ExtResource("cargo")
+region = Rect2(230, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_10"]
+atlas = ExtResource("cargo")
+region = Rect2(458, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_11"]
+atlas = ExtResource("cargo")
+region = Rect2(686, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_12"]
+atlas = ExtResource("cargo")
+region = Rect2(914, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_13"]
+atlas = ExtResource("cargo")
+region = Rect2(1142, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_14"]
+atlas = ExtResource("cargo")
+region = Rect2(1370, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_15"]
+atlas = ExtResource("cargo")
+region = Rect2(1598, 230, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_16"]
+atlas = ExtResource("cargo")
+region = Rect2(2, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_17"]
+atlas = ExtResource("cargo")
+region = Rect2(230, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_18"]
+atlas = ExtResource("cargo")
+region = Rect2(458, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_19"]
+atlas = ExtResource("cargo")
+region = Rect2(686, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_20"]
+atlas = ExtResource("cargo")
+region = Rect2(914, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_21"]
+atlas = ExtResource("cargo")
+region = Rect2(1142, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_22"]
+atlas = ExtResource("cargo")
+region = Rect2(1370, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_23"]
+atlas = ExtResource("cargo")
+region = Rect2(1598, 458, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_24"]
+atlas = ExtResource("cargo")
+region = Rect2(2, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_25"]
+atlas = ExtResource("cargo")
+region = Rect2(230, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_26"]
+atlas = ExtResource("cargo")
+region = Rect2(458, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_27"]
+atlas = ExtResource("cargo")
+region = Rect2(686, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_28"]
+atlas = ExtResource("cargo")
+region = Rect2(914, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_29"]
+atlas = ExtResource("cargo")
+region = Rect2(1142, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_30"]
+atlas = ExtResource("cargo")
+region = Rect2(1370, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_31"]
+atlas = ExtResource("cargo")
+region = Rect2(1598, 686, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_32"]
+atlas = ExtResource("cargo")
+region = Rect2(2, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_33"]
+atlas = ExtResource("cargo")
+region = Rect2(230, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_34"]
+atlas = ExtResource("cargo")
+region = Rect2(458, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_35"]
+atlas = ExtResource("cargo")
+region = Rect2(686, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_36"]
+atlas = ExtResource("cargo")
+region = Rect2(914, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_37"]
+atlas = ExtResource("cargo")
+region = Rect2(1142, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_38"]
+atlas = ExtResource("cargo")
+region = Rect2(1370, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_39"]
+atlas = ExtResource("cargo")
+region = Rect2(1598, 914, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_40"]
+atlas = ExtResource("cargo")
+region = Rect2(2, 1142, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_41"]
+atlas = ExtResource("cargo")
+region = Rect2(230, 1142, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_42"]
+atlas = ExtResource("cargo")
+region = Rect2(458, 1142, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_43"]
+atlas = ExtResource("cargo")
+region = Rect2(686, 1142, 224, 224)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="cargo_44"]
+atlas = ExtResource("cargo")
+region = Rect2(914, 1142, 224, 224)
+filter_clip = true
+
+[resource]
+animations = [
+{"frames": [
+{"duration": 1.0, "texture": SubResource("hover_00")},
+{"duration": 1.0, "texture": SubResource("hover_01")},
+{"duration": 1.0, "texture": SubResource("hover_02")},
+{"duration": 1.0, "texture": SubResource("hover_03")},
+{"duration": 1.0, "texture": SubResource("hover_04")},
+{"duration": 1.0, "texture": SubResource("hover_05")},
+{"duration": 1.0, "texture": SubResource("hover_06")},
+{"duration": 1.0, "texture": SubResource("hover_07")},
+{"duration": 1.0, "texture": SubResource("hover_08")},
+{"duration": 1.0, "texture": SubResource("hover_09")},
+{"duration": 1.0, "texture": SubResource("hover_10")},
+{"duration": 1.0, "texture": SubResource("hover_11")},
+{"duration": 1.0, "texture": SubResource("hover_12")},
+{"duration": 1.0, "texture": SubResource("hover_13")},
+{"duration": 1.0, "texture": SubResource("hover_14")},
+{"duration": 1.0, "texture": SubResource("hover_15")},
+{"duration": 1.0, "texture": SubResource("hover_16")},
+{"duration": 1.0, "texture": SubResource("hover_17")},
+{"duration": 1.0, "texture": SubResource("hover_18")},
+{"duration": 1.0, "texture": SubResource("hover_19")},
+{"duration": 1.0, "texture": SubResource("hover_20")},
+{"duration": 1.0, "texture": SubResource("hover_21")},
+{"duration": 1.0, "texture": SubResource("hover_22")},
+{"duration": 1.0, "texture": SubResource("hover_23")},
+{"duration": 1.0, "texture": SubResource("hover_24")},
+{"duration": 1.0, "texture": SubResource("hover_25")},
+{"duration": 1.0, "texture": SubResource("hover_26")},
+{"duration": 1.0, "texture": SubResource("hover_27")},
+{"duration": 1.0, "texture": SubResource("hover_28")},
+{"duration": 1.0, "texture": SubResource("hover_29")},
+{"duration": 1.0, "texture": SubResource("hover_30")},
+{"duration": 1.0, "texture": SubResource("hover_31")},
+{"duration": 1.0, "texture": SubResource("hover_32")},
+{"duration": 1.0, "texture": SubResource("hover_33")},
+{"duration": 1.0, "texture": SubResource("hover_34")},
+{"duration": 1.0, "texture": SubResource("hover_35")},
+{"duration": 1.0, "texture": SubResource("hover_36")},
+{"duration": 1.0, "texture": SubResource("hover_37")},
+{"duration": 1.0, "texture": SubResource("hover_38")},
+{"duration": 1.0, "texture": SubResource("hover_39")},
+{"duration": 1.0, "texture": SubResource("hover_40")},
+{"duration": 1.0, "texture": SubResource("hover_41")},
+{"duration": 1.0, "texture": SubResource("hover_42")},
+{"duration": 1.0, "texture": SubResource("hover_43")},
+{"duration": 1.0, "texture": SubResource("hover_44")}
+], "loop": true, "name": &"hover", "speed": 15.0},
+{"frames": [
+{"duration": 1.0, "texture": SubResource("cargo_00")},
+{"duration": 1.0, "texture": SubResource("cargo_01")},
+{"duration": 1.0, "texture": SubResource("cargo_02")},
+{"duration": 1.0, "texture": SubResource("cargo_03")},
+{"duration": 1.0, "texture": SubResource("cargo_04")},
+{"duration": 1.0, "texture": SubResource("cargo_05")},
+{"duration": 1.0, "texture": SubResource("cargo_06")},
+{"duration": 1.0, "texture": SubResource("cargo_07")},
+{"duration": 1.0, "texture": SubResource("cargo_08")},
+{"duration": 1.0, "texture": SubResource("cargo_09")},
+{"duration": 1.0, "texture": SubResource("cargo_10")},
+{"duration": 1.0, "texture": SubResource("cargo_11")},
+{"duration": 1.0, "texture": SubResource("cargo_12")},
+{"duration": 1.0, "texture": SubResource("cargo_13")},
+{"duration": 1.0, "texture": SubResource("cargo_14")},
+{"duration": 1.0, "texture": SubResource("cargo_15")},
+{"duration": 1.0, "texture": SubResource("cargo_16")},
+{"duration": 1.0, "texture": SubResource("cargo_17")},
+{"duration": 1.0, "texture": SubResource("cargo_18")},
+{"duration": 1.0, "texture": SubResource("cargo_19")},
+{"duration": 1.0, "texture": SubResource("cargo_20")},
+{"duration": 1.0, "texture": SubResource("cargo_21")},
+{"duration": 1.0, "texture": SubResource("cargo_22")},
+{"duration": 1.0, "texture": SubResource("cargo_23")},
+{"duration": 1.0, "texture": SubResource("cargo_24")},
+{"duration": 1.0, "texture": SubResource("cargo_25")},
+{"duration": 1.0, "texture": SubResource("cargo_26")},
+{"duration": 1.0, "texture": SubResource("cargo_27")},
+{"duration": 1.0, "texture": SubResource("cargo_28")},
+{"duration": 1.0, "texture": SubResource("cargo_29")},
+{"duration": 1.0, "texture": SubResource("cargo_30")},
+{"duration": 1.0, "texture": SubResource("cargo_31")},
+{"duration": 1.0, "texture": SubResource("cargo_32")},
+{"duration": 1.0, "texture": SubResource("cargo_33")},
+{"duration": 1.0, "texture": SubResource("cargo_34")},
+{"duration": 1.0, "texture": SubResource("cargo_35")},
+{"duration": 1.0, "texture": SubResource("cargo_36")},
+{"duration": 1.0, "texture": SubResource("cargo_37")},
+{"duration": 1.0, "texture": SubResource("cargo_38")},
+{"duration": 1.0, "texture": SubResource("cargo_39")},
+{"duration": 1.0, "texture": SubResource("cargo_40")},
+{"duration": 1.0, "texture": SubResource("cargo_41")},
+{"duration": 1.0, "texture": SubResource("cargo_42")},
+{"duration": 1.0, "texture": SubResource("cargo_43")},
+{"duration": 1.0, "texture": SubResource("cargo_44")}
+], "loop": false, "name": &"cargo", "speed": 15.0}
+]

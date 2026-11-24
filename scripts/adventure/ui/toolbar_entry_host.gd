@@ -4,6 +4,8 @@ extends CanvasLayer
 const Features = preload("res://scripts/adventure/ui/toolbar_features.gd")
 ## 场景与窗口共用的后台资源批次，不持有全局缓存。
 const ResourceBatch = preload("res://scripts/ui/transitions/resource_load_batch.gd")
+## 允许在 Android 主线程窗口构造前记录最后执行步骤。
+const Checkpoint = preload("res://scripts/ui/transitions/resource_load_checkpoint.gd")
 ## 立即接管输入、短请求克制展开的花园反馈，不预载业务界面。
 const LoadingView = preload("res://scripts/adventure/ui/modal_loading_view.gd")
 ## 同一常驻工具栏视图。
@@ -22,8 +24,6 @@ var _modal_feature := ""
 var _modal_request_id := 0
 ## 资源准备期间的批次，取消后移入回收列表继续非阻塞轮询。
 var _modal_batch: ResourceBatch
-## 已取消但底层仍在运行的批次，不允许重新发布窗口。
-var _retired_modal_batches: Array[ResourceBatch] = []
 ## 请求所属场景、档案对象及玩家名，防止旧结果跨上下文出现。
 var _request_scene: Node
 ## 请求打开时的玩家状态。
@@ -38,6 +38,10 @@ var _modal_script: Script
 var _modal_loading := false
 ## 已构造但尚未公开的窗口，反馈继续持有输入。
 var _building_modal: Control
+## 窗口首屏内容构造的业务期限，不能终止正在同步执行的单个构造函数。
+const BUILD_READY_TIMEOUT_MSEC := 12_000
+## 已入树窗口的构造阶段起点，单位真实毫秒。
+var _building_started_msec := 0
 ## 两阶段准备的资源由窗口持有至关闭，避免动态 load 再次读盘。
 var _modal_resources: Array[Resource] = []
 
@@ -114,15 +118,12 @@ func _toggle_modal(feature_id: String, screen_path: String) -> void:
 	_modal.closed.connect(_release_modal.bind(_modal))
 	_modal.tree_exited.connect(_release_modal.bind(_modal))
 	_modal_batch = ResourceBatch.new()
-	if _modal_batch.start(PackedStringArray([screen_path])) != OK:
+	if _modal_batch.start(PackedStringArray([screen_path]), 12_000) != OK:
 		_modal.show_error("暂时无法打开，请关闭后重试。")
 		_retire_modal_batch()
 
 ## 控制器每帧调用；只消费已经完成的后台资源，从不等待未完成请求。
 func _poll_modal_loading() -> void:
-	for index: int in range(_retired_modal_batches.size() - 1, -1, -1): # 取消结果只回收，不再进入界面。
-		if _retired_modal_batches[index].poll() != ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-			_retired_modal_batches.remove_at(index)
 	if not _modal_loading:
 		return
 	if not _modal_context_matches():
@@ -134,10 +135,18 @@ func _poll_modal_loading() -> void:
 	if is_instance_valid(_building_modal):
 		if _interactive and (not _building_modal.has_method("is_content_ready") or _building_modal.call("is_content_ready")):
 			_publish_modal()
+		elif Time.get_ticks_msec() - _building_started_msec >= BUILD_READY_TIMEOUT_MSEC:
+			# 取消旧窗口发布资格，保留可关闭的失败反馈。
+			var stale_window: Control = _building_modal # 旧构造器退出不能覆盖现有失败反馈。
+			_building_modal = null
+			_modal_request_id += 1
+			stale_window.queue_free()
+			_modal.show_error("窗口准备超时，请返回后重试。")
 		return
 	if _modal_batch == null:
 		return
 	var status: int = _modal_batch.poll() # 状态查询不触发阻塞资源获取。
+	_modal.set_resource_activity(_modal_batch.activity())
 	_modal.set_progress(_modal_batch.progress() * 0.15 if _modal_script == null else 0.15 + _modal_batch.progress() * 0.70)
 	if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 		return
@@ -157,7 +166,7 @@ func _poll_modal_loading() -> void:
 			paths = _modal_script.call("get_initial_resource_paths")
 		if not paths.is_empty():
 			_modal_batch = ResourceBatch.new()
-			if _modal_batch.start(paths) != OK:
+			if _modal_batch.start(paths, 12_000) != OK:
 				_modal.show_error("暂时无法打开，请关闭后重试。")
 				_retire_modal_batch()
 			return
@@ -169,7 +178,10 @@ func _materialize_modal(request_id: int) -> void:
 	if request_id != _modal_request_id or not _modal_context_matches():
 		return
 	_modal.set_progress(0.92)
+	_building_started_msec = Time.get_ticks_msec()
+	var token: int = Checkpoint.begin(_modal_script.resource_path, "功能窗口实例化")
 	_building_modal = _modal_script.new() as Control
+	Checkpoint.finish(token, "ok" if _building_modal != null else "failed")
 	if _building_modal == null:
 		_modal.show_error("暂时无法打开，请关闭后重试。")
 		return
@@ -179,7 +191,9 @@ func _materialize_modal(request_id: int) -> void:
 	if _request_focus != null:
 		_building_modal.set_meta("modal_opener_focus", _request_focus)
 	_building_modal.tree_exited.connect(_preparing_modal_exited.bind(request_id))
+	var tree_token: int = Checkpoint.begin(_modal_script.resource_path, "功能窗口入树")
 	add_child(_building_modal)
+	Checkpoint.finish(tree_token)
 	_building_modal.set_process_input(false)
 	_building_modal.set_process_unhandled_input(false)
 	_building_modal.set_process_unhandled_key_input(false)
@@ -202,6 +216,7 @@ func _publish_modal() -> void:
 	_modal_resources.clear()
 	window.show()
 	window.remove_meta("preparing_modal")
+	window.remove_meta("prepared_resources") # 首屏装配完成，实际窗口节点接管资源。
 	window.set_process_input(true)
 	window.set_process_unhandled_input(true)
 	window.set_process_unhandled_key_input(true)
@@ -217,7 +232,7 @@ func _modal_context_matches() -> bool:
 		and Global.user_manager.curr_user_name == _request_profile \
 		and Global.global_game_state != null and Global.global_game_state.adventure_state == _request_state
 
-## 撤销结果发布资格；底层批次继续由当前拥有者回收，不在取消按钮中阻塞。
+## 撤销结果发布资格；底层句柄交由加载后端有限回收，不在取消按钮中等待。
 func _cancel_modal_loading() -> void:
 	_modal_request_id += 1
 	_modal_loading = false
@@ -232,22 +247,19 @@ func _cancel_modal_loading() -> void:
 	_request_profile = ""
 	_request_focus = null
 
-## 将未完成请求移到非阻塞回收队列。
+## 立即撤销当前请求；底层句柄由后端负责有界回收。
 func _retire_modal_batch() -> void:
 	if _modal_batch != null:
 		retire_resource_batch(_modal_batch)
 		_modal_batch = null
 
-## [param batch] 所属窗口关闭后，由持久宿主非阻塞回收已经发出的请求。
+## [param batch] 业务请求立即结束，原生线程由后台加载器有限回收。
 func retire_resource_batch(batch: ResourceBatch) -> void:
-	batch.cancel()
-	_retired_modal_batches.append(batch)
+	batch.abandon()
 
-## 仅应用退出时完成尚未结束的资源请求；正常取消和切场不等待。
+## 宿主退出时只撤销业务交付资格，不等待后台线程。
 func _exit_tree() -> void:
 	_cancel_modal_loading()
-	for batch: ResourceBatch in _retired_modal_batches: # 生命周期结束后没有后续帧可轮询。
-		batch.finish_on_exit()
 
 ## 切换功能时立即移除旧窗口的输入和发布资格，资源继续异步回收。
 func _discard_current_modal() -> void:

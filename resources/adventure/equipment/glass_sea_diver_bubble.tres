@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EquipmentDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/player/equipment_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/glass_sea_diver_bubble.png" id="3"]
+
+[sub_resource type="AtlasTexture" id="Avatar"]
+atlas = ExtResource("3")
+region = Rect2(120, 0, 654, 654)
+filter_clip = true
+
+[resource]
+script = ExtResource("1")
+id = &"glass_sea_diver_bubble"
+display_name = "玻璃海潜水员·泡泡"
+description = "佩戴养着水母和金鱼的铜制潜水头盔。"
+slot = 0
+icon = SubResource("Avatar")
+portrait = ExtResource("3")
+active_skill_id = &"glass_sea_diver_tidal_shock"

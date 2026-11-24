@@ -27,19 +27,19 @@ func _on_blink_timer_timeout() -> void:
 func _do_blink_onc_sprite(blink_sprite:Sprite2D, blink_sprite_texture:Array[Texture2D]) -> void:
 	blink_sprite.texture = blink_sprite_texture[0]
 	if is_inside_tree():
-		await get_tree().create_timer(0.1).timeout
+		await get_tree().create_timer(0.1, false).timeout
 		if not is_enabling:
 			blink_sprite.visible = false
 			return
 		blink_sprite.texture = blink_sprite_texture[1]
 	if is_inside_tree():
-		await get_tree().create_timer(0.1).timeout
+		await get_tree().create_timer(0.1, false).timeout
 		if not is_enabling:
 			blink_sprite.visible = false
 			return
 		blink_sprite.texture = blink_sprite_texture[0]
 	if is_inside_tree():
-		await get_tree().create_timer(0.1).timeout
+		await get_tree().create_timer(0.1, false).timeout
 		if not is_enabling:
 			blink_sprite.visible = false
 			return

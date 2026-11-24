@@ -15,7 +15,7 @@ const Dave = preload("res://scripts/adventure/shop/shop_dave.gd")
 var dave: Dave
 ## 玩家余额。
 var _coins: Label
-## 只有每日分类显示简短补货时间。
+## 每日商品和每日时装显示各自的午夜更新时间。
 var _refresh_time: Label
 ## 底部当前选中商品，不重复说明正文。
 var _selection: Label
@@ -110,7 +110,9 @@ func render(model: Dictionary) -> void:
 		tab.add_theme_stylebox_override("disabled", normal)
 		tab.add_theme_color_override("font_color", Style.CREAM if active else Style.MUTED)
 		tab.add_theme_color_override("font_disabled_color", Style.CREAM if active else Style.MUTED)
-	_refresh_time.visible = str(model.category) == "daily"
+	var outfits: bool = model.category == Catalog.OUTFIT_CATEGORY # 时装换款，普通每日商品补充数量。
+	_refresh_time.visible = model.category == "daily" or outfits
+	_refresh_time.text = "00:00 刷新" if outfits else "00:00 补货"
 	if _category != str(model.category):
 		_category = str(model.category)
 		if is_instance_valid(_navigation_motion):
@@ -122,7 +124,10 @@ func render(model: Dictionary) -> void:
 	Style.set_button_disabled(_buy, locked or selected.is_empty() or not bool(selected.get("can_buy", false)))
 	_selection.text = str(selected.get("title", ""))
 	_selection_icon.texture = Style.product_texture(selected) if not selected.is_empty() else null
-	_buy.text = str(selected.message) if not selected.is_empty() and not selected.can_buy else ("购买  ·  " + Style.money(int(selected.get("price", 0))))
+	if selected.is_empty():
+		_buy.text = "暂无商品"
+	else:
+		_buy.text = "购买  ·  " + Style.money(int(selected.price)) if selected.can_buy else str(selected.message)
 	_show_notice(str(model.notice))
 
 ## 展示 [param message] 的短暂结果；空闲时不显示教程或口号。
@@ -153,7 +158,8 @@ func show_confirmation(offer: Dictionary) -> void:
 	var shade: Panel = Style.panel(_confirmation, Rect2(366, 110, 1040, 672), Color(0.025, 0.05, 0.035, 0.88), Color(0, 0, 0, 0), 22) # 暗化货架，并沿用外框圆角。
 	shade.mouse_filter = Control.MOUSE_FILTER_STOP
 	Style.panel(_confirmation, Rect2(635, 227, 502, 390), Color("2c3d30"), Style.GOLD, 22)
-	Style.image(_confirmation, Style.product_texture(offer), Rect2(808, 247, 156, 140))
+	var outfit: bool = offer.category == Catalog.OUTFIT_CATEGORY # 确认时仍展示同一全身立绘。
+	Style.image(_confirmation, Style.product_texture(offer, outfit), Rect2(808, 239, 156, 154) if outfit else Rect2(808, 247, 156, 140))
 	var title: Label = Style.label(_confirmation, str(offer.title), Rect2(663, 400, 446, 38), 25) # 确认单名称只出现一次。
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var price: Label = Style.label(_confirmation, Style.money(int(offer.price)), Rect2(663, 446, 446, 48), 39, Style.GOLD) # 价格单独成为确认单的强调信息。

@@ -14,12 +14,13 @@ const STAR_PATH: String = "res://scenes/bullet/bullet_repeater_star.tscn"
 ## [param generation] 是分裂代数；[param color_index] 只影响同代配色，不影响伤害。
 static func create(kind: StringName, shot: RepeaterShotContext, scaled_damage: int = -1,
 		generation: int = 0, color_index: int = 0) -> Bullet000NormBase:
+	var star_variant: bool = kind == &"star_dark" or kind == &"star_light" # 分裂星的演出标识独立于原生星弹颜色。
 	var scene: PackedScene # 按能力选择场景，不改变全局子弹注册表。
 	if kind == &"":
 		scene = Global.bullet_registry.get_bullet_scenes(BulletRegistry.BulletType.Bullet001Pea)
 	else:
 		var path: String = FIRE_PATH if kind in [&"ember", &"hell"] else (
-			STAR_PATH if kind in [&"star_dark", &"star_light"] else PEA_PATH) # 原生素材继承保持一致。
+			STAR_PATH if star_variant else PEA_PATH) # 原生素材继承保持一致。
 		scene = load(path) as PackedScene
 	if scene == null:
 		push_error("双发转职弹体场景缺失")
@@ -33,7 +34,7 @@ static func create(kind: StringName, shot: RepeaterShotContext, scaled_damage: i
 		bullet.attack_value = scaled_damage
 	if kind != &"":
 		bullet.set("shot", shot)
-		bullet.set("kind", kind)
+		bullet.set(&"variant_kind" if star_variant else &"kind", kind)
 		bullet.is_can_up = false
 	if generation > 0:
 		bullet.set("generation", generation)

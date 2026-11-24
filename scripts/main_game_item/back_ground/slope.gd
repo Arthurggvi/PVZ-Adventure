@@ -17,6 +17,8 @@ class_name Slope
 @onready var slope_real: Node2D = $SlopeReal
 ## 所有斜面的区域
 var all_slope_area_real:Array[Area2D] = []
+## 实体地面按攻击行拦截平射弹，撞地后也终止穿透弹的飞行。
+var solid_for_projectiles: bool = false
 
 ## 斜面的起始和结束位置(相对位置)
 var start_pos_slope :Vector2

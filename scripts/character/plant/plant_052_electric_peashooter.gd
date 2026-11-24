@@ -3,6 +3,8 @@ extends Plant000Base
 class_name Plant052ElectricPeashooter
 ## 原版电系调色由本物种入口应用，阶级读取冻结出战卡。
 const PromotionArt = preload("res://scripts/adventure/plant_art/adventure_electric_peashooter_promotion_art.gd")
+## 仅在实际出战时准备飞行图集，首发和分裂可直接复用。
+const ProjectileVisual = preload("res://scripts/fx/electric_pea_flight_sprite.gd")
 ## 原版相邻两次起手的随机秒数，不额外等待上一次完整攻击动画。
 const ATTACK_INTERVAL: Vector2 = Vector2(2.25, 2.4)
 ## PAM Attack_Start、Attack_Fire 与 use_action 在攻击片段内的原版秒数。
@@ -71,6 +73,7 @@ func _ready() -> void:
 	if not is_instance_valid(_game):
 		set_physics_process(false)
 		return
+	ProjectileVisual.prepare(rank)
 	_board = _game.board
 	_round_index = _game.curr_game_round
 	_phase = AdventureSession.get_active_phase(_game.game_para)
@@ -125,10 +128,10 @@ func _advance_attack(elapsed: float) -> void:
 	_attack_elapsed += elapsed
 	if (_pending_events & START_EVENT) != 0 and _attack_elapsed >= START_SOUND_TIME:
 		_pending_events &= ~START_EVENT
-		ElectricPeaPresentation.play_start()
+		ElectricPeaPresentation.play_start(_launch)
 	if (_pending_events & FIRE_EVENT) != 0 and _attack_elapsed >= FIRE_SOUND_TIME:
 		_pending_events &= ~FIRE_EVENT
-		ElectricPeaPresentation.play_fire()
+		ElectricPeaPresentation.play_fire(_launch)
 	if (_pending_events & RELEASE_EVENT) != 0 and _attack_elapsed >= RELEASE_TIME:
 		_pending_events &= ~RELEASE_EVENT
 		_release()

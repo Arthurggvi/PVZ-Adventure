@@ -1,0 +1,88 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship/garden_airship_foreground_air.gd" id="air"]
+[ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v1/main_menu/clouds/near/cloud_near_02.png" id="hull"]
+[ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v1/main_menu/clouds/near/cloud_near_03.png" id="wake"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship/garden_airship_air_ribbons.gd" id="ribbons"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/garden_airship_air_ribbon.gdshader" id="ribbon_shader"]
+
+[sub_resource type="ShaderMaterial" id="AirRibbons"]
+shader = ExtResource("ribbon_shader")
+
+[sub_resource type="QuadMesh" id="RibbonQuad"]
+size = Vector2(1, 1)
+
+[node name="ForegroundAir" type="Node2D"]
+texture_filter = 2
+script = ExtResource("air")
+
+[node name="HullCloud" type="Sprite2D" parent="."]
+position = Vector2(-228, 773)
+scale = Vector2(0.77, 0.34)
+self_modulate = Color(1.04, 1.05, 1.07, 0.27)
+texture = ExtResource("hull")
+
+[node name="BehindHull" type="CanvasLayer" parent="."]
+layer = -11
+follow_viewport_enabled = true
+
+[node name="WakeCloud" type="Sprite2D" parent="BehindHull"]
+position = Vector2(710, 716)
+scale = Vector2(1.06, 0.56)
+self_modulate = Color(1.05, 1.08, 1.10, 0.57)
+texture = ExtResource("wake")
+texture_filter = 2
+
+[node name="MidCloudUpper" type="Sprite2D" parent="BehindHull"]
+position = Vector2(345, 211)
+scale = Vector2(0.46, 0.35)
+self_modulate = Color(1.02, 1.03, 1.05, 0.37)
+texture = ExtResource("wake")
+texture_filter = 2
+
+[node name="MidCloudPort" type="Sprite2D" parent="BehindHull"]
+position = Vector2(1052, 346)
+scale = Vector2(0.39, 0.34)
+self_modulate = Color(1.04, 1.05, 1.06, 0.44)
+texture = ExtResource("hull")
+texture_filter = 2
+
+[node name="MidCloudStarboard" type="Sprite2D" parent="BehindHull"]
+position = Vector2(179, 492)
+scale = Vector2(0.57, 0.38)
+self_modulate = Color(1.02, 1.05, 1.09, 0.46)
+texture = ExtResource("wake")
+texture_filter = 2
+flip_h = true
+
+[node name="MidCloudLower" type="Sprite2D" parent="BehindHull"]
+position = Vector2(821, 609)
+scale = Vector2(0.55, 0.43)
+self_modulate = Color(1.04, 1.06, 1.08, 0.50)
+texture = ExtResource("hull")
+texture_filter = 2
+flip_h = true
+
+[node name="GapFlow" type="MultiMeshInstance2D" parent="BehindHull"]
+material = SubResource("AirRibbons")
+script = ExtResource("ribbons")
+ribbon_quad = SubResource("RibbonQuad")
+
+[node name="KeelCloud" type="Sprite2D" parent="."]
+position = Vector2(1668, 774)
+scale = Vector2(0.63, 0.36)
+self_modulate = Color(1.02, 1.04, 1.07, 0.23)
+texture = ExtResource("wake")
+flip_h = true
+
+[node name="HullFlow" type="MultiMeshInstance2D" parent="."]
+material = SubResource("AirRibbons")
+script = ExtResource("ribbons")
+ribbon_quad = SubResource("RibbonQuad")
+exterior = true
+
+[node name="SweepCloud" type="Sprite2D" parent="."]
+visible = false
+scale = Vector2(0.87, 0.55)
+self_modulate = Color(0.92, 0.96, 1, 0)
+texture = ExtResource("hull")

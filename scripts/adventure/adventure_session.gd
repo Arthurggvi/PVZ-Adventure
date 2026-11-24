@@ -19,6 +19,8 @@ var active_stage: StageDefinition
 ## 当前阶段的唯一可变身份；类型与波次只能从该资源派生。
 var active_phase: StagePhaseDefinition
 var active_stage_number: int = 0
+## 场景制作入口仍使用相同阶段状态机，但不消费正式钥匙、不写通关与奖励。
+var is_stage_preview: bool = false
 var active_phase_kind: int:
 	get:
 		return active_phase.kind if active_phase != null else StagePhaseDefinition.Kind.UNSET
@@ -31,12 +33,16 @@ var battle_loadout: Array[Dictionary] = []
 var _player_effects: PlayerEffects
 ## 快照所属档案，阻止换档后消费上个玩家的效果。
 var _player_state: AdventureState
+## 战斗入场时冻结的主动技能 ID，续战阶段不重新读取装备或刷新技能冷却。
+var _character_skill_id: StringName = &""
 ## 本局 Boss 结果，仅供战后掉落判定；明确区分击败与主动撤退。
 var boss_exit_results: Dictionary[StringName, int] = {}
 ## 存档失败后沿用同一次掉落结果，重试不得重新抽奖。
 var pending_reward: Dictionary = {}
 ## 本局各阶段已经入账的保底物品，在生成最终奖杯时统一展示。
 var _victory_floor_items: Dictionary = {}
+## 领奖后返图失败时的唯一重试窗口，由原战场持有。
+var _victory_map_retry: AcceptDialog
 ## 结算结果显示在返回地图后的提示中。
 var notice := ""
 var battle_failed := false
@@ -54,6 +60,10 @@ func _on_profile_changed() -> void:
 
 ## 释放场景身份和本局临时状态，供退出战斗与切换档案共用。
 func _clear_active_battle() -> void:
+	if is_instance_valid(_victory_map_retry):
+		_victory_map_retry.queue_free()
+	_victory_map_retry = null
+	is_stage_preview = false
 	active_level = null
 	active_stage = null
 	active_phase = null
@@ -61,15 +71,42 @@ func _clear_active_battle() -> void:
 	challenge_state = ChallengeState.NONE
 	_reset_battle_attempt()
 
+## 将 [param level] 与 [param stage] 绑定为连续阶段预览；只在正式场景入树时调用。
+func prepare_stage_preview(level: ResourceLevelData, stage: StageDefinition) -> void:
+	_clear_active_battle()
+	_capture_character_skill() # 场景预览沿用当前玩家角色，未登录时保持无技能。
+	is_stage_preview = true
+	active_level = level
+	active_stage = stage.duplicate(true) as StageDefinition
+	_activate_phase(AdventureStageCatalog.find_phase(active_stage, StagePhaseDefinition.Kind.NORMAL))
+	AdventureBattleEnvironmentAdapter.project_phase(active_level, active_phase)
+
+## 仅释放仍属于 [param level] 的制作预览，不干扰已经接纳的新战斗。
+func release_stage_preview(level: ResourceLevelData) -> void:
+	if is_stage_preview and owns_battle(level):
+		_clear_active_battle()
+
 ## 只清理本局快照和结算中间态。历史卡组、库存和关卡进度仍归玩家档案所有。
 func _reset_battle_attempt() -> void:
 	battle_loadout.clear()
 	_player_effects = null
 	_player_state = null
+	_character_skill_id = &""
 	boss_exit_results.clear()
 	pending_reward.clear()
 	_victory_floor_items.clear()
 	battle_failed = false
+
+## 从当前已载入档案捕获一次角色技能；游客预览保持空技能，不触碰存档。
+func _capture_character_skill() -> void:
+	if Global.global_game_state == null or not Global.save_service.is_current_profile_loaded():
+		return
+	var state: AdventureState = Global.global_game_state.adventure_state # 战斗身份只绑定当前已加载档案。
+	if state == null:
+		return
+	_player_state = state
+	_character_skill_id = CharacterSkillLoadout.active_skill_id(state.equipment)
+
 ## 初始化冒险会话的合法身份及首次启程标记，但不执行场景切换。
 ## 首次启程是持久事务，场景资源失败时允许重试且不重复发奖。
 func prepare_adventure() -> bool:
@@ -167,7 +204,8 @@ func enter_lawn() -> void:
 ## 统一配置入口；场景、卡槽、波次种类均由已验证的 StageDefinition 生成。
 func enter_stage(stage_number: int, phase_kind: int = StagePhaseDefinition.Kind.NORMAL,
 		transition: Node = null) -> bool:
-	if progress == null or not progress.intro_completed:
+	var stage_region: String = AdventureStageRegistry.region_for(AdventureStageRegistry.stage_id(stage_number)) # 新手引导只约束僵尸岛的入口。
+	if progress == null or (stage_region == AdventureStageRegistry.REGION_ID and not progress.intro_completed):
 		return false
 	if phase_kind != StagePhaseDefinition.Kind.NORMAL:
 		error_message = "只能从普通阶段进入；噩梦在本次普通阶段完成后续战。"
@@ -198,6 +236,10 @@ func _start_battle_attempt(stage_number: int, stage: StageDefinition, phase: Sta
 	level.max_choosed_card_num = maxi(stage.max_selected_cards,
 		Global.global_game_state.adventure_state.shop.card_slots)
 	var scene_path: String = Global.main_scene_registry.MainScenesMap.get(level.game_sences, "")
+	if not stage.battle_scene.is_empty():
+		scene_path = stage.battle_scene
+	if transition == null and is_instance_valid(get_tree().current_scene):
+		transition = get_tree().current_scene.get_node_or_null("SceneTransition")
 	if scene_path.is_empty():
 		error_message = "关卡场景未注册。"
 		return false
@@ -218,6 +260,8 @@ func _start_battle_attempt(stage_number: int, stage: StageDefinition, phase: Sta
 func _commit_battle_entry(stage_number: int, stage: StageDefinition,
 		phase: StagePhaseDefinition, level: ResourceLevelData) -> void:
 	_reset_battle_attempt()
+	_capture_character_skill() # 进入战场前冻结时装能力，无需等待玩家选卡。
+	is_stage_preview = false
 	active_stage_number = stage_number
 	active_stage = stage
 	active_level = level
@@ -290,6 +334,13 @@ func get_prechosen_battle_data(slot_index: int, reference: ResourceCardReference
 func owns_battle(level: ResourceLevelData) -> bool:
 	return active_level != null and active_level == level
 
+## 返回 [param level] 对应的本局角色主动技能 ID；跨场景、换档或尚未创建战斗均返回空。
+func character_skill_id_for(level: ResourceLevelData) -> StringName:
+	if not owns_battle(level) or _player_state == null or Global.global_game_state == null \
+			or _player_state != Global.global_game_state.adventure_state:
+		return &""
+	return _character_skill_id
+
 ## 返回 [param level] 所属冒险战斗的角色效果副本；非本局或跨档返回中性效果。
 func player_effects_for(level: ResourceLevelData) -> PlayerEffects:
 	if not owns_battle(level) or _player_effects == null or _player_state != Global.global_game_state.adventure_state:
@@ -305,30 +356,43 @@ func get_active_phase(level: ResourceLevelData) -> StagePhaseDefinition:
 ## 波次阶段必须清完末波与遭遇；无波次的终末阶段只要求击败博士。
 ## 历史通关记录与当前能否完成战斗无关。
 func can_accept_victory() -> bool:
+	return victory_blocker() == &""
+
+## 返回当前阻止胜利的首个条件；空值表示可以结算。判胜与遭遇日志读同一入口。
+func victory_blocker() -> StringName:
 	if challenge_state not in [ChallengeState.NORMAL_ACTIVE, ChallengeState.NIGHTMARE_ACTIVE, ChallengeState.TERMINAL_ACTIVE]:
-		return false
-	var runtime: AdventureBattleRuntime = _active_runtime()
-	if runtime == null or runtime.has_pending_bosses():
-		return false
-	for encounter: BossEncounterDefinition in active_phase.boss_encounters: # 撤退只满足不要求击败的遭遇。
+		return &"phase_inactive"
+	var runtime: AdventureBattleRuntime = _active_runtime() # 当前阶段拥有的战斗实例。
+	if runtime == null:
+		return &"runtime_missing"
+	if runtime.has_pending_bosses():
+		return &"encounter_pending"
+	for encounter: BossEncounterDefinition in active_phase.boss_encounters: # 撤退只满足无需击败的遭遇。
 		if not boss_exit_results.has(encounter.encounter_id):
-			return false
+			return &"encounter_result_missing"
 		if encounter.require_defeat and boss_exit_results[encounter.encounter_id] != StageEventDefinition.BossExitReason.DEFEATED:
-			return false
+			return &"encounter_not_defeated"
 	if active_phase_kind == StagePhaseDefinition.Kind.TERMINAL:
-		# 终末的唯一必杀遭遇是开场博士；它死亡后无需再清理援军。
-		return true
-	var waves: ZombieWaveManager = runtime.waves
-	var zombies: ZombieManager = runtime.zombies
-	return waves.curr_wave == waves.max_wave - 1 and zombies.is_end_wave and zombies.curr_zombie_num == 0
+		return &""
+	if runtime.waves.curr_wave != runtime.waves.max_wave - 1 or not runtime.zombies.is_end_wave:
+		return &"waves_remaining"
+	if runtime.zombies.curr_zombie_num != 0:
+		return &"enemies_remaining"
+	if runtime.has_pending_bonus_spawns():
+		return &"bonus_spawns_pending"
+	return &""
 
 ## 判断普通完成后是否可询问续战；只依赖当前持有钥匙，无首通要求。
 func can_offer_nightmare() -> bool:
+	if is_stage_preview:
+		return challenge_state == ChallengeState.NORMAL_COMPLETE and AdventureStageCatalog.find_phase(active_stage, StagePhaseDefinition.Kind.NIGHTMARE) != null
 	return challenge_state == ChallengeState.NORMAL_COMPLETE and \
 		AdventureStageCatalog.continuation_error(active_stage, Global.adventure_inventory).is_empty()
 
 ## 噩梦结算落盘后，持有下半钥匙才可选择续战；没有终末阶段的关卡直接完成。
 func can_offer_terminal() -> bool:
+	if is_stage_preview:
+		return challenge_state == ChallengeState.NIGHTMARE_COMPLETE and AdventureStageCatalog.find_phase(active_stage, StagePhaseDefinition.Kind.TERMINAL) != null
 	return challenge_state == ChallengeState.NIGHTMARE_COMPLETE and active_stage != null \
 		and not active_stage.terminal_key_id.is_empty() \
 		and Global.adventure_inventory.get_item_count(str(active_stage.terminal_key_id)) >= 1
@@ -363,6 +427,12 @@ func begin_terminal() -> bool:
 
 ## 校验冻结卡组；按 [param key_id]、[param key_count] 和 [param consume] 完成钥匙事务，再进入 [param phase]。
 func _begin_followup(phase: StagePhaseDefinition, key_id: StringName, key_count: int, consume: bool) -> bool:
+	if is_stage_preview:
+		if phase == null or active_level == null:
+			return false
+		_activate_phase(phase)
+		error_message = ""
+		return true
 	var occupied_slots: int = _frozen_loadout_slot_count() # 续战沿用本局冻结配方，不重读已变化的库存。
 	if phase == null or occupied_slots < 0 \
 			or active_level == null or not CardSlotRules.can_start(active_level.max_choosed_card_num, battle_loadout.size(), occupied_slots):
@@ -398,6 +468,20 @@ func _activate_phase(phase: StagePhaseDefinition) -> void:
 ## [param skip_combat_checks] 仅供已接受的一键通关及其重试跳过清场；奖励依然读取真实 Boss 击杀记录。
 func settle_victory(skip_combat_checks: bool = false) -> bool:
 	if challenge_state in [ChallengeState.NORMAL_COMPLETE, ChallengeState.NIGHTMARE_COMPLETE, ChallengeState.COMPLETE]:
+		return true
+	if is_stage_preview:
+		if battle_failed or (not skip_combat_checks and not can_accept_victory()):
+			return false
+		var runtime: AdventureBattleRuntime = _active_runtime() # 关闭同一套阶段事件和技能运行时。
+		if runtime != null:
+			runtime.finish_battle(true)
+		match active_phase_kind:
+			StagePhaseDefinition.Kind.NORMAL:
+				challenge_state = ChallengeState.NORMAL_COMPLETE
+			StagePhaseDefinition.Kind.NIGHTMARE:
+				challenge_state = ChallengeState.NIGHTMARE_COMPLETE
+			StagePhaseDefinition.Kind.TERMINAL:
+				challenge_state = ChallengeState.COMPLETE
 		return true
 	if active_level == null or battle_failed or progress == null or active_stage == null or active_phase == null:
 		return false
@@ -481,12 +565,13 @@ func settle_victory(skip_combat_checks: bool = false) -> bool:
 	AdventureStageCatalog.mark_cleared(state, stage.stage_id, active_phase_kind)
 	AdventureQuestService.synchronize(state, quest_day)
 	if runtime != null and not runtime.pending_region_flags.is_empty():
-		var region: Dictionary = state.regions.get(AdventureStageCatalog.REGION_ID, {}).duplicate(true)
+		var region_id: String = AdventureStageRegistry.region_for(stage.stage_id) # 阶段事件归属关卡地区。
+		var region: Dictionary = state.regions.get(region_id, {}).duplicate(true)
 		var flags: Dictionary = region.get("event_flags", {}).duplicate(true)
 		for flag_id: StringName in runtime.pending_region_flags:
 			flags[str(flag_id)] = runtime.pending_region_flags[flag_id]
 		region["event_flags"] = flags
-		state.regions[AdventureStageCatalog.REGION_ID] = region
+		state.regions[region_id] = region
 	if not Global.save_service.save_now():
 		_restore_reward_snapshot(before_items, before_claims, before_regions, before_coin)
 		error_message = "奖励或通关记录保存失败，可重试相同掉落。"
@@ -535,7 +620,7 @@ func finish_victory() -> void:
 		error_message = "拾取奖励保存失败，可重试保存。"
 		prompt_victory_retry(finish_victory)
 		return
-	return_to_map()
+	return_to_map(true)
 
 func _restore_reward_snapshot(items: Dictionary, claims: Dictionary,
 		regions: Dictionary, coin: int) -> void:
@@ -583,15 +668,53 @@ func abandon_battle() -> void:
 		notice = "已离开%s，本次未结算通关。" % AdventureStageRegistry.display_name(active_stage_number)
 		battle_finished.emit(active_stage_number, "abandoned")
 	return_to_map()
-func return_to_map() -> void:
-	var scene: Node = get_tree().current_scene
-	var transition: Node = scene.get_node_or_null("SceneTransition") if is_instance_valid(scene) else null
+## [param settled_victory] 表示奖杯已收取且奖励已保存，返图失败时给出单独的重试入口。
+func return_to_map(settled_victory: bool = false) -> void:
+	# 制作预览使用来源地图及同一切场协议；事件失败也不能误回僵尸岛。
+	if is_stage_preview and is_instance_valid(Global.main_game) and owns_battle(Global.main_game.game_para):
+		Global.main_game.leave_battle_preview()
+		return
+	var scene: Node = get_tree().current_scene # 只在发起请求的场景恢复重试交互。
+	var transition: Node = scene.get_node_or_null("SceneTransition") if is_instance_valid(scene) else null # 正式战场共用的异步切场器。
+	var target: String = active_stage.return_scene if active_stage != null and not active_stage.return_scene.is_empty() else MAP_SCENE # 胜利、失败、放弃共用来源地图。
 	if transition != null:
-		if not transition.change_scene(MAP_SCENE, _commit_map_return):
+		if transition.change_scene(target, _commit_map_return):
+			if settled_victory:
+				var show_retry: Callable = _show_victory_map_retry.bind(scene, active_level) # 揭幕后才显示，保留原战场直至成功交接。
+				transition.transition_failed.connect(func() -> void:
+					transition.revealed.connect(show_retry, CONNECT_ONE_SHOT), CONNECT_ONE_SHOT)
+		elif settled_victory and not transition.busy:
+			_show_victory_map_retry(scene, active_level)
+		else:
 			error_message = "地图切换已经进行中，或目标资源不可用。"
 		return
 	_commit_map_return()
-	get_tree().change_scene_to_file(MAP_SCENE)
+	get_tree().change_scene_to_file(target)
+
+## 只有 [param scene] 和 [param level] 仍是已完成的原战斗时，才允许重试返图。
+func _can_retry_victory_map_return(scene: Node, level: ResourceLevelData) -> bool:
+	return is_instance_valid(scene) and get_tree().current_scene == scene \
+		and owns_battle(level) and challenge_state == ChallengeState.COMPLETE
+
+## 在 [param scene] 上显示 [param level] 的返图重试。奖杯已禁用，重试只重新请求地图。
+func _show_victory_map_retry(scene: Node, level: ResourceLevelData) -> void:
+	if not _can_retry_victory_map_return(scene, level):
+		return
+	if not is_instance_valid(_victory_map_retry):
+		var retry := AcceptDialog.new() # 由本局战场持有，成功切场后随之释放。
+		retry.title = "返回地图"
+		retry.dialog_text = "地图暂时无法加载，通关奖励已保存。"
+		retry.ok_button_text = "重试返回地图"
+		retry.dialog_close_on_escape = false
+		retry.process_mode = Node.PROCESS_MODE_ALWAYS
+		retry.confirmed.connect(func() -> void:
+			if _can_retry_victory_map_return(scene, level):
+				return_to_map(true))
+		# 从窗口标题栏关闭时保留重试入口，等待原生窗口先完成隐藏。
+		retry.canceled.connect(_show_victory_map_retry.bind(scene, level), CONNECT_DEFERRED)
+		scene.add_child(retry)
+		_victory_map_retry = retry
+	_victory_map_retry.popup_centered(Vector2i(420, 130))
 
 ## 仅在返回地图成功时清理战斗状态，加载失败仍可重试。
 func _commit_map_return() -> void:

@@ -1,0 +1,91 @@
+[gd_resource type="Resource" script_class="StageDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_definition.gd" id="stage"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_phase_definition.gd" id="phase"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="drop"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/boss_encounter_definition.gd" id="boss"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="event"]
+[ext_resource type="Script" path="res://scripts/adventure/adventure_battle_environment.gd" id="env"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/boards/wonderland_psychedelic_current.tres" id="board"]
+[ext_resource type="Resource" path="res://resources/adventure/audio/psychedelic_current.tres" id="music"]
+[ext_resource type="Resource" path="res://resources/adventure/environments/psychedelic_abyss.tres" id="abyss"]
+
+[ext_resource type="Resource" path="res://resources/adventure/stages/boards/wonderland_psychedelic_current_nightmare.tres" id="night_board"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/psychedelic_current/board.png" id="art"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/psychedelic_current/nightmare_board.png" id="night_art"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/wonderland/psychedelic_current/normal.tres" id="normal_drops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/wonderland/psychedelic_current/nightmare.tres" id="night_drops"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/lawn/nightmare.tres" id="boss_drops"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/waves/wonderland_psychedelic_current_normal.tres" id="normal_waves"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/waves/wonderland_psychedelic_current_nightmare.tres" id="night_waves"]
+
+[sub_resource type="Resource" id="Environment"]
+script = ExtResource("env")
+board_definition = ExtResource("board")
+background_texture = ExtResource("art")
+accelerate_offscreen_zombies = false
+scene = 1
+music = 2
+battle_music_profile = ExtResource("music")
+lawn_mowers = false
+initial_sun = 50
+
+[sub_resource type="Resource" id="Normal"]
+script = ExtResource("phase")
+phase_id = &"wonderland.psychedelic_current.normal"
+kind = 1
+wave_profile = ExtResource("normal_waves")
+drop_table = ExtResource("normal_drops")
+
+[sub_resource type="Resource" id="FinalBoss"]
+script = ExtResource("boss")
+encounter_id = &"wonderland.psychedelic_current.nightmare.boss"
+boss_type = 4
+timing = 4
+wave = 50
+require_defeat = true
+natural_waves = 2
+summon_rule = 2
+summon_while_paused = 1
+summon_end = 1
+summon_interval_seconds = 5.0
+summon_count = 2
+phase_two_summon_count = 3
+max_alive_periodic_summons = 8
+summon_zombie_weights = Dictionary[int, int]({1: 6, 3: 3, 5: 2, 6: 2, 7: 2, 8: 2})
+summon_tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+wait_for_death_presentation = true
+
+[sub_resource type="Resource" id="BossDrops"]
+script = ExtResource("event")
+event_id = &"wonderland.psychedelic_current.nightmare.boss.defeat_drops"
+trigger = 9
+order = 0
+repeat_rule = 1
+encounter_id = &"wonderland.psychedelic_current.nightmare.boss"
+boss_exit_reason = 2
+action = 5
+action_drop_table = ExtResource("boss_drops")
+
+[sub_resource type="Resource" id="Nightmare"]
+script = ExtResource("phase")
+phase_id = &"wonderland.psychedelic_current.nightmare"
+kind = 2
+environment_profile = ExtResource("abyss")
+board_definition = ExtResource("night_board")
+background_texture = ExtResource("night_art")
+wave_profile = ExtResource("night_waves")
+drop_table = ExtResource("night_drops")
+first_clear_requires_boss_kill = true
+boss_encounters = Array[ExtResource("boss")]([SubResource("FinalBoss")])
+events = Array[ExtResource("event")]([SubResource("BossDrops")])
+
+[resource]
+script = ExtResource("stage")
+stage_id = &"wonderland.psychedelic_current"
+battle_scene = "res://scenes/adventure/psychedelic_current_battle.tscn"
+return_scene = "res://scenes/adventure/wonderland_map.tscn"
+nightmare_key_id = &"wonderland.psychedelic_current.nightmare_key"
+nightmare_key_use = 1
+environment = SubResource("Environment")
+phases = Array[ExtResource("phase")]([SubResource("Normal"), SubResource("Nightmare")])

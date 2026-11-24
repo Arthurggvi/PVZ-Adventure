@@ -7,7 +7,12 @@ var _damage_scale := 1.0
 var _blast := 0
 var _aura_dr := 0.0
 var _profile: CombatExplosionProfile
-var _seconds := 0.0
+## 范围保护的复查周期，单位为游戏秒。
+const AURA_INTERVAL := 0.2
+## 三行索敌资格的复查周期，实际发射时仍重新读取目标。
+const TARGET_INTERVAL := 0.075
+## 本实例所属战场的调度器。
+var _updates: ZombieUpdateScheduler
 var _three_lane_volley := false
 ## 是否拥有移动射击策略；沉默时恢复原生攻击停步。
 var _shoot_moving := false
@@ -30,6 +35,8 @@ func setup(car: Zombie023Catapult, rule: Dictionary) -> void:
 	set_tier_speed(float(rule.get("speed", 1.0)))
 	_shoot_moving = bool(rule.get("shoot_moving", false))
 	_three_lane_volley = bool(rule.get("volley", false))
+	_updates = Global.main_game.zombie_manager.periodic_updates
+	_car.signal_character_death.connect(_stop_checks)
 	if _attack != null:
 		_attack.signal_bullet_instantiated.connect(_on_projectile)
 		var native_stop: Callable = Callable(car.move_component, "update_move_factor").bind(MoveComponent.E_MoveFactor.IsAttack) # 只接管原有停步回调。
@@ -46,7 +53,7 @@ func setup(car: Zombie023Catapult, rule: Dictionary) -> void:
 		_profile = AdventureZombieTierExplosionGeometry.small_radius(car, 1)
 	if _aura_dr > 0.0:
 		_refresh_aura()
-	set_process(_aura_dr > 0.0 or _three_lane_volley)
+	_start_checks()
 
 func _on_projectile(bullet: Bullet000Base) -> void:
 	if not tier_can_trigger():
@@ -83,7 +90,7 @@ func _choose_three_lane_primary() -> Character000Base:
 	return null
 
 func _update_volley_target() -> void:
-	if not _three_lane_volley or not is_instance_valid(_attack):
+	if not _three_lane_volley or not is_instance_valid(_attack) or not tier_can_trigger():
 		return
 	var exists: bool = _car.is_attack_pos and _choose_three_lane_primary() != null
 	if exists != _volley_target_present:
@@ -144,32 +151,38 @@ func _choose_plant_in_lane(lane: int, rows: Array[Array]) -> Plant000Base:
 				best = plant
 	return best
 
-func _process(delta: float) -> void:
-	if not is_instance_valid(_car) or _car.is_death:
-		_clear_aura()
-		set_process(false)
+## 注册启用的邻域及索敌资格检查。
+func _start_checks() -> void:
+	if not is_instance_valid(_updates) or not tier_can_trigger():
 		return
-	_update_volley_target()
-	_seconds += delta
-	if _aura_dr > 0.0 and _seconds >= 0.2:
-		_seconds = 0.0
-		_refresh_aura()
+	if _aura_dr > 0.0:
+		_updates.schedule(_refresh_aura, AURA_INTERVAL)
+	if _three_lane_volley:
+		_updates.schedule(_update_volley_target, TARGET_INTERVAL)
+
+## 死亡、沉默或离树时注销检查并撤销仍在生效的减伤。
+func _stop_checks() -> void:
+	if is_instance_valid(_updates):
+		_updates.cancel(_refresh_aura)
+		_updates.cancel(_update_volley_target)
+	_clear_aura()
 
 func _refresh_aura() -> void:
-	if not tier_can_trigger():
+	if _aura_dr <= 0.0 or not tier_can_trigger():
 		_clear_aura()
 		return
-	if not is_instance_valid(Global.main_game) or not is_instance_valid(_car):
-		return
-	var width: float = Global.main_game.board.cell_width_at(_car.global_position, _car.lane) # 当前地点格宽。
+	var manager: ZombieManager = Global.main_game.zombie_manager # 此时已核对战场归属。
+	var width: float = manager.main_game.board.cell_width_at(_car.global_position, _car.lane) # 当前地点格宽。
 	if width <= 0.0:
+		_clear_aura()
 		return
-	var next: Dictionary[int, Zombie000Base] = {}
-	for ally: Zombie000Base in AdventureZombieTierNeighbors.allied_in_range(
-			_car, Global.main_game.zombie_manager.all_zombies_1d, width, 1):
-		next[ally.get_instance_id()] = ally
-		ally.hp_component.damage_reduction.set_source(get_instance_id(), _aura_dr)
-	for key: int in _affected:
+	var next: Dictionary[int, Zombie000Base] = {} # 本次仍处于保护范围的盟友。
+	for ally: Zombie000Base in AdventureZombieTierNeighbors.nearby_allies(manager, _car, width, 1):
+		var id: int = ally.get_instance_id() # 仅在首次进入范围时写入来源。
+		next[id] = ally
+		if not _affected.has(id):
+			ally.hp_component.damage_reduction.set_source(get_instance_id(), _aura_dr)
+	for key: int in _affected: # 逐项移除已经不满足范围的旧来源。
 		if not next.has(key) and is_instance_valid(_affected[key]):
 			_affected[key].hp_component.damage_reduction.set_source(get_instance_id(), 0.0)
 	_affected = next
@@ -186,8 +199,9 @@ func _tier_state_changed(active: bool) -> void:
 	_apply_attack_strategy(active)
 	if active:
 		_refresh_aura()
+		_start_checks()
 	else:
-		_clear_aura()
+		_stop_checks()
 
 
 ## 按 [param active] 切换本能力拥有的连接，不删除或重建攻击组件。
@@ -224,4 +238,4 @@ func _set_connection(source: Signal, callback: Callable, connected: bool) -> voi
 func _exit_tree() -> void:
 	if is_instance_valid(_car) and _car.is_changing_lane:
 		return
-	_clear_aura()
+	_stop_checks()

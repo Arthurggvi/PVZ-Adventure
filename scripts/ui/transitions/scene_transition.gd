@@ -3,6 +3,8 @@
 extends CanvasLayer
 ## 场景与功能窗口共用的有限并发请求适配器，不建立另一份全局资源目录。
 const ResourceBatch = preload("res://scripts/ui/transitions/resource_load_batch.gd")
+## 场景主线程实例化卡顿也写入与资源读取相同的断点协议。
+const Checkpoint = preload("res://scripts/ui/transitions/resource_load_checkpoint.gd")
 ## 场景内轻量绘制层，只保存展示快照，不参与资源与业务状态管理。
 const LoadingPresentation = preload("res://scripts/ui/transitions/loading_presentation.gd")
 ## 目标根节点上的一次性视觉交接数据，与 prepared_resources 独立。
@@ -36,13 +38,11 @@ var _after_switch: Callable
 var _requested_at_usec := 0
 ## 当前资源批次；批次进度按读取、动态依赖两阶段映射到展示层。
 var _load_batch: RefCounted
-## 取消或失败后仍在后台收尾的请求，正常帧只轮询不等待。
-var _retired_batches: Array[RefCounted] = []
 ## 遮幕与读取并行，只有两者都完成才能提交切场。
 var _covered := false
 ## 已解析的目标场景，依赖准备期间保持强引用。
 var _packed_target: PackedScene
-## 本次请求准备好的动态资源，交接后由目标场景持有。
+## 本次准备的资源，交接给目标直至视觉就绪；不作为场景终身缓存。
 var _prepared_resources: Array[Resource] = []
 ## 目标脚本的首屏依赖协议每次只执行一次。
 var _dependencies_requested := false
@@ -178,19 +178,16 @@ func change_scene(scene_path: String, after_switch: Callable = Callable(),
 ## 每帧只查询加载状态；[param _delta] 不用于计时，避免游戏倍速改变展示延迟。
 ## 禁止在未完成时调用会阻塞的 load_threaded_get。
 func _process(_delta: float) -> void:
-	for retired: RefCounted in _retired_batches.duplicate(): # 失败请求继续异步回收。
-		retired.poll()
-		if not retired.is_running():
-			_retired_batches.erase(retired)
 	if busy and not _hint_shown and (_awaiting_visual_ready or not _pending_path.is_empty()):
 		var elapsed: float = float(Time.get_ticks_usec() - _requested_at_usec) / 1000000.0 # 源与目标共用真实起点。
 		if elapsed >= loading_hint_delay:
 			_hint_shown = true
 			_presentation.set_content_visible(true)
 	if _load_batch == null or _pending_path.is_empty():
-		set_process(_awaiting_visual_ready or not _retired_batches.is_empty())
+		set_process(_awaiting_visual_ready)
 		return
 	var status: int = _load_batch.poll() # 整批资源完成不等于场景已经构造。
+	_presentation.set_resource_activity(_load_batch.activity())
 	var amount: float = _load_batch.progress() # 当前批次读取比例不能直接作为整个旅程的完成比例。
 	_presentation.set_progress(0.65 + amount * 0.25 if _dependencies_requested else amount * 0.65)
 	match status:
@@ -202,21 +199,24 @@ func _process(_delta: float) -> void:
 				if _packed_target == null:
 					_failed()
 					return
-				var paths: PackedStringArray = _initial_resource_paths(_packed_target) # 场景脚本声明的首屏动态依赖。
+				var paths: Variant = _initial_resource_paths(_packed_target) # 无效依赖清单必须在来源离场前拒绝。
+				if not paths is PackedStringArray:
+					_failed()
+					return
 				if not paths.is_empty():
 					_load_batch = ResourceBatch.new()
 					if _load_batch.start(paths) != OK:
 						_failed()
 					return
 			_presentation.set_progress(0.90)
-			# 重试前遗留的请求也须先异步回收，避免旧组件离树时被迫同步等待。
-			if _covered and _retired_batches.is_empty():
+			if _covered:
 				_finish_threaded_load()
 		ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 			_failed()
 
-## 读取 [param packed] 根脚本的可选首屏依赖；继承场景向基础场景查找，不实例化节点。
-func _initial_resource_paths(packed: PackedScene) -> PackedStringArray:
+## 读取 [param packed] 的可选首屏依赖；返回路径数组，无效声明可返回 null 拒绝切场。
+## 继承场景向基础场景查找，不实例化节点。
+func _initial_resource_paths(packed: PackedScene) -> Variant:
 	var state: SceneState = packed.get_state() # PackedScene 已在后台解析完毕。
 	if state.get_node_count() == 0:
 		return PackedStringArray()
@@ -232,15 +232,18 @@ func _initial_resource_paths(packed: PackedScene) -> PackedStringArray:
 func _finish_threaded_load() -> void:
 	_presentation.set_progress(0.94)
 	var resource: PackedScene = _packed_target # 已完成的场景，不在此处等待线程。
+	var diagnostic_path: String = _pending_path # 清空切场资格前保存原始目标路径，便于准确定位。
 	_prepared_resources.append_array(_load_batch.resources)
 	_load_batch = null
 	_pending_path = ""
-	set_process(not _retired_batches.is_empty())
+	set_process(false)
 	if resource == null or not resource.can_instantiate():
 		_failed()
 		return
 	var tree: SceneTree = get_tree() # 旧场景离树后不再访问其 get_tree。
+	var token: int = Checkpoint.begin(diagnostic_path, "场景实例化") # 若主线程停住，下次可定位到该根场景。
 	var target: Node = resource.instantiate() # 只创建一次真实目标；主线程执行节点构造。
+	Checkpoint.finish(token, "ok" if target != null else "failed")
 	if target == null:
 		_failed()
 		return
@@ -263,15 +266,13 @@ func _finish_threaded_load() -> void:
 ## 统一失败路径：取消等待、丢弃回调、通知宿主并重新揭开原画面。
 func _failed() -> void:
 	if _load_batch != null:
-		_load_batch.cancel()
-		if _load_batch.is_running():
-			_retired_batches.append(_load_batch)
+		_load_batch.abandon()
 	_load_batch = null
 	_pending_path = ""
 	_packed_target = null
 	_prepared_resources.clear()
 	_after_switch = Callable()
-	set_process(not _retired_batches.is_empty())
+	set_process(false)
 	_request_failed = true
 	transition_failed.emit()
 	_reveal()
@@ -292,7 +293,7 @@ func _invoke(action: Callable) -> void:
 func _reveal() -> void:
 	busy = true
 	_awaiting_visual_ready = false
-	set_process(not _retired_batches.is_empty())
+	set_process(false)
 	if not _request_failed:
 		_presentation.finish()
 	curtain.show()
@@ -309,6 +310,12 @@ func _fade_to(alpha: float, seconds: float) -> Tween:
 
 ## 隐藏遮幕节点后才解除输入锁并发送可交互信号。
 func _finish_reveal() -> void:
+	var host: Node = get_parent() # 来源回退和目标入场均只处理自身临时交接。
+	if is_instance_valid(host) and host.has_meta(&"prepared_resources"):
+		var game_global: Node = get_node_or_null("/root/Global") # 只有正式战斗接续预热的角色资源。
+		if game_global != null and game_global.get("main_game") == host:
+			game_global.character_registry.retain_prepared_battle(host, host.get_meta(&"prepared_resources"))
+		host.remove_meta(&"prepared_resources")
 	curtain.hide()
 	busy = false
 	revealed.emit()
@@ -325,9 +332,6 @@ func _exit_tree() -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	if _load_batch != null:
-		_load_batch.finish_on_exit()
-	for retired: RefCounted in _retired_batches: # 程序关闭时回收剩余引擎请求。
-		retired.finish_on_exit()
-	_retired_batches.clear()
+		_load_batch.abandon()
 	_pending_path = ""
 	_after_switch = Callable()

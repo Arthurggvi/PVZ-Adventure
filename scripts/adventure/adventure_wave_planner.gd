@@ -69,10 +69,28 @@ static func find_band(profile: WaveProfile, wave_number: int) -> WaveBandDefinit
 			return band
 	return null
 
-## 先计划 [param profile] 第 [param wave_number] 波的预排组，再用 [param power_budget] 填充随机池。
-## [param max_zombies] 限制两部分总数；[param tier_threat] 提供等阶战力，[param rng] 驱动数量和组合抽样。
+## 编排 [param profile] 第 [param wave_number] 波的自然出怪，按阶段配置减量。
+## [param wave_power_limit] 与 [param max_zombies] 分别限制随机池战力和总容量；
+## [param tier_threat] 提供等阶战力，[param rng] 驱动抽样，[param opening_regular_floor] 为本阶段前三波的最少常规项数。
 static func build_plan(profile: WaveProfile, wave_number: int, wave_power_limit: int,
-		max_zombies: int, tier_threat: Dictionary, rng: RandomNumberGenerator) -> Array[Dictionary]:
+		max_zombies: int, tier_threat: Dictionary, rng: RandomNumberGenerator,
+		opening_regular_floor: int = 0) -> Array[Dictionary]:
+	var is_late_wave: bool = profile != null and profile.late_spawn_count_start_wave > 0 \
+			and wave_number >= profile.late_spawn_count_start_wave # 减量包含配置的起始波。
+	var regular_floor: int = opening_regular_floor if is_late_wave else 0 # 仅后段预留开场数量。
+	var plan: Array[Dictionary] = build_unreduced_plan(profile, wave_number, wave_power_limit,
+		max_zombies, tier_threat, rng, regular_floor) # 固定组和随机池共用同一容量。
+	if not plan.is_empty():
+		_reduce_spawn_count(plan, profile, wave_number, rng, is_late_wave, regular_floor)
+	return plan
+
+
+## 按 [param profile] 编排第 [param wave_number] 波的预排组，再用 [param wave_power_limit] 填充随机池。
+## [param max_zombies] 为总容量，[param tier_threat] 提供等阶战力，[param rng] 用于抽样。
+## [param minimum_regular_count] 要求为常规项预留战力，最多预留至战力和容量允许的名额。返回未经数量缩减的计划。
+static func build_unreduced_plan(profile: WaveProfile, wave_number: int, wave_power_limit: int,
+		max_zombies: int, tier_threat: Dictionary, rng: RandomNumberGenerator,
+		minimum_regular_count: int = 0) -> Array[Dictionary]:
 	var plan: Array[Dictionary] = [] # 顺序即波次实例化顺序。
 	var band: WaveBandDefinition = find_band(profile, wave_number) # 本波的随机池。
 	if band == null or rng == null or wave_power_limit < 1 or max_zombies < 1:
@@ -90,14 +108,86 @@ static func build_plan(profile: WaveProfile, wave_number: int, wave_power_limit:
 				"threat_cost": choice.cost, "row": group.row})
 	var candidates: Array[Dictionary] = _build_candidates(band.zombie_weights, band.tier_weights, tier_threat,
 		band.species_tier_weights) # 随机池组合。
+	var cheapest_cost: int = 0 # 没有数量下限时，无需为后续名额保留战力。
+	var minimum_total: int = 0 # 含预排组的最低计划项数，仅在所需名额多于预排常规项时增长。
+	if minimum_regular_count > 0 and not candidates.is_empty():
+		cheapest_cost = candidates[0].cost
+		for candidate: Dictionary in candidates: # 以仍可出场的最低战力为每个保留名额计费。
+			cheapest_cost = mini(cheapest_cost, candidate.cost)
+		var missing_count: int = maxi(0, minimum_regular_count - regular_spawn_count(plan)) # 常规预排占用本波下限。
+		var affordable_count: int = floori(float(wave_power_limit) / cheapest_cost) # 战力预算能确保的随机池名额。
+		minimum_total = mini(max_zombies, plan.size() + mini(missing_count, affordable_count))
 	var remaining: int = wave_power_limit # 预排组只占用数量容量。
 	while plan.size() < max_zombies:
-		var choice: Dictionary = _pick_candidate(candidates, rng, remaining) # 在剩余预算内抽取。
+		var reserved_power: int = maxi(0, minimum_total - plan.size() - 1) * cheapest_cost # 为本项之后必须补足的名额保留战力。
+		var choice: Dictionary = _pick_candidate(candidates, rng, remaining - reserved_power) # 从本项可用的预算抽取。
 		if choice.is_empty():
 			break
 		plan.append({"zombie_type": choice.zombie_type, "tier_id": choice.tier_id, "threat_cost": choice.cost})
 		remaining -= int(choice.cost)
 	return plan
+
+
+## 返回 [param plan] 中参与减量的常规出怪项数；固定行及旗帜僵尸不进入开场下限。
+static func regular_spawn_count(plan: Array[Dictionary]) -> int:
+	var count: int = 0 # 仅统计可缩减的项。
+	for spawn: Dictionary in plan: # 使用与实际减量一致的资格。
+		if _is_regular_spawn(spawn):
+			count += 1
+	return count
+
+
+## [param spawn] 沿用波次计划的行编号，未指定行时按零处理；旗帜僵尸由预排数量保护。
+static func _is_regular_spawn(spawn: Dictionary) -> bool:
+	return spawn.get("row", 0) == 0 and spawn.zombie_type != CharacterRegistry.ZombieType.Z002Flag
+
+
+## 按 [param profile] 缩减第 [param wave_number] 波的 [param plan]，非空计划至少保留一项。
+## [param is_late_wave] 为真时继续缩减基准中的常规项，至少保留 [param regular_floor]；用 [param rng] 抽取移除项。
+static func _reduce_spawn_count(plan: Array[Dictionary], profile: WaveProfile, wave_number: int,
+		rng: RandomNumberGenerator, is_late_wave: bool, regular_floor: int) -> void:
+	var multiplier: float = profile.spawn_count_multiplier # 所有自然波都应用的数量倍率。
+	if wave_number <= WaveProfile.OPENING_WAVE_COUNT:
+		multiplier *= profile.opening_spawn_count_multiplier
+	if multiplier >= 1.0 and not is_late_wave:
+		return
+	var target_count: int = maxi(1, roundi(plan.size() * multiplier)) # 先按原阶段规则计算含固定项的基准。
+	var removable: Array[int] = [] # 可以移除的原始索引，依入场顺序记录。
+	for spawn_index: int in range(plan.size()): # 可缩减的预排组与随机池一起筛选。
+		if _is_regular_spawn(plan[spawn_index]):
+			removable.append(spawn_index)
+	if is_late_wave:
+		var fixed_count: int = plan.size() - removable.size() # 旗帜和固定行始终完整保留。
+		var regular_count: int = maxi(0, target_count - fixed_count) # 只将基准内的常规项再次减量。
+		var late_count: int = roundi(regular_count * profile.late_spawn_count_multiplier) # 后段倍率按各自调整后的整数基准取整。
+		target_count = maxi(1, fixed_count + maxi(regular_floor, late_count))
+	var removals_left: int = mini(plan.size() - target_count, removable.size()) # 实际可移除数量。
+	if removals_left <= 0:
+		return
+	if profile.prefer_high_threat_spawns:
+		_remove_lower_threat_spawns(plan, removable, removals_left, rng)
+		return
+	for index: int in range(removable.size() - 1, -1, -1): # 倒序移除，未处理的原始索引保持有效。
+		if removals_left == 0:
+			break
+		# 每项的移除概率等于剩余移除数除以剩余候选数。
+		if rng.randi_range(0, index) < removals_left:
+			plan.remove_at(removable[index])
+			removals_left -= 1
+
+## 从 [param plan] 中移除 [param count] 项。[param removable] 为可移除索引，由 [param rng] 按战力加权抽样。
+static func _remove_lower_threat_spawns(plan: Array[Dictionary], removable: Array[int], count: int,
+		rng: RandomNumberGenerator) -> void:
+	var keep_priorities: Dictionary[int, float] = {} # 以原始索引记录抽到的保留优先级。
+	for spawn_index: int in removable: # 战力越高越容易抽到接近一的优先级，每种敌人仍有保留机会。
+		var threat: float = float(plan[spawn_index].threat_cost) # 该物种及等阶计入本波的实际战力。
+		keep_priorities[spawn_index] = pow(rng.randf(), 1.0 / threat)
+	removable.sort_custom(func(a: int, b: int) -> bool: return keep_priorities[a] < keep_priorities[b])
+	removable.resize(count)
+	removable.sort()
+	for index: int in range(removable.size() - 1, -1, -1): # 倒序删除，保留原计划入场顺序。
+		plan.remove_at(removable[index])
+
 
 ## 从 [param species_weights] 与 [param tier_weights] 构造组合，[param tier_threat] 为等阶战力倍率。
 ## [param species_tier_weights] 可按物种覆盖等阶权重；未列出的物种沿用 [param tier_weights]。

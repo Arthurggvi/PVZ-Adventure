@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="CharacterSkillDefinition" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/skills/character_skill_definition.gd" id="1_definition"]
+[ext_resource type="Script" path="res://scripts/adventure/skills/don_quixote_charge_effect.gd" id="2_effect"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/don_quixote_lancer.png" id="3_portrait"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/skill_titles/don_quixote_charge.svg" id="4_title"]
+[ext_resource type="AudioStream" path="res://assets/adventure/audio/don_quixote_rocinante.ogg" id="5_voice"]
+
+[sub_resource type="AtlasTexture" id="Avatar"]
+atlas = ExtResource("3_portrait")
+region = Rect2(337, 250, 420, 420)
+filter_clip = true
+
+[sub_resource type="Resource" id="ChargeEffect"]
+script = ExtResource("2_effect")
+
+[resource]
+script = ExtResource("1_definition")
+id = &"don_quixote_charge"
+display_name = "冲锋！！！"
+description = "偶数行先出击，奇数行随后。每行召唤一匹血马向前冲锋，对碰到的僵尸造成 700 点伤害，并对可受负面状态的实际承伤者施加 50% 劣化。"
+icon = SubResource("Avatar")
+cut_in_portrait = ExtResource("3_portrait")
+cut_in_title = ExtResource("4_title")
+cut_in_sound = ExtResource("5_voice")
+cut_in_accent = Color(0.98, 0.15, 0.28, 1)
+cut_in_blade_exit = true
+cooldown_seconds = 90.0
+starts_on_cooldown = false
+effect = SubResource("ChargeEffect")

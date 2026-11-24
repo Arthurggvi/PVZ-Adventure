@@ -45,9 +45,11 @@ static func throw_pickup(pickup: BattlePickup, target_offset := Vector2.ZERO) ->
 static func drop_material(phase: StagePhaseDefinition, parent: Node, target: Node2D, origin: Vector2,
 		effects: PlayerEffects = null) -> MaterialPickup:
 	var pool: BattleDropPool = BattleDropPool.from_phase(phase) # 临时池不修改阶段共享资源。
+	var material_multiplier: float = 1.0 # 额外材料概率只占用原本未掉落的区间。
 	if effects != null:
 		pool.chance = minf(1.0, pool.chance * effects.drop_chance_multiplier)
-	var pick: Dictionary = pool.roll() # 数量加成发生在抽中后，不改变材料权重。
+		material_multiplier = effects.material_drop_chance_multiplier
+	var pick: Dictionary = pool.roll(null, material_multiplier) # 数量加成发生在抽中后，不改变材料权重。
 	if pick.is_empty():
 		return null
 	var quantity: int = PlayerEffects.scale_amount(int(pick["quantity"]), float(effects.loot_multiplier)) \

@@ -28,7 +28,9 @@ func drop_ladder():
 	attack_component.update_is_attack_factors(true, AttackComponentBase.E_IsAttackFactors.Anim)
 
 	move_component.update_move_factor(true, MoveComponent.E_MoveFactor.IsAnimGap)
-	await get_tree().create_timer(0.2, false).timeout
+	var recovery: Tween = create_action_tween(self) # 掉梯后经过同等动作时长才能继续走路。
+	recovery.tween_interval(0.2)
+	await recovery.finished
 	move_component.update_move_factor(false, MoveComponent.E_MoveFactor.IsAnimGap)
 
 

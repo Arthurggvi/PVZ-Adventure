@@ -31,10 +31,14 @@ var _statuses: int
 var _sound: StringName
 ## 首爆和追爆共用的伤害范围。
 var _blast: CombatExplosionProfile
+## 本次引爆中按地块实际宽度复用的恶果范围，地形和碰撞掩码仍取自本次爆炸。
+var _death_burst_profiles: Dictionary[float, CombatExplosionProfile] = {}
 ## 震爆独立的外扩控制范围。
 var _shock: CombatExplosionProfile
 ## 已计入星级、场上修正和词条倍率的主爆伤害。
 var _damage: int
+## 首爆时冻结的单次僵王伤害上限，供主爆、追爆和恶果共用。
+var _boss_damage_cap: int = -1
 ## 单次恶果伤害，零表示未启用。
 var _death_burst_damage: int
 ## 地火每跳伤害，已计入星级。
@@ -70,6 +74,7 @@ func configure(plant: Plant000Base, bomb: BombComponentNorm, uid: String,
 	_hit_origin = collider.global_position
 	_visual_origin = bomb.bomb_effect.global_position
 	_mask = bomb.area_2d_bomb.collision_mask
+	_death_burst_profiles.clear()
 	_statuses = bomb.can_attack_zombie_status
 	_sound = bomb.bomb_sfx
 	_pitch = _measure_pitch()
@@ -79,6 +84,7 @@ func configure(plant: Plant000Base, bomb: BombComponentNorm, uid: String,
 	# 伤害在首爆时结算星级、光环和劣化，追爆与恶果继承这个值。
 	var multiplier: float = float(_rules.get("cherry_fruit_of_fear", {}).get("multiplier", 1.0))
 	_damage = roundi(float(bomb.resolved_damage()) * multiplier)
+	_boss_damage_cap = bomb.boss_blast_damage_cap()
 	_death_burst_damage = roundi(float(_damage) * float(_rules.get("cherry_bad_fruit", {}).get("damage_fraction", 0.0)))
 	_burn_damage = plant.battle_damage(int(_rules.get("cherry_combustion", {}).get("damage", 0)))
 	_repeat_left = float(_rules.get("cherry_double_blast", {}).get("delay", 0.0))
@@ -161,7 +167,7 @@ func _blast_at(origin: Vector2, lane: int, profile: CombatExplosionProfile,
 		damage: int, ash: bool) -> Array[Character000Base]:
 	# 几何命中和生命结算共用植物爆炸入口。
 	var areas: Array[Area2D] = CombatExplosion.query_areas(_game.get_world_2d().direct_space_state, profile, origin)
-	return CombatExplosion.resolve_plant_blast(areas, lane, profile.lane_radius, _statuses, damage, ash)
+	return CombatExplosion.resolve_plant_blast(areas, lane, profile.lane_radius, _statuses, damage, ash, null, _boss_damage_cap)
 
 
 ## 迭代处理 [param casualties] 及恶果新增的击杀。每个身份至多进入一次奖励和死亡爆炸。
@@ -196,9 +202,12 @@ func _death_burst(zombie: Character000Base) -> Array[Character000Base]:
 		var shape := hit_box.get_node_or_null(^"HurtBoxDetection/CollisionShape2D") as Node2D
 		point = shape.global_position if shape != null else visual_point
 	var tile: PlantCell = _game.board.nearest_cell(zombie.global_position, zombie.lane) # 取尸体附近的一格。
-	var lane: int = zombie.lane if zombie.lane >= 0 else (tile.row_col.x if tile != null else _lane) # 跨行僵王使用附近地块的行。
+	var lane: int = zombie.lane if zombie.lane >= 0 else (tile.combat_lane if tile != null else _lane) # 跨行僵王使用附近地块的行。
 	var width: float = tile.get_global_rect().size.x if tile != null else _pitch.x # 小爆炸的一格世界半径。
-	var profile: CombatExplosionProfile = _circle_profile(width, 1) # 小爆炸仅覆盖约一格半径。
+	var profile: CombatExplosionProfile = _death_burst_profiles.get(width) # 同一宽度共享只读圆形范围。
+	if profile == null:
+		profile = _circle_profile(width, 1)
+		_death_burst_profiles[width] = profile
 	_show_blast(visual_point, true)
 	return _blast_at(point, lane, profile, _death_burst_damage, false)
 
@@ -255,6 +264,8 @@ func _ignite_ground(cells: Array[PlantCell]) -> void:
 
 ## 在 [param at] 播放原版爆炸表现，[param small] 表示恶果的小型烟团。
 func _show_blast(at: Vector2, small: bool) -> void:
+	if not _game.blast_fx_budget.can_start(StringName(BLAST_FX.resource_path), at):
+		return
 	# 独立特效自行回收，不随爆炸结算节点一起释放。
 	var effect := BLAST_FX.instantiate() as BombEffectCherryBomb # 原爆炸场景实例。
 	effect.small_burst = small

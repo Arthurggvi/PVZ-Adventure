@@ -1,0 +1,88 @@
+飞行小鬼僵尸（Flying Imp Zombie）｜原版核验、素材索引与接入蓝图
+更新：2026-11-23　工程：PVZ-Adventure / Godot 4.7.2
+阶段：文档及来源定位已完成；正式素材尚未取得；物种尚未注册、尚未实装。
+
+一、原版身份和证据
+1. 仅指中国版《植物大战僵尸2》天空之城的 Flying Imp Zombie，非国际服普通小鬼、气球僵尸、飞行员僵尸或此前的战斗机僵尸。
+2. 图鉴强度 180+90＝270，步行速度 4 秒/格，啃咬伤害 100/秒，小鬼型。
+3. 主要由运兵艇 Transport Boat 和飞行巨人 Flying Gargantuar 投放；在天空之城的戴夫号左侧降落后，从左向右行走，啃食植物；不是全程悬空往返巡航敌人。
+4. 冰封免疫／转为寒冷减速，沿用原版天空之城描述。普通版三叶草受关卡禁用约束。
+5. 三叶草原版资料存在差异：百度百科「飞行小鬼僵尸」写“未落地时被吹走”，部分汇编资料则描述为“不是飞行僵尸，不能直接被吹走”。不把该争议写成确定的完整原版规则。
+6. 本项目强制采用本轮用户规则：三叶草能吹走飞行小鬼。建议在空中、落地后均按该物种的特殊资格处理；后续若要仅限空中，调整本物种规则，不修改公共风服务。
+原版资料：
+https://bkso.baidu.com/item/飞行小鬼僵尸/55961462
+https://plantsvszombies.wiki.gg/wiki/Zombies_%28PvZ2C%29
+https://plantsvszombies.wiki.gg/wiki/Imp_%28PvZ2%29
+https://www.newton.com.tw/wiki/植物大戰殭屍2殭屍圖鑑/64026631
+
+二、已找到的对应原版资源（权威下载目录）
+The Spriters Resource, Plants vs. Zombies 2 / Zombies (Chinese Version) / Flying Imp Zombie
+https://www.spriters-resource.com/mobile/plantsvszombies2/asset/502490/
+上传者：Redtarp；网页列明提交日 2025-12-14；ZIP 约17.71 MB，587 items。
+此包为 Flying Imp Zombie 专用，内部资产标识 zombie_skycity_ggtimp，不能用普通 Imp 立绘改头代替。
+站点列出 Assembled Sprites (Chinese) 的 Idle、Fly、Land、Walking、Eating、Death、
+Escape、Escape - 2 等完整动作目录，以及 Splitted Sprites (Chinese) 独立零件；
+示例：Fly/fly0007.png 至 fly0025.png，Land/land0024.png 至 land0030.png，
+Walking/walk0001.png 等；具体起止帧、裁边、脚点和播放时序须下载后重新检验。
+图库参考：https://plantsvszombies.wiki.gg/wiki/Imp/Gallery
+当前下载状态：已经定位官方游戏的第三方拆包索引，未拿到 ZIP 文件；自动请求下载页及
+/media/assets/502/502490.zip 返回 HTTP 403。未获得版权素材原文件／哈希／逐帧图集，
+所以“网页已定位”不等于“原作素材已接入”，不能申请动作完整性验收。
+原画及 SFX 版权属于原权利人；第三方拆包目录不代表可商用许可。
+
+三、工程路径与复用策略
+设计文档：docs/adventure/flying_imp_zombie.txt（本文件）。
+素材来源：assets/adventure/zombies/flying_imp/SOURCES.txt（本次生成）。
+素材正式到位后：assets/adventure/zombies/flying_imp/atlas_00.png、sprite_frames.tres、
+portrait.png、animations.json；先验证源包，再确定具体文件集合和名称。
+预备物种稳定编号：Z035FlyingImp（34 已由战斗机僵尸使用，仅供未来施工，不在本轮写入 Registry）。
+预备类：Zombie035FlyingImp extends Zombie000Base（待原帧齐备后新建）。
+现有复用：
+- scripts/character/zombie/zombie_025_imp.gd：小鬼生命、啃食及投掷/落地生命周期的行为参考；
+- scripts/character/zombie/imp_throw_plan.gd 与相关飞行工具：仅复用轨迹值计算；
+- scripts/character/components/anim_component/component_anim_imported.gd：原帧动作适配；
+- scripts/adventure/adventure_zombie_wind_gust.gd：三叶草共享风入口；
+- scripts/character/zombie/zombie_000_base.gd：is_blover_flying_target / handle_blover_wind；
+- scripts/main_game_item/back_ground/main_game_home.gd：房屋失败检测；
+- CharacterRegistry / GlobalReadData / Almanac：物种惰性登记、独立图鉴和排除旧关随机刷怪；
+- assets/audio/SFX/zombie/imp.ogg、imp2.ogg、chomp.ogg 等既有音效可做明确的临时回退，
+  但不能谎称是天空之城飞行小鬼专属原版音效。先找原作 SFX，再确定最终绑定。
+禁止：复用原版小鬼贴图“换护目镜”冒充全资源；只用单张图片上下浮动代替 Fly/Land；
+把 587 张源PNG同时放到战斗场景预加载；给缺失音效任意填入其他僵尸的命名键。
+
+四、接入行为（原版基础 + 本游戏特例）
+状态：SPAWN_PREPARED → AIRBORNE_ENTRY → LANDING → GROUND_REVERSE_WALK / EAT
+→ ESCAPE 或 DEATH 或 BLOVER_EXIT，终态不可回退。
+空中投放、着陆衔接：按原帧 Fly→Land 播放；只有入场动画/轨迹是临时飞行，
+is_native_airborne 与是否可受地面攻击分别判断；落地后恢复普通地面受击。
+地面行进：选择合法攻击行，在战场玩家侧的首个可落脚单元落地，随后向右进攻
+（方向参数与普通向左进攻僵尸相反）。按当前 board.cell_width_at 换算 4 秒/格，
+在高低差、空洞平台和移动飞艇甲板上只用权威 BoardRuntime/真实世界坐标。
+边界：正常向右到达敌方侧出口按无击杀退场结算，不触发玩家家的失败逻辑。
+进入左边界待降落时必须避开 Home 判定区，不能一落地就误判进家。
+投放来源：Transport Boat 与 Flying Gargantuar 本轮只列接口需求，不额外新增尚不存在的召唤者；
+直接生成的飞行小鬼也应走可见的入场→着陆过程。
+三叶草：本物种专门标记为可被直接吹离，AIRBORNE_ENTRY / LANDING / GROUND_REVERSE_WALK /
+EAT 均可清场（本项目规则），调用 handle_blover_wind 接管，停止移动、啃咬和着陆回调，
+播放源包 Escape（若动作语义和方向符合）并 retire_from_battle，避免记为击杀。
+吹离只清除本体及一次波次登记，不触发受击掉落、亡语或子代，不制造第二条强制位移；
+不修改 Balloon、Ski、Fighter 等已有角色的通用三叶草判定。
+冰冻：保持完全冻结→减速的当前原生能力，不在死亡、着陆后残留冰蓝/行动锁。
+死亡：空中、落地、步行和吃食被处决都只结算一次死亡；若原帧没有当前阶段动作，
+必须记录缺失，不用完全不同物种的死亡演出伪造。
+
+五、素材验收门槛（未满足不进入正式施工）
+1. 下载并保存 502490 完整 ZIP，计算 SHA-256；核对 587 items、动作目录和独立零件。
+2. 逐帧验证 PNG 解码、alpha、尺寸、对齐、可见脚点；排除误把预览 GIF 当成原始动作。
+3. 按 source 原序组建 atlas，每套动作有确定帧数、独立起止帧、循环条件和事件。
+4. 录制静音动作预览检查 Fly→Land→Walk→Eat→Death/Escape；再审 SFX 与 hitbox。
+5. 动画状态驱动只引用真正的行为事件，不能靠固定随机摇摆替代角色骨骼变化。
+6. 用正式战斗验证：空中/落地后各吹一次、正常向右退场、死亡时不误胜、
+   高低差平台、台面移动、最后一个敌人消失的波次计数、重复吹风。
+7. 默认不新增测试、不跑测试；若用户明确要求实装或实测，遵照 AGENTS.md 以隔离 user://
+   完成有限验证。未运行的验收项禁止标记“通过”。
+8. 资源必须通过定向 git add -f 跟踪（assets/adventure/zombies/* 默认被忽略），
+   不改变项目 Bootstrap、无关战斗类或未提交的并行文件。
+
+本轮交付界限：确认原版、查到真实逐帧来源、完成施工和资源清单归档；
+没有引入替代立绘、没有写角色行为代码或登记新物种，也没有声称下载/运行通过。

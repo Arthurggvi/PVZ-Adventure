@@ -1,0 +1,72 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie_boss/zombie_boss_000_base.tscn" id="base"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/sky_duke/z_b_007_sky_duke.gd" id="boss"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/sky_duke/sky_duke_visual.gd" id="visual"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_static.gd" id="anim"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/sky_duke/portrait.webp" id="portrait"]
+
+[sub_resource type="CapsuleShape2D" id="Hurtbox"]
+radius = 30.0
+height = 170.0
+
+[node name="ZB007SkyDuke" instance=ExtResource("base")]
+script = ExtResource("boss")
+boss_display_name = "苍穹公爵"
+boss_portrait_texture = ExtResource("portrait")
+random_speed_range = Vector2(1, 1)
+
+[node name="Shadow" parent="." index="0"]
+visible = false
+
+[node name="SkyDukeVisual" type="Sprite2D" parent="Body"]
+position = Vector2(0, -105)
+scale = Vector2(0.46, 0.46)
+texture_filter = 2
+centered = false
+region_enabled = true
+region_filter_clip_enabled = true
+script = ExtResource("visual")
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("anim")
+
+[node name="HpComponent" parent="." index="3"]
+max_hp = 300000
+
+[node name="HpControl" type="Control" parent="HpComponent"]
+offset_top = -218.0
+offset_bottom = -218.0
+mouse_filter = 2
+
+[node name="ProgressBarHp" type="ProgressBar" parent="HpComponent/HpControl"]
+unique_name_in_owner = true
+offset_left = -50.0
+offset_top = -7.0
+offset_right = 50.0
+offset_bottom = 7.0
+mouse_filter = 2
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="LabelHp" type="Label" parent="HpComponent/HpControl"]
+unique_name_in_owner = true
+offset_left = -60.0
+offset_top = -15.0
+offset_right = 60.0
+offset_bottom = 16.0
+mouse_filter = 2
+text = "300000"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HurtBoxComponent" parent="." index="4"]
+position = Vector2(0, -106)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection"]
+shape = SubResource("Hurtbox")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(0, 0)
+shape = SubResource("Hurtbox")

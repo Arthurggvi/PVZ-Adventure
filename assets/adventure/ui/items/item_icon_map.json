@@ -57,6 +57,54 @@
       "category": "key",
       "icon": "keys/lawn_nightmare_key.png"
     },
+    "wonderland.psychedelic_current.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_psychedelic_current_nightmare_key.png"
+    },
+    "wonderland.psychedelic_current.terminal_key": {
+      "category": "key",
+      "icon": "keys/wonderland_psychedelic_current_nightmare_key.png"
+    },
+    "wonderland.zombie_church.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_zombie_church_nightmare_key.png"
+    },
+    "wonderland.john_furnace.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_john_furnace_nightmare_key.png"
+    },
+    "wonderland.snow_mountains.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_snow_mountains_nightmare_key.png"
+    },
+    "wonderland.garden_airship.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_garden_airship_nightmare_key.png"
+    },
+    "wonderland.edgar_mountain.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_edgar_mountain_nightmare_key.png"
+    },
+    "wonderland.mushroom_forest.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_mushroom_forest_nightmare_key.png"
+    },
+    "wonderland.resting_plain.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_resting_plain_nightmare_key.png"
+    },
+    "wonderland.frozen_tundra.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_frozen_tundra_nightmare_key.png"
+    },
+    "wonderland.badlands.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_badlands_nightmare_key.png"
+    },
+    "wonderland.abandoned_school.nightmare_key": {
+      "category": "key",
+      "icon": "keys/wonderland_abandoned_school_nightmare_key.png"
+    },
     "zombie_island.fallen_camp.nightmare_key": {
       "category": "key",
       "icon": "keys/fallen_camp_nightmare_key.png"

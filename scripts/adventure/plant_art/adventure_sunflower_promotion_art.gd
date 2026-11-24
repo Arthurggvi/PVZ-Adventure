@@ -13,7 +13,6 @@ const STAR_LAYER := "PromotionStar"
 ## 把阳光原贴图的亮度映射为各转职的外观色。
 const SUN_PALETTE_SHADER = preload("res://shaders/adventure/sun_palette.gdshader")
 static var _manifest: Dictionary = {}
-static var _texture_cache: Dictionary = {}
 ## 同一转职的阳光共用只读材质，每次产出只绑定已有实例。
 static var _sun_materials: Dictionary[int, ShaderMaterial] = {}
 
@@ -73,12 +72,10 @@ static func _asset_paths(tier: int) -> Dictionary:
 
 ## 取得 [param tier] 的纹理，异步准备方使用相同路径使这里仅命中资源缓存。
 static func _asset_set(tier: int) -> Dictionary:
-	if _texture_cache.has(tier):
-		return _texture_cache[tier]
 	var paths: Dictionary = _asset_paths(tier) # 不复制转职目录的路径拼装规则。
 	if paths.is_empty():
 		return {}
-	var assets: Dictionary = {} # 完整装配成功后才发布缓存，避免返回缺件外观。
+	var assets: Dictionary = {} # 本次装配持有分件；实际精灵接管纹理，不保留进程级强引用。
 	for layer: String in paths:
 		var path: String = paths[layer] # 分件和额外图层使用同一资源加载入口。
 		var texture := load(path) as Texture2D # 调用方可提前异步准备并持有该路径。
@@ -86,7 +83,6 @@ static func _asset_set(tier: int) -> Dictionary:
 			push_error("Sunflower promotion texture missing: " + path)
 			return {}
 		assets[layer] = texture
-	_texture_cache[tier] = assets
 	return assets
 
 static func _ensure_layer(anchor: Sprite2D, layer_name: String) -> Sprite2D:

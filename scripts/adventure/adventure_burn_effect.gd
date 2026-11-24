@@ -22,13 +22,12 @@ static func apply_to(target: Character000Base, duration: float,
 		on_kill: Callable = Callable(), source: Dictionary = {}) -> bool:
 	return AdventurePeriodicDamageEffect.grant(target, duration, on_kill, NODE_NAME, AdventureBurnEffect, false, source)
 
-## 状态首次开始时挂载纯视觉，跟随受击位置；僵王维持原命中特效的前景层。
+## 状态首次开始时挂载纯视觉，并对齐目标的受击位置。
 func _on_effect_started() -> void:
 	_visual = IMPACT_SCENE.instantiate() as Node2D
 	_target.add_child(_visual)
 	_visual.global_position = _target.hurt_box_component.global_position
-	_visual.z_as_relative = not _target is ZB000Base
-	_visual.z_index = BulletEffect000Base.BOSS_HIT_EFFECT_Z_INDEX if _target is ZB000Base else 1
+	_visual.z_index = 1
 	_animation = _visual.get_node(^"AnimationPlayer") as AnimationPlayer
 	_animation.animation_finished.connect(_on_visual_finished)
 	_animation.play(&"fire_done")

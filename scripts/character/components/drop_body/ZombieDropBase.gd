@@ -1,7 +1,11 @@
 extends Node2D
 class_name ZombieDropBase
 
-var is_active := false
+## 仅脱落且仍在运动的部件参与物理更新。
+var is_active := false:
+	set(value):
+		is_active = value
+		set_physics_process(value)
 var drop_body : Node2D
 
 @export var ground_y := 0.0 	# 地面位置
@@ -19,8 +23,11 @@ var min_rotation_speed := 0.2  # 最小旋转速度
 
 var is_swimming := false
 var zombie: Zombie000Base
+## 一次落地只创建一个淡出补间，防止每个物理帧重复登记。
+var _fade_tween: Tween
 
 func _ready() -> void:
+	set_physics_process(is_active)
 	if owner is Zombie000Base:
 		zombie = owner
 
@@ -45,7 +52,9 @@ func _physics_process(delta: float) -> void:
 				velocity = Vector2.ZERO
 				rotation_speed = 0.0
 				landed = true
+				drop_body.position.y = ground_y
 				fade_and_delete()
+				return
 
 			drop_body.position.y = ground_y
 
@@ -82,6 +91,8 @@ func acitvate_it(control_x:float = 0):
 		#var drop_body_glo_pos:Vector2 = drop_body.global_position
 		#global_position.y = zombie_lane.zombie_create_position.global_position.y
 		#drop_body.global_position = drop_body_glo_pos
+	## 按原位置完成脱落后交给战场可选的死亡表现。
+	zombie.report_death_residue(self, velocity)
 
 
 
@@ -97,7 +108,11 @@ func acitvate_it_on_ground(global_pos_x:float):
 
 
 
+## 落地后结束运动状态，只保留原本一秒的透明度退场。
 func fade_and_delete():
-	var tween = create_tween()
-	tween.tween_property(drop_body, "modulate:a", 0.0, 1.0)  # 1秒内 alpha 从当前变到 0
-	tween.tween_callback(Callable(self, "queue_free"))  # 动画完成后删除自身
+	if is_instance_valid(_fade_tween):
+		return
+	is_active = false
+	_fade_tween = create_tween()
+	_fade_tween.tween_property(drop_body, "modulate:a", 0.0, 1.0)
+	_fade_tween.tween_callback(queue_free)

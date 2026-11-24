@@ -1,0 +1,103 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship_board.gd" id="board"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_surface_definition.gd" id="surface"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_terrain_definition.gd" id="terrain"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship_deck.gd" id="deck"]
+[ext_resource type="PackedScene" path="res://scenes/adventure/garden_airship_island.tscn" id="island"]
+[ext_resource type="PackedScene" path="res://scenes/adventure/garden_airship_island_variant.tscn" id="island_variant"]
+[ext_resource type="PackedScene" path="res://scenes/adventure/garden_airship_bridge.tscn" id="bridge"]
+
+[sub_resource type="Resource" id="UpperPort"]
+script = ExtResource("deck")
+surface_id = &"upper_port"
+grid_rect = Rect2i(0, 0, 2, 2)
+origin = Vector2(88.5, 184)
+travel_offset = Vector2(0, 243)
+travel_seconds = 8.0
+visual_scene = ExtResource("island")
+
+[sub_resource type="Resource" id="LowerPort"]
+script = ExtResource("deck")
+surface_id = &"lower_port"
+grid_rect = Rect2i(2, 3, 2, 2)
+origin = Vector2(242.1, 427)
+travel_offset = Vector2(0, -243)
+travel_seconds = 8.0
+visual_scene = ExtResource("island_variant")
+
+[sub_resource type="Resource" id="UpperCenter"]
+script = ExtResource("deck")
+surface_id = &"upper_center"
+grid_rect = Rect2i(4, 0, 2, 2)
+origin = Vector2(395.7, 184)
+travel_offset = Vector2(0, 243)
+travel_seconds = 8.0
+visual_scene = ExtResource("island_variant")
+
+[sub_resource type="Resource" id="LowerCenter"]
+script = ExtResource("deck")
+surface_id = &"lower_center"
+grid_rect = Rect2i(6, 3, 2, 2)
+origin = Vector2(549.3, 427)
+travel_offset = Vector2(0, -243)
+travel_seconds = 8.0
+visual_scene = ExtResource("island")
+
+[sub_resource type="Resource" id="UpperStarboard"]
+script = ExtResource("deck")
+surface_id = &"upper_starboard"
+grid_rect = Rect2i(8, 0, 2, 2)
+origin = Vector2(702.9, 184)
+travel_offset = Vector2(0, 243)
+travel_seconds = 8.0
+visual_scene = ExtResource("island")
+
+[sub_resource type="Resource" id="LowerStarboard"]
+script = ExtResource("deck")
+surface_id = &"lower_starboard"
+grid_rect = Rect2i(10, 3, 2, 2)
+origin = Vector2(856.5, 427)
+travel_offset = Vector2(0, -243)
+travel_seconds = 8.0
+visual_scene = ExtResource("island_variant")
+
+[sub_resource type="Resource" id="UpperBow"]
+script = ExtResource("deck")
+surface_id = &"upper_bow"
+grid_rect = Rect2i(12, 0, 2, 2)
+origin = Vector2(1010.1, 184)
+travel_offset = Vector2(0, 243)
+travel_seconds = 8.0
+visual_scene = ExtResource("island_variant")
+
+[sub_resource type="Resource" id="LowerBow"]
+script = ExtResource("deck")
+surface_id = &"lower_bow"
+grid_rect = Rect2i(14, 3, 2, 2)
+origin = Vector2(1163.7, 427)
+travel_offset = Vector2(0, -243)
+travel_seconds = 8.0
+visual_scene = ExtResource("island")
+
+[sub_resource type="Resource" id="FixedBridge"]
+script = ExtResource("deck")
+surface_id = &"bridge"
+grid_rect = Rect2i(16, 0, 1, 5)
+turf_rect = Rect2(8.5, 0, 58.5, 405)
+origin = Vector2(1323.3, 184)
+visual_scene = ExtResource("bridge")
+
+[sub_resource type="Resource" id="Grass"]
+script = ExtResource("terrain")
+terrain_id = &"grass"
+tags = Array[StringName]([&"land", &"airship_deck"])
+
+[resource]
+script = ExtResource("board")
+board_id = &"wonderland.garden_airship"
+revision = 3
+surfaces = Array[ExtResource("surface")]([SubResource("UpperPort"), SubResource("LowerPort"), SubResource("UpperCenter"), SubResource("LowerCenter"), SubResource("UpperStarboard"), SubResource("LowerStarboard"), SubResource("UpperBow"), SubResource("LowerBow"), SubResource("FixedBridge")])
+terrains = Array[ExtResource("terrain")]([SubResource("Grass")])
+accelerate_entry_from_last_column = true
+project_surface_combat_lanes = true

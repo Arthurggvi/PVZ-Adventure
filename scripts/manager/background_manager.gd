@@ -2,7 +2,12 @@ extends MainGameSubManager
 class_name BackgroundManager
 ## 背景管理器,管理背景和前景
 
-@onready var background: Sprite2D = %Background
+## 可选的独立战场画面；不指定时使用原版背景，避免美术缩放带动选卡预览容器。
+@export var background: Sprite2D
+## 可选独立天幕，环境合成通过此引用绑定，不查找特定关卡节点。
+@export var environment_sky: Sprite2D
+## 雪山场景注入的本局雪表现，其他战场不实例化。
+@export var snow_environment: SnowEnvironmentController
 @onready var frontground: Node2D = %Frontground
 
 @onready var home: MainGameHome = %Home
@@ -15,11 +20,19 @@ var fog:Fog
 
 ## 单一战斗天气导演：负责原版雨幕、湿镜头和可持续过渡。
 var weather: BattleWeatherDirector
+## 阶段配置需要时才创建的环境声画导演，随当前战斗释放。
+var environment: BattleEnvironmentController
 
 ## 雾
 const FOG = preload("uid://bs55ei6xiuugg")
 ## 阶段无天气配置时，导演保留原版关卡自带雨势；有配置则按时间轴过渡。
 const WEATHER_DIRECTOR = preload("res://scripts/weather/battle_weather_director.gd")
+
+
+## 保持原版的就绪时机，其他子管理器初始化前即可读取背景节点。
+func _ready() -> void:
+	if background == null:
+		background = %Background
 
 
 func init_manager() -> void:
@@ -59,6 +72,9 @@ func init_frontground() -> void:
 	weather = WEATHER_DIRECTOR.new() as BattleWeatherDirector
 	weather.setup(frontground, get_parent().get_parent(), game_para.weather_lens_profile, game_para.is_rain, background)
 	add_child(weather)
+	if is_instance_valid(snow_environment):
+		snow_environment.configure(get_parent().get_parent() as MainGameManager, background, environment_sky)
+		weather.bind_snow(snow_environment)
 	if AdventureSession.owns_battle(game_para):
 		apply_phase_weather(AdventureSession.get_active_phase(game_para))
 
@@ -73,6 +89,17 @@ func transition_weather(timeline: WeatherSequence) -> void:
 func apply_phase_weather(phase: StagePhaseDefinition) -> void:
 	if phase != null:
 		transition_weather(phase.weather_sequence)
+		transition_phase_environment(phase.environment_profile)
+
+## 使用权威阶段的 [param profile] 过渡环境；空值退出滤镜与音效通道。
+## [param cinematic] 仅用于已有阶段演出的暂停锁，不创建新的阶段状态机。
+func transition_phase_environment(profile: BattleEnvironmentProfile, cinematic: bool = false) -> void:
+	if profile != null and not is_instance_valid(environment):
+		environment = BattleEnvironmentController.new()
+		environment.name = "PhaseEnvironment"
+		add_child(environment)
+	if is_instance_valid(environment):
+		environment.configure(profile, background, environment_sky, cinematic)
 
 ## 展示下一轮僵尸前退雾；直接进入下一轮时保留当前三叶草效果和移动。
 func start_next_game_background_manager_update():

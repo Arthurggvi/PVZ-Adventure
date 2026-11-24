@@ -5,7 +5,7 @@ extends SceneTree
 
 const SCENE := "res://scenes/character/plant/plant_002_sun_flower.tscn"
 const ANIM := "res://animation/character/plant/002_sun_flower/SunFlower_idle.tres"
-const DEST := "user://sunflower_idle_source_poses.json"
+const DEST := "D:/Dev/PvZ/_review/sunflower_promotions/idle_source_poses.json"
 const ANIM_FPS := 12.0
 const ANIM_SPEED := 1.2
 const FRAME_COUNT := 24

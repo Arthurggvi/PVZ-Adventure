@@ -1,0 +1,96 @@
+[gd_resource type="Resource" script_class="WaveProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="profile"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="band"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_spawn_group.gd" id="spawn"]
+
+[sub_resource type="Resource" id="Opening"]
+script = ExtResource("band")
+band_id = &"wonderland.zombie_church.normal.opening"
+first_wave = 1
+last_wave = 3
+minimum_regular_power = 22
+zombie_weights = Dictionary[int, int]({1: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 4, &"tier4": 1})
+
+[sub_resource type="Resource" id="Surge"]
+script = ExtResource("band")
+band_id = &"wonderland.zombie_church.normal.surge"
+first_wave = 4
+last_wave = 23
+minimum_regular_power = 72
+zombie_weights = Dictionary[int, int]({1: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 3, &"tier4": 1})
+
+[sub_resource type="Resource" id="Middle"]
+script = ExtResource("band")
+band_id = &"wonderland.zombie_church.normal.middle"
+first_wave = 24
+last_wave = 46
+minimum_regular_power = 108
+zombie_weights = Dictionary[int, int]({1: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 2, &"tier4": 1})
+
+[sub_resource type="Resource" id="Late"]
+script = ExtResource("band")
+band_id = &"wonderland.zombie_church.normal.late"
+first_wave = 47
+last_wave = 70
+minimum_regular_power = 162
+zombie_weights = Dictionary[int, int]({1: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1, &"tier4": 1})
+
+[sub_resource type="Resource" id="Fusion10"]
+script = ExtResource("spawn")
+wave = 10
+zombie_weights = Dictionary[int, int]({29: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="Fusion20"]
+script = ExtResource("spawn")
+wave = 20
+zombie_weights = Dictionary[int, int]({29: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="Fusion30"]
+script = ExtResource("spawn")
+wave = 30
+zombie_weights = Dictionary[int, int]({29: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="Fusion40"]
+script = ExtResource("spawn")
+wave = 40
+zombie_weights = Dictionary[int, int]({29: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="Fusion50"]
+script = ExtResource("spawn")
+wave = 50
+zombie_weights = Dictionary[int, int]({29: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="Fusion60"]
+script = ExtResource("spawn")
+wave = 60
+zombie_weights = Dictionary[int, int]({29: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="Fusion70"]
+script = ExtResource("spawn")
+wave = 70
+zombie_weights = Dictionary[int, int]({29: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[resource]
+script = ExtResource("profile")
+profile_id = &"wonderland.zombie_church.normal.waves"
+wave_count = 70
+max_zombies_per_wave = 30
+wave_interval_multiplier = 0.8
+flag_waves = Array[int]([70])
+scheduled_spawns = Array[ExtResource("spawn")]([
+SubResource("Fusion10"), SubResource("Fusion20"), SubResource("Fusion30"), SubResource("Fusion40"), SubResource("Fusion50"),
+SubResource("Fusion60"), SubResource("Fusion70")
+])
+bands = Array[ExtResource("band")]([SubResource("Opening"), SubResource("Surge"), SubResource("Middle"), SubResource("Late")])

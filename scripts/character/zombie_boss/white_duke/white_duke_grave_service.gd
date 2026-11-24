@@ -105,9 +105,11 @@ func queue_corpses(corpses: Array[Dictionary], stones: Array[TombStone],
 			"corpse": corpses[i],
 			"stone": weakref(available[i % available.size()]),
 			"buff": buff,
+			"autonomous": false,
 		})
 	_drain()
 
+## 用 [param delta] 推进墓碑自主复生与白爵士本体复生的独立计时。
 func _process(delta: float) -> void:
 	if not _alive():
 		stop()
@@ -119,14 +121,17 @@ func _process(delta: float) -> void:
 		var id := stone.get_instance_id()
 		live_ids[id] = true
 		if not _stone_timers.has(id):
-			_stone_timers[id] = _clock+_settings.grave_auto_revive_seconds
+			var first_delay: float = _settings.grave_auto_revive_seconds # 普通墓碑沿用原间隔。
+			if stone.get_tombstone_kind() == TombStoneManager.WHITE_DUKE_GRAVE_KIND:
+				first_delay = maxf(first_delay, _settings.grave_auto_revive_min_age)
+			_stone_timers[id] = _clock + first_delay
 		elif _clock >= _stone_timers[id]:
 			_stone_timers[id] = _clock+_settings.grave_auto_revive_seconds
-			_enqueue_random(stone)
+			_enqueue_random(stone, true)
 	for id: int in _stone_timers.keys():
 		if not live_ids.has(id):
 			_stone_timers.erase(id)
-	_boss_timer -= delta
+	_boss_timer -= delta * _boss.action_rate()
 	if _boss_timer <= 0:
 		_boss_timer += _settings.grave_boss_revive_seconds
 		if stones.is_empty() and not _archive.recent(INF).is_empty():
@@ -135,13 +140,16 @@ func _process(delta: float) -> void:
 			_enqueue_random(stones.pick_random())
 	_drain()
 
-func _enqueue_random(stone: TombStone) -> void:
+## 在 [param stone] 排入随机阵亡僵尸。[param autonomous] 表示墓碑自己的触发，随原墓碑失效。
+func _enqueue_random(stone: TombStone, autonomous: bool = false) -> void:
 	var corpses: Array[Dictionary] = _archive.recent(INF)
 	if corpses.is_empty():
 		return
 	if _pending.size() < 120:
-		_pending.append({"corpse": corpses.pick_random(),"stone": weakref(stone),"buff":false})
+		_pending.append({"corpse": corpses.pick_random(), "stone": weakref(stone),
+			"buff": false, "autonomous": autonomous})
 
+## 释放可用墓碑上的任务，白爵士的任务在原墓碑被毁时改用同场可用墓碑。
 func _drain() -> void:
 	if not _alive():
 		return
@@ -152,6 +160,9 @@ func _drain() -> void:
 		var task: Dictionary = _pending[i]
 		var stone: TombStone = (task["stone"] as WeakRef).get_ref() as TombStone
 		if not is_instance_valid(stone) or stone.is_queued_for_deletion():
+			if task["autonomous"]:
+				_pending.remove_at(i)
+				continue
 			var replacements := _ensure_stones([])
 			if replacements.is_empty():
 				_pending.remove_at(i)
@@ -160,16 +171,22 @@ func _drain() -> void:
 		if is_instance_valid(stone.new_zombie):
 			continue
 		var record: Dictionary = task["corpse"]
-		var on_created: Callable = Callable()
-		if task["buff"]:
-			on_created = _grant_phase_buff
+		var on_created: Callable = _on_grave_emergence.bind(task["buff"]) # 所有白爵士墓碑出土共用入场效果。
 		var zombie: Zombie000Base = stone.spawn_from_grave(record["type"],
 			AdventureZombieTierBinding.new(_boss.encounter_summon_tier(record["tier"])), 0.5, on_created, false)
 		_pending.remove_at(i)
 		if is_instance_valid(zombie):
 			spawned += 1
 
-func _grant_phase_buff(zombie: Zombie000Base) -> void:
-	AdventureZombieTimedSpeedBoost.apply_to(zombie, _settings.fury_speed_multiplier,
-		_settings.immunity_seconds)
-	AdventureZombieTimedCombatBuff.grant_immunity(zombie, _settings.immunity_seconds)
+## [param zombie] 开始出土的僵尸。[param phase_buff] 为真时叠加转阶段原有增益。
+func _on_grave_emergence(zombie: Zombie000Base, phase_buff: bool) -> void:
+	var slowdown: Tween = zombie.create_tween() # 计时随僵尸暂停和释放，按未减速的战斗秒推进。
+	var source_id: int = slowdown.get_instance_id() # 到期只移除这一份入场减速。
+	var movement: MoveComponent = zombie.move_component # 独立作用于出土个体的位移。
+	movement.set_move_rate_source(source_id, WhiteDukeConfig.GRAVE_ENTRY_SPEED_MULTIPLIER)
+	slowdown.tween_interval(_settings.grave_entry_slow_seconds)
+	slowdown.tween_callback(movement.set_move_rate_source.bind(source_id, 1.0))
+	if phase_buff:
+		AdventureZombieTimedSpeedBoost.apply_to(zombie, _settings.fury_speed_multiplier,
+			_settings.immunity_seconds)
+		AdventureZombieTimedCombatBuff.grant_immunity(zombie, _settings.immunity_seconds)

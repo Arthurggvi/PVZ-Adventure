@@ -1,6 +1,11 @@
 extends Bullet000Base
 class_name Bullet000NormBase
 
+## 合并豌豆密集命中时，两次普通溅射至少间隔的物理时间，单位为秒。
+const PEA_SPLAT_INTERVAL: float = 0.12
+## 每个受击角色自己保留的下一次豌豆溅射时刻，角色离场即释放。
+const PEA_SPLAT_FRAME_KEY: StringName = &"_next_dense_pea_splat"
+
 @onready var area_2d_attack: Area2D = $Area2DAttack
 
 ## 子弹击中特效
@@ -31,6 +36,8 @@ var attack_validity: Callable
 var last_impact_casualty: Character000Base
 ## One post-impact hook for projectile perks, after normal hit/umbrella routing.
 signal impact_resolved(target: Character000Base, impact_position: Vector2)
+## 弹体真正结束时的原因，穿透途中与跨阶段回收不发出退场表现。
+enum ExitCause { IMPACT, TERRAIN, RANGE }
 ## 子弹伤害
 @export var attack_value := 20
 ## Immutable attack origin passed across projectile transformations (e.g. Torchwood).
@@ -72,11 +79,22 @@ var lane :int = -1
 func _ready() -> void:
 	start_world_position = global_position
 	body.rotation = direction.angle()
+	if finisher_highlight:
+		body.modulate *= Color(1.82, 0.96, 0.52, 1.0) # 加强末发可见，属于原生子弹已有画布节点。
 
 	if is_rotate:
 		var tween = create_tween()
 		tween.set_loops()
 		tween.tween_property(body, "rotation", TAU, 1.0).as_relative()
+
+## 直接攻击结算后携带目标、是否首次命中、伤害前有无二类防具；不依赖母株存活。
+var _impact_effect: Callable
+## 终结末发的表现标志，伤害依旧由通用伤害乘数负责。
+var finisher_highlight: bool = false
+## 密集豌豆齐射可复用同一目标刚播放的原生溅射；单发和升级弹使用自己的表现。
+var merge_pea_splats: bool = false
+## 敌方弹体发射时冻结的攻击归因；母体可以先于弹体离场。
+var _plant_hit_scope: CombatHitScope
 
 ## 子弹初始化参数种类
 enum E_InitParasAttr{
@@ -93,6 +111,9 @@ enum E_InitParasAttr{
 	EnemyGloPos,		## 敌人位置(发射子弹时敌人若已经消失,抛物线依旧可以攻击)
 	AttackContext,		## 可选植物攻击上下文；追加枚举值以保留既有参数序号。
 	AttackValidity,		## 可选来源门禁，随火炬等弹体变换传递；追加值不改变旧枚举序号。
+	ImpactEffect,		## 可选的直接命中效果，兼容原生弹体升级。
+	FinisherHighlight,	## 末发的视觉标志，追加后不改变已有参数序号。
+	PlantHitScope,		## 敌方弹体的攻击归因，随原生弹体变换传递。
 
 }
 
@@ -113,6 +134,10 @@ func init_bullet(bullet_paras:Dictionary):
 	var validity: Variant = bullet_paras.get(E_InitParasAttr.AttackValidity, attack_validity) # 变换保留同一来源门禁，未传参数保持原配置。
 	if validity is Callable:
 		attack_validity = validity
+	var impact: Variant = bullet_paras.get(E_InitParasAttr.ImpactEffect, Callable()) # 与来源门禁一同传给升级弹。
+	_impact_effect = impact if impact is Callable else Callable()
+	finisher_highlight = bool(bullet_paras.get(E_InitParasAttr.FinisherHighlight, false))
+	_plant_hit_scope = bullet_paras.get(E_InitParasAttr.PlantHitScope) as CombatHitScope
 	source_damage_multiplier = float(bullet_paras.get(E_InitParasAttr.DamageMultiplier, 1.0))
 	attack_value = maxi(0, roundi(float(attack_value) * source_damage_multiplier))
 	var splash: SpatterComponent = get_node_or_null("SpatterComponent") as SpatterComponent
@@ -132,12 +157,22 @@ func get_bullet_paras()->Dictionary[E_InitParasAttr,Variant]:
 		E_InitParasAttr.DamageMultiplier : self.source_damage_multiplier,
 		E_InitParasAttr.AttackContext : self.attack_context,
 		E_InitParasAttr.AttackValidity : self.attack_validity,
+		E_InitParasAttr.ImpactEffect : _impact_effect,
+		E_InitParasAttr.FinisherHighlight : finisher_highlight,
+		E_InitParasAttr.PlantHitScope : _plant_hit_scope,
 	}
 
 ## 伤害上下文与额外战场门禁同时有效才允许命中；未配置时保持原生行为。
 func is_attack_active() -> bool:
 	return (attack_context == null or attack_context.is_active()) \
 		and (not attack_validity.is_valid() or bool(attack_validity.call()))
+
+## 在地形沉降时补上 [param displacement] 世界位移，不消耗弹体射程。
+func translate_with_board(displacement: Vector2) -> void:
+	var host := get_parent() as CanvasItem # 起射坐标保存在弹道容器的局部空间。
+	start_pos += host.get_global_transform().affine_inverse().basis_xform(displacement)
+	start_world_position += displacement
+	global_position += displacement
 
 ## 子弹与敌人碰撞
 func _on_area_2d_attack_area_entered(area: Area2D) -> void:
@@ -170,6 +205,9 @@ func _can_attack_character(enemy: Character000Base, check_lane: bool = true) -> 
 		return false
 	if not is_instance_valid(enemy.hurt_box_component) or not enemy.hurt_box_component.is_enabling:
 		return false
+	if enemy is FriendlyBattleBarrier:
+		return bullet_camp == CharacterRegistry.CharacterType.Zombie \
+			and (can_attack_plant_status & Plant000Base.E_BeAttackStatusPlant.IsNorm) != 0
 	if enemy is ZB000Base:
 		return bullet_camp == CharacterRegistry.CharacterType.Plant \
 			and enemy.character_init_type == Character000Base.E_CharacterInitType.IsNorm \
@@ -177,7 +215,7 @@ func _can_attack_character(enemy: Character000Base, check_lane: bool = true) -> 
 	## TODO:攻击植物子弹
 	if enemy is Plant000Base:
 		## 子弹阵营为植物
-		if bullet_camp == CharacterRegistry.CharacterType.Plant:
+		if bullet_camp == CharacterRegistry.CharacterType.Plant or enemy.battle_hidden_from_zombies:
 			return false
 		if not enemy.curr_be_attack_status & can_attack_plant_status:
 			return false
@@ -210,7 +248,11 @@ func _impact_bonus(_enemy: Character000Base) -> Vector2i:
 
 ## 对 [param enemy] 按原有角色类型分派一次命中；各子类的原生附加效果继续沿用此入口。
 func _attack_enemy(enemy:Character000Base):
-	if enemy is ZB000Base or enemy is EnemyStructureBase:
+	if enemy is FriendlyBattleBarrier:
+		var bonus: Vector2i = _impact_bonus(enemy) # 屏障使用真实碰撞坐标及本击伤害参数。
+		enemy.note_contact(global_position.y)
+		enemy.be_attacked_bullet(attack_value, bullet_mode, false, false, bonus.x, bonus.y, _impact_receipt())
+	elif enemy is ZB000Base or enemy is EnemyStructureBase:
 		# 僵王直接使用角色伤害入口，不转换成普通僵尸或套用其防具规则。
 		var was_alive: bool = not enemy.is_death # 只回报本次实际从存活变为死亡的僵王。
 		var bonus: Vector2i = _impact_bonus(enemy) # 局部冻结命中前附伤，Boss 受击窗口仍由角色入口检查。
@@ -263,7 +305,7 @@ func _attack_plant(plant:Plant000Base):
 	if not is_instance_valid(plant) or plant.is_death or plant.is_queued_for_deletion():
 		return
 	var bonus: Vector2i = _impact_bonus(plant) # 壳内实际受击植物确定后，才采样本次附伤。
-	plant.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx, bonus.x, bonus.y)
+	plant.be_attacked_bullet(attack_value, bullet_mode, true, trigger_be_attack_sfx, bonus.x, bonus.y, null, _plant_hit_scope)
 
 
 ## 直线子弹先对壳类进行攻击
@@ -309,16 +351,22 @@ func attack_once(enemy:Character000Base):
 	last_impact_damage = attack_value
 	last_impact_casualty = null
 	var continues: bool = _continues_after_hit(enemy) # 扣血前判定通行资格，当前附加状态不参与。
+	var has_impact: bool = _impact_effect.is_valid() and is_instance_valid(enemy) # 普通子弹不读取附加状态。
+	var first_impact: bool = curr_attack_num == 1 # 在伤害入口的同步信号前冻结首次命中资格。
+	var had_armor2: bool = has_impact and first_impact and enemy.hp_component is HpComponentZombie \
+		and (enemy.hp_component as HpComponentZombie).curr_hp_armor2 > 0 # 打碎防具的这一下仍受防具保护。
 	## 对敌人造成伤害
 	_attack_enemy(enemy)
 	attack_value = original_damage
 	if attack_context != null:
 		attack_context.resolve_kill(last_impact_casualty) # 同步消费命中资格，最后一击已经切到结算也可奖励。
+	if has_impact and is_instance_valid(enemy) and _impact_effect.is_valid():
+		_impact_effect.call(enemy, first_impact, had_armor2)
 	## 是否有音效
 	if type_bullet_SFX != SoundManagerClass.TypeBulletSFX.Null:
-		SoundManager.play_bullet_attack_SFX(type_bullet_SFX)
+		SoundManager.play_bullet_attack_SFX(type_bullet_SFX, self, global_position)
 	## 如果有子弹特效
-	if bullet_effect.is_bullet_effect:
+	if bullet_effect.is_bullet_effect and _should_show_impact(enemy):
 		# 穿透弹会继续飞行；中途命中特效复制后脱离，原始特效留给最后一次命中。
 		var effect: BulletEffect000Base = bullet_effect
 		if (not promotion_hit_factors.is_empty() and curr_attack_num < max_attack_num) \
@@ -334,4 +382,20 @@ func attack_once(enemy:Character000Base):
 	## 判断是否进入删除队列
 	impact_resolved.emit(enemy, global_position)
 	if not continues:
-		queue_free()
+		_finish_projectile(ExitCause.TERRAIN if enemy == null else ExitCause.IMPACT)
+
+## [param _cause] 表示正常弹道的终点。子类可同步提交纯视觉收据，物理对象同一帧回收。
+func _finish_projectile(_cause: ExitCause) -> void:
+	queue_free()
+
+## 对 [param enemy] 合并密集豌豆的短时间重复表现。末发与致死打击保留明确反馈。
+## 此窗口没有计时节点，且不参与伤害、控制或音效结算。
+func _should_show_impact(enemy: Character000Base) -> bool:
+	if not merge_pea_splats or not is_instance_valid(enemy):
+		return true
+	var frame: int = Engine.get_physics_frames() # 已经过的物理步，暂停期间没有新命中。
+	if frame < int(enemy.get_meta(PEA_SPLAT_FRAME_KEY, 0)) and not finisher_highlight and not enemy.is_death:
+		return false
+	var delay: int = ceili(Engine.physics_ticks_per_second * PEA_SPLAT_INTERVAL) # 将表现间隔转换成物理步数。
+	enemy.set_meta(PEA_SPLAT_FRAME_KEY, frame + delay)
+	return true

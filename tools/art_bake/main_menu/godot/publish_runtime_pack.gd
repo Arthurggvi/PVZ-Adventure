@@ -1,5 +1,9 @@
 extends SceneTree
 ## 离线无损发布原生贴图包：只读已批准源像素，正式运行无需Python或原始RGBA文件。
+
+## 与制作预览共用原始 PNG 读取和 Alpha 通道布局。
+const AssetStore = preload("../../../../scripts/ui/start_menu/coastal/asset_store.gd")
+
 func _initialize() -> void:
 	_publish.call_deferred()
 
@@ -9,7 +13,9 @@ func _publish() -> void:
 	DirAccess.make_dir_recursive_absolute(str(request.output).path_join("textures"))
 	var catalog := {} # 逻辑名到原生资源名。
 	var evidence: Array[Dictionary]=[] # 每份保存重开检查结果。
-	for logical: String in request.files:
+	for logical: String in request.files: # 制作源清单包含打包后合并到 Alpha 的技术场。
+		if logical in AssetStore.RELIGHT_ALPHA_SOURCES.values():
+			continue
 		var source: String=str(request.source).path_join(logical) # 输入母图或技术场。
 		var image: Image # 原尺寸和原数值，不重新生成图片。
 		if logical.ends_with(".rgba32f"):
@@ -17,7 +23,7 @@ func _publish() -> void:
 			assert(bytes.size()==1672*941*16,source)
 			image=Image.create_from_data(1672,941,false,Image.FORMAT_RGBAF,bytes)
 		else:
-			image=Image.load_from_file(source)
+			image=AssetStore.load_source_image(str(request.source), logical)
 		assert(image!=null and not image.is_empty(),source)
 		var texture := ImageTexture.create_from_image(image) # 序列化原生Texture2D。
 		var name := "textures/"+logical.replace("/","__").replace(".","_")+".res" # 不依赖工作目录名称。

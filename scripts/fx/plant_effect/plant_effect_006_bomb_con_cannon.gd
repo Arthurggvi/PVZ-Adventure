@@ -4,8 +4,8 @@ class_name BombEffectCobCannon
 
 @onready var gpu_particles_2d: GPUParticles2D = $GPUParticles2D
 
-func activate_bomb_effect():
-	super()
+## 发射玉米炮落地粒子并在结束后回收。
+func _play_effect() -> void:
 	gpu_particles_2d.emitting = true
 
 	await gpu_particles_2d.finished

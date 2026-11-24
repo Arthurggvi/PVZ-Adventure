@@ -19,8 +19,10 @@ static func discharge(shot: ElectricPeaShotContext, origin: Vector2, lane: int, 
 	var structures: Array[Character000Base] = [] # 设施补足原始电弧名额。
 	var radius_squared: float = pow(RANGE_CELLS * shot.cell_pitch.x, 2.0) # 格宽按发射位置换算。
 	for target: Character000Base in candidates: # 几何距离与真实攻击行共同限制放电范围。
+		if not target is ZB000Base and absi(target.lane - lane) > 1:
+			continue
 		var impact: Vector2 = ElectricPeaFlightQuery.target_position(target) # 僵王根节点可能不在真实落点。
-		if origin.distance_squared_to(impact) > radius_squared 				or (not target is ZB000Base and absi(shot.target_lane(target, impact) - lane) > 1):
+		if origin.distance_squared_to(impact) > radius_squared:
 			continue
 		if target is EnemyStructureBase:
 			structures.append(target)
@@ -29,6 +31,9 @@ static func discharge(shot: ElectricPeaShotContext, origin: Vector2, lane: int, 
 	zombies.shuffle()
 	structures.shuffle()
 	zombies.append_array(structures)
+	if zombies.is_empty():
+		return
+	var can_jump: bool = shot.promotions.jump_cells > 0.0 # 仅折射流派需要冻结原始落点所在行。
 	var visited: Dictionary[int, bool] = {} # 原始命中后才进入跳跃，避免抢占同轮主目标。
 	var scope := CombatHitScope.new() # 防止不同电弧经保护者转移后重复扣同一实体。
 	var impacts: Array[Vector2] = [] # 有实伤的原始电弧落点。
@@ -42,7 +47,7 @@ static func discharge(shot: ElectricPeaShotContext, origin: Vector2, lane: int, 
 			continue
 		var target: Character000Base = reference # 此时目标尚可读取落点和身份。
 		var impact: Vector2 = ElectricPeaFlightQuery.target_position(target) # 扣血前保存，兼容致死命中。
-		var impact_lane: int = shot.target_lane(target, impact) # 折射从该落点所在行开始。
+		var impact_lane: int = shot.target_lane(target, impact) if can_jump else lane # 需要折射时保留扣血前的受击行。
 		visited[target.get_instance_id()] = true
 		if strikes == 0:
 			SoundManager.play_sfx_with_pool(SOUND, -18.0)
@@ -52,10 +57,9 @@ static func discharge(shot: ElectricPeaShotContext, origin: Vector2, lane: int, 
 			var recipient: Variant = receipt.get("recipient") # 转伤对象也不能在此轮被跳跃重复击中。
 			if is_instance_valid(recipient):
 				visited[recipient.get_instance_id()] = true
-			impacts.append(impact)
-			lanes.append(impact_lane)
-	if shot.promotions.jump_cells <= 0.0:
-		return
+			if can_jump:
+				impacts.append(impact)
+				lanes.append(impact_lane)
 	for index: int in range(impacts.size()): # 每段原始实伤电弧最多折射一次，派生弧不再进入此列表。
 		_jump(shot, impacts[index], lanes[index], damage, candidates, visited, scope)
 

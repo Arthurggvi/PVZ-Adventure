@@ -63,14 +63,15 @@ static func _plant_art(target: PackedStringArray, plant_type: int, promotion_ran
 			append(target, path)
 
 ## 返回指定 [param kind]、[param type_id]、[param tier]（1～5）的预览依赖，不实例化整套角色目录。
-static func character(kind: String, type_id: int, tier: int = 1) -> PackedStringArray:
+static func character(kind: String, type_id: int, tier: int = 1, detail: bool = true) -> PackedStringArray:
 	var result := PackedStringArray() # 卡面和待机详情共享同一物种的资源准备。
 	var registry: Dictionary = CharacterRegistry.PlantInfo if kind == "plant" else CharacterRegistry.ZombieInfo
 	var attribute: int = int(CharacterRegistry.PlantInfoAttribute.PlantScenes) if kind == "plant" else int(CharacterRegistry.ZombieInfoAttribute.ZombieScenes)
-	append(result, str(registry.get(type_id, {}).get(attribute, "")))
-	var reference: ResourceCardReference = ResourceCardReference.create(ResourceCardReference.CardType.Plant if kind == "plant" else ResourceCardReference.CardType.Zombie, type_id)
-	for path: String in AllCards.get_resource_paths([reference]):
-		append(result, path)
+	var reference: ResourceCardReference = ResourceCardReference.create(ResourceCardReference.CardType.Plant if kind == "plant" else ResourceCardReference.CardType.Zombie, type_id) # 目录和详情共享身份。
+	var template: String = AllCards.get_template_path(reference) # 静态卡面存在时不解析战斗图集。
+	if detail or template.is_empty():
+		append(result, str(registry.get(type_id, {}).get(attribute, "")))
+	append(result, template)
 	if kind == "plant":
 		_plant_art(result, type_id, clampi(tier, 1, 5) - 1)
 	else:

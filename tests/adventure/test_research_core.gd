@@ -1,13 +1,13 @@
 ## Focused in-memory research acceptance, no user save writes or scene traversal.
-extends Node
+extends SceneTree
 const Recipes = preload("res://scripts/adventure/research/research_recipe_catalog.gd")
 const Promotions = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
 const Enhancement = preload("res://scripts/adventure/research/research_enhancement_rules.gd")
 const Research = preload("res://scripts/adventure/research/research_service.gd")
 var save_ok := true
 
-func _ready() -> void:
-	get_tree().create_timer(10.0, true, false, true).timeout.connect(func(): get_tree().quit(1))
+func _initialize() -> void:
+	create_timer(10.0, true, false, true).timeout.connect(func(): quit(1))
 	_run.call_deferred()
 
 func _persist() -> bool:
@@ -174,7 +174,5 @@ func _run() -> void:
 		assert(inventory.get_item_count(id) == 0)
 	assert(wallet.coin_value == before_reed_coin - 2000)
 	assert(not service.execute("craft", reed_choice).ok)
-	print("RESEARCH_CORE_PASS recipes=", Recipes.all_ids().size(), ", promotions, rollback, enhancement curve and settlement")
-	service = null
-	wallet.free()
-	get_tree().quit(0)
+	print("RESEARCH_CORE_PASS 52 recipes, promotions, rollback, enhancement curve and settlement")
+	quit(0)

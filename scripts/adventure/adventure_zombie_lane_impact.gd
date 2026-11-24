@@ -3,8 +3,11 @@
 extends RefCounted
 class_name AdventureZombieLaneImpact
 
+## [param lane] 是扫掠所在行，[param before_x]、[param after_x] 是实际世界区间。
+## [param damage] 用于非必杀扫掠，[param flatten] 标记碾压；[param impacted] 记录本次已击中实体。
+## [param attacker] 提供反伤归属。返回此次新增命中的植物数量。
 static func hit_plants(lane: int, before_x: float, after_x: float,
-        damage: int, flatten: bool, impacted: Dictionary[int, bool]) -> int:
+        damage: int, flatten: bool, impacted: Dictionary[int, bool], attacker: Character000Base = null) -> int:
     if not flatten and damage <= 0:
         return 0
     var game: MainGameManager = Global.main_game
@@ -14,6 +17,7 @@ static func hit_plants(lane: int, before_x: float, after_x: float,
     if lane < 0 or lane >= rows.size():
         return 0
     var count := 0
+    var crush: CombatHitScope = null # 扫掠真正命中植物时才创建归因。
     for entry: Variant in rows[lane]:
         var cell: PlantCell = entry as PlantCell
         if not is_instance_valid(cell):
@@ -27,12 +31,15 @@ static func hit_plants(lane: int, before_x: float, after_x: float,
                 continue
             var id: int = plant.get_instance_id()
             if impacted.has(id):
+                if flatten:
+                    plant.show_crush_contact()
                 continue
             impacted[id] = true
             if flatten:
-                plant.be_flattened()
+                if crush == null:
+                    crush = CombatHitScope.for_plant_attack(attacker, CombatHitScope.PlantImpact.CRUSH)
+                plant.be_hit_instantly(crush)
             else:
-                plant.be_attacked_bullet(
-                        damage, BulletRegistry.AttackMode.Penetration, true, false)
+                plant.be_hit_from(damage, attacker, BulletRegistry.AttackMode.Penetration)
             count += 1
     return count

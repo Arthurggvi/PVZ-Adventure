@@ -3,6 +3,51 @@ class_name SoundManagerClass
 
 enum Bus {MASTER, BGM, SFX}
 
+## 音效语义通道；UI 和警告旁路远近空间分流，场景可在 SFX 总线上统一处理，音乐保持独立。
+enum SFXSpace {COMBAT, DISTANT, UI}
+## 当前场景对音效路由的弱所有权，离场不延长场景生命周期。
+var _environment_owner: WeakRef
+## 由场景提供的近战与远处通道，不缓存环境资源。
+var _environment_routes: Dictionary = {}
+## 操作、奖励和警告走基础 SFX；是否附加统一环境滤镜由当前场景决定。
+const CLEAR_FEEDBACK: Array[StringName] = [
+	&"gravebutton", &"bleep", &"tap", &"buttonclick", &"pause", &"points", &"coin", &"diamond",
+	&"chime", &"moneyfalls", &"buzzer", &"seedlift", &"shovel", &"tap2", &"siren", &"awooga", &"finalwave",
+	&"hugewave", &"losemusic", &"readysetplant", &"scream", &"winmusic", &"plant1", &"plant2", &"plant_water",
+]
+## 远方叫声采用较深低通；啃食、命中和投掷保留近战瞬态。
+const DISTANT_VOICES: Array[StringName] = [
+	&"SquashHmm", &"Rarrgh", &"Dancer", &"zamboni", &"dolphin_appears", &"jackinthebox",
+	&"bungee_scream", &"gargantudeath", &"imp", &"bossexplosion",
+]
+
+## [param owner] 租用本场的 [param combat] 和 [param distant] 总线；不改 SFX、BGM 或 Master 的效果。
+func set_environment_routes(owner: Node, combat: StringName, distant: StringName) -> void:
+	_environment_owner = weakref(owner)
+	_environment_routes = {SFXSpace.COMBAT: combat, SFXSpace.DISTANT: distant}
+	for player: AudioStreamPlayer in sfx_bullet_pool: # 跨阶段仍在播放的短音效也平滑进入介质。
+		player.bus = spatial_sfx_bus(player.get_meta("sfx_space", SFXSpace.COMBAT))
+	for player: AudioStreamPlayer in [rain_player, storm_rain_player, boss_phase_roar_player]: # 全局专用环境播放器仍服从同一音效音量。
+		player.bus = spatial_sfx_bus(SFXSpace.DISTANT)
+
+## [param owner] 只能撤销自己的路由；先还原播放器，再由场景删除临时总线。
+func clear_environment_routes(owner: Node) -> void:
+	if _environment_owner == null or _environment_owner.get_ref() != owner:
+		return
+	_environment_owner = null
+	_environment_routes.clear()
+	for player: AudioStreamPlayer in sfx_bullet_pool: # 池复用前恢复正式 SFX，避免关卡退出后残留湿声。
+		player.bus = &"SFX"
+	for player: AudioStreamPlayer in [rain_player, storm_rain_player, boss_phase_roar_player]: # 专用播放器与池使用同一回收时机。
+		player.bus = &"SFX"
+
+## 返回 [param space] 对应的可用总线；无环境或场景已销毁时退回原版 SFX。
+func spatial_sfx_bus(space: SFXSpace = SFXSpace.COMBAT) -> StringName:
+	if space == SFXSpace.UI or _environment_owner == null or _environment_owner.get_ref() == null:
+		return &"SFX"
+	var route: StringName = _environment_routes.get(space, &"SFX") # 按名字查询，允许其他场景创建自己的总线。
+	return route if AudioServer.get_bus_index(route) >= 0 else &"SFX"
+
 @onready var bgm_play: AudioStreamPlayer = $BGMPlay
 @onready var sfx_all: Node = $SFXAll
 @onready var crazy_dave_player: AudioStreamPlayer = $SFXAll/CrazyDavePlayer
@@ -17,17 +62,44 @@ enum Bus {MASTER, BGM, SFX}
 ## 音效每25物理帧内不可以重复播放
 ## 音效资源只在首次真实播放时解析，启动不提前加载全量候选。
 var _stream_cache: Dictionary[String, AudioStream] = {}
+## 短音效热缓存只保留有限个最近使用的流；播放中的播放器独立持有。
+const SFX_CACHE_MAX_ENTRIES := 48
+## 以导入流的实际音频数据字节估算缓存预算，长音效不会挤满整个缓存。
+const SFX_CACHE_MAX_BYTES := 8 * 1024 * 1024
+## 每条缓存记录的估算字节数及合计。
+var _stream_bytes: Dictionary[String, int] = {}
+var _stream_cache_bytes: int = 0
 
 ## [param path] 为音效路径；统一缓存流资源，解析失败返回 null。
 func _stream(path: String) -> AudioStream:
 	if _stream_cache.has(path):
-		return _stream_cache[path]
+		var cached: AudioStream = _stream_cache[path] # 字典插入顺序维护 LRU。
+		_stream_cache.erase(path)
+		_stream_cache[path] = cached
+		return cached
 	var stream: AudioStream = load(path) as AudioStream
 	if stream == null:
 		push_error("SoundManager: invalid SFX resource " + path)
 		return null
+	var bytes: int = _estimate_stream_bytes(stream) # 音频数据大小，不代表整个引擎内存。
+	if bytes > SFX_CACHE_MAX_BYTES:
+		return stream
+	while not _stream_cache.is_empty() and (_stream_cache.size() >= SFX_CACHE_MAX_ENTRIES or _stream_cache_bytes + bytes > SFX_CACHE_MAX_BYTES):
+		var oldest: String = _stream_cache.keys()[0] # 最久未使用的流。
+		_stream_cache_bytes -= _stream_bytes[oldest]
+		_stream_bytes.erase(oldest)
+		_stream_cache.erase(oldest)
 	_stream_cache[path] = stream
+	_stream_bytes[path] = bytes
+	_stream_cache_bytes += bytes
 	return stream
+
+## [param stream] 为原生音频流；按数据格式估算，未知格式按 PCM 上界预算。
+func _estimate_stream_bytes(stream: AudioStream) -> int:
+	if stream is AudioStreamWAV or stream is AudioStreamMP3:
+		return stream.data.size()
+	# Ogg 等不读取整包序列化数据，保守按双声道 48kHz 16bit PCM 时长计费。
+	return maxi(1, ceili(stream.get_length() * 48000.0 * 4.0))
 
 ## [param value] 可以是单一音轨或候选数组，随机结果仍使用同一缓存。
 func _select_stream(value: Variant) -> AudioStream:
@@ -41,6 +113,12 @@ func _select_stream(value: Variant) -> AudioStream:
 
 var curr_frame_sfx:Array[AudioStream] = []
 var frame_num:=0
+## 高能重击需要的安静间隔，单位为真实毫秒，覆盖多个脉冲可能同时起播的音频缓冲。
+const THREEPEATER_LASER_ACCENT_GAP_MS: int = 110
+## 上一次高能脉冲发声的渲染帧，同帧多束和多株合并为一声。
+var _last_threepeater_laser_frame: int = -1
+## 上一次高能音效的请求时刻；初始值允许首发以完整重音播放。
+var _last_threepeater_laser_ms: int = -THREEPEATER_LASER_ACCENT_GAP_MS
 
 #func _ready() -> void:
 	#Global.config_service.load_and_apply_config()
@@ -150,6 +228,8 @@ const SFXCharacterMap := {
 	&"Throw1":"res://assets/audio/SFX/plant/throw1.ogg",
 	## 樱桃炸弹爆炸
 	&"CherryBomb":"res://assets/audio/SFX/plant/cherrybomb.ogg",
+	## 转基因玉米炮的落地爆裂和低频余震，首次命中才加载。
+	&"CornCobImpact": "res://resources/audio/sfx/corn_cob_impact.wav",
 	## 土豆雷爆炸
 	&"PotatoMine": "res://assets/audio/SFX/plant/potato_mine.ogg",
 	## 大嘴花
@@ -160,6 +240,8 @@ const SFXCharacterMap := {
 	&"PlantGrow": "res://assets/audio/SFX/plant/plantgrow.ogg",
 	## 大喷菇发射子弹
 	&"Fume": "res://assets/audio/SFX/plant/fume.ogg",
+	## 三线射手高能开火的短激光脉冲。
+	&"ThreePeaterLaser": "res://resources/audio/sfx/threepeater_high_energy.wav",
 	## 墓碑吞噬者
 	&"GraveBusterChomp":"res://assets/audio/SFX/plant/gravebusterchomp.ogg",
 	## 魅惑菇
@@ -205,6 +287,8 @@ const SFXCharacterMap := {
 	],
 	## 撑杆跳
 	&"Polevault":"res://assets/audio/SFX/zombie/polevault.ogg",
+	## 滑雪僵尸借冰起跳的短掠雪声。
+	&"SkiTakeoff": "res://assets/adventure/zombies/ski/takeoff.ogg",
 	## 读报僵尸愤怒
 	&"Rarrgh":[
 		"res://assets/audio/SFX/zombie/newspaper_rarrgh.ogg",
@@ -305,9 +389,11 @@ var sfx_bullet_pool = []
 
 ## 用 SFX 对象池播放 [param sfx_resource]，并应用本次的 [param volume_db] 和 [param pitch_scale]。
 ## 默认同帧合并相同资源；[param deduplicate_in_frame] 为 false 时保留每次播放事件。
+## [param space] 指定近战、远声或清晰反馈；每次取出播放器都重新路由，防止池复用串线。
 ## 返回实际使用的播放器，播放被合并时返回 null。
 func play_sfx_with_pool(sfx_resource: AudioStream, volume_db: float = 0.0,
-		pitch_scale: float = 1.0, deduplicate_in_frame: bool = true) -> AudioStreamPlayer:
+		pitch_scale: float = 1.0, deduplicate_in_frame: bool = true,
+		space: SFXSpace = SFXSpace.COMBAT) -> AudioStreamPlayer:
 	if deduplicate_in_frame:
 		if sfx_resource in curr_frame_sfx:
 			return null
@@ -329,33 +415,94 @@ func play_sfx_with_pool(sfx_resource: AudioStream, volume_db: float = 0.0,
 		sfx_bullet_pool.append(player)
 
 	## 配置播放器
+	player.set_meta("sfx_space", space)
+	player.bus = spatial_sfx_bus(space)
 	player.stream = sfx_resource
 	player.volume_db = volume_db
 	player.pitch_scale = pitch_scale
 	player.play()
 	return player
 
-#TODO: 好像没什么用,后续会删掉
-@warning_ignore("unused_parameter")
+## [param player] 完成播放后释放流，但保留可复用播放器及其连接。
 func _on_sfx_finished(player: AudioStreamPlayer):
-	# 播放完成后自动停止，保留在池中
-	#player.stop()
-	pass
+	if is_instance_valid(player) and not player.playing:
+		player.stream = null
 
 ## 播放僵尸受击音效
-func play_be_attack_SFX(type_bullet_zombie_sfx: TypeBeAttackSFX) -> void:
-	var selected: AudioStream = _select_stream(SFXBeAttackMap.get(type_bullet_zombie_sfx))
+## [param type_bullet_zombie_sfx] 为被击中材质，[param source] 是接触点所属节点，[param point] 为实际世界触点。
+func play_be_attack_SFX(type_bullet_zombie_sfx: TypeBeAttackSFX, source: Node = null, point: Vector2 = Vector2.INF) -> void:
+	var selected: AudioStream = _select_stream(SFXBeAttackMap.get(type_bullet_zombie_sfx)) # 保留原素材选择语义。
 	if selected != null:
-		play_sfx_with_pool(selected)
+		play_world_sfx(selected, source, point, 0.0, 1.0, &"hit")
 
-func play_bullet_attack_SFX(type_bullet_sfx: TypeBulletSFX) -> void:
-	var selected: AudioStream = _select_stream(SFXBulletMap.get(type_bullet_sfx))
+## 播放 [param type_bullet_sfx]；[param source] 和 [param point] 来自当前弹体命中或落地点。
+func play_bullet_attack_SFX(type_bullet_sfx: TypeBulletSFX, source: Node = null, point: Vector2 = Vector2.INF) -> void:
+	var selected: AudioStream = _select_stream(SFXBulletMap.get(type_bullet_sfx)) # 每次命中只选一次原音色。
 	if selected != null:
-		play_sfx_with_pool(selected)
+		play_world_sfx(selected, source, point, 0.0, 1.0, &"projectile_impact")
 
-func play_character_SFX(option: StringName) -> AudioStreamPlayer:
-	var selected: AudioStream = _select_stream(SFXCharacterMap.get(option))
-	return play_sfx_with_pool(selected) if selected != null else null
+## [param source] 与 [param point] 提供 [param option] 的真实世界声源，[param priority] 供场景池保留关键冲击。
+## 仅原音效池返回播放器，定位短声由当前关卡持有。
+func play_character_SFX(option: StringName, source: Node = null, point: Vector2 = Vector2.INF,
+		priority: int = 0) -> AudioStreamPlayer:
+	var selected: AudioStream = _select_stream(SFXCharacterMap.get(option)) # 只抽取一次，沿用原战斗随机顺序。
+	var space: SFXSpace = SFXSpace.DISTANT if option in DISTANT_VOICES else SFXSpace.COMBAT # 发声身份决定听觉距离，不改原音效资源。
+	return play_world_sfx(selected, source, point, 0.0, 1.0, option, true, priority, space) if selected != null else null
+
+## 返回 [param source] 所属战局显式启用的位置音效接收器。场外预览、UI 与未注入的战场返回空。
+func world_audio_for(source: Node) -> Node:
+	var game: MainGameManager = Global.main_game # 正式战斗当前所有者，音频服务不另存关卡全局标识。
+	if not is_instance_valid(source) or not is_instance_valid(game) or not is_instance_valid(game.world_audio):
+		return null
+	return game.world_audio if source == game or game.is_ancestor_of(source) else null
+
+## [param stream] 沿用原素材，以 [param source] 确定作用域。[param point] 默认取 Node2D 的视觉原点。
+## [param volume_db]、[param pitch_scale] 与 [param deduplicate] 保留原音效参数。
+## [param family] 和 [param priority] 供局内池分区合并与保留关键瞬态，[param space] 保持原总线语义。
+## 只有回退到原播放器时才返回该播放器。接管路径只播放一份。
+func play_world_sfx(stream: AudioStream, source: Node, point: Vector2 = Vector2.INF,
+		volume_db: float = 0.0, pitch_scale: float = 1.0, family: StringName = &"combat",
+		deduplicate: bool = true, priority: int = 0, space: SFXSpace = SFXSpace.COMBAT) -> AudioStreamPlayer:
+	var router: Node = world_audio_for(source) # 每次只使用本场战斗授权的局内接收器。
+	if router != null and router.is_node_ready() and space != SFXSpace.UI:
+		var at: Vector2 = source.global_position if not point.is_finite() and source is Node2D else point # 事件坐标优先于节点原点。
+		if at.is_finite():
+			router.play_at(stream, at, volume_db, pitch_scale, family, 0.65 if space == SFXSpace.DISTANT else 0.0, priority)
+			return null
+	return play_sfx_with_pool(stream, volume_db, pitch_scale, deduplicate, space)
+
+## 从 [param cue] 的真实挂点播放同一声音。[param family] 和 [param priority] 控制局内池的合并与保留。
+## 支持空间池时归还旧播放器的职责；其它战场仍由原节点负责声像和生命周期。
+func play_attached_sfx(cue: AudioStreamPlayer2D, family: StringName, priority: int = 0) -> void:
+	var router: Node = world_audio_for(cue) # 仅当前显式注入的场景能接管此声源。
+	if router != null and router.is_node_ready():
+		router.play_at(cue.stream, cue.global_position, cue.volume_db, cue.pitch_scale, family, 0.0, priority)
+	else:
+		cue.bus = spatial_sfx_bus()
+		cue.play()
+
+## 高能每个可见的开火帧响一次。同帧齐射合声，后续脉冲继续沿用战斗总线与音效池。
+## 密集跟发降低音量，保留单发重击并给同一音频缓冲内叠播的脉冲留出余量。
+## [param source] 和 [param point] 提供实际弹口；空间池只合并相邻位置的声音。
+func play_threepeater_laser_SFX(source: Node = null, point: Vector2 = Vector2.INF) -> void:
+	var frame: int = Engine.get_process_frames() # 同一画面中的声音起点无需叠播。
+	if frame == _last_threepeater_laser_frame and world_audio_for(source) == null:
+		return
+	_last_threepeater_laser_frame = frame
+	var stream: AudioStream = _select_stream(SFXCharacterMap[&"ThreePeaterLaser"]) # 首次开火才载入。
+	if stream != null:
+		var now: int = Time.get_ticks_msec() # 与音频播放时钟同速，慢镜与倍速时仍按实际间隔混音。
+		var following_quickly: bool = now - _last_threepeater_laser_ms < THREEPEATER_LASER_ACCENT_GAP_MS # 密集叠播时让出音量。
+		_last_threepeater_laser_ms = now
+		play_world_sfx(stream, source, point, -12.5 if following_quickly else -5.0, 1.0, &"laser", false)
+
+## 从 [param source] 所属的战斗在 [param point] 播放玉米炮落地声。
+## [param follows_recent] 表示前一炮的低频余震还在播放，给跟发降音量以免密集落炮时叠满总线。
+func play_corn_cob_impact_SFX(source: Node, point: Vector2, follows_recent: bool) -> void:
+	var stream: AudioStream = _select_stream(SFXCharacterMap[&"CornCobImpact"]) # 一次载入，首发和跟发共用。
+	if stream != null:
+		var gain_db: float = -11.0 if follows_recent else -2.0 # 保留首响余量，后续命中仍给出清楚的起音。
+		play_world_sfx(stream, source, point, gain_db, 1.0, &"CornCobImpact", false, 2)
 
 ## 播放阶段龙咆哮，沿用战斗 SFX 总线与音量设置。
 func play_boss_phase_roar() -> void:
@@ -401,6 +548,7 @@ func set_rain_mix(gains: Vector2, storm_audio: AudioStream = null) -> void:
 ## 停止本场雨的两层循环并释放关卡提供的暴雨素材引用。
 func stop_rain_SFX() -> void:
 	rain_player.stop()
+	rain_player.stream = null # 天气离场不保留独立复制的循环流。
 	rain_player.volume_db = 0.0
 	storm_rain_player.stop()
 	storm_rain_player.stream = null
@@ -489,11 +637,12 @@ const SFXOtherMap := {
 	&"wakeup": "res://assets/audio/SFX/garden/wakeup.ogg",
 
 }
-## 播放其它相关音效
+## 按 [param option] 播放既有场景或反馈音效；操作、奖励与警告使用基础 SFX 通道。
 func play_other_SFX(option: StringName) -> void:
 	var selected: AudioStream = _select_stream(SFXOtherMap.get(option))
 	if selected != null:
-		play_sfx_with_pool(selected)
+		var space: SFXSpace = SFXSpace.UI if option in CLEAR_FEEDBACK else SFXSpace.COMBAT # 基础 SFX 也可以被当前场景的全局水下链统一处理。
+		play_sfx_with_pool(selected, 0.0, 1.0, true, space)
 
 
 #endregion

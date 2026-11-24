@@ -9,7 +9,7 @@ const MAX_SECONDS: float = 8.0
 ## 派生时继承的同一次战斗来源。
 var shot: RepeaterShotContext
 ## 一级深色星或二级浅色星，仅影响视觉与后续分裂资格。
-var kind: StringName = &"star_dark"
+var variant_kind: StringName = &"star_dark"
 ## 一级为一，二级为二，二级命中后绝不继续分裂。
 var generation: int = 1
 ## 同次扇出中的不同配色编号。
@@ -21,13 +21,13 @@ var _age: float = 0.0
 ## 原生匀速段速度；每帧只临时投影积分后的平均速度，不逐帧相乘。
 var _cruise_speed: float = 300.0
 
-## 物理回调中分裂的星在安全时机入树；原场景或阶段失效则直接释放未挂载弹体。
+## 物理回调中分裂的星在安全时机入树；原场景或阶段失效则在帧末释放未挂载弹体。
 func attach_to_battle() -> void:
 	if get_parent() != null:
 		return
 	if shot == null or not shot.is_active() or not is_instance_valid(shot.game.bullets) \
 			or shot.game.bullets.is_queued_for_deletion():
-		free()
+		queue_free()
 		return
 	shot.game.bullets.add_child(self)
 
@@ -45,7 +45,7 @@ func _ready() -> void:
 		_promotion_hit_ids[birth_target_id] = true
 	bullet_effect.is_bullet_effect = false
 	impact_resolved.connect(_on_impact)
-	RepeaterProjectileVisual.attach(self, kind, generation, color_index)
+	RepeaterProjectileVisual.attach(self, variant_kind, generation, color_index)
 
 ## [param delta] 为原生物理战斗时间；用曲线积分差移动，跨帧步长不会改变路程。
 func _physics_process(delta: float) -> void:
@@ -71,7 +71,7 @@ func _distance_units(age: float) -> float:
 func _on_impact(target: Character000Base, position: Vector2) -> void:
 	if shot == null or not shot.is_same_battle():
 		return
-	RepeaterImpactVisual.spawn(shot.game.bullets, kind, position, direction, z_index) # 分裂星跨行飞行时仍沿用当前弹体绘制深度。
+	RepeaterImpactVisual.spawn(shot.game.bullets, variant_kind, position, direction, z_index) # 分裂星跨行飞行时仍沿用当前弹体绘制深度。
 	if not shot.is_active():
 		return
 	if generation == 1 and is_instance_valid(target):

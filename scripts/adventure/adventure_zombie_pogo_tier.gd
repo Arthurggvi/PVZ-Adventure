@@ -21,4 +21,4 @@ func _on_jump_landed(before_x: float, after_x: float) -> void:
     if not is_instance_valid(_pogo) or _pogo.is_death or _pogo.is_hypno or _pogo.is_action_suspended():
         return
     AdventureZombieLaneImpact.hit_plants(
-            _pogo.lane, before_x, after_x, _damage, false, {})
+            _pogo.lane, before_x, after_x, _damage, false, {}, _pogo)

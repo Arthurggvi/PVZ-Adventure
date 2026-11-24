@@ -1,13 +1,39 @@
-## Focused checks for 23 ID mappings, immutable slot anchoring and reusable recipes.
+## Inventory item art contracts: complete mappings, key icons, backing reuse and slot anchoring.
 extends Node
 const Asset = preload("res://scripts/adventure/ui/inventory_item_art.gd")
 const Tile = preload("res://scripts/adventure/ui/inventory_tile.gd")
+const WONDERLAND_SLUGS: Array[String] = [
+	"psychedelic_current", "zombie_church", "john_furnace", "snow_mountains",
+	"garden_airship", "edgar_mountain", "mushroom_forest", "resting_plain",
+	"frozen_tundra", "badlands", "abandoned_school"
+]
 func _ready() -> void:
 	call_deferred("_run")
 func _run() -> void:
 	var m: Dictionary = Asset.manifest()
-	assert(m.has("ids") and (m["ids"] as Dictionary).size() == 42)
+	assert(m.has("ids") and (m["ids"] as Dictionary).size() == 54)
 	assert(m.has("backgrounds"))
+	# 奇境大陆所有地区的噩梦钥匙必须通过同一物品注册表与背包美术清单。
+	var wonderland_paths: Dictionary = {}
+	for slug: String in WONDERLAND_SLUGS:
+		var key_id: String = "wonderland.%s.nightmare_key" % slug
+		var definition: Dictionary = ItemRegistry.get_item_definition(key_id)
+		assert(definition.get("category", "") == "key", key_id)
+		assert(not str(definition.get("name", "")).is_empty(), key_id)
+		assert(m["ids"].has(key_id), key_id)
+		assert(Asset.backing_uri(key_id) == Asset.backing_uri("lawn_nightmare_key"), key_id)
+		var icon_path: String = Asset.icon_uri(key_id)
+		assert(icon_path.ends_with("keys/wonderland_%s_nightmare_key.png" % slug), key_id)
+		assert(not wonderland_paths.has(icon_path), "Duplicate wonderland key art: " + key_id)
+		wonderland_paths[icon_path] = true
+		var icon_texture: Texture2D = load(icon_path) as Texture2D
+		assert(icon_texture != null and icon_texture.get_size() == Vector2(256, 256), key_id)
+		var pixel_data: Image = icon_texture.get_image()
+		assert(pixel_data != null and pixel_data.get_pixel(0, 0).a < 0.05, key_id)
+	assert(Asset.icon_uri("wonderland.psychedelic_current.terminal_key") ==
+		Asset.icon_uri("wonderland.psychedelic_current.nightmare_key"))
+	assert(ItemRegistry.get_item_definition("wonderland.psychedelic_current.nightmare_key").description ==
+		"致幻洋流普通阶段通关获得，消耗一把进入本局噩梦阶段。")
 	for id: String in ItemRegistry.ITEMS:
 		assert(not Asset.entry(id).is_empty(), "Missing item art mapping: " + id)
 		assert(not Asset.icon_uri(id).is_empty(), "Missing item icon: " + id)
@@ -46,6 +72,7 @@ func _run() -> void:
 		{"id":"fungal_spores","category":"material"},
 		{"id":"aquatic_fiber","category":"material"},
 		{"id":"lawn_nightmare_key","category":"key"},
+		{"id":"wonderland.resting_plain.nightmare_key","category":"key"},
 		{"id":"growth_agent_lv1","category":"consumable"}]
 	var anchor := Vector2(-5, 0) # 道具底图按格子高度填充后的居中位置。
 	for entry: Dictionary in variants:

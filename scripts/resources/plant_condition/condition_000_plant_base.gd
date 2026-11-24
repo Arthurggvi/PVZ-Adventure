@@ -30,6 +30,11 @@ var plant_condition:int = 22
 func placement_cells(cell: PlantCell) -> Array[PlantCell]:
 	return [cell]
 
+
+## 返回面向 [param _cell] 的实际种植槽，预览和放置事务共用。
+func placement_slot(_cell: PlantCell) -> CharacterRegistry.PlacePlantInCell:
+	return place_plant_in_cell
+
 ## Additional restrictions for footprints (e.g. two-column cannon needs clear shells).
 func upgrade_footprint_available(_cells: Array[PlantCell]) -> bool:
 	return true
@@ -141,7 +146,7 @@ func judge_revival_allowed(cell: PlantCell, species: CharacterRegistry.PlantType
 		return false
 	var cells: Array[PlantCell] = placement_cells(cell) # 使用与普通种植相同的完整空间声明。
 	if cells.is_empty() or not upgrade_footprint_available(cells) \
-			or not cell._placement_is_available(self, cells, []):
+			or not cell._placement_is_available(place_plant_in_cell, cells, []):
 		return false
 	if not is_purple_card:
 		return judge_is_can_plant(cell, species)

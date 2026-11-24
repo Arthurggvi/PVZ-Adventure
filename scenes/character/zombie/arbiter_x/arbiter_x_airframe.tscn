@@ -1,0 +1,56 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/character/zombie/arbiter_x/arbiter_x_airframe.gd" id="1_airframe"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/arbiter_x/airframe.png" id="2_hull"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/arbiter_x/exhaust_sheet.png" id="3_exhaust"]
+
+[ext_resource type="Script" path="res://scripts/character/zombie/arbiter_x/arbiter_x_smoke_trail.gd" id="4_smoke"]
+[ext_resource type="Shader" path="res://shaders/adventure/arbiter_x_hull_warning.gdshader" id="5_warning"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/arbiter_x/audio/damage_alarm.ogg" id="6_alarm"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/arbiter_x/audio/slipstream.ogg" id="7_rush"]
+
+[sub_resource type="ShaderMaterial" id="HullWarning"]
+shader = ExtResource("5_warning")
+
+[node name="Airframe" type="Node2D"]
+script = ExtResource("1_airframe")
+
+[node name="SmokeTrail" type="Node2D" parent="."]
+script = ExtResource("4_smoke")
+
+[node name="FarExhaust" type="Sprite2D" parent="."]
+position = Vector2(89.902, -134.4)
+rotation = -0.17453293
+scale = Vector2(0.92, 0.92)
+texture = ExtResource("3_exhaust")
+centered = false
+offset = Vector2(-26, -48)
+hframes = 6
+vframes = 6
+
+[node name="NearExhaust" type="Sprite2D" parent="."]
+position = Vector2(181.862, 47.848)
+rotation = -0.13962634
+texture = ExtResource("3_exhaust")
+centered = false
+offset = Vector2(-26, -48)
+hframes = 6
+vframes = 6
+
+[node name="Hull" type="Sprite2D" parent="."]
+material = SubResource("HullWarning")
+texture = ExtResource("2_hull")
+centered = false
+offset = Vector2(-292, -256)
+
+[node name="Alarm" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("6_alarm")
+volume_db = -3.0
+max_distance = 1070.0
+bus = &"SFX"
+
+[node name="Rush" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("7_rush")
+volume_db = -12.0
+max_distance = 1100.0
+bus = &"SFX"

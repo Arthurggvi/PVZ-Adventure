@@ -31,6 +31,8 @@ var _mode := "today"
 var _tier := 0
 ## 预留的材料 ID，重复项代表多本同书，不提前扣库存。
 var _selected: Array[String] = []
+## 定向目标物种；零为普通转换，未选植物时使用规则中的占位值。
+var _target_plant := 0
 ## 当前页最近成功取得的技能书 ID。
 var _result := ""
 ## 非阻塞的结果提示条。
@@ -108,10 +110,21 @@ func _render() -> void:
 	var today: String = AdventureQuestService.today() # 同次绘制共用日期，更新失败或时钟回拨时不允许付费换书。
 	if str(shelf.day) < today:
 		shelf.offers = []
+	var plants: Array[int] = [] # 只在定向时投影可选物种。
+	if _target_plant != 0:
+		plants = _target_plants()
+		if _target_plant > 0 and _target_plant not in plants:
+			_target_plant = Service.Rules.UNSELECTED_TARGET
 	_view.render({"mode": _mode, "tier": _tier, "coins": Global.global_game_state.coin_value,
 		"shelf": shelf, "today": today, "selected": _selected.duplicate(), "result": _result,
+		"target_plant": _target_plant, "target_plants": plants,
 		"available": _service.available(_mode, _selected, _tier) if _mode != "today" else [],
-		"quote": _service.quote(_mode, _selected) if _mode != "today" else {"ready": false}})
+		"quote": _service.quote(_mode, _selected, _target_plant) if _mode != "today" else {"ready": false}})
+
+## 投入首本后按实际等阶筛选定向植物，选书前允许从整个目录挑选。
+func _target_plants() -> Array[int]:
+	var first: Dictionary = Service.Rules.Books.definition(_selected[0]) if not _selected.is_empty() else {} # 等阶由材料决定。
+	return Service.Rules.target_plants(int(first.get("tier", 0)))
 
 ## 处理纯表现层发送的 [param action] 与 [param data]；交易前再次验证档案和实时材料。
 func _on_action(action: String, data: Variant) -> void:
@@ -131,11 +144,26 @@ func _on_action(action: String, data: Variant) -> void:
 			_mode = str(data)
 			_tier = 0
 			_selected.clear()
+			_target_plant = 0
 			_result = ""
 		"tier":
 			_tier = clampi(int(data), 0, 4 if _mode == "convert" else 3)
+		"directed":
+			if _mode != "convert" or bool(data) == (_target_plant != 0):
+				return
+			_target_plant = Service.Rules.UNSELECTED_TARGET if bool(data) else 0
+			var required: int = Service.Rules.required_books(_mode, _target_plant) # 关闭定向时只撤回额外的第三槽预留。
+			if _selected.size() > required:
+				_selected.resize(required)
+			_result = ""
+		"target_plant":
+			if _mode != "convert" or _target_plant == 0 or int(data) not in _target_plants():
+				return
+			if _target_plant != int(data):
+				_target_plant = int(data)
+				_result = ""
 		"select":
-			if _selected.size() >= (2 if _mode == "convert" else 3):
+			if _mode == "today" or _selected.size() >= Service.Rules.required_books(_mode, _target_plant):
 				return
 			for entry: Dictionary in _service.available(_mode, _selected, _tier): # 只允许追加仍有余量的合法候选。
 				if str(entry.id) == str(data):
@@ -157,7 +185,7 @@ func _on_action(action: String, data: Variant) -> void:
 			elif action == "buy":
 				outcome = _service.buy(int(data.revision), int(data.slot))
 			else:
-				outcome = _service.combine(_mode, _selected)
+				outcome = _service.combine(_mode, _selected, _target_plant)
 			_busy = false
 			if outcome.ok:
 				var gained: String = str(outcome.get("book", "")) # 已保存结果才进入提示及预览。
@@ -204,11 +232,12 @@ func _profile_changed() -> void:
 	if not _is_current():
 		request_close()
 
-## [param event] 的取消键关闭模态，并拦截同一按键继续传给背景。
+## [param event] 的取消键优先收起植物目录，再关闭图书馆。
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
-		request_close()
+		if not _view.dismiss_plant_picker():
+			request_close()
 
 ## 播放关闭动效，结束后释放宿主引用；退出期间不允许再次交易。
 func request_close() -> void:

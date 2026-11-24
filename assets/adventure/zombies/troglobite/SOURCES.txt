@@ -1,0 +1,28 @@
+Troglobite — existing Plants vs. Zombies 2 sprite assets
+Original game artwork: PopCap Games / Electronic Arts.
+Rip and assembled PNG export uploader: Redtarp, The Spriters Resource.
+Asset page: https://www.spriters-resource.com/mobile/plantsvszombies2/asset/483370/
+Original ZIP download: https://www.spriters-resource.com/media/assets/465/483370.zip?updated=1759027528
+Archive SHA-256: 7b551e573fc27e766f40d0db831fd551c6047e25ff9fc5dd11b101469dd0eebc
+Retrieved during this task, 2026-11-21.
+
+Processing: existing assembled frames were resized to exactly 0.5, cropped only in transparent areas and packed into RGBA PNG atlases no larger than 2048 per side. Every original source frame and its order is retained in SpriteFrames; duplicate bitmaps share texture rectangles. No AI-generated artwork or painted replacement pixels were added.
+PNG files do not contain playback timing. The 30 ms frame interval follows the source site's downloadable GIF previews where available; animations.json records timing evidence and any fallback per action. This is not a claim that the original game PAM had that precise timebase.
+Animation canvas and foot-point alignment: see animations.json. The source does not provide original skeleton/pivots. Death is already headless and missing one arm. Separate armless walking/eating art is not present.
+
+Site usage terms: https://www.spriters-resource.com/page/tou/
+These are copyrighted game rips, not an open commercial art license. The source terms prohibit commercial uses, monetized distribution and publication in established marketplaces, including free marketplace releases. Preserve attribution. Full original ZIPs and unused parts remain in the research directory, not the production asset tree.
+
+Frozen block original asset page: https://www.spriters-resource.com/mobile/plantsvszombies2/asset/483802/
+Frozen block ZIP: https://www.spriters-resource.com/media/assets/466/483802.zip?updated=1759111123
+Frozen block uploader: Redtarp. Six original front/back damage states are in ice_blocks/. No frozen imp has been painted into those images; the game layers a still Yeti Imp frame between the original back and front ice layers.
+
+Original sound effects: PopCap Games / Electronic Arts, hosted by the Plants vs. Zombies Wiki.
+Source page: https://plantsvszombies.fandom.com/wiki/Troglobite
+Audio is copied unchanged, not synthesized or re-recorded.
+push_windup.ogg: https://static.wikia.nocookie.net/plantsvszombies/images/1/10/Iceblocksmoving.ogg/revision/latest
+push_slide.ogg: https://static.wikia.nocookie.net/plantsvszombies/images/1/1e/Iceblocksmoved.ogg/revision/latest
+grunt_1.ogg: https://static.wikia.nocookie.net/plantsvszombies/images/b/b3/Arcadegrunt1.ogg/revision/latest
+grunt_2.ogg: https://static.wikia.nocookie.net/plantsvszombies/images/f/f2/Arcadegrunt2.ogg/revision/latest
+grunt_3.ogg: https://static.wikia.nocookie.net/plantsvszombies/images/b/b1/Arcadegrunt3.ogg/revision/latest
+grunt_4.ogg: https://static.wikia.nocookie.net/plantsvszombies/images/5/56/Arcadegrunt4.ogg/revision/latest

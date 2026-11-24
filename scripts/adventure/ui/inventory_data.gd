@@ -33,7 +33,7 @@ const PLANT_DESCRIPTIONS: Dictionary[int, String] = {
 	CharacterRegistry.PlantType.P016DoomShroom: "引发大范围爆炸，并留下暂时无法种植的弹坑",
 	CharacterRegistry.PlantType.P017LilyPad: "漂浮在水面，为其他植物提供种植位置",
 	CharacterRegistry.PlantType.P018Squash: "发现靠近的僵尸后跃起，将其压扁",
-	CharacterRegistry.PlantType.P019ThreePeater: "同时向前方三条路线发射豌豆",
+	CharacterRegistry.PlantType.P019ThreePeater: "同时射出三颗豌豆，边路朝外的豌豆并入本行",
 	CharacterRegistry.PlantType.P020TangleKelp: "缠住靠近的水中僵尸，将其拖入水底",
 	CharacterRegistry.PlantType.P021Jalapeno: "沿所在路线释放火焰，焚烧整行僵尸",
 	CharacterRegistry.PlantType.P022Caltrop: "扎伤踩过的僵尸，并刺破车辆的轮胎",
@@ -74,7 +74,8 @@ const PLANT_DESCRIPTIONS: Dictionary[int, String] = {
 	CharacterRegistry.PlantType.P1003WallNutBowlingBig: "以巨大的身躯向前滚动，碾过沿途的僵尸",
 }
 
-static func rows(category: String, search: String, order_mode: int) -> Array[Dictionary]:
+## 按背包顺序返回 [param category] 中匹配 [param search] 的展示行。
+static func rows(category: String, search: String) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	if Global.adventure_inventory == null:
 		return result
@@ -101,10 +102,6 @@ static func rows(category: String, search: String, order_mode: int) -> Array[Dic
 			if hay.contains(needle):
 				filtered.append(row)
 		result = filtered
-	if order_mode == 1:
-		result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return str(a["title"]) < str(b["title"]))
-	elif order_mode == 2 and category == "plants":
-		result.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a["stars"]) > int(b["stars"]))
 	return result
 
 ## 把 [param card] 转成背包格可读的展示行，保留卡片独立 UID 和转职数据。

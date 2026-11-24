@@ -1,9 +1,9 @@
-## 商店独立存档协议；只保存购买事实，不持有场景、价格或钱包。
+## 商店独立存档协议，记录限购与永久解锁状态。
 extends RefCounted
 
 ## 槽位边界及商品合法性来自唯一目录。
 const Catalog = preload("res://scripts/adventure/shop/shop_catalog.gd")
-## 最近一次成交的自然日；时钟回拨时仍保留该日限购次数。
+## 已购数量归属的自然日；设备日期校正时会同步归到当天。
 var day := ""
 ## 当日每种商品已购买数量。
 var daily_purchases: Dictionary[String, int] = {}
@@ -13,6 +13,14 @@ var card_slots: int = Catalog.BASE_SLOTS
 var glove_unlocked := false
 ## 每笔成功购买递增；确认单只能使用当前版本。
 var revision := 0
+
+## 将晚于 [param today] 的限购日期校正到当天，沿用已购数量，并从下一次本地跨日恢复补货。
+## 发生校正时返回 true；无效日期或已到期的记录返回 false。
+func correct_future_day(today: String) -> bool:
+	if today.is_empty() or today >= day or not valid_day(today):
+		return false
+	day = today
+	return true
 
 ## 返回不共享容器的序列化数据。
 func to_dict() -> Dictionary:
@@ -36,7 +44,7 @@ static func from_dict(data: Variant) -> RefCounted:
 	for id: Variant in data.daily_purchases: # 只保存目录中有限购的商品；数量不得超过配置。
 		if not id is String or not PlantCardInstance.is_positive_integer(data.daily_purchases[id]):
 			return null
-		var limit: int = int(Catalog.product(id).get("daily_limit", 0)) # 禁止把常驻商品伪装成限购计数。
+		var limit: int = Catalog.daily_limit(id) # 校验数量不需要构造带装备资源的商品详情。
 		if data.daily_purchases[id] > limit or data.day.is_empty():
 			return null
 		result.daily_purchases[id] = int(data.daily_purchases[id])

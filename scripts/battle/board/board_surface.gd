@@ -1,4 +1,4 @@
-## 种植平台实例；运动只改变节点变换，不改地块身份、占用或攻击行。
+## 刚性种植平台实例；地块身份和占用稳定，显式启用的棋盘另按脚点投影攻防行。
 extends Node2D
 class_name BoardSurface
 
@@ -19,20 +19,25 @@ var _duration: float = 0.0
 ## 显式移动已用秒数。
 var _move_elapsed: float = 0.0
 
-## 配置 [param data] 和 [param owner_game]；必须在入树前调用。
+## 在入树前装配 [param data] 和 [param owner_game]；阶段交接时可重新配置现有平台。
 func configure(data: BoardSurfaceDefinition, owner_game: MainGameManager) -> void:
 	definition = data
 	game = owner_game
 	position = data.origin
 	set_physics_process(not data.travel_offset.is_zero_approx())
+	if is_node_ready():
+		_sync_combat_lanes(true)
 
-## 视觉场景为平台子节点，不接管种植节点。
+## 水体接触区和视觉场景跟随平台，不接管种植节点。
 func _ready() -> void:
 	set_physics_process(not definition.travel_offset.is_zero_approx())
+	for region: Rect2 in definition.water_regions: # 已通过战场预检的水域矩形。
+		add_child(WaterBodyArea.from_region(region))
 	if definition.visual_scene != null:
 		var visual: Node = definition.visual_scene.instantiate() # 每个平台独立的视觉实例。
 		add_child(visual)
 		move_child(visual, 0)
+	_sync_combat_lanes()
 
 ## 只有正式战斗推进；[param delta] 已受引擎时间倍率影响，不再次乘速率。
 func _physics_process(delta: float) -> void:
@@ -57,15 +62,43 @@ func move_to(target: Vector2, seconds: float) -> void:
 	_apply_manual()
 	set_physics_process(seconds > 0.0)
 
+## 当前轨迹还能向世界下方移动的最大像素数，用于预留跟踪甲板的入场路线。
+func downward_travel_room() -> float:
+	if not is_physics_processing():
+		return 0.0
+	var parent_item := get_parent() as CanvasItem # 位移端点使用平台的父级坐标。
+	var to_world: Transform2D = parent_item.get_global_transform() if parent_item != null else Transform2D.IDENTITY # 只取线性部分。
+	var endpoint: Vector2 = _target if _manual else definition.origin # 手动轨迹单向完成，自动往返有两个端点。
+	var room: float = to_world.basis_xform(endpoint - position).y # 从当前位置到第一个端点的世界纵移。
+	if not _manual:
+		room = maxf(room, to_world.basis_xform(endpoint + definition.travel_offset - position).y)
+	return maxf(room, 0.0)
+
 ## 按余弦往返，端点速度为零；不改变植物局部坐标。
 func _apply_auto() -> void:
 	var amount: float = (1.0 - cos(PI * _elapsed / definition.travel_seconds)) * 0.5 # 当前轨道进度。
 	position = definition.origin + definition.travel_offset * amount
+	_sync_combat_lanes()
 
 ## 从保存的进度计算当前位姿；不积累逐帧差值。
 func _apply_manual() -> void:
 	var amount: float = 1.0 if _duration <= 0.0 else clampf(_move_elapsed / _duration, 0.0, 1.0) # 当前进度。
 	position = _from.lerp(_target, amount * amount * (3.0 - 2.0 * amount))
+	_sync_combat_lanes()
+
+## 运动和读档使用相同的脚点投影。[param reconfigured] 允许阶段交接时恢复默认逻辑行。
+func _sync_combat_lanes(reconfigured: bool = false) -> void:
+	if not is_inside_tree() or not is_instance_valid(game) or game.board == null or game.board.definition == null:
+		return
+	var project_lanes: bool = game.board.definition.project_surface_combat_lanes # 普通战场没有逐帧计算。
+	if not project_lanes and not reconfigured:
+		return
+	for child: Node in get_children(): # 美术和水域也可挂在平台下，只有种植点参与投影。
+		if child is PlantCell:
+			var cell: PlantCell = child # 脚点不含植物待机动画或承托层摇摆。
+			var lane: int = game.board.lane_at_foot_y(game.to_local(cell.get_spawn_global_position()).y) \
+				if project_lanes else cell.row_col.x # 默认布局沿用稳定逻辑行。
+			cell.update_combat_lane(lane)
 
 ## 返回可序列化运动状态，恢复时无需重放全部历史帧。
 func capture_state() -> Dictionary:

@@ -6,28 +6,34 @@ signal quests_changed
 signal player_changed
 ## 首次发现物种时通知已打开的图鉴刷新目录。
 signal almanac_changed
-## 同一帧的多次遇敌合并保存，避免一波僵尸逐只写盘。
-var _almanac_save_queued := false
+## 战斗击杀已记入内存，等待任务时钟合并通知界面。
+var _zombie_defeat_pending_refresh := false
+
+## Android 系统返回键进入现有的取消输入链，由当前弹窗或场景处理。
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		_dispatch_android_back.call_deferred()
+
+## 模拟完整的一次 Esc 按下与释放，让现有按键回调共享同一消费顺序。
+func _dispatch_android_back() -> void:
+	var pressed := InputEventKey.new() # Android 的返回动作交给 [code]ui_cancel[/code] 所绑定的按键。
+	pressed.keycode = KEY_ESCAPE
+	pressed.pressed = true
+	var released := pressed.duplicate() as InputEventKey # 按下和释放分别提交，避免积攒事件时改写前一事件。
+	released.pressed = false
+	Input.parse_input_event(pressed)
+	Input.parse_input_event(released)
 
 ## 仅由实战角色调用；[param kind] 和 [param type_id] 标识物种，展示和原版战斗不记录。
 func record_almanac_encounter(kind: String, type_id: int) -> void:
 	if save_service == null or not save_service.is_current_profile_loaded() \
 			or not AdventureSession.owns_battle(game_para):
 		return
-	var state: AdventureState = global_game_state.adventure_state # 捕获所属档案，延迟保存前再次校验。
+	var state: AdventureState = global_game_state.adventure_state # 仅登记当前已加载档案的发现。
 	if state == null or not state.discover_character(kind, type_id):
 		return
+	save_service.mark_dirty()
 	almanac_changed.emit()
-	if not _almanac_save_queued:
-		_almanac_save_queued = true
-		_save_almanac_encounters.call_deferred(state)
-
-## 合并保存 [param state] 的发现记录；切档后放弃旧回调，失败时交给统一自动保存重试。
-func _save_almanac_encounters(state: AdventureState) -> void:
-	_almanac_save_queued = false
-	if global_game_state.adventure_state == state and save_service.is_current_profile_loaded():
-		if not save_service.save_now():
-			push_warning("图鉴发现记录待保存，将随下次自动保存重试。")
 
 ## 约定：业务/UI 只通过本脚本暴露的引用访问（如 `Global.user_manager`、`Global.save_service`、`Global.config_service`），
 ## 不要直接 `get_node` / `%` 访问 Global 场景里的子节点，避免绕过门面、破坏初始化顺序假设。
@@ -75,28 +81,45 @@ func _ready() -> void:
 func reload_session_for_current_user() -> bool:
 	if user_manager.curr_user_name.is_empty() or not save_service.load_global_game_data():
 		return false
+	_zombie_defeat_pending_refresh = false
 	adventure_inventory = AdventureInventoryService.new(global_game_state.adventure_state)
 	refresh_quests()
 	config_service.load_and_apply_config()
 	return true
 
-## 同步当前玩家任务的生效条件及自然日；写盘失败保留已赚取进度供自动保存重试。
+## 同步当前玩家的任务与商店日期，并合并这一秒内的任务界面通知。
 func refresh_quests() -> void:
 	if not save_service.is_current_profile_loaded():
 		return
-	if AdventureQuestService.synchronize(global_game_state.adventure_state, AdventureQuestService.today()):
-		if not save_service.save_now():
-			push_warning("任务进度待保存，将在下次保存时重试。")
-		quests_changed.emit()
+	var state: AdventureState = global_game_state.adventure_state # 仅校正已加载档案的限购日期。
+	var today: String = AdventureQuestService.today() # 同一次同步共用本机自然日。
+	var shop_day_corrected: bool = state.shop.correct_future_day(today) # 登录或运行期间都可恢复未来日期的档案。
+	var tasks_changed: bool = AdventureQuestService.synchronize(state, today) # 检测跨日与新开放的任务。
+	if tasks_changed or shop_day_corrected:
+		save_service.mark_dirty()
+	if tasks_changed or _zombie_defeat_pending_refresh:
+		_notify_quest_progress()
 
 ## 当前有效战斗上报 [param event] 与 [param target]；调用方负责确认真实玩法事实。
 func record_quest_event(event: String, target: String = "") -> void:
 	if not save_service.is_current_profile_loaded():
 		return
 	if AdventureQuestService.record_event(global_game_state.adventure_state, event, target, AdventureQuestService.today()):
-		if not save_service.save_now():
-			push_warning("任务进度待保存，将在下次保存时重试。")
-		quests_changed.emit()
+		save_service.mark_dirty()
+		_notify_quest_progress()
+
+## 记录由战斗管理器确认的一次击杀，并将普通存档交由 SaveService 合并。
+func record_zombie_defeat() -> void:
+	if not save_service.is_current_profile_loaded():
+		return
+	if AdventureQuestService.record_zombie_defeat(global_game_state.adventure_state, AdventureQuestService.today()):
+		_zombie_defeat_pending_refresh = true
+		save_service.mark_dirty()
+
+## 发布当前的合并任务变更。
+func _notify_quest_progress() -> void:
+	_zombie_defeat_pending_refresh = false
+	quests_changed.emit()
 
 ## 成长系统设置 [param level] 时统一重新判断任务门槛；保存失败回滚整个任务域。
 func set_player_level(level: int) -> bool:

@@ -37,6 +37,23 @@ func gold_magnet_attract_once(target_pos: Vector2) -> void:
 			drop.be_attract_gold_magnet(target_pos)
 
 
+## 从登记 Boss 的死亡坐标 [param origin] 抛出一颗钻石，留在场上供手动或奖杯收取。
+## 起点和落点都夹在可见区域内，靠屏幕边缘死亡也能拾取。
+func spawn_boss_diamond(origin: Vector2) -> void:
+	if not is_instance_valid(dim_coin) or not is_instance_valid(dim_coin.all_drop_coin_parent):
+		return
+	var parent: Node2D = dim_coin.all_drop_coin_parent # 使用本关的掉落层与金币目标，不广播到其他场景。
+	var viewport: Rect2 = get_viewport().get_visible_rect() # 保留钻石整张点击区域的屏幕边距。
+	var margin: float = minf(48.0, minf(viewport.size.x, viewport.size.y) * 0.5) # 极小视口也不反转夹取范围。
+	var bounds: Rect2 = viewport.grow(-margin) # 保底钻石的起落点范围。
+	var canvas: Transform2D = parent.get_canvas_transform() # 将死亡坐标转换到视口空间再限制位置。
+	var start: Vector2 = (canvas * origin).clamp(bounds.position, bounds.end) # 从最靠近死亡点的可见位置出现。
+	var landing: Vector2 = (start + Vector2(randf_range(-36.0, 36.0), 56.0)).clamp(bounds.position, bounds.end) # 向前抛落。
+	var to_local: Transform2D = parent.get_global_transform_with_canvas().affine_inverse() # 抛掷偏移采用掉落层局部坐标。
+	dim_coin.spawn_coin(SceneRegistry.COIN_DIAMOND, canvas.affine_inverse() * start,
+		to_local.basis_xform(landing - start), true)
+
+
 ## 在 [param origin] 掷出一份旗帜波配方 [param recipe_id]；拾取时入账，未拾取则留给奖杯收取。
 func spawn_flag_recipe(recipe_id: StringName, origin: Vector2) -> void:
 	var pickup: MaterialPickup = BattleDropService.spawn(BattleDropService.MaterialPickupScene,

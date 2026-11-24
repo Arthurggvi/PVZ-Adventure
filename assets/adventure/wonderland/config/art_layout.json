@@ -1,0 +1,403 @@
+{
+  "schema_version": 3,
+  "source_filename": "0bd089a6-0b62-4349-bcec-fbf7e7aee203_MoreDetail-v3_8K_8192x4096_2pass_MoreDetail-v3.avif",
+  "source_sha256": "4ca76eda18fbf2f703d659f3c65f0d142a6906cfa64d8a470617ce0f7789c291",
+  "original_size": [
+    1774,
+    887
+  ],
+  "sources": {
+    "original": "User supplied AVIF; preserved externally",
+    "repaired": "Only cloth backing; airship area is original source"
+  },
+  "subjects": {
+    "airship_body": {
+      "path": "hd/subjects/airship_body.png",
+      "origin": [
+        1031,
+        212
+      ],
+      "size": [
+        267,
+        151
+      ],
+      "alpha_nonzero": 331310,
+      "pivot_world": [
+        1159,
+        302
+      ],
+      "pivot_local": [
+        128,
+        90
+      ],
+      "texture_size": [
+        1233,
+        697
+      ]
+    },
+    "school_flag": {
+      "path": "hd/subjects/school_flag.png",
+      "origin": [
+        612,
+        543
+      ],
+      "size": [
+        58,
+        49
+      ],
+      "alpha_nonzero": 12639,
+      "pivot_world": [
+        623,
+        562
+      ],
+      "pivot_local": [
+        11,
+        19
+      ],
+      "pinned_axis": {
+        "origin_world": [
+          623,
+          560
+        ],
+        "axis": "x",
+        "pin_width": 4,
+        "max_tip_px": 4
+      },
+      "texture_size": [
+        268,
+        226
+      ]
+    },
+    "dock_banner": {
+      "path": "hd/subjects/dock_banner.png",
+      "origin": [
+        1304,
+        307
+      ],
+      "size": [
+        57,
+        73
+      ],
+      "alpha_nonzero": 20259,
+      "pivot_world": [
+        1318,
+        330
+      ],
+      "pivot_local": [
+        14,
+        23
+      ],
+      "pinned_axis": {
+        "line_world": [
+          [
+            1317,
+            330
+          ],
+          [
+            1346,
+            318
+          ]
+        ],
+        "axis": "normal",
+        "pin_width": 3,
+        "max_tip_px": 4
+      },
+      "texture_size": [
+        263,
+        337
+      ]
+    }
+  },
+  "movement_limits": {
+    "airship_body": {
+      "interior_deformation_px": 0.5,
+      "silhouette_displacement_px": 0.0
+    },
+    "school_flag": {
+      "tip_deformation_px": 4
+    },
+    "dock_banner": {
+      "tip_deformation_px": 4
+    }
+  },
+  "aperture_masks": [
+    "edgar_portal",
+    "furnace_core"
+  ],
+  "fixed_anchors": {
+    "airship_dock": [
+      1276,
+      294
+    ],
+    "school_flag_pole": [
+      622,
+      559
+    ],
+    "dock_banner_support": [
+      1347,
+      317
+    ]
+  },
+  "tethers": [
+    {
+      "id": "bow",
+      "ship_anchor": [
+        1058,
+        333
+      ],
+      "ground_anchor": [
+        1061,
+        370
+      ],
+      "sag_px": 3.8
+    },
+    {
+      "id": "mid",
+      "ship_anchor": [
+        1118,
+        346
+      ],
+      "ground_anchor": [
+        1110,
+        383
+      ],
+      "sag_px": 3.0
+    },
+    {
+      "id": "stern",
+      "ship_anchor": [
+        1245,
+        319
+      ],
+      "ground_anchor": [
+        1249,
+        376
+      ],
+      "sag_px": 2.5
+    }
+  ],
+  "world_origin": [
+    0,
+    0
+  ],
+  "notes": [
+    "Original BT.2020/PQ HDR preserved externally; game uses full-resolution, perceptually tone-mapped sRGB SDR tiles, not native HDR output.",
+    "Airship terrain is original RGB, without generated replacement geometry or whole-subject drift.",
+    "Motion mask is inset at least 6 world pixels; deformation is limited to 0.5 world pixels.",
+    "Original stage IDs, CPU hit masks and world coordinates remain unchanged."
+  ],
+  "runtime_space": "world_px_top_left",
+  "art_revision": "V5_8K_PQ_BT2390_perceptual",
+  "zoom": {
+    "visible_world_height": 336.0,
+    "initial_center_world": [
+      270,
+      620
+    ],
+    "edge_margin_px": 28.0,
+    "pan_screen_px_per_second": 480.0,
+    "drag_threshold_px": 6.0,
+    "hold_milliseconds": 180.0
+  },
+  "motion_defaults": {
+    "ship_seconds": 8.4,
+    "hull_amplitude_px": 0.5,
+    "cloth_seconds": 8.055365778435368,
+    "cloth_amplitude_px": 4.0,
+    "ship_phase_radians": 0.0,
+    "cloth_phase_radians": 0.0
+  },
+  "release_note": "Native 8K SDR derivative rebuilt from original PQ HDR with BT.2390 and perceptual gamut mapping. Native-detail framing at 1440p; approved masks and animation retained.",
+  "tether_occlusion_mask": "masks/occlusion/dock_tower_front.png",
+  "terrain": {
+    "texture_size": [
+      8192,
+      4096
+    ],
+    "pixels_per_world": 4.617812852311161,
+    "tiles": [
+      {
+        "path": "hd/terrain/tile_0_0.png",
+        "pixel_origin": [
+          0,
+          0
+        ],
+        "pixel_size": [
+          2072,
+          2072
+        ],
+        "core_pixel_origin": [
+          0,
+          0
+        ],
+        "core_pixel_size": [
+          2048,
+          2048
+        ]
+      },
+      {
+        "path": "hd/terrain/tile_1_0.png",
+        "pixel_origin": [
+          2024,
+          0
+        ],
+        "pixel_size": [
+          2096,
+          2072
+        ],
+        "core_pixel_origin": [
+          2048,
+          0
+        ],
+        "core_pixel_size": [
+          2048,
+          2048
+        ]
+      },
+      {
+        "path": "hd/terrain/tile_2_0.png",
+        "pixel_origin": [
+          4072,
+          0
+        ],
+        "pixel_size": [
+          2096,
+          2072
+        ],
+        "core_pixel_origin": [
+          4096,
+          0
+        ],
+        "core_pixel_size": [
+          2048,
+          2048
+        ]
+      },
+      {
+        "path": "hd/terrain/tile_3_0.png",
+        "pixel_origin": [
+          6120,
+          0
+        ],
+        "pixel_size": [
+          2072,
+          2072
+        ],
+        "core_pixel_origin": [
+          6144,
+          0
+        ],
+        "core_pixel_size": [
+          2048,
+          2048
+        ]
+      },
+      {
+        "path": "hd/terrain/tile_0_1.png",
+        "pixel_origin": [
+          0,
+          2024
+        ],
+        "pixel_size": [
+          2072,
+          2072
+        ],
+        "core_pixel_origin": [
+          0,
+          2048
+        ],
+        "core_pixel_size": [
+          2048,
+          2048
+        ]
+      },
+      {
+        "path": "hd/terrain/tile_1_1.png",
+        "pixel_origin": [
+          2024,
+          2024
+        ],
+        "pixel_size": [
+          2096,
+          2072
+        ],
+        "core_pixel_origin": [
+          2048,
+          2048
+        ],
+        "core_pixel_size": [
+          2048,
+          2048
+        ]
+      },
+      {
+        "path": "hd/terrain/tile_2_1.png",
+        "pixel_origin": [
+          4072,
+          2024
+        ],
+        "pixel_size": [
+          2096,
+          2072
+        ],
+        "core_pixel_origin": [
+          4096,
+          2048
+        ],
+        "core_pixel_size": [
+          2048,
+          2048
+        ]
+      },
+      {
+        "path": "hd/terrain/tile_3_1.png",
+        "pixel_origin": [
+          6120,
+          2024
+        ],
+        "pixel_size": [
+          2072,
+          2072
+        ],
+        "core_pixel_origin": [
+          6144,
+          2048
+        ],
+        "core_pixel_size": [
+          2048,
+          2048
+        ]
+      }
+    ]
+  },
+  "moving_hover_source": "hd/masks/airship_hover.png",
+  "static_occluders": [],
+  "airship_motion_mask": "hd/masks/airship_motion.png",
+  "color_pipeline": {
+    "revision": "pq_bt2390_perceptual_v1",
+    "source_filename": "0bd089a6-0b62-4349-bcec-fbf7e7aee203_MoreDetail-v3_8K_8192x4096_2pass_MoreDetail-v3.avif",
+    "source_sha256": "4ca76eda18fbf2f703d659f3c65f0d142a6906cfa64d8a470617ce0f7789c291",
+    "source_encoding": {
+      "width": 8192,
+      "height": 4096,
+      "pix_fmt": "yuv420p10le",
+      "color_range": "pc",
+      "color_space": "bt2020nc",
+      "color_transfer": "smpte2084",
+      "color_primaries": "bt2020",
+      "side_data_list": [
+        {}
+      ]
+    },
+    "display_sha256": "d8e8f292d7f85a5b20841bf395e87d1b5e6d963be1237709d12a8af8ec7bc3df",
+    "display_encoding": "8192x4096 RGB8 sRGB / Rec.709; SDR display derivative",
+    "ffmpeg_filter": "libplacebo=format=rgba:colorspace=gbr:color_primaries=bt709:color_trc=iec61966-2-1:range=pc:tonemapping=bt.2390:gamut_mode=perceptual:peak_detect=1:smoothing_period=0:percentile=100:contrast_recovery=0.3:deband=0:dithering=blue,format=rgb24",
+    "tone_mapping": "BT.2390 with same-frame source peak detection, 100th percentile",
+    "gamut_mapping": "perceptual",
+    "contrast_recovery": 0.3,
+    "spatial_resize": false,
+    "sharpening": false,
+    "debanding": false,
+    "native_hdr_output": false
+  }
+}

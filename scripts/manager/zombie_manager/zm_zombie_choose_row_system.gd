@@ -22,7 +22,7 @@ func init_zombie_choose_row_system(zombie_rows: Array[ZombieRow]) -> void:
 	# 当前场景行；无效节点仍保留索引，但对所有类型都禁用。
 	for row: ZombieRow in zombie_rows:
 		# 同一位置的有效行状态，避免初始化时访问已释放节点。
-		var valid_row: bool = is_instance_valid(row) and not row.is_queued_for_deletion()
+		var valid_row: bool = is_instance_valid(row) and not row.is_queued_for_deletion() and not row.is_falling
 		land_weights.append(1.0 if valid_row and row.zombie_row_type != CharacterRegistry.ZombieRowType.Pool else 0.0)
 		pool_weights.append(1.0 if valid_row and row.zombie_row_type != CharacterRegistry.ZombieRowType.Land else 0.0)
 		both_weights.append(1.0 if valid_row else 0.0)

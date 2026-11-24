@@ -1,0 +1,117 @@
+[gd_resource type="Resource" script_class="WaveProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="profile"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="band"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_spawn_group.gd" id="spawn"]
+
+[sub_resource type="Resource" id="Opening"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.normal.opening"
+first_wave = 1
+last_wave = 10
+minimum_regular_power = 8
+zombie_weights = Dictionary[int, int]({3: 3, 11: 6, 12: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Doors"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.normal.doors"
+first_wave = 11
+last_wave = 20
+minimum_regular_power = 14
+zombie_weights = Dictionary[int, int]({3: 3, 7: 2, 11: 6, 12: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Dolphins"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.normal.dolphins"
+first_wave = 21
+last_wave = 30
+minimum_regular_power = 22
+zombie_weights = Dictionary[int, int]({3: 3, 7: 2, 11: 6, 12: 2, 15: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Buckets"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.normal.buckets"
+first_wave = 31
+last_wave = 34
+minimum_regular_power = 40
+zombie_weights = Dictionary[int, int]({3: 3, 5: 2, 7: 2, 11: 6, 12: 2, 15: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Late"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.normal.late"
+first_wave = 35
+last_wave = 39
+minimum_regular_power = 72
+zombie_weights = Dictionary[int, int]({3: 3, 5: 2, 7: 2, 11: 6, 12: 2, 15: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Final"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.normal.final"
+first_wave = 40
+last_wave = 40
+minimum_regular_power = 110
+zombie_weights = Dictionary[int, int]({3: 3, 5: 2, 7: 2, 11: 6, 12: 2, 15: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Flag10"]
+script = ExtResource("spawn")
+wave = 10
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="FirstFlagDoors"]
+script = ExtResource("spawn")
+wave = 10
+count_range = Vector2i(2, 2)
+zombie_weights = Dictionary[int, int]({7: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Flag20"]
+script = ExtResource("spawn")
+wave = 20
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="SecondFlagDolphins"]
+script = ExtResource("spawn")
+wave = 20
+count_range = Vector2i(5, 5)
+zombie_weights = Dictionary[int, int]({15: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Flag30"]
+script = ExtResource("spawn")
+wave = 30
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="ThirdFlagBuckets"]
+script = ExtResource("spawn")
+wave = 30
+count_range = Vector2i(5, 5)
+zombie_weights = Dictionary[int, int]({5: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Flag40"]
+script = ExtResource("spawn")
+wave = 40
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[resource]
+script = ExtResource("profile")
+profile_id = &"wonderland.psychedelic_current.normal.waves"
+wave_count = 40
+flag_waves = Array[int]([10, 20, 30])
+scheduled_spawns = Array[ExtResource("spawn")]([
+SubResource("Flag10"), SubResource("FirstFlagDoors"),
+SubResource("Flag20"), SubResource("SecondFlagDolphins"),
+SubResource("Flag30"), SubResource("ThirdFlagBuckets"),
+SubResource("Flag40")
+])
+bands = Array[ExtResource("band")]([SubResource("Opening"), SubResource("Doors"), SubResource("Dolphins"), SubResource("Buckets"), SubResource("Late"), SubResource("Final")])

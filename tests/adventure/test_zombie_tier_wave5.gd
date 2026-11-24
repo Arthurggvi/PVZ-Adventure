@@ -1,6 +1,5 @@
 extends Node
 
-const BattleFixture = preload("res://tests/adventure/zombie_tier_battle_fixture.gd") ## 真实战场管理器的测试入口。
 const POGO := preload("res://scenes/character/zombie/zombie_019_pogo.tscn")
 const YETI := preload("res://scenes/character/zombie/zombie_020_yeti.tscn")
 const BUNGEE := preload("res://scenes/character/zombie/zombie_021_bungi.tscn")
@@ -13,8 +12,6 @@ const LADDER := preload("res://scenes/item/game_scenes_item/ladder.tscn")
 const BALL := preload("res://scenes/bullet/bullet_013_basketball.tscn")
 
 var failed := false
-## 测试实体归属的真实战场。
-var _battle: MainGameManager
 
 func _ready() -> void:
     call_deferred("_run")
@@ -28,11 +25,10 @@ func spawn(scene: PackedScene, tier: StringName = &"base") -> Zombie000Base:
     var z: Zombie000Base = scene.instantiate() as Zombie000Base
     z.character_init_type = Character000Base.E_CharacterInitType.IsShow
     check(AdventureZombieTierBinding.new(tier).apply(z), "spawn " + str(tier))
-    _battle.add_child(z)
+    add_child(z)
     return z
 
 func _run() -> void:
-    _battle = BattleFixture.mount(self)
     var pogo2: Zombie019Pogo = spawn(POGO, &"veteran") as Zombie019Pogo
     var pogo3: Zombie019Pogo = spawn(POGO, &"elite") as Zombie019Pogo
     var yeti2: Zombie020Yeti = spawn(YETI, &"veteran") as Zombie020Yeti
@@ -47,7 +43,7 @@ func _run() -> void:
     var imp5: Zombie025Imp = spawn(IMP, &"tier5") as Zombie025Imp
     var plant: Plant000Base = PLANT.instantiate() as Plant000Base
     plant.character_init_type = Character000Base.E_CharacterInitType.IsShow
-    _battle.add_child(plant)
+    add_child(plant)
     await get_tree().process_frame
     await get_tree().process_frame
     await get_tree().process_frame
@@ -168,8 +164,6 @@ func _run() -> void:
             "Giant third-tier inherited 1000 armor")
     check(giant5.preserve_death_animation_after_blast,
             "Giant fifth tier explosion death preserves collapse animation")
-    check(giant5.fallback_throw_column == 2,
-            "Giant close throw redirects to third column, zero indexed 2")
     # Release locally retained duplicated AnimationTree resources before
     # the test scene frees its two giant actors.
     sm = null

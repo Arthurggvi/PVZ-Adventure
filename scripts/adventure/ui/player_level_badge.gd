@@ -4,6 +4,8 @@ class_name PlayerLevelBadge
 
 ## 现有原图覆盖 1–80 级，更高等级使用明确的文字显示。
 const LAST_ART_LEVEL: int = 80
+## 超出素材范围时的字号，窄画框可以在入树前指定更小的值以容纳完整等级。
+var fallback_font_size: int = 35
 ## 原图角标，不拉伸改变长宽比例。
 var _image: TextureRect
 ## 超出素材范围时的真实等级文字。
@@ -22,7 +24,7 @@ func _ready() -> void:
 	_fallback = Label.new()
 	_fallback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_fallback.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_fallback.add_theme_font_size_override("font_size", 35)
+	_fallback.add_theme_font_size_override("font_size", fallback_font_size)
 	_fallback.add_theme_color_override("font_color", Color("ffe6a0"))
 	_fallback.add_theme_color_override("font_outline_color", Color("493422"))
 	_fallback.add_theme_constant_override("outline_size", 7)

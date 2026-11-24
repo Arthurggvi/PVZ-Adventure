@@ -5,6 +5,11 @@
 [ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/z_b_002_black_general.gd" id="boss"]
 [ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/black_general_animation_component.gd" id="anim"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/black_general/portrait.png" id="portrait"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/002_black_general/black_general_config.gd" id="config"]
+
+[sub_resource type="Resource" id="BlackGeneralConfig"]
+resource_local_to_scene = true
+script = ExtResource("config")
 
 [sub_resource type="CapsuleShape2D" id="boss_hurt"]
 radius = 41.25
@@ -12,6 +17,7 @@ height = 181.25
 
 [node name="ZB002BlackGeneral" instance=ExtResource("base")]
 script = ExtResource("boss")
+config = SubResource("BlackGeneralConfig")
 boss_display_name = "黑将军"
 phase_two_threshold_inclusive = false
 play_phase_roar_on_threshold = false

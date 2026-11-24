@@ -36,6 +36,10 @@ signal signal_cell_delete_tombstone(plant_cell:PlantCell, tombstone:TombStone)
 @onready var button: Button = $Button
 ## 植物碰撞器位置节点
 @onready var plant_area_2d_position: Control = $PlantArea2dPosition
+## 场景默认普通植物锚点到格子底边的距离，单位像素。
+@onready var _default_plant_inset: float = -$PlantNormContainer.offset_top
+## 当前应用到各层锚点的纵向位移，阶段调整时据此只移动差量。
+var _ground_anchor_shift: float = 0.0
 
 ## 植物格子类型
 enum PlantCellType{
@@ -54,6 +58,13 @@ enum PlantCellType{
 		# 旧场景反序列化可赋值，运行时地址由布局声明唯一决定。
 		if board_definition == null:
 			row_col = value
+
+## 当前攻防行。普通棋盘沿用稳定地址，启用脚点投影的平台由 BoardSurface 更新。
+var combat_lane: int:
+	get:
+		return _projected_lane if _projected_lane >= 0 else row_col.x
+## 当前平台脚点投影的行号，-1 表示使用原逻辑行。
+var _projected_lane: int = -1
 
 @export_group("当前格子的条件")
 @export_subgroup("植物种植")
@@ -134,6 +145,7 @@ func _ready() -> void:
 	## 隐藏按钮样式
 	var new_stylebox_normal = $Button.get_theme_stylebox("pressed").duplicate()
 	$Button.add_theme_stylebox_override("normal", new_stylebox_normal)
+	update_ground_anchors()
 
 	## 统一地形能力在节点就绪后安装；旧场景不创建额外水体。
 	if board_terrain == null:
@@ -157,7 +169,8 @@ func be_gargantuar_attack(zombie_gargantuar:Zombie000Base):
 		if not is_instance_valid(reference):
 			continue
 		var plant := reference as Plant000Base # 前一个死亡回调后重新确认当前引用。
-		if is_instance_valid(plant) and not plant.is_death and plant.hurt_box_component.is_enabling:
+		if is_instance_valid(plant) and not plant.is_death and not plant.is_cold_frozen() \
+				and plant.hurt_box_component.is_enabling:
 			plant.be_flattened_from_enemy(zombie_gargantuar)
 	if is_instance_valid(pot):
 		pot.open_pot_be_gargantuar()
@@ -207,7 +220,8 @@ func create_plant(plant_type: CharacterRegistry.PlantType, is_imitater := false,
 func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Plant000Base:
 	assert(placement.cell == self and not placement.committed)
 	var plant: Plant000Base = placement.plant # 准备阶段构造并初始化的实例。
-	var condition: ResourcePlantCondition = placement.condition # 同一物种占用契约。
+	plant.lane = combat_lane # 读档时平台可能在准备植物之后、正式入树之前恢复位姿。
+	var slot: CharacterRegistry.PlacePlantInCell = placement.slot # 使用预检并冻结的实际种植层。
 	placement.committed = true
 	plant.battle_placement_cells = placement.footprint.duplicate()
 	for claim: Dictionary in placement.claims:
@@ -217,15 +231,14 @@ func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Pl
 	if placement.imitater:
 		plant_container_node[CharacterRegistry.PlacePlantInCell.Imitater].add_child(plant)
 	else:
-		plant_container_node[condition.place_plant_in_cell].add_child(plant)
+		plant_container_node[slot].add_child(plant)
 	if placement.origin == PlacementOrigin.Companion:
 		_register_companion(plant)
 	else:
 		for cell: PlantCell in placement.footprint: # 普通放置才写入独占层及承托状态。
-			cell.plant_in_cell[condition.place_plant_in_cell] = plant
+			cell.plant_in_cell[slot] = plant
 			plant.signal_character_death.connect(cell.one_plant_free.bind(plant))
 			cell._sync_support_terrain_condition()
-	var plant_condition: ResourcePlantCondition = condition
 
 	if placement.play_effect:
 		## 种植特效
@@ -237,7 +250,7 @@ func commit_prepared_plant(placement: PlantPlacement, notify: bool = true) -> Pl
 			plant_start_effect_scene = SceneRegistry.PLANT_START_EFFECT.instantiate()
 		plant.body.add_child(plant_start_effect_scene)
 
-	if not placement.imitater and plant_condition.place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Down:
+	if not placement.imitater and slot == CharacterRegistry.PlacePlantInCell.Down:
 		_attach_support_layers(plant as Plant000DownBase)
 
 	if not placement.saved_state.is_empty():
@@ -265,8 +278,9 @@ func can_lift_plant(plant: Plant000Base) -> bool:
 		return false
 	if plant is Plant999Imitater or plant is Plant012GraveBuster or plant is Plant036CoffeeBean:
 		return false
-	for source: PlantCell in plant.battle_placement_cells: # 任一被梯子占用的地块都会锁住整株多格植物。
-		if not is_instance_valid(source) or source.is_queued_for_deletion() or is_instance_valid(source.ladder):
+	for source: PlantCell in plant.battle_placement_cells: # 断离地块或梯子都会锁住整株多格植物。
+		if not is_instance_valid(source) or source.is_queued_for_deletion() \
+				or source.process_mode == Node.PROCESS_MODE_DISABLED or is_instance_valid(source.ladder):
 			return false
 	return not plant is Plant000DownBase or not _support_layers_occupied()
 
@@ -296,7 +310,9 @@ func relocation_footprint(plant: Plant000Base, destination: PlantCell) -> Array[
 		if not is_instance_valid(target) or target.is_queued_for_deletion() or not target.is_visible_in_tree() \
 				or is_instance_valid(target.ladder):
 			return []
-	return footprint if condition.judge_relocation_allowed(destination, footprint, plant, companion) else []
+	if not condition.judge_relocation_allowed(destination, footprint, plant, companion):
+		return [] # 直接返回空数组，让 GDScript 按函数返回类型推断元素类型。
+	return footprint
 
 ## 把 [param plant] 原实例换到 [param destination]；只在完整预检后改占格，成功返回 true。
 ## 不调用种植或死亡结算，血量、卡牌归属、动画和计时器随原实例保留。
@@ -304,6 +320,41 @@ func relocate_plant(plant: Plant000Base, destination: PlantCell) -> bool:
 	var footprint: Array[PlantCell] = relocation_footprint(plant, destination) # 点击时复核，预览结果不能直接提交。
 	if footprint.is_empty():
 		return false
+	_commit_plant_relocation(plant, destination, footprint)
+	board.plant_relocated.emit()
+	return true
+
+## 将本格的承托、普通、壳层及伴生整体搬到同地形的空格 [param destination]。
+## 已继承的承托与植株保持原实例和计时；任一成员被动作锁定或属于多格植物时整组拒绝。
+func relocate_supported_stack(destination: PlantCell) -> bool:
+	if board == null or not board.allows_mutation() or not is_instance_valid(destination) \
+			or destination == self or destination.board != board or not destination.is_visible_in_tree() \
+			or destination.row_col.x != row_col.x or destination.board_definition.surface_id != board_definition.surface_id \
+			or board_terrain == null or destination.board_terrain == null \
+			or destination.board_terrain.terrain_id != board_terrain.terrain_id or not destination.can_common_plant \
+			or not destination.is_terrain_planting_allowed() or not destination.plant_entities().is_empty() \
+			or is_instance_valid(ladder) or is_instance_valid(destination.ladder):
+		return false
+	var support: Plant000DownBase = get_support_plant() # 先搬底座，让目标内容节点附着在其承托位置。
+	if not is_instance_valid(support):
+		return false
+	var plants: Array[Plant000Base] = living_plants() # 对全栈预检，避免底座与承托物分离。
+	for plant: Plant000Base in plants: # 多格、在途种植和临时动作保留原有约束。
+		if plant.plant_cell != self or plant.battle_placement_cells.size() != 1 or plant.is_being_relocated \
+				or not plant.can_relocate() or plant is Plant999Imitater or plant is Plant012GraveBuster or plant is Plant036CoffeeBean:
+			return false
+	plants.erase(support)
+	plants.push_front(support)
+	var footprint: Array[PlantCell] = [destination] # 每个承托成员保留自己在同一格中的种植层。
+	for plant: Plant000Base in plants: # 承托容器重挂时，其他成员也处于迁移状态。
+		plant.is_being_relocated = true
+	for plant: Plant000Base in plants: # 底座先于核心与保护壳提交，格位不重复占用。
+		_commit_plant_relocation(plant, destination, footprint)
+	board.plant_relocated.emit()
+	return true
+
+## 把已通过预检的 [param plant] 迁入 [param destination] 的 [param footprint]，由外层发送完成信号。
+func _commit_plant_relocation(plant: Plant000Base, destination: PlantCell, footprint: Array[PlantCell]) -> void:
 	var species: int = int(plant.plant_type) # 用于解绑原格的伴生登记。
 	var companion: bool = _companion_plants.get(species) == plant # 普通层与伴生层各自移交原身份。
 	var slot: CharacterRegistry.PlacePlantInCell = CharacterRegistry.PlacePlantInCell.Norm \
@@ -333,8 +384,6 @@ func relocate_plant(plant: Plant000Base, destination: PlantCell) -> bool:
 		destination._sync_support_terrain_condition()
 		destination._attach_support_layers(support)
 	plant.is_being_relocated = false
-	board.plant_relocated.emit()
-	return true
 
 ## 普通层、壳层和伴生都可依附在底座上；允许单独移动空底座。
 func _support_layers_occupied() -> bool:
@@ -366,13 +415,14 @@ func living_plants() -> Array[Plant000Base]:
 			result.append(plant)
 	return result
 
-## 返回一个可交互的伴生实体，供没有普通层目标时的攻击与铲子查询。
-func first_companion_plant() -> Plant000Base:
+## 返回满足 [param accept] 条件的第一个活体伴生；空条件保留选取和铲除使用的原有顺序。
+func first_companion_plant(accept: Callable = Callable()) -> Plant000Base:
 	for reference: Variant in _companion_plants.values(): # 暂时离树或延迟释放的引用不能成为目标。
 		if not is_instance_valid(reference):
 			continue
 		var plant := reference as Plant000Base # 当前候选的真实植株。
-		if plant.is_inside_tree() and not plant.is_death and not plant.is_queued_for_deletion():
+		if plant.is_inside_tree() and not plant.is_death and not plant.is_queued_for_deletion() \
+				and (not accept.is_valid() or accept.call(plant)):
 			return plant
 	return null
 
@@ -414,8 +464,8 @@ func _clear_unsupported_companions() -> void:
 		if condition != null and not (condition.plant_condition & curr_condition):
 			plant.character_death_disappear()
 
-## Read-only occupancy validation for all cells in a placement footprint.
-func _placement_is_available(condition: ResourcePlantCondition,
+## 检查 [param footprint] 的 [param slot] 是否空闲；[param claims] 中的前置占用允许升级。
+func _placement_is_available(slot: CharacterRegistry.PlacePlantInCell,
 		footprint: Array[PlantCell], claims: Array[Dictionary]) -> bool:
 	for cell: PlantCell in footprint:
 		if not is_instance_valid(cell):
@@ -423,7 +473,7 @@ func _placement_is_available(condition: ResourcePlantCondition,
 		if board != cell.board or (board_definition != null and (cell.board_definition == null
 			or board_definition.surface_id != cell.board_definition.surface_id)):
 			return false
-		var occupant: Plant000Base = cell.plant_in_cell.get(condition.place_plant_in_cell)
+		var occupant: Plant000Base = cell.plant_in_cell.get(slot) # 只检查本次放置实际占用的槽。
 		if not is_instance_valid(occupant) or occupant.is_queued_for_deletion():
 			continue
 		var expected := false
@@ -495,6 +545,16 @@ func _reparent_plant_content(content: Node2D, target: Node, keep_global: bool) -
 ## 获取种植新植物时植物虚影的位置
 func get_new_plant_static_shadow_global_position(place_plant_in_cell:CharacterRegistry.PlacePlantInCell):
 	return plant_container_node[place_plant_in_cell].global_position
+
+## 将 [param next_lane] 发布给本格占用和绘制层级，跨越行中线时才触发更新。
+func update_combat_lane(next_lane: int) -> void:
+	if next_lane < 0 or next_lane == combat_lane:
+		return
+	_projected_lane = next_lane
+	z_index = next_lane * 50 + 10
+	for plant: Plant000Base in living_plants(): # 多格植物只由真正持有其节点的种植点更新。
+		if plant.plant_cell == self:
+			plant.sync_combat_lane()
 
 ## Release cell ownership by actual occupant identity, not by exported scene ID.
 ## Shared-footprint plants notify every occupied cell but update global counts once.
@@ -575,6 +635,7 @@ func _sync_support_terrain_condition() -> void:
 #region 蹦极僵尸偷植物
 ## 返回当前可偷取的第一层植物；选择目标与实际偷取共用此顺序，失效或死亡实例不参与。
 func get_bungi_target() -> Plant000Base:
+	var can_steal: Callable = func(plant: Plant000Base) -> bool: return not plant.battle_hidden_from_zombies # 主动偷取跳过隐蔽层。
 	# 各种植层的偷取优先级；一次只取一株，不连带移除整格植物。
 	for place in [
 		CharacterRegistry.PlacePlantInCell.Norm,
@@ -583,7 +644,7 @@ func get_bungi_target() -> Plant000Base:
 		CharacterRegistry.PlacePlantInCell.Float
 	]:
 		if place == CharacterRegistry.PlacePlantInCell.Down:
-			var companion: Plant000Base = first_companion_plant() # 伴生先于其下方的承托物被偷取。
+			var companion: Plant000Base = first_companion_plant(can_steal) # 伴生先于其下方的承托物被偷取。
 			if companion != null:
 				return companion
 		# 先以 Variant 检查可能已释放的引用，再转换植物类型。
@@ -592,9 +653,10 @@ func get_bungi_target() -> Plant000Base:
 			continue
 		# 只有仍在场景中的存活植物才能成为偷取目标。
 		var plant := plant_reference as Plant000Base
-		if plant != null and plant.is_inside_tree() and not plant.is_queued_for_deletion() and not plant.is_death:
+		if plant != null and plant.is_inside_tree() and not plant.is_queued_for_deletion() and not plant.is_death \
+				and can_steal.call(plant):
 			return plant
-	return first_companion_plant()
+	return first_companion_plant(can_steal)
 
 
 ## 偷取当前有效植物并返回其表现复制体；目标消失时返回 null。
@@ -791,7 +853,7 @@ func _on_button_mouse_exited() -> void:
 
 
 func is_mouse_in_ui(control_node: Control) -> bool:
-	return control_node.get_rect().has_point(control_node.get_local_mouse_position())
+	return control_node.get_rect().has_point(BattleEnvironmentLens.mouse_position(control_node, false))
 
 ## 返回当前被铲子威胁的植物
 func return_plant_be_shovel_look():
@@ -841,7 +903,7 @@ func get_curr_plant_num()->int:
 #
 ## 根据鼠标在当前格子中的位置，返回应该被铲除的植物
 func get_plant_place_from_mouse_pos():
-	var local_pos = button.get_local_mouse_position()
+	var local_pos: Vector2 = BattleEnvironmentLens.mouse_position(button, false) # 铲除层位与变形后看到的位置一致。
 	var height = button.size.y
 	if local_pos.y < height / 3:
 		return CharacterRegistry.PlacePlantInCell.Float
@@ -964,9 +1026,27 @@ func get_slot_anchor_global_position(slot: CharacterRegistry.PlacePlantInCell) -
 func get_ground_height() -> float:
 	return position.y if legacy_ground_height or board_definition == null else board_definition.ground_height
 
+## 将各层锚点平移到显式地面脚点，保留承托层与普通层的固有相对高度。
+func update_ground_anchors() -> void:
+	var shift: float = 0.0 # 无显式脚点时恢复场景默认锚点。
+	if board_definition != null and board_definition.ground_anchor_y >= 0.0:
+		shift = board_definition.ground_anchor_y - (size.y - _default_plant_inset)
+	var delta_y: float = shift - _ground_anchor_shift # 只应用变化量，防止阶段复用时重复偏移。
+	if is_zero_approx(delta_y):
+		return
+	_ground_anchor_shift = shift
+	for anchor: Control in [$PlantNormContainer, $PlantShellContainer, $PlantFloatContainer,
+			$PlantDownContainer, $PlantImitaterContainer, plant_area_2d_position]: # 保持所有层和定位标记同向移动。
+		anchor.offset_top += delta_y
+		anchor.offset_bottom += delta_y
+
 ## 仅包含地形固有限制和具名来源；墓碑吞噬者等仍可按原规则处理障碍。
 func is_terrain_planting_allowed() -> bool:
-	return _planting_blocks.is_empty() and (board_terrain == null or not board_terrain.blocks_planting)
+	return not has_planting_block() and (board_terrain == null or not board_terrain.blocks_planting)
+
+## 具名禁种来源阻止所有放置事务，保留已占据各层的活株。
+func has_planting_block() -> bool:
+	return not _planting_blocks.is_empty()
 
 ## 按 [param source] 独立开关禁种；撤销一个来源不能清除其他地形效果。
 func set_planting_block(source: StringName, blocked: bool) -> void:
@@ -1008,10 +1088,11 @@ func get_spawn_terrain_type() -> CharacterRegistry.ZombieRowType:
 
 
 
-## 当前种植点的僵尸/墓碑生成脚点；自定义布局使用真实坐标，旧布局保留原行标记。
+## 当前种植点的僵尸/墓碑生成基线；斜坡在角色入场时再应用一次表现高度。
 func get_spawn_global_position() -> Vector2:
 	if board != null and board.definition != null:
-		return get_global_transform() * Vector2(size.x * 0.5, size.y - get_ground_height())
+		var foot_y: float = size.y if board_definition.ground_anchor_y < 0.0 else board_definition.ground_anchor_y # 未声明脚点时沿用格底。
+		return get_global_transform() * Vector2(size.x * 0.5, foot_y - get_ground_height())
 	var game: MainGameManager = Global.main_game # 旧固定行出生坐标协议。
 	return Vector2(global_position.x + size.x * 0.5,
 		game.zombie_manager.all_zombie_rows[row_col.x].zombie_create_position.global_position.y)

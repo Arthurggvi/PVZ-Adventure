@@ -79,6 +79,40 @@ func move_card(uid: String, target_index: int) -> bool:
 	order.insert(target_index, uid)
 	return set_card_order(order)
 
+## 整理整个背包：植物卡按物种和星级归组，其余库存按物品目录排列。
+## [param persist] 同步提交两类顺序，失败时全部回滚；已经排好时直接返回 true。
+func organize(persist: Callable) -> bool:
+	if not persist.is_valid():
+		return false
+	var before_cards: Array[String] = _state.card_order_uids # 保留原数组供失败回滚。
+	var before_items: Array[String] = _state.item_order_ids # 保留上一轮道具顺序。
+	var card_order: Array[String] = before_cards.duplicate() # 对独立的 UID 列表排序。
+	card_order.sort_custom(_organized_card_before)
+	var item_order: Array[String] = [] # 只记录整理时持有的道具。
+	for id: String in ItemRegistry.ITEMS: # 沿用目录中的分类与系列顺序。
+		if _state.items.has(id):
+			item_order.append(id)
+	if card_order == before_cards and item_order == before_items:
+		return true
+	if not set_card_order(card_order):
+		return false
+	_state.item_order_ids = item_order
+	if persist.call() == true:
+		return true
+	_state.card_order_uids = before_cards
+	_state.item_order_ids = before_items
+	return false
+
+## 比较 [param left_uid] 和 [param right_uid]，同种植物高星在前，同星按分配 UID 先后排列。
+func _organized_card_before(left_uid: String, right_uid: String) -> bool:
+	var left: PlantCardInstance = _state.cards[left_uid] # 左侧 UID 对应的现有卡片。
+	var right: PlantCardInstance = _state.cards[right_uid] # 右侧 UID 对应的现有卡片。
+	if left.plant_type != right.plant_type:
+		return left.plant_type < right.plant_type
+	if left.stars != right.stars:
+		return left.stars > right.stars
+	return PlantCardInstance.uid_number(left_uid) < PlantCardInstance.uid_number(right_uid)
+
 ## 用 [param uids] 原子替换出战列表；重复或不存在的 UID 拒绝，旧列表保持不变。
 func set_deck(uids: Array[String]) -> bool:
 	var seen: Dictionary = {} # 本次请求内已见的 UID，不依赖物种或卡对象身份。
@@ -118,6 +152,11 @@ func consume_item(id: String, qty: Variant) -> bool:
 func get_item_count(id: String) -> int:
 	return _state.items.get(id, 0)
 
-## 返回数量字典深拷贝，调用者修改结果不改变真实库存。
+## 返回按背包顺序排列的独立数量字典，尚未整理的道具依次追加。
 func get_items() -> Dictionary:
-	return _state.items.duplicate(true)
+	var ordered: Dictionary[String, int] = {} # 只纳入当前仍持有的条目。
+	for id: String in _state.item_order_ids: # 先恢复上次整理过的道具位置。
+		if _state.items.has(id):
+			ordered[id] = _state.items[id]
+	ordered.merge(_state.items) # 按库存顺序补入新道具，保留已有键的位置。
+	return ordered

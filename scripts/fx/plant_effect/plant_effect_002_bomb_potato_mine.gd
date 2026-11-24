@@ -9,8 +9,7 @@ class_name BombEffectPotatoMine
 @onready var spudow: Sprite2D = $Spudow
 
 ## 爆炸表现脱离植物后播放，淡出结束时一并清理残渣和粒子。
-func activate_bomb_effect() -> void:
-	super()
+func _play_effect() -> void:
 	gpu_particles_2d.emitting = true
 	EventBus.push_event(MainGameCamera.SHAKE_EVENT, [Vector2(3, 4), 0.16])
 

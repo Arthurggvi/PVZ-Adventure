@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="AdventureStageOverride" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/adventure_stage_override.gd" id="override"]
+[ext_resource type="Script" path="res://scripts/adventure/adventure_battle_environment.gd" id="environment"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/boards/wonderland_garden_airship.tres" id="board"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/garden_airship/frame.webp" id="frame"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/waves/wonderland_garden_airship_normal.tres" id="normal_waves"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/waves/wonderland_garden_airship_nightmare.tres" id="nightmare_waves"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/garden_airship_normal.mp3" id="music_normal"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/garden_airship_nightmare.mp3" id="music_nightmare"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/garden_airship_boss.mp3" id="music_boss"]
+
+[sub_resource type="Resource" id="GardenAirshipEnvironment"]
+script = ExtResource("environment")
+board_definition = ExtResource("board")
+background = 1
+background_texture = ExtResource("frame")
+accelerate_offscreen_zombies = true
+daytime = true
+daytime_sun = true
+lawn_mowers = false
+
+[resource]
+script = ExtResource("override")
+battle_scene = "res://scenes/adventure/garden_airship_battle.tscn"
+environment = SubResource("GardenAirshipEnvironment")
+normal_wave_profile = ExtResource("normal_waves")
+nightmare_wave_profile = ExtResource("nightmare_waves")
+replace_nightmare_bosses = true
+replace_nightmare_events = true
+normal_battle_music = ExtResource("music_normal")
+nightmare_battle_music = ExtResource("music_nightmare")
+nightmare_boss_music = ExtResource("music_boss")

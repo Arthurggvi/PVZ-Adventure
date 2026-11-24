@@ -135,7 +135,7 @@ func _release_action() -> void:
 	# 初始出生点仍沿用嘴部 X 和目标行地面 Y，挂在 Items 下不再跟随嘴部移动。
 	var spawn_x: float = spawn_marker.global_position.x
 	game.items.add_child(ball)
-	if not ball.launch(game, released_lane, spawn_x):
+	if not ball.launch(game, released_lane, spawn_x, owner as ZB000Base):
 		ball.queue_free()
 		return
 	_play_spit_particles(released_type)

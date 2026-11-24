@@ -90,11 +90,20 @@ func update_speed_factor(value: float, change_speed_factor:E_Influence_Speed_Fac
 	if is_death:
 		return
 	influence_speed_factors[change_speed_factor] = value
-	jackson_manager.change_speed_factor_product(dancer_id, speed_factor_product())
+	jackson_manager.change_speed_factor_product(dancer_id, intrinsic_speed_product())
 
-## 舞王由管理器修改速度
-func manager_update_anim_speed(speed_factor_product:float):
-	signal_update_speed.emit(speed_factor_product)
+## [param shared_speed] 是舞团协调后的原有速度。每个成员独立应用自己的行动倍率。
+func manager_update_anim_speed(shared_speed: float) -> void:
+	signal_update_speed.emit(shared_speed * action_rate())
+
+## 同步全团的演出节奏。死亡时始终回到原始随机速度以完成退场。
+func _publish_action_speed() -> void:
+	if is_death:
+		signal_update_speed.emit(influence_speed_factors.get(E_Influence_Speed_Factor.InitRandomSpeed, 1.0))
+	elif is_instance_valid(jackson_manager):
+		jackson_manager.update_all_zombie_speed_factor_product()
+	else:
+		super._publish_action_speed()
 #endregion
 
 
@@ -161,8 +170,8 @@ func character_death():
 ## 僵尸更新舞王管理器，并更新舞王管理器父节点
 func dancer_manager_change():
 	## 更新舞王管理器对应id僵尸速度和对应僵尸
-	jackson_manager.change_speed_factor_product(dancer_id, influence_speed_factors.get(E_Influence_Speed_Factor.InitRandomSpeed, randf_range(random_speed_range.x, random_speed_range.y)))
 	jackson_manager.zombie_dancers[dancer_id] = null
+	jackson_manager.change_speed_factor_product(dancer_id, influence_speed_factors.get(E_Influence_Speed_Factor.InitRandomSpeed, randf_range(random_speed_range.x, random_speed_range.y)))
 	## 更新舞王管理器的移动
 	jackson_manager.change_move(dancer_id, true)
 

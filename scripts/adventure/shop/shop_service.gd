@@ -38,15 +38,39 @@ func is_current() -> bool:
 		and _clock.is_valid() and _guard.is_valid() and _guard.call() == true \
 		and AdventureQuestService.feature_unlocked(_state, "shop")
 
-## 返回 [param id] 的实时只读报价；浏览不写档，跨日计数在下一次成交时一起提交。
-func quote(id: String) -> Dictionary:
-	var result: Dictionary = Catalog.product(id) # 从目录重新生成价格、权益和期限。
-	if result.is_empty() or not is_current():
-		return {}
+## 返回与限购共用的有效货架日期；档案校正前沿用已保存的限购日期，无效档案或日期返回空串。
+func stock_day() -> String:
+	if not is_current():
+		return ""
 	var today: String = str(_clock.call()) # 日期错误时不生成可交易的报价。
 	if today.is_empty() or not Stock.valid_day(today):
+		return ""
+	return today if today > _state.shop.day else _state.shop.day
+
+## 按单个货架日期查询 [param category] 下的报价；浏览不写档。
+func offers(category: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = [] # 展示顺序与当日货架一致。
+	var day: String = stock_day() # 一次渲染共用同一个日期，避免跨日时混用两批商品。
+	if day.is_empty():
+		return result
+	for id: String in Catalog.ids(category, day): # 只为当前分类加载商品定义。
+		var offer: Dictionary = _quote(id, day) # 配置失效的商品不生成可购买按钮。
+		if not offer.is_empty():
+			result.append(offer)
+	return result
+
+## 返回 [param id] 的实时只读报价；未上架时装返回空字典。
+func quote(id: String) -> Dictionary:
+	var day: String = stock_day() # 确认和提交都使用最新货架日期。
+	if day.is_empty() or (id in Catalog.OUTFIT_POOL and id not in Catalog.ids(Catalog.OUTFIT_CATEGORY, day)):
 		return {}
-	var day: String = today if today > _state.shop.day else _state.shop.day # 回拨不能重新获得额度。
+	return _quote(id, day)
+
+## 为当前已上架的 [param id] 生成 [param day] 的报价；跨日计数在下一次成交时提交。
+func _quote(id: String, day: String) -> Dictionary:
+	var result: Dictionary = Catalog.product(id) # 从目录重新生成价格、权益和期限。
+	if result.is_empty():
+		return {}
 	var limit: int = int(result.get("daily_limit", 0)) # 零表示不限次数。
 	var used: int = int(_state.shop.daily_purchases.get(id, 0)) if day == _state.shop.day else 0 # 跨日展示新额度。
 	var sold: bool = limit > 0 and used >= limit # 已售罄商品仍可选择查看说明。
@@ -70,7 +94,9 @@ func quote(id: String) -> Dictionary:
 	result["status"] = status
 	result["can_buy"] = not sold and _wallet.coin_value >= int(result.price)
 	result["message"] = status if sold else ("金币不足" if not result.can_buy else "")
-	result["token"] = {"id": id, "day": day, "revision": _state.shop.revision, "price": result.price}
+	# 绑定限购记录的日期，时钟校正后回到原日期也要重新确认。
+	result["token"] = {"id": id, "day": day, "quota_day": _state.shop.day,
+		"revision": _state.shop.revision, "price": result.price}
 	return result
 
 ## 购买 [param token] 对应的已确认报价；任何陈旧价格、跨日或重复提交都先拒绝，不扣款。

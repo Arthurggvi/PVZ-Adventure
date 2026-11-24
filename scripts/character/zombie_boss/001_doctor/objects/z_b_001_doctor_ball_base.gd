@@ -55,6 +55,12 @@ var _ground_y: float = 0.0
 var _slope: MainGameSlope
 ## 球所属关卡的 Items 节点，成形结束时将轨迹独立挂到此处，避免引用新关卡。
 var _rolling_root: Node2D
+## 出手时保存博士身份；球继续独立滚动，并把反伤归给尚存活的博士。
+var _crush_scope: CombatHitScope
+## 上次检测中仍和球重叠的有效植株。
+var _previous_crush_contacts: Dictionary[int, bool] = {}
+## 本次检测后存活的接触对象，两份表随物理步轮换。
+var _crush_contacts: Dictionary[int, bool] = {}
 
 
 ## 具体球类型，必须与技能参数使用的 Ice 或 Fire 一致。
@@ -88,8 +94,8 @@ func _ready() -> void:
 ## 成形时使用独立层级 4001，成形结束后按目标行调整层级，球始终留在 Items 下。[br]
 ## [param game] 本球所属的主游戏，提供行出生点与屋顶坡面。[br]
 ## [param target_lane] 准备阶段锁定的行号，从 0 开始。[br]
-## [param spawn_x] 释放关键帧处嘴部标记的全局 X，不使用嘴部 Y。
-func launch(game: MainGameManager, target_lane: int, spawn_x: float) -> bool:
+## [param spawn_x] 为嘴部标记的全局 X，[param doctor] 为可选的攻击归属。
+func launch(game: MainGameManager, target_lane: int, spawn_x: float, doctor: ZB000Base = null) -> bool:
 	if _phase != Phase.Inactive or not is_node_ready() or is_queued_for_deletion() \
 		or not is_instance_valid(game) or not is_finite(spawn_x):
 		return false
@@ -110,6 +116,7 @@ func launch(game: MainGameManager, target_lane: int, spawn_x: float) -> bool:
 	lane = target_lane
 	_ground_y = row.zombie_create_position.global_position.y
 	_slope = game.main_game_slope
+	_crush_scope = CombatHitScope.for_plant_attack(doctor, CombatHitScope.PlantImpact.CRUSH)
 	_rolling_root = game.items
 	global_position = Vector2(spawn_x, _get_ground_y(spawn_x))
 	if not global_position.is_finite():
@@ -178,11 +185,15 @@ func _on_animation_finished(animation_name: StringName) -> void:
 		set_physics_process(true)
 
 
-## 同行小推车直接碾压，植物按整格处理；每步格子去重，不跨帧缓存以允许碾压新种植物。
+## 同行小推车直接碾压，植物按整格处理；同一段连续接触仅结算一次。
 func _crush_overlapping_targets() -> void:
 	# 仅由已成功发射的滚动阶段调用；攻击区域固定存在，延迟启用检测前仍须跳过重叠查询。
 	if not attack_area.monitoring:
 		return
+	var reusable: Dictionary[int, bool] = _previous_crush_contacts # 只保留两个相邻物理步的有效接触。
+	_previous_crush_contacts = _crush_contacts
+	_crush_contacts = reusable
+	_crush_contacts.clear()
 	# 本次物理更新已经处理的格子，避免花盆、普通植物和南瓜同时重叠时重复遍历。
 	var processed_cells: Array[PlantCell] = []
 	# 上次物理同步的区域引用可能随植物死亡失效；先用 Variant 接收，避免强类型赋值先于有效性检查。
@@ -241,8 +252,17 @@ func _crush_cell(cell: PlantCell) -> void:
 			continue
 		# 球专属资格检查通过后才转换；下一种植层仍在死亡回调返回后重新验证。
 		var plant: Plant000Base = plant_reference as Plant000Base
-		# 使用无攻击者的压扁入口；冰火球不触发地刺针对角色攻击者的反击规则。
-		plant.be_flattened()
+		var identity: int = plant.get_instance_id() # 跨格植物在同一物理步只登记一次。
+		if _crush_contacts.has(identity):
+			continue
+		if _previous_crush_contacts.has(identity):
+			_crush_contacts[identity] = true
+			plant.show_crush_contact()
+			continue
+		# 球仍绕开地刺对接触者的原生反击，只有实际伤害反伤归给博士。
+		plant.be_hit_instantly(_crush_scope)
+		if is_instance_valid(plant) and not plant.is_death and not plant.is_queued_for_deletion():
+			_crush_contacts[identity] = true
 
 
 ## 被对应植物技能消除；仅成形和滚动阶段生效，重复通知或待删除时忽略。

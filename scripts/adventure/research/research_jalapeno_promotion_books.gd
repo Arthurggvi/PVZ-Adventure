@@ -19,10 +19,10 @@ const BOOKS: Dictionary = {
 		"title": "爆燃", "summary": "燃烧后留下5秒地火，触碰火焰的僵尸每0.5秒受40点伤害并灼烧2秒；被烧死者引燃附近敌人。", "plant_type": 21, "tier": 3,
 		"effects": [{"kind": "jalapeno_combustion"}]},
 	"promotion_jalapeno_purge": {
-		"title": "涤荡", "summary": "燃烧伤害翻倍。", "plant_type": 21, "tier": 3,
+		"title": "涤荡", "summary": "燃烧伤害翻倍。对僵王的单次爆炸最高为基础伤害的1.5倍。", "plant_type": 21, "tier": 3,
 		"effects": [{"kind": "jalapeno_purge"}]},
 	"promotion_jalapeno_inferno": {
-		"title": "业火", "summary": "所有伤害加成计算后，再将伤害翻倍。", "plant_type": 21, "tier": 4,
+		"title": "业火", "summary": "所有伤害加成计算后，再将伤害翻倍。对僵王的单次爆炸最高为基础伤害的1.5倍。", "plant_type": 21, "tier": 4,
 		"effects": [{"kind": "jalapeno_inferno"}]},
 	"promotion_jalapeno_nirvana": {
 		"title": "涅槃", "summary": "范围内的友方植物恢复等同本次爆炸伤害的生命，清除负面效果并无敌2秒。", "plant_type": 21, "tier": 4,

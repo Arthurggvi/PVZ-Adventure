@@ -22,6 +22,70 @@ class_name Plant018Squash
 var target_x: float = 0.0
 ## 本次落地是否已结算；重复动画事件不能再次伤害同一批目标。
 var _has_squashed: bool = false
+## 战斗植株保存这张独立卡片的已选词条。
+var _promotion_rules: Dictionary[String, Dictionary] = {}
+## 无氧训练归属于出战卡 UID。
+var _promotion_uid: String
+## 这次种植扣取本株既有训练并给下一株加成。
+var _record_training: bool = false
+## 成功占格时冻结的本株伤害倍率。
+var _training_multiplier: float = 1.0
+## 落地未杀伤成功时，原生退场后由同一战场安排愤恨生成。
+var _retry_battle: RepeaterShotContext
+
+## 入树前冻结 [param uid] 及 [param events]，不读取战斗节点。
+func configure_promotions(uid: String, events: Array[Dictionary]) -> void:
+	_promotion_uid = uid
+	for event: Dictionary in events: # 同种词条在合法转职链中最多出现一次。
+		_promotion_rules[String(event["kind"])] = event.duplicate(true)
+
+## [param origin] 区分实际新种植、愤恨生成和读档；失败的事务不增加训练。
+func prepare_placement_action(origin: PlantCell.PlacementOrigin = PlantCell.PlacementOrigin.Player) -> bool:
+	_record_training = _promotion_rules.has("squash_training") and origin in [
+		PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.Spawned, PlantCell.PlacementOrigin.Transformation]
+	return true
+
+## 把上一株累计的倍率交给本株，随后为同 UID 的下一株增加训练。
+func commit_placement_action() -> void:
+	if not _record_training:
+		return
+	_record_training = false
+	_training_multiplier = AdventureSquashAttack.take_training(_promotion_uid, _promotion_rules["squash_training"])
+
+## [param base_damage] 先按星级、光环及状态结算，再应用本株已冻结的训练。
+func promotion_damage(base_damage: int) -> int:
+	return roundi(battle_damage(base_damage) * _training_multiplier)
+
+## 保存已成功种下的这株训练结果，读档不会再累计一次。
+func gat_save_game_data_plant() -> Dictionary:
+	var data: Dictionary = super.gat_save_game_data_plant() # 保留原有占格及血量字段。
+	if _training_multiplier > 1.0:
+		data["squash_training_multiplier"] = _training_multiplier
+	return data
+
+## 将 [param data] 中本株已有的训练恢复给它，兼容未保存字段的旧存档。
+func load_game_data_plant(data: Dictionary) -> void:
+	super.load_game_data_plant(data)
+	_training_multiplier = clampf(float(data.get("squash_training_multiplier", 1.0)), 1.0, 3.0)
+
+## 只在正常完成压砸的原生退场后允许替身进入原格。
+func character_death() -> void:
+	var battle: RepeaterShotContext = _retry_battle if not is_death and is_can_death_language else null # 铲除不会触发这一递归。
+	var home_id: StringName = plant_cell.cell_id if battle != null and is_instance_valid(plant_cell) else &""
+	_retry_battle = null
+	super()
+	if home_id != &"":
+		AdventureSquashAttack.enqueue_retry(battle, home_id, plant_spawn_profile, is_imitater_material)
+
+## [param battle] 的这次攻击已实际结束且可重试，原株腾格时才调度。
+func arm_resentment(battle: RepeaterShotContext) -> void:
+	_retry_battle = battle
+
+## 当前占格上的普通活动门禁也约束本株发出的转职攻击。
+func _promotion_battle() -> RepeaterShotContext:
+	if _promotion_rules.is_empty() or has_node(NodePath(AdventurePlantNullification.NODE_NAME)):
+		return null
+	return RepeaterShotContext.from_plant(self)
 
 ## 起跳前已锁定原格的落点，攻击过程中不接受换格。
 func can_relocate() -> bool:
@@ -54,6 +118,13 @@ func _get_target_x(enemy: Character000Base) -> float:
 
 ## 开始跳跃
 func jump_up_start():
+	if _promotion_rules.has("squash_king") and not _has_squashed:
+		var battle: RepeaterShotContext = _promotion_battle() # 原生起跳 cue 冻结召唤来源和当前真实占格。
+		if battle != null:
+			_has_squashed = true
+			AdventureSquashAttack.start_king(self, battle, _promotion_rules)
+			character_death()
+			return
 	z_index += 50
 	## 如果地形为睡莲或者水
 	if plant_cell.curr_condition & 8 or  plant_cell.curr_condition & 16:
@@ -73,6 +144,10 @@ func squash_all_area_zombie():
 	if _has_squashed:
 		return
 	_has_squashed = true
+	var battle: RepeaterShotContext = _promotion_battle() # 仅正式出战的已转职植株接管原生落地。
+	if battle != null:
+		AdventureSquashAttack.land(self, battle, _promotion_rules)
+		return
 	# 多个受击区域属于同一角色时只伤害一次。
 	var seen_ids: Dictionary[int, bool] = {}
 	# 当前落地区域，不使用起跳前的目标作为必中的依据。
@@ -90,11 +165,11 @@ func squash_all_area_zombie():
 		if seen_ids.has(instance_id):
 			continue
 		seen_ids[instance_id] = true
-		if enemy is ZB000Base or (enemy is EnemyStructureBase and enemy.lane == row_col.x):
+		if enemy is ZB000Base or (enemy is EnemyStructureBase and enemy.lane == lane):
 			if (can_attack_zombie_status & Zombie000Base.E_BeAttackStatusZombie.IsNorm) != 0:
 				# 僵王伤害入口再次检查受击窗口，致死时保留状态机死亡演出。
 				enemy.be_attacked_bullet(battle_damage(attack_value), BulletRegistry.AttackMode.Penetration, false, false)
-		elif enemy is Zombie000Base and enemy.lane == row_col.x:
+		elif enemy is Zombie000Base and enemy.lane == lane:
 			if (enemy.curr_be_attack_status & can_attack_zombie_status) != 0:
 				enemy.be_squash(battle_damage(attack_value))
 

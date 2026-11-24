@@ -27,7 +27,8 @@ func apply_damage_multiplier(factor: float) -> void:
 
 ## [param direct_hit_enemy] 本次直击目标，不再分摊溅射；可为空，表示子弹落空后溅射。[br]
 ## [param lane] 弹道行，-1 表示不限制行。先筛选、去重，再按实际候选角色数量分摊伤害。
-func spatter_all_area_zombie(direct_hit_enemy:Character000Base, lane:int=-1):
+## 如有 [param resolve_hit]，将筛选后的目标和原生分摊值交给该次弹体结算。
+func spatter_all_area_zombie(direct_hit_enemy: Character000Base, lane: int = -1, resolve_hit: Callable = Callable()):
 	# 保留 Variant 引用，避免结算期间其他目标被释放后发生类型赋值错误。
 	var targets: Array = []
 	# 同一角色的多个受击框只占一个分摊名额。
@@ -54,7 +55,10 @@ func spatter_all_area_zombie(direct_hit_enemy:Character000Base, lane:int=-1):
 		# 仅有效引用才转换为角色类型。
 		var enemy := target_reference as Character000Base
 		if _can_spatter_character(enemy, lane):
-			attack_enemy(enemy, damage_per_enemy)
+			if resolve_hit.is_valid():
+				resolve_hit.call(enemy, damage_per_enemy)
+			else:
+				attack_enemy(enemy, damage_per_enemy)
 
 
 ## [param enemy] 已重叠的角色；[param lane] 弹道行。返回有效受击目标，僵王不比较根节点行号。

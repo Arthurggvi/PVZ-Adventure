@@ -26,10 +26,7 @@ static func apply_to(target: Zombie000Base, battle: RepeaterShotContext,
 		return false
 	var status := target.get_node_or_null(NodePath(STATUS_NAME)) as AdventureDeepCold # 每目标复用一个计时状态。
 	if status == null:
-		status = AdventureDeepCold.new()
-		status.name = STATUS_NAME
-		status._target = target
-		target.add_child(status)
+		status = _attach(target)
 	elif not status._battle.is_same_battle():
 		status._reset()
 	status._battle = battle
@@ -41,6 +38,38 @@ static func apply_to(target: Zombie000Base, battle: RepeaterShotContext,
 	status._sync()
 	status.set_physics_process(true)
 	return true
+
+## 为 [param target] 附加本角色的状态节点；冷却和来源随节点形成独立生命周期。
+static func _attach(target: Zombie000Base) -> AdventureDeepCold:
+	var status := AdventureDeepCold.new() # 新角色使用自己的控制节点和时钟。
+	status.name = STATUS_NAME
+	status._target = target
+	target.add_child(status)
+	return status
+
+## 保存 [param source] 尚在作用的深寒秒数，保留结算状态位及来源战场。
+static func capture(source: Zombie000Base) -> Dictionary:
+	var status := source.get_node_or_null(NodePath(STATUS_NAME)) as AdventureDeepCold
+	if status == null or (status._slow <= 0.0 and status._freeze <= 0.0):
+		return {}
+	return {"battle": status._battle, "statuses": status._statuses, "slow": status._slow, "freeze": status._freeze}
+
+## 在 [param target] 独立还原 [param state]，扣除排队所用的 [param elapsed] 秒。
+static func restore(target: Zombie000Base, state: Dictionary, elapsed: float) -> void:
+	if state.is_empty() or not target.can_receive_cold():
+		return
+	var slow: float = maxf(0.0, float(state["slow"]) - elapsed) # 已到期的普通减速不延长。
+	var freeze: float = maxf(0.0, float(state["freeze"]) - elapsed) if target.can_cold_freeze() else 0.0 # 两种时钟各自结算。
+	if slow == 0.0 and freeze == 0.0:
+		return
+	var status: AdventureDeepCold = _attach(target) # 克隆的计时与原单位相互独立。
+	status._battle = state["battle"]
+	status._statuses = state["statuses"]
+	status._slow = slow
+	status._freeze = freeze
+	target.on_cold_control()
+	status._sync()
+	status.set_physics_process(true)
 
 ## 死亡和魅惑同步撤销控制；菜单暂停由场景树负责。
 func _ready() -> void:

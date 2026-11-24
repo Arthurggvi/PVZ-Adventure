@@ -29,7 +29,6 @@ func configure(host: Node, folder: String, input: SubViewport) -> SubViewport:
 	shader.code = shader_source(folder,"land_wind.gdshader")
 	var material := ShaderMaterial.new()
 	material.shader = shader
-	material.set_shader_parameter("scene_color", rect.texture)
 	rect.material = material
 	var png := {"canopy_weights":"canopy_weights", "awning_plate":"awning_plate", "awning_support":"awning_support"} # 原图坐标权重。
 	for uniform: String in png:

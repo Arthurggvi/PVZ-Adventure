@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="AdventureStageOverride" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/adventure_stage_override.gd" id="override"]
+[ext_resource type="Script" path="res://scripts/adventure/adventure_battle_environment.gd" id="environment"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/boards/wonderland_resting_plain.tres" id="board"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/resting_plain/board_final.webp" id="art"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/resting_plain_normal.mp3" id="music_normal"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/resting_plain_nightmare.mp3" id="music_nightmare"]
+
+[sub_resource type="Resource" id="RestingPlainEnvironment"]
+script = ExtResource("environment")
+board_definition = ExtResource("board")
+background_texture = ExtResource("art")
+accelerate_offscreen_zombies = true
+background = 1
+daytime = true
+daytime_sun = false
+
+[resource]
+script = ExtResource("override")
+battle_scene = "res://scenes/adventure/resting_plain_battle.tscn"
+environment = SubResource("RestingPlainEnvironment")
+replace_nightmare_bosses = true
+replace_nightmare_events = true
+normal_battle_music = ExtResource("music_normal")
+nightmare_battle_music = ExtResource("music_nightmare")

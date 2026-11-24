@@ -1,14 +1,19 @@
 [gd_resource type="Resource" script_class="EquipmentDefinition" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/adventure/player/equipment_definition.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/outfit_icons/spring_cattail.png" id="2"]
 [ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/spring_cattail.png" id="3"]
+
+[sub_resource type="AtlasTexture" id="Avatar"]
+atlas = ExtResource("3")
+region = Rect2(119, 8, 578, 578)
+filter_clip = true
 
 [resource]
 script = ExtResource("1")
 id = &"spring_cattail"
 display_name = "新春小璐"
-description = "穿上红白新春中式裙装，角色立绘变为新春小璐。"
+description = "穿上红白新春中式裙装，角色头像切换为新春小璐。"
 slot = 0
-icon = ExtResource("2")
+icon = SubResource("Avatar")
 portrait = ExtResource("3")
+active_skill_id = &"spring_cattail_barrage"

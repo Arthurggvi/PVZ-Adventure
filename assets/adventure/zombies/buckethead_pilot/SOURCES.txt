@@ -1,0 +1,72 @@
+Buckethead Pilot Zombie — PVZ2 Chinese Sky City
+Audit date: 2026-11-23
+Status: identified parent Pilot Zombie frame pack; no original files downloaded; armored variant art NOT confirmed.
+
+Game identity:
+  中文：铁桶飞行员僵尸
+  English: Buckethead Pilot Zombie
+  Appears: Sky City - Day 1 (Chinese version)
+  Community game IDs: skycity_armor2 (normal bucket variant) and skycity_armor3
+  (different, stronger challenge-mode variant; visually identical).
+  Source: https://plantsvszombies.wiki.gg/wiki/Buckethead_Zombie_%28PvZ2%29
+
+IMPORTANT NUMBER CONFLICT:
+  User-supplied Chinese almanac image: 550 bucket + 180 + 90 body = 820.
+  Community PvZ2C table: 500 bucket + 270 body = 770.
+  Plan per current user's image: separate 550 bucket HP and 270 body HP.
+  These different values must not be silently merged or mislabeled.
+  Sources:
+    https://bkso.baidu.com/item/植物大战僵尸2僵尸图鉴/64026631
+    https://plantsvszombies.wiki.gg/wiki/Zombies_%28PvZ2C%29
+
+Confirmed source INDEX for base body/weapon/jetpack actions, NOT for bucket:
+  The Spriters Resource — Pilot Zombie (Chinese)
+  https://www.spriters-resource.com/mobile/plantsvszombies2/asset/502486/
+  Uploaded by Redtarp. Listed 2025-12-14. Size 37.30 MB / 897 files.
+  Asset entries:
+    Pilot Zombie/Assembled Sprites (Chinese)/Attack - Start/
+    Pilot Zombie/Assembled Sprites (Chinese)/Attack - Loop/
+    Pilot Zombie/Assembled Sprites (Chinese)/Attack - End/
+    Pilot Zombie/Assembled Sprites (Chinese)/Shoot - Start/
+    Pilot Zombie/Assembled Sprites (Chinese)/Shoot - Loop/
+    Pilot Zombie/Assembled Sprites (Chinese)/Shoot - End/
+    Pilot Zombie/Assembled Sprites (Chinese)/Idle/
+    Pilot Zombie/Assembled Sprites (Chinese)/Walking/
+    Pilot Zombie/Assembled Sprites (Chinese)/Eating/
+    Pilot Zombie/Assembled Sprites (Chinese)/Death/
+    Pilot Zombie/Assembled Sprites (Chinese)/Burnt/
+  Contains split pieces named zombie_skycity_basic_*, zombie_attack_fire_*,
+  zombie_skycity_ash_*. The listing does not identify bucket/armor2/armor3
+  body variants, nor does it have a discrete 'Fly' animation directory.
+  This asset page cannot be called a complete Buckethead Pilot rip.
+
+Unresolved asset gap:
+  Distinct Sky City bucket art, damage overlays, broken bucket/detachment,
+  dropped metal hat and head-layer registration are not identified/downloaded.
+  The character's almanac/thumbnail image is a reference, NOT an animation.
+  A stock PVZ1 bucket texture cannot be substituted and labeled original.
+
+Attempted from user's connected development machine:
+  https://www.spriters-resource.com/mobile/plantsvszombies2/asset/502486/
+  https://www.spriters-resource.com/download/502486/
+  https://www.spriters-resource.com/media/assets/502/502486.zip
+  HTTP 403 Forbidden for all.
+  Original ZIP: NOT PRESENT
+  SHA-256: NOT AVAILABLE
+  Actual original frame count/alpha/footpoint/fps: NOT VERIFIED
+  Runtime graphics/animation/audio installed: NONE.
+  Please retain original game art attribution (PopCap/EA); third-party ripped
+  files are not presumed free for commercial redistribution.
+
+Engine reuse candidates (not currently installed for this new species):
+  scenes/character/zombie/zombie_005_bucket.tscn
+  scripts/character/zombie/zombie_000_base.gd
+  scripts/adventure/adventure_zombie_wind_gust.gd
+  scripts/character/components/anim_component/component_anim_imported.gd
+  CharacterRegistry.ZombieType.Z036BucketheadPilot — proposed ID only.
+  Current game's Blover exception: species may be blown away despite the
+  original treating its pilot as a non-flying target.
+  No edits made to original gameplay, GlobalReadData or character registration.
+
+Full build/verification blueprint:
+  docs/adventure/buckethead_pilot_zombie.txt

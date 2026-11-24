@@ -4,8 +4,16 @@ class_name ZombieManager
 
 ## 出战僵王成功入树、死亡或移除后发出，供所属关卡按当前存活实例选择战斗音乐。
 signal signal_living_bosses_changed()
+## [param member] 已完成登记，可在入树前连接遭遇信号。整批增援先登记完所有成员，再逐一通知。
+signal boss_member_registered(member: ZB000Base)
 ## 正常僵尸完成初始化与登记后发送，供光环等通用效果覆盖新实例。
 signal signal_zombie_created(zombie: Zombie000Base)
+
+## 记录同一实例的登场、死亡、离场和阶段清场条件。
+const BossTrace = preload("res://scripts/manager/zombie_manager/boss_lifecycle_trace.gd")
+
+## 独立准备和发布僵王实体；管理器继续唯一持有战场登记、计数与死亡监听。
+const BossSpawn = preload("res://scripts/manager/zombie_manager/boss_spawn_factory.gd")
 
 ## 两只僵王同时默认登场时，按先后安排在第 2、4 路，内部从 0 开始。
 const BOSS_DUO_LANES := Vector2i(1, 3)
@@ -35,8 +43,20 @@ var _auto_boss_id: int = 0
 var _boss_spawn_total: int = 0
 ## 本局累计确认死亡数量；直接移除不计为击杀。
 var _boss_dead_total: int = 0
+## 分裂遭遇的成员活着离场后，余下击杀不会再发出完成奖励。
+var _escaped_boss_groups: Dictionary[int, bool] = {}
 ## 额外 Boss 条件实际开始结算后接受最后死亡实例的请求；0 表示没有待结算实例。
 var _boss_trophy_pending_id: int = 0
+## 额外胜利的奖杯已经收到请求时保存其落点，允许其他仍在演出的 Boss 稍后完成。
+var _boss_trophy_pending_position: Vector2 = Vector2.INF
+## 已扣除敌方计数但仍在演出、需推迟结算的登记实例。
+var _pending_boss_defeat_presentations: Dictionary[int, bool] = {}
+## 正式遭遇或关卡直接请求的普通奖杯，演出结束后按原条件重新提交。
+var _deferred_round_trophy_position: Vector2 = Vector2.INF
+## 轮间计时已到，但仍须等死亡演出完成后交付过渡请求。
+var _next_round_waiting_for_boss_presentation: bool = false
+## 由 Boss 自行接管死亡演出时，钻石等待其原生完成通知。
+var _pending_boss_diamonds: Dictionary[int, bool] = {}
 ## 本轮调用 Boss 胜利完成入口前置位，防止方法轨道重复触发；下一轮重新开启结算。
 var _boss_trophy_created := false
 ## 轮间读档暂存的数据；选卡完成后才恢复正常出战实例，避免选卡期间启动技能。
@@ -70,6 +90,10 @@ var multi_round_end_wave_time :float = 49
 
 ## 场上计入清场判定的敌人总数，包含已登记的存活僵王。
 var curr_zombie_num: int = 0
+## 本战场的敌方存活上限，包含僵王和援军。零表示沿用不限数量的出怪规则。
+@export var max_live_enemies: int = 0
+## 已把在场名额交给新形态的旧实例，后续注销只移除旧登记，不重复释放名额。
+var _transferred_enemy_slots: Dictionary[Zombie000Base, bool] = {}
 ## 本战斗场景内的修改器开关；开启时处决新生成的敌人，默认关闭。
 var cheat_instant_kill_enabled := false
 
@@ -93,8 +117,8 @@ func get_natural_wave_count(wave_index: int) -> int:
 var is_end_wave := false
 ## 被魅惑僵尸列表
 var all_zombies_be_hypno:Array[Zombie000Base] = []
-## 僵尸可以存在的x坐标范围,超出该范围,每波刷新时删除,最后一波时每秒删除检查删除
-var zombie_range_pos_x:=Vector2(-300, 1000)
+## 僵尸可以存在的世界 X 坐标范围，波次刷新和末波定时检查会清理越界实例。
+@export var zombie_range_pos_x := Vector2(-300, 1000)
 ## 本关仍登记的普通僵尸，含魅惑实例；死亡或实际离树时移除。
 var all_zombies_1d:Array[Zombie000Base]
 
@@ -104,6 +128,12 @@ var all_zombie_rows:Array[ZombieRow] = []
 var all_ice_roads:Array[Array] = []
 ## 按行保存僵尸，用于保存僵尸列表的列表,僵尸被魅惑后从该列表中删除
 var all_zombies_2d:Array[Array]
+
+## 当前战场中低频僵尸查询的分帧调度器。
+var periodic_updates: ZombieUpdateScheduler
+
+## 按实际场景路径和等阶缓存美术装配，随战场一起释放。
+var _appearances: Dictionary[String, AdventureZombieTierArt.PreparedAppearance] = {}
 
 ## 是否被冻结，用于管理冰消珊瑚
 var is_ice:bool
@@ -126,6 +156,9 @@ func _ready():
 	# 攻击行已由统一装配器创建/适配，这里只登记僵尸运行状态。
 	if main_game.board == null or not main_game.board.configured:
 		return
+	periodic_updates = ZombieUpdateScheduler.new()
+	periodic_updates.name = "ZombieUpdateScheduler"
+	add_child(periodic_updates)
 	## 初始化僵尸和行列表
 	for zombie_row_i in zombies_root.get_child_count():
 		var zombie_row: ZombieRow = zombies_root.get_child(zombie_row_i) as ZombieRow
@@ -229,13 +262,13 @@ func start_game():
 		ConstLevelData.E_MonsterMode.Norm:
 			# 初代节奏的首波保护由波次管理器统一处理，普通入场与噩梦续战共用。
 			if not zombie_wave_manager.uses_classic_spawn_timing():
-				await get_tree().create_timer(10).timeout
+				await get_tree().create_timer(10, false).timeout
 			# 等待期间可能已经失败或离开关卡，不能让旧协程恢复后继续生成敌人。
 			if round_generation == _round_generation and is_game_running():
 				zombie_wave_manager.start_first_wave()
 
 		ConstLevelData.E_MonsterMode.HammerZombie:
-			await get_tree().create_timer(2).timeout
+			await get_tree().create_timer(2, false).timeout
 			if round_generation == _round_generation and is_game_running():
 				hammer_zombie_manager.start_first_wave()
 
@@ -248,6 +281,35 @@ func is_game_running() -> bool:
 		and main_game.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME
 
 
+## 返回本轮是否仍有登记的 Boss 死亡演出推迟战斗结算。
+func has_pending_boss_defeat_presentation() -> bool:
+	return not _pending_boss_defeat_presentations.is_empty()
+
+
+## 若死亡演出仍在推进，则暂存 [param global_pos] 的普通奖杯请求并返回 true。
+func defer_trophy_for_boss_defeat_presentation(global_pos: Vector2) -> bool:
+	if not is_game_running() or not has_pending_boss_defeat_presentation():
+		return false
+	if not _deferred_round_trophy_position.is_finite():
+		_deferred_round_trophy_position = global_pos
+	return true
+
+
+## [param boss] 是在当前场景等候结算的登记成员时允许继续演出。
+## 额外 Boss 判胜已停刷但仍在等候奖杯时同样有效，玩家失败和场景卸载立即失效。
+func allows_boss_defeat_presentation(boss: ZB000Base) -> bool:
+	if not is_inside_tree() or is_queued_for_deletion() or not is_instance_valid(main_game) \
+			or main_game.is_queued_for_deletion() or get_tree().current_scene != main_game \
+			or not is_instance_valid(boss) or not boss.is_death or not boss.is_inside_tree() \
+			or boss.is_queued_for_deletion() \
+			or TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.GameOver, false):
+		return false
+	var instance_id: int = boss.get_instance_id() # 演出许可仅授予本关死后仍保留登记的原实例。
+	return _pending_boss_defeat_presentations.has(instance_id) and _get_registered_boss(instance_id) == boss \
+		and (is_game_running() or (_boss_trophy_pending_id != 0 \
+			and main_game.main_game_progress == MainGameManager.E_MainGameProgress.GAME_OVER))
+
+
 ## 自动入口按关卡配置只生成一次；卡牌生成不占用该记录，失败返回 null。
 func create_boss() -> ZB000Base:
 	if _auto_boss_spawned:
@@ -257,108 +319,39 @@ func create_boss() -> ZB000Base:
 	if monster_mode != ConstLevelData.E_MonsterMode.Norm and monster_mode != ConstLevelData.E_MonsterMode.Null:
 		return null
 	# 自动实例与卡牌实例共用创建流程，但自动入口仍保持一次性。
-	var boss: ZB000Base = _create_boss_instance(game_para.boss_type)
+	var boss: ZB000Base = BossSpawn.create(self, game_para.boss_type)
 	if boss != null:
 		_auto_boss_spawned = true
 		_auto_boss_id = boss.get_instance_id()
 	return boss
 
 
-## [param boss_type] 已注册的僵王类型；正式战斗、有效根节点及关卡出生点允许时返回 true。
-## 卡牌资格不依赖自动出场配置、出怪模式或场上数量。
+## 返回是否有空位且能在当前战场准备已注册的 [param boss_type]。
 func can_summon_boss(boss_type: CharacterRegistry.ZombieBossType) -> bool:
-	if not is_game_running() or not is_instance_valid(zombie_boss_root) \
-		or not zombie_boss_root.is_inside_tree() or zombie_boss_root.is_queued_for_deletion() \
-		or not game_para.boss_spawn_position.is_finite() \
-		or not Global.character_registry.ZombieBossInfo.has(boss_type):
-		return false
-	# 场景来自注册表，未注册或无法实例化的类型不能消耗卡牌。
-	var scene: PackedScene = Global.character_registry.get_zombie_boss_info(
-		boss_type, CharacterRegistry.ZombieBossInfoAttribute.BossScenes
-	) as PackedScene
-	return scene != null and scene.can_instantiate()
+	return has_enemy_slots(1) and BossSpawn.can_summon(self, boss_type)
 
 
 ## [param boss_type] 卡牌引用中的僵王类型；成功返回新实例，失败返回 null。[br]
 ## [param spawn_position] 可选的本地出生点；INF 使用关卡配置或自动分路。
 func try_create_boss_from_card(boss_type: CharacterRegistry.ZombieBossType,
 	spawn_position: Vector2 = Vector2.INF) -> ZB000Base:
-	return _create_boss_instance(boss_type, spawn_position)
+	return BossSpawn.create(self, boss_type, spawn_position)
 
 
-## [param encounter] 已验证的遭遇配置；创建并初始化 Boss，失败时返回 null。
-func try_create_adventure_boss(encounter: BossEncounterDefinition) -> ZB000Base:
-	return _create_boss_instance(encounter.boss_type, Vector2.INF, true, -1, INF, encounter)
+## [param encounter] 提供遭遇配置；[param on_registered] 在登记之后、正式入树之前连接观察者，避免遗漏入场帧的死亡。
+func try_create_adventure_boss(encounter: BossEncounterDefinition, on_registered: Callable = Callable()) -> ZB000Base:
+	return BossSpawn.create(self, encounter.boss_type, Vector2.INF, true, -1, INF, encounter, on_registered)
 
-
-## [param boss_type] 注册类型；[param spawn_position] 为僵王根节点下的本地位置，INF 使用关卡配置。[br]
-## [param count_as_new] 恢复存档时为 false，避免累计生成数重复增加。[br]
-## [param restored_hp] 为正数时恢复存活血量，-1 沿用满血。[br]
-## [param restored_home_x] 为存档中的本地待机横坐标，INF 表示旧存档未保存该值。
-## [param encounter] 为冒险遭遇登场设置，在音乐和血条同步之前应用。
-## 成功返回新实例，失败返回 null。
-func _create_boss_instance(boss_type: CharacterRegistry.ZombieBossType, spawn_position: Vector2 = Vector2.INF,
-	count_as_new: bool = true, restored_hp: int = -1, restored_home_x: float = INF,
-	encounter: BossEncounterDefinition = null) -> ZB000Base:
-	if not can_summon_boss(boss_type) or (spawn_position != Vector2.INF and not spawn_position.is_finite()):
-		return null
-	# 资格检查已确认该注册场景可以实例化。
-	var scene: PackedScene = Global.character_registry.get_zombie_boss_info(
-		boss_type, CharacterRegistry.ZombieBossInfoAttribute.BossScenes
-	) as PackedScene
-	# 根节点先保持 Node，以便配置错误时释放实际创建的节点。
-	var instance: Node = scene.instantiate()
-	# 本次新角色，必须符合僵王基础接口。
-	var boss: ZB000Base = instance as ZB000Base
-	if boss == null:
-		push_error("ZombieManager：僵王场景根节点必须继承 ZB000Base。")
-		instance.free()
-		return null
-	# 血量子节点先于角色 _ready 初始化；提前拒绝零血量，避免漏接初始化死亡。
-	var boss_hp: HpComponent = boss.get_node_or_null("%HpComponent") as HpComponent
-	if boss_hp == null or boss_hp.max_hp <= 0 or boss.is_death:
-		push_error("ZombieManager：僵王必须具有正数初始血量，且不能预设为死亡。")
-		boss.free()
-		return null
-	boss.character_init_type = Character000Base.E_CharacterInitType.IsNorm
-	# 先连接信号并计数，再触发角色 _ready，避免初始化期间发出的通知被遗漏。
-	if not register_boss(boss, boss_type, count_as_new):
-		boss.free()
-		return null
-	# 调用方位置优先，关卡坐标次之，两者均未指定时由各僵王提供默认位置。
-	if spawn_position == Vector2.INF and game_para.boss_spawn_position == Vector2.ZERO:
-		if count_as_new:
-			_place_boss_at_default_spawn(boss)
-		else:
-			boss.place_boss_at_spawn(self, boss.get_default_boss_spawn_position(self), restored_home_x)
-	else:
-		# 明确指定或从存档读取的位置，不参与自动分路。
-		var position_override: Vector2 = game_para.boss_spawn_position if spawn_position == Vector2.INF else spawn_position
-		boss.place_boss_at_spawn(self, position_override, restored_home_x)
-		if not count_as_new and not is_finite(restored_home_x):
-			# 旧存档只有当前位置，回到该行默认右侧待机点。
-			var default_home: Vector2 = game_para.boss_spawn_position
-			if default_home == Vector2.ZERO:
-				default_home = boss.get_default_boss_spawn_position(self, boss.lane)
-			boss.boss_home_x = zombie_boss_root.to_global(default_home).x
-	zombie_boss_root.add_child(boss)
-	# 子节点已初始化，状态机尚未执行延迟启动；恢复血量不会重放上轮技能中间状态。
-	if restored_hp > 0:
-		boss.restore_boss_hp(restored_hp)
-	if encounter != null:
-		boss.configure_adventure_encounter(encounter.initial_health_ratio,
-			encounter.retreat_after_phase_two, encounter.skill_summon_tier)
-	# 登记发生在入树前，音乐通知必须等入树完成，存活快照才能包含本次实例。
-	signal_living_bosses_changed.emit()
-	_refresh_boss_progress()
-	if cheat_instant_kill_enabled:
-		_apply_cheat_instant_kill.call_deferred(boss)
-	return boss
+## [param boss_type] 从公共注册表取材；[param positions] 为同类型增援在僵王容器中的有限坐标。[param prepare] 在树外按顺序接收实例和序号，返回能否提交。
+## [param commit_origin] 在整批完成入树、向遭遇及血条公开之前提交原体变化。失败返回空数组，不占用计数或触发离场。
+func try_create_boss_reinforcements(boss_type: CharacterRegistry.ZombieBossType, positions: Array[Vector2],
+		prepare: Callable, commit_origin: Callable) -> Array[ZB000Base]:
+	return BossSpawn.create_reinforcements(self, boss_type, positions, prepare, commit_origin)
 
 
 ## [param boss] 已登记且尚未入树的默认出场实例；同帧首对按第 2、4 路分开。
 ## 跨帧增援只选择自己的位置，优先使用可用的第 4 路。
-func _place_boss_at_default_spawn(boss: ZB000Base) -> void:
+func place_boss_at_default_spawn(boss: ZB000Base) -> void:
 	# 本次实例尚未入树，存活快照只包含更早入树的僵王。
 	var others: Array[ZB000Base] = get_living_bosses()
 	# 同一处理帧内，连续的生成调用视为同时登场。
@@ -430,33 +423,71 @@ func choose_boss_lane(boss: ZB000Base, preferred_lane: int = -1, can_stay: bool 
 ## [param boss_type] 保存时使用的注册类型；[param count_as_new] 是否增加累计生成数。
 ## 同一实例重复登记只返回 true，不重复连接信号或计数；不限制登记数量。
 func register_boss(boss: ZB000Base, boss_type: CharacterRegistry.ZombieBossType, count_as_new: bool = true) -> bool:
-	if not is_instance_valid(boss) or boss.is_queued_for_deletion():
+	return register_boss_group([boss], boss_type, count_as_new)
+
+## 原子登记 [param members] 中尚未登记的真实角色；[param boss_type] 与 [param count_as_new] 用于保存及计数。
+## 先接入整组死亡和离树信号，再向正式遭遇交付成员；已在树内的外部实例同步刷新。
+func register_boss_group(members: Array[ZB000Base], boss_type: CharacterRegistry.ZombieBossType,
+		count_as_new: bool = true) -> bool:
+	if members.is_empty():
 		return false
-	# 用实例 ID 绑定通知，避免信号持有已释放的强类型角色参数。
-	var instance_id: int = boss.get_instance_id()
-	if _registered_bosses.has(instance_id):
-		return true
-	if not is_game_running() or boss.is_death \
-		or boss.character_init_type != Character000Base.E_CharacterInitType.IsNorm \
-		or not Global.character_registry.ZombieBossInfo.has(boss_type):
+	var pending: Dictionary[int, ZB000Base] = {} # 集中保存本次尚未登记的唯一实例。
+	var in_tree := false # 已经入树的外部成员不再经过工厂最后的发布。
+	for member: Variant in members: # 外部传入已释放对象时不能先强转为角色。
+		if not is_instance_valid(member) or member.is_queued_for_deletion():
+			return false
+		var boss := member as ZB000Base # 数组元素类型已约束为公共 Boss 类型。
+		var id: int = boss.get_instance_id() # 已登记实例重复提交不再次占用名额。
+		if _registered_bosses.has(id) or pending.has(id):
+			continue
+		if not is_game_running() or boss.is_death or boss.character_init_type != Character000Base.E_CharacterInitType.IsNorm \
+				or not Global.character_registry.ZombieBossInfo.has(boss_type) \
+				or (boss.get_parent() != null and boss.get_parent() != zombie_boss_root):
+			return false
+		pending[id] = boss
+		in_tree = in_tree or boss.is_inside_tree()
+	if not has_enemy_slots(pending.size()):
 		return false
-	if boss.get_parent() != null and boss.get_parent() != zombie_boss_root:
-		return false
+	for boss: ZB000Base in pending.values(): # 完成整批计数之后，才可向遭遇观察者交付。
+		_register_new_boss(boss, boss_type, count_as_new)
+	for member: Variant in pending.values(): # 前一条同步通知可能使其他成员离场。
+		if is_instance_valid(member):
+			boss_member_registered.emit(member)
+	if in_tree:
+		publish_boss_spawns([]) # 观察者接入后再通知已入树角色的音乐和血条。
+	return true
+
+## [param members] 已完成入树和出场配置；统一通知战斗音乐及总血条，再为仍存活的成员排入修改器命令。
+func publish_boss_spawns(members: Array[ZB000Base]) -> void:
+	signal_living_bosses_changed.emit()
+	_refresh_boss_progress()
+	if cheat_instant_kill_enabled:
+		for member: Variant in members: # 同步的观察者可能已完成击杀或释放。
+			if is_instance_valid(member) and not member.is_death and not member.is_queued_for_deletion():
+				_apply_registered_boss_cheat.call_deferred(member.get_instance_id())
+
+## [param id] 在入场发布时登记；延迟一步后重新取仍存在的实体，避免向修改器传入失效对象。
+func _apply_registered_boss_cheat(id: int) -> void:
+	var boss: ZB000Base = _get_registered_boss(id) # 离场或切关后不再执行本次命令。
+	if boss != null:
+		_apply_cheat_instant_kill(boss)
+
+## 为已预检且尚未登记的 [param boss] 接线计数；[param boss_type] 与 [param count_as_new] 沿用单体创建语义。
+func _register_new_boss(boss: ZB000Base, boss_type: CharacterRegistry.ZombieBossType, count_as_new: bool) -> void:
+	var instance_id: int = boss.get_instance_id() # 单体与整批都以真实实例为唯一键。
 	_registered_bosses[instance_id] = weakref(boss)
 	_counted_boss_ids[instance_id] = true
 	_boss_types[instance_id] = boss_type
 	if count_as_new:
 		_boss_spawn_total += 1
+	if not boss.is_node_ready():
+		boss.ready.connect(BossTrace.member.bind(&"ready", boss, self), CONNECT_ONE_SHOT)
 	boss.signal_character_death.connect(_on_boss_dead.bind(instance_id))
 	boss.signal_boss_phase_changed.connect(_on_registered_boss_phase_changed.bind(instance_id))
 	boss.signal_trophy_requested.connect(_on_boss_trophy_requested.bind(instance_id))
 	boss.tree_exiting.connect(_on_boss_tree_exiting.bind(instance_id))
 	curr_zombie_num += 1
-	# 已入树的外部实例立即同步音乐和血条；尚未入树的实例由生成入口完成后同步。
-	if boss.is_inside_tree():
-		signal_living_bosses_changed.emit()
-		_refresh_boss_progress()
-	return true
+	BossTrace.member(&"registered", boss, self)
 
 
 ## Shared Boss phase audio is routed once through the already-registered Boss lifecycle.
@@ -477,19 +508,36 @@ func _on_boss_dead(instance_id: int) -> void:
 	if boss == null or not boss.is_death or not _counted_boss_ids.erase(instance_id):
 		return
 	_boss_dead_total += 1
-	# Boss 注册死亡已去重，仅在有效战斗中计入日常，撤退和卸载不会经过此处。
+	# 在可能结束战斗前结算真身死亡；召唤物和设施不会登记为 Boss 本体。
 	if is_game_running():
-		Global.record_quest_event("boss_defeated")
+		if boss.delays_victory_for_defeat_presentation():
+			_pending_boss_defeat_presentations[instance_id] = true
+		var group: int = boss.boss_encounter_group_id() # 分裂前后的同一遭遇只允许完成一次奖励。
+		var reward_ready: bool = group == 0 or _is_boss_group_defeated(group) # 独立死亡仍计数，最后一名才提交整组奖励。
+		if main_game.preview_return_scene.is_empty():
+			if reward_ready and is_instance_valid(main_game.drop_item_manager):
+				if boss.drop_diamond_after_presentation():
+					_pending_boss_diamonds[instance_id] = true
+				else:
+					var origin: Vector2 = boss.trophy_spawn_point.global_position if is_instance_valid(boss.trophy_spawn_point) \
+						else boss.global_position # 无独立演出的 Boss 仍在死亡帧掉落。
+					main_game.drop_item_manager.spawn_boss_diamond(origin)
+			if not game_para.is_zombie_mode:
+				Global.record_zombie_defeat()
+		if reward_ready:
+			Global.record_quest_event("boss_defeated")
 	curr_zombie_num -= 1
+	BossTrace.member(&"death", boss, self)
 	# 单轮启用死亡胜利且全部僵王已击杀时，延后音乐通知，避免获胜前短暂切回原曲。
 	var defer_bgm_update: bool = game_para.game_round == 1 and game_para.win_on_boss_death \
 		and _boss_spawn_total > 0 and _boss_dead_total == _boss_spawn_total
 	if not defer_bgm_update:
 		# 多轮或仍需继续战斗时，先恢复原曲，再允许胜利判断切到结算阶段。
 		signal_living_bosses_changed.emit()
-	# 同一次死亡也满足普通清场时，保留原清场结算时机，不强制等待 Boss 演出。
+	# 普通清场沿用原入口，已登记的等待演出由该入口暂缓。
+	var awaiting_wave_clear: bool = has_pending_boss_defeat_presentation() and is_end_wave and curr_zombie_num == 0 # 保留同帧普通清场的优先级。
 	_try_finish_wave(boss.global_position)
-	if game_para.win_on_boss_death and is_game_running() \
+	if game_para.win_on_boss_death and not awaiting_wave_clear and is_game_running() \
 		and _boss_spawn_total > 0 and _boss_dead_total == _boss_spawn_total \
 		and main_game.try_claim_round_end(true):
 		_boss_trophy_pending_id = instance_id
@@ -511,40 +559,91 @@ func _on_boss_dead(instance_id: int) -> void:
 ## [param global_pos] 死亡动画或直接消失接口请求的奖杯生成位置，使用世界坐标。
 ## [param instance_id] 发出请求的登记实例；只完成已接受的 Boss 胜利，且每轮最多请求一次。
 func _on_boss_trophy_requested(global_pos: Vector2, instance_id: int) -> void:
-	if not game_para.win_on_boss_death or instance_id != _boss_trophy_pending_id or _boss_trophy_created:
-		return
-	if not is_inside_tree() or is_queued_for_deletion() or not is_instance_valid(main_game) \
-		or main_game.is_queued_for_deletion() or not main_game.is_inside_tree():
-		return
-	# 请求时实例必须仍有登记且尚未排队释放；直接消失在释放前发送，纯清场不会发送。
-	var boss: ZB000Base = _get_registered_boss(instance_id)
+	var boss: ZB000Base = _get_registered_boss(instance_id) # 先确认请求来自仍在树中的原登记实例。
+	BossTrace.member(&"presentation_complete", boss, self)
+	if _pending_boss_diamonds.erase(instance_id) and is_instance_valid(main_game) \
+			and not main_game.is_queued_for_deletion() and is_instance_valid(main_game.drop_item_manager):
+		main_game.drop_item_manager.spawn_boss_diamond(global_pos)
 	if boss == null or not boss.is_death \
 		or boss.is_queued_for_deletion() or not boss.is_inside_tree():
 		return
-	if main_game.main_game_progress != MainGameManager.E_MainGameProgress.GAME_OVER \
+	var finished_presentation: bool = _pending_boss_defeat_presentations.erase(instance_id) # 同一实例只解除一次等待。
+	if game_para.win_on_boss_death and instance_id == _boss_trophy_pending_id:
+		_boss_trophy_pending_position = global_pos
+	_try_complete_boss_victory()
+	if finished_presentation and is_game_running():
+		# 正式遭遇也监听这次请求，交给同步退出通知先更新胜利条件。
+		_resume_round_after_boss_presentation.call_deferred(global_pos)
+
+
+## 额外 Boss 胜利已接受且奖杯已请求时，等所有登记演出完成才结算。
+func _try_complete_boss_victory() -> void:
+	if _boss_trophy_pending_id == 0 or _boss_trophy_created or not _boss_trophy_pending_position.is_finite() \
+		or has_pending_boss_defeat_presentation() or not is_inside_tree() or is_queued_for_deletion() \
+		or not is_instance_valid(main_game) or main_game.is_queued_for_deletion() or not main_game.is_inside_tree() \
+		or main_game.main_game_progress != MainGameManager.E_MainGameProgress.GAME_OVER \
 		or TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.GameOver, false):
 		return
+	var global_pos: Vector2 = _boss_trophy_pending_position # 最后死亡实例提交的奖杯落点。
 	_boss_trophy_created = true
 	_boss_trophy_pending_id = 0
+	_boss_trophy_pending_position = Vector2.INF
 	# Boss 死亡时已接受胜利，演出结束只完成结算，不能再次调用普通判胜入口。
 	main_game.complete_boss_victory(global_pos)
 
 
+## 以 [param global_pos] 复核因死亡演出暂缓的清场和轮间过渡。
+func _resume_round_after_boss_presentation(global_pos: Vector2) -> void:
+	if not is_game_running() or has_pending_boss_defeat_presentation() or get_tree().current_scene != main_game:
+		return
+	var requested_position: Vector2 = _deferred_round_trophy_position # 遭遇编排器可直接提交普通胜利请求。
+	_deferred_round_trophy_position = Vector2.INF
+	if requested_position.is_finite():
+		main_game.create_trophy(requested_position)
+	_try_finish_wave(global_pos)
+	if _next_round_waiting_for_boss_presentation:
+		_on_trigger_start_next_round_game()
+
+
 ## [param instance_id] 即将离树的登记实例；只移除自身引用和计数，直接移除不计为击杀。
 func _on_boss_tree_exiting(instance_id: int) -> void:
+	var departing: ZB000Base = _get_registered_boss(instance_id) # 先读取离场成员，因为本步随后会撤销登记。
+	BossTrace.member(&"tree_exit", departing, self)
+	_pending_boss_diamonds.erase(instance_id)
+	var released_presentation: bool = _pending_boss_defeat_presentations.erase(instance_id) # 演出被清场也不占用过渡。
 	_registered_bosses.erase(instance_id)
 	_boss_types.erase(instance_id)
 	if _counted_boss_ids.erase(instance_id):
+		if is_instance_valid(departing) and not departing.is_death and is_game_running():
+			var group: int = departing.boss_encounter_group_id() # 自然离场与实际造成的死亡分开计算。
+			if group != 0:
+				_escaped_boss_groups[group] = true
 		curr_zombie_num -= 1
 		# 未死亡的直接移除也解除音乐覆盖；死亡后的离树不再重复通知。
 		signal_living_bosses_changed.emit()
-	if _boss_trophy_pending_id == instance_id:
+	if _boss_trophy_pending_id == instance_id and not _boss_trophy_pending_position.is_finite():
 		_boss_trophy_pending_id = 0
+	if released_presentation:
+		_try_complete_boss_victory()
 	_refresh_boss_progress()
 	# 逃跑通过树退出解除实体登记；若它恰好是末波最后一个敌人，需重新请求清场判定。
 	# Boss 结果尚未交给 Director 时 can_accept_victory 会拒绝，之后 idle 再次复核。
 	if is_game_running():
-		_try_finish_wave(main_game.camera_2d.get_screen_center_position())
+		var global_pos: Vector2 = main_game.camera_2d.get_screen_center_position() # 演出中断时使用当前镜头位置。
+		if released_presentation:
+			_resume_round_after_boss_presentation.call_deferred(global_pos)
+		else:
+			_try_finish_wave(global_pos)
+
+## [param group] 中每个成员均确认击杀才允许结算，包含同帧排队移出的活体。
+func _is_boss_group_defeated(group: int) -> bool:
+	if _escaped_boss_groups.has(group):
+		return false
+	for id: int in _counted_boss_ids: # 已确认死亡的成员在进入奖励判断前就离开此集合。
+		var member: ZB000Base = _get_registered_boss(id) # 排队释放仍是有效的未击杀实例。
+		if member != null and member.boss_encounter_group_id() == group:
+			return false
+	return true
 
 
 ## [param instance_id] 本局实例 ID；返回仍有效的登记僵王，已释放或未登记时返回 null。
@@ -568,6 +667,13 @@ func get_living_bosses() -> Array[ZB000Base]:
 			and boss.is_inside_tree() and not boss.is_queued_for_deletion():
 			bosses.append(boss)
 	return bosses
+
+## 返回 [param boss_type] 的首个存活实例，本场没有该类型时返回 null。
+func get_living_boss_of_type(boss_type: CharacterRegistry.ZombieBossType) -> ZB000Base:
+	for boss: ZB000Base in get_living_bosses(): # 使用与血条、音乐一致的存活快照。
+		if _boss_types.get(boss.get_instance_id()) == boss_type:
+			return boss
+	return null
 
 
 ## 生命周期变化后同步各存活实例的血条；场景卸载时不访问已退出的 UI。
@@ -628,7 +734,7 @@ func restore_saved_bosses() -> void:
 		if hp <= 0:
 			continue
 		# 恢复使用同一生成流程，但累计生成数已经从存档读取。
-		var boss: ZB000Base = _create_boss_instance(boss_type, spawn_position, false, hp, home_x)
+		var boss: ZB000Base = BossSpawn.create(self, boss_type, spawn_position, false, hp, home_x)
 		if boss == null:
 			push_error("ZombieManager：无法恢复存档中的僵王：%s。" % boss_type)
 			continue
@@ -656,6 +762,8 @@ func _clear_bosses_for_next_round() -> void:
 	_auto_boss_id = 0
 	_boss_spawn_total = 0
 	_boss_dead_total = 0
+	_pending_boss_diamonds.clear()
+	_escaped_boss_groups.clear()
 	# 信号在离树时仍可能执行，但集合已清空，不会再次扣减敌方数量。
 	for boss: ZB000Base in bosses:
 		boss.queue_free()
@@ -668,7 +776,7 @@ func _clear_bosses_for_next_round() -> void:
 ## [param zombie_type] 角色注册表中的僵尸类型。[br]
 ## [param lane] 从 0 开始的目标行号；不存在的行或不兼容的水陆类型返回 false。
 func can_spawn_zombie_in_lane(zombie_type: CharacterRegistry.ZombieType, lane: int) -> bool:
-	if lane < 0 or lane >= all_zombie_rows.size() or lane >= all_zombies_2d.size():
+	if not is_lane_open(lane) or lane >= all_zombies_2d.size():
 		return false
 	# 目标行及出生点必须仍属于有效场景，避免使用已卸载的行数据。
 	var row: ZombieRow = all_zombie_rows[lane]
@@ -682,16 +790,38 @@ func can_spawn_zombie_in_lane(zombie_type: CharacterRegistry.ZombieType, lane: i
 	if scene == null or not scene.can_instantiate():
 		return false
 	var row_type: CharacterRegistry.ZombieRowType = Global.character_registry.get_zombie_info(zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieRowType)
-	return ZombieRow.supports_spawn(row_type, row.zombie_row_type)
+	return ZombieRow.supports_spawn(row_type, row.zombie_row_type) \
+		and (zombie_type != CharacterRegistry.ZombieType.Z039CannonTurret or _has_cannon_turret_slot(lane))
 
+
+## [param lane] 为已确认开放的目标行。只有有停车格且无存活炮塔的行允许新炮塔入场。
+func _has_cannon_turret_slot(lane: int) -> bool:
+	if main_game.board == null or main_game.board.row_cells(lane).is_empty():
+		return false
+	for child: Node in all_zombie_rows[lane].get_children(): # 行子节点覆盖已魅惑及正在入树登记的炮车。
+		var zombie := child as Zombie000Base # 跳过出怪锚点和场景特效。
+		if zombie != null and zombie.zombie_type == CharacterRegistry.ZombieType.Z039CannonTurret \
+				and not zombie.is_death and not zombie.is_queued_for_deletion():
+			return false
+	return true
+
+## [param lane] 是由零起算的攻击行；不存在、正在脱落或已释放的行不能进入。
+func is_lane_open(lane: int) -> bool:
+	if lane < 0 or lane >= all_zombie_rows.size():
+		return false
+	var row: ZombieRow = all_zombie_rows[lane] # 陆地和水路共用入口。
+	return is_instance_valid(row) and not row.is_falling and not row.is_queued_for_deletion()
 
 ## 技能生成入口：使用释放点 X 和目标行基准 Y，登记与计数复用普通创建流程。[br]
 ## [param zombie_type] 本次准备阶段锁定的僵尸类型。[br]
 ## [param lane] 本次准备阶段锁定的目标行号，从 0 开始。[br]
-## [param spawn_x] 释放瞬间的全局 X 坐标；非法坐标或关卡已结束时返回 null。
+## [param spawn_x] 普通入树脚点的全局 X 坐标；非法坐标或关卡已结束时返回 null。
 ## [param tier_id] 非空时在入树前应用指定等阶。
+## [param replaces] 可将临终且已登记的母体名额交给首只成功后代；默认不转移名额。
+## [param initialize] 可在入树前设置技能生成特有的初始姿态。
 func create_skill_zombie(zombie_type: CharacterRegistry.ZombieType, lane: int, spawn_x: float,
-		tier_id: StringName = &"") -> Zombie000Base:
+		tier_id: StringName = &"", replaces: Zombie000Base = null,
+		initialize: Callable = Callable()) -> Zombie000Base:
 	if not is_game_running() or not is_finite(spawn_x) or not can_spawn_zombie_in_lane(zombie_type, lane):
 		return null
 	# 新僵尸挂载到实际目标行，继续沿用该行的绘制层级和后续换行规则。
@@ -708,7 +838,33 @@ func create_skill_zombie(zombie_type: CharacterRegistry.ZombieType, lane: int, s
 		Zombie000Base.E_ZInitAttr.ParticipatesNaturalRefresh: false,
 	}
 	var modifier: ZombieSpawnModifier = null if tier_id.is_empty() else AdventureZombieTierBinding.new(tier_id) # 冒险遭遇可统一技能援军的等阶。
-	return create_norm_zombie(zombie_type, row, init_parameters, spawn_position, Callable(), modifier)
+	return create_norm_zombie(zombie_type, row, init_parameters, spawn_position, initialize, modifier, null, replaces)
+
+
+## 在 [param lane]（从零开始）的 [param ground_position] 世界脚点生成救主随从。[param replaces] 提供转换原体的在场名额。
+## 成功返回已登记的实例；战场、位置或名额不可用时返回 null。随从不参与自然波次统计。
+func create_savior_follower(lane: int, ground_position: Vector2, replaces: Zombie000Base = null) -> Zombie000Base:
+	if not is_game_running() or not ground_position.is_finite() \
+			or not can_spawn_zombie_in_lane(CharacterRegistry.ZombieType.Z001Norm, lane):
+		return null
+	var scene := load("res://scenes/character/zombie/savior_follower.tscn") as PackedScene # 只在救主实际召唤时加载。
+	if scene == null or not scene.can_instantiate():
+		return null
+	var row: ZombieRow = all_zombie_rows[lane] # 挂到原行以共用绘制、投影和战场统计。
+	var spawn_position: Vector2 = ground_position # 初始化会补上屋顶坡面高度，传入值先扣除同一偏移。
+	if is_instance_valid(main_game.main_game_slope):
+		var slope_y: float = main_game.main_game_slope.get_all_slope_y(ground_position.x) # 普通僵尸入树时使用的局部高度。
+		spawn_position -= row.global_transform.basis_xform(Vector2(0.0, slope_y))
+	var init_parameters: Dictionary = { # 黑影是全尺寸的普通敌方角色，没有自然出生波次。
+		Zombie000Base.E_ZInitAttr.CharacterInitType: Character000Base.E_CharacterInitType.IsNorm,
+		Zombie000Base.E_ZInitAttr.Lane: lane,
+		Zombie000Base.E_ZInitAttr.CurrZombieRowType: row.zombie_row_type,
+		Zombie000Base.E_ZInitAttr.IsMiniZombie: false,
+		Zombie000Base.E_ZInitAttr.IsZombieMode: false,
+		Zombie000Base.E_ZInitAttr.ParticipatesNaturalRefresh: false,
+	}
+	return create_norm_zombie(CharacterRegistry.ZombieType.Z001Norm, row, init_parameters,
+		spawn_position, Callable(), null, scene, replaces)
 
 
 ## 创建技能召唤的蹦极僵尸，目标在入树前注入；失败时返回 null。[br]
@@ -721,7 +877,7 @@ func create_skill_bungi(target_cell: PlantCell, anchor: Marker2D, on_created: Ca
 		or not main_game.is_ancestor_of(target_cell) or target_cell.get_bungi_target() == null:
 		return null
 	# 目标所在行，不使用展示用的一起始行号。
-	var lane: int = target_cell.row_col.x
+	var lane: int = target_cell.combat_lane
 	if not can_spawn_zombie_in_lane(CharacterRegistry.ZombieType.Z021Bungi, lane):
 		return null
 	# 父节点沿用实际僵尸行，保持现有行层级和死亡登记方式。
@@ -752,18 +908,55 @@ func _initialize_skill_bungi(zombie: Zombie021Bungi, target_cell: PlantCell, anc
 		on_created.call(zombie)
 
 
-## 生成一个正常出战僵尸，所有出战僵尸都要从这里生成
+## 生成并登记一个正常出战僵尸。[br]
+## [param zombie_type] 为角色注册类型，[param zombie_parent] 为持有实例的行节点。[br]
+## [param zombie_init_para] 为僵尸初始化参数，[code]StartsHypnotized[/code] 为真时直接登记为友军。[br]
+## [param global_pos] 为入树前使用的世界出生点。[br]
+## [param init_zombie_special] 在入树前注入特殊参数，[param spawn_modifier] 可替换默认的外观绑定。[br]
+## [param scene_override] 允许未注册的技能变体复用出战流程；场景需以僵尸为根且自行提供外观。[br]
+## [param replaces] 提供已登记旧敌人的名额，由调用方在新体登记成功后注销旧体。[br]
+## 敌方无空位或友军无法完成初始魅惑时返回 null。
 func create_norm_zombie(
-	zombie_type:CharacterRegistry.ZombieType,	## 僵尸类型
-	zombie_parent:Node,				## 僵尸父节点
-	zombie_init_para:Dictionary,			## 僵尸初始化参数
+	zombie_type:CharacterRegistry.ZombieType,
+	zombie_parent:Node,
+	zombie_init_para:Dictionary,
 	global_pos:Vector2=Vector2.ZERO,
-	init_zombie_special:Callable = Callable(),		## 初始化僵尸特殊属性
-	spawn_modifier: ZombieSpawnModifier = null
+	init_zombie_special:Callable = Callable(),
+	spawn_modifier: ZombieSpawnModifier = null,
+	scene_override: PackedScene = null,
+	replaces: Zombie000Base = null
 ) -> Zombie000Base:
+	# 初始阵营决定是否需要敌方名额。
+	var starts_hypnotized: bool = zombie_init_para.get(Zombie000Base.E_ZInitAttr.StartsHypnotized, false)
+	var transfers_slot: bool = not starts_hypnotized and max_live_enemies > 0 \
+		and is_instance_valid(replaces) # 限量战场的敌方转换可沿用旧敌人名额。
+	if transfers_slot:
+		if not all_zombies_1d.has(replaces) or all_zombies_be_hypno.has(replaces) or _transferred_enemy_slots.has(replaces):
+			return null
+	elif not starts_hypnotized and available_zombie_slots(1) == 0:
+		return null
+	var scene: PackedScene = scene_override # 技能变体使用单独场景，普通出战实体继续查注册表。
+	if scene == null:
+		scene = Global.character_registry.get_zombie_info(zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieScenes)
 	# 新实例入树前由初始化参数确定刷新归属；博士来源不会登记到自然刷新集合。
-	var zombie:Zombie000Base = Global.character_registry.get_zombie_info(zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieScenes).instantiate()
-	var spawn_parameters: Dictionary = zombie_init_para.duplicate(true)
+	var zombie: Zombie000Base = scene.instantiate()
+	var spawn_parameters: Dictionary = zombie_init_para.duplicate(true) # 补齐本场默认参数时保留调用方字典。
+	# 石像与运输舰以实际种植点的攻防行登记。
+	var transport := zombie as Zombie040TransportAirship
+	if (zombie_type == CharacterRegistry.ZombieType.Z028StoneStatue or transport != null) \
+			and spawn_parameters.get(Zombie000Base.E_ZInitAttr.CharacterInitType, Character000Base.E_CharacterInitType.IsNorm) == Character000Base.E_CharacterInitType.IsNorm:
+		var cell: PlantCell = _pick_transport_airship_cell(transport) if transport != null else _pick_stone_statue_spawn_cell() # 选中本场有效种植点。
+		if cell == null:
+			zombie.free()
+			return null
+		spawn_parameters[Zombie000Base.E_ZInitAttr.Lane] = cell.combat_lane
+		spawn_parameters[Zombie000Base.E_ZInitAttr.CurrZombieRowType] = cell.get_spawn_terrain_type()
+		zombie_parent = all_zombie_rows[cell.combat_lane]
+		global_pos = cell.get_spawn_global_position()
+	var spawn_row := zombie_parent as ZombieRow # 预览实例可能没有正式攻击行。
+	if spawn_row != null and spawn_row.is_falling:
+		zombie.free()
+		return null
 	if not spawn_parameters.has(Zombie000Base.E_ZInitAttr.IsMiniZombie):
 		spawn_parameters[Zombie000Base.E_ZInitAttr.IsMiniZombie] = game_para.is_mini_zombie
 	if not spawn_parameters.has(Zombie000Base.E_ZInitAttr.IsZombieMode):
@@ -776,10 +969,30 @@ func create_norm_zombie(
 			zombie.free()
 			return null
 		zombie.combat_spawn_modifier = spawn_modifier
+	elif scene_override == null:
+		apply_spawn_appearance(zombie, &"")
 	if not init_zombie_special.is_null():
 		init_zombie_special.call(zombie)
-	zombie.position = global_pos - zombie_parent.global_position
+	# 玩家放置、波次和技能都在实际入树前检查名额，预检查与创建之间允许其他生成先占行。
+	if zombie.zombie_type == CharacterRegistry.ZombieType.Z039CannonTurret \
+			and zombie.character_init_type == Character000Base.E_CharacterInitType.IsNorm \
+			and (not can_spawn_zombie_in_lane(zombie.zombie_type, zombie.lane) \
+				or zombie_parent != all_zombie_rows[zombie.lane]):
+		zombie.free()
+		return null
+	var parent_canvas: CanvasItem = zombie_parent as CanvasItem # 陆地行是 Node2D，旧泳池水行是 Panel，统一使用画布变换。
+	if parent_canvas == null:
+		zombie.free()
+		push_error("僵尸创建失败：父节点必须提供 CanvasItem 坐标变换")
+		return null
+	zombie.position = parent_canvas.get_global_transform().affine_inverse() * global_pos
 	zombie_parent.add_child(zombie)
+	# 角色就绪后先完成朝向、受击层和索敌切换，在发布前登记实际阵营。
+	if starts_hypnotized and not zombie.is_hypno:
+		zombie.be_hypno()
+		if not zombie.is_hypno:
+			zombie.queue_free()
+			return null
 
 	# 生命周期信号与登记绑定，直接离树也必须在节点失效前注销。
 	zombie.signal_character_death.connect(_on_zombie_dead.bind(zombie))
@@ -787,16 +1000,125 @@ func create_norm_zombie(
 	zombie.tree_exiting.connect(_on_zombie_tree_exiting.bind(zombie))
 	zombie.signal_lane_update.connect(zombie_update_lane.bind(zombie, zombie.lane))
 
-	all_zombies_2d[zombie.lane].append(zombie)
 	all_zombies_1d.append(zombie)
 
-	curr_zombie_num += 1
-	_register_natural_refresh_zombie(zombie)
+	if zombie.is_hypno:
+		all_zombies_be_hypno.append(zombie)
+	else:
+		all_zombies_2d[zombie.lane].append(zombie)
+		if transfers_slot and is_instance_valid(replaces) and all_zombies_1d.has(replaces) \
+				and not all_zombies_be_hypno.has(replaces):
+			_transferred_enemy_slots[replaces] = true
+		else:
+			curr_zombie_num += 1
+		_register_natural_refresh_zombie(zombie)
 	signal_zombie_created.emit(zombie)
-	if cheat_instant_kill_enabled:
+	if cheat_instant_kill_enabled and not zombie.is_hypno:
 		_apply_cheat_instant_kill.call_deferred(zombie)
 
 	return zombie
+
+
+## 依据存活登记返回是否还能容纳 [param count] 个新敌人。僵王登记使用实际空位。
+func has_enemy_slots(count: int) -> bool:
+	return max_live_enemies <= 0 or curr_zombie_num + count <= max_live_enemies
+
+## 从 [param requested] 个新增普通敌人的名额中返回可用数量，扣除 Boss 待入场的分身名额。
+func available_zombie_slots(requested: int) -> int:
+	if max_live_enemies <= 0:
+		return requested
+	var remaining: int = max_live_enemies - curr_zombie_num # 先扣除全场已经登记的存活敌人。
+	if remaining <= 0:
+		return 0
+	for boss: ZB000Base in get_living_bosses(): # 已在场的僵王可临时为尚未登场的分身留位。
+		remaining -= boss.reserved_enemy_spawn_slots()
+	return clampi(remaining, 0, requested)
+
+## 从第 4 列起的全部有效格等概率选取石像出生点；保留水格及已有植物的格子。
+## 返回仍属于本战场的地块，无候选时返回 null；只查询空间，不改变植物或地形占用。
+func _pick_stone_statue_spawn_cell() -> PlantCell:
+	if not is_instance_valid(main_game) or not is_instance_valid(main_game.plant_cell_manager):
+		return null
+	var board: BoardRuntime = main_game.plant_cell_manager.board # 实际地块索引，避免按矩阵范围补出不存在的格子。
+	if board == null or not board.configured:
+		return null
+	var candidates: Array[PlantCell] = [] # 每格只入选一次，不按行长度或出怪权重二次加权。
+	for cell: PlantCell in board.cells(): # 列号从零开始，前三列对应 0、1、2。
+		if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_inside_tree() \
+				or not cell.is_visible_in_tree() or cell.row_col.y < 3 \
+				or cell.board != board or board.cell_by_id(cell.cell_id) != cell \
+				or not main_game.is_ancestor_of(cell):
+			continue
+		if can_spawn_zombie_in_lane(CharacterRegistry.ZombieType.Z028StoneStatue, cell.combat_lane) \
+				and cell.get_spawn_global_position().is_finite():
+			candidates.append(cell)
+	return candidates.pick_random() if not candidates.is_empty() else null
+
+
+## 在倒数第五至倒数第二列中，为 [param transport] 等概率预留一条无碰撞的下降路线。
+## 没有安全格子时返回 null，生成器不登记本次出怪。
+func _pick_transport_airship_cell(transport: Zombie040TransportAirship) -> PlantCell:
+	var board: BoardRuntime = main_game.board # 运行时索引记录真实列号以及移动格子的当前攻防行。
+	if board == null or not board.configured:
+		return null
+	var occupied: Array[Rect2] = [] # 检查实际机体和入场通道，不依赖移动甲板的逻辑格号。
+	for row: ZombieRow in all_zombie_rows: # 读取场景子节点，覆盖已魅惑及正在同帧登记的运输舰。
+		if not is_instance_valid(row):
+			continue
+		for child: Node in row.get_children(): # 只有活着且仍在战场上的运输舰占用航线。
+			var active := child as Zombie040TransportAirship # 其他僵尸不妨碍空中停靠。
+			if active != null and not active.is_death and not active.is_queued_for_deletion():
+				occupied.append(active.occupied_airspace())
+	var view_top: Vector2 = main_game.get_canvas_transform().affine_inverse() * main_game.get_viewport_rect().position # 与运输舰共用战场镜头。
+	var candidates: Dictionary[PlantCell, Rect2] = {} # 保留计算过的安全通道，选中时立即交给实例。
+	for cell: PlantCell in board.cells(): # 使用逻辑列计数，格子随平台移动时仍保持列身份。
+		if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_visible_in_tree():
+			continue
+		var from_right: int = board.extent.y - cell.row_col.y # 最右列计为 1。
+		if from_right < 2 or from_right > 5 or not is_lane_open(cell.combat_lane) \
+				or not cell.get_spawn_global_position().is_finite():
+			continue
+		var approach: Rect2 = Zombie040TransportAirship.landing_corridor(cell, view_top.y, main_game.main_game_slope) # 包含机体尺寸和下降扫过的区域。
+		if not occupied.any(func(area: Rect2) -> bool: return area.intersects(approach)):
+			candidates[cell] = approach
+	if candidates.is_empty():
+		return null
+	var chosen: PlantCell = candidates.keys().pick_random() # 只有路线安全的格子进入等权随机。
+	transport.configure_landing(chosen, candidates[chosen])
+	return chosen
+
+
+## 从已有雪橇准备器缓存 [param sample] 的 [param tier_id] 外观，[param appearance] 必须已完整编译。
+## 只接收Z1001雪橇队员，实际战斗已生成相同等阶时不覆盖原有缓存。
+func cache_prepared_bobsled_appearance(sample: Zombie000Base, tier_id: StringName,
+		appearance: AdventureZombieTierArt.PreparedAppearance) -> bool:
+	if sample == null or sample.zombie_type != CharacterRegistry.ZombieType.Z1001BobsledSingle \
+			or sample.scene_file_path.is_empty() or appearance == null:
+		return false
+	var key: String = "%s:%s" % [sample.scene_file_path, tier_id] # 与原始出生工厂缓存键完全一致。
+	if _appearances.has(key):
+		return false
+	_appearances[key] = appearance
+	if appearance.pending_atlas != null and is_instance_valid(periodic_updates):
+		periodic_updates.queue_atlas(appearance.pending_atlas) # 图集仍由本场原调度器分帧构建。
+		appearance.pending_atlas = null
+	return true
+
+## 为尚未入树的 [param zombie] 装配 [param tier_id] 外观。返回是否匹配等阶美术。
+func apply_spawn_appearance(zombie: Zombie000Base, tier_id: StringName) -> bool:
+	var specialize_land_rig: bool = AdventureZombieTierArt.can_specialize_land_rig(zombie) # 首次编译和后续复用需匹配形态。
+	var key: String = "%s:%s" % [zombie.scene_file_path, tier_id] # 不同变种场景不能共享部件路径。
+	var appearance: AdventureZombieTierArt.PreparedAppearance = _appearances.get(key) # 本场的只读素材绑定。
+	if appearance == null:
+		var pack_sprites: bool = is_instance_valid(periodic_updates) and periodic_updates.can_pack_sprites() # 受本场显存额度约束。
+		appearance = AdventureZombieTierArt.prepare(zombie, tier_id, pack_sprites, specialize_land_rig)
+		_appearances[key] = appearance
+		if appearance.pending_atlas != null:
+			periodic_updates.queue_atlas(appearance.pending_atlas)
+			appearance.pending_atlas = null
+	else:
+		appearance.apply_to(zombie, specialize_land_rig)
+	return appearance.has_tier_art
 
 ## 在生成调用方完成波次或遭遇登记后，让新出场的 [param enemy] 通过原有死亡入口离场。
 ## 回调时重新检查开关和战斗状态，避免关闭后或切场期间继续处决。
@@ -805,7 +1127,12 @@ func _apply_cheat_instant_kill(enemy: Character000Base) -> void:
 			or not is_instance_valid(enemy) or not enemy.is_inside_tree() \
 			or enemy.is_death or enemy.is_queued_for_deletion():
 		return
-	enemy.character_death_disappear()
+	if enemy is ZB000Base:
+		enemy.force_defeat(&"spawn_instant_kill")
+	elif enemy is SaviorFollower:
+		enemy.retire_from_battle()
+	else:
+		enemy.character_death_disappear()
 
 #endregion
 
@@ -815,11 +1142,13 @@ func _apply_cheat_instant_kill(enemy: Character000Base) -> void:
 func _on_zombie_hypno(zombie: Zombie000Base) -> void:
 	if not all_zombies_1d.has(zombie) or all_zombies_be_hypno.has(zombie):
 		return
-	curr_zombie_num -= 1
+	if not _transferred_enemy_slots.erase(zombie):
+		curr_zombie_num -= 1
 	all_zombies_2d[zombie.lane].erase(zombie)
 	all_zombies_be_hypno.append(zombie)
 	_remove_natural_refresh_zombie(zombie.get_instance_id())
-	zombie.signal_zombie_hp_loss.emit(zombie.hp_component.get_all_hp(), zombie.curr_wave)
+	# 魅惑同时移除尚未破壳的本体预算，避免已经转为友军的生命阻塞残血刷新。
+	zombie.signal_zombie_hp_loss.emit(zombie.hp_component.get_all_hp() + zombie.contained_zombie_wave_health(), zombie.curr_wave)
 	# 魅惑之后不再把该实例的掉血记入原自然波次。
 	var connections: Array = zombie.signal_zombie_hp_loss.get_connections()
 	# 当前需要移除的掉血监听连接。
@@ -828,17 +1157,38 @@ func _on_zombie_hypno(zombie: Zombie000Base) -> void:
 	_try_finish_wave(zombie.global_position)
 
 
-## [param zombie] 死亡时只结算一次；已魅惑实例不会再次减少敌方或自然刷新数量。
+## [param zombie] 死亡时只结算一次；记入有效战斗的敌方击杀，再判断是否清场。
 func _on_zombie_dead(zombie: Zombie000Base) -> void:
 	if _unregister_zombie(zombie):
+		# 强制死亡不会生成后续形态；当前血量已由受击组件结算，只移除额外预留值。
+		var contained_health: int = zombie.contained_zombie_wave_health() # 默认物种为零，不改变已有掉血事件。
+		if contained_health > 0:
+			zombie.signal_zombie_hp_loss.emit(contained_health, zombie.curr_wave)
+		if not zombie.retiring_from_battle and is_game_running() \
+				and main_game.preview_return_scene.is_empty() and not game_para.is_zombie_mode:
+			Global.record_zombie_defeat()
 		_remove_natural_refresh_zombie(zombie.get_instance_id())
 		_try_finish_wave(zombie.global_position)
+
+## [param zombie] 已由新形态接替。从本波移除原体，转换不产生死亡档案、亡语或掉落。
+func retire_converted_zombie(zombie: Zombie000Base) -> void:
+	if not _unregister_zombie(zombie):
+		return
+	zombie.queue_free()
+	_remove_natural_refresh_zombie(zombie.get_instance_id())
+	# 已交接名单的石像会先断开旧监听；其他强制转换仍须释放封存形态预算。
+	zombie.signal_zombie_hp_loss.emit(zombie.hp_component.get_all_hp() + zombie.contained_zombie_wave_health(), zombie.curr_wave)
+	_try_finish_wave(zombie.global_position)
 
 
 ## [param zombie] 实际离树的普通僵尸；在节点仍有效时同步清理战场列表。
 func _on_zombie_tree_exiting(zombie: Zombie000Base) -> void:
 	if zombie.is_changing_lane or not _unregister_zombie(zombie):
 		return
+	# 未经死亡直接离场的石像一并释放壳与本体预算；已交接/死亡的旧体不会再次进入此分支。
+	var contained_health: int = zombie.contained_zombie_wave_health() # 只为含后续形态的实例补齐原始离树路径。
+	if contained_health > 0:
+		zombie.signal_zombie_hp_loss.emit(zombie.hp_component.get_all_hp() + contained_health, zombie.curr_wave)
 	# 波次事件可能生成僵尸，等到本次离树结束后再发出。
 	_finish_zombie_departure.call_deferred(zombie.get_instance_id(), zombie.global_position, _round_generation)
 
@@ -852,8 +1202,42 @@ func _unregister_zombie(zombie: Zombie000Base) -> bool:
 		all_zombies_be_hypno.erase(zombie)
 		return false
 	all_zombies_2d[zombie.lane].erase(zombie)
-	curr_zombie_num -= 1
+	if not _transferred_enemy_slots.erase(zombie):
+		curr_zombie_num -= 1
 	return true
+
+## [param lane] 进入坠落后停止交互，保留活体外观直到真正出屏。
+func close_falling_lane(lane: int) -> void:
+	var row: ZombieRow = all_zombie_rows[lane] # 攻击行仍留在索引，供本拍结束时结算。
+	row.is_falling = true
+	row.process_mode = Node.PROCESS_MODE_DISABLED
+	for zombie: Zombie000Base in all_zombies_1d: # 同一行的魅惑单位也停止交互。
+		if is_instance_valid(zombie) and not zombie.is_death and zombie.lane == lane:
+			zombie.hurt_box_component.disable_component(ComponentNormBase.E_IsEnableFactor.Death)
+	zombie_wave_manager.zombie_wave_create_manager.zombie_choose_row_system.init_zombie_choose_row_system(all_zombie_rows)
+
+## 在 [param actor] 的沉降演出中移去最后一条出怪行，先结算死亡再收缩空间索引。
+func retire_last_battle_row(actor: ZB000Base) -> void:
+	var lane: int = all_zombie_rows.size() - 1 # 只移尾行，存活者无需换编号。
+	if lane < 1:
+		return
+	for zombie: Zombie000Base in all_zombies_1d.duplicate(): # 同时清理本行已魅惑的单位。
+		if is_instance_valid(zombie) and zombie.lane == lane:
+			zombie.retire_from_battle()
+			if all_zombies_1d.has(zombie):
+				_on_zombie_dead(zombie)
+	for boss: ZB000Base in get_living_bosses(): # 发动沉降的凯莱赫由本次演出重新定位。
+		if boss != actor and boss.lane == lane:
+			boss.force_defeat(&"terrain_collapse")
+	for road: IceRoad in all_ice_roads[lane].duplicate(): # 已不存在的行不再参与雪橇或阻种。
+		if is_instance_valid(road):
+			road.queue_free()
+	var row: ZombieRow = all_zombie_rows.pop_back() # 剩余行仍使用原节点。
+	all_zombies_2d.pop_back()
+	all_ice_roads.pop_back()
+	row.hide()
+	row.queue_free()
+	zombie_wave_manager.zombie_wave_create_manager.zombie_choose_row_system.init_zombie_choose_row_system(all_zombie_rows)
 
 
 ## [param instance_id] 已离树的敌方实例 ID；[param global_pos] 离树时的位置；[param generation] 离树时的轮次代数。
@@ -898,9 +1282,11 @@ func _remove_natural_refresh_zombie(instance_id: int) -> void:
 ## 普通死亡、魅惑及僵王死亡共用原有清场条件，不受额外 Boss 胜利选项影响。
 ## [param global_pos] 最后一个敌人的世界坐标，用于原清场胜利的奖杯位置。
 func _try_finish_wave(global_pos: Vector2) -> void:
-	if not is_game_running():
+	if not is_game_running() or has_pending_boss_defeat_presentation():
 		return
 	if is_end_wave and curr_zombie_num == 0:
+		if AdventureSession.owns_battle(game_para):
+			BossTrace.victory(self, AdventureSession.victory_blocker(), &"last_enemy_cleared")
 		if is_instance_valid(multi_round_end_wave_timer):
 			multi_round_end_wave_timer.stop()
 		EventBus.push_event("create_trophy", [global_pos])
@@ -927,17 +1313,17 @@ func set_zombie_death_over_view():
 	for z:Zombie000Base in all_zombies_1d.duplicate(): # 处决会同步注销僵尸，遍历快照以免跳过后续实例。
 		if not is_instance_valid(z) or z.is_death:
 			continue
-		if z.nonlethal_displacement_exile:
-			# 轨迹结束后只保留会向战场走回的目标，避免反向移动的矿工卡住清场。
-			if z.global_position.x > zombie_range_pos_x.y and (z.direction_x_root > 0 \
+		var x: float = z.global_position.x # 波次清理与末波定时检查共用同一个世界边界。
+		if x > zombie_range_pos_x.y:
+			if z.is_right_entry_pending():
+				continue
+			# 击退结束后只保留会向战场走回的目标，避免反向移动的矿工卡住清场。
+			if z.nonlethal_displacement_exile and (z.direction_x_root > 0 \
 					or (is_instance_valid(z.move_component) and z.move_component.is_forced_moving())):
 				continue
-			z.nonlethal_displacement_exile = false
-		# 检查是否在屏幕外
-		if z.global_position.x > zombie_range_pos_x.y or z.global_position.x < zombie_range_pos_x.x:
-			#all_zombies_be_hypno.erase(z)
-			z.character_death_disappear()
-	#print("删除离开当前视野的僵尸，目前还剩的僵尸：", all_zombies_1d)
+		z.nonlethal_displacement_exile = false
+		if x > zombie_range_pos_x.y or x < zombie_range_pos_x.x:
+			z.retire_from_battle()
 #endregion
 
 #region 多轮游戏
@@ -959,6 +1345,10 @@ func multi_round_end_wave_timer_start():
 ## 战斗中触发原有轮间计时请求；末轮与重复请求由主游戏管理器拒绝。
 func _on_trigger_start_next_round_game():
 	multi_round_end_wave_timer.stop()
+	if has_pending_boss_defeat_presentation():
+		_next_round_waiting_for_boss_presentation = true
+		return
+	_next_round_waiting_for_boss_presentation = false
 	if is_game_running():
 		EventBus.push_event("start_next_round_game")
 #endregion
@@ -970,6 +1360,10 @@ func start_next_game_zombie_mananger_update(finish_current_round: bool = false):
 	_start_requested = false
 	_round_generation += 1
 	_boss_trophy_pending_id = 0
+	_boss_trophy_pending_position = Vector2.INF
+	_pending_boss_defeat_presentations.clear()
+	_deferred_round_trophy_position = Vector2.INF
+	_next_round_waiting_for_boss_presentation = false
 	_boss_trophy_created = false
 	match monster_mode:
 		ConstLevelData.E_MonsterMode.Norm:
@@ -988,7 +1382,7 @@ func start_next_game_zombie_mananger_update(finish_current_round: bool = false):
 		for i in range(all_zombies_1d.size()-1,-1,-1):
 			# 当前轮次尚未移除的普通僵尸。
 			var zombie:Zombie000Base = all_zombies_1d[i]
-			zombie.character_death_disappear()
+			zombie.retire_from_battle()
 	_refresh_boss_progress()
 
 #endregion
@@ -1112,10 +1506,13 @@ func jalapeno_bomb_item_lane(lane:int):
 ## 火爆辣椒处理整行普通僵尸，并攻击所有存活僵王；僵王检查受击窗口，不限制行号。[br]
 ## [param lane] 辣椒所在的零起始行号，仅用于选择受影响的普通僵尸。
 ## [param damage] 由爆炸组件计算的实际伤害；本管理器不解释植物星级。
-func jalapeno_bomb_lane_zombie(lane:int, damage:int):
+## [param boss_damage_cap] 传入僵王受击入口，负一表示无需封顶。
+func jalapeno_bomb_lane_zombie(lane: int, damage: int, boss_damage_cap: int = -1) -> void:
 	for structure: Node in get_tree().get_nodes_in_group(EnemyStructureBase.GROUP): # 同行设施不纳入僵尸计数。
 		if main_game.is_ancestor_of(structure) and structure.lane == lane:
-			structure.be_attacked_bullet(damage, BulletRegistry.AttackMode.Penetration, false, false)
+			structure.cancel_ice()
+			if is_instance_valid(structure):
+				structure.be_attacked_bullet(damage, BulletRegistry.AttackMode.Penetration, false, false)
 	# 倒序遍历当前行，普通僵尸被炸死时可能立即从列表移除。
 	for i in range(all_zombies_2d[lane].size()-1,-1,-1) :
 		if is_instance_valid(all_zombies_2d[lane][i]):
@@ -1126,7 +1523,7 @@ func jalapeno_bomb_lane_zombie(lane:int, damage:int):
 	# 使用快照，某只僵王死亡不会影响其余实例遍历。
 	for boss: ZB000Base in get_living_bosses():
 		if is_instance_valid(boss):
-			boss.be_jalapeno(damage)
+			boss.be_jalapeno(damage, boss_damage_cap)
 
 ## 三叶草吹走空中僵尸
 func blover_blow_away_in_sky_zombie():
@@ -1156,20 +1553,24 @@ func death_all_zombie():
 			continue
 		for i in range(zombie_row.size()-1, -1, -1):
 			var zombie:Zombie000Base = zombie_row[i]
-			zombie.character_death_disappear()
+			if zombie is SaviorFollower:
+				zombie.retire_from_battle()
+			else:
+				zombie.character_death_disappear()
 #endregion
 
 
 ## 普通僵尸卡的唯一放置资格；预览和提交都调用，不改变出怪计数。[br]
 ## [param zombie_type] 为注册物种；[param cell] 必须是本战场仍有效的地块。
 func can_place_zombie_at_cell(zombie_type: CharacterRegistry.ZombieType, cell: PlantCell) -> bool:
-	if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_inside_tree() \
+	if available_zombie_slots(1) == 0 or not is_instance_valid(cell) \
+			or cell.is_queued_for_deletion() or not cell.is_inside_tree() \
 			or not is_instance_valid(main_game) or cell.board != main_game.board \
 			or not main_game.is_ancestor_of(cell) or not cell.board.allows_mutation():
 		return false
 	if not cell.can_common_zombie and zombie_type != CharacterRegistry.ZombieType.Z021Bungi:
 		return false
-	if not can_spawn_zombie_in_lane(zombie_type, cell.row_col.x):
+	if not can_spawn_zombie_in_lane(zombie_type, cell.combat_lane):
 		return false
 	var terrain: CharacterRegistry.ZombieRowType = Global.character_registry.get_zombie_info(
 		zombie_type, CharacterRegistry.ZombieInfoAttribute.ZombieRowType) # 同一注册水陆要求。

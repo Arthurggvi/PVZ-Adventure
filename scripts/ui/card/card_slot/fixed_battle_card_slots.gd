@@ -14,8 +14,8 @@ var _placeholders: Array[Control] = []
 var curr_cards: Array[Card] = []
 ## 每个原生显示位的完整尺寸。
 var _slot_size: Vector2
-## 当前是否按设置隐藏没有卡片的普通槽。
-var _hide_spare: bool = false
+## 选卡面板展开时显示空位，战斗中只显示实际出战卡。
+var _selection_open: bool = false
 ## 当前窗口的起始显示位，翻动不会改变真实出战顺序。
 var _first_visible_slot: int = 0
 ## 溢出时才出现的翻动按钮，不增加卡栏高度或覆盖候选区。
@@ -84,9 +84,9 @@ func reveal_slot(slot: Control) -> void:
 		_first_visible_slot = index - _capacity + 1
 	_refresh_display()
 
-## [param hide_spare] 只影响空位显示，不改变预算、实际卡片或选卡顺序。
-func _set_spare_slots_hidden(hide_spare: bool) -> void:
-	_hide_spare = hide_spare
+## 根据 [param is_open] 展示选卡容量或收起空位，保留卡槽预算和出战顺序。
+func set_selection_open(is_open: bool) -> void:
+	_selection_open = is_open
 	_refresh_display()
 
 ## 至少提供 [param count] 个真实显示位；扩容不移动或复制已有卡片。
@@ -101,7 +101,7 @@ func _ensure_slot_count(count: int) -> void:
 func _refresh_display() -> void:
 	if not is_instance_valid(_navigation):
 		return
-	var total: int = curr_cards.size() if _hide_spare else maxi(_capacity, curr_cards.size()) # 保留空位设置语义。
+	var total: int = maxi(_capacity, curr_cards.size()) if _selection_open else curr_cards.size() # 选卡时计入容量，战斗时按实际卡数收窄。
 	var columns: int = mini(_capacity, total) # 原定卡栏尺寸不随免槽卡数量无限增长。
 	var last_start: int = maxi(0, total - columns) # 删除卡后窗口不能停在不存在的尾部。
 	_first_visible_slot = clampi(_first_visible_slot, 0, last_start)

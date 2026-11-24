@@ -58,6 +58,7 @@ func setup(new_target: Node2D) -> void:
 	target = new_target
 
 func _ready() -> void:
+	add_to_group(&"touch_collectibles")
 	_owner_state = Global.global_game_state.adventure_state
 	if is_instance_valid(Global.main_game) and Global.main_game.is_ancestor_of(self):
 		_source_game = Global.main_game

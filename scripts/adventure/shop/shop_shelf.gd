@@ -7,12 +7,14 @@ signal selected(id: String)
 const ProductCard = preload("res://scripts/adventure/shop/shop_product_card.gd")
 ## 共用滚动条颜色。
 const Style = preload("res://scripts/adventure/shop/shop_skin.gd")
+## 货架沿用游戏统一的滚动区，保留商店配色。
+const ContentScroll = preload("res://scripts/ui/content_scroll.gd")
 ## 卡片间距不随商品数量变化。
 const GAP := 18
 ## 固定保留滚动条区域，避免内容增加时货架抖动。
 const SCROLL_GUTTER := 22
 ## 原生滚动容器，负责鼠标滚轮和键盘焦点可见性。
-var _scroll: ScrollContainer
+var _scroll: ContentScroll
 ## 原生网格，列数只由可用宽度决定。
 var _grid: GridContainer
 ## 依稳定商品 ID 复用卡片，余额变化不重新构造节点。
@@ -29,10 +31,10 @@ var _hint_card: Button
 ## 构造没有固定货位数量的滚动网格。
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_scroll = ScrollContainer.new()
+	_scroll = ContentScroll.new()
 	_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.follow_focus = true
+	_scroll.style_vertical_bar(Color("18241e"), Color("84976e"), Style.GOLD)
 	add_child(_scroll)
 	var alignment := CenterContainer.new() # 单排垂直居中；内容超过视口时自然撑高并交给滚动容器。
 	alignment.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -44,13 +46,7 @@ func _ready() -> void:
 	_grid.add_theme_constant_override("h_separation", GAP)
 	_grid.add_theme_constant_override("v_separation", GAP)
 	alignment.add_child(_grid)
-	var bar: VScrollBar = _scroll.get_v_scroll_bar() # 滚动条低对比，但保证可发现、可拖动。
-	bar.custom_minimum_size.x = 10
-	bar.add_theme_stylebox_override("scroll", Style.box(Color("18241e"), Color(0, 0, 0, 0), 5))
-	bar.add_theme_stylebox_override("grabber", Style.box(Color("687958"), Color(0, 0, 0, 0), 5))
-	bar.add_theme_stylebox_override("grabber_highlight", Style.box(Style.GOLD, Color(0, 0, 0, 0), 5))
-	bar.add_theme_stylebox_override("grabber_pressed", Style.box(Style.GOLD, Color(0, 0, 0, 0), 5))
-	bar.value_changed.connect(_scroll_hint)
+	_scroll.get_v_scroll_bar().value_changed.connect(_scroll_hint)
 	resized.connect(_fit_columns)
 	_fit_columns()
 
@@ -73,6 +69,7 @@ func render(offers: Array[Dictionary], selected_id: String, locked: bool) -> voi
 		var id: String = str(offer.id) # 唯一节点身份不使用数组下标。
 		if not _cards.has(id):
 			var card := ProductCard.new() # 网格负责位置，卡片负责内部构图。
+			card.mouse_filter = Control.MOUSE_FILTER_PASS # 手指从商品上开始滑动也能移动货架。
 			_grid.add_child(card)
 			card.configure(offer)
 			card.pressed.connect(_select.bind(id))

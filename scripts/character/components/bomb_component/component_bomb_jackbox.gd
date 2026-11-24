@@ -5,6 +5,8 @@ class_name BombComponentJackbox
 
 @onready var jack_bomb_timer: SpeedTimer = $JackBombTimer
 @onready var bomb_effect: BombEffectBase = $BombEffect
+## 只作为引爆时查询的几何数据，平时不参与重叠跟踪。
+@onready var blast_shape: CollisionShape2D = $Area2DBomb/CollisionShape2D
 
 
 ## 早爆小丑概率
@@ -48,10 +50,10 @@ func _on_jack_bomb_timer_timeout() -> void:
 func _start_bomb_fx():
 	bomb_effect.activate_bomb_effect()
 
-## 炸死所有敌人
+## 引爆时一次读取原范围，按原规则结算小丑、植物及罐子的目标。
 func _bomb_all_enemy():
 	CombatExplosion.resolve_targets(
-		area_2d_bomb.get_overlapping_areas(), owner.get_instance_id(),
+		CombatExplosion.query_collider(blast_shape, area_2d_bomb.collision_mask), owner.get_instance_id(),
 		owner.lane, bomb_lane, owner.is_hypno, bomb_value if use_numeric_blast else 0,
 		not use_numeric_blast, true)
 

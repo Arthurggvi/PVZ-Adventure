@@ -1,8 +1,6 @@
 shader_type canvas_item;
 render_mode unshaded;
 #include "res://shaders/ui/main_menu/wind_field.gdshaderinc"
-// 前一级视口颜色，采样方式与全幅合成节点一致。
-uniform sampler2D scene_color : filter_linear, repeat_disable;
 uniform sampler2D canopy_weights : filter_linear, repeat_disable;
 uniform sampler2D awning_premult : filter_linear, repeat_disable;
 uniform sampler2D awning_light_uv : filter_nearest, repeat_disable;
@@ -28,11 +26,11 @@ uniform float cloth_depth = 72.0;
 uniform float pin_band = 5.0;
 uniform vec2 cloth_outward = vec2(44.0,53.0);
 uniform float side_anchor_uv = 0.12;
-vec3 wind_light_transfer(vec2 uv) {
-    return texture(scene_color,uv).rgb/max(texture(master_color,uv).rgb,vec3(0.015));
+vec3 wind_light_transfer(vec3 lighting,vec2 uv) {
+    return lighting/max(texture(master_color,uv).rgb,vec3(0.015));
 }
 void fragment() {
-    vec4 original=texture(scene_color,UV);
+    vec4 original=texture(TEXTURE,UV);
     if (!wind_enabled || wind_strength<=0.0) {
         COLOR=original;
     } else {
@@ -44,7 +42,7 @@ void fragment() {
             float left=wind_signal(canopy_cycles,canopy_delay.x,space);
             float rear=wind_signal(canopy_cycles,canopy_delay.y,space);
             float offset=dot(foliage*canopy_amplitude,vec2(left,rear));
-            result=texture(scene_color,UV-wind_direction*offset/canvas_pixels);
+            result=texture(TEXTURE,UV-wind_direction*offset/canvas_pixels);
         }
         if (awning_enabled && awning_amplitude>0.0 && texture(awning_support,UV).r>0.0) {
             float line_y=anchor_start.y+(point.x-anchor_start.x)*(anchor_end.y-anchor_start.y)/(anchor_end.x-anchor_start.x);
@@ -58,10 +56,11 @@ void fragment() {
             float flow=wind_signal(awning_cycles,awning_delay,travel)*awning_amplitude*weight;
             vec2 local_uv=UV-vec2(flow*awning_horizontal*wind_direction.x,flow)/canvas_pixels;
             vec4 guide=texture(awning_plate_uv,UV);
-            vec3 under=texture(awning_plate,UV).rgb*wind_light_transfer(guide.rg);
+            vec3 under=texture(awning_plate,UV).rgb*wind_light_transfer(texture(TEXTURE,guide.rg).rgb,guide.rg);
             vec3 base=mix(original.rgb,under,guide.b);
             vec4 cloth=texture(awning_premult,local_uv);
-            cloth.rgb*=wind_light_transfer(texture(awning_light_uv,local_uv).rg);
+            vec2 light_uv=texture(awning_light_uv,local_uv).rg;
+            cloth.rgb*=wind_light_transfer(texture(TEXTURE,light_uv).rgb,light_uv);
             result.rgb=mix(original.rgb,cloth.rgb+base*(1.0-cloth.a),side);
         }
         COLOR=vec4(clamp(result.rgb,0.0,1.0),original.a);

@@ -2,18 +2,17 @@
 extends Node2D
 class_name ElectricPeaProjectile
 
-## 三种普通电球动画资源。
-const EFFECTS: PackedScene = preload("res://scenes/character/plant/electric_peashooter_effects.tscn")
-## 与出手等阶对应的共享电系换色接口。
-const PromotionArt = preload("res://scripts/adventure/plant_art/adventure_electric_peashooter_promotion_art.gd")
-## 随实际速度方向绘制细尾、白芯及出生脉冲的独立表现。
-const ProjectileVisual = preload("res://scripts/fx/electric_pea_projectile_visual.gd")
+## 从共享图集播放球面与方向电光的飞行表现。
+const ProjectileVisual = preload("res://scripts/fx/electric_pea_flight_sprite.gd")
 ## 原版电球在坡面坐标内的飞行速率，单位为世界像素每秒。
 const SPEED: float = 180.0
 ## 每次邻近放电之间的游戏秒数。
 const BOLT_INTERVAL: float = 0.5
 ## 三种普通球的循环片段。
 const PROJECTILE_CLIPS: Array[StringName] = [&"projectile", &"projectile2", &"projectile3"]
+
+## 相邻电球同一几何批次内的棋盘中心；完成一次同步受击结算后重新读取。
+const LANE_GEOMETRY_META: StringName = &"_electric_pea_lane_centers"
 
 ## 冻结战局、伤害与来源；须在入树前配置。
 var shot: ElectricPeaShotContext
@@ -67,7 +66,10 @@ func _ready() -> void:
 	_slope = shot.game.main_game_slope
 	_level_y = _height_above_slope(global_position)
 	if is_instance_valid(launch_origin):
-		_lane_height_offset = _height_above_slope(launch_origin.get_global_rect().get_center()) - _level_y
+		var ground: Vector2 = launch_origin.get_global_rect().get_center() # 普通棋盘用格心校准。
+		if shot.board.definition != null and shot.board.definition.project_surface_combat_lanes:
+			ground = launch_origin.get_spawn_global_position()
+		_lane_height_offset = _height_above_slope(ground) - _level_y
 	launch_origin = null
 	_speed = SPEED * shot.promotions.speed_multiplier
 	velocity = flight_direction.normalized() * _speed
@@ -77,16 +79,9 @@ func _ready() -> void:
 	var size_multiplier: float = shot.promotions.split_size if is_child_ball else 1.0 # 小球缩小碰撞与美术。
 	_damage_multiplier = shot.promotions.split_damage if is_child_ball else 1.0
 	_query = ElectricPeaFlightQuery.new(size_multiplier)
-	var visual: Node2D = EFFECTS.instantiate() as Node2D # 由逻辑根节点维持真实世界尺寸。
-	visual.process_mode = Node.PROCESS_MODE_PAUSABLE
-	add_child(visual)
-	visual.scale *= size_multiplier
-	var clip: StringName = PROJECTILE_CLIPS.pick_random() # 保留原版三种球面循环，片段同时提供各自半径。
-	PromotionArt.apply_to_projectile(visual, shot.appearance_rank, clip)
-	var player: AnimationPlayer = visual.get_node(^"AnimationPlayer") as AnimationPlayer # 只播放普通电球片段。
-	player.play(clip)
+	var clip: StringName = PROJECTILE_CLIPS.pick_random() # 保留三种球面循环与原有战斗随机数顺序。
 	_flight_visual = ProjectileVisual.new()
-	_flight_visual.configure(shot.appearance_rank, is_child_ball, PromotionArt.projectile_radius(clip))
+	_flight_visual.configure(shot.appearance_rank, is_child_ball, clip)
 	_flight_visual.scale *= size_multiplier
 	add_child(_flight_visual)
 	_flight_visual.advance_visual(_elapsed, frame_velocity)
@@ -113,10 +108,20 @@ func _physics_process(delta: float) -> void:
 	var finish_y: float = _level_y # 坡面相对高度持续线性变化，经过邻行也不拐平。
 	var finish := Vector2(finish_x, finish_y + ElectricPeaFlightQuery.height_at(_slope, finish_x)) # 世界终点。
 	frame_velocity = (finish - start) / delta if delta > 0.0 else velocity
-	var candidates := ElectricPeaFlightQuery.all_targets(shot.game) # 原始候选保留跳跃敌人。
-	var points := ElectricPeaFlightQuery.path_points(start, finish, _slope, start_y, finish_y) # 正反向跨过坡面折点时逐段扫掠。
+	var points: Array[Vector2] # 正反向跨过坡面折点时逐段扫掠，平地只有当前步起止点。
+	if is_instance_valid(_slope):
+		points = ElectricPeaFlightQuery.path_points(start, finish, _slope, start_y, finish_y)
+	else:
+		points = [start, finish]
+	var candidates: Array[Character000Base] # 跨折点保留本步起始资格，单段可在几何粗筛后检查资格。
+	var cohort: ElectricPeaFlightQuery.FlightCohort # 只在确认单段与相邻弹体连续执行时复用世界几何。
+	if points.size() > 2:
+		candidates = ElectricPeaFlightQuery.all_targets(shot.game)
+	else:
+		candidates = ElectricPeaFlightQuery.raw_targets(shot.game)
+		cohort = _query.begin_projectile_candidates(shot.game, self, candidates)
 	for index: int in range(1, points.size()): # 命中回调结束战局或分裂时立即停止旧球。
-		_move_segment(points[index], candidates)
+		_move_segment(points[index], candidates, cohort)
 		if is_queued_for_deletion() or not shot.is_active():
 			queue_free()
 			return
@@ -138,25 +143,104 @@ func _refresh_lane() -> void:
 	if not is_child_ball and is_zero_approx(velocity.y):
 		return
 	var ground: Vector2 = global_position + Vector2(0.0, _lane_height_offset) # 抵消枪口离地高度后再定位。
-	_lane = ElectricPeaFlightQuery.nearest_lane(shot.board, ground, _slope, _lane)
-	z_index = _lane * 50 + 45
+	var lane: int # 浮台棋盘只按弹体自己的脚点判断是否跨行。
+	if shot.board.definition != null and shot.board.definition.project_surface_combat_lanes:
+		lane = shot.board.lane_at_foot_y(shot.game.to_local(ground).y)
+	else:
+		var cohort := ElectricPeaFlightQuery.current_projectile_cohort(shot.game, self) # 同批弹体可共享场地几何。
+		lane = ElectricPeaFlightQuery.nearest_lane(shot.board, ground, _slope, _lane) \
+			if cohort == null else _nearest_cached_lane(cohort, ground)
+	if _lane != lane:
+		_lane = lane
+		z_index = _lane * 50 + 45
+
+
+## 从 [param cohort] 的活动几何中读取 [param ground] 对应的攻击行，保持原注册顺序与等距离口径。
+func _nearest_cached_lane(cohort: ElectricPeaFlightQuery.FlightCohort, ground: Vector2) -> int:
+	var geometry: Dictionary = cohort.get_meta(LANE_GEOMETRY_META, {}) # 批次独占，失效后可读取新平台位置。
+	if geometry.get("generation", -1) != cohort.geometry_generation or geometry.get("board") != shot.board \
+			or geometry.get("slope") != _slope:
+		var flat: bool = not is_instance_valid(_slope) # 平地格心和飞行点共用世界坐标。
+		var centers := PackedVector2Array() # 保留地块入场顺序，同距时选早登记的格子。
+		var rows := PackedInt32Array() # 每个中心的实际攻击行，兼容空洞及不规则地块。
+		for cell: PlantCell in shot.board.cells(): # 折线和平台当前位姿均参与投影。
+			if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_visible_in_tree():
+				continue
+			var center: Vector2 = cell.get_global_rect().get_center() # 舞台当前位姿下的格心。
+			if not flat:
+				center.y -= ElectricPeaFlightQuery.height_at(_slope, center.x)
+			centers.append(center)
+			rows.append(cell.row_col.x)
+		var columns: int = _shared_lane_columns(centers, rows) if flat else 0 # 只对当下确实对齐的平地图形按行缩减候选。
+		geometry = {"generation": cohort.geometry_generation, "board": shot.board, "slope": _slope,
+			"centers": centers, "rows": rows, "columns": columns}
+		cohort.set_meta(LANE_GEOMETRY_META, geometry)
+	var centers: PackedVector2Array = geometry.centers # 只读访问批次内的格心。
+	var rows: PackedInt32Array = geometry.rows # 原地格登记顺序的攻击行。
+	var columns: int = geometry.columns # 零表示按旧规则逐格扫描。
+	var point: Vector2 = ground # 平地坐标直接使用；坡面展开后再进行平面距离比较。
+	var first: int = 0 # 普通查询从首个格心开始，对齐棋盘从最接近的列开始。
+	var step: int = 1 # 普通查询逐格，对齐棋盘每行只读一个格心。
+	if columns > 0:
+		var horizontal_gap: float = INF # 到所有行共用的最近列的横向距离。
+		for column: int in range(columns): # 从第一行的列坐标找出所有行共用的最近列。
+			var gap: float = absf(point.x - centers[column].x) # 行内等高，横向距离最小的格心也有最小总距离。
+			if gap < horizontal_gap:
+				horizontal_gap = gap
+				first = column
+		step = columns
+	else:
+		point.y -= ElectricPeaFlightQuery.height_at(_slope, ground.x)
+	var closest: float = INF # 平面最短平方距离。
+	var lane: int = _lane # 如果当前没有可见格则沿用已知行。
+	for index: int in range(first, centers.size(), step): # 用原距离函数和严格小于比较，保留跨行同距顺序。
+		var distance: float = point.distance_squared_to(centers[index]) # 本弹到当前格心的平方距离。
+		if distance < closest:
+			closest = distance
+			lane = rows[index]
+	return lane
+
+
+## 核对 [param centers]、[param rows] 能否按原顺序分成等高且共享横向格心的若干行。
+## 返回共用列数；错位、破坏对齐的缺格、非有限坐标或单行单列时返回零。
+static func _shared_lane_columns(centers: PackedVector2Array, rows: PackedInt32Array) -> int:
+	if centers.is_empty():
+		return 0
+	var columns: int = 1 # 第一段连续攻击行决定各行都必须满足的列数。
+	while columns < rows.size() and rows[columns] == rows[0]:
+		columns += 1
+	if columns < 2 or columns == centers.size() or centers.size() % columns != 0:
+		return 0
+	for index: int in range(centers.size()): # 用实时格心验证分离条件，平台错位后不沿用旧布局。
+		var column: int = index % columns # 在第一行内同序的列。
+		var row_start: int = index - column # 本行最早登记的格心及其实际攻击行。
+		var center: Vector2 = centers[index] # 当前参与距离计算的真实格心。
+		if not center.is_finite() or rows[index] != rows[row_start] \
+				or center.x != centers[column].x or center.y != centers[row_start].y:
+			return 0
+	return columns
 
 
 ## 沿当前位置至 [param finish] 搜索 [param candidates]，先结算最近的真实接触。
-func _move_segment(finish: Vector2, candidates: Array[Character000Base]) -> void:
+## [param cohort] 为当前单段可共享的查询范围，多段飞行各段实时读取目标。
+func _move_segment(finish: Vector2, candidates: Array[Character000Base],
+		cohort: ElectricPeaFlightQuery.FlightCohort) -> void:
 	var start: Vector2 = global_position # 固定本段起点，按比例还原实际撞击位置。
 	var contacts: Array[Dictionary] = [] # 先排序，碰撞顺序独立于场景树顺序。
-	for reference: Variant in candidates: # 前一坡段的命中可能已经释放候选。
+	for index: int in _query.overlapping_target_indices(candidates, start, finish, cohort): # 结算前消费全部有序下标。
+		var reference: Variant = candidates[index] # 前一坡段的伤害可能使原候选失效。
 		if not is_instance_valid(reference) or not ElectricPeaFlightQuery.can_hit(reference):
 			continue
 		var target: Character000Base = reference # 已通过当前实例与攻击状态检查。
 		if _contact_ids.has(target.get_instance_id()) or (target is EnemyStructureBase \
 				and is_zero_approx(velocity.y) and not is_child_ball and target.lane != _lane):
 			continue
-		var fraction: float = _query.contact_fraction(target.hurt_box_component.hurt_box_real, start, finish) # 连出生重叠一起检查。
+		var area: Area2D = target.hurt_box_component.hurt_box_real # 真实区域仍需通过禁用和释放检查。
+		var fraction: float = _query.candidate_contact_fraction(index, area, start, finish, cohort) # 连出生重叠一起检查。
 		if is_finite(fraction):
 			contacts.append({"target": target, "fraction": fraction})
-	contacts.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.fraction) < float(b.fraction)) # a、b 为两次待结算接触。
+	if contacts.size() > 1:
+		contacts.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.fraction) < float(b.fraction)) # a、b 为两次待结算接触。
 	var splitting: bool = not is_child_ball and shot.promotions.split_count > 0 # 后代始终继续穿透。
 	for contact: Dictionary in contacts: # 每次攻击后重查战局与下一个目标。
 		if not shot.is_active() or get_tree().paused:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://711bxtjuhtxw"]
+[gd_scene load_steps=19 format=3 uid="uid://711bxtjuhtxw"]
 
 [ext_resource type="Theme" uid="uid://cx302yraw066y" path="res://data/ChooesLevel.tres" id="1_6yeev"]
 [ext_resource type="Script" uid="uid://bpitkycmanmap" path="res://scripts/choose_level/06_custom_chooes_level.gd" id="2_dr22h"]
@@ -13,6 +13,7 @@
 [ext_resource type="BitMap" uid="uid://bc7yq02xscrlr" path="res://assets/image/ui/ui_level/Almanac_CloseButton_Mask.png" id="46_b3c16"]
 [ext_resource type="Texture2D" uid="uid://om7aubyyu3le" path="res://assets/image/ui/ui_level/SeedChooser_Button2.png" id="47_m3tt0"]
 [ext_resource type="Texture2D" uid="uid://cx854vkq3n8gs" path="res://assets/image/ui/ui_level/SeedChooser_Button2_Glow.png" id="48_3ybjw"]
+[ext_resource type="Script" path="res://scripts/ui/content_scroll.gd" id="49_content_scroll"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_uy41y"]
 texture = ExtResource("9_lhnjj")
@@ -292,20 +293,22 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("49_content_scroll")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelHelp/ScrollContainer"]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
 [node name="Label" type="Label" parent="PanelHelp/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(430, 0)
+custom_minimum_size = Vector2(425, 0)
 layout_mode = 2
 text = "帮助"
 label_settings = SubResource("LabelSettings_vnfsp")
 horizontal_alignment = 1
 
 [node name="Label2" type="Label" parent="PanelHelp/ScrollContainer/VBoxContainer"]
-custom_minimum_size = Vector2(430, 0)
+custom_minimum_size = Vector2(425, 0)
 layout_mode = 2
 text = "   该部分关卡使用在游戏根目录下\"level_game_para\"文件夹中的游戏参数文件。
    游戏参数文件为\"ResourceLevelData\"类型的资源文件

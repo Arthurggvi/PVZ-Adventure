@@ -1,0 +1,132 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/zombie/zombie_040_transport_airship.gd" id="2_transport"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_static.gd" id="3_static"]
+[ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred.gd" id="4_charred"]
+[ext_resource type="Script" path="res://scripts/resources/resource_body_change.gd" id="5_body_change"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/transport_airship/sprite_frames.tres" id="6_frames"]
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/transport_airship_breakup.tscn" id="7_breakup"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/transport_airship/audio/rotor.ogg" id="8_rotor"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/transport_airship/audio/settle.ogg" id="9_settle"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/transport_airship/audio/hatch_open.ogg" id="10_open"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/transport_airship/audio/hatch_close.ogg" id="11_close"]
+
+[sub_resource type="Curve" id="Curve_travel"]
+max_value = 1.1
+_data = [Vector2(0, 0), 0.901734, 0.901734, 0, 0, Vector2(0.123077, 0.195376), 2.254335, 2.254335, 0, 0, Vector2(0.315385, 0.708671), 2.554913, 2.554913, 0, 0, Vector2(0.442308, 0.943353), 1.112139, 1.112139, 0, 0, Vector2(0.55, 1.036994), 0.0, 0.0, 0, 0, Vector2(0.692308, 0.987283), 0.0, 0.0, 0, 0, Vector2(0.8, 1.003699), 0.0, 0.0, 0, 0, Vector2(0.907692, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 9
+
+[sub_resource type="Curve" id="Curve_pitch"]
+min_value = -1.0
+max_value = 3.0
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.184615, -0.45), 0.0, 0.0, 0, 0, Vector2(0.326923, -0.15), 0.0, 0.0, 0, 0, Vector2(0.530769, 2.05), 0.0, 0.0, 0, 0, Vector2(0.692308, -0.75), 0.0, 0.0, 0, 0, Vector2(0.8, 0.22), 0.0, 0.0, 0, 0, Vector2(0.907692, 0), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 8
+
+[sub_resource type="RectangleShape2D" id="TransportHitbox"]
+size = Vector2(142, 120)
+
+[node name="Zombie040TransportAirship" instance=ExtResource("1_base")]
+scale = Vector2(1.54, 1.54)
+script = ExtResource("2_transport")
+entry_travel = SubResource("Curve_travel")
+entry_pitch = SubResource("Curve_pitch")
+breakup_scene = ExtResource("7_breakup")
+zombie_type = 40
+random_speed_range = Vector2(1, 1)
+is_walk = false
+
+[node name="Shadow" parent="." index="0"]
+position = Vector2(5, -3)
+scale = Vector2(2.35, 0.95)
+modulate = Color(0.05, 0.05, 0.04, 0.36)
+
+[node name="Hull" type="AnimatedSprite2D" parent="Body" index="2"]
+position = Vector2(0, -88)
+sprite_frames = ExtResource("6_frames")
+animation = &"hover"
+
+[node name="RotorAudio" type="AudioStreamPlayer2D" parent="Body/Hull" index="0"]
+position = Vector2(0, -45)
+stream = ExtResource("8_rotor")
+volume_db = -30.0
+max_distance = 1900.0
+panning_strength = 0.65
+bus = &"SFX"
+
+[node name="SettleAudio" type="AudioStreamPlayer2D" parent="Body/Hull" index="1"]
+stream = ExtResource("9_settle")
+max_distance = 1600.0
+panning_strength = 0.65
+bus = &"SFX"
+
+[node name="HeadAnchor" type="Marker2D" parent="Body" index="3"]
+position = Vector2(-13, -135)
+
+[node name="CargoMouth" type="Marker2D" parent="Body" index="4"]
+position = Vector2(21, -34)
+
+[node name="HatchOpenAudio" type="AudioStreamPlayer2D" parent="Body/CargoMouth" index="0"]
+stream = ExtResource("10_open")
+volume_db = -1.0
+max_distance = 1600.0
+panning_strength = 0.7
+bus = &"SFX"
+
+[node name="HatchCloseAudio" type="AudioStreamPlayer2D" parent="Body/CargoMouth" index="1"]
+stream = ExtResource("11_close")
+volume_db = 2.0
+max_distance = 1600.0
+panning_strength = 0.7
+bus = &"SFX"
+
+[node name="CargoRampLip" type="Marker2D" parent="Body" index="5"]
+position = Vector2(17, -8)
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("3_static")
+
+[node name="HpStageChangeComponent" parent="." index="3"]
+boundary_value_hp = Array[int]([0])
+body_change = Array[ExtResource("5_body_change")]([null])
+
+[node name="HpComponent" parent="." index="4"]
+position = Vector2(0, -133)
+max_hp = 3000
+
+[node name="CharredComponent" parent="." index="5"]
+script = ExtResource("4_charred")
+
+[node name="AttackComponent" parent="." index="6"]
+process_mode = 4
+is_enable_default = false
+
+[node name="DetectComponent" parent="AttackComponent" index="0"]
+is_enable_default = false
+
+[node name="Area2d" parent="AttackComponent/DetectComponent" index="0"]
+monitoring = false
+
+[node name="MoveComponent" parent="." index="7"]
+process_mode = 4
+move_mode = 1
+is_enable_default = false
+
+[node name="SwimBoxComponent" parent="." index="8"]
+process_mode = 4
+is_enable_default = false
+
+[node name="HurtBoxComponent" parent="." index="10"]
+x_correct_on_attack = 0.0
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection" index="0"]
+position = Vector2(0, -55)
+shape = SubResource("TransportHitbox")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(0, -55)
+shape = SubResource("TransportHitbox")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetectionOnAttack" index="0"]
+position = Vector2(0, -55)
+shape = SubResource("TransportHitbox")

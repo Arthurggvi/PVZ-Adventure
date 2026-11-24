@@ -69,7 +69,7 @@ func reset_track_movement(is_enemy:=false, is_new_target:=false, end_glo_pos:Vec
 		if Global.config_service.track_bullet_mouse:
 			curr_bullet_speed_r = 1
 			curr_target_type = E_CurrTargetType.Mouse
-			end_global_pos = get_global_mouse_position()
+			end_global_pos = BattleEnvironmentLens.mouse_position(self)
 		else:
 			curr_target_type = E_CurrTargetType.Null
 			curr_bullet_speed_r = bullet_speed_r_target_null

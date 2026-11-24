@@ -1,0 +1,106 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/zombie/zombie_029_large_fusion.gd" id="2_fusion"]
+[ext_resource type="Script" path="res://scripts/character/components/hp_component/component_hp_large_fusion.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/character/components/attack_behavior_component/component_attack_zombie_large_fusion.gd" id="4_attack"]
+[ext_resource type="Script" path="res://scripts/character/zombie/large_fusion_brood.gd" id="5_brood"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_empty.gd" id="6_animation"]
+[ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred_black_anim.gd" id="7_charred"]
+[ext_resource type="Script" path="res://scripts/resources/resource_body_change.gd" id="8_body_change"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/large_fusion/roll_sheet.png" id="9_sheet"]
+[ext_resource type="Script" path="res://scripts/character/zombie/large_fusion_presentation.gd" id="10_presentation"]
+[ext_resource type="Script" path="res://scripts/character/zombie/large_fusion_audio.gd" id="11_audio"]
+[ext_resource type="Shader" path="res://shaders/large_fusion_surface.gdshader" id="12_surface"]
+
+[sub_resource type="CircleShape2D" id="FusionHurtShape"]
+radius = 72.0
+
+[sub_resource type="RectangleShape2D" id="FusionContactShape"]
+size = Vector2(20, 8)
+
+[sub_resource type="ShaderMaterial" id="FusionSurface"]
+resource_local_to_scene = true
+shader = ExtResource("12_surface")
+
+[node name="Zombie029LargeFusion" instance=ExtResource("1_base")]
+script = ExtResource("2_fusion")
+zombie_type = 29
+is_ignore_ladder = true
+
+[node name="Shadow" parent="." index="0"]
+position = Vector2(0, 0)
+scale = Vector2(1.8, 0.8)
+
+[node name="FusionSprite" type="Sprite2D" parent="Body" index="2"]
+unique_name_in_owner = true
+material = SubResource("FusionSurface")
+position = Vector2(0, -80.5)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("9_sheet")
+flip_h = true
+hframes = 4
+vframes = 3
+
+[node name="CrushFront" type="Marker2D" parent="Body/FusionSprite"]
+position = Vector2(-105, 109)
+
+[node name="HeadAnchor" type="Marker2D" parent="Body" index="3"]
+position = Vector2(-24, -128)
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("6_animation")
+
+[node name="HpStageChangeComponent" parent="." index="3"]
+boundary_value_hp = Array[int]([0])
+body_change = Array[ExtResource("8_body_change")]([null])
+
+[node name="HpComponent" parent="." index="4"]
+position = Vector2(0, -140)
+script = ExtResource("3_health")
+max_hp_armor1 = 0
+max_hp_armor2 = 0
+max_hp = 3000
+
+[node name="CharredComponent" parent="." index="5"]
+script = ExtResource("7_charred")
+
+[node name="AttackComponent" parent="." index="6"]
+script = ExtResource("4_attack")
+
+[node name="Area2d" parent="AttackComponent/DetectComponent" index="0"]
+position = Vector2(-52.5, -26)
+
+[node name="CollisionShape2D" parent="AttackComponent/DetectComponent/Area2d" index="0"]
+position = Vector2(10, 0)
+shape = SubResource("FusionContactShape")
+disabled = true
+
+[node name="MoveComponent" parent="." index="7"]
+move_mode = 1
+ori_speed = 45.9
+
+[node name="HurtBoxComponent" parent="." index="10"]
+x_correct_on_attack = 0.0
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection" index="0"]
+position = Vector2(0, -80)
+shape = SubResource("FusionHurtShape")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(0, -80)
+shape = SubResource("FusionHurtShape")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetectionOnAttack" index="0"]
+position = Vector2(0, -80)
+shape = SubResource("FusionHurtShape")
+
+[node name="FusionBrood" type="Node" parent="." index="11"]
+unique_name_in_owner = true
+script = ExtResource("5_brood")
+
+[node name="FusionPresentation" type="Node" parent="." index="12"]
+script = ExtResource("10_presentation")
+
+[node name="FusionAudio" type="Node2D" parent="." index="13"]
+script = ExtResource("11_audio")

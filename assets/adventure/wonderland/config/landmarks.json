@@ -1,0 +1,329 @@
+{
+  "schema_version": 2,
+  "coordinate_system": "world_px_top_left",
+  "source_size": [
+    1774,
+    887
+  ],
+  "hit_resolution": "world_hover_only",
+  "click_on_empty": false,
+  "landmarks": [
+    {
+      "id": "snow_mountains",
+      "name": "Snow mountains",
+      "bbox": [
+        0,
+        0,
+        765,
+        272
+      ],
+      "pixel_area": 168322,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        0,
+        0
+      ],
+      "hover_mask_size": [
+        769,
+        276
+      ],
+      "name_cn": "雪山",
+      "hit_sample_world": [
+        525,
+        128
+      ],
+      "hover_mask_path": "hd/masks/hover/snow_mountains.png",
+      "interaction": "hover_only"
+    },
+    {
+      "id": "frozen_tundra",
+      "name": "Frozen tundra",
+      "bbox": [
+        737,
+        0,
+        1245,
+        232
+      ],
+      "pixel_area": 96286,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        733,
+        0
+      ],
+      "hover_mask_size": [
+        516,
+        236
+      ],
+      "name_cn": "冻土",
+      "hit_sample_world": [
+        878,
+        114
+      ],
+      "hover_mask_path": "hd/masks/hover/frozen_tundra.png",
+      "interaction": "hover_only"
+    },
+    {
+      "id": "edgar_mountain",
+      "name": "Edgar mountain",
+      "bbox": [
+        1164,
+        0,
+        1774,
+        271
+      ],
+      "pixel_area": 126892,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        1160,
+        0
+      ],
+      "hover_mask_size": [
+        614,
+        275
+      ],
+      "name_cn": "埃德加之山",
+      "hit_sample_world": [
+        1492,
+        131
+      ],
+      "hover_mask_path": "hd/masks/hover/edgar_mountain.png",
+      "interaction": "hover_only"
+    },
+    {
+      "id": "mushroom_forest",
+      "name": "Mushroom forest",
+      "bbox": [
+        0,
+        168,
+        602,
+        596
+      ],
+      "pixel_area": 191958,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        0,
+        164
+      ],
+      "hover_mask_size": [
+        606,
+        436
+      ],
+      "name_cn": "蘑菇森林",
+      "hit_sample_world": [
+        191,
+        400
+      ],
+      "hover_mask_path": "hd/masks/hover/mushroom_forest.png",
+      "interaction": "hover_only"
+    },
+    {
+      "id": "resting_plain",
+      "name": "Resting plain",
+      "bbox": [
+        377,
+        216,
+        1437,
+        887
+      ],
+      "pixel_area": 319716,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        373,
+        212
+      ],
+      "hover_mask_size": [
+        1068,
+        675
+      ],
+      "name_cn": "安息平原",
+      "hit_sample_world": [
+        858,
+        411
+      ],
+      "hover_mask_path": "hd/masks/hover/resting_plain.png",
+      "interaction": "hover_only"
+    },
+    {
+      "id": "garden_airship",
+      "name": "Garden airship",
+      "bbox": [
+        1034,
+        217,
+        1354,
+        481
+      ],
+      "pixel_area": 52185,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        1030,
+        213
+      ],
+      "hover_mask_size": [
+        328,
+        272
+      ],
+      "name_cn": "花园飞船",
+      "hit_sample_world": [
+        1189,
+        289
+      ],
+      "hover_mask_path": "hd/masks/hover/garden_airship.png",
+      "interaction": "hover_only"
+    },
+    {
+      "id": "psychedelic_current",
+      "name": "Psychedelic current",
+      "bbox": [
+        0,
+        579,
+        597,
+        887
+      ],
+      "pixel_area": 91630,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        0,
+        575
+      ],
+      "hover_mask_size": [
+        601,
+        312
+      ],
+      "name_cn": "致幻洋流",
+      "hit_sample_world": [
+        101,
+        780
+      ],
+      "hover_mask_path": "hd/masks/hover/psychedelic_current.png",
+      "interaction": "hover_only"
+    },
+    {
+      "id": "abandoned_school",
+      "name": "Abandoned school",
+      "bbox": [
+        548,
+        563,
+        916,
+        752
+      ],
+      "pixel_area": 45489,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        544,
+        559
+      ],
+      "hover_mask_size": [
+        376,
+        197
+      ],
+      "name_cn": "废弃学校",
+      "hit_sample_world": [
+        740,
+        668
+      ],
+      "hover_mask_path": "hd/masks/hover/abandoned_school.png",
+      "interaction": "hover_only"
+    },
+    {
+      "id": "zombie_church",
+      "name": "Zombie church",
+      "bbox": [
+        1383,
+        197,
+        1774,
+        431
+      ],
+      "pixel_area": 37269,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        1379,
+        193
+      ],
+      "hover_mask_size": [
+        395,
+        242
+      ],
+      "name_cn": "僵尸教堂",
+      "hit_sample_world": [
+        1626,
+        356
+      ],
+      "hover_mask_path": "hd/masks/hover/zombie_church.png",
+      "interaction": "hover_only"
+    },
+    {
+      "id": "badlands",
+      "name": "Badlands",
+      "bbox": [
+        899,
+        388,
+        1774,
+        887
+      ],
+      "pixel_area": 232552,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        895,
+        384
+      ],
+      "hover_mask_size": [
+        879,
+        503
+      ],
+      "name_cn": "恶地",
+      "hit_sample_world": [
+        1214,
+        732
+      ],
+      "hover_mask_path": "hd/masks/hover/badlands.png",
+      "interaction": "hover_only"
+    },
+    {
+      "id": "john_furnace",
+      "name": "John brothers furnace",
+      "bbox": [
+        1336,
+        434,
+        1766,
+        698
+      ],
+      "pixel_area": 63456,
+      "stage_reference": null,
+      "hover_mask_origin": [
+        1332,
+        430
+      ],
+      "hover_mask_size": [
+        438,
+        272
+      ],
+      "name_cn": "约翰兄弟熔炉",
+      "hit_sample_world": [
+        1532,
+        608
+      ],
+      "hover_mask_path": "hd/masks/hover/john_furnace.png",
+      "interaction": "hover_only"
+    }
+  ],
+  "hit_source": "masks/interaction/landmark_id_map.png",
+  "moving_source": "masks/interaction/airship_local_hit.png",
+  "hit_palette": {
+    "1": "snow_mountains",
+    "2": "frozen_tundra",
+    "3": "edgar_mountain",
+    "4": "mushroom_forest",
+    "5": "resting_plain",
+    "6": "garden_airship",
+    "7": "psychedelic_current",
+    "8": "abandoned_school",
+    "9": "zombie_church",
+    "10": "badlands",
+    "11": "john_furnace"
+  },
+  "notes": [
+    "Regions only provide hover illumination; stage navigation belongs to independent stage buttons.",
+    "World ID and native-density hover masks share tools/art/wonderland_hover_regions.json.",
+    "Airship and its docking compound are one static hover region; moving_source is retained only as a legacy resource."
+  ]
+}

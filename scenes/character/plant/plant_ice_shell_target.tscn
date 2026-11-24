@@ -1,0 +1,43 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/character_000_base.tscn" id="base"]
+[ext_resource type="Script" path="res://scripts/character/plant/plant_ice_shell_target.gd" id="target"]
+[ext_resource type="Script" path="res://scripts/character/components/hp_component/component_hp_ice_shell.gd" id="hp"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_static.gd" id="anim"]
+
+[node name="PlantIceShellTarget" instance=ExtResource("base")]
+script = ExtResource("target")
+random_speed_range = Vector2(1, 1)
+is_can_death_language = false
+
+[node name="Shadow" parent="." index="0"]
+visible = false
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("anim")
+
+[node name="HpComponent" parent="." index="3"]
+visible = false
+script = ExtResource("hp")
+max_hp = 3000
+is_can_look_hp = false
+
+[node name="ProgressBarHp" type="ProgressBar" parent="HpComponent"]
+unique_name_in_owner = true
+visible = false
+mouse_filter = 2
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="LabelHp" type="Label" parent="HpComponent"]
+unique_name_in_owner = true
+visible = false
+mouse_filter = 2
+text = "3000"
+
+[node name="HurtBoxDetection" parent="HurtBoxComponent" index="0"]
+collision_layer = 4
+
+[node name="HurtBoxReal" parent="HurtBoxComponent" index="1"]
+collision_layer = 512

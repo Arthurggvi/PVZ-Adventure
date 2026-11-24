@@ -47,7 +47,6 @@ func _run() -> void:
 	assert(not is_instance_valid(AdventureToolbar.modal_for("inventory")))
 	Global.user_manager.curr_user_name = previous
 	Global.reload_session_for_current_user()
-	await get_tree().process_frame # 等待档案切换发出的延迟界面更新。
 	print("INVENTORY_UI_SMOKE_PASS")
 	get_tree().quit(0)
 

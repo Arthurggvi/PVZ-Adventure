@@ -8,9 +8,11 @@ const ALL_ZOMBIE_STATUSES: int = 63
 var _battle: RepeaterShotContext
 ## 转职规则按事件键索引，参数沿用研究目录。
 var _rules: Dictionary[String, Dictionary] = {}
-## 本次冻结时长，单位为游戏秒。
+## 计入转职加成后的本次冻结时长，单位为游戏秒。
 var _freeze_seconds: float
-## 原生解冻后的减速时长，单位为游戏秒。
+## 原生冻结时长，供普通冻结被折为减速时使用，单位为游戏秒。
+var _base_freeze_seconds: float
+## 解冻后的减速时长，单位为游戏秒。
 var _slow_seconds: float
 ## 本次已处理的普通僵尸实例 ID，行名单变动不会重复结算。
 var _visited: Dictionary[int, bool] = {}
@@ -36,8 +38,11 @@ static func try_cast(plant: Plant015IceShroom, uid: String, events: Array[Dictio
 	for event: Dictionary in events: # 出生时已经校验的单株事件。
 		cast._rules[String(event.kind)] = event
 	var extension: float = float(cast._rules.get("ice_shroom_deep_cold", {}).get("extra_seconds", 0.0)) # 深寒将两个阶段各延长。
+	cast._base_freeze_seconds = freeze_seconds
 	cast._freeze_seconds = freeze_seconds + extension
 	cast._slow_seconds = slow_seconds + extension
+	if not cast._rules.has("ice_shroom_deep_cold"):
+		cast._freeze_seconds += float(cast._rules.get("ice_shroom_quick_freeze", {}).get("extra_freeze_seconds", 0.0))
 	cast._detonate(uid, plant.get_instance_id())
 	return true
 
@@ -75,7 +80,9 @@ func _freeze_zombie(zombie: Zombie000Base) -> void:
 				AdventureDeepCold.apply_to(zombie, _battle, _freeze_seconds + _slow_seconds,
 					_freeze_seconds, ALL_ZOMBIE_STATUSES)
 		else:
-			zombie.be_ice_freeze(_freeze_seconds, _slow_seconds)
+			# 只接受减速的僵尸会合并两个阶段，按原生时长结算。
+			var target_freeze_seconds: float = _freeze_seconds if can_freeze else _base_freeze_seconds
+			zombie.be_ice_freeze(target_freeze_seconds, _slow_seconds)
 		if _is_legal_target(zombie) and can_freeze and zombie.can_cold_freeze() \
 				and zombie.influence_speed_factors.get(freeze_factor, 1.0) == 0.0:
 			_frozen_count += 1

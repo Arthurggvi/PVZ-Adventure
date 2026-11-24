@@ -26,6 +26,8 @@ static func from_dict(data: Variant) -> AdventureQuestState:
 			return null
 		if record.has("awarded_experience") and not _integer(record.awarded_experience, 0):
 			return null
+		if record.has("additional_equipment_claimed") and typeof(record.additional_equipment_claimed) != TYPE_BOOL:
+			return null
 		if record.has("collected_items"):
 			if not record.collected_items is Array:
 				return null

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/board/board_grid_definition.gd" id="grid"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_surface_definition.gd" id="surface"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_terrain_definition.gd" id="terrain"]
+
+[sub_resource type="Resource" id="PlainGround"]
+script = ExtResource("surface")
+
+[sub_resource type="Resource" id="PlainGrass"]
+script = ExtResource("terrain")
+terrain_id = &"grass"
+tags = Array[StringName]([&"land"])
+
+[resource]
+script = ExtResource("grid")
+board_id = &"wonderland.resting_plain"
+dimensions = Vector2i(5, 10)
+grid_origin = Vector2(126, 182)
+pitch = Vector2(92, 113.5)
+cell_size = Vector2(92, 113.5)
+spawn_x = 1190.0
+mower_x = 93.0
+lane_baseline_inset = 17.0
+accelerate_entry_from_last_column = true
+surfaces = Array[ExtResource("surface")]([SubResource("PlainGround")])
+terrains = Array[ExtResource("terrain")]([SubResource("PlainGrass")])

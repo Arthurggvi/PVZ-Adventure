@@ -7,6 +7,8 @@ signal postponed
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
 ## 当前实际控件，窗口销毁后自动收回点击孔。
 var target: Control
+## 操作型教学默认放行高亮目标；暂停中的纯说明可关闭透传，避免误操作。
+var allow_target_input := true
 ## 提示卡片及其文字。
 var _card: Control
 ## 背板随公告/短提示两种布局缩放，避免遮住大半个奖励或合成面板。
@@ -83,9 +85,9 @@ func _layout() -> void:
 	_card.position = Vector2(clampf(center.x - dimensions.x * 0.5, 12.0, maxf(12.0, size.x - dimensions.x - 12.0)),
 		clampf(top, 12.0, maxf(12.0, size.y - dimensions.y - 12.0))) if _hole.has_area() else (size - dimensions) * 0.5
 
-## 只有高亮孔允许鼠标穿透；[param point] 是遮罩局部坐标。
+## [param point] 是遮罩局部坐标；操作型教学仅放行高亮孔，说明型教学拦截整张遮罩。
 func _has_point(point: Vector2) -> bool:
-	return not _hole.has_area() or not _hole.has_point(point)
+	return not allow_target_input or not _hole.has_area() or not _hole.has_point(point)
 
 ## 四块遮幕保留目标原样显示，金色边框与箭头持续轻微跳动。
 func _draw() -> void:
@@ -100,5 +102,8 @@ func _draw() -> void:
 	draw_rect(Rect2(bounds.end.x, bounds.position.y, maxf(0, size.x - bounds.end.x), bounds.size.y), shade)
 	var gold := Color(1.0, 0.84, 0.32, 0.8 + 0.2 * sin(_elapsed * 4.0)) # 边框亮度呼吸。
 	draw_rect(_hole, gold, false, 3.0)
-	var tip := Vector2(_hole.get_center().x, _hole.position.y - 8.0 - 5.0 * sin(_elapsed * 5.0)) # 指向真实目标中心。
-	draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-10, -14), tip + Vector2(10, -14)]), gold)
+	var below: bool = _card.position.y >= _hole.end.y # 顶部头像的提示卡在下方，箭头不能画到屏幕外。
+	var direction: float = 1.0 if below else -1.0 # 箭尾始终朝向说明卡，箭尖朝真实目标。
+	var edge: float = _hole.end.y if below else _hole.position.y # 对应提示卡一侧的高亮边缘。
+	var tip := Vector2(_hole.get_center().x, edge + direction * (8.0 + 5.0 * sin(_elapsed * 5.0))) # 真实目标旁的轻微跳动。
+	draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-10, direction * 14), tip + Vector2(10, direction * 14)]), gold)

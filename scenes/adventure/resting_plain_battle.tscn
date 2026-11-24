@@ -1,0 +1,231 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/main/MainGame00Base.tscn" id="battle"]
+[ext_resource type="Script" path="res://scripts/adventure/resting_plain_battle.gd" id="entry"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/resting_plain/board_final.webp" id="board"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/resting_plain/skybox_ground.webp" id="sky"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/resting_plain/edge_dense.webp" id="dense"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/resting_plain/edge_sparse.webp" id="sparse"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/resting_plain/clover_low.webp" id="clover"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/resting_plain/tuft_flowers.webp" id="flowers"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/resting_plain/tuft_tall.webp" id="tall"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/resting_plain_grass.gdshader" id="grass_shader"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/resting_plain_sunset.gdshader" id="sunset_shader"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/resting_plain_petals.gdshader" id="petal_shader"]
+
+[sub_resource type="ShaderMaterial" id="SunsetLightingMaterial"]
+shader = ExtResource("sunset_shader")
+shader_parameter/sun_position = Vector2(866.14, 97.81)
+shader_parameter/lantern_position = Vector2(112.47, 366.95)
+
+[sub_resource type="Gradient" id="PollenGlow"]
+offsets = PackedFloat32Array(0, 0.27, 1)
+colors = PackedColorArray(1, 1, 0.92, 1, 1, 0.86, 0.55, 0.54, 1, 0.62, 0.32, 0)
+
+[sub_resource type="GradientTexture2D" id="PollenTexture"]
+gradient = SubResource("PollenGlow")
+width = 16
+height = 16
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="PollenLifetime"]
+offsets = PackedFloat32Array(0, 0.21, 0.69, 1)
+colors = PackedColorArray(1, 1, 1, 0, 1, 1, 1, 0.93, 1, 1, 1, 0.65, 1, 1, 1, 0)
+
+[sub_resource type="CanvasItemMaterial" id="PollenMaterial"]
+blend_mode = 1
+light_mode = 1
+
+[sub_resource type="ShaderMaterial" id="PetalMaterial"]
+shader = ExtResource("petal_shader")
+
+[sub_resource type="ShaderMaterial" id="GrassWind"]
+shader = ExtResource("grass_shader")
+
+[sub_resource type="RectangleShape2D" id="DefeatBounds"]
+size = Vector2(170, 800)
+
+[sub_resource type="RectangleShape2D" id="DetectBounds"]
+size = Vector2(1680, 780)
+
+[node name="RestingPlainBattle" instance=ExtResource("battle")]
+script = ExtResource("entry")
+
+[node name="BackgroundManager" parent="Manager" node_paths=PackedStringArray("background", "environment_sky")]
+background = NodePath("../../CanvasLayerBG/BoardArt")
+environment_sky = NodePath("../../CanvasLayerSky/Skybox")
+
+[node name="ZombieManager" parent="Manager" index="1"]
+zombie_range_pos_x = Vector2(-300, 1670)
+
+[node name="Background" parent="CanvasLayerBG" index="0"]
+self_modulate = Color(1, 1, 1, 0)
+
+[node name="CollisionShape2D" parent="CanvasLayerBG/Background/Home/Area2DHome"]
+position = Vector2(-28.93, 350)
+shape = SubResource("DefeatBounds")
+
+[node name="CanvasLayerSky" type="CanvasLayer" parent="."]
+layer = -12
+follow_viewport_enabled = true
+
+[node name="Skybox" type="Sprite2D" parent="CanvasLayerSky"]
+position = Vector2(-150, 0)
+scale = Vector2(0.83, 1.0)
+texture = ExtResource("sky")
+centered = false
+
+[node name="BoardArt" type="Sprite2D" parent="CanvasLayerBG"]
+z_index = -1
+position = Vector2(-150, 76)
+scale = Vector2(0.83, 1.15)
+texture = ExtResource("board")
+centered = false
+
+[node name="GrassLayer" type="Node2D" parent="CanvasLayerBG"]
+z_index = 0
+
+[node name="GrassSouthWest" type="Sprite2D" parent="CanvasLayerBG/GrassLayer"]
+material = SubResource("GrassWind")
+position = Vector2(145, 711)
+scale = Vector2(0.52, 0.35)
+texture = ExtResource("dense")
+centered = false
+self_modulate = Color(1, 0.97, 0.82, 0.53)
+
+[node name="GrassSouthEast" type="Sprite2D" parent="CanvasLayerBG/GrassLayer"]
+material = SubResource("GrassWind")
+position = Vector2(625, 707)
+scale = Vector2(0.52, 0.35)
+texture = ExtResource("sparse")
+centered = false
+self_modulate = Color(1, 0.97, 0.86, 0.5)
+
+[node name="GrassTent" type="Sprite2D" parent="CanvasLayerBG/GrassLayer"]
+material = SubResource("GrassWind")
+position = Vector2(68, 611)
+scale = Vector2(0.22, 0.39)
+texture = ExtResource("flowers")
+centered = false
+self_modulate = Color(1, 0.98, 0.84, 0.73)
+
+[node name="GrassBuffer" type="Sprite2D" parent="CanvasLayerBG/GrassLayer"]
+material = SubResource("GrassWind")
+position = Vector2(1080, 671)
+scale = Vector2(0.34, 0.4)
+texture = ExtResource("tall")
+centered = false
+self_modulate = Color(1, 0.96, 0.83, 0.63)
+
+[node name="GrassNorthernEdge" type="Sprite2D" parent="CanvasLayerBG/GrassLayer"]
+material = SubResource("GrassWind")
+position = Vector2(374, 145)
+scale = Vector2(0.45, 0.2)
+texture = ExtResource("clover")
+centered = false
+self_modulate = Color(1, 0.95, 0.78, 0.36)
+
+[node name="SunsetLighting" type="ColorRect" parent="CanvasLayerBG"]
+z_index = 2
+material = SubResource("SunsetLightingMaterial")
+offset_left = -150.0
+offset_right = 1440.0
+offset_bottom = 750.0
+mouse_filter = 2
+
+[node name="MeadowPollen" type="CPUParticles2D" parent="CanvasLayerBG"]
+z_index = 3
+material = SubResource("PollenMaterial")
+position = Vector2(575, 270)
+amount = 43
+lifetime = 11.5
+preprocess = 8.0
+fixed_fps = 30
+randomness = 0.32
+lifetime_randomness = 0.23
+local_coords = true
+use_fixed_seed = true
+seed = 215819
+texture = SubResource("PollenTexture")
+emission_shape = 3
+emission_rect_extents = Vector2(740, 152)
+direction = Vector2(1, -0.22)
+spread = 28.0
+gravity = Vector2(0.36, -0.22)
+initial_velocity_min = 7.0
+initial_velocity_max = 19.0
+scale_amount_min = 0.17
+scale_amount_max = 0.41
+color = Color(1, 0.94, 0.82, 0.83)
+color_ramp = SubResource("PollenLifetime")
+
+[node name="NearPollen" type="CPUParticles2D" parent="CanvasLayerBG"]
+z_index = 3
+material = SubResource("PollenMaterial")
+position = Vector2(584, 564)
+amount = 16
+lifetime = 9.8
+preprocess = 7.0
+fixed_fps = 30
+randomness = 0.42
+lifetime_randomness = 0.28
+local_coords = true
+use_fixed_seed = true
+seed = 475836
+texture = SubResource("PollenTexture")
+emission_shape = 3
+emission_rect_extents = Vector2(749, 143)
+direction = Vector2(1, -0.31)
+spread = 22.0
+gravity = Vector2(0.45, -0.34)
+initial_velocity_min = 14.0
+initial_velocity_max = 33.0
+scale_amount_min = 0.48
+scale_amount_max = 0.88
+color = Color(1, 0.88, 0.71, 0.59)
+color_ramp = SubResource("PollenLifetime")
+
+[node name="MeadowPetals" type="CPUParticles2D" parent="CanvasLayerBG"]
+z_index = 4
+material = SubResource("PetalMaterial")
+position = Vector2(581, 654)
+amount = 12
+lifetime = 9.0
+preprocess = 7.5
+fixed_fps = 30
+randomness = 0.45
+lifetime_randomness = 0.22
+local_coords = true
+use_fixed_seed = true
+seed = 650103
+texture = SubResource("PollenTexture")
+emission_shape = 3
+emission_rect_extents = Vector2(723, 108)
+direction = Vector2(1, -0.25)
+spread = 18.0
+gravity = Vector2(0.60, -0.26)
+initial_velocity_min = 18.0
+initial_velocity_max = 38.0
+angular_velocity_min = -29.0
+angular_velocity_max = 33.0
+angle_min = -85.0
+angle_max = 85.0
+scale_amount_min = 0.43
+scale_amount_max = 0.71
+color = Color(1, 0.97, 0.93, 0.86)
+color_ramp = SubResource("PollenLifetime")
+
+[node name="Camera2D" parent="." index="18"]
+zoom = Vector2(0.8, 0.8)
+limit_left = -150
+limit_top = 0
+limit_right = 1440
+limit_bottom = 750
+listen_for_battle_shake = false
+zombie_preview_position = Vector2(100, 0)
+
+[node name="CollisionShape2D" parent="DetectComponentGlobal/Area2D"]
+position = Vector2(720, 350)
+shape = SubResource("DetectBounds")

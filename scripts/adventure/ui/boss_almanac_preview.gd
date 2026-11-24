@@ -5,6 +5,8 @@ extends SubViewportContainer
 const Data = preload("res://scripts/adventure/ui/boss_almanac_data.gd")
 ## 共用可见精灵的边界计算。
 const Portrait = preload("res://scripts/adventure/ui/almanac_preview.gd")
+## 救主的纯原画动画及传送材质接口。
+const SaviorVisual = preload("res://scripts/character/zombie_boss/savior/savior_visual.gd")
 ## 预览视口尺寸，不随图鉴整体缩放而改变动画坐标。
 const STAGE_SIZE := Vector2i(390, 300)
 ## 图鉴跑道的世界长度，约够播放一轮实战冲锋步态。
@@ -17,6 +19,8 @@ var _phase: int = 1
 var _viewport: SubViewport
 ## 角色及一次性视觉特效的共同容器。
 var _world: Node2D
+## 按角色切换夜间草坪、终末海域或教堂底图。
+var _background: TextureRect
 ## 角色脚底坐标，用于在同一世界比例下移动角色、烟带和拖影。
 var _actor: Node2D
 ## 本次演出的临时特效，重播时整组清理。
@@ -27,6 +31,12 @@ var _camera: MainGameCamera
 var _camera_home: Vector2
 ## 黑将军使用的实战演出组件，白爵士展示时为 null。
 var _general: BlackGeneralVisual
+## 明灯使用可带召唤物和光圈的实战演出。
+var _lantern: MingLanternPresentation
+## 救主在第二阶段展示本体及两名分身，共用祷告起手时机。
+var _saviors: Array[SaviorVisual] = []
+## 本次传送显形，重播、切阶段或离开页面时取消。
+var _savior_arrival: Tween
 ## 读取实战配置的冲锋速度，单位为世界像素每秒。
 var _charge_speed: float = 0.0
 ## 冲锋段的世界停止线。
@@ -67,12 +77,12 @@ func _ready() -> void:
 	var background_layer := CanvasLayer.new() # 背景固定在视口，同时保留角色部件原有的负层级。
 	background_layer.layer = -1
 	_viewport.add_child(background_layer)
-	var background := TextureRect.new() # 背景和角色一起进入子视口，供屏幕特效正确采样。
-	background.texture = AlmanacCharacterShowPanel.CHARACTER_BG_MAP["Night"]
-	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	background.size = Vector2(STAGE_SIZE)
-	background_layer.add_child(background)
+	_background = TextureRect.new()
+	_background.texture = AlmanacCharacterShowPanel.CHARACTER_BG_MAP["Night"]
+	_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_background.size = Vector2(STAGE_SIZE)
+	background_layer.add_child(_background)
 	_world = Node2D.new()
 	_viewport.add_child(_world)
 	_camera = MainGameCamera.new()
@@ -83,20 +93,46 @@ func _ready() -> void:
 
 ## 切换到 [param type_id]、[param phase]，使用 [param info] 中的实战比例和参数。
 func show_boss(type_id: int, phase: int, info: Dictionary) -> void:
+	var next_phase: int = clampi(phase, 1, 2) # 按需加载所选阶段，尤其是凯莱赫的全屏图集。
+	var path: String = Data.VISUALS[type_id] # 默认沿用该 Boss 的主原画场景。
+	if type_id == Data.CAILLEACH and next_phase == 2:
+		path = ZB006Cailleach.PHASE_TWO_SCENE_PATH
+	var scene := load(path) as PackedScene # 展示场景仅含原画和预览演出。
+	if scene == null:
+		return
 	stop()
+	_saviors.clear()
 	if is_instance_valid(_actor):
 		_world.remove_child(_actor)
 		_actor.queue_free()
 		_world.remove_child(_effects)
 		_effects.queue_free()
-	_phase = clampi(phase, 1, 2)
-	_visual = (load(Data.VISUALS[type_id]) as PackedScene).instantiate() as Node2D
+	_phase = next_phase
+	_visual = scene.instantiate() as Node2D
 	_general = _visual as BlackGeneralVisual
+	_lantern = _visual as MingLanternPresentation
 	_actor = Node2D.new()
 	_effects = Node2D.new()
 	_world.add_child(_actor)
 	_world.add_child(_effects)
 	_actor.add_child(_visual)
+	if type_id == Data.SAVIOR:
+		_show_savior(scene)
+		return
+	if type_id == Data.CAILLEACH:
+		_show_cailleach()
+		return
+	if _lantern != null:
+		_player = null
+		_background.texture = load(Data.LANTERN_STAGE) as Texture2D
+		_camera.zoom = Vector2(0.5, 0.5)
+		_camera_home = Vector2(STAGE_SIZE)
+		_camera.position = _camera_home
+		_actor.position = Vector2(799, 322)
+		_lantern.configure(null, null, Rect2(76, 137, 665, 405))
+		_lantern.reset(_phase)
+		return
+	_background.texture = AlmanacCharacterShowPanel.CHARACTER_BG_MAP["Night"]
 	_player = _visual.get_node("AnimationPlayer") as AnimationPlayer
 	_player.animation_finished.connect(_on_clip_finished)
 	if _general != null:
@@ -110,6 +146,51 @@ func show_boss(type_id: int, phase: int, info: Dictionary) -> void:
 	_home = Vector2.ZERO
 	_idle()
 	_frame_character()
+
+## 等比取景；一阶段保留脚点，二阶段完整显示现有半身原画。
+func _show_cailleach() -> void:
+	_player = null # 两阶段都由 AnimatedSprite2D 播放。
+	_background.texture = AlmanacCharacterShowPanel.CHARACTER_BG_MAP["Night"]
+	_camera.zoom = Vector2.ONE
+	_camera_home = Vector2(STAGE_SIZE) * 0.5
+	_camera.position = _camera_home
+	var sprite: AnimatedSprite2D = _visual as AnimatedSprite2D # 与实战共用原画场景。
+	var frame_size: Vector2 = sprite.sprite_frames.get_frame_texture(&"idle", 0).get_size() # 当前阶段原画单帧尺寸。
+	if _phase == 2:
+		_actor.position = _camera_home
+		_visual.scale = Vector2.ONE * minf(STAGE_SIZE.x / frame_size.x, STAGE_SIZE.y / frame_size.y)
+	else:
+		_actor.position = Vector2(_camera_home.x, 269.0)
+		_visual.scale = Vector2.ONE * (250.0 / frame_size.y)
+	sprite.play(&"idle")
+
+## 播放妇人的单次杖击。连点时让当前动作自然回到待机。
+func play_staff_tap() -> void:
+	var sprite: CailleachVisual = _visual as CailleachVisual # 仅一阶段原画提供杖击。
+	if not is_instance_valid(sprite):
+		return
+	sprite.play_staff_tap()
+
+## 在教堂舞台摆放救主。[param scene] 只含原画，第二阶段用它呈现三位同时施法。
+func _show_savior(scene: PackedScene) -> void:
+	_player = null # 救主使用 AnimatedSprite2D 的帧信号。
+	_background.texture = AlmanacCharacterShowPanel.CHARACTER_BG_MAP["Night"]
+	if ResourceLoader.exists(Data.SAVIOR_STAGE): # 发行包未带奇境地图时沿用夜间草坪。
+		_background.texture = load(Data.SAVIOR_STAGE) as Texture2D
+	_camera.zoom = Vector2.ONE
+	_camera_home = Vector2(STAGE_SIZE) * 0.5
+	_camera.position = _camera_home
+	_actor.position = Vector2(205, 256)
+	_saviors.append(_visual as SaviorVisual)
+	_visual.scale = Vector2.ONE * (0.65 if _phase == 1 else 0.56)
+	if _phase == 1:
+		return
+	for foot_offset: Vector2 in [Vector2(-118, -16), Vector2(118, 16)]: # 错开分身的脚点，在舞台内保留每张原画的完整轮廓。
+		var clone := scene.instantiate() as SaviorVisual # 只创建独立的原画播放节点。
+		clone.scale = _visual.scale
+		clone.position = foot_offset
+		_actor.add_child(clone)
+		_saviors.append(clone)
 
 ## 黑将军以本体高度取景，战旗只用来限制镜头宽度；本体和特效共用镜头比例。
 func _frame_character() -> void:
@@ -143,7 +224,28 @@ func _visual_extent(skip_branch: Callable = Callable()) -> Rect2:
 
 ## 从头播放 [param clips]；[param skill_id] 标识需要切换外观和分路出击的转阶段演出。
 func play_skill(clips: Array[StringName], skill_id: String = "") -> void:
+	if _visual is CailleachVisual:
+		if clips.has(&"staff"):
+			play_staff_tap()
+		else:
+			stop()
+		return
 	stop()
+	if not _saviors.is_empty():
+		if clips.has(&"teleport_in"):
+			_set_savior_arrival(0.0)
+			_savior_arrival = create_tween()
+			_savior_arrival.tween_method(_set_savior_arrival, 0.0, 1.0, 0.65)
+			_savior_arrival.tween_callback(_play_savior_prayer.bind(1.0))
+		elif clips.has(&"pray"):
+			_play_savior_prayer(0.5 if skill_id == "transition" else 1.0)
+		return
+	if is_instance_valid(_lantern):
+		if not clips.is_empty():
+			var change_form: bool = _phase == 2 and skill_id == "tidal" # 从黑暗形态起手，在回场时首次显露星空。
+			_lantern.reset(1 if change_form else _phase)
+			_lantern.play_action(clips[0], change_form)
+		return
 	for child: Node in _effects.get_children(): # 重播前清理场地上的旧黑焰、烟带和剪影。
 		_effects.remove_child(child)
 		child.queue_free()
@@ -160,16 +262,38 @@ func play_skill(clips: Array[StringName], skill_id: String = "") -> void:
 	_next_clip()
 	set_process(true)
 
+## 以 [param presence]（零至一）推进图鉴显形，沿用实战原画材质。
+func _set_savior_arrival(presence: float) -> void:
+	var glow: float = maxf(0.0, sin(presence * PI)) * 0.7 # 白光随显形淡入再收束。
+	for savior: SaviorVisual in _saviors: # 同步舞台上的所有分身。
+		savior.set_teleport_pose(presence, glow)
+
+## 以 [param rate] 倍速播放一次原画祷告，动作结束由原画自行返回待机。
+func _play_savior_prayer(rate: float) -> void:
+	for savior: SaviorVisual in _saviors: # 同帧开始祷告，复用战斗中的起手和收手。
+		if savior.cast_prayer([]) and rate != 1.0:
+			savior.play(&"pray", rate)
+
 ## 取消动作队列并停止时钟；父页面关闭时也可立即调用。
 func stop() -> void:
 	_clips.clear()
 	_shadows.clear()
 	_remaining = -1.0
 	set_process(false)
+	if _savior_arrival != null:
+		_savior_arrival.kill()
+		_savior_arrival = null
+	for savior: SaviorVisual in _saviors: # 取消尚未完成的祷告并归还传送材质。
+		savior.cancel_prayer()
+		savior.set_teleport_pose(1.0)
+	if is_instance_valid(_visual) and _visual is CailleachVisual:
+		(_visual as CailleachVisual).cancel_staff_tap()
 	if is_instance_valid(_player):
 		_player.stop()
 	if is_instance_valid(_general):
 		_general.retire_charge_effects()
+	if is_instance_valid(_lantern):
+		_lantern.reset(_phase)
 	if is_instance_valid(_camera):
 		_camera.stop_shake()
 

@@ -12,6 +12,22 @@ func is_visual_ready() -> bool:
 
 ## 正式战斗内复用的战外档案头像框。
 const ProfileHud = preload("res://scripts/adventure/ui/adventure_profile_hud.gd")
+## 角色主动技能共用的切入演出脚本，实战首次成功施放时才创建画布。
+const CharacterSkillCutIn = preload("res://scripts/adventure/skills/character_skill_cut_in.gd")
+## 手机双指手势仅绑定当前战斗，物理输入先于环境折射与 GUI 处理。
+const BattleTouchInput = preload("res://scripts/battle/input/battle_touch_input.gd")
+## 首次可操作战斗的技能入口教学，保存和暂停均复用既有服务。
+const CharacterSkillGuide = preload("res://scripts/adventure/skills/character_skill_guide.gd")
+## 两种战斗外观共用的头像框宽度，单位为 1066×600 战斗画布的逻辑像素。
+const BATTLE_PROFILE_WIDTH: float = 168.0
+## 两种战斗外观共用的技能方框边长，热区与可见按钮一起放大。
+const BATTLE_SKILL_WIDTH: float = 42.0
+## 战斗画布左侧与顶部的留白。
+const BATTLE_HUD_MARGIN: float = 12.0
+## 技能方框在头像下方的固定间距。
+const BATTLE_SKILL_GAP: float = 5.0
+## 头像框右侧与战斗卡栏之间的留白。
+const BATTLE_CARD_BAR_GAP: float = 8.0
 
 #region 游戏测试
 @export_group("测试相关")
@@ -40,6 +56,10 @@ const ProfileHud = preload("res://scripts/adventure/ui/adventure_profile_hud.gd"
 @onready var card_manager: CardManager = %CardManager
 @onready var hand_manager: HandManager = %HandManager
 @onready var zombie_manager: ZombieManager = %ZombieManager
+## 当前战斗可显式注入位置音效接收器，普通战场继续走原音效池。
+@export var world_audio: Node
+## 当前战斗可为既有烟尘和碎片提供同一表现层风场。
+@export var world_wind: Node
 @onready var game_item_manager: GameItemManager = %GameItemManager
 @onready var plant_cell_manager: PlantCellManager = %PlantCellManager
 @onready var background_manager: BackgroundManager = %BackgroundManager
@@ -79,6 +99,8 @@ var marker_2d_sun_target: Marker2D
 ## 将子弹\爆炸\阳光
 @onready var bullets: Node2D = %Bullets
 @onready var bombs: Node2D = %Bombs
+## 本局爆炸表现的共享额度，独立于伤害和状态结算。
+var blast_fx_budget := BattleBlastFxBudget.new()
 @onready var suns: Node2D = %Suns
 
 @onready var coin_bank_label: CoinBankLabel = %CoinBankLabel
@@ -137,14 +159,24 @@ var _round_end_claimed: bool = false
 var _round_end_by_boss: bool = false
 ## 冒险本局权威控制器；由主战斗场景持有，不隶属于原版波次系统。
 var adventure_runtime: AdventureBattleRuntime
+## 跨普通、噩梦、终末阶段唯一的角色主动技能运行时，随战场场景销毁。
+var character_skill_runtime: CharacterSkillRuntime
+## 仅冒险战斗显示的主动技能按钮，完全从运行时读取状态。
+var character_skill_hud: CharacterSkillHud
+## 本场战斗唯一的切入画布内容，普通、噩梦、终末阶段复用。
+var _character_skill_cut_in: CharacterSkillCutIn
 ## 仅冒险模式拥有的连续阶段调度器。
 var adventure_continuation: AdventureContinuationController
-## 正式战斗内左下角的档案头像框；选卡、准备和结算阶段隐藏。
+## 正式战斗内左上角的档案头像框；选卡、准备和结算阶段隐藏。
 var battle_profile_hud
+## 入场时按当前档案的有效徽章决定，并在本战场内由头像和技能按钮共用。
+var _battle_hud_skin: ValhallaBattleSkin
 ## 当前关卡流程阶段；更新时同步通知卡槽与角色行为。
 var main_game_progress := E_MainGameProgress.NONE:
 	set(value):
 		main_game_progress = value
+		if value != E_MainGameProgress.MAIN_GAME and is_instance_valid(_character_skill_cut_in):
+			_character_skill_cut_in.stop()
 		_refresh_battle_profile_hud_visibility()
 		_refresh_battle_tools()
 		EventBus.push_event("main_game_progress_update", [value])
@@ -163,6 +195,14 @@ var p_yeti_run :float= -1
 @export_group("本局游戏参数")
 ## 正常进入游戏会自动更新对应关卡数据,直接进入该场景会使用该关卡数据,并设置is_test=true
 @export var game_para : ResourceLevelData
+## 战斗预览使用场景内的固定参数，不写关卡进度；此路径是打完或退出时的返回场景。
+@export_file("*.tscn") var preview_return_scene: String = ""
+## 可选的连续阶段预览，复用 AdventureSession，不建立独立难度状态。
+@export var preview_stage: StageDefinition
+## 可选的场景内阶段演出，供续战控制器预检并播放。
+@export var phase_presentation: AdventurePhasePresentation
+## 可选的奖杯画布，可配置在环境合成层上方。未配置时沿用临时物件层。
+@export var trophy_layer: CanvasLayer
 ## 若为true,选卡无冷却
 var is_test := false
 ## 当前轮次
@@ -185,8 +225,14 @@ func _enter_tree() -> void:
 ## 进入树时更新游戏参数，子管理器赋值对应的游戏参数
 func set_game_para() -> void:
 	Global.main_game = self
-	## 先获取当前关卡参数
-	if Global.game_para != null:
+	if not preview_return_scene.is_empty():
+		# 预览独占参数副本，重开时从场景配置重新开始。
+		if game_para != null:
+			game_para = game_para.duplicate() as ResourceLevelData
+		Global.game_para = game_para
+		if preview_stage != null:
+			AdventureSession.prepare_stage_preview(game_para, preview_stage)
+	elif Global.game_para != null:
 		game_para = Global.game_para
 	else:
 		is_test = true
@@ -201,6 +247,9 @@ func _exit_tree() -> void:
 	## 避免切场景后主游戏节点已释放，Global 仍持有野指针
 	if Global.main_game == self:
 		_reset_battle_speed()
+		if not preview_return_scene.is_empty() and Global.game_para == game_para:
+			AdventureSession.release_stage_preview(game_para)
+			Global.game_para = null
 		Global.main_game = null
 
 func _ready() -> void:
@@ -283,24 +332,74 @@ func _ready() -> void:
 			_initializing_visuals = false
 			main_game_start()
 
-## 创建复用战外头像框的战斗档案 HUD，缩到阳光槽左侧以避开卡槽和草坪操作区。
+## 为正式冒险战斗建立唯一主动技能控制器与表现层；无技能时 HUD 自动隐藏。
+func _setup_character_skill_runtime() -> void:
+	character_skill_runtime = CharacterSkillRuntime.new() # 不挂载在会被续战销毁的阶段运行时下。
+	character_skill_runtime.setup(self)
+	add_child(character_skill_runtime)
+	character_skill_runtime.cast_committed.connect(_play_character_skill_cut_in)
+	character_skill_hud = CharacterSkillHud.new() # 只订阅同一个运行时，输入和触摸共用施放入口。
+	character_skill_hud.setup(character_skill_runtime, _battle_hud_skin)
+	canvas_layer_ui.add_child(character_skill_hud)
+	character_skill_hud.bind_avatar(battle_profile_hud.avatar_control())
+	var pointer_idle: Callable # 手机额外等副指与残留释放结束，桌面直接使用引擎输入状态。
+	if OS.has_feature("mobile"):
+		var touch_input: Node = BattleTouchInput.new() # 与技能运行时共同跨阶段存活，不登记为Autoload。
+		touch_input.setup(character_skill_runtime.is_input_enabled, character_skill_runtime.try_activate)
+		add_child(touch_input)
+		pointer_idle = touch_input.is_pointer_idle
+	var skill_guide: CanvasLayer = CharacterSkillGuide.new() # 自行等待真正可操作时机，不阻塞选卡和开场动画。
+	skill_guide.setup(self, character_skill_runtime, battle_profile_hud.avatar_control(), pointer_idle)
+	add_child(skill_guide)
+	# 界面重排时仍固定两种样式的尺寸，并让技能按钮跟随头像框下缘。
+	battle_profile_hud.item_rect_changed.connect(_layout_character_skill_hud)
+	_layout_character_skill_hud()
+
+## 在 [param skill_id] 提交且战局仍可操作时播放，所有冒险战场复用此入口。
+func _play_character_skill_cut_in(skill_id: StringName) -> void:
+	if %BattlePauseMenu.visible or not CharacterSkillContext.new(self, skill_id).is_active():
+		return
+	if not is_instance_valid(_character_skill_cut_in):
+		var overlay := CanvasLayer.new() # 独立于摄像机和关卡灯光，仍随本场景离树。
+		overlay.name = "CharacterSkillCutInLayer"
+		overlay.layer = CharacterSkillCutIn.CANVAS_LAYER
+		add_child(overlay)
+		_character_skill_cut_in = CharacterSkillCutIn.new()
+		_character_skill_cut_in.theme = battle_profile_hud.theme
+		overlay.add_child(_character_skill_cut_in)
+		# 菜单允许在少数 Boss 阶段开启而不暂停，此时也需要立即让出屏幕。
+		%BattlePauseMenu.visibility_changed.connect(_character_skill_cut_in.stop)
+	_character_skill_cut_in.play(character_skill_runtime.definition())
+
+## 将技能按钮固定在头像下方，两种皮肤具有同一画布尺寸。
+func _layout_character_skill_hud() -> void:
+	if not is_instance_valid(character_skill_hud) or not is_instance_valid(battle_profile_hud):
+		return
+	var portrait: Control = battle_profile_hud as Control # 技能位置跟随档案框的画布外沿。
+	character_skill_hud.scale = Vector2.ONE * (BATTLE_SKILL_WIDTH / character_skill_hud.size.x)
+	character_skill_hud.position = portrait.position + Vector2(0.0, portrait.size.y * portrait.scale.y + BATTLE_SKILL_GAP)
+
+## 按当前档案的有效徽章选择战斗头像框，共用加大的左上战斗布局。
 func _setup_battle_profile_hud() -> void:
 	battle_profile_hud = ProfileHud.new()
 	battle_profile_hud.name = "BattleProfileHud"
-	var all_ui := canvas_layer_ui.get_node_or_null("All_UI") as Control
+	if Global.save_service.is_current_profile_loaded():
+		_battle_hud_skin = ValhallaBattleSkin.for_equipment(Global.global_game_state.adventure_state.equipment)
+	battle_profile_hud.configure_battle_layout(BATTLE_PROFILE_WIDTH, BATTLE_HUD_MARGIN, _battle_hud_skin)
+	var all_ui := canvas_layer_ui.get_node_or_null("All_UI") as Control # 沿用战斗主题作为中文和缺字回退。
 	if all_ui != null:
 		battle_profile_hud.theme = all_ui.theme # 复用战斗 UI 的中文字体。
 	canvas_layer_ui.add_child(battle_profile_hud)
 	canvas_layer_ui.move_child(battle_profile_hud, 0) # 位于菜单、对话和红字提示之后。
-	# 卡槽根节点贴着阳光槽左缘；留出左右各一段空隙后即为头像框可用宽度。
-	var sun_bank_left: float = card_slot_root.position.x
-	battle_profile_hud.dock_top_left(maxf(96.0, sun_bank_left - 20.0), 12.0)
+	card_slot_root.configure_battle_layout(BATTLE_HUD_MARGIN + BATTLE_PROFILE_WIDTH + BATTLE_CARD_BAR_GAP, _battle_speed_button)
 	battle_profile_hud.visible = false
 
-## 头像框只在正式战斗阶段显示；选卡、准备和结算阶段保持隐藏。
+## 只在正式战斗阶段显示头像，并为它腾出卡栏左侧空间。
 func _refresh_battle_profile_hud_visibility() -> void:
 	if is_instance_valid(battle_profile_hud):
-		battle_profile_hud.visible = main_game_progress == E_MainGameProgress.MAIN_GAME
+		var in_combat: bool = main_game_progress == E_MainGameProgress.MAIN_GAME # 选卡和准备沿用原来的卡栏起点。
+		card_slot_root.use_combat_layout(in_combat)
+		battle_profile_hud.visible = in_combat
 
 ## 仅当前档案已购买时，允许在其冒险战斗内使用手套。
 func has_battle_glove() -> bool:
@@ -320,16 +419,40 @@ func _refresh_battle_tools() -> void:
 		hand_manager.cancel_glove()
 		_reset_battle_speed()
 
-## 切换本轮战斗速度；同步提高物理频率以保持每步的命中检测精度。
-func _toggle_battle_speed() -> void:
+## 在 GUI 拦截鼠标之前将侧键 [param event] 分发给战斗快捷键，弹窗打开时交由界面处理。
+func _input(event: InputEvent) -> void:
+	if not event is InputEventMouseButton or not ConfigService.is_tool_shortcut_mouse_button(event.button_index) \
+			or not event.is_pressed() or get_tree().current_scene != self \
+			or main_game_progress != E_MainGameProgress.MAIN_GAME or get_tree().paused or PVZCheat.is_open():
+		return
+	if %Dialog.is_visible_in_tree() or %BattlePauseMenu.is_visible_in_tree():
+		return
+	if card_slot_root.handle_tool_shortcut(event):
+		return
+	if is_instance_valid(character_skill_hud) and character_skill_hud.handle_skill_shortcut(event):
+		return
+	_handle_battle_speed_shortcut(event)
+
+## 将界面未消耗的键盘事件 [param event] 交给倍速快捷键处理。
+func _unhandled_key_input(event: InputEvent) -> void:
+	_handle_battle_speed_shortcut(event)
+
+## 在战斗接受 [param event] 触发的倍速切换时消费该输入。
+func _handle_battle_speed_shortcut(event: InputEvent) -> void:
+	if event.is_action_pressed(ConfigService.BATTLE_SPEED_ACTION, false, true) \
+			and not PVZCheat.is_open() and _toggle_battle_speed():
+		get_viewport().set_input_as_handled()
+
+## 切换本轮战斗速度并返回是否切换成功；开启二倍速时同步提高物理频率以保持命中检测精度。
+func _toggle_battle_speed() -> bool:
 	if main_game_progress != E_MainGameProgress.MAIN_GAME or get_tree().paused \
 			or get_tree().current_scene != self:
 		_battle_speed_button.set_pressed_no_signal(_normal_physics_ticks > 0)
-		return
+		return false
 	SoundManager.play_other_SFX(&"tap")
 	if _normal_physics_ticks > 0:
 		_reset_battle_speed()
-		return
+		return true
 	_normal_physics_ticks = Engine.physics_ticks_per_second
 	_normal_engine_scale = Engine.time_scale
 	_normal_global_scale = Global.time_scale
@@ -338,6 +461,7 @@ func _toggle_battle_speed() -> void:
 	Global.time_scale = 2.0
 	_battle_speed_button.text = "2×"
 	_battle_speed_button.set_pressed_no_signal(true)
+	return true
 
 ## 回收本轮倍率，保留退出或重开流程已主动恢复的速度。
 func _reset_battle_speed() -> void:
@@ -394,6 +518,7 @@ func init_manager():
 			adventure_continuation = AdventureContinuationController.new()
 			adventure_continuation.setup(self)
 			add_child(adventure_continuation)
+			_setup_character_skill_runtime() # 与阶段事件平级持有，阶段交接不得释放冷却。
 	background_manager.init_manager()
 	drop_item_manager.init_manager()
 	day_suns_manager.init_manager()
@@ -407,27 +532,37 @@ func signal_connect():
 			ui_node.mouse_entered.connect(mouse_appear_have_hammer)
 			ui_node.mouse_exited.connect(mouse_disappear_have_hammer)
 
-## 加载关卡原始战斗音乐和僵王音乐，选卡阶段不在此处切换播放。
+## 加载关卡配置的普通与 Boss 音乐；已配专属曲目时不额外加载原版音乐。
 func _init_game_BGM():
-	# 当前关卡配置的战斗音乐资源路径。
-	var path_bgm_game: String = ConstLevelData.GameBGMMap[game_para.game_BGM]
-	bgm_main_game = load(path_bgm_game) as AudioStream
-	# 僵王曲目复用关卡音乐映射，避免另行维护资源路径。
-	var path_bgm_boss: String = ConstLevelData.GameBGMMap[ConstLevelData.GameBGM.Boss]
-	bgm_boss = load(path_bgm_boss) as AudioStream
+	var music: BattleMusicProfile = game_para.battle_music_profile # 只随本关卡加载的可选曲目组合。
+	bgm_main_game = music.normal_music if music != null else null
+	bgm_boss = music.boss_music if music != null else null
+	if bgm_main_game == null:
+		bgm_main_game = load(ConstLevelData.GameBGMMap[game_para.game_BGM]) as AudioStream
+	if bgm_boss == null:
+		bgm_boss = load(ConstLevelData.GameBGMMap[ConstLevelData.GameBGM.Boss]) as AudioStream
 
 
 ## 正式战斗时按当前阶段和存活僵王选择音乐；僵王离场后恢复本阶段曲目。
+## 所有存活僵王都在等待入场音乐提示时，先停掉当前曲目，音效继续播放。
 ## 单轮僵王死亡获胜先进入结算，因此保留僵王音乐，不在结算阶段恢复原曲。
 ## 相同曲目继续播放，选卡、结算或场景卸载时不覆盖其他界面的音乐。
 func refresh_battle_bgm() -> void:
 	if not is_inside_tree() or is_queued_for_deletion() \
 		or get_tree().current_scene != self or main_game_progress != E_MainGameProgress.MAIN_GAME:
 		return
-	# 死亡演出中的僵王已不属于存活快照。
-	var has_boss: bool = not zombie_manager.get_living_bosses().is_empty()
+	var living_bosses: Array[ZB000Base] = zombie_manager.get_living_bosses() # 死亡演出中的僵王不进入存活快照。
+	var has_boss: bool = not living_bosses.is_empty() # 决定读取当前阶段的战斗曲还是 Boss 曲。
+	if has_boss and not living_bosses.any(func(boss: ZB000Base) -> bool: return boss.is_boss_music_ready()):
+		SoundManager.bgm_play.stop()
+		return
 	var battle_bgm: AudioStream = bgm_boss if has_boss else bgm_main_game # 原版及未配置阶段曲目时的默认音乐。
 	var phase: StagePhaseDefinition = AdventureSession.get_active_phase(game_para) # 续战和重开均读取会话的当前阶段。
+	if game_para.battle_music_profile != null:
+		var kind: StagePhaseDefinition.Kind = phase.kind if phase != null else StagePhaseDefinition.Kind.NORMAL # 阶段身份统一读取 Session。
+		var profile_music: AudioStream = game_para.battle_music_profile.resolve(kind, has_boss) # Boss 退场时按实际阶段恢复。
+		if profile_music != null:
+			battle_bgm = profile_music
 	if phase != null:
 		var phase_music: AudioStream = phase.boss_music if has_boss else phase.battle_music # 当前战况对应的阶段曲目。
 		if phase_music != null:
@@ -569,6 +704,8 @@ func main_game_start():
 	_round_end_by_boss = false
 	_round_transition_pending = false
 	main_game_progress = E_MainGameProgress.MAIN_GAME
+	if is_instance_valid(character_skill_runtime):
+		character_skill_runtime.bind_skill(AdventureSession.character_skill_id_for(game_para)) # 单局只绑定一次，阶段交接保持冷却。
 	# 僵王只有在正式战斗阶段才能恢复；先恢复实例与血量，再启用出战卡片。
 	zombie_manager.restore_saved_bosses()
 	card_manager.card_slot_update_main_game()
@@ -636,11 +773,14 @@ func on_zombie_go_home(zombie:Zombie000Base):
 	await get_tree().create_timer(3).timeout
 	SoundManager.play_other_SFX("scream")
 	ui_remind_word.zombie_won_word_appear()
-	# 保留原版失败演出，结束后回地图；不会将场景退出当作胜利。
-	if AdventureSession.owns_battle(game_para):
+	# 失败演出结束后回本局来源地图。
+	if AdventureSession.owns_battle(game_para) or not preview_return_scene.is_empty():
 		await get_tree().create_timer(1.5).timeout
 		if is_inside_tree() and get_tree().current_scene == self:
-			AdventureSession.finish_defeat()
+			if not preview_return_scene.is_empty():
+				leave_battle_preview()
+			else:
+				AdventureSession.finish_defeat()
 
 
 #region 奖杯
@@ -655,6 +795,9 @@ func _claim_round_end(is_boss_win: bool, skip_combat_checks: bool) -> bool:
 		or main_game_progress != E_MainGameProgress.MAIN_GAME \
 		or _round_end_claimed or _round_transition_pending \
 		or TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.GameOver, false):
+		return false
+	if not is_boss_win and not skip_combat_checks and is_instance_valid(zombie_manager) \
+			and zombie_manager.has_pending_boss_defeat_presentation():
 		return false
 	if not skip_combat_checks and AdventureSession.owns_battle(game_para) and not AdventureSession.can_accept_victory():
 		return false
@@ -706,12 +849,14 @@ func request_adventure_event_result(result: int) -> void:
 		AdventureSession.finish_defeat()
 
 func create_trophy(glo_pos: Vector2) -> void:
+	if is_instance_valid(zombie_manager) and zombie_manager.defer_trophy_for_boss_defeat_presentation(glo_pos):
+		return
 	if not try_claim_round_end():
 		return
 	# 普通和带终末入口的噩梦先结算，再决定是否继续同一战场。
 	if AdventureSession.owns_battle(game_para) and (AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NORMAL \
 			or (AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE \
-				and not AdventureSession.active_stage.terminal_key_id.is_empty())):
+				and (not AdventureSession.active_stage.terminal_key_id.is_empty() or AdventureSession.is_stage_preview))):
 		adventure_continuation.complete_checkpoint(glo_pos)
 	else:
 		_finish_round_victory(glo_pos)
@@ -738,7 +883,6 @@ func _finish_round_victory(glo_pos: Vector2) -> void:
 
 
 	print("=======================游戏结束，您获胜了=======================")
-	# 本轮唯一奖杯，由已接受的胜利请求创建。
 	var is_adventure: bool = AdventureSession.owns_battle(game_para) # 冒险需要先保存奖励，再播放结算演出。
 	if is_adventure and not AdventureSession.settle_victory():
 		main_game_progress = E_MainGameProgress.GAME_OVER
@@ -748,9 +892,9 @@ func _finish_round_victory(glo_pos: Vector2) -> void:
 	main_game_progress = E_MainGameProgress.GAME_OVER
 	if is_adventure:
 		# 续战检查点已演出本阶段的钱币，其余阶段在奖杯入场前演出。
-		if AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.TERMINAL \
+		if not AdventureSession.is_stage_preview and (AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.TERMINAL \
 				or (AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE \
-					and AdventureSession.active_stage.terminal_key_id.is_empty()):
+					and AdventureSession.active_stage.terminal_key_id.is_empty())):
 			var presentation: Tween = drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase) # 首通钱币落稳后再生成奖杯。
 			if presentation != null:
 				# 终末允许带着剩余援军结算，演出期间停住战场。
@@ -760,8 +904,10 @@ func _finish_round_victory(glo_pos: Vector2) -> void:
 				if not is_inside_tree() or is_queued_for_deletion():
 					return
 		drop_item_manager.spawn_victory_floor_items(AdventureSession.take_victory_floor_items(), glo_pos)
-	var trophy = SceneRegistry.TROPHY.instantiate()
-	canvas_layer_temp.add_child(trophy)
+	var trophy := SceneRegistry.TROPHY.instantiate() as Node2D # 本轮唯一奖杯，由已接受的胜利请求创建。
+	# 场景指定常亮画布时优先使用，位置仍按战场坐标设置。
+	var trophy_parent: CanvasLayer = trophy_layer if is_instance_valid(trophy_layer) else canvas_layer_temp
+	trophy_parent.add_child(trophy)
 	trophy.global_position = glo_pos
 	if trophy.global_position.x >= 750:
 		# 右侧奖杯向场内抛出的水平偏移。
@@ -795,6 +941,9 @@ func win_main_game():
 	# 奖杯按钮等待期间仍可能进房失败，必须在清除暂停因素前拒绝晚到回调。
 	if TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.GameOver, false):
 		return
+	if not preview_return_scene.is_empty():
+		leave_battle_preview()
+		return
 	# 冒险只接受本战斗已判定的末轮奖杯结算，绕开原版关卡存档。
 	if AdventureSession.owns_battle(game_para):
 		if _round_end_claimed and main_game_progress == E_MainGameProgress.GAME_OVER \
@@ -812,6 +961,13 @@ func win_main_game():
 	if game_para.game_round != 1:
 		re_main_game()
 	get_tree().change_scene_to_file(Global.main_scene_registry.MainScenesMap.get(game_para.game_mode, Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu]))
+
+## [param restart] 为 true 时重新进入同一预览，默认返回地图。
+## 统一切场接受目标后才释放暂停，加载失败时当前预览仍可操作。
+func leave_battle_preview(restart: bool = false) -> void:
+	var target: String = scene_file_path if restart else preview_return_scene # 本次切换的预览或地图。
+	if not $SceneTransition.change_scene(target, TreePauseManager.end_tree_pause_clear_all_pause_factors):
+		push_warning("预览场景切换请求未被接受：" + target)
 
 #endregion
 
@@ -875,8 +1031,8 @@ func save_game_main_game():
 
 ## 重置当前主游戏 多轮关卡存档,多轮关卡数据
 func re_main_game():
-	# 冒险第一阶段没有轮间快照，重试和失败都不访问原版存档文件。
-	if AdventureSession.owns_battle(game_para):
+	# 冒险和战斗预览不访问原版轮间存档。
+	if AdventureSession.owns_battle(game_para) or not preview_return_scene.is_empty():
 		return
 	## 删除存档(若有存档会删除,没有就跳过)
 	game_para.delete_game_data()

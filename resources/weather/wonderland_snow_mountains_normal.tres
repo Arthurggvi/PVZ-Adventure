@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeatherSequence" format=3]
+
+[ext_resource type="Script" path="res://scripts/weather/weather_sequence.gd" id="sequence"]
+[ext_resource type="Script" path="res://scripts/weather/weather_keyframe.gd" id="key"]
+
+[sub_resource type="Resource" id="Frame0"]
+script = ExtResource("key")
+time_seconds = 0.0
+snow = 0.27
+snow_wind = 0.19
+snow_cloud = 0.15
+
+[resource]
+script = ExtResource("sequence")
+frames = Array[ExtResource("key")]([SubResource("Frame0")])

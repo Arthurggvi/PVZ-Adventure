@@ -20,12 +20,20 @@ static func prepare(manager: PlantCellManager, saved: ResourceSaveGamePlantCellM
 	var plan := BoardRestoreEntities.new() # 离树资源的唯一所有者。
 	plan.board = manager.board
 	var seen: Dictionary[StringName, bool] = {} # 拒绝重复的格子记录。
+	var saved_cells: Dictionary = saved.board_state.get("cells", {}) # 空间已预检；迁移时保留实体原先的逻辑地址。
 	for record: ResourceSaveGamePlantCell in saved.all_plant_cells_datas: # 不按记录顺序提交。
 		if record == null:
 			return null
 		var cell: PlantCell = manager.saved_cell(record.cell_id, record.row_col) # ID 优先且必须存在。
-		if cell == null or seen.has(cell.cell_id) or (record.cell_id != &"" and record.row_col != cell.row_col):
+		if cell == null or seen.has(cell.cell_id):
 			return null
+		if record.cell_id != &"":
+			var address: Variant = cell.row_col # 没有空间快照的旧场景仍核对当前行列。
+			if not saved_cells.is_empty():
+				var saved_cell: Dictionary = saved_cells.get(str(record.cell_id), {}) # 扩展布局的地址可能已移动。
+				address = saved_cell.get("address")
+			if record.row_col != address:
+				return null
 		seen[cell.cell_id] = true
 		for slot: int in record.plant_type_in_cell: # 字典可能含非法枚举值，必须显式检查。
 			if not CharacterRegistry.PlacePlantInCell.values().has(slot):
@@ -55,8 +63,9 @@ static func prepare(manager: PlantCellManager, saved: ResourceSaveGamePlantCellM
 	for data: Dictionary in manager.tomb_stone_manager.decode_save_records(saved.tomb_stone_manager_data):
 		var cell: PlantCell = manager.saved_cell(StringName(data.get("cell_id", "")),
 			Vector2i(data.get("row", -1), data.get("col", -1))) # 先前已验证的目标。
-		var source: PackedScene = load(TombStoneManager.PVZ2_TOMBSTONE_PATH) as PackedScene \
-			if data.get("kind", "legacy") == "pvz2" else SceneRegistry.TOMBSTONE # 唯一正式资源。
+		var source: PackedScene = TombStoneManager.scene_for_kind(StringName(data.get("kind", "legacy"))) # 沿用正式生成的模板。
+		if source == null:
+			return null
 		var grave: TombStone = cell.prepare_tombstone(source) # 所有实体先构造，不能临到提交才发现资源坏了。
 		if grave == null:
 			return null

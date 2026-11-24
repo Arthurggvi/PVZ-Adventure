@@ -4,7 +4,7 @@ class_name JacksonStateMachine
 
 ## 战斗专用的单次滑步动画，与循环播放的展示动画隔离。
 const ENTRANCE_ANIMATION := &"battle/moonwalk"
-## 从伴舞出场起保持召唤姿势的战斗秒数。
+## 从伴舞出场起保持召唤姿势的正常动作秒数。
 const SUMMON_HOLD_SECONDS := 2.0
 
 @onready var animation_player: AnimationPlayer = $"../AnimationPlayer"
@@ -37,7 +37,6 @@ func _ready() -> void:
 ## [param init_status] 入场滑步、出土或直接加入舞步的初始状态。
 func init_state(init_status:E_JacksonStatus):
 	curr_jackson_status = init_status
-	animation_player.set_blend_time('armraise', 'walk', 0.2)
 	if init_status != E_JacksonStatus.Enter:
 		jackson_manager.start_anim()
 		allow_dance()
@@ -100,7 +99,7 @@ func begin_summon_hold() -> bool:
 func _process(delta: float) -> void:
 	if is_zero_approx(animation_player.speed_scale):
 		return
-	_summon_hold_remaining = maxf(0.0, _summon_hold_remaining - delta)
+	_summon_hold_remaining = maxf(0.0, _summon_hold_remaining - delta * zombie_009_jackson.action_rate())
 	if _summon_hold_remaining == 0.0 and animation_player.current_animation != &"point":
 		change_jackson_anim_status(E_JacksonStatus.Point, judge_curr_status())
 
@@ -141,33 +140,29 @@ func allow_dance():
 	var anim_info = jackson_manager.get_current_animation_info()
 	anim_play(anim_info['name'], anim_info['curr_scale'], anim_info['current_time'], anim_info['speed'], true)
 
-## 舞王管理器管理动画播放
-## Norm状态更新
+## 在普通状态下跟随舞团播放 [param anim_name]，使用 [param curr_scale] 的横向符号朝向。
+## [param is_follow] 为真时从当前舞团进度 [param start_time] 接入；其余情况从动作起点播放。
+## [param _speed] 保留舞团调用接口，实际播放速度由角色的速度信号设置。
 func anim_play(anim_name, curr_scale, start_time, _speed, is_follow:=false):
-	if curr_jackson_status == E_JacksonStatus.Norm:
-		move_component._walking_end()
-		## 如果是唤伴舞动画,入场标志已结束使用，这里重复使用一下
-		if anim_name == "point":
-			change_jackson_anim_status(curr_jackson_status, E_JacksonStatus.Point)
-			return
-		## 最后一次举手需要举起，舞王管理器重新创建了新动画控制播放时间
-		if anim_name == "armraise_end":
-			anim_name = "armraise"
+	if curr_jackson_status != E_JacksonStatus.Norm:
+		return
+	move_component._walking_end()
+	if anim_name == &"point":
+		change_jackson_anim_status(curr_jackson_status, E_JacksonStatus.Point)
+		return
+	# 舞团节拍器的末次举手较短，角色仍使用原举手动作。
+	if anim_name == &"armraise_end":
+		anim_name = &"armraise"
 
-		if is_follow:
-			animation_player.play_section(anim_name, start_time, -1, 0.2)
-		else:
-			animation_player.play(anim_name)
-			animation_player.seek(0)
-
-		## 控制舞王方向
-		zombie_009_jackson.update_direction_x_body(curr_scale.x)
-
-		if anim_name == "walk":
-			#await get_tree().create_timer(0.1).timeout
-			await get_tree().process_frame
-			await get_tree().process_frame
-			await get_tree().process_frame
-			if curr_jackson_status == E_JacksonStatus.Norm and animation_player.current_animation == &"walk":
-				move_component._walking_start()
+	zombie_009_jackson.update_direction_x_body(curr_scale.x)
+	if anim_name == &"walk":
+		# 先应用行走脚点，再恢复采样，避免把旧姿势到行走姿势的跳变计入位移。
+		animation_player.play(&"walk", 0.0)
+		animation_player.seek(start_time if is_follow else 0.0, true, true)
+		move_component._walking_start()
+	elif is_follow:
+		animation_player.play_section(anim_name, start_time, -1, 0.2)
+	else:
+		animation_player.play(anim_name)
+		animation_player.seek(0)
 

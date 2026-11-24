@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1032" height="340" viewBox="0 0 516 170">
+  <title>极光星弹</title>
+  <defs>
+    <linearGradient id="aurora" x1="0" y1="17" x2="25" y2="137" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f4ffff"/>
+      <stop offset=".34" stop-color="#a1ffe8"/>
+      <stop offset=".51" stop-color="#eef9ff"/>
+      <stop offset=".75" stop-color="#74d9f6"/>
+      <stop offset="1" stop-color="#ac99f3"/>
+    </linearGradient>
+    <g id="glyphs" transform="translate(20 13) skewX(-7)">
+      <path d="M5 42 52 36 58 43 52 52 6 58 0 51Z M27 15 40 11 45 17 38 121 30 132 20 127Z
+               M26 56 35 60 30 78 12 104 0 109 1 99 16 76Z M40 62 49 63 61 78 53 86 42 81 35 70Z
+               M61 22 106 16 117 24 111 40 96 60 84 61 83 52 97 35 58 40 53 34Z
+               M73 35 86 35 82 67Q78 103 57 124L44 127 41 119Q62 98 69 66Z
+               M84 60 114 53 123 61Q117 103 94 120L70 131 61 124 65 117Q98 103 105 71L83 75Z
+               M79 72 88 69Q96 96 123 116L123 124 112 130Q90 116 74 82Z"/>
+      <path transform="translate(126 0)" d="M54 12 68 8 74 15 69 60 59 68 49 61Z M16 25 28 24 47 48
+               43 58 32 61 13 37Z M95 21 108 18 114 27 96 54 84 57 78 50Z
+               M7 68 118 60 124 67 119 77 6 85 0 77Z
+               M39 76 53 77Q50 110 25 126L10 132 2 125 7 118Q34 108 39 76Z
+               M74 73 88 72 83 108Q82 116 91 115L108 113 116 96 125 100 123 118Q120 129 106 130
+               L82 133Q68 132 68 118Z"/>
+      <path fill-rule="evenodd" transform="translate(251 0)"
+            d="M22 17 102 11 111 18 106 61 97 70 22 75 13 67 17 27Z
+               M32 29 31 37 94 33 95 24Z M30 50 28 61 92 56 93 46Z
+               M24 74 37 75Q34 93 14 106L2 102 7 93Z M27 80 108 74 117 81 108 91 23 97 17 89Z
+               M53 66 66 64 72 71 67 120 56 128 47 122Z M22 103 105 96 112 103 104 113 21 120 15 112Z
+               M7 128 117 119 124 126 117 136 6 145 0 137Z"/>
+      <path fill-rule="evenodd" transform="translate(377 0)"
+            d="M7 21 48 15 56 22 50 52 44 58 22 61 19 73 46 67 54 74 49 110Q47 126 34 130
+               L12 132 5 121 12 114 28 112 32 84 11 89 2 81 9 48 36 43 39 31 4 37 -1 30Z
+               M64 13 76 10 86 21 81 31 69 31 61 22Z M105 8 119 9 122 18 107 34 96 34 92 27Z
+               M65 39 120 35 128 42 121 84 113 92 63 96 55 87 59 46Z
+               M72 51 70 61 110 57 111 47Z M69 73 67 84 107 80 108 69Z
+               M85 43 97 40 101 46 94 127 84 136 76 129Z M56 105 124 99 133 106 126 115
+               54 122 48 114Z"/>
+    </g>
+  </defs>
+  <path d="M14 142Q96 111 197 135T368 150Q444 145 502 113M58 153Q116 132 184 145M313 155Q391 160 448 141"
+        fill="none" stroke="#73f9dc" stroke-width="1.7" opacity=".7" stroke-linecap="round"/>
+  <path d="M22 24Q111 -3 167 13 M390 12Q449 3 502 17 M425 151Q477 141 499 124"
+        fill="none" stroke="#b7abff" stroke-width="1.8" opacity=".62" stroke-linecap="round"/>
+  <use xlink:href="#glyphs" x="3" y="5" fill="#141b4e" stroke="#294171" stroke-width="10" stroke-linejoin="round"/>
+  <use xlink:href="#glyphs" fill="#354075" stroke="#132046" stroke-width="5.2" stroke-linejoin="round"/>
+  <use xlink:href="#glyphs" fill="url(#aurora)" stroke="#d6fbfa" stroke-width="1.15" stroke-linejoin="round"/>
+  <path d="M12 14l2 5 6 2-6 2-2 6-2-6-5-2 5-2z M498 30l1 4 5 1-5 2-1 5-2-5-4-2 4-1z
+           M258 12l1 3 4 1-4 1-1 4-1-4-4-1 4-1z M493 143l1.5 3.8 4.5 1.4-4.5 1.8-1.5 4.4-1.6-4.4-4.4-1.8 4.4-1.4z"
+        fill="#eafffe"/>
+</svg>

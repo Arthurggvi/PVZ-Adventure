@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/item/game_scenes_item/pvz2_attackable_tombstone.tscn" id="base"]
+
+[node name="WhiteDukeTombstone" instance=ExtResource("base")]
+is_white_duke_grave = true

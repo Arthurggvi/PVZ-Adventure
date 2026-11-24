@@ -2,9 +2,11 @@
 extends TombStone
 class_name PvZ2AttackableTombstone
 
-## 黑暗时代普通墓碑的满血值。
-const MAX_HEALTH := 700
-## 各裂纹阶段从满血起累计损失的血量。
+## 裂纹阈值使用普通墓碑的 700 点生命为基准。
+const DAMAGE_ART_REFERENCE_HEALTH := 700
+## 白爵士召出的墓碑相对于普通墓碑的最大生命倍率。
+const WHITE_DUKE_HEALTH_RATIO: float = 0.5
+## 各裂纹阶段从参考满血起累计损失的血量。
 const DAMAGE_THRESHOLDS := [1, 150, 300, 450]
 ## 完整碑身和四个裂纹阶段的原版贴图。
 const DAMAGE_ART: Array[Texture2D] = [
@@ -28,10 +30,12 @@ const CRUMBLE_SOUNDS: Array[AudioStream] = [
 ## 格子中碑身的底边锚点，单位为遮罩局部像素。
 const STONE_BOTTOM_Y := 106.0
 
+## 由白爵士墓碑场景声明，供出生属性和存档识别使用。
+@export var is_white_duke_grave := false
 ## 负责受击和生命结算的独立实体。
 @onready var damage_receiver: PvZ2TombstoneTarget = $DamageReceiver
 ## 上一次处理的血量，区分真正受击、无效伤害和恢复。
-var _last_hp := MAX_HEALTH
+var _last_hp: int
 ## 当前碑身的裂纹阶段，0 表示完整。
 var _damage_stage := 0
 ## 出土演出是否仍待开始；从存档恢复时跳过出土。
@@ -43,6 +47,13 @@ var _hit_tween: Tween
 ## 同一实例可能同时收到致死伤害和吞墓完成回调，只破碎一次。
 var _destroying := false
 
+## 为 [param curr_plant_cell] 准备墓碑，入树前写入召唤变体的最大生命。
+func init_tombstone(curr_plant_cell: PlantCell) -> void:
+	super.init_tombstone(curr_plant_cell)
+	if is_white_duke_grave:
+		var hp: HpComponent = $DamageReceiver/HpComponent # 生命组件入树时用该上限初始化血量与血条。
+		hp.set_spawn_max_health(maxi(1, roundi(hp.max_hp * WHITE_DUKE_HEALTH_RATIO)))
+
 ## 在子节点初始化前给受击实体设置实际所在行。
 func _enter_tree() -> void:
 	($DamageReceiver as Character000Base).lane = row_col.x
@@ -50,6 +61,7 @@ func _enter_tree() -> void:
 ## 初始化碑身，连接战斗扣血和死亡事件。
 func _ready() -> void:
 	super._ready()
+	_last_hp = damage_receiver.hp_component.curr_hp
 	damage_receiver.health_changed.connect(_on_health_changed)
 	damage_receiver.destroyed.connect(tombstone_death)
 
@@ -100,8 +112,9 @@ func _play_hit_recoil() -> void:
 
 ## [param current_hp] 当前生命；直接更新裂纹和底部锚点，不播放命中特效。
 func update_damage_visual(current_hp: int) -> void:
-	# 用累计失血定位阶段，血量超出范围时夹到首尾阶段。
-	var damage: int = MAX_HEALTH - clampi(current_hp, 0, MAX_HEALTH)
+	var max_hp: int = damage_receiver.hp_component.max_hp # 同一裂纹阶段对应同一失血比例。
+	# 换算为参考血量下的累计损失，复用普通墓碑的裂纹阈值。
+	var damage: int = floori(float(max_hp - clampi(current_hp, 0, max_hp)) * DAMAGE_ART_REFERENCE_HEALTH / max_hp)
 	var state := 0 # 达到的裂纹阶段。
 	for threshold: int in DAMAGE_THRESHOLDS: # 依次检查各阶段所需的累计失血。
 		if damage >= threshold:
@@ -137,7 +150,7 @@ func tombstone_death() -> void:
 
 ## 返回存档使用的墓碑种类标识。
 func get_tombstone_kind() -> StringName:
-	return &"pvz2"
+	return TombStoneManager.WHITE_DUKE_GRAVE_KIND if is_white_duke_grave else &"pvz2"
 
 ## 返回伤害组件当前剩余生命，供格子存档。
 func get_current_hp() -> int:
@@ -145,7 +158,7 @@ func get_current_hp() -> int:
 
 ## [param saved_hp] 存档血量；恢复仍存活的裂纹阶段，并跳过出土与受击演出。
 func restore_hp(saved_hp: int) -> void:
-	var hp: int = clampi(saved_hp, 1, MAX_HEALTH) # 存档记录的在场墓碑至少保留 1 点生命。
+	var hp: int = clampi(saved_hp, 1, damage_receiver.hp_component.max_hp) # 以当前变体的最大生命为上限。
 	_rise_pending = false
 	if _rise_tween != null:
 		_rise_tween.kill()

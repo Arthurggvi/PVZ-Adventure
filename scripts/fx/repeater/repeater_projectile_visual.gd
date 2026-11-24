@@ -109,7 +109,7 @@ func _mount(host: WeakRef) -> void:
 	var parent: Node = host.get_ref() as Node # 退出场景时不能留下未挂载的孤儿节点。
 	if not is_instance_valid(parent) or not parent.is_inside_tree() or parent.is_queued_for_deletion() \
 			or not is_instance_valid(_bullet) or _bullet.is_queued_for_deletion():
-		free()
+		queue_free()
 		return
 	parent.add_child(self)
 

@@ -13,8 +13,11 @@ var _committed: bool = false
 
 ## [param snapshot] 全量验证后离树构造；任何失败释放此前准备的层。
 static func prepare(target: BoardRuntime, snapshot: Dictionary) -> BoardStateRestore:
-	if target == null or not target.configured or not target.allows_mutation() \
-			or not BoardStateSnapshot.accepts(target, snapshot):
+	if target == null or not target.configured or not target.allows_mutation():
+		return null
+	if target.definition != null and snapshot.get("revision") != target.revision:
+		snapshot = target.definition.upgrade_saved_state(snapshot)
+	if not BoardStateSnapshot.accepts(target, snapshot):
 		return null
 	var plan := BoardStateRestore.new() # 只有成功后返回给提交入口。
 	plan.board = target

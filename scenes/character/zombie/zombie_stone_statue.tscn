@@ -1,0 +1,31 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_001_norm.tscn" id="1_norm"]
+[ext_resource type="Script" path="res://scripts/character/zombie/zombie_stone_statue.gd" id="2_controller"]
+[ext_resource type="Script" path="res://scripts/character/components/hp_component/component_hp_stone_statue.gd" id="3_health"]
+[ext_resource type="Script" path="res://scripts/character/components/component_move_stone_statue.gd" id="4_movement"]
+[ext_resource type="Script" path="res://scripts/character/zombie/stone_statue/stone_statue_visual.gd" id="5_visual"]
+[ext_resource type="Script" path="res://scripts/resources/resource_body_change.gd" id="6_body_change"]
+
+[node name="ZombieStoneStatue" instance=ExtResource("1_norm")]
+script = ExtResource("2_controller")
+zombie_type = 28
+is_walk = false
+
+[node name="Body" parent="."]
+visible = false
+
+[node name="HpStageChangeComponent" parent="."]
+boundary_value_hp = Array[int]([0])
+body_change = Array[ExtResource("6_body_change")]([null])
+
+[node name="HpComponent" parent="."]
+script = ExtResource("3_health")
+
+[node name="MoveComponent" parent="."]
+script = ExtResource("4_movement")
+is_enable_default = false
+
+[node name="StoneStatueVisual" type="Node2D" parent="."]
+z_index = 1
+script = ExtResource("5_visual")

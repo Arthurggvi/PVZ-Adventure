@@ -10,10 +10,14 @@ const PICKER_PATH := "res://scenes/adventure/AdventureDestinationPicker.tscn"
 const Catalog = preload("res://scripts/adventure/destination_catalog.gd")
 ## 场景、模态与地图选择器共用的临时资源请求实现。
 const ResourceBatch = preload("res://scripts/ui/transitions/resource_load_batch.gd")
+## 地区布局解析与窗口实例化使用同一故障断点协议。
+const Checkpoint = preload("res://scripts/ui/transitions/resource_load_checkpoint.gd")
 ## 不依赖地图素材的可取消反馈。
 const LoadingView = preload("res://scripts/adventure/ui/modal_loading_view.gd")
 ## 僵尸岛卡片的稳定地区 ID。
 const ZOMBIE_ISLAND := "zombie_island"
+## 奇境大陆地区 ID 与配置卡、资源路径一致。
+const WONDERLAND := "wonderland"
 ## 城镇卡片的稳定地区 ID，目标场景由主场景注册表提供。
 const TOWN := "town"
 
@@ -62,7 +66,7 @@ func open_from(scene: Node) -> bool:
 	navigation_state_changed.emit()
 	return true
 
-## 每帧只轮询共享批次；离场或换档时撤销结果，后台请求由工具栏继续回收。
+## 每帧只轮询共享批次；离场或换档立即撤销结果，后台句柄由加载后端回收。
 func _process(_delta: float) -> void:
 	if not is_open():
 		return
@@ -79,6 +83,7 @@ func _process(_delta: float) -> void:
 	if _batch == null:
 		return
 	var status: int = _batch.poll() # 只有完成状态才允许在主线程读取和实例化。
+	_feedback.set_resource_activity(_batch.activity())
 	_feedback.set_progress(_batch.progress())
 	if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 		return
@@ -92,18 +97,20 @@ func _process(_delta: float) -> void:
 func _start_preparation() -> void:
 	_preparation_started = true
 	var catalog := Catalog.new() # 当前请求独享配置读取器，不保留全局缓存。
+	var token: int = Checkpoint.begin(Catalog.ROOT + "layout.json", "地图布局解析")
 	_layout = catalog.load_layout()
+	Checkpoint.finish(token, "ok" if not _layout.is_empty() else "failed")
 	if _layout.is_empty():
 		_feedback.show_error(catalog.error_message)
 		return
 	var paths := PackedStringArray([PICKER_PATH]) # 场景静态依赖与 JSON 动态贴图同属本次请求。
 	paths.append_array(catalog.resource_paths)
 	_batch = ResourceBatch.new()
-	if _batch.start(paths) != OK:
+	if _batch.start(paths, 12_000) != OK: # 首次地图选择是轻量模态，失败应及时恢复入口。
 		_feedback.show_error("地图资源暂时无法加载，请关闭后重试。")
 		_retire_batch()
 
-## [param request_id] 仍有效时才创建窗口；资源强引用随窗口存活，构造不会重读纹理。
+## [param request_id] 仍有效时才创建窗口；批次持有至同步构造结束。
 func _publish_picker(request_id: int) -> void:
 	if request_id != _request_id or not _context_matches():
 		close()
@@ -113,7 +120,9 @@ func _publish_picker(request_id: int) -> void:
 		_feedback.show_error("地图窗口暂时无法打开，请关闭后重试。")
 		_retire_batch()
 		return
+	var token: int = Checkpoint.begin(PICKER_PATH, "地图窗口实例化")
 	var instance: Node = packed.instantiate() # 失败实例必须释放，不能遗留未入树节点。
+	Checkpoint.finish(token, "ok" if instance is Control else "failed")
 	if not instance is Control:
 		if is_instance_valid(instance):
 			instance.free()
@@ -127,6 +136,7 @@ func _publish_picker(request_id: int) -> void:
 	_picker.close_requested.connect(close)
 	_picker.destination_selected.connect(_navigate)
 	add_child(_picker)
+	_picker.remove_meta("prepared_resources") # 贴图由纸图及卡片控件直接持有。
 	_batch = null
 	_layout = {}
 	_feedback.dismiss() # 新选择器已可交互，旧卡片不再接收输入。
@@ -157,7 +167,7 @@ func close() -> void:
 	if was_open:
 		navigation_state_changed.emit()
 
-## 取消只停止提交新路径，已提交请求交还持久工具栏轮询。
+## 取消立即撤销本次业务交付，线程句柄按加载后端协议有限回收。
 func _retire_batch() -> void:
 	if _batch != null:
 		AdventureToolbar.retire_resource_batch(_batch)
@@ -178,6 +188,8 @@ func _navigate(destination_id: String) -> void:
 	match destination_id:
 		ZOMBIE_ISLAND:
 			target_scene = AdventureSession.MAP_SCENE
+		WONDERLAND:
+			target_scene = "res://scenes/adventure/wonderland_map.tscn"
 		TOWN:
 			target_scene = Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu]
 		_:
@@ -187,7 +199,7 @@ func _navigate(destination_id: String) -> void:
 		close()
 		return
 	# 档案和冒险进度由 AdventureSession 校验/保存，导航本身不接管用户状态。
-	if destination_id == ZOMBIE_ISLAND and not AdventureSession.prepare_adventure():
+	if destination_id in [ZOMBIE_ISLAND, WONDERLAND] and not AdventureSession.prepare_adventure():
 		_picker.show_entry_error(AdventureSession.entry_error)
 		return
 	var transition: Node = _source_scene.get_node_or_null("SceneTransition")

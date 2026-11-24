@@ -8,10 +8,7 @@ signal signal_ladder(plant:Plant000Base)
 
 func _physics_process(delta: float) -> void:
 	if is_enabling and is_attack_res and not owner.is_action_suspended():
-		frame_counter = wrapi(frame_counter + 1, 0, 8)
-		if not is_instance_valid(detect_component.enemy_can_be_attacked):
-			return
-		if frame_counter==0 and is_instance_valid(detect_component.enemy_can_be_attacked):
+		if _advance_bite_interval() and is_instance_valid(detect_component.enemy_can_be_attacked):
 			## 如果可以搭梯子
 			if is_can_ladder:
 				## 如果有可以被搭梯子的植物
@@ -20,7 +17,10 @@ func _physics_process(delta: float) -> void:
 					is_can_ladder = false
 					signal_ladder.emit(plant_ladder)
 					return
-			_apply_bite(detect_component.enemy_can_be_attacked, int(curr_attack_value_per_min * delta * 8))
+			var amount: int = int(curr_attack_value_per_min * delta * 8) # 原啃食间隔的伤害。
+			if owner.is_hypno:
+				amount = owner.hp_component.outgoing_damage(amount)
+			_apply_bite(detect_component.enemy_can_be_attacked, amount)
 
 
 ## 判断是否可以给敌人挂梯子

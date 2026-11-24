@@ -8,7 +8,13 @@ const Clock=preload("res://scripts/ui/start_menu/coastal/menu_clock.gd")
 const Entries=preload("res://scripts/ui/start_menu/building_entry_layer.gd")
 const Profile=preload("res://scripts/adventure/ui/adventure_profile_hud.gd")
 const Dialogs=preload("res://scripts/ui/start_menu/coastal/menu_dialogs.gd")
+## 仅在上次资源未完成时创建诊断复制入口，平时无额外 UI。
+const LoadReportLink=preload("res://scripts/ui/start_menu/coastal/menu_loading_report_link.gd")
+## 与加载器共享断点状态，不涉及用户档案。
+const LoadCheckpoint=preload("res://scripts/ui/transitions/resource_load_checkpoint.gd")
 const FONT=preload("res://assets/fonts/方正少儿_GBK.ttf")
+## 与实际贴图读取器共用同一份运行资源映射。
+const AssetStore = preload("res://scripts/ui/start_menu/coastal/asset_store.gd")
 ## 只作为交付核对钩子，实际功能通过同一门面。
 signal feature_requested(entry_id: String, accepted: bool)
 ## 可复用合成/时钟实例；随菜单退出一起释放。
@@ -27,6 +33,20 @@ var motion_paused := false
 ## 原生关闭策略恢复值与场景准备状态。
 var _old_auto_quit := true
 var initialized := false
+
+## 冷启动与回城都在离开来源场景前准备城镇贴图；目录无效时拒绝交接。
+static func get_initial_resource_paths() -> Variant:
+	var catalog: Dictionary = AssetStore.read_catalog(PACK) # 只解析清单，不加载贴图。
+	if catalog.is_empty():
+		push_error("城镇贴图目录缺失或无效：" + PACK)
+		return null
+	var paths := PackedStringArray() # 由 SceneTransition 的有限并发批次持有贴图。
+	for relative: Variant in catalog.values(): # 清单中的每条映射都必须指向包内纹理。
+		if not relative is String or not relative.begins_with("textures/") or ".." in relative:
+			push_error("城镇贴图目录包含无效路径：" + str(relative))
+			return null
+		paths.append(PACK.path_join(relative))
+	return paths
 
 func _ready() -> void:
 	AdventureSession.adventure_active=false
@@ -70,8 +90,12 @@ func _ready() -> void:
 	profile_hud.position=Vector2(layout.profile_position[0],layout.profile_position[1])
 	profile_hud.add_action("存档",_open_profiles)
 	profile_hud.mouse_filter=Control.MOUSE_FILTER_STOP
+	if LoadCheckpoint.has_interruption(): # 上次加载异常才显示与主菜单同色的轻量复制按钮。
+		canvas.add_child(LoadReportLink.new())
 	var transition := preload("res://scenes/ui/transitions/SceneTransition.tscn").instantiate() # 地图导航共享原过渡服务。
 	transition.name="SceneTransition"
+	if OS.has_feature("android"):
+		transition.revealed.connect(_log_android_menu_ready, CONNECT_ONE_SHOT)
 	add_child(transition)
 	resized.connect(_fit)
 	_fit()
@@ -79,16 +103,20 @@ func _ready() -> void:
 	SoundManager.setup_ui_start_menu_sound(self)
 	_last_ticks=Time.get_ticks_usec()
 	initialized=true
-	var tree := get_tree() # 保存此菜单开始预热时的场景树，等待期间允许切换场景。
-	for frame in range(3): # 等待四级离屏合成获得第一帧。
-		await tree.process_frame
-		if not is_inside_tree():
-			return
-	show()
+	for frame in range(3): # 等待四级离屏合成获得第一帧；不会暴露默认白天。
+		await get_tree().process_frame
+	if is_inside_tree():
+		show()
 
 ## The transition curtain may reveal only after the first composited menu frames.
 func is_visual_ready() -> bool:
 	return initialized and visible
+
+## 仅在 Android 的真实菜单首帧和揭幕均完成后留一条诊断，区分引擎启动与资源准备。
+## 查询卡牌门面状态不触发模板加载，便于核对正式包仍保留惰性启动。
+func _log_android_menu_ready() -> void:
+	print("PVZ startup: menu_interactive elapsed_ms=", Time.get_ticks_msec(),
+		" card_catalog_materialized=", AllCards.is_catalog_materialized())
 
 func _fit() -> void:
 	if canvas==null:
@@ -149,6 +177,13 @@ func _notification(what: int) -> void:
 		_last_ticks=Time.get_ticks_usec()
 	elif what==NOTIFICATION_WM_CLOSE_REQUEST:
 		AdventureToolbar.close_map_navigation()
+		dialogs.open_exit_confirmation(not Global.user_manager.curr_user_name.is_empty())
+
+## Android 的 [param event] 在没有更上层窗口时打开现有的保存退出确认。
+func _unhandled_key_input(event: InputEvent) -> void:
+	if OS.has_feature("android") and event.is_action_pressed(&"ui_cancel") and initialized \
+			and get_tree().current_scene == self and not _entries_blocked() and not $SceneTransition.busy:
+		get_viewport().set_input_as_handled()
 		dialogs.open_exit_confirmation(not Global.user_manager.curr_user_name.is_empty())
 
 func _exit_tree() -> void:

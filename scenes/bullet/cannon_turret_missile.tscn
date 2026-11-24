@@ -1,0 +1,142 @@
+[gd_scene load_steps=18 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/zombie/cannon_turret/cannon_turret_missile.gd" id="2_missile"]
+[ext_resource type="Script" path="res://scripts/character/zombie/cannon_turret/cannon_turret_missile_health.gd" id="3_hp"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_static.gd" id="4_static"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/cannon_turret/missile.png" id="5_art"]
+[ext_resource type="Script" path="res://scripts/character/zombie/cannon_turret/cannon_turret_warning.gd" id="6_warning"]
+[ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred.gd" id="7_charred"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/cannon_turret/fx_smoke.png" id="8_smoke"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/cannon_turret/fx_flare.png" id="9_flare"]
+
+[sub_resource type="RectangleShape2D" id="MissileDetection"]
+size = Vector2(34, 64)
+
+[sub_resource type="RectangleShape2D" id="MissileHitbox"]
+size = Vector2(34, 66)
+
+[sub_resource type="Gradient" id="TrailColor"]
+offsets = PackedFloat32Array(0, 0.29, 0.69, 1)
+colors = PackedColorArray(0.93, 0.69, 0.42, 0.81, 0.52, 0.45, 0.39, 0.88, 0.36, 0.34, 0.32, 0.48, 0.29, 0.28, 0.27, 0)
+
+[sub_resource type="GradientTexture1D" id="TrailRamp"]
+gradient = SubResource("TrailColor")
+width = 64
+
+[sub_resource type="Curve" id="TrailExpansion"]
+_data = [Vector2(0, 0.28), 0.0, 0.0, 0, 0, Vector2(0.44, 0.74), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="TrailGrowth"]
+width = 64
+curve = SubResource("TrailExpansion")
+
+[sub_resource type="ParticleProcessMaterial" id="ExhaustSmoke"]
+particle_flag_disable_z = true
+direction = Vector3(1, 0, 0)
+spread = 24.0
+gravity = Vector3(0, -9, 0)
+initial_velocity_min = 15.0
+initial_velocity_max = 41.0
+damping_min = 12.0
+damping_max = 22.0
+angle_min = -180.0
+angle_max = 180.0
+angular_velocity_min = -25.0
+angular_velocity_max = 38.0
+scale_min = 0.17
+scale_max = 0.41
+scale_curve = SubResource("TrailGrowth")
+color_ramp = SubResource("TrailRamp")
+lifetime_randomness = 0.13
+
+[sub_resource type="CanvasItemMaterial" id="ThrustBlend"]
+blend_mode = 1
+
+[node name="CannonTurretMissile" instance=ExtResource("1_base")]
+script = ExtResource("2_missile")
+z_index = 700
+init_be_attack_status = 8
+is_walk = false
+
+[node name="Shadow" parent="." index="0"]
+visible = false
+
+[node name="Missile" type="Sprite2D" parent="Body" index="2"]
+position = Vector2(0, -94)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("5_art")
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("4_static")
+
+[node name="HpStageChangeComponent" parent="." index="3"]
+boundary_value_hp = Array[int]([0])
+
+[node name="HpComponent" parent="." index="4"]
+script = ExtResource("3_hp")
+max_hp = 4
+
+[node name="CharredComponent" parent="." index="5"]
+script = ExtResource("7_charred")
+
+[node name="AttackComponent" parent="." index="6"]
+process_mode = 4
+is_enable_default = false
+
+[node name="DetectComponent" parent="AttackComponent" index="0"]
+is_enable_default = false
+
+[node name="Area2d" parent="AttackComponent/DetectComponent" index="0"]
+monitoring = false
+
+[node name="MoveComponent" parent="." index="7"]
+process_mode = 4
+move_mode = 1
+is_enable_default = false
+
+[node name="SwimBoxComponent" parent="." index="8"]
+process_mode = 4
+is_enable_default = false
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection" index="0"]
+position = Vector2(0, 0)
+shape = SubResource("MissileDetection")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(0, -40)
+shape = SubResource("MissileHitbox")
+
+[node name="HurtBoxDetectionOnAttack" parent="HurtBoxComponent" index="2"]
+collision_layer = 0
+monitorable = false
+
+[node name="GroundWarning" type="Node2D" parent="." index="11"]
+top_level = true
+z_index = 350
+z_as_relative = false
+script = ExtResource("6_warning")
+
+[node name="Exhaust" type="Node2D" parent="." index="12"]
+z_index = -1
+
+[node name="Smoke" type="GPUParticles2D" parent="Exhaust"]
+emitting = false
+amount = 26
+lifetime = 0.88
+visibility_rect = Rect2(-95, -85, 190, 170)
+texture = ExtResource("8_smoke")
+process_material = SubResource("ExhaustSmoke")
+
+[node name="Thrust" type="Sprite2D" parent="Exhaust"]
+material = SubResource("ThrustBlend")
+position = Vector2(5, 0)
+scale = Vector2(0.36, 0.20)
+modulate = Color(1, 0.63, 0.28, 0.94)
+texture = ExtResource("9_flare")
+
+[node name="HotCore" type="Polygon2D" parent="Exhaust/Thrust"]
+use_parent_material = true
+color = Color(1, 0.85, 0.38, 0.70)
+polygon = PackedVector2Array(-13, -10, 5, -16, 32, -8, 47, 0, 32, 7, 5, 15, -13, 10)

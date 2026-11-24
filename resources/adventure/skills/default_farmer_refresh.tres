@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CharacterSkillDefinition" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/skills/character_skill_definition.gd" id="1_definition"]
+[ext_resource type="Script" path="res://scripts/adventure/skills/default_farmer_refresh_effect.gd" id="2_effect"]
+[ext_resource type="AudioStream" path="res://assets/adventure/audio/skills/farmer_plant_home.ogg" id="6_cue"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/default_farmer_avatar.tres" id="3_icon"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/default_farmer.png" id="4_portrait"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/skill_titles/default_farmer_refresh.svg" id="5_title"]
+
+[sub_resource type="Resource" id="RefreshEffect"]
+script = ExtResource("2_effect")
+
+[resource]
+script = ExtResource("1_definition")
+id = &"default_farmer_refresh"
+display_name = "植物之家"
+description = "立刻清空当前出战卡槽内所有卡牌的剩余冷却。开战即就绪。"
+icon = ExtResource("3_icon")
+cut_in_portrait = ExtResource("4_portrait")
+cut_in_title = ExtResource("5_title")
+cut_in_sound = ExtResource("6_cue")
+cut_in_accent = Color(0.68, 0.76, 0.33, 1)
+cooldown_seconds = 90.0
+starts_on_cooldown = false
+effect = SubResource("RefreshEffect")

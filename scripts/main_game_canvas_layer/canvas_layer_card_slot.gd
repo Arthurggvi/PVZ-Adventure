@@ -1,6 +1,11 @@
 extends CanvasLayer
 class_name CanvasLayerCardSlot
 
+## 战斗中未置顶时的渲染层。环境有全场遮罩时可单关配置。
+@export var battle_layer: int = -1
+## 选卡、准备和卡槽聚焦时的渲染层。
+@export var raised_layer: int = 10
+
 @onready var card_slot_root: CardSlotRoot = %CardSlotRoot
 
 
@@ -13,19 +18,19 @@ func _ready() -> void:
 #region 卡槽处于焦点时置顶
 func _on_bg_mouse_entered() -> void:
 	if Global.config_service.card_slot_top_mouse_focus and Global.main_game.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME:
-		# 鼠标进入时，提高z_index，保证在前面显示
-		layer = 10
+		# 聚焦卡槽时提高画布层级。
+		layer = raised_layer
 
 func _on_bg_mouse_exited() -> void:
 	if Global.config_service.card_slot_top_mouse_focus and Global.main_game.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME:
 		# 鼠标离开时，恢复原始
-		layer = -1
+		layer = battle_layer
 
 ## 修改控制台按钮时
 ## 植物卡槽取消置顶,取消鼠标焦点卡槽置顶时
 func card_slot_top_mouse_focus():
 	if not Global.config_service.card_slot_top_mouse_focus and Global.main_game.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME:
-		layer = -1
+		layer = battle_layer
 
 #endregion
 
@@ -35,7 +40,7 @@ func _on_main_game_progress_update(main_game_progress:MainGameManager.E_MainGame
 		MainGameManager.E_MainGameProgress.NONE, MainGameManager.E_MainGameProgress.GAME_OVER:
 			pass
 		MainGameManager.E_MainGameProgress.CHOOSE_CARD,MainGameManager.E_MainGameProgress.PREPARE, MainGameManager.E_MainGameProgress.RE_CHOOSE_CARD:
-			layer = 10
+			layer = raised_layer
 		MainGameManager.E_MainGameProgress.MAIN_GAME:
-			layer = -1
+			layer = battle_layer
 

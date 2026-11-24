@@ -47,7 +47,7 @@ static func from_dict(data: Variant) -> RefCounted:
 		if not offer is Dictionary or not offer.get("id") is String \
 				or Books.definition(offer.id).is_empty() or not offer.get("sold") is bool:
 			return null
-		stock.offers.append({"id": offer.id, "sold": offer.sold})
+		stock.offers.append({"id": Books.canonical_book_id(offer.id), "sold": offer.sold})
 	stock.day = data.day
 	stock.refresh_used = used
 	stock.revision = int(data.revision)

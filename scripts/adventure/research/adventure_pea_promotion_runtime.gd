@@ -108,7 +108,7 @@ func _shoot_chain(attack: AttackComponentBulletBase, plant: Plant000Base,
 		if chain >= MAX_CHAIN_SHOTS or not rules.has("pea_multishot") \
 				or randf() >= float(rules["pea_multishot"].get("chance", 0.0)):
 			break
-		await get_tree().create_timer(FOLLOWUP_DELAY).timeout
+		await get_tree().create_timer(FOLLOWUP_DELAY, false).timeout
 
 ## [param attack] 原射击组件；[param fire] 使用现成火豌豆外观。
 ## [param damage_factor] 本次发射倍率；[param rules] 贯穿与命中事件配置。

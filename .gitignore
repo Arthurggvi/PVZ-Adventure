@@ -1,38 +1,176 @@
-# Godot 4 的本机缓存与生成数据。源文件旁的 .import 和 .uid 随源文件提交。
-/.godot/
-/android/
-*.translation
-export_credentials.cfg
-
-# 本地发行产物、调试输出和编辑器配置。
-/.release/
+# Godot 4+ specific ignores
+.godot/
 /_review/
-/.vscode/
-__pycache__/
-*.pyc
-Thumbs.db
-.DS_Store
-
-# 来自本地素材库的原版文件。已跟踪的覆绘素材保留在仓库。
-/assets/all_reanim/
-/assets/audio/
-/assets/fonts/
-/assets/image/
-/assets/reanim/
-
-# 第四关从本地素材包取用的曲目及其导入设置。
-/resources/adventure/audio/mus_floating_island_night_pre.mp3
-/resources/adventure/audio/mus_floating_island_night_pre.mp3.import
-/resources/adventure/audio/mus_floating_island_night_elite.mp3
-/resources/adventure/audio/mus_floating_island_night_elite.mp3.import
-/resources/adventure/audio/mus_delicious_island_night_boss.mp3
-/resources/adventure/audio/mus_delicious_island_night_boss.mp3.import
-
-# 私有配置及导出签名材料。
-.env
-.env.*
-!.env.example
-*.keystore
+/.release/
+/android/
+export_credentials.cfg
 *.jks
-*.pfx
-*.p12
+*.keystore
+.vscode
+assets
+
+# 角色系统自有素材随代码交付；其他未跟踪资源继续忽略。
+!assets/
+assets/*
+!assets/adventure/
+assets/adventure/*
+!assets/adventure/ui/
+assets/adventure/ui/*
+!assets/adventure/ui/player/
+
+# 五至十星离线烘焙动画：只纳入六张正式图集和时间清单。
+!assets/adventure/ui/star_badges/
+assets/adventure/ui/star_badges/*
+!assets/adventure/ui/star_badges/baked/
+assets/adventure/ui/star_badges/baked/*
+!assets/adventure/ui/star_badges/baked/star_??_atlas.png
+!assets/adventure/ui/star_badges/baked/manifest.json
+
+# 闪电芦苇场景所用的贴图、音效和素材来源。
+!assets/adventure/plants/
+assets/adventure/plants/*
+!assets/adventure/plants/lightning_reed/
+assets/adventure/plants/lightning_reed/*
+!assets/adventure/plants/lightning_reed/lightning_reed_atlas.png
+!assets/adventure/plants/lightning_reed/lightning_reed_card.png
+!assets/adventure/plants/lightning_reed/README.md
+!assets/adventure/plants/lightning_reed/sfx/
+assets/adventure/plants/lightning_reed/sfx/*
+!assets/adventure/plants/lightning_reed/sfx/*.wav
+!assets/adventure/plants/lightning_reed/sfx/*.tres
+
+# 本批新增设置图标；仅放行该文件，不重新跟踪整个工具栏资源目录。
+!assets/adventure/ui/bottom_bar/
+assets/adventure/ui/bottom_bar/*
+!assets/adventure/ui/bottom_bar/icons/
+assets/adventure/ui/bottom_bar/icons/*
+!assets/adventure/ui/bottom_bar/icons/icon_settings.png
+
+# All-Star original PAM-derived sprite assets are game resources.
+# Keep generated .import metadata and unused reference archives out of Git.
+!assets/adventure/zombies/
+assets/adventure/zombies/*
+
+# 导弹炮塔只跟踪游戏中使用的分层贴图。
+!assets/adventure/zombies/cannon_turret/
+assets/adventure/zombies/cannon_turret/*
+!assets/adventure/zombies/cannon_turret/*.png
+
+# 运输舰只跟踪正式帧库和图集，导入记录由 Godot 重建。
+!assets/adventure/zombies/transport_airship/
+assets/adventure/zombies/transport_airship/*
+!assets/adventure/zombies/transport_airship/*.webp
+!assets/adventure/zombies/transport_airship/fracture_ids.png
+!assets/adventure/zombies/transport_airship/sprite_frames.tres
+
+# 火箭小鬼只跟踪正式图集、帧库和逐纹理压缩参数。
+!assets/adventure/zombies/rocket_imp/
+assets/adventure/zombies/rocket_imp/*
+!assets/adventure/zombies/rocket_imp/*_atlas.png
+!assets/adventure/zombies/rocket_imp/*_atlas.png.import
+!assets/adventure/zombies/rocket_imp/sprite_frames.tres
+
+!assets/adventure/zombies/all_star/
+assets/adventure/zombies/all_star/*
+!assets/adventure/zombies/all_star/original/
+assets/adventure/zombies/all_star/original/*
+!assets/adventure/zombies/all_star/original/black/
+assets/adventure/zombies/all_star/original/black/*
+!assets/adventure/zombies/all_star/original/black/*.png
+!assets/adventure/zombies/all_star/original/original_source_manifest.json
+!assets/adventure/zombies/all_star/original/all_star_sound_177168068.wav
+!assets/adventure/zombies/all_star/original/entrance_referee_whistle_cc0.ogg
+
+# 探险家使用原版图集、火把燃烧音频和派生的显示贴图。
+!assets/adventure/zombies/explorer/
+assets/adventure/zombies/explorer/*
+!assets/adventure/zombies/explorer/*.png
+!assets/adventure/zombies/explorer/*.wav
+
+# 明灯的双形态图集、召唤物与水面特效素材。
+!assets/adventure/zombies/ming_lantern/
+assets/adventure/zombies/ming_lantern/*
+!assets/adventure/zombies/ming_lantern/*.png
+!assets/adventure/zombies/ming_lantern/*.webp
+!assets/adventure/zombies/ming_lantern/*.import
+
+# Savior 战斗美术使用一张无损图集和原生帧库。
+!assets/adventure/zombies/savior/
+assets/adventure/zombies/savior/*
+!assets/adventure/zombies/savior/savior_atlas.png
+!assets/adventure/zombies/savior/savior_atlas.png.import
+!assets/adventure/zombies/savior/savior_frames.tres
+
+# 苍穹公爵只追踪游戏使用的精灵页和头像。
+!assets/adventure/zombies/sky_duke/
+assets/adventure/zombies/sky_duke/*
+!assets/adventure/zombies/sky_duke/*.webp
+!assets/adventure/zombies/sky_duke/*.webp.import
+
+# 石像僵尸仅跟踪正式小图集与离线几何，导入缓存由 Godot 重建。
+!assets/adventure/zombies/stone_statue/
+assets/adventure/zombies/stone_statue/*
+!assets/adventure/zombies/stone_statue/skin_*.png
+!assets/adventure/zombies/stone_statue/skin_*.json
+!assets/adventure/zombies/stone_statue/ART_SOURCE.md
+
+# 大型融合僵尸只跟踪正式十二帧图集，导入缓存由 Godot 重建。
+!assets/adventure/zombies/large_fusion/
+assets/adventure/zombies/large_fusion/*
+!assets/adventure/zombies/large_fusion/roll_sheet.png
+!assets/adventure/zombies/large_fusion/sfx/
+assets/adventure/zombies/large_fusion/sfx/*
+!assets/adventure/zombies/large_fusion/sfx/*.ogg
+!assets/adventure/zombies/large_fusion/sfx/SOURCES.txt
+
+
+# 穴居僵尸与雪人小鬼只跟踪正式原素材、帧库和来源；导入记录由 Godot 重建。
+!assets/adventure/zombies/troglobite/
+assets/adventure/zombies/troglobite/*
+!assets/adventure/zombies/troglobite/atlas_*.png
+!assets/adventure/zombies/troglobite/portrait.png
+!assets/adventure/zombies/troglobite/sprite_frames.tres
+!assets/adventure/zombies/troglobite/animations.json
+!assets/adventure/zombies/troglobite/SOURCES.txt
+!assets/adventure/zombies/troglobite/audio/
+assets/adventure/zombies/troglobite/audio/*
+!assets/adventure/zombies/troglobite/audio/*.ogg
+!assets/adventure/zombies/troglobite/audio/sounds.json
+!assets/adventure/zombies/troglobite/ice_blocks/
+assets/adventure/zombies/troglobite/ice_blocks/*
+!assets/adventure/zombies/troglobite/ice_blocks/*.png
+!assets/adventure/zombies/troglobite/ice_blocks/ice_blocks.json
+!assets/adventure/zombies/yeti_imp/
+assets/adventure/zombies/yeti_imp/*
+!assets/adventure/zombies/yeti_imp/atlas_*.png
+!assets/adventure/zombies/yeti_imp/portrait.png
+!assets/adventure/zombies/yeti_imp/sprite_frames.tres
+!assets/adventure/zombies/yeti_imp/animations.json
+!assets/adventure/zombies/yeti_imp/SOURCES.txt
+
+# 滑雪僵尸只跟踪正式素材、帧库和来源；导入记录由 Godot 重建。
+!assets/adventure/zombies/ski/
+assets/adventure/zombies/ski/*
+!assets/adventure/zombies/ski/atlas_*.png
+!assets/adventure/zombies/ski/portrait.png
+!assets/adventure/zombies/ski/sprite_frames.tres
+!assets/adventure/zombies/ski/animations.json
+!assets/adventure/zombies/ski/SOURCES.txt
+!assets/adventure/zombies/ski/takeoff.ogg
+
+# 安息平原：只登记本关使用的分层美术及可重建的原始输入。
+!assets/adventure/wonderland/
+assets/adventure/wonderland/*
+!assets/adventure/wonderland/battle/
+assets/adventure/wonderland/battle/*
+!assets/adventure/wonderland/battle/resting_plain/
+assets/adventure/wonderland/battle/resting_plain/*
+!assets/adventure/wonderland/battle/resting_plain/board.webp
+!assets/adventure/wonderland/battle/resting_plain/board_final.webp
+!assets/adventure/wonderland/battle/resting_plain/skybox_original.webp
+!assets/adventure/wonderland/battle/resting_plain/skybox_ground.webp
+!assets/adventure/wonderland/battle/resting_plain/edge_dense.webp
+!assets/adventure/wonderland/battle/resting_plain/edge_sparse.webp
+!assets/adventure/wonderland/battle/resting_plain/clover_low.webp
+!assets/adventure/wonderland/battle/resting_plain/tuft_flowers.webp
+!assets/adventure/wonderland/battle/resting_plain/tuft_tall.webp

@@ -1,4 +1,4 @@
-## 阳光菇的单株转职生命周期；成熟、实际生产与死亡各自独立结算，子株继承冻结配方。
+## 阳光菇的单株转职生命周期；成长、实际生产与死亡各自结算。
 extends Node
 class_name AdventureSunShroomPromotionEffects
 
@@ -6,14 +6,10 @@ class_name AdventureSunShroomPromotionEffects
 var _plant: Plant010SunShroom
 ## 本次出战场景，拒绝旧场景的晚到回调。
 var _game: MainGameManager
-## 来源卡片的不可变配方，供后续成熟扩散完整继承。
-var _profile: PlantSpawnProfile
 ## 本株实际生产组件；额外奖励不进入生产事件。
 var _production: CreateSunComponent
 ## 已验证的本物种事件副本，不从可变库存重新查询。
 var _rules: Dictionary = {}
-## 本株已经结算正常成熟，防止重复信号；不对下一代设置永久禁用。
-var _maturity_handled: bool = false
 ## 已真实生产的等值储蓄；每株独立且最多五百。
 var _savings: int = 0
 ## 本株储蓄上限；仅从冻结事件读取并限制到五百。
@@ -22,13 +18,14 @@ var _savings_cap: int = 0
 var _death_paid: bool = false
 
 ## [param plant] 为本株；[param events] 为目录验证后的冻结转职事件。
-## 入树前只保存规则和安装光环，父节点就绪后才绑定组件，不在出生时补发成熟。
+## 入树前冻结成长权限和安装光环；父节点就绪后才绑定组件，不在出生时补发成长。
 func configure(plant: Plant010SunShroom, events: Array[Dictionary]) -> void:
 	_plant = plant
 	for event: Dictionary in events: # 拒绝混入其他物种的生命周期事件。
 		var kind: String = str(event.get("kind", "")) # 已验证的事件标识。
 		if kind.begins_with("sunshroom_"):
 			_rules[kind] = event.duplicate(true)
+	_plant.gene_breakthrough_enabled = _rules.has("sunshroom_gene_breakthrough")
 	if _rules.has("sunshroom_savings"):
 		_savings_cap = clampi(int(_rules["sunshroom_savings"].get("cap", 500)), 0, 500)
 	if _rules.has("sunshroom_moonlight"):
@@ -51,28 +48,27 @@ func _bind() -> void:
 	if _plant.character_init_type != Character000Base.E_CharacterInitType.IsNorm \
 			or not is_instance_valid(_game) or not _game.is_ancestor_of(_plant):
 		return
-	_profile = _plant.plant_spawn_profile
+	var profile: PlantSpawnProfile = _plant.plant_spawn_profile # 只为具有冻结冒险配方的植株绑定事件。
 	_production = _plant.create_sun_component
-	if _profile == null or not _profile.matches_plant_type(CharacterRegistry.PlantType.P010SunShroom) \
+	if profile == null or not profile.matches_plant_type(CharacterRegistry.PlantType.P010SunShroom) \
 			or not is_instance_valid(_production):
 		return
-	if _rules.has("sunshroom_spore_spread") or _rules.has("sunshroom_hive_mind"):
-		_plant.signal_matured.connect(_on_matured)
+	if _rules.has("sunshroom_spore_spread") or _rules.has("sunshroom_moonlight") or _rules.has("sunshroom_hive_mind"):
+		_plant.signal_matured.connect(_on_growth)
 	if _rules.has("sunshroom_savings"):
 		_production.production_created.connect(_on_production_created)
 		_plant.signal_character_death.connect(_on_death, CONNECT_ONE_SHOT)
 
-## 只结算一次真实成熟；每株子菇自己的正常成长仍可触发相同事件。
-func _on_matured() -> void:
-	if _maturity_handled or not _battle_active() or not is_instance_valid(_plant) \
+## 成年和基因突破共用同一个自然成长入口，每次各结算所选转职。
+func _on_growth() -> void:
+	if not _battle_active() or not is_instance_valid(_plant) \
 			or _plant.is_death or _plant.is_queued_for_deletion() or not _plant.is_grow:
 		return
-	_maturity_handled = true
 	if _rules.has("sunshroom_hive_mind") and is_instance_valid(_game.card_manager):
 		AdventureSunShroomCardEffects.halve_remaining_cooldowns(_game.card_manager.card_slot_battle)
-	if _rules.has("sunshroom_spore_spread"):
-		var radius: int = int(_rules["sunshroom_spore_spread"].get("radius", 3)) # 逻辑十字每个方向的距离。
-		AdventureSunShroomPropagation.spread(_plant, radius)
+	var spread_rule: Dictionary = _rules.get("sunshroom_moonlight", _rules.get("sunshroom_spore_spread", {})) # 三转二选一。
+	if not spread_rule.is_empty():
+		AdventureSunShroomPropagation.spread(_plant, spread_rule)
 
 ## [param total_value] 是已创建阳光的实际总值；包括幼年、成年和生产加成，不包括奖励提现。
 func _on_production_created(total_value: int) -> void:

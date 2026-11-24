@@ -1,0 +1,458 @@
+[gd_resource type="Resource" script_class="BoardDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/board/board_definition.gd" id="board"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_lane_definition.gd" id="lane"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_surface_definition.gd" id="surface"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_terrain_definition.gd" id="terrain"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_cell_definition.gd" id="cell"]
+
+[sub_resource type="Resource" id="StoneFloor"]
+script = ExtResource("terrain")
+tags = Array[StringName]([&"land"])
+
+[sub_resource type="Resource" id="Ground"]
+script = ExtResource("surface")
+
+[sub_resource type="Resource" id="Lane_0"]
+script = ExtResource("lane")
+lane_id = &"lane_0"
+spawn_position = Vector2(972, 219.13)
+mower_position = Vector2(-12, 219.13)
+
+[sub_resource type="Resource" id="Cell_0_0"]
+script = ExtResource("cell")
+cell_id = &"cell_0_0"
+address = Vector2i(0, 0)
+position = Vector2(18.01, 162.241)
+size = Vector2(67.26, 70.889)
+hit_polygon = PackedVector2Array(2.36, 0, 67.26, 0, 67.26, 70.889, 0, 70.889)
+
+[sub_resource type="Resource" id="Cell_0_1"]
+script = ExtResource("cell")
+cell_id = &"cell_0_1"
+address = Vector2i(0, 1)
+position = Vector2(85.27, 162.241)
+size = Vector2(64.31, 70.889)
+hit_polygon = PackedVector2Array(0, 0, 64.31, 0, 63.72, 70.889, 0, 70.889)
+
+[sub_resource type="Resource" id="Cell_0_2"]
+script = ExtResource("cell")
+cell_id = &"cell_0_2"
+address = Vector2i(0, 2)
+position = Vector2(148.99, 162.241)
+size = Vector2(64.9, 70.889)
+hit_polygon = PackedVector2Array(0.59, 0, 64.9, 0, 64.9, 70.889, 0, 70.889)
+
+[sub_resource type="Resource" id="Cell_0_3"]
+script = ExtResource("cell")
+cell_id = &"cell_0_3"
+address = Vector2i(0, 3)
+position = Vector2(213.89, 162.241)
+size = Vector2(66.08, 70.889)
+hit_polygon = PackedVector2Array(0, 0, 65.49, 0, 66.08, 70.889, 0, 70.889)
+
+[sub_resource type="Resource" id="Cell_0_4"]
+script = ExtResource("cell")
+cell_id = &"cell_0_4"
+address = Vector2i(0, 4)
+position = Vector2(279.38, 162.241)
+size = Vector2(66.08, 70.889)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 66.08, 70.889, 0.59, 70.889)
+
+[sub_resource type="Resource" id="Cell_0_5"]
+script = ExtResource("cell")
+cell_id = &"cell_0_5"
+address = Vector2i(0, 5)
+position = Vector2(345.46, 162.241)
+size = Vector2(64.9, 70.889)
+hit_polygon = PackedVector2Array(0, 0, 64.9, 0, 64.9, 70.889, 0, 70.889)
+
+[sub_resource type="Resource" id="Cell_0_6"]
+script = ExtResource("cell")
+cell_id = &"cell_0_6"
+address = Vector2i(0, 6)
+position = Vector2(410.36, 162.241)
+size = Vector2(64.9, 70.889)
+hit_polygon = PackedVector2Array(0, 0, 63.72, 0, 64.9, 70.889, 0, 70.889)
+
+[sub_resource type="Resource" id="Cell_0_7"]
+script = ExtResource("cell")
+cell_id = &"cell_0_7"
+address = Vector2i(0, 7)
+position = Vector2(474.08, 162.241)
+size = Vector2(66.08, 70.889)
+hit_polygon = PackedVector2Array(0, 0, 64.9, 0, 66.08, 70.889, 1.18, 70.889)
+
+[sub_resource type="Resource" id="Cell_0_8"]
+script = ExtResource("cell")
+cell_id = &"cell_0_8"
+address = Vector2i(0, 8)
+position = Vector2(538.98, 162.241)
+size = Vector2(66.08, 70.889)
+hit_polygon = PackedVector2Array(0, 0, 63.72, 0, 66.08, 70.889, 1.18, 70.889)
+
+[sub_resource type="Resource" id="Cell_0_9"]
+script = ExtResource("cell")
+cell_id = &"cell_0_9"
+address = Vector2i(0, 9)
+position = Vector2(602.7, 162.241)
+size = Vector2(67.26, 70.889)
+hit_polygon = PackedVector2Array(0, 0, 61.95, 0, 67.26, 70.889, 2.36, 70.889)
+
+[sub_resource type="Resource" id="Lane_1"]
+script = ExtResource("lane")
+lane_id = &"lane_1"
+spawn_position = Vector2(972, 290.75)
+mower_position = Vector2(-12, 290.75)
+
+[sub_resource type="Resource" id="Cell_1_0"]
+script = ExtResource("cell")
+cell_id = &"cell_1_0"
+address = Vector2i(1, 0)
+position = Vector2(15.65, 233.13)
+size = Vector2(69.62, 71.62)
+hit_polygon = PackedVector2Array(2.36, 0, 69.62, 0, 67.85, 71.62, 0, 71.62)
+
+[sub_resource type="Resource" id="Cell_1_1"]
+script = ExtResource("cell")
+cell_id = &"cell_1_1"
+address = Vector2i(1, 1)
+position = Vector2(83.5, 233.13)
+size = Vector2(65.49, 71.62)
+hit_polygon = PackedVector2Array(1.77, 0, 65.49, 0, 65.49, 71.62, 0, 71.62)
+
+[sub_resource type="Resource" id="Cell_1_2"]
+script = ExtResource("cell")
+cell_id = &"cell_1_2"
+address = Vector2i(1, 2)
+position = Vector2(148.99, 233.13)
+size = Vector2(65.49, 71.62)
+hit_polygon = PackedVector2Array(0, 0, 64.9, 0, 65.49, 71.62, 0, 71.62)
+
+[sub_resource type="Resource" id="Cell_1_3"]
+script = ExtResource("cell")
+cell_id = &"cell_1_3"
+address = Vector2i(1, 3)
+position = Vector2(213.89, 233.13)
+size = Vector2(66.67, 71.62)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 66.67, 71.62, 0.59, 71.62)
+
+[sub_resource type="Resource" id="Cell_1_4"]
+script = ExtResource("cell")
+cell_id = &"cell_1_4"
+address = Vector2i(1, 4)
+position = Vector2(279.97, 233.13)
+size = Vector2(66.08, 71.62)
+hit_polygon = PackedVector2Array(0, 0, 65.49, 0, 66.08, 71.62, 0.59, 71.62)
+
+[sub_resource type="Resource" id="Cell_1_5"]
+script = ExtResource("cell")
+cell_id = &"cell_1_5"
+address = Vector2i(1, 5)
+position = Vector2(345.46, 233.13)
+size = Vector2(66.08, 71.62)
+hit_polygon = PackedVector2Array(0, 0, 64.9, 0, 66.08, 71.62, 0.59, 71.62)
+
+[sub_resource type="Resource" id="Cell_1_6"]
+script = ExtResource("cell")
+cell_id = &"cell_1_6"
+address = Vector2i(1, 6)
+position = Vector2(410.36, 233.13)
+size = Vector2(66.08, 71.62)
+hit_polygon = PackedVector2Array(0, 0, 64.9, 0, 66.08, 71.62, 1.18, 71.62)
+
+[sub_resource type="Resource" id="Cell_1_7"]
+script = ExtResource("cell")
+cell_id = &"cell_1_7"
+address = Vector2i(1, 7)
+position = Vector2(475.26, 233.13)
+size = Vector2(67.26, 71.62)
+hit_polygon = PackedVector2Array(0, 0, 64.9, 0, 67.26, 71.62, 1.18, 71.62)
+
+[sub_resource type="Resource" id="Cell_1_8"]
+script = ExtResource("cell")
+cell_id = &"cell_1_8"
+address = Vector2i(1, 8)
+position = Vector2(540.16, 233.13)
+size = Vector2(68.44, 71.62)
+hit_polygon = PackedVector2Array(0, 0, 64.9, 0, 68.44, 71.62, 2.36, 71.62)
+
+[sub_resource type="Resource" id="Cell_1_9"]
+script = ExtResource("cell")
+cell_id = &"cell_1_9"
+address = Vector2i(1, 9)
+position = Vector2(605.06, 233.13)
+size = Vector2(70.8, 71.62)
+hit_polygon = PackedVector2Array(0, 0, 64.9, 0, 70.8, 71.62, 3.54, 71.62)
+
+[sub_resource type="Resource" id="Lane_2"]
+script = ExtResource("lane")
+lane_id = &"lane_2"
+spawn_position = Vector2(972, 363.832)
+mower_position = Vector2(-12, 363.832)
+
+[sub_resource type="Resource" id="Cell_2_0"]
+script = ExtResource("cell")
+cell_id = &"cell_2_0"
+address = Vector2i(2, 0)
+position = Vector2(13.29, 304.75)
+size = Vector2(70.21, 73.082)
+hit_polygon = PackedVector2Array(2.36, 0, 70.21, 0, 69.62, 73.082, 0, 73.082)
+
+[sub_resource type="Resource" id="Cell_2_1"]
+script = ExtResource("cell")
+cell_id = &"cell_2_1"
+address = Vector2i(2, 1)
+position = Vector2(82.91, 304.75)
+size = Vector2(66.08, 73.082)
+hit_polygon = PackedVector2Array(0.59, 0, 66.08, 0, 65.49, 73.082, 0, 73.082)
+
+[sub_resource type="Resource" id="Cell_2_2"]
+script = ExtResource("cell")
+cell_id = &"cell_2_2"
+address = Vector2i(2, 2)
+position = Vector2(148.4, 304.75)
+size = Vector2(66.08, 73.082)
+hit_polygon = PackedVector2Array(0.59, 0, 66.08, 0, 66.08, 73.082, 0, 73.082)
+
+[sub_resource type="Resource" id="Cell_2_3"]
+script = ExtResource("cell")
+cell_id = &"cell_2_3"
+address = Vector2i(2, 3)
+position = Vector2(214.48, 304.75)
+size = Vector2(66.08, 73.082)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 66.08, 73.082, 0, 73.082)
+
+[sub_resource type="Resource" id="Cell_2_4"]
+script = ExtResource("cell")
+cell_id = &"cell_2_4"
+address = Vector2i(2, 4)
+position = Vector2(280.56, 304.75)
+size = Vector2(66.08, 73.082)
+hit_polygon = PackedVector2Array(0, 0, 65.49, 0, 66.08, 73.082, 0, 73.082)
+
+[sub_resource type="Resource" id="Cell_2_5"]
+script = ExtResource("cell")
+cell_id = &"cell_2_5"
+address = Vector2i(2, 5)
+position = Vector2(346.05, 304.75)
+size = Vector2(66.08, 73.082)
+hit_polygon = PackedVector2Array(0, 0, 65.49, 0, 66.08, 73.082, 0.59, 73.082)
+
+[sub_resource type="Resource" id="Cell_2_6"]
+script = ExtResource("cell")
+cell_id = &"cell_2_6"
+address = Vector2i(2, 6)
+position = Vector2(411.54, 304.75)
+size = Vector2(66.67, 73.082)
+hit_polygon = PackedVector2Array(0, 0, 64.9, 0, 66.67, 73.082, 0.59, 73.082)
+
+[sub_resource type="Resource" id="Cell_2_7"]
+script = ExtResource("cell")
+cell_id = &"cell_2_7"
+address = Vector2i(2, 7)
+position = Vector2(476.44, 304.75)
+size = Vector2(67.85, 73.082)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 67.85, 73.082, 1.77, 73.082)
+
+[sub_resource type="Resource" id="Cell_2_8"]
+script = ExtResource("cell")
+cell_id = &"cell_2_8"
+address = Vector2i(2, 8)
+position = Vector2(542.52, 304.75)
+size = Vector2(70.21, 73.082)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 70.21, 73.082, 1.77, 73.082)
+
+[sub_resource type="Resource" id="Cell_2_9"]
+script = ExtResource("cell")
+cell_id = &"cell_2_9"
+address = Vector2i(2, 9)
+position = Vector2(608.6, 304.75)
+size = Vector2(73.16, 73.082)
+hit_polygon = PackedVector2Array(0, 0, 67.26, 0, 73.16, 73.082, 4.13, 73.082)
+
+[sub_resource type="Resource" id="Lane_3"]
+script = ExtResource("lane")
+lane_id = &"lane_3"
+spawn_position = Vector2(972, 437.644)
+mower_position = Vector2(-12, 437.644)
+
+[sub_resource type="Resource" id="Cell_3_0"]
+script = ExtResource("cell")
+cell_id = &"cell_3_0"
+address = Vector2i(3, 0)
+position = Vector2(11.52, 377.832)
+size = Vector2(71.39, 73.812)
+hit_polygon = PackedVector2Array(1.77, 0, 71.39, 0, 70.21, 73.812, 0, 73.812)
+
+[sub_resource type="Resource" id="Cell_3_1"]
+script = ExtResource("cell")
+cell_id = &"cell_3_1"
+address = Vector2i(3, 1)
+position = Vector2(81.73, 377.832)
+size = Vector2(66.67, 73.812)
+hit_polygon = PackedVector2Array(1.18, 0, 66.67, 0, 66.67, 73.812, 0, 73.812)
+
+[sub_resource type="Resource" id="Cell_3_2"]
+script = ExtResource("cell")
+cell_id = &"cell_3_2"
+address = Vector2i(3, 2)
+position = Vector2(148.4, 377.832)
+size = Vector2(66.08, 73.812)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 66.08, 73.812, 0, 73.812)
+
+[sub_resource type="Resource" id="Cell_3_3"]
+script = ExtResource("cell")
+cell_id = &"cell_3_3"
+address = Vector2i(3, 3)
+position = Vector2(214.48, 377.832)
+size = Vector2(66.67, 73.812)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 66.67, 73.812, 0, 73.812)
+
+[sub_resource type="Resource" id="Cell_3_4"]
+script = ExtResource("cell")
+cell_id = &"cell_3_4"
+address = Vector2i(3, 4)
+position = Vector2(280.56, 377.832)
+size = Vector2(66.67, 73.812)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 66.67, 73.812, 0.59, 73.812)
+
+[sub_resource type="Resource" id="Cell_3_5"]
+script = ExtResource("cell")
+cell_id = &"cell_3_5"
+address = Vector2i(3, 5)
+position = Vector2(346.64, 377.832)
+size = Vector2(66.67, 73.812)
+hit_polygon = PackedVector2Array(0, 0, 65.49, 0, 66.67, 73.812, 0.59, 73.812)
+
+[sub_resource type="Resource" id="Cell_3_6"]
+script = ExtResource("cell")
+cell_id = &"cell_3_6"
+address = Vector2i(3, 6)
+position = Vector2(412.13, 377.832)
+size = Vector2(68.44, 73.812)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 68.44, 73.812, 1.18, 73.812)
+
+[sub_resource type="Resource" id="Cell_3_7"]
+script = ExtResource("cell")
+cell_id = &"cell_3_7"
+address = Vector2i(3, 7)
+position = Vector2(478.21, 377.832)
+size = Vector2(70.21, 73.812)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 70.21, 73.812, 2.36, 73.812)
+
+[sub_resource type="Resource" id="Cell_3_8"]
+script = ExtResource("cell")
+cell_id = &"cell_3_8"
+address = Vector2i(3, 8)
+position = Vector2(544.29, 377.832)
+size = Vector2(72.57, 73.812)
+hit_polygon = PackedVector2Array(0, 0, 68.44, 0, 72.57, 73.812, 4.13, 73.812)
+
+[sub_resource type="Resource" id="Cell_3_9"]
+script = ExtResource("cell")
+cell_id = &"cell_3_9"
+address = Vector2i(3, 9)
+position = Vector2(612.73, 377.832)
+size = Vector2(75.52, 73.812)
+hit_polygon = PackedVector2Array(0, 0, 69.03, 0, 75.52, 73.812, 4.13, 73.812)
+
+[sub_resource type="Resource" id="Lane_4"]
+script = ExtResource("lane")
+lane_id = &"lane_4"
+spawn_position = Vector2(972, 515.842)
+mower_position = Vector2(-12, 515.842)
+
+[sub_resource type="Resource" id="Cell_4_0"]
+script = ExtResource("cell")
+cell_id = &"cell_4_0"
+address = Vector2i(4, 0)
+position = Vector2(9.75, 451.644)
+size = Vector2(71.98, 78.198)
+hit_polygon = PackedVector2Array(1.77, 0, 71.98, 0, 71.39, 78.198, 0, 78.198)
+
+[sub_resource type="Resource" id="Cell_4_1"]
+script = ExtResource("cell")
+cell_id = &"cell_4_1"
+address = Vector2i(4, 1)
+position = Vector2(81.14, 451.644)
+size = Vector2(67.26, 78.198)
+hit_polygon = PackedVector2Array(0.59, 0, 67.26, 0, 67.26, 78.198, 0, 78.198)
+
+[sub_resource type="Resource" id="Cell_4_2"]
+script = ExtResource("cell")
+cell_id = &"cell_4_2"
+address = Vector2i(4, 2)
+position = Vector2(148.4, 451.644)
+size = Vector2(66.08, 78.198)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 66.08, 78.198, 0, 78.198)
+
+[sub_resource type="Resource" id="Cell_4_3"]
+script = ExtResource("cell")
+cell_id = &"cell_4_3"
+address = Vector2i(4, 3)
+position = Vector2(214.48, 451.644)
+size = Vector2(66.67, 78.198)
+hit_polygon = PackedVector2Array(0, 0, 66.67, 0, 66.67, 78.198, 0, 78.198)
+
+[sub_resource type="Resource" id="Cell_4_4"]
+script = ExtResource("cell")
+cell_id = &"cell_4_4"
+address = Vector2i(4, 4)
+position = Vector2(281.15, 451.644)
+size = Vector2(67.26, 78.198)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 67.26, 78.198, 0, 78.198)
+
+[sub_resource type="Resource" id="Cell_4_5"]
+script = ExtResource("cell")
+cell_id = &"cell_4_5"
+address = Vector2i(4, 5)
+position = Vector2(347.23, 451.644)
+size = Vector2(67.85, 78.198)
+hit_polygon = PackedVector2Array(0, 0, 66.08, 0, 67.85, 78.198, 1.18, 78.198)
+
+[sub_resource type="Resource" id="Cell_4_6"]
+script = ExtResource("cell")
+cell_id = &"cell_4_6"
+address = Vector2i(4, 6)
+position = Vector2(413.31, 451.644)
+size = Vector2(70.8, 78.198)
+hit_polygon = PackedVector2Array(0, 0, 67.26, 0, 70.8, 78.198, 1.77, 78.198)
+
+[sub_resource type="Resource" id="Cell_4_7"]
+script = ExtResource("cell")
+cell_id = &"cell_4_7"
+address = Vector2i(4, 7)
+position = Vector2(480.57, 451.644)
+size = Vector2(72.57, 78.198)
+hit_polygon = PackedVector2Array(0, 0, 67.85, 0, 72.57, 78.198, 3.54, 78.198)
+
+[sub_resource type="Resource" id="Cell_4_8"]
+script = ExtResource("cell")
+cell_id = &"cell_4_8"
+address = Vector2i(4, 8)
+position = Vector2(548.42, 451.644)
+size = Vector2(73.75, 78.198)
+hit_polygon = PackedVector2Array(0, 0, 68.44, 0, 73.75, 78.198, 4.72, 78.198)
+
+[sub_resource type="Resource" id="Cell_4_9"]
+script = ExtResource("cell")
+cell_id = &"cell_4_9"
+address = Vector2i(4, 9)
+position = Vector2(616.86, 451.644)
+size = Vector2(78.47, 78.198)
+hit_polygon = PackedVector2Array(0, 0, 71.39, 0, 78.47, 78.198, 5.31, 78.198)
+
+[resource]
+script = ExtResource("board")
+board_id = &"wonderland.zombie_church"
+lanes = Array[ExtResource("lane")]([SubResource("Lane_0"), SubResource("Lane_1"), SubResource("Lane_2"), SubResource("Lane_3"), SubResource("Lane_4")])
+surfaces = Array[ExtResource("surface")]([SubResource("Ground")])
+terrains = Array[ExtResource("terrain")]([SubResource("StoneFloor")])
+cells = Array[ExtResource("cell")]([
+SubResource("Cell_0_0"), SubResource("Cell_0_1"), SubResource("Cell_0_2"), SubResource("Cell_0_3"), SubResource("Cell_0_4"), SubResource("Cell_0_5"), SubResource("Cell_0_6"), SubResource("Cell_0_7"), SubResource("Cell_0_8"), SubResource("Cell_0_9"),
+SubResource("Cell_1_0"), SubResource("Cell_1_1"), SubResource("Cell_1_2"), SubResource("Cell_1_3"), SubResource("Cell_1_4"), SubResource("Cell_1_5"), SubResource("Cell_1_6"), SubResource("Cell_1_7"), SubResource("Cell_1_8"), SubResource("Cell_1_9"),
+SubResource("Cell_2_0"), SubResource("Cell_2_1"), SubResource("Cell_2_2"), SubResource("Cell_2_3"), SubResource("Cell_2_4"), SubResource("Cell_2_5"), SubResource("Cell_2_6"), SubResource("Cell_2_7"), SubResource("Cell_2_8"), SubResource("Cell_2_9"),
+SubResource("Cell_3_0"), SubResource("Cell_3_1"), SubResource("Cell_3_2"), SubResource("Cell_3_3"), SubResource("Cell_3_4"), SubResource("Cell_3_5"), SubResource("Cell_3_6"), SubResource("Cell_3_7"), SubResource("Cell_3_8"), SubResource("Cell_3_9"),
+SubResource("Cell_4_0"), SubResource("Cell_4_1"), SubResource("Cell_4_2"), SubResource("Cell_4_3"), SubResource("Cell_4_4"), SubResource("Cell_4_5"), SubResource("Cell_4_6"), SubResource("Cell_4_7"), SubResource("Cell_4_8"), SubResource("Cell_4_9")
+])

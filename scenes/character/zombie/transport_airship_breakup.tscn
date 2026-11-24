@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/character/zombie/transport_airship_breakup.gd" id="1_breakup"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/transport_airship/fracture_ids.png" id="2_fracture"]
+[ext_resource type="Shader" path="res://shaders/adventure/transport_airship_fracture.gdshader" id="3_shader"]
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/arbiter_x/arbiter_x_impact.tscn" id="4_impact"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/transport_airship/audio/fracture.ogg" id="5_fracture_audio"]
+
+[node name="TransportAirshipBreakup" type="Node2D"]
+script = ExtResource("1_breakup")
+fracture_ids = ExtResource("2_fracture")
+fracture_shader = ExtResource("3_shader")
+impact_scene = ExtResource("4_impact")
+
+[node name="FractureAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("5_fracture_audio")
+volume_db = -2.0
+max_distance = 1750.0
+panning_strength = 0.65
+bus = &"SFX"

@@ -23,10 +23,14 @@ const PROMOTION_FIELDS := ["promotion_1", "promotion_2", "promotion_3", "promoti
 
 ## 返回独立的 JSON 字典；当前字段无效时返回空字典，不输出对象引用。
 func to_dict() -> Dictionary:
-	var data: Dictionary = {"uid": uid, "plant_type": plant_type, "stars": stars,
+	var data: Dictionary = save_snapshot() # 单卡调用保留原有的身份和星级校验。
+	return data if from_dict(data) != null else {}
+
+## 提取没有运行态引用的卡片字段，交由完整存档快照统一校验。
+func save_snapshot() -> Dictionary:
+	return {"uid": uid, "plant_type": plant_type, "stars": stars,
 		"promotion_1": promotion_1, "promotion_2": promotion_2,
 		"promotion_3": promotion_3, "promotion_4": promotion_4}
-	return data if from_dict(data) != null else {}
 
 ## 从 [param data] 创建独立卡；非法身份、物种、星级或转职字段返回 null。
 static func from_dict(data: Variant) -> PlantCardInstance:

@@ -4,7 +4,7 @@
 
 使用 Git、Godot 4.7.2 stable 标准版（`ed1daf0bf`）和 Python 3.12。游戏使用 GL Compatibility。引擎与素材包路径由调用者提供。
 
-本地 `PVZ-Adventure-local-assets.zip` 补齐原版贴图、声音、字体、制作动画和第四关的三首曲目。整备使用的 ZIP SHA256 为 `2ee86bbd50143ac8578fdc9d56b2329e64b2e714aa50f05eef6232f0c7749427`。包内清单记录相对路径、字节数与 SHA256。原版素材和字体通过有使用权限的本地来源准备。
+本地 `PVZ-Adventure-local-assets.zip` 补齐原版贴图、声音、字体、制作动画和第四关的三首曲目。整备使用的 ZIP SHA256 为 `2ee86bbd50143ac8578fdc9d56b2329e64b2e714aa50f05eef6232f0c7749427`。包内清单记录相对路径、字节数与 SHA256。原版素材和字体通过有使用权限的本地来源准备。 这里记录的本地素材包基于 v1.0.x。构建 v1.1.3 时，还需补齐本版本引用的冒险运行素材，再执行 Godot 导入。
 
 在仓库根运行以下 PowerShell 命令。
 

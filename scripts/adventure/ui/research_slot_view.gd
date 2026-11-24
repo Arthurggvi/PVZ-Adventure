@@ -3,8 +3,12 @@ extends RefCounted
 
 ## 背包格和已有边框素材。
 const Tile = preload("res://scripts/adventure/ui/inventory_tile.gd")
+## 已装配的植物卡可接入冒险选卡共用的悬停预览。
+const PromotionDetails = preload("res://scripts/ui/card/card_slot/card_slot_norm/card_promotion_details.gd")
 ## 面板文字与高亮边框的共享绘制工具。
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
+## 候选网格与其他列表共用滚动区。
+const ContentScroll = preload("res://scripts/ui/content_scroll.gd")
 ## 槽位类型和当前选取状态。
 const Picker = preload("res://scripts/adventure/ui/research_slot_picker.gd")
 ## 生长剂的占位图按当前主卡星级选择对应档位。
@@ -31,14 +35,15 @@ const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
 ## 在 [param parent] 内绘制 [param rows] 的选择网格，点击后向 [param owner] 提交行索引。
 ## [param picker] 指定格子类型与当前高亮。
 static func choices(owner: Control, parent: Control, rows: Array[Dictionary], picker: Picker) -> void:
-	var scroll := ScrollContainer.new() # 道具较多时只滚动选择区，不影响工作槽。
+	var scroll := ContentScroll.new() # 道具较多时只滚动选择区，不影响工作槽。
 	var bounds: Rect2 = Layout.SELECTION_REGION.grow(-18.0) # 网格铺到面板上下内沿。
 	scroll.position = bounds.position
 	scroll.size = bounds.size
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.scroll_deadzone = 12 # 候选格较大，轻触时容许小幅手指抖动。
 	parent.add_child(scroll)
 	var grid := GridContainer.new() # 在不足一页时也展示空背包格。
 	grid.columns = COLUMNS
+	grid.mouse_filter = Control.MOUSE_FILTER_PASS # 候选格的触摸拖动可以上交滚动区。
 	grid.add_theme_constant_override("h_separation", GRID_GAP)
 	grid.add_theme_constant_override("v_separation", GRID_GAP)
 	scroll.add_child(grid)
@@ -47,31 +52,42 @@ static func choices(owner: Control, parent: Control, rows: Array[Dictionary], pi
 		floorf((bounds.size.y - (VISIBLE_ROWS - 1) * GRID_GAP) / VISIBLE_ROWS)) # 每格使用相同宽高，贴图在格内等比适配。
 	var plants: bool = Picker.is_plant_slot(picker.active_slot) # 空格采用当前槽位的类别样式。
 	var selected: String = picker.key_for(picker.active_slot, picker.active_index) # 按 ID 或 UID 高亮当前槽内容。
-	for index: int in range(maxi(rows.size(), COLUMNS * VISIBLE_ROWS)):
+	if plants:
+		# 滚动排版结束后，停在原处的鼠标也重新命中当前可见的卡格。
+		scroll.sort_children.connect(owner.get_viewport().update_mouse_cursor_state, CONNECT_DEFERRED)
+	for index: int in range(maxi(rows.size(), COLUMNS * VISIBLE_ROWS)): # 按候选顺序布满网格，空位补足首屏。
 		var record: Dictionary = rows[index] if index < rows.size() else {} # 超出库存的格子作为空位展示。
 		var cell := Control.new() # 容器尺寸独立于背包格内部等比缩放。
 		cell.custom_minimum_size = cell_size
+		cell.mouse_filter = Control.MOUSE_FILTER_PASS
 		grid.add_child(cell)
 		if record.is_empty():
-			_tile(cell, record, Rect2(Vector2.ZERO, cell_size), plants, false) # 空格只有已准备皮肤，不进入资源等待队列。
+			var empty_tile: Control = _tile(cell, record, Rect2(Vector2.ZERO, cell_size), plants, false) # 空格只展示，不阻挡滚动。
+			empty_tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			continue
 		var key: String = str(record.get("uid", record.get("id", ""))) # 区分同物种的多张独立卡。
 		var paths := PackedStringArray() # 只在容器进入视口时请求这一格的卡面与物品图标。
 		ResourcePaths.inventory_rows(paths, [record])
 		owner.visual_queue.enqueue(cell, paths,
-			_build_choice.bind(owner, cell, record, cell_size, plants, not key.is_empty() and key == selected, index))
+			_build_choice.bind(owner, scroll, cell, record, cell_size, plants, not key.is_empty() and key == selected, index))
 
-## 为已经准备的 [param record] 装配单格；其余参数保持原候选索引、布局和高亮。
-static func _build_choice(owner: Control, cell: Control, record: Dictionary, cell_size: Vector2,
+## 在 [param cell] 内按 [param cell_size] 装配已准备的 [param record]。
+## [param plants] 指定底框样式，[param active] 控制高亮，[param scroll] 提供预览的水平参照。
+## 点击后向 [param owner] 提交 [param index] 对应的候选。
+static func _build_choice(owner: Control, scroll: ScrollContainer, cell: Control, record: Dictionary, cell_size: Vector2,
 		plants: bool, active: bool, index: int) -> void:
-	var tile: Control = _tile(cell, record, Rect2(Vector2.ZERO, cell_size), plants, active) # 只在主线程构造背包格。
+	var tile: Tile = _tile(cell, record, Rect2(Vector2.ZERO, cell_size), plants, active) # 只在主线程构造背包格。
 	if record.is_empty():
 		return
-	tile.tooltip_text = str(record.get("title", ""))
+	if tile.plant_card != null:
+		PromotionDetails.set_hover_card(cell, tile.plant_card, scroll)
+	else:
+		tile.tooltip_text = str(record.get("title", ""))
+	tile.enable_scrollable_selection(cell)
 	var pick := func(_record: Dictionary) -> void: # 目标仍然有效时才向窗口提交索引。
 		if is_instance_valid(tile) and tile.is_inside_tree():
 			owner.call("choose_entry", index)
-	tile.connect("chosen", pick, Object.CONNECT_DEFERRED)
+	tile.chosen.connect(pick, Object.CONNECT_DEFERRED)
 
 ## 在工作面板中按 [param columns] 列、[param rows] 行划分空间，返回 [param index] 的槽位区域。
 ## [param scale_factor] 按原格中心等比缩放槽位区域，1 表示原始大小。
@@ -103,7 +119,7 @@ static func work(owner: Control, parent: Control, mode: String, picker: Picker,
 		record["qty"] = required_quantity
 	var active: bool = picker.active_slot == slot and picker.active_index == index and not button.disabled # 当前接受选择的工作槽。
 	var plants: bool = Picker.is_plant_slot(slot) # 植物槽与道具槽分别沿用背包边框。
-	var tile: Control = _tile(button, record, Rect2(Vector2.ZERO, bounds.size), plants, active) # 背包格只显示，由外层捕获点击。
+	var tile: Tile = _tile(button, record, Rect2(Vector2.ZERO, bounds.size), plants, active) # 背包格只显示，由外层捕获点击。
 	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if record.is_empty():
 		var hint_item: String = EMPTY_ITEM_HINTS.get(slot, "") # 花盆槽和肥料槽按道具 ID 取图。
@@ -125,15 +141,27 @@ static func work(owner: Control, parent: Control, mode: String, picker: Picker,
 			Art.count_badge(tile, "×%d" % required_quantity, tile.size - Vector2(4, 5))
 	button.pressed.connect(Callable(owner, "focus_slot").bind(slot, index))
 	button.tooltip_text = Picker.slot_title(slot, index)
-	if not record.is_empty():
+	if tile.plant_card != null:
+		PromotionDetails.set_hover_card(button, tile.plant_card)
+	elif not record.is_empty():
 		button.tooltip_text += "\n" + str(record.get("title", ""))
 	if required_quantity > 0:
 		button.tooltip_text += "\n本次需要 %d 个" % required_quantity
 	if not button.disabled:
 		button.tooltip_text += "\n点击选择" if record.is_empty() else "\n点击替换"
 	if not button.disabled and not record.is_empty() and slot != Picker.Slot.MAIN_CARD:
-		button.tooltip_text += "，右键清空"
-		button.gui_input.connect(_clear_on_right_click.bind(button, Callable(owner, "clear_slot").bind(slot, index)))
+		var clear: Callable = Callable(owner, "clear_slot").bind(slot, index) # 触摸与鼠标共用既有清空及保存流程。
+		if OS.has_feature("android"):
+			var clear_size := Vector2(72, 68) # 设计坐标中的触摸区域，靠右上避开数量角标。
+			var clear_button: Button = Art.action_button(button, "×", "buttons/action_neutral",
+				Vector2(bounds.size.x - clear_size.x, 0), clear_size, clear)
+			clear_button.name = "ClearSlot"
+			clear_button.focus_mode = Control.FOCUS_NONE
+			clear_button.add_theme_font_size_override("font_size", 38)
+			clear_button.tooltip_text = "清空槽位"
+		else:
+			button.tooltip_text += "，右键清空"
+		button.gui_input.connect(_clear_on_right_click.bind(button, clear))
 
 ## [param event] 为工作槽输入，右键按下时由 [param button] 消费并调用 [param clear]。
 static func _clear_on_right_click(event: InputEvent, button: Control, clear: Callable) -> void:
@@ -143,8 +171,8 @@ static func _clear_on_right_click(event: InputEvent, button: Control, clear: Cal
 
 ## 在 [param parent] 中创建 [param record] 的背包格，等比适配 [param bounds]。
 ## [param plants] 决定空格样式，[param active] 决定选中边框。
-static func _tile(parent: Control, record: Dictionary, bounds: Rect2, plants: bool, active: bool) -> Control:
-	var tile: Control = Tile.new() # 研究室选择不允许拖拽改变背包顺序。
+static func _tile(parent: Control, record: Dictionary, bounds: Rect2, plants: bool, active: bool) -> Tile:
+	var tile: Tile = Tile.new() # 研究室选择格按固定顺序展示。
 	parent.add_child(tile)
 	tile.setup(record, -1, false, plants, active)
 	var factor: float = minf(bounds.size.x / tile.size.x, bounds.size.y / tile.size.y) # 卡片、卷轴和道具统一等比缩放。

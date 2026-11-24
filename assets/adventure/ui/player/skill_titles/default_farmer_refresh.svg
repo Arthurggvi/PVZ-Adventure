@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="776" height="340" viewBox="0 0 388 170">
+  <title>植物之家</title>
+  <defs>
+    <linearGradient id="face" gradientUnits="userSpaceOnUse" x1="12" y1="14" x2="30" y2="112">
+      <stop stop-color="#ffffde"/>
+      <stop offset=".44" stop-color="#eceda7"/>
+      <stop offset=".63" stop-color="#a4d77a"/>
+      <stop offset="1" stop-color="#4c9f64"/>
+    </linearGradient>
+    <g id="strokes" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path transform="translate(13 18) skewX(-3)" d="M6 39 35 37 M22 17 21 109 M20 54 7 78 M25 53 36 68 M42 31 79 29 M60 15 59 46 M48 47 74 45 73 91 M47 47 46 93 M49 61 72 59 M48 76 72 73 M39 52 38 100 81 98"/>
+      <path transform="translate(105 18) skewX(-3)" d="M12 29 8 55 M9 44 34 41 M24 20 23 108 M7 78 34 65 M52 20 41 50 M47 38 82 37 79 94 74 103 62 104 M57 45 Q53 67 41 78 M70 41 Q65 76 47 99"/>
+      <path transform="translate(196 18) skewX(-3)" d="M44 19 53 33 M16 47 73 43 Q63 65 31 86 M12 96 Q22 83 34 86 L61 99 Q70 103 81 98"/>
+      <path transform="translate(286 18) skewX(-3)" d="M45 16 54 28 M13 52 15 33 77 31 76 48 M24 53 67 50 M49 52 Q37 62 21 64 M39 61 Q57 75 55 99 53 108 44 109 M46 70 Q33 83 20 86 M52 83 Q38 98 17 103 M71 64 57 78 M60 81 Q67 94 80 101"/>
+    </g>
+  </defs>
+  <path d="M17 146Q52 153 104 142 M298 145Q333 137 372 143" fill="none" stroke="#a9de8d" stroke-width="2.3" stroke-linecap="round"/>
+  <path d="M25 150Q9 144 13 134 24 134 29 145Z M353 141Q352 129 368 127 370 137 353 141Z" fill="#a4d97d"/>
+  <use xlink:href="#strokes" x="1.7" y="6" stroke="#142c25" stroke-width="16"/>
+  <use xlink:href="#strokes" y="2.6" stroke="#376248" stroke-width="14"/>
+  <use xlink:href="#strokes" stroke="#142c25" stroke-width="12"/>
+  <use xlink:href="#strokes" stroke="#fdffc3" stroke-width="9.2"/>
+  <use xlink:href="#strokes" stroke="url(#face)" stroke-width="7.6"/>
+</svg>

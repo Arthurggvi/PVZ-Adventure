@@ -26,6 +26,8 @@ var is_pogo := true
 var big_jump_cells := 0
 ## [param before_x] 和 [param after_x] 分别为跨越起点和落点的世界坐标。
 signal signal_big_jump_landed(before_x: float, after_x: float)
+## 跳杆本次与地面真实接触，前进、蓄跳和越障均可触发一次。
+signal pogo_landed
 
 ## 弹跳阶段分别为常规前进、原地蓄跳、向前越过植物。
 enum Bounce { Travel, Windup, Vault }
@@ -124,6 +126,7 @@ func _process(delta: float) -> void:
 func _finish_bounce() -> void:
 	if _bounce == Bounce.Vault:
 		signal_big_jump_landed.emit(_vault_start_x, global_position.x)
+	pogo_landed.emit()
 	_bounce_elapsed = 0.0
 	# target 是检测区内离僵尸最近的同行植物，已越过的植物不再参与。
 	var target: Plant000Base

@@ -64,8 +64,18 @@ signal signal_detect_brain()
 func _process(delta: float) -> void:
 	if is_jump_compensate and is_jumping:
 		if shadow.global_position.x < jump_plant_position_x - jump_compensate_distance:
-			var diff = shadow.global_position.x - (jump_plant_position_x - jump_compensate_distance)
-			owner_zombie.global_position.x -= diff
+			var diff: float = shadow.global_position.x - (jump_plant_position_x - jump_compensate_distance) # 本帧需要补回的水平距离。
+			_shift_jump_x(-diff)
+
+
+## 平移跳跃本体 [param offset_x] 个世界像素，在多段坡面上同步修正脚点。
+func _shift_jump_x(offset_x: float) -> void:
+	var start_x: float = owner_zombie.global_position.x # 跳跃补偿或落地横移前的位置。
+	owner_zombie.global_position.x += offset_x
+	var game: MainGameManager = Global.main_game # 地形高度由这只僵尸所在的战场提供。
+	var slope: MainGameSlope = game.main_game_slope if is_instance_valid(game) else null # 普通战场没有多段坡面采样。
+	if is_instance_valid(slope) and slope.sample_walking_height and game.is_ancestor_of(owner_zombie):
+		owner_zombie.move_y_zombie(slope.get_all_slope_y(owner_zombie.global_position.x) - slope.get_all_slope_y(start_x))
 
 
 ## 启用组件
@@ -115,8 +125,8 @@ func jump_end():
 	if not is_instance_valid(owner_zombie) or owner_zombie.is_death or not is_inside_tree():
 		is_landing = false
 		return
-	var distance: float = _configured_distance()
-	owner.global_position.x -= distance * (0.5 if owner_zombie.is_mini_zombie else 1.0)
+	var distance: float = _configured_distance() # 本次落地的完整水平距离。
+	_shift_jump_x(-distance * (0.5 if owner_zombie.is_mini_zombie else 1.0))
 	is_landing = false
 	signal_jump_end_end.emit()
 	#print("跳跃结束修改完成位置")

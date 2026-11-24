@@ -7,6 +7,11 @@ const RAINBOW_SHADER = preload("res://shaders/adventure/flowing_rainbow_text.gds
 ## 为 [param label] 的字形启用流动色带。[param highlight_strength] 是扫光强度，范围为 0 到 1。
 ## 文本与布局由调用方配置，本方法替换字体填色和阴影以及标签的材质。
 static func apply_to(label: Label, highlight_strength: float) -> void:
+	if is_instance_valid(Global.config_service) and Global.config_service.optional_rendering_disabled:
+		label.material = null # 兼容模式使用稳定字色，避免创建可选字形 Shader。
+		label.add_theme_color_override("font_color", Color("a05d36"))
+		label.add_theme_color_override("font_shadow_color", Color("281a15"))
+		return
 	var material := ShaderMaterial.new() # 各标签可独立选择扫光强度，共用着色器和时钟。
 	material.shader = RAINBOW_SHADER
 	material.set_shader_parameter("highlight_strength", highlight_strength)

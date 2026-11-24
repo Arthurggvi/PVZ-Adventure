@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1203" height="426" viewBox="0 0 601.5 213">
+  <title>花冠守护</title>
+  <defs>
+    <linearGradient id="ivory" gradientUnits="userSpaceOnUse" x1="0" y1="35" x2="0" y2="172">
+      <stop stop-color="#fffbed"/>
+      <stop offset=".46" stop-color="#fff0c9"/>
+      <stop offset=".49" stop-color="#f3d69a"/>
+      <stop offset=".78" stop-color="#e8be7e"/>
+      <stop offset="1" stop-color="#fff0be"/>
+    </linearGradient>
+    <linearGradient id="foliage" gradientUnits="userSpaceOnUse" x1="0" y1="29" x2="57" y2="192">
+      <stop stop-color="#e3edaf"/>
+      <stop offset=".54" stop-color="#99bd75"/>
+      <stop offset="1" stop-color="#527b51"/>
+    </linearGradient>
+    <g id="lettering" transform="translate(58 0) skewX(-6)">
+      <path d="M8 54 114 49 121 54 118 63 9 69 3 63Z
+               M26 36 38 32 44 36 49 77 37 83 31 78Z
+               M80 33 95 29 100 35 89 76 76 81 70 76Z
+               M36 80 50 85 52 92 Q36 118 7 134 L0 130 3 122 Q24 106 36 80Z
+               M29 108 44 100 46 109 45 167 35 175 28 170Z
+               M63 85 76 82 82 87 81 149 Q82 156 89 156 L100 156 Q109 154 112 140 L118 144 119 158 Q116 173 101 174 L81 173 Q63 173 63 157Z
+               M104 90 117 97 117 104 Q100 126 76 133 L72 122 Q91 108 104 90Z"/>
+      <path transform="translate(128 0)" d="M4 42 15 38 112 32 121 38 117 63 105 71 98 66 103 47 20 52 17 67 6 73 0 67Z
+               M15 73 57 70 63 75 58 84 16 88 10 82Z
+               M8 98 61 94 67 100 62 109 9 113 3 107Z
+               M22 108 37 107 Q33 147 9 169 L0 166 0 158 Q18 138 22 108Z
+               M41 105 55 104 54 149 Q54 155 58 155 63 155 65 146 L72 149 71 159 Q68 169 55 170 40 170 40 155Z
+               M70 87 117 84 122 89 118 98 70 102 65 96Z
+               M95 65 108 61 113 66 112 145 Q112 166 94 170 L80 170 74 163 78 154 86 155 Q95 155 95 146Z
+               M71 112 80 108 Q90 114 92 122 L87 132 78 133 67 120Z"/>
+      <path transform="translate(258 0)" d="M53 35 64 29 71 31 79 43 75 54 64 56 51 45Z
+               M8 54 18 49 111 44 121 50 117 73 106 81 99 76 104 59 22 64 19 79 8 85 1 78Z
+               M12 93 112 87 120 92 115 103 12 110 5 103Z
+               M77 67 91 63 97 68 96 148 Q96 169 77 172 L56 171 49 164 54 154 71 155 Q79 155 79 147Z
+               M26 119 37 114 Q50 123 56 133 L53 142 43 146 Q32 137 23 129Z"/>
+      <path transform="translate(389 0)" d="M4 66 45 62 51 68 46 77 4 82 0 76Z
+               M23 37 35 32 41 37 40 150 Q40 168 24 172 L8 172 2 165 7 155 16 156 Q24 156 24 150Z
+               M1 112 Q21 105 46 91 L52 95 49 104 Q28 121 5 131 L0 126Z
+               M72 34 84 29 91 32 101 46 97 55 86 58 70 44Z"/>
+      <path transform="translate(389 0)" fill-rule="evenodd"
+            d="M56 63 112 58 121 64 118 104 108 112 70 114 Q65 150 51 174 L40 176 35 170 Q51 139 52 102 L52 70Z
+               M70 78 69 99 102 97 104 75Z"/>
+    </g>
+    <path id="petal" d="M0 0 C-8 -4 -11 -15 -4 -19 C1 -22 8 -18 8 -12 C8 -8 4 -3 0 0Z"/>
+    <g id="bloom">
+      <use xlink:href="#petal"/>
+      <use xlink:href="#petal" transform="rotate(72)"/>
+      <use xlink:href="#petal" transform="rotate(144)"/>
+      <use xlink:href="#petal" transform="rotate(216)"/>
+      <use xlink:href="#petal" transform="rotate(288)"/>
+    </g>
+    <g id="wreath">
+      <path d="M46 174 Q30 168 24 151 Q23 169 37 179 Q20 178 9 168 Q17 188 43 188 Q56 198 86 199 Q126 201 167 189 Q121 196 92 193 Q63 191 46 174Z
+               M72 191 Q56 179 54 168 Q73 174 78 191Z
+               M517 43 Q545 39 558 25 Q551 37 547 44 Q568 37 580 22 Q579 40 562 48 Q580 48 590 40 Q583 55 561 56 Q540 63 519 51Z
+               M545 54 Q561 52 572 60 Q560 68 545 57Z"/>
+    </g>
+  </defs>
+
+  <use xlink:href="#wreath" fill="url(#foliage)" stroke="#1c3c30" stroke-width="4" stroke-linejoin="round"/>
+  <use xlink:href="#lettering" transform="translate(0 8)" fill="#386247" stroke="#162f29" stroke-width="12" stroke-linejoin="round"/>
+  <use xlink:href="#lettering" fill="#6d7844" stroke="#244a36" stroke-width="9" stroke-linejoin="round"/>
+  <use xlink:href="#lettering" fill="#f6d79d" stroke="#bace86" stroke-width="2.6" stroke-linejoin="round"/>
+  <use xlink:href="#lettering" fill="url(#ivory)"/>
+
+  <g transform="translate(550 37) rotate(18) scale(.86)">
+    <use xlink:href="#bloom" fill="#fff3cd" stroke="#624d39" stroke-width="2.8" stroke-linejoin="round"/>
+    <path fill="#d69965" d="M0 -5 5 -2 4 4 -1 6 -6 2 -5 -2Z"/>
+    <path fill="#fff0b3" d="M0 -3 2 -1 1 2 -2 1 -3 -1Z"/>
+  </g>
+  <g transform="translate(47 177) rotate(-12) scale(.58)">
+    <use xlink:href="#bloom" fill="#f4c79b" stroke="#69493a" stroke-width="3.6" stroke-linejoin="round"/>
+    <path fill="#fff2bf" d="M0 -6 5 -3 5 3 -1 7 -6 2 -5 -3Z"/>
+  </g>
+</svg>

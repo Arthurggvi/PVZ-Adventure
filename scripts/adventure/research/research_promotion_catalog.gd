@@ -32,13 +32,35 @@ const ElectricPeaBooks = preload("res://scripts/adventure/research/research_elec
 const JalapenoBooks = preload("res://scripts/adventure/research/research_jalapeno_promotion_books.gd")
 ## 寒冰菇书目共用原版冰冻与自然波次调度。
 const IceShroomBooks = preload("res://scripts/adventure/research/research_ice_shroom_promotion_books.gd")
+## 缠绕海草书目复用种植事务和原生拖拽完成时点。
+const TanglekelpBooks = preload("res://scripts/adventure/research/research_tanglekelp_promotion_books.gd")
+## 魅惑菇书目由实际魅惑来源向友军转交战斗词条。
+const HypnoBooks = preload("res://scripts/adventure/research/research_hypno_promotion_books.gd")
+## 毁灭菇爆炸、弹坑与连锁均使用同一份转职书目。
+const DoomBooks = preload("res://scripts/adventure/research/research_doom_promotion_books.gd")
+## 窝瓜书目随种植事务冻结，原生落地和窝瓜王共用结算。
+const SquashBooks = preload("res://scripts/adventure/research/research_squash_promotion_books.gd")
+## 三线射手四阶与跨阶路线约束。
+const ThreePeaterBooks = preload("res://scripts/adventure/research/research_threepeater_promotion_books.gd")
+## 高坚果的护甲、代伤与爆炸防护按单株冻结。
+const TallNutBooks = preload("res://scripts/adventure/research/research_tallnut_promotion_books.gd")
+## 仙人掌升降、弹道及命中词条。
+const CactusBooks = preload("res://scripts/adventure/research/research_cactus_promotion_books.gd")
+## 杨桃流光需要先选贯穿。
+const StarFruitBooks = preload("res://scripts/adventure/research/research_starfruit_promotion_books.gd")
+## 卷心菜的投掷批次与彩色落点。
+const CabbageBooks = preload("res://scripts/adventure/research/research_cabbage_promotion_books.gd")
+## 玉米投手的粒弹、黄油及出手时钟。
+const CornBooks = preload("res://scripts/adventure/research/research_corn_promotion_books.gd")
+## 西瓜投手的齐射、命中和列阵词条。
+const MelonBooks = preload("res://scripts/adventure/research/research_melon_promotion_books.gd")
 ## 全书目只在类初始化时汇总一次；消费者仍使用原有BOOKS入口。
 static var BOOKS: Dictionary = _build_books()
 
 ## 返回全部合法书目的深副本；重复ID报错，不覆盖已有定义。
 static func _build_books() -> Dictionary:
 	var books: Dictionary = ExistingBooks.BOOKS.duplicate(true) # 汇总结果不共享定义模块内部字典。
-	for module: Dictionary in [PuffBooks.BOOKS, SunShroomBooks.BOOKS, ScaredyBooks.BOOKS, FumeBooks.BOOKS, LilyBooks.BOOKS, CoffeeBooks.BOOKS, BloomerangBooks.BOOKS, RepeaterBooks.BOOKS, SnowPeaBooks.BOOKS, ElectricPeaBooks.BOOKS, JalapenoBooks.BOOKS, IceShroomBooks.BOOKS]: # 新物种沿用统一的重复ID检查。
+	for module: Dictionary in [PuffBooks.BOOKS, SunShroomBooks.BOOKS, ScaredyBooks.BOOKS, FumeBooks.BOOKS, LilyBooks.BOOKS, CoffeeBooks.BOOKS, BloomerangBooks.BOOKS, RepeaterBooks.BOOKS, SnowPeaBooks.BOOKS, ElectricPeaBooks.BOOKS, JalapenoBooks.BOOKS, IceShroomBooks.BOOKS, TanglekelpBooks.BOOKS, HypnoBooks.BOOKS, DoomBooks.BOOKS, SquashBooks.BOOKS, ThreePeaterBooks.BOOKS, TallNutBooks.BOOKS, CactusBooks.BOOKS, StarFruitBooks.BOOKS, CabbageBooks.BOOKS, CornBooks.BOOKS, MelonBooks.BOOKS]: # 新物种沿用统一的重复ID检查。
 		for id: String in module: # 稳定技能书ID也是存档中的选择值。
 			if books.has(id):
 				push_error("重复的转职书ID：%s" % id)
@@ -46,11 +68,29 @@ static func _build_books() -> Dictionary:
 			books[id] = module[id].duplicate(true)
 	return books
 
+## 返回 [param id] 对应的现行书目 ID；旧阳光菇续种分支归入代谢强化。
+static func canonical_book_id(id: String) -> String:
+	return "promotion_sunshroom_metabolism" if id == "promotion_sunshroom_buy_one" else id
+
 ## 返回 [param id] 的定义副本；未知ID返回空字典。
 static func definition(id: String) -> Dictionary:
-	return BOOKS.get(id, {}).duplicate(true)
+	return BOOKS.get(canonical_book_id(id), {}).duplicate(true)
 
-## 验证 [param card] 的历史转职选择是否连续且属于本物种；不检查当前星级。
+## 检查下一阶或历史选择 [param book] 与 [param card] 较早的转职是否兼容。
+static func is_compatible(card: PlantCardInstance, book: Dictionary) -> bool:
+	var excluded: String = str(book.get("excludes", "")) # 声明后排斥较早选择的一个书目。
+	var required: String = str(book.get("requires", "")) # 声明后必须已选择这一较早书目。
+	if excluded.is_empty() and required.is_empty():
+		return true
+	var meets_requirement: bool = required.is_empty() # 无前置要求的旧书直接满足。
+	for tier: int in range(1, int(book.tier)): # 兼容性只依赖先选的技能。
+		var chosen: String = canonical_book_id(card.get_promotion(tier)) # 存档可能保留旧的别名。
+		if not excluded.is_empty() and chosen == excluded:
+			return false
+		meets_requirement = meets_requirement or chosen == required
+	return meets_requirement
+
+## 验证 [param card] 的历史转职选择连续、物种正确且彼此兼容；不检查当前星级。
 static func is_valid_chain(card: PlantCardInstance) -> bool:
 	if card == null:
 		return false
@@ -62,7 +102,7 @@ static func is_valid_chain(card: PlantCardInstance) -> bool:
 			continue
 		var book: Dictionary = definition(book_id) # 未注册或物种错误的书不能进入战斗。
 		if gap or book.is_empty() or int(book.get("tier", 0)) != tier \
-				or int(book.get("plant_type", 0)) != card.plant_type:
+				or int(book.get("plant_type", 0)) != card.plant_type or not is_compatible(card, book):
 			return false
 	return true
 
@@ -83,7 +123,7 @@ static func options(card: PlantCardInstance) -> Array[Dictionary]:
 		return result
 	for id: String in BOOKS: # 所有物种统一从同一目录取选项。
 		var book: Dictionary = BOOKS[id] # 当前候选书的只读定义。
-		if int(book.tier) == tier and int(book.plant_type) == card.plant_type:
+		if int(book.tier) == tier and int(book.plant_type) == card.plant_type and is_compatible(card, book):
 			var entry := definition(id) # 补入ID供研究事务提交。
 			entry["id"] = id
 			result.append(entry)
@@ -96,7 +136,7 @@ static func effects(card: PlantCardInstance) -> Dictionary:
 	if not is_valid_chain(card):
 		return {"stats": stats, "events": events}
 	for tier: int in range(1, 5): # 每阶最多消费一个合法技能。
-		var id := card.get_promotion(tier) # 当前阶的已选书目。
+		var id: String = canonical_book_id(card.get_promotion(tier)) # 冻结快照中的旧分支也使用现行效果。
 		if not BOOKS.has(id):
 			continue
 		for effect: Dictionary in BOOKS[id].effects: # 单本书可同时授予属性与事件。

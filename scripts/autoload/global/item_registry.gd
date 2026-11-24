@@ -108,6 +108,21 @@ const BASE_ITEMS: Dictionary = {
 	"recipe_p051": {"subject": "回旋镖射手", "category": "recipe"},
 	"recipe_p052": {"subject": "电能豌豆", "category": "recipe"},
 	"lawn_nightmare_key": {"subject": "草坪", "category": "key"},
+	"wonderland.psychedelic_current.nightmare_key": {"subject": "致幻洋流", "category": "key",
+		"description": "致幻洋流普通阶段通关获得，消耗一把进入本局噩梦阶段。"},
+	"wonderland.psychedelic_current.terminal_key": {"name": "致幻洋流终末钥匙", "category": "key",
+		"description": "致幻洋流噩梦阶段通关获得，消耗一把进入本局 Boss 阶段。"},
+	# 奇境大陆地区钥匙采用 wonderland.<地区ID>.nightmare_key，与地图地区标识对齐。
+	"wonderland.zombie_church.nightmare_key": {"subject": "圣堂", "category": "key"},
+	"wonderland.john_furnace.nightmare_key": {"subject": "约翰兄弟熔炉", "category": "key"},
+	"wonderland.snow_mountains.nightmare_key": {"subject": "边境雪山", "category": "key"},
+	"wonderland.garden_airship.nightmare_key": {"subject": "花园飞艇", "category": "key"},
+	"wonderland.edgar_mountain.nightmare_key": {"subject": "埃德加之山", "category": "key"},
+	"wonderland.mushroom_forest.nightmare_key": {"subject": "蘑菇森林", "category": "key"},
+	"wonderland.resting_plain.nightmare_key": {"subject": "安息平原", "category": "key"},
+	"wonderland.frozen_tundra.nightmare_key": {"subject": "冻土", "category": "key"},
+	"wonderland.badlands.nightmare_key": {"subject": "恶地", "category": "key"},
+	"wonderland.abandoned_school.nightmare_key": {"subject": "废弃学校", "category": "key"},
 	"zombie_island.fallen_camp.nightmare_key": {"subject": "没落营地", "category": "key"},
 	"zombie_island.grave_upstream.nightmare_key": {"subject": "墓地上游", "category": "key"},
 	"zombie_island.grave_downstream.nightmare_key": {"subject": "墓地下游", "category": "key"},
@@ -118,7 +133,7 @@ const BASE_ITEMS: Dictionary = {
 	"zombie_island.edgar_temple.nightmare_key_lower": {"name": "埃德加钥匙（下）", "category": "key",
 		"description": "击败墓地下游的白爵士可获得。埃德加神殿噩梦通关后可消耗它开启终末阶段。"},
 	"seedling_pot": {"name": "育苗花盆", "category": "consumable",
-		"description": "在研究室强化时使用。强化失败后保留主卡原有星级。"},
+		"description": "在研究室强化时使用。失败时保留主卡原有星级和选入的耗材卡。"},
 	"growth_agent_lv1": {"growth_agent_level": 1, "category": "consumable"},
 	"growth_agent_lv2": {"growth_agent_level": 2, "category": "consumable"},
 	"growth_agent_lv3": {"growth_agent_level": 3, "category": "consumable"},
@@ -155,7 +170,8 @@ static func get_item_definition(item_id: String) -> Dictionary:
 		"key":
 			if definition.has("subject"):
 				definition["name"] = "钥匙-%s" % definition.subject
-				definition["description"] = "可以打开%s深处的大门，开启精英挑战。" % definition.subject
+				if not definition.has("description"):
+					definition["description"] = "可以打开%s深处的大门，开启精英挑战。" % definition.subject
 		"promotion_book":
 			var skill: Dictionary = AdventurePromotionCatalog.definition(item_id) # 技能标题与效果共用同一份定义。
 			var tier: int = int(skill.get("tier", 0)) # 阶数同时用于命名和文字颜色。

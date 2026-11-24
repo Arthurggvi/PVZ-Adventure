@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/fx/ice_effect.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/main_game_item/plant_ice_effect.gd" id="2_script"]
+[ext_resource type="Texture2D" path="res://assets/adventure/plants/ice_shell/frostbite_ice_block_plant_164x169.png" id="3_front"]
+[ext_resource type="Texture2D" path="res://assets/adventure/plants/ice_shell/frostbite_ice_block_plant_behind_164x171_4.png" id="4_back"]
+
+[node name="PlantIceEffect" instance=ExtResource("1_base")]
+script = ExtResource("2_script")
+
+[node name="Icetrap" parent="." index="0"]
+self_modulate = Color(1, 1, 1, 0.55)
+z_index = 1
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("3_front")
+centered = false
+offset = Vector2(-103, -213)
+
+[node name="Icetrap2" parent="." index="1"]
+self_modulate = Color(1, 1, 1, 0.72)
+z_index = -1
+scale = Vector2(0.45, 0.45)
+texture = ExtResource("4_back")
+centered = false
+offset = Vector2(-105, -216)

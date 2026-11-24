@@ -45,6 +45,8 @@ var canvas: Control
 var preview: Control
 ## 已解析的关卡配置，首次悬停时读取；解析结果已深拷贝，不污染共享资源。
 var _stage_definitions: Dictionary = {}
+## Android 已打开情报的关卡编号，0 表示当前没有触摸选择。
+var _touch_preview_stage := 0
 
 ## 声明地图首屏动态依赖，供统一过渡在入树前后台准备；不构造地图或更改存档。
 static func get_initial_resource_paths() -> PackedStringArray:
@@ -81,6 +83,9 @@ func _ready() -> void:
 	canvas.name = "MapCanvas"
 	canvas.size = DESIGN_SIZE
 	add_child(canvas)
+	set_process(OS.has_feature("android"))
+	if OS.has_feature("android"):
+		canvas.gui_input.connect(_on_map_background_input)
 	# 背景纹理与节点都在同一设计空间，由外层等比缩放。
 	background = TextureRect.new()
 	background.texture = load(CLEAN_BACKGROUND if use_clean_sky else ASSET_ROOT + "map/zombie_island_background_1920x1080.png")
@@ -104,10 +109,13 @@ func _ready() -> void:
 		var cleared: bool = AdventureStageCatalog.is_cleared(
 			Global.global_game_state.adventure_state, AdventureStageRegistry.stage_id(stage.id),
 			StagePhaseDefinition.Kind.NORMAL)
-		node.configure(stage, unlocked, cleared, _select_stage.bind(stage.id), label_offsets)
-		if unlocked: # 未解锁关卡不参与悬停预览，按钮自身也不可按下。
+		var action: Callable = _select_stage.bind(stage.id) # 首次挑战不要求额外确认。
+		if OS.has_feature("android") and cleared:
+			action = _on_touch_stage_pressed.bind(stage, node)
+		node.configure(stage, unlocked, cleared, action, label_offsets)
+		if unlocked and not OS.has_feature("android"):
 			node.mouse_entered.connect(_hover_stage.bind(stage, node, cleared))
-			node.mouse_exited.connect(preview.cancel)
+			node.mouse_exited.connect(preview.release_hover)
 	preview.name = "StagePreview"
 	canvas.add_child(preview)
 	var profile_hud := ProfileHud.new() # 直接贴在视口左上角，返回按钮随头像框定位。
@@ -127,6 +135,8 @@ func _fit_canvas() -> void:
 	var factor := minf(size.x / DESIGN_SIZE.x, size.y / DESIGN_SIZE.y) # 统一缩放比例。
 	canvas.scale = Vector2.ONE * factor
 	canvas.position = (size - DESIGN_SIZE * factor) / 2
+	if _touch_preview_stage != 0:
+		_cancel_touch_preview()
 
 ## 在同一1920×1080空间中替换候选引用，不改变地图、按钮或存档状态。
 func _apply_environment() -> void:
@@ -136,14 +146,44 @@ func _apply_environment() -> void:
 ## 单一关卡入口；解锁与入场条件由按钮状态和会话入口判定。
 func _select_stage(stage_id: int) -> void:
 	if AdventureSession.is_unlocked(stage_id):
+		if _touch_preview_stage != 0:
+			_cancel_touch_preview()
 		AdventureSession.enter_stage(stage_id, StagePhaseDefinition.Kind.NORMAL, $SceneTransition)
 
-## 悬停节点时请求情报预览，普通阶段通关后才解析配置。
-## [param stage] 为 layout.json 条目，[param node] 提供面板锚点，[param cleared] 来自本轮已算好的进度。
-func _hover_stage(stage: Dictionary, node: Control, cleared: bool) -> void:
+## [param stage] 是已通关关卡，[param node] 提供情报锚点；再次轻触同一关卡才进战。
+func _on_touch_stage_pressed(stage: Dictionary, node: Control) -> void:
+	if $SceneTransition.busy or AdventureToolbar.scene_entries_blocked():
+		return
+	var stage_id: int = int(stage.id) # 使用既有地图编号保持入场校验。
+	if _touch_preview_stage == stage_id or _stage_definition(stage_id) == null:
+		_select_stage(stage_id)
+		return
+	_touch_preview_stage = stage_id
+	_hover_stage(stage, node, true, true)
+
+## 点击地图空白位置，或出现工具栏模态和切场时，释放已预览的选择。
+func _cancel_touch_preview() -> void:
+	_touch_preview_stage = 0
+	preview.cancel()
+
+## [param event] 来自地图画布的背景，不会接管关卡按钮和顶层窗口的输入。
+func _on_map_background_input(event: InputEvent) -> void:
+	if _touch_preview_stage != 0 and event is InputEventScreenTouch and event.pressed:
+		_cancel_touch_preview()
+
+## [param _delta] 不用于计时；只检查触摸预览是否被阻塞。
+func _process(_delta: float) -> void:
+	if _touch_preview_stage != 0 and ($SceneTransition.busy or AdventureToolbar.scene_entries_blocked()):
+		_cancel_touch_preview()
+
+## [param stage] 为地图条目，[param node] 提供锚点；[param cleared] 决定开放的情报内容。
+## [param touch_prompt] 在安卓预览中提示下一次轻触进入。
+func _hover_stage(stage: Dictionary, node: Control, cleared: bool, touch_prompt: bool = false) -> void:
 	var definition: StageDefinition = _stage_definition(int(stage.id)) if cleared else null # 未通关时只需问号小框。
-	preview.request(PreviewData.build(definition, str(stage.name), cleared),
-		Rect2(node.position, node.size))
+	var data: Dictionary = PreviewData.build(definition, str(stage.name), cleared) # 桌面悬停和触摸共用情报模型。
+	if touch_prompt:
+		data["subtitle"] = "普通阶段已通关 · 再次轻触关卡进入"
+	preview.request(data, Rect2(node.position, node.size))
 
 ## 首次悬停才解析关卡；失败结果同样缓存，避免每次悬停重复读盘与重复报错。
 func _stage_definition(stage_number: int) -> StageDefinition:
@@ -151,6 +191,17 @@ func _stage_definition(stage_number: int) -> StageDefinition:
 		_stage_definitions[stage_number] = AdventureStageCatalog.load_stage(stage_number)
 	return _stage_definitions[stage_number]
 
-## 经复用遮幕返回原有菜单；只增加表现时序，保留进度、音乐和原返回目的地。
-func _return_menu() -> void:
-	$SceneTransition.change_scene(Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu])
+## [param event] 未被现有窗口处理时，安卓返回先收起情报，再执行地图的返回动作。
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not OS.has_feature("android") or not event.is_action_pressed(&"ui_cancel") \
+			or $SceneTransition.busy or AdventureToolbar.scene_entries_blocked():
+		return
+	if _touch_preview_stage != 0:
+		_cancel_touch_preview()
+		get_viewport().set_input_as_handled()
+	elif _return_menu():
+		get_viewport().set_input_as_handled()
+
+## 经复用遮幕返回原有菜单，返回请求是否被接纳。
+func _return_menu() -> bool:
+	return $SceneTransition.change_scene(Global.main_scene_registry.MainScenesMap[MainSceneRegistry.MainScenes.StartMenu])

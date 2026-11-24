@@ -57,16 +57,20 @@ func clear_degradation() -> void:
 const MAX_BRITTLENESS_STACKS: int = 100
 ## 当前脆弱层数；按实际承伤者结算，任何输出计算都不读取它。
 var brittleness_stacks: int = 0
+## 创伤每层提供一点随本次攻击进入防御的固定伤害；默认没有创伤。
+var cactus_wound_stacks: int = 0
 
-## 增加 [param stacks] 层脆弱，非正值忽略；多个来源共用目标自身的上限。
+## 增加 [param stacks] 层脆弱。免疫负面状态的角色保持原层数，多个来源共用目标上限。
 func add_brittleness(stacks: int) -> void:
+	if is_instance_valid(owner_character) and not owner_character.can_receive_negative_effects():
+		return
 	brittleness_stacks = mini(MAX_BRITTLENESS_STACKS, brittleness_stacks + maxi(0, stacks))
 
 ## 返回各独立劣化通道的总比例，仅用于结算和表现，不反写任一通道。
 func total_degradation_fraction() -> float:
 	var total: float = degradation_fraction + stacked_degradation_fraction # 旧两通道保持原有含义。
-	for contribution: float in _capped_degradation.values(): # 具名上限不影响其他家族。
-		total += contribution
+	for family: StringName in _capped_degradation: # 按效果族累计，避免为每次承伤创建值数组。
+		total += _capped_degradation[family]
 	return total
 
 ## 清空显式传入的 [param receipt]，并以 [param recipient] 初始化本次命中的回执。
@@ -76,9 +80,37 @@ static func reset_hit_receipt(receipt: Variant, recipient: Character000Base) -> 
 		receipt.clear()
 		receipt.merge({"recipient": recipient, "actual_loss": 0, "body_loss": 0, "casualty": null})
 
-## [param amount] 修正前的输出伤害；总劣化达到 100% 时输出降至零，永不产生负伤害。
+## 每缺少一个完整的本体生命百分点时的伤害加成；0 保留普通角色的输出。
+var missing_health_damage_per_percent: float = 0.0
+## 每缺少一个完整的本体生命百分点时的独立免伤与它自身的上限。
+var missing_health_reduction_per_percent: float = 0.0
+var missing_health_reduction_cap: float = 0.0
+
+## 返回以本体最大生命为基准的完整缺失百分点；防具和额外护甲不计入。
+func missing_health_percent() -> int:
+	return clampi(floori(100.0 * (max_hp - curr_hp) / max_hp), 0, 100) if max_hp > 0 else 0
+
+## [param amount] 为出手基础伤害。缺失生命只读当前血池，治疗会即时影响下次出手。
 func outgoing_damage(amount: int) -> int:
-	return maxi(0, roundi(float(amount) * maxf(0.0, 1.0 - total_degradation_fraction())))
+	var multiplier: float = maxf(0.0, 1.0 - total_degradation_fraction()) # 各类劣化依照原有加算顺序。
+	if missing_health_damage_per_percent > 0.0:
+		multiplier *= 1.0 + missing_health_percent() * missing_health_damage_per_percent
+	return maxi(0, roundi(float(amount) * multiplier))
+
+## 返回用于复制的持久战斗效果，避免新实例持有旧实例的可变字典。
+func copy_persistent_health_effects() -> Dictionary:
+	return {"degradation": degradation_fraction, "stacked": stacked_degradation_fraction,
+		"capped": _capped_degradation.duplicate(), "brittleness": brittleness_stacks, "cactus_wound": cactus_wound_stacks}
+
+## 恢复 [param effects] 中已在旧个体结算的持久效果；不会施加新的伤害。
+func restore_persistent_health_effects(effects: Dictionary) -> void:
+	cactus_wound_stacks = int(effects.get("cactus_wound", 0))
+	degradation_fraction = float(effects["degradation"])
+	stacked_degradation_fraction = float(effects["stacked"])
+	_capped_degradation = effects["capped"].duplicate()
+	brittleness_stacks = int(effects["brittleness"])
+	owner_character.body.set_other_color(BodyCharacter.E_ChangeColors.Degradation,
+		Color(0.55, 0.57, 0.58) if total_degradation_fraction() > 0.0 else Color.WHITE)
 ## 当前生效的限时无敌来源，按来源 ID 记录，可与脚本无敌叠加。
 var _immunity_sources: Dictionary[int, bool] = {}
 ## 角色控制的无敌窗口；直接生命调整仍可通过专用旁路执行。
@@ -94,8 +126,10 @@ var _bypass_damage_block: bool = false
 
 ## 血量比例进度条；当前值按 curr_hp / max_hp 更新。
 @onready var progress_bar_hp: ProgressBar = %ProgressBarHp
-## 当前血量的数字标签，与 curr_hp 的写入同步更新。
+## 数字血量标签，仅在血条可见时更新。
 @onready var label_hp: Label = %LabelHp
+## 隐藏血条期间收到的本体数值变化，重新显示时刷新。
+var _body_display_dirty: bool = false
 
 ## 角色满血值，也是初始化血量和血条比例的分母，场景需配置为正数。
 @export var max_hp:int
@@ -113,16 +147,19 @@ var death_cause: CombatHitScope.DeathCause = CombatHitScope.DeathCause.NORMAL
 
 ## 死亡判定阈值；当前血量不高于该值时首次触发死亡信号，默认 0。
 var death_hp:int = 0
+## 魅惑升阶是否同比缩放死亡阈值；固定生命点数的物种可以关闭。
+var scale_death_hp_on_promotion: bool = true
 ## 战斗攻击不能把本体生命降到此值以下；直接处决和存档恢复不受限。
 var combat_minimum_hp: int = 0
-## 当前生命值；写入时限制为非负数、刷新 UI，并在达到阈值时触发死亡。
+## 当前生命值；写入时限制为非负数、刷新可见血条，并在达到阈值时触发死亡。
 var curr_hp:int:
 	# value 是调用方写入该属性的新值，需经过下方处理再更新内部状态。
 	set(value):
 		value = max(value, 0)
 		curr_hp = value
-		label_hp.text = str(curr_hp)
-		progress_bar_hp.value = float(curr_hp) / max_hp
+		_body_display_dirty = true
+		if is_visible_in_tree():
+			_flush_body_display()
 
 		## 如果血量小于死亡血量临界值,并且角色还未死亡时
 		if value <= death_hp and not is_death:
@@ -151,6 +188,7 @@ func _ready() -> void:
 	# 所属角色就绪后才能使用其 Body 引用，补同步入树前设置的无敌状态。
 	owner_character.ready.connect(_update_damage_immunity_tint, CONNECT_ONE_SHOT)
 	owner_character.signal_character_death.connect(_update_damage_immunity_tint)
+	visibility_changed.connect(_flush_body_display)
 	curr_hp = max_hp
 	## 出战角色连接信号，显示血量
 	if owner_character.character_init_type == Character000Base.E_CharacterInitType.IsNorm:
@@ -173,6 +211,14 @@ func _ready() -> void:
 		is_can_look_hp = false
 		visible = false
 
+## 同步可见血条的本体数值。隐藏期间保留脏标记，公开血量与战斗信号仍同步更新。
+func _flush_body_display() -> void:
+	if _body_display_dirty and is_visible_in_tree():
+		_body_display_dirty = false
+		label_hp.text = str(curr_hp)
+		progress_bar_hp.value = float(curr_hp) / max_hp
+
+
 ## [param value] 用户配置中的血条可见开关；角色允许显示血量时才应用。
 func change_display_HP_label(value:bool):
 	if is_can_look_hp:
@@ -181,6 +227,11 @@ func change_display_HP_label(value:bool):
 ## [param new_death_hp] 新的死亡血量阈值，达到或低于该值时触发死亡判定。
 func set_death_hp(new_death_hp:int):
 	self.death_hp = new_death_hp
+
+## 返回 [param amount] 点本体伤害是否跨越真实死亡阈值；可转换的生命壳可覆写观察资格。
+## 只供伤害前观察使用，不接管实际扣血、死亡信号或掉落。
+func would_die_from_damage(amount: int) -> bool:
+	return amount > 0 and curr_hp > death_hp and curr_hp - amount <= death_hp
 
 ## Fresh combat-instance maximum health; does not change persistent plant data.
 func set_spawn_max_health(new_max: int) -> void:
@@ -243,6 +294,8 @@ func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletReg
 	if combat:
 		combat_attack_received.emit(raw_damage)
 	attack_value = resolve_damage(attack_value, bonus_damage, bonus_cap)
+	if hit_scope != null and hit_scope.boss_damage_cap >= 0 and owner_character is ZB000Base:
+		attack_value = mini(attack_value, hit_scope.boss_damage_cap)
 	if combat:
 		var before_armor: int = attack_value # 已减伤但尚未被临时护甲吸收的本次容量。
 		attack_value = absorb_temporary_armor(attack_value)
@@ -265,9 +318,14 @@ func Hp_loss(attack_value:int, _bullet_mode:BulletRegistry.AttackMode =BulletReg
 
 	## 如果有受击音效并且触发受击音效
 	if sfx_be_attack_body != SoundManager.TypeBeAttackSFX.Null and trigger_be_attack_SFX:
-		SoundManager.play_be_attack_SFX(sfx_be_attack_body)
+		_play_hit_sound(sfx_be_attack_body)
 
 	return curr_hp == 0
+
+## 播放 [param kind] 的受击声，锚定本体真实受击框。原版战场仍使用同一音效池。
+func _play_hit_sound(kind: SoundManagerClass.TypeBeAttackSFX) -> void:
+	var anchor: Node = owner_character.hurt_box_component if is_instance_valid(owner_character) else self # 命中组件代表可见接触面。
+	SoundManager.play_be_attack_SFX(kind, anchor)
 
 ## 掉血死亡
 ##[is_drop:bool]是否有掉落body
@@ -309,12 +367,23 @@ func resolve_damage(damage: int, bonus_damage: int = 0, bonus_cap: int = -1) -> 
 		return maxi(0, damage + (mini(bonus, bonus_cap) if bonus_cap >= 0 else bonus))
 	if is_damage_immune():
 		return 0
-	var amplification: float = 1.0 + total_degradation_fraction() + brittleness_stacks * 0.01 # 两项独立，只在承伤放大前合计。
+	var degradation: float = (degradation_fraction + stacked_degradation_fraction
+		if _capped_degradation.is_empty() else total_degradation_fraction()) # 有具名效果时按原顺序合成。
+	var amplification: float = 1.0 + degradation + brittleness_stacks * 0.01 # 两项独立，只在承伤放大前合计。
 	var amplified: int = maxi(0, roundi(float(damage + bonus) * amplification)) # 无附伤时逐值沿用旧计算。
 	if bonus > 0 and bonus_cap >= 0:
 		var primary: int = maxi(0, roundi(float(damage) * amplification)) # 本次主伤独立保留，不受附伤上限削减。
 		amplified = primary + mini(bonus_cap, maxi(0, amplified - primary))
-	return damage_reduction.reduce(damage_block.reduce(amplified))
+	if cactus_wound_stacks > 0 and (damage > 0 or bonus > 0):
+		amplified += cactus_wound_stacks # 创伤不另发受击，也不改变原有附伤的上限。
+	var unblocked: int = damage_block.reduce(amplified) if damage_block.value != 0 else amplified # 零格挡保留非负伤害。
+	if unblocked <= 0:
+		return 0
+	var independent_reduction: float = 0.0 # 没入疯狂按本次受击前的生命独立计算，80% 时保留实际两成承伤。
+	if missing_health_reduction_per_percent > 0.0:
+		independent_reduction = minf(missing_health_reduction_cap,
+			missing_health_percent() * missing_health_reduction_per_percent)
+	return damage_reduction.reduce(unblocked, independent_reduction)
 
 ## [param source_id] 无敌效果的来源 ID；[param enabled] 为 true 时添加该来源，为 false 时移除。
 func set_immunity_source(source_id: int, enabled: bool) -> void:

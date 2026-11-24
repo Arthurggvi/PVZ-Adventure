@@ -3,10 +3,20 @@ extends Button
 
 ## 字体、颜色和图像来自同一视觉目录。
 const Style = preload("res://scripts/adventure/shop/shop_skin.gd")
-## 所有分类共用的卡片尺寸；每屏可展示三列两行。
+## 时装分类标识来自商品目录。
+const Catalog = preload("res://scripts/adventure/shop/shop_catalog.gd")
+## 普通货架的卡片尺寸；每屏可展示三列两行。
 const CARD_SIZE := Vector2(308, 238)
+## 时装展卡与普通卡等宽，三个展示位同排占满货架。
+const OUTFIT_CARD_SIZE := Vector2(308, 480)
+## 统一的 3:4 展示区，与现有全身立绘画布比例一致，四边留出安全距离。
+const PORTRAIT_RECT := Rect2(10, 12, 288, 384)
+## 三张展卡共享的柔光纹理，只着色背景。
+static var _stage_light: GradientTexture2D = _make_stage_light()
 ## 唯一商品身份，仅用于选择事件。
 var product_id := ""
+## 时装使用高卡和全身图，拥有后仍保留原色。
+var _is_outfit := false
 ## 商品图标与悬停动画。
 var _art: TextureRect
 ## 未悬停时的图像位置。
@@ -17,7 +27,7 @@ var _price: Label
 var _badge: Label
 ## 文字颜色根据已拥有/售罄状态变化。
 var _title: Label
-## 当前卡片的柔和图像光晕。
+## 普通商品的柔和图标光晕。
 var _accent := Color.WHITE
 ## 当前选中态只影响表现。
 var _selected := false
@@ -36,24 +46,32 @@ var _surface_motion: Tween
 func configure(offer: Dictionary) -> void:
 	product_id = str(offer.id)
 	name = "Product_" + product_id
-	custom_minimum_size = CARD_SIZE
-	size = CARD_SIZE
+	_is_outfit = offer.category == Catalog.OUTFIT_CATEGORY
+	custom_minimum_size = OUTFIT_CARD_SIZE if _is_outfit else CARD_SIZE
+	size = custom_minimum_size
 	size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	_accent = Style.product_accent(offer)
 	_surface = Style.box(Style.CARD, Style.LINE)
 	for state: String in ["normal", "hover", "pressed", "disabled"]: # 由本组件控制连续高亮，原生按钮继续处理命中和按键。
 		add_theme_stylebox_override(state, _surface)
 	add_theme_stylebox_override("focus", Style.box(Color(0, 0, 0, 0), Style.GOLD))
-	_badge = Style.label(self, "", Rect2(190, 12, 102, 26), 15, Style.MUTED)
+	if _is_outfit:
+		var stage: Panel = Style.panel(self, Rect2(8, 8, 292, 393), Color("20312a"), Color("415547"), 11) # 凹入式展台让轮廓在深色货架上更清楚。
+		var stage_style: StyleBoxFlat = stage.get_theme_stylebox("panel") as StyleBoxFlat # 展台嵌在卡片内，只给外层卡片保留投影。
+		stage_style.shadow_size = 0
+		Style.image(self, _stage_light, Rect2(16, 16, 276, 377)).stretch_mode = TextureRect.STRETCH_SCALE
+	else:
+		_accent = Style.product_accent(offer)
+	var title_top: float = 412.0 if _is_outfit else 154.0 # 时装名称放在展台分隔线下方。
+	_badge = Style.label(self, "", Rect2(190, 443, 102, 33) if _is_outfit else Rect2(190, 12, 102, 26), 15, Style.MUTED)
 	_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_art = Style.image(self, Style.product_texture(offer, bool(offer.get("unique", false))), Rect2(62, 8, 184, 146))
+	_art = Style.image(self, Style.product_texture(offer, _is_outfit), PORTRAIT_RECT if _is_outfit else Rect2(62, 8, 184, 146))
 	_art_origin = _art.position
-	_title = Style.label(self, str(offer.title), Rect2(20, 154, 268, 32), 22)
+	_title = Style.label(self, str(offer.title), Rect2(20, title_top, 268, 32), 22)
 	_title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_price = Style.label(self, "", Rect2(42, 193, 240, 33), 29, Style.GOLD)
+	_price = Style.label(self, "", Rect2(42, 443, 140, 33) if _is_outfit else Rect2(42, 193, 240, 33), 29, Style.GOLD)
 	_price.add_theme_font_override("font", Style.NUMBER_FONT)
 	mouse_entered.connect(_hover.bind(true))
 	mouse_exited.connect(_hover.bind(false))
@@ -77,14 +95,14 @@ func update_offer(offer: Dictionary, selected: bool, locked: bool) -> void:
 	_price.add_theme_font_override("font", Style.BODY_FONT if _sold else Style.NUMBER_FONT)
 	_price.add_theme_font_size_override("font_size", 20 if _sold else 29)
 	_price.add_theme_color_override("font_color", Style.MUTED if _sold else Style.GOLD)
-	_title.add_theme_color_override("font_color", Style.MUTED if _sold else Style.CREAM)
+	_title.add_theme_color_override("font_color", Style.MUTED if _sold and not _is_outfit else Style.CREAM)
 	if int(offer.get("daily_limit", 0)) > 0:
 		_badge.text = "剩余 %d/%d" % [int(offer.remaining), int(offer.daily_limit)]
 	elif str(offer.get("kind", "")) == "slots" and not _sold:
 		_badge.text = str(offer.get("status", "")).trim_prefix("当前 ")
 	else:
-		_badge.text = "永久" if offer.category == "special" else "7天"
-	_art.modulate = Color("7c8879") if _sold else Color.WHITE
+		_badge.text = "永久" if _is_outfit or offer.category == "special" else "7天"
+	_art.modulate = Color("7c8879") if _sold and not _is_outfit else Color.WHITE
 	tooltip_text = "%s\n%s" % [offer.title, offer.description]
 	if offer.category == "permanent":
 		tooltip_text += "\n购买起7天有效，在角色页装备。"
@@ -110,14 +128,32 @@ func _make_custom_tooltip(for_text: String) -> Object:
 	panel.add_child(text)
 	return panel
 
-## 绘制图像后方的柔和光晕和价格旁的金币符号，不增加文字标签。
+## 创建展台的宽幅径向柔光；卡片切换只复用这一张小纹理。
+static func _make_stage_light() -> GradientTexture2D:
+	var gradient := Gradient.new() # 中心暖灰绿色，渐隐到展台的原色。
+	gradient.offsets = PackedFloat32Array([0.0, 0.48, 1.0])
+	gradient.colors = PackedColorArray([Color(0.74, 0.84, 0.64, 0.29), Color(0.61, 0.74, 0.56, 0.13), Color(0.61, 0.74, 0.56, 0.0)])
+	var texture := GradientTexture2D.new() # 低分辨率足以生成平滑光晕，由显卡拉伸到展区。
+	texture.width = 128
+	texture.height = 128
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(0.5, 0.43)
+	texture.fill_to = Vector2(1.0, 0.43)
+	return texture
+
+## 绘制普通商品光晕、展卡分隔线与价格旁的金币符号。
 func _draw() -> void:
-	for layer: int in range(6, 0, -1): # 低透明同心圆形成不喧宾夺主的光晕。
-		draw_circle(Vector2(154, 85), 34.0 + layer * 8.0, Color(_accent, 0.012 if _sold else 0.024))
+	if _is_outfit:
+		draw_line(Vector2(20, 407), Vector2(288, 407), Style.LINE, 1.0)
+	else:
+		for layer: int in range(6, 0, -1): # 低透明同心圆用于普通图标。
+			draw_circle(Vector2(154, 85), 34.0 + layer * 8.0, Color(_accent, 0.012 if _sold else 0.024))
 	if not _sold:
-		draw_circle(Vector2(27, 210), 7, Style.GOLD)
-		draw_arc(Vector2(27, 210), 4.5, 0.0, TAU, 24, Color("9f783b"), 1.2, true)
-	if _selected:
+		var coin_center := Vector2(27, 460 if _is_outfit else 210) # 金币与价格文字共用同一基线区域。
+		draw_circle(coin_center, 7, Style.GOLD)
+		draw_arc(coin_center, 4.5, 0.0, TAU, 24, Color("9f783b"), 1.2, true)
+	if _selected and not _is_outfit:
 		draw_circle(Vector2(17, 17), 4, Style.GOLD)
 
 ## [param entering] 控制原图轻微上浮，命中矩形和网格占位保持不变。

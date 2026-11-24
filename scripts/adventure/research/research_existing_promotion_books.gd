@@ -23,7 +23,7 @@ const BOOKS: Dictionary = {
 		"title": "聚变", "summary": "爆炸范围扩大至5×5格", "plant_type": 3, "tier": 3,
 		"effects": [{"kind": "cherry_fusion", "radius": 2}]},
 	"promotion_cherry_bomb_fruit_of_fear": {
-		"title": "恐惧之果", "summary": "爆炸伤害×2", "plant_type": 3, "tier": 4,
+		"title": "恐惧之果", "summary": "爆炸伤害翻倍。对僵王的单次爆炸最高为基础伤害的1.5倍。", "plant_type": 3, "tier": 4,
 		"effects": [{"kind": "cherry_fruit_of_fear", "multiplier": 2.0}]},
 	"promotion_cherry_bomb_bad_fruit": {
 		"title": "恶果", "summary": "每名炸死的僵尸引爆一次周围一格，伤害为本株爆炸伤害的50%", "plant_type": 3, "tier": 4,

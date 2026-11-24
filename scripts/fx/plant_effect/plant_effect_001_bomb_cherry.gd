@@ -103,8 +103,7 @@ func _ready() -> void:
 	set_process(false)
 
 ## 在爆心播放两层烟团、POWIE 字样和原版幅度的短震。
-func activate_bomb_effect() -> void:
-	super()
+func _play_effect() -> void:
 	_rng.randomize()
 	_emit_cloud_pair()
 	queue_redraw()

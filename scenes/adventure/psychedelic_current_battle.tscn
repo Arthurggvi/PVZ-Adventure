@@ -1,0 +1,108 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/psychedelic_current_battle.gd" id="battle_script"]
+[ext_resource type="PackedScene" path="res://scenes/main/MainGame00Base.tscn" id="battle"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/psychedelic_current/board.png" id="board_art"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/psychedelic_current/skybox.png" id="sky_art"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/battle_current.gdshader" id="current"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/battle_sky.gdshader" id="sky_shader"]
+[ext_resource type="Script" path="res://scripts/adventure/psychedelic_current_effect.gd" id="effect"]
+
+[ext_resource type="Script" path="res://scripts/adventure/psychedelic_current_transition.gd" id="transition_script"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/breaking_wave_transition.gdshader" id="transition_shader"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/boards/wonderland_psychedelic_current_nightmare.tres" id="night_board"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/psychedelic_current/nightmare_board.png" id="night_art"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/psychedelic_current/nightmare_skybox.png" id="night_sky"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/nightmare_horizon.gdshader" id="night_horizon"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/nightmare_sky.gdshader" id="night_sky_shader"]
+[ext_resource type="Script" path="res://scripts/adventure/psychedelic_nightmare_effect.gd" id="night_effect"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/psychedelic_current_breaker.wav" id="wave_sound"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/psychedelic_current/breaker_foam.png" id="foam"]
+
+[sub_resource type="ShaderMaterial" id="WaveTransition"]
+resource_local_to_scene = true
+shader = ExtResource("transition_shader")
+shader_parameter/water_art = ExtResource("board_art")
+shader_parameter/foam_art = ExtResource("foam")
+
+[sub_resource type="ShaderMaterial" id="NightHorizon"]
+resource_local_to_scene = true
+shader = ExtResource("night_horizon")
+shader_parameter/right_extension = 0.2532833
+
+[sub_resource type="ShaderMaterial" id="NightSky"]
+resource_local_to_scene = true
+shader = ExtResource("night_sky_shader")
+
+[sub_resource type="ShaderMaterial" id="Current"]
+resource_local_to_scene = true
+shader = ExtResource("current")
+shader_parameter/right_extension = 0.2532833
+shader_parameter/row_edges = PackedFloat32Array(0.125398, 0.266738, 0.403826, 0.540914, 0.675877, 0.811902, 0.948990)
+shader_parameter/sky_texture = ExtResource("sky_art")
+
+[sub_resource type="ShaderMaterial" id="Sky"]
+resource_local_to_scene = true
+shader = ExtResource("sky_shader")
+
+[sub_resource type="RectangleShape2D" id="ShipEntry"]
+size = Vector2(150, 1000)
+
+[node name="PsychedelicCurrentBattle" node_paths=PackedStringArray("phase_presentation") instance=ExtResource("battle")]
+script = ExtResource("battle_script")
+phase_presentation = NodePath("PhasePresentation")
+
+[node name="BackgroundManager" parent="Manager" node_paths=PackedStringArray("background", "environment_sky")]
+background = NodePath("../../CanvasLayerBG/BoardArt")
+environment_sky = NodePath("../../CanvasLayerSkybox/Skybox")
+
+[node name="Background" parent="CanvasLayerBG" parent_id_path=PackedInt32Array(710587300) index="0" unique_id=518558670]
+self_modulate = Color(1, 1, 1, 0)
+
+[node name="BoardArt" type="Sprite2D" parent="CanvasLayerBG"]
+material = SubResource("Current")
+position = Vector2(-150, 64)
+scale = Vector2(0.63755983, 0.5696068)
+texture = ExtResource("board_art")
+centered = false
+
+[node name="Home" parent="CanvasLayerBG/Background" index="0" unique_id=561882687]
+position = Vector2(60, 64)
+scale = Vector2(0.63755983, 0.5696068)
+
+[node name="CollisionShape2D" parent="CanvasLayerBG/Background/Home/Area2DHome" parent_id_path=PackedInt32Array(118183924) index="0" unique_id=2000876210]
+position = Vector2(-28.93, 500)
+shape = SubResource("ShipEntry")
+
+[node name="CanvasLayerSkybox" type="CanvasLayer" parent="."]
+layer = -11
+
+[node name="Skybox" type="Sprite2D" parent="CanvasLayerSkybox"]
+material = SubResource("Sky")
+position = Vector2(0, -94)
+scale = Vector2(0.63755983, 0.63755983)
+texture = ExtResource("sky_art")
+centered = false
+
+[node name="CurrentEffect" type="Node" parent="." node_paths=PackedStringArray("sea", "sky")]
+script = ExtResource("effect")
+sea = NodePath("../CanvasLayerBG/BoardArt")
+sky = NodePath("../CanvasLayerSkybox/Skybox")
+
+[node name="NightmareEffect" type="Node" parent="." node_paths=PackedStringArray("ground", "sky")]
+script = ExtResource("night_effect")
+ground = NodePath("../CanvasLayerBG/BoardArt")
+sky = NodePath("../CanvasLayerSkybox/Skybox")
+ground_material = SubResource("NightHorizon")
+sky_material = SubResource("NightSky")
+
+[node name="PhasePresentation" type="CanvasLayer" parent="."]
+script = ExtResource("transition_script")
+nightmare_board = ExtResource("night_board")
+nightmare_texture = ExtResource("night_art")
+nightmare_sky = ExtResource("night_sky")
+nightmare_material = SubResource("NightHorizon")
+nightmare_sky_material = SubResource("NightSky")
+wave_material = SubResource("WaveTransition")
+wave_sound = ExtResource("wave_sound")

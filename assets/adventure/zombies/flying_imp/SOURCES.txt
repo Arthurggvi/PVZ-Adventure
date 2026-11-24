@@ -1,0 +1,57 @@
+Flying Imp Zombie (PVZ2 China Sky City) / source manifest
+Date audited: 2026-11-23
+Project: PVZ-Adventure
+Status: SOURCE IDENTIFIED, ARCHIVE NOT DOWNLOADED, NO RUNTIME ART INSTALLED.
+
+Original rights: PopCap Games / Electronic Arts. Fan-rip uploader: Redtarp.
+Sprite source: https://www.spriters-resource.com/mobile/plantsvszombies2/asset/502490/
+Site listing: 17.71 MB, 587 items, ZIP; asset section Zombies (Chinese Version).
+The archive contains 'Flying Imp Zombie/Assembled Sprites (Chinese)' folders
+Death, Eating, Escape, Escape - 2, Fly, Idle, Land, Walking, and
+'Splitted Sprites (Chinese)' with zombie_skycity_ggtimp_* pieces.
+Source listing examples:
+  Fly/fly0007.png ... fly0025.png
+  Land/land0024.png ... land0030.png
+  Walking/walk0001.png ... walk0060.png
+  Death/die0001.png ... die0036.png
+  Eating/eat0001.png ... eat0128.png
+These example ranges are filenames visible in the public index, not verified
+total/contiguous frame counts or timing. Full verification requires the ZIP.
+
+Attempted archive endpoints:
+  https://www.spriters-resource.com/download/502490/
+  https://www.spriters-resource.com/media/assets/502/502490.zip
+  https://spriters-resource.com/media/assets/502/502490.zip
+Result: HTTP 403 Forbidden from the authorized development computer.
+Archive SHA-256: NOT AVAILABLE
+Source PNG count: NOT VERIFIED
+Pixel dimensions/alpha/frame-order: NOT VERIFIED
+Runtime atlas, SpriteFrames, audio: NOT CREATED
+Source asset licensing: fan rip; no claim of free commercial license.
+
+Game behavior references:
+  https://bkso.baidu.com/item/飞行小鬼僵尸/55961462
+  https://plantsvszombies.wiki.gg/wiki/Zombies_%28PvZ2C%29
+  https://plantsvszombies.wiki.gg/wiki/Imp/Gallery
+  https://www.newton.com.tw/wiki/植物大戰殭屍2殭屍圖鑑/64026631
+PvZ2 China original: 180+90 (270) HP, 4s per tile, 100/s bite;
+Transport Boat / Flying Gargantuar entry, land on left deck, walk right.
+Blover: secondary sources differ on which states count as flying.
+PVZ-Adventure user override: Blover can remove this enemy (planned regardless of phase).
+
+Existing candidate audio (NOT verified original Sky City sounds):
+  res://assets/audio/SFX/zombie/imp.ogg
+  res://assets/audio/SFX/zombie/imp2.ogg
+  res://assets/audio/SFX/zombie/chomp.ogg
+Do not mislabel these fallback assets as original Flying Imp audio.
+
+Next step before implementation:
+1. Obtain this exact ZIP by a permitted means, retain pristine source + SHA-256.
+2. Inspect every assembled action (frame count, alpha, anchor, playback timing).
+3. Bake original frames into small atlases and an independent SpriteFrames.
+4. Integrate via lazy-registered Z035FlyingImp (proposed only).
+5. Validate transitions, Blover, reverse walk, exit boundary and death lifecycle.
+See docs/adventure/flying_imp_zombie.txt for full integration blueprint.
+
+WARNING: There is intentionally no fake animation or placeholder bitmap in
+this directory. Finding a web index is not the same as importing source frames.

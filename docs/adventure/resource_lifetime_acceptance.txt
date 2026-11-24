@@ -1,0 +1,21 @@
+资源生命周期专项 S1 验收（2026-11-24）
+基线 d37d644c，Godot 4.7.2 Compatibility，RTX 5060 Laptop，1066×600。
+施工范围：CharacterRegistry/SceneRegistry 战斗资源租约；战外资源由消费者持有；AllCards 同帧临时模板；图鉴头像准备不读取已有卡面对应的战斗场景；预览批次仅保留到同步装配；向日葵分件不做进程级强引用。
+验收阈值：十种僵尸顺序读取并释放调用方引用，连续三轮各自稳定视频内存不超过初始+20 MiB；三轮稳定值不得单调增长；战斗租约同一路径重复查询必须复用实例；持有者离树后回到初始+20 MiB；32个临时卡面模板释放后节点数≤初始+8，已生成卡面和静态预览存活；现有卡面的图鉴头像资源清单不含战斗根场景，详情必须包含。不得手动清生产缓存来通过。
+图形专项实测：初始70.4839MiB；三轮均72.6066MiB（+2.1227）；独立租约持有穴居场景138.2168MiB，离树72.6066MiB；32模板瞬态1044节点，最后30节点（初始30），最后75.8583MiB。通过。
+历史对照：十种僵尸旧版长期313.86MiB；同顺序新版72.61MiB，长期驻留减少241.25MiB。组合压力旧1175.47MiB，新934.19MiB（减241.28MiB）；释放城镇和地图后新版80.73MiB（无人工清缓存）。这是隔离资源共存测试，不是完整真实切场峰值或OS驻留显存。
+回归：lazy startup、lazy audio、threaded scene loading、boot to menu(headless)、threaded battle route、lazy toolbar modal、boot to menu(graphical)、scene transition frames均有PASS标记及0退出码。战斗往返退出警告2个ObjectDB、1个Resource；独立旧版同测试完全一致。工具栏退出同类警告，图形启动4个ObjectDB警告，保留调查，不声称全局零泄漏。未测Android真机。
+证据：D:\Dev\PvZ\_review\s1-acceptance-860beb89\graphical-lifetime-v2.log、overlap-v2.log及回归日志；同目录probe.gd。
+复测命令：隔离APPDATA/LOCALAPPDATA，目录名包含resource-lifetime-test或s1-acceptance，Godot --path <worktree> --script res://tests/adventure/test_resource_lifetime_graphical.gd --resolution 1066x600；最大35秒，日志上限8MiB。必须检查PASS、退出状态及错误，不只看打印。
+后续：S2切场交接/背包/研究室临时准备资源；S3地图分块驻留与高亮蒙版；S4大型图集阶段交接与图鉴虚拟化；S5战斗读屏与音效预算。此提交不覆盖这些后续阶段。
+
+资源生命周期专项 S2–S7 验收（2026-11-24）
+独立工作树基线 5eb55b0e；对照旧 d37d644c。Godot 4.7.2 Compatibility / RTX 5060 Laptop / 1066×600。正式素材与动作时长不降级；无全局手工清缓存；不改存档协议、不改正在施工的城镇和飞艇表现。
+S2 切场、功能窗口和背包的准备引用仅交接到视觉就绪；战斗根资源按本局租约保留，来源场景失败回滚不破坏。通过启动、线程切场、真实地图→战斗→地图、工具栏懒装配、遮幕逐帧、目的地窗口/回滚/连续音乐、背包、研究预览及研究室场景。不可将资源释放说成完全消除切场共存峰值。
+S3 奇境地图地形、覆盖、圆形图标共用原图块；可见区域精确加载，邻区预热，离屏释放；十一地区蒙版只在悬停至淡出期间持有。静止四个镜头基线 364.98/364.98/367.01/367.01 MiB，新 301.15/301.53/301.15/284.59 MiB；四张实际 RGB 截图逐像素 100% 一致（非空白图，标准差44.73/51.33/49.52/44.73）。图块 8→3–4，连续移动 622 样本最多6块，更新CPU耗时P95 0.074ms、max 0.8ms（不是全帧帧耗时）。远距离瞬移首次冷读曾测81–162ms，保留原图不以模糊占位换速度。十一处高亮节点和贴图全部释放；取消/淡出沿用资源批次协议。无新增大幅图标素材。
+S4 图鉴仅准备可见缩略图、保留邻近一行，离屏清理，选择详情独立；Boss头像不加载完整战斗根或原画动画；妇人和救主头像从导入纹理精确裁切，二次读取像素相等。图鉴专项实际首屏12、末屏12、返回后保留15个头像，旧头像释放及返回重建通过。
+S5 大型图集压缩实测：BC/ETC2、BPTC/ASTC、Basis Universal 在滑雪与凯莱赫样本的透明边和颜色误差不一致；部分格式本机硬件回退RGBA8。未批准任何有损批量转换，保留原图；凯莱赫阶段二使用同一五页原图集与原生AnimatedSprite2D、60帧、原始帧持续时间，当前/下一页驻留，阶段一独立实例在二阶段成功装配后释放。专项实际基线70.48、阶段一134.80、阶段二128.76、退出80.64 MiB；60/60帧、最多2页、9.5秒循环同步回退0。原二阶段五页图集专项历史实测119.9MiB增量，不与本轮不同加载上下文强行相减。PNG/WebP源图均不改。
+S6 环境介质强度归零时关闭四分之一视口和两个合成层以及透镜的BackBufferCopy；可见时保持背景/实体/界面顺序及原shader，暂停保留已有介质场。真实组件中性/激活/暂停/释放测试通过，水面整合测试通过。退役V6/V8探针test_environment_fx.gd引用不存在的ArtCanvas/EnvironmentFX（脚本头已明确标注旧探针），不计作当前环境回归通过项。
+S7 音效LRU上限48项、估算数据8MiB，当前播放持有自己的流，播放完成解除池播放器流引用；126个音效路径实测最终22项、7,608,796 bytes约7.26MiB，预算和在播流不被替换通过；启动懒音频与连续BGM通过。未改变声音内容、空间路由、混音。
+验收命令：隔离APPDATA/LOCALAPPDATA路径包含performance；Godot --path <worktree> --script res://tests/adventure/test_performance_residency_graphical.gd / test_map_residency_graphical.gd / test_almanac_residency_graphical.gd（分别运行），图形模式1066×600、max-fps 60；每项限制45秒，单日志8MiB。验收门槛：60帧、最多2页、正常循环0次同步回退；Boss退出基线+25MiB以内；地图连续移动P95<5ms、最多6块、所有可见块真实原尺寸、全部11蒙版可回收；图鉴旧头像释放、返回重建；环境中性0复制及0介质刷新、激活正确；音效缓存不超过48项和8MiB，现有播放不受驱逐影响。不得通过降质/跳帧达标。
+证据目录 D:\Dev\PvZ\_review\performance-s2-s7-acceptance，含map-residency-v3、map-baseline、map-optimized-v3、performance-residency-test、performance-map-residency、performance-almanac-test、performance-* 回归日志及压缩实验。旧退出ObjectDB警告仍有启动4个/目的地16个；不宣称全局零泄漏。Android真实机与发行包未重新构建，兼容性与最终包体需独立发行验收。新增头像资源共66,536 bytes（未计包压缩）；无额外大型重复资产。

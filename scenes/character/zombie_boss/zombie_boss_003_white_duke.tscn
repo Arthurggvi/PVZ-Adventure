@@ -4,6 +4,11 @@
 [ext_resource type="Script" path="res://scripts/character/zombie_boss/white_duke/z_b_003_white_duke.gd" id="boss"]
 [ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_player.gd" id="anim"]
 [ext_resource type="Texture2D" path="res://assets/adventure/zombies/white_duke/portrait.png" id="portrait"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/white_duke/white_duke_config.gd" id="config"]
+
+[sub_resource type="Resource" id="WhiteDukeConfig"]
+resource_local_to_scene = true
+script = ExtResource("config")
 
 [sub_resource type="CapsuleShape2D" id="boss_hurt"]
 radius = 28.0
@@ -11,6 +16,7 @@ height = 128.0
 
 [node name="ZB003WhiteDuke" instance=ExtResource("base")]
 script = ExtResource("boss")
+config = SubResource("WhiteDukeConfig")
 boss_display_name = "白爵士"
 phase_two_threshold_inclusive = false
 boss_portrait_texture = ExtResource("portrait")

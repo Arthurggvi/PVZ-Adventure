@@ -19,8 +19,7 @@ func setup(imp: Zombie025Imp, rule: Dictionary) -> void:
     if death_blast > 0:
         var blast := AdventureZombieDeathBurst.new()
         imp.add_child(blast)
-        blast.setup(imp, death_blast,
-                AdventureZombieTierExplosionGeometry.small_radius(imp, 1))
+        blast.setup_single_cell(imp, death_blast)
     if _death_imps > 0:
         imp.signal_character_death.connect(_on_death)
 
@@ -31,16 +30,15 @@ func _on_bite(target: Node, _amount: int) -> void:
     if is_instance_valid(plant) and not plant.is_death:
         AdventurePlantNegativeEffects.apply(plant, AdventurePlantNegativeEffects.Kind.DEGRADATION, _imp.get_instance_id(), _degradation)
 
+## 战斗死亡时按当前阵营派生下一级小鬼；越界离场和清场只注销原实体。
 func _on_death() -> void:
-    if not tier_can_trigger(true):
-        return
-    if not is_instance_valid(_imp) or not is_instance_valid(Global.main_game):
+    if not tier_can_trigger(true) or _imp.retiring_from_battle:
         return
     var manager: ZombieManager = Global.main_game.zombie_manager
     var lane: int = _imp.lane
     if lane < 0 or lane >= manager.all_zombie_rows.size():
         return
-    var attrs: Dictionary = {
+    var attrs: Dictionary = { # 快照原小鬼死亡时的阵营、模式和刷新来源。
         Zombie000Base.E_ZInitAttr.CharacterInitType:
             Character000Base.E_CharacterInitType.IsNorm,
         Zombie000Base.E_ZInitAttr.Lane: lane,
@@ -48,6 +46,7 @@ func _on_death() -> void:
         Zombie000Base.E_ZInitAttr.IsPotZombie: _imp.is_pot_zombie,
         Zombie000Base.E_ZInitAttr.ParticipatesNaturalRefresh:
             _imp.participates_natural_refresh,
+        Zombie000Base.E_ZInitAttr.StartsHypnotized: _imp.is_hypno,
     }
     # Deferred call belongs to the long-lived zombie manager, never this
     # dying imp component (which is queued for deletion with its parent).

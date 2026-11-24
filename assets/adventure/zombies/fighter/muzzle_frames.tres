@@ -1,0 +1,38 @@
+[gd_resource type="SpriteFrames" load_steps=8 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/fighter/muzzle_atlas.png" id="1"]
+
+[sub_resource type="AtlasTexture" id="A_00"]
+atlas = ExtResource("1")
+region = Rect2(0, 0, 260, 187)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_01"]
+atlas = ExtResource("1")
+region = Rect2(260, 0, 260, 187)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_02"]
+atlas = ExtResource("1")
+region = Rect2(520, 0, 260, 187)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_03"]
+atlas = ExtResource("1")
+region = Rect2(0, 187, 260, 187)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_04"]
+atlas = ExtResource("1")
+region = Rect2(260, 187, 260, 187)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_05"]
+atlas = ExtResource("1")
+region = Rect2(520, 187, 260, 187)
+filter_clip = true
+
+[resource]
+animations = [
+{"frames": [{"duration": 1.0, "texture": SubResource("A_00")}, {"duration": 1.0, "texture": SubResource("A_01")}, {"duration": 1.0, "texture": SubResource("A_02")}, {"duration": 1.0, "texture": SubResource("A_03")}, {"duration": 1.0, "texture": SubResource("A_04")}, {"duration": 1.0, "texture": SubResource("A_05")}], "loop": false, "name": &"flash", "speed": 40.0}
+]

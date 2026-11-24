@@ -7,6 +7,8 @@ class_name ZombieRow
 @export var zombie_row_type:CharacterRegistry.ZombieRowType = CharacterRegistry.ZombieRowType.Land
 ## 是否有钉耙
 @export var have_rake := false
+## 雪坡断开后，此行只为坠落演出保留，不能再刷怪或换入。
+var is_falling: bool = false
 
 ## 判断 [param spawn_type] 能否出现在 [param row_type]；两栖类型兼容陆路和水路。
 static func supports_spawn(spawn_type: CharacterRegistry.ZombieRowType,

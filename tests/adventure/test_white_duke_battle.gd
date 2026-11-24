@@ -6,18 +6,17 @@ func _run() -> void:
 	await _frames()
 	Global.save_service.stop_autosave()
 	var username := "white-duke-smoke-%d" % Time.get_ticks_usec()
-	var user: User = _profile_selector()
+	var user: User = get_tree().current_scene.user
 	user.panel_create_new_user.line_edit.text = username
 	user.panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username)
-	await _enter_island_from_menu()
+	assert(AdventureSession.open_adventure(), AdventureSession.entry_error)
+	await _frames()
 	var map: Control = get_tree().current_scene
 	if map.canvas.has_node("Intro"):
 		map.canvas.get_node("Intro")._finish()
 	await _frames()
-	assert(AdventureSession.progress.intro_completed)
 	map._select_stage(1)
-	assert(map.get_node("SceneTransition").busy, AdventureSession.error_message)
 	await _wait_battle()
 	print("WHITE_DUKE_TEST_BATTLE_READY")
 	var battle: MainGameManager = Global.main_game

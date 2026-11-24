@@ -43,6 +43,8 @@ func init_lawn_movers() -> void:
 
 ## 生成所有的小推车
 func create_all_lawn_movers(is_has_all_lawn_mover:Array=[]):
+	if not game_item_manager.game_para.is_lawn_mover:
+		return
 	all_lawn_movers_type.clear()
 	for lane: BoardLaneDefinition in game_item_manager.main_game.board.lanes: # 攻击行的清洁车协议。
 		all_lawn_movers_type.append(lane.mower_kind)
@@ -64,11 +66,15 @@ func create_all_lawn_movers(is_has_all_lawn_mover:Array=[]):
 
 ## 补充小推车
 func replenish_lawn_mover():
+	if not game_item_manager.game_para.is_lawn_mover:
+		return
 	if all_lawn_movers.is_empty():
 		create_all_lawn_movers()
 	else:
 		# 按行检查原位可用小推车；被碾压但尚未释放的车也需要补充。
 		for i in range(all_lawn_movers.size()):
+			if not game_item_manager.main_game.zombie_manager.is_lane_open(i):
+				continue
 			if is_instance_valid(all_lawn_movers[i]) and not all_lawn_movers[i].is_queued_for_deletion() \
 				and not all_lawn_movers[i].is_destroyed and not all_lawn_movers[i].is_moving:
 				continue
@@ -85,11 +91,32 @@ func set_cheat_fixed(enabled: bool) -> void:
 		if mower != null and not mower.is_destroyed and not mower.is_queued_for_deletion():
 			mower.set_cheat_fixed(enabled)
 
+## 撤掉 [param lane] 上的清洁车及其补车点。
+func retire_last_lane(lane: int) -> void:
+	if lane != all_lawn_movers.size() - 1 or lane < 0:
+		return
+	for child: Node in lawn_movers.get_children(): # 已出发的清洁车也属于失去的格带。
+		var mower := child as LawnMover # 纯视觉残影无行登记。
+		if mower != null and mower.lane == lane:
+			mower.queue_free()
+	all_lawn_movers.pop_back()
+	all_lawn_movers_type.pop_back()
+	all_lawn_movers_global_pos.pop_back()
+
+## 补车点随战场下降 [param descent] 世界像素，演出期间也可为保留行补车。
+func lower_spawn_positions(descent: float) -> void:
+	for index: int in range(all_lawn_movers_global_pos.size()): # 补车计算使用实时世界坐标。
+		all_lawn_movers_global_pos[index].y += descent
+
 ## 生成一个小推车
 func create_lawn_mover(lane:int, lawn_mover_type:E_LawnMoverType, global_pos:Vector2)->LawnMover:
+	if not game_item_manager.game_para.is_lawn_mover:
+		return null
 	var new_lawn_mover:LawnMover = LawnMoverSecneMap[lawn_mover_type].instantiate()
 	new_lawn_mover.lane = lane
 	new_lawn_mover.cheat_fixed_enabled = cheat_fixed_enabled
+	new_lawn_mover.started.connect(
+			game_item_manager.main_game.zombie_manager.zombie_wave_manager.record_mower_started)
 	new_lawn_mover.z_index = lane * 50 + 40
 	## 由于在ready中会检测屋顶，使用全局位置，因此在add_child之前修改其局部位置
 	new_lawn_mover.position = global_pos - lawn_movers.global_position

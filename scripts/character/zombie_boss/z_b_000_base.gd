@@ -12,10 +12,16 @@ signal signal_status_update
 ## Single Boss phase state; all Bosses share this threshold and transition event.
 ## HUD listens to this signal; behavior trees and rewards remain independent.
 signal signal_boss_phase_changed(phase: int)
+## 当前称谓由角色演出更新时通知界面，战斗阶段信号继续驱动原有阶段行为。
+signal signal_boss_display_name_changed
 
 @export_group("Boss HUD")
+## 登场时的显示名称；未另设阶段称谓时全程使用。
 @export var boss_display_name: String = "Boss"
+## 共用血条和图鉴读取的头像。
 @export var boss_portrait_texture: Texture2D
+## 转入二阶段后的显示名称；空值表示沿用登场名称。
+@export var phase_two_display_name: String = ""
 @export_range(0.05, 0.95, 0.05) var phase_two_threshold_ratio: float = 0.5
 ## 默认包含阈值；严格低于半血的 Boss 可在场景中关闭。
 @export var phase_two_threshold_inclusive: bool = true
@@ -48,6 +54,43 @@ var boss_home_x: float = INF
 @onready var trophy_spawn_point: Marker2D = get_node_or_null("%TrophySpawnPoint") as Marker2D
 ## 是否已经启动死亡淡出，防止重复创建补间或重复安排释放。
 var _is_fading := false
+## 首次强制死亡的来源；普通扣血或未死亡时为空。
+var forced_defeat_source: StringName = &""
+
+## 返回 [param phase] 对应的显示名称；0 使用本体当前的阶段。
+func get_boss_display_name(phase: int = 0) -> String:
+	var display_phase: int = boss_phase if phase == 0 else phase # 图鉴可显式读取任一阶段。
+	if display_phase >= 2 and not phase_two_display_name.is_empty():
+		return phase_two_display_name
+	return boss_display_name
+
+
+## 本体允许启动 Boss 曲时返回 true。默认在登记为存活僵王后立即播放。
+func is_boss_music_ready() -> bool:
+	return true
+
+## 有独立退场构图的角色可以将通用钻石交给死亡演出完成帧。
+func drop_diamond_after_presentation() -> bool:
+	return false
+
+
+## 返回本次死亡演出是否需要暂缓战斗结算。选择等待的 Boss 必须在演出结束时请求奖杯。
+func delays_victory_for_defeat_presentation() -> bool:
+	return false
+
+
+## 返回成员共享的战斗分组编号，供行动、奖励、遭遇和血条共同读取。0 表示独立个体。
+func boss_encounter_group_id() -> int:
+	return 0
+
+
+## 返回本次遭遇的总生命基准。0 表示按成员最大生命合计；固定基准由全组共享。
+func boss_encounter_maximum_hp() -> int:
+	return 0
+
+## 返回普通出怪应预留给尚未登场的分身的名额。普通僵王无需预留。
+func reserved_enemy_spawn_slots() -> int:
+	return 0
 
 
 ## [param manager] 所属战场；[param spawn_lane] 为零起始行号，-1 使用场地中路。
@@ -197,6 +240,20 @@ func be_attacked_bullet(attack_value: int, bullet_mode: BulletRegistry.AttackMod
 	super.be_attacked_bullet(attack_value, bullet_mode, is_drop, trigger_be_attack_SFX, bonus_damage, bonus_cap, receipt, hit_scope)
 
 
+## [param attack_value] 为啃咬伤害。[param attack_zombie] 已转为友军时拒绝本次命中。
+func be_zombie_eat(attack_value: int, attack_zombie: Zombie000Base) -> void:
+	if is_instance_valid(attack_zombie) and attack_zombie.is_hypno:
+		return
+	super.be_zombie_eat(attack_value, attack_zombie)
+
+
+## [param attack_zombie] 已转为友军时，旧动画回调也不会触发受击闪光。
+func be_zombie_eat_once(attack_zombie: Zombie000Base) -> void:
+	if is_instance_valid(attack_zombie) and attack_zombie.is_hypno:
+		return
+	super.be_zombie_eat_once(attack_zombie)
+
+
 ## 先发出原有死亡信号供管理器扣数，再关闭受击；重复调用不重复触发亡语或计数。
 func character_death() -> void:
 	if is_death:
@@ -211,9 +268,14 @@ func character_death() -> void:
 ## 释放前通过 [method request_trophy] 请求奖励，关卡仍检查胜利条件、全部僵王死亡及重复请求。
 ## 死亡演出中的实例也可调用此接口，立即请求结算并移除；已排队释放时不再处理。
 func character_death_disappear() -> void:
+	force_defeat(&"direct_disappearance")
+
+## 强制结算后立即离场；[param source] 区分出生修改器与其他脚本处决，保留第一次死亡原因。
+func force_defeat(source: StringName) -> void:
 	if is_queued_for_deletion():
 		return
 	if not is_death:
+		forced_defeat_source = source
 		hp_component.Hp_loss_death(false)
 	# 请求必须先于 queue_free，角色进入待删除状态后奖杯入口会拒绝请求。
 	request_trophy()
@@ -230,6 +292,16 @@ func prepare_death_animation() -> void:
 	influence_speed_factors.clear()
 	influence_speed_factors[E_Influence_Speed_Factor.InitRandomSpeed] = death_speed
 	signal_update_speed.emit(death_speed)
+
+
+## 所有僵王及其分身免疫通用战斗负面状态。
+func can_receive_negative_effects() -> bool:
+	return false
+
+
+## 钟表匠的 TMC-112 可以改变僵王的行动时钟，受击窗口关闭期间也生效。
+func can_receive_clockmaker_slowdown() -> bool:
+	return true
 
 
 ## [param value] 速度倍率；除个体初始随机速度外，只接收 1 及以上的倍率。[br]
@@ -260,10 +332,16 @@ func be_hypno() -> void:
 
 ## 任意行的火爆辣椒均可命中，伤害仍受 Boss 受击窗口约束。[br]
 ## [param attack_value] 本次辣椒伤害；致死时由血量组件触发僵王死亡流程，不直接删除或播放普通僵尸灰烬。
-func be_jalapeno(attack_value: int) -> void:
+## [param boss_damage_cap] 为原生灰烬减伤前的伤害上限，负一表示不限制。
+func be_jalapeno(attack_value: int, boss_damage_cap: int = -1) -> void:
 	if not _can_receive_damage():
 		return
-	hp_component.Hp_loss(attack_value, BulletRegistry.AttackMode.Penetration, false, false)
+	var damage: int = mini(attack_value, boss_damage_cap) if boss_damage_cap >= 0 else attack_value # 先限制攻击值，再应用僵王自身减伤。
+	hp_component.Hp_loss(ash_damage_received(damage), BulletRegistry.AttackMode.Penetration, false, false)
+
+## [param damage] 已由攻击来源计算的灰烬类伤害。普通僵王保持原值。
+func ash_damage_received(damage: int) -> int:
+	return damage
 
 
 ## 死亡动画和直接消失共用请求入口，不直接创建奖杯；存活、展示和正在卸载的角色不能请求奖励。

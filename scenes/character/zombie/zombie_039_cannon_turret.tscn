@@ -1,0 +1,161 @@
+[gd_scene load_steps=20 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/zombie/zombie_039_cannon_turret.gd" id="2_turret"]
+[ext_resource type="Script" path="res://scripts/character/zombie/cannon_turret/cannon_turret_presentation.gd" id="3_rig"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_static.gd" id="4_static"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/cannon_turret/chassis.png" id="5_chassis"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/cannon_turret/turret_loaded.png" id="6_loaded"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/cannon_turret/aperture_mask.png" id="7_mask"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/cannon_turret/reload_shell.png" id="8_shell"]
+[ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred.gd" id="9_charred"]
+[ext_resource type="Script" path="res://scripts/resources/resource_body_change.gd" id="10_body_change"]
+[ext_resource type="Shader" path="res://shaders/adventure/cannon_turret_wheels.gdshader" id="11_wheels"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/garden_airship_contact.gdshader" id="12_shadow"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/cannon_turret/fx_smoke.png" id="13_landing_smoke"]
+
+[sub_resource type="RectangleShape2D" id="ChassisHitbox"]
+size = Vector2(112, 115)
+
+[sub_resource type="ShaderMaterial" id="RollingWheels"]
+resource_local_to_scene = true
+shader = ExtResource("11_wheels")
+
+[sub_resource type="ShaderMaterial" id="VehicleShadow"]
+resource_local_to_scene = true
+shader = ExtResource("12_shadow")
+shader_parameter/footprint_scale = Vector2(1, 1)
+shader_parameter/vehicle_footprint = true
+shader_parameter/clip_to_receivers = false
+
+[sub_resource type="Gradient" id="LandingDustColor"]
+offsets = PackedFloat32Array(0, 0.27, 1)
+colors = PackedColorArray(0.76, 0.7, 0.51, 0.68, 0.6, 0.54, 0.39, 0.52, 0.49, 0.43, 0.31, 0)
+
+[sub_resource type="GradientTexture1D" id="LandingDustRamp"]
+gradient = SubResource("LandingDustColor")
+
+[sub_resource type="ParticleProcessMaterial" id="LandingDustMotion"]
+particle_flag_disable_z = true
+direction = Vector3(1, -0.31, 0)
+spread = 41.0
+initial_velocity_min = 29.0
+initial_velocity_max = 84.0
+gravity = Vector3(0, -11, 0)
+damping_min = 66.0
+damping_max = 91.0
+angle_min = -180.0
+angle_max = 180.0
+scale_min = 0.14
+scale_max = 0.29
+color_ramp = SubResource("LandingDustRamp")
+
+[node name="Zombie039CannonTurret" instance=ExtResource("1_base")]
+script = ExtResource("2_turret")
+zombie_type = 39
+random_speed_range = Vector2(1, 1)
+is_walk = false
+
+[node name="Shadow" parent="." index="0"]
+material = SubResource("VehicleShadow")
+position = Vector2(0, -5)
+scale = Vector2(1.9, 1.8)
+
+[node name="CannonRig" type="Node2D" parent="Body" index="2" node_paths=PackedStringArray("contact_shadow")]
+scale = Vector2(0.45, 0.45)
+script = ExtResource("3_rig")
+contact_shadow = NodePath("../../Shadow")
+
+[node name="LandingDust" type="GPUParticles2D" parent="Body/CannonRig"]
+z_index = 1
+position = Vector2(6.6, 2.3)
+emitting = false
+amount = 9
+lifetime = 0.49
+one_shot = true
+explosiveness = 0.95
+texture = ExtResource("13_landing_smoke")
+process_material = SubResource("LandingDustMotion")
+
+[node name="ChassisPivot" type="Node2D" parent="Body/CannonRig"]
+
+[node name="Chassis" type="Sprite2D" parent="Body/CannonRig/ChassisPivot"]
+material = SubResource("RollingWheels")
+texture = ExtResource("5_chassis")
+centered = false
+offset = Vector2(-165.87, -310.3)
+
+[node name="TurretPivot" type="Node2D" parent="Body/CannonRig/ChassisPivot"]
+position = Vector2(-7.66, -91.87)
+
+[node name="DeathBlastOrigin" type="Marker2D" parent="Body/CannonRig/ChassisPivot"]
+position = Vector2(6, -122)
+
+[node name="Turret" type="Sprite2D" parent="Body/CannonRig/ChassisPivot/TurretPivot"]
+texture = ExtResource("6_loaded")
+centered = false
+offset = Vector2(-158.21, -218.44)
+
+[node name="Aperture" type="Sprite2D" parent="Body/CannonRig/ChassisPivot/TurretPivot"]
+clip_children = 1
+texture = ExtResource("7_mask")
+centered = false
+offset = Vector2(-158.21, -218.44)
+
+[node name="ReloadShell" type="Sprite2D" parent="Body/CannonRig/ChassisPivot/TurretPivot/Aperture"]
+visible = false
+position = Vector2(-75.79, -118.41)
+texture = ExtResource("8_shell")
+centered = false
+offset = Vector2(-82.42, -100.03)
+
+[node name="Muzzle" type="Marker2D" parent="Body/CannonRig/ChassisPivot/TurretPivot"]
+position = Vector2(-75.79, -118.41)
+
+[node name="HeadAnchor" type="Marker2D" parent="Body/CannonRig/ChassisPivot/TurretPivot"]
+position = Vector2(73, -123)
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("4_static")
+
+[node name="HpStageChangeComponent" parent="." index="3"]
+boundary_value_hp = Array[int]([0])
+body_change = Array[ExtResource("10_body_change")]([null])
+
+[node name="HpComponent" parent="." index="4"]
+position = Vector2(0, -125)
+max_hp = 1500
+
+[node name="CharredComponent" parent="." index="5"]
+script = ExtResource("9_charred")
+
+[node name="AttackComponent" parent="." index="6"]
+process_mode = 4
+is_enable_default = false
+
+[node name="DetectComponent" parent="AttackComponent" index="0"]
+is_enable_default = false
+
+[node name="Area2d" parent="AttackComponent/DetectComponent" index="0"]
+monitoring = false
+
+[node name="MoveComponent" parent="." index="7"]
+process_mode = 4
+move_mode = 1
+is_enable_default = false
+
+[node name="SwimBoxComponent" parent="." index="8"]
+process_mode = 4
+is_enable_default = false
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection" index="0"]
+position = Vector2(-1, -65)
+shape = SubResource("ChassisHitbox")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(-1, -65)
+shape = SubResource("ChassisHitbox")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetectionOnAttack" index="0"]
+position = Vector2(-1, -65)
+shape = SubResource("ChassisHitbox")

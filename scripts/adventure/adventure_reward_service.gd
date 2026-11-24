@@ -9,12 +9,12 @@ const FIRST_CLEAR_COIN_VALUES := {"diamond": 1000, "gold": 50, "silver": 10}
 const PENDING_FIRST_CLEAR_COINS := "pending_first_clear_coins"
 ## 每个阶段沿用原有的配方保底结算轮数。
 const RECIPE_FLOOR_ROLLS := 2
-## 每次清完旗帜波时从该阶段配方池掉出一份配方的概率。
-const FLAG_RECIPE_CHANCE := 0.5
+## 每次清完旗帜波时从该阶段配方池掉出一份配方的概率，[code]1.0[/code] 表示必掉。
+const FLAG_RECIPE_CHANCE := 1.0
 
 ## 从 [param table] 中按物品 ID 去重后等概率选一份配方；[param rng] 未命中或无候选时返回空 ID。
 static func roll_flag_recipe(table: DropTable, rng: RandomNumberGenerator) -> StringName:
-	if table == null or rng.randf() >= FLAG_RECIPE_CHANCE:
+	if table == null or (FLAG_RECIPE_CHANCE < 1.0 and rng.randf() >= FLAG_RECIPE_CHANCE):
 		return &""
 	var recipe_ids: Array[StringName] = [] # 本阶段可以从旗帜波掉出的配方。
 	for entry: DropEntryDefinition in table.entries: # 只使用常规阶段掉落表中的条目。
@@ -34,15 +34,21 @@ static func roll(table: DropTable, rng: RandomNumberGenerator, effects: PlayerEf
 	var items: Dictionary = {}
 	var weighted: Array[DropEntryDefinition] = []
 	for entry: DropEntryDefinition in table.entries:
-		var eligible: bool = effects != null and PlayerEffects.is_random_loot(str(entry.asset_id)) # 来源规则在计算处判定。
 		match entry.rule:
 			DropEntryDefinition.Rule.GUARANTEED:
 				_add_entry(items, entry, entry.quantity_min)
 			DropEntryDefinition.Rule.CHANCE:
 				if recipe_floor_only and _is_recipe(entry.asset_id):
 					continue
-				var chance: float = minf(1.0, entry.chance * effects.drop_chance_multiplier) if eligible else entry.chance # 相对概率封顶。
-				if rng.randf() < chance:
+				var chance: float = entry.chance # 单条独立随机掉落的基础概率。
+				if effects != null:
+					var category: String = str(ItemRegistry.get_item_definition(str(entry.asset_id)).get("category", "")) # 区分材料与其他随机道具。
+					if category in ["material", "consumable"]:
+						chance *= effects.drop_chance_multiplier
+					if category == "material":
+						chance *= effects.material_drop_chance_multiplier
+					chance = minf(chance, 1.0)
+				if rng.randf() < chance or chance >= 1.0:
 					var quantity: int = _random_quantity(entry, rng, effects) # 生成时只应用一次数量加成。
 					if quantity < 1:
 						return {"ok": false}

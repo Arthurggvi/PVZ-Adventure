@@ -68,20 +68,16 @@ static func apply_to_preview(preview: Node2D, rank: int) -> bool:
 	return apply_palette(visual, [artwork], rank, PORTRAIT_HEIGHT)
 
 
-## 为一次放电的 [param effect] 应用 [param rank] 转配色。各帧的透明度和动画时长由原场景决定。
-static func apply_to_effect(effect: Node2D, rank: int) -> void:
+## 返回 [param rank] 转的放电材质；原色或越界时使用默认矩形材质。
+static func effect_material(rank: int) -> ShaderMaterial:
 	if rank <= 0 or rank > PALETTES.size():
-		return
-	# 首段、折射、命中都使用此 Rig，动画会独立更新子部件。
-	var rig := effect.get_node(^"Rig") as Node2D
+		return null
 	if not _bolt_materials.has(rank):
 		# 电弧材质没有空间渐变，每阶创建一次后只读复用。
-		var material := _new_material(rank)
+		var material := _new_material(rank) # 首段、折射与命中共用本等阶原着色器。
 		material.set_shader_parameter(&"projectile", true)
 		_bolt_materials[rank] = material
-	for child: Node in rig.get_children():
-		if child is Sprite2D:
-			child.material = _bolt_materials[rank]
+	return _bolt_materials[rank]
 
 
 ## 复用 [param anchor] 上的外观节点，为 [param sprites] 设置 [param rank] 与局部 [param height]。

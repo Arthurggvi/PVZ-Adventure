@@ -1,0 +1,59 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/character_000_base.tscn" id="base"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/savior/savior_gospel_pillar.gd" id="pillar"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_static.gd" id="anim"]
+
+[sub_resource type="RectangleShape2D" id="hurt"]
+size = Vector2(90, 113)
+
+[node name="SaviorGospelPillar" instance=ExtResource("base")]
+script = ExtResource("pillar")
+random_speed_range = Vector2(1, 1)
+
+[node name="Shadow" parent="." index="0"]
+visible = false
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("anim")
+
+[node name="HpComponent" parent="." index="3"]
+max_hp = 4000
+
+[node name="ProgressBarHp" type="ProgressBar" parent="HpComponent"]
+unique_name_in_owner = true
+offset_left = -35.0
+offset_top = -124.0
+offset_right = 35.0
+offset_bottom = -116.0
+mouse_filter = 2
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="LabelHp" type="Label" parent="HpComponent"]
+unique_name_in_owner = true
+offset_left = -35.0
+offset_top = -148.0
+offset_right = 35.0
+offset_bottom = -124.0
+mouse_filter = 2
+text = "4000"
+horizontal_alignment = 1
+
+[node name="HurtBoxComponent" parent="." index="4"]
+position = Vector2(0, -40)
+
+[node name="HurtBoxDetection" parent="HurtBoxComponent" index="0"]
+collision_layer = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection"]
+position = Vector2(6, -14)
+shape = SubResource("hurt")
+
+[node name="HurtBoxReal" parent="HurtBoxComponent" index="1"]
+collision_layer = 512
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(6, -14)
+shape = SubResource("hurt")

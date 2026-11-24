@@ -168,6 +168,18 @@
 
 [ext_resource type="PackedScene" path="res://scenes/ui/all_cards/templates/card_2_27.tscn" id="template_2_27"]
 
+[ext_resource type="PackedScene" path="res://scenes/ui/all_cards/templates/card_2_28.tscn" id="template_2_28"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/all_cards/templates/card_2_29.tscn" id="template_2_29"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/all_cards/templates/card_2_30.tscn" id="template_2_30"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/all_cards/templates/card_2_31.tscn" id="template_2_31"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/all_cards/templates/card_2_32.tscn" id="template_2_32"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/all_cards/templates/card_2_33.tscn" id="template_2_33"]
+
 [ext_resource type="PackedScene" path="res://scenes/ui/all_cards/templates/card_3_1.tscn" id="template_3_1"]
 
 [node name="AllCards" type="Control" unique_id=179224290]
@@ -383,6 +395,18 @@ columns = 5
 [node name="Card1" parent="ZombieCards2" unique_id=651757309 instance=ExtResource("template_2_1001")]
 
 [node name="CardExplorer" parent="ZombieCards2" instance=ExtResource("template_2_27")]
+
+[node name="CardStoneStatue" parent="ZombieCards2" instance=ExtResource("template_2_28")]
+
+[node name="CardLargeFusion" parent="ZombieCards2" instance=ExtResource("template_2_29")]
+
+[node name="CardTroglobite" parent="ZombieCards2" instance=ExtResource("template_2_30")]
+
+[node name="CardYetiImp" parent="ZombieCards2" instance=ExtResource("template_2_31")]
+
+[node name="CardHunter" parent="ZombieCards2" instance=ExtResource("template_2_32")]
+
+[node name="CardSki" parent="ZombieCards2" instance=ExtResource("template_2_33")]
 
 [node name="BossCards" type="GridContainer" parent="." unique_id=5364904]
 unique_name_in_owner = true

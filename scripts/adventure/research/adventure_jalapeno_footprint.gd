@@ -17,10 +17,10 @@ var _origin_column: int = 0
 func configure(origin: PlantCell, spread: bool, cross: bool) -> void:
 	_board = origin.board
 	_origin_column = origin.row_col.y
-	for lane: int in range(maxi(0, origin.row_col.x - int(spread)), mini(_board.extent.x, origin.row_col.x + int(spread) + 1)): # 合法空行仍是完整攻击行。
+	for lane: int in range(maxi(0, origin.combat_lane - int(spread)), mini(_board.extent.x, origin.combat_lane + int(spread) + 1)): # 合法空行仍是完整攻击行。
 		rows.append(lane)
 	for cell: PlantCell in _board.cells(): # 稀疏棋盘只加入真实存在的行和格。
-		if rows.has(cell.row_col.x) or (cross and cell.row_col.y == origin.row_col.y):
+		if rows.has(cell.combat_lane) or (cross and cell.row_col.y == origin.row_col.y):
 			cells.append(cell)
 
 ## 播放保留完整原始帧的连续火浪，并清理原版行道具；额外纵列只处理对应格和梯子。
@@ -32,7 +32,7 @@ func display(ground: bool) -> void:
 		if not is_instance_valid(cell) or cell.is_queued_for_deletion():
 			continue
 		JalapenoFireVisual.spawn_cell(cell, _origin_column)
-		if not rows.has(cell.row_col.x):
+		if not rows.has(cell.combat_lane):
 			if is_instance_valid(cell.ladder):
 				cell.ladder.ladder_death()
 		if ground:

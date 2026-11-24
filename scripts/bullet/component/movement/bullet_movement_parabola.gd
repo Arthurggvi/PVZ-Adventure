@@ -32,6 +32,13 @@ var second_control_point: Vector2
 var end_global_pos:Vector2
 #endregion
 
+## 将各世界采样点随战场移动 [param displacement]，保持原飞行计时和弧度。
+func translate_world_path(displacement: Vector2) -> void:
+	start_global_pos += displacement
+	start_control_point += displacement
+	second_control_point += displacement
+	end_global_pos += displacement
+
 ## 移动组件开始时参数，根ready调用
 func parabola_movement_ready(end_glo_pos:Vector2=Vector2.ZERO):
 	## 如果敌人还存在,更新敌人位置，不存在使用init时的位置

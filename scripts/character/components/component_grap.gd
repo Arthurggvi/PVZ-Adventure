@@ -14,8 +14,13 @@ const GRAB_SPEED: float = 2.0
 ## 用初代贴图逐帧播放藤蔓，播完后保留最后的缠绕姿态。
 @onready var anim_tanglekelp_grab: AnimationPlayer = $Anim_Tanglekelp_grab
 
-## 缠住 [param zombie]，保持半秒后将目标拖过固定水线，最后结算死亡。
-func grab_zombie(zombie: Zombie000Base) -> void:
+## 缠住 [param zombie] 并结算下沉；[param on_kill] 只在本次实际处决时收到死者与处决前本体生命。
+## 目标已被拖拽、死亡或无法播放水面抓取时返回 false，且不接管该目标。
+func grab_zombie(zombie: Zombie000Base, on_kill: Callable = Callable()) -> bool:
+	if not is_instance_valid(zombie) or zombie.is_death or zombie.is_queued_for_deletion() \
+			or zombie.curr_be_attack_status == Zombie000Base.E_BeAttackStatusZombie.IsDraggedUnder \
+			or not is_instance_valid(zombie.swim_box_component):
+		return false
 	var art_origin: Node2D = zombie.body.get_node(^"BodyCorrect") # 僵尸原版分件的局部绘制原点。
 	var grab_offset := Vector2(-28, 23) # 从普通泳圈僵尸分件原点到藤蔓原点的偏移。
 	var splash_x: float = -13.0 # 两次水花落在目标正面的局部 X。
@@ -39,7 +44,8 @@ func grab_zombie(zombie: Zombie000Base) -> void:
 	timeline.tween_interval(HOLD_SECONDS)
 	timeline.tween_callback(_start_sinking.bind(zombie, splash_x))
 	timeline.tween_property(zombie.body, ^"pose_position:y", SINK_PIXELS, SINK_SECONDS).as_relative()
-	timeline.tween_callback(_finish_grab.bind(zombie))
+	timeline.tween_callback(_finish_grab.bind(zombie, on_kill))
+	return true
 
 ## 停住 [param zombie] 的身体动画并让藤蔓、白浪随身体一同没入水中。
 ## [param splash_x] 为本次下沉水花相对脚点的局部 X。
@@ -55,9 +61,12 @@ func _spawn_target_splash(zombie: Zombie000Base, splash_x: float) -> void:
 	var splash_position: Vector2 = zombie.shadow.to_global(Vector2(splash_x, waterline_y + 4.0)) # 独立于身体位移的水花坐标。
 	Splash.spawn(zombie.get_parent() as CanvasItem, splash_position, 0.8, &"plant_water", zombie.z_index + 1)
 
-## 结算 [param zombie] 的原有死亡信号与掉落，释放目标和附着的藤蔓。
-func _finish_grab(zombie: Zombie000Base) -> void:
-	if not zombie.is_death:
+## 结算 [param zombie] 的原有死亡信号与掉落，再由 [param on_kill] 兑现本击奖励。
+func _finish_grab(zombie: Zombie000Base, on_kill: Callable) -> void:
+	if not zombie.is_death and not zombie.hp_component.is_death:
+		var health: int = zombie.hp_component.curr_hp # 在真实处决信号把生命置零前采样。
 		zombie.character_death_not_disappear()
+		if zombie.is_death and on_kill.is_valid():
+			on_kill.call(zombie, health)
 	zombie.queue_free()
 

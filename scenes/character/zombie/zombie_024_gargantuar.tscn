@@ -864,6 +864,10 @@ animation = &"Zombie_gargantuar_smash"
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_7rps6"]
 animation = &"Zombie_gargantuar_throw"
+use_custom_timeline = true
+timeline_length = 1.375
+loop_mode = 0
+stretch_time_scale = true
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_1b0ot"]
 animation = &"Zombie_gargantuar_walk"
@@ -894,19 +898,20 @@ advance_expression = "not is_attack"
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_dmd7j"]
 xfade_time = 0.2
 advance_mode = 2
-advance_expression = "is_throw"
+advance_expression = "can_start_imp_throw()"
+priority = 0
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_b1nue"]
-xfade_time = 0.2
-break_loop_at_end = true
 switch_mode = 2
 advance_mode = 2
+advance_expression = "not is_death"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_omdor"]
 break_loop_at_end = true
 switch_mode = 2
 advance_mode = 2
-advance_expression = "is_throw"
+advance_expression = "can_start_imp_throw()"
+priority = 0
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_djpk8"]
 advance_mode = 2
@@ -952,11 +957,6 @@ node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"StateMachine"
 [node name="Zombie024Gargantuar" node_paths=PackedStringArray("body_imp") instance=ExtResource("1_jh7yf")]
 script = ExtResource("2_788gv")
 body_imp = [NodePath("Body/BodyCorrect/Imp1"), NodePath("Body/BodyCorrect/Imp2"), NodePath("CharredComponent/ZombieCharred/CharredCorrect/Imp1"), NodePath("CharredComponent/ZombieCharred/CharredCorrect/Imp2")]
-MinXThrowGargantuar = 400.0
-RangeXImpThrow = Vector2(200, 360)
-XThrow = 350.0
-RangeRandomXThrow = Vector2(-50, 50)
-is_throw = false
 zombie_type = 24
 is_ignore_ladder = true
 

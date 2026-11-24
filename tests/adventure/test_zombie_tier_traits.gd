@@ -2,7 +2,6 @@ extends Node
 ## Focused integration: cone armor-loss event, timed speed composition and 3x3 query.
 const CONE: PackedScene = preload("res://scenes/character/zombie/zombie_003_cone.tscn")
 const FACTOR: int = Character000Base.E_Influence_Speed_Factor.AdventureTierBoost
-const BattleFixture = preload("res://tests/adventure/zombie_tier_battle_fixture.gd") ## 真实战场管理器的测试入口。
 var _failed := false
 
 func _ready() -> void:
@@ -13,7 +12,6 @@ func _run() -> void:
 		CharacterRegistry.ZombieType.Z001Norm, &"tier5").is_empty(), "normal zombie has no trait")
 	_require(AdventureZombieTierTraits.for_spawn(
 		CharacterRegistry.ZombieType.Z003Cone, &"base").is_empty(), "cone tier1 no trait")
-	var battle: MainGameManager = BattleFixture.mount(self) # 支持实际战场的等阶门禁。
 	# spec 是当前等阶脱盔后的速度倍率、持续秒数和友军影响范围。
 	for spec in [
 		{"tier": &"veteran", "multiplier": 1.3, "duration": 0.5, "radius": 0},
@@ -29,7 +27,7 @@ func _run() -> void:
 		var zombie: Zombie000Base = CONE.instantiate() as Zombie000Base
 		zombie.character_init_type = Character000Base.E_CharacterInitType.IsShow
 		_require(AdventureZombieTierBinding.new(tier).apply(zombie), "bind cone " + str(tier))
-		battle.add_child(zombie)
+		add_child(zombie)
 		await get_tree().process_frame
 		var hp: HpComponentZombie = zombie.get_node("HpComponent") as HpComponentZombie
 		_require(hp.max_hp_armor1 > 0, "cone armor exists " + str(tier))
@@ -54,7 +52,7 @@ func _run() -> void:
 
 	var target := CONE.instantiate() as Zombie000Base
 	target.character_init_type = Character000Base.E_CharacterInitType.IsShow
-	battle.add_child(target)
+	add_child(target)
 	await get_tree().process_frame
 	AdventureZombieTimedSpeedBoost.apply_to(target, 1.2, 1.0)
 	AdventureZombieTimedSpeedBoost.apply_to(target, 1.5, 0.4)

@@ -29,7 +29,7 @@ var growth_cap: float = 3.0
 ## 追猎按命中前已损生命计算的比例。
 var missing_health_fraction: float = 0.0
 ## 追猎对僵王按最大生命限定的附伤比例。
-var boss_bonus_cap_fraction: float = 0.002
+var boss_bonus_cap_fraction: float = 0.0008
 ## 是否在有效命中后分裂；弱镖永久关闭此入口。
 var split_enabled: bool = false
 ## 本枚弹体的基础伤害倍率；弱镖不继承母镖的成长次数。
@@ -67,7 +67,7 @@ static func from_plant(plant: Plant000Base, rules: Dictionary,
 		shot.growth_cap = maxf(1.0, _number(rules, "bloomerang_crescent", "max_multiplier", 3.0))
 	if rules.has("bloomerang_hunt"):
 		shot.missing_health_fraction = clampf(_number(rules, "bloomerang_hunt", "missing_health_ratio", 0.09), 0.0, 1.0)
-		shot.boss_bonus_cap_fraction = clampf(_number(rules, "bloomerang_hunt", "boss_cap_ratio", 0.002), 0.0, 1.0)
+		shot.boss_bonus_cap_fraction = clampf(_number(rules, "bloomerang_hunt", "boss_cap_ratio", shot.boss_bonus_cap_fraction), 0.0, 1.0)
 	shot.split_enabled = rules.has("bloomerang_rain")
 	shot._weak_base_multiplier = clampf(_number(rules, "bloomerang_rain", "weak_base_multiplier", 0.5), 0.0, 1.0)
 	return shot

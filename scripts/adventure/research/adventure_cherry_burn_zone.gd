@@ -60,7 +60,7 @@ func ignite(game: MainGameManager, origin: Vector2, lane: int, profile: CombatEx
 		flame.cell_size = cell.get_global_rect().size
 		flame.variation = float(cell.row_col.x * 17 + cell.row_col.y * 7)
 		flame.z_as_relative = false
-		flame.z_index = cell.row_col.x * 50 + 10
+		flame.z_index = cell.combat_lane * 50 + 10
 		add_child(flame)
 		flame.global_position = cell.get_slot_anchor_global_position(CharacterRegistry.PlacePlantInCell.Norm)
 		if profile.shape is CircleShape2D:

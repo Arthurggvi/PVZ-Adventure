@@ -1,0 +1,52 @@
+花园飞艇 R3 环境音频来源
+取得及核对日期 2026-11-24。正式文件为 44.1 kHz Ogg Vorbis，前三轨循环，索具为单次触发。
+
+air.ogg
+- Mildly Useless 的 Wind Loop，CC0 1.0，不要求署名。
+  作品 https://mildlyuseless.com/res/ambience-wind-loop
+  下载原始 WAV https://mildlyuseless.com/res/sfx/ambience/ambience-wind-loop.wav
+- Luke.RUSTLTD 的 wind1，CC0 1.0，不要求署名。
+  作品 https://opengameart.org/content/wind1
+  下载原始 WAV https://opengameart.org/sites/default/files/wind1.wav
+- 去直流、截取、限带、等功率交叠及立体声扩展。wind1 混入两侧的高频风纹理。
+
+pressure.ogg
+- 复用项目 resources/adventure/audio/snow_mountains_light_wind.ogg 的风声片段，原录音为 TSP-Talk 的 Quiet Winter Night with Light Snow & Wind – Altenthann Ambience – 260215_001，CC0 1.0，不要求署名。
+  作品 https://freesound.org/people/TSP-Talk/sounds/845502/
+- 混入 Mildly Useless 的 Wind Loop。去直流、等功率交叠和低通，保留风压所需的低中频。
+
+engine.ogg
+- jakobthiesen 的 Porter Prop plane Int.WAV，AntumDeluge 的 Airplane Prop Loop 循环编辑。原录音及上游循环均为 CC BY 3.0。
+  原作 https://freesound.org/people/jakobthiesen/sounds/188423/
+  编辑 https://opengameart.org/content/airplane-prop-loop
+  下载无损循环 https://opengameart.org/sites/default/files/airplane_prop.flac
+- 本项目去直流、重新交叠循环边界、收窄立体声、均衡螺旋桨中低频、调整响度并编码。
+- 游戏分发时保留作者、作品、来源、许可及修改说明。Vorbis 标签也含作者、来源及许可链接。
+
+rigging.ogg
+- Department64 的 tree_creak_04.wav，使用 AntumDeluge 已清理的 Tree Creaking 无损发布版。两者均为 CC0 1.0，不要求署名。
+  原作 https://freesound.org/people/Department64/sounds/95262/
+  编辑 https://opengameart.org/content/tree-creaking
+  下载无损文件 https://opengameart.org/sites/default/files/tree_creak.flac
+- Iochi Glaucus 的 Fabric Rustling，CC0 1.0，不要求署名。
+  作品 https://opengameart.org/content/fabric-rustling
+  下载发布文件 https://opengameart.org/sites/default/files/rustling.ogg
+- 截取木质应力和布料各一段，滤波、木声降调、混合、调整增益及首尾渐变。
+
+CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/
+CC BY 3.0 https://creativecommons.org/licenses/by/3.0/
+
+花园飞艇 R5 位置音频派生
+处理日期 2026-11-24。三个文件均为 44.1 kHz 单声道 Vorbis，复用以上已核对的素材谱系。
+- engine_mono_r5.ogg（26,609 字节）取自 engine.ogg，等权合并左右声道并重新压缩，保留循环。原作 jakobthiesen，循环编辑 AntumDeluge，CC BY 3.0，原作和许可链接见上。
+- jet_r5.ogg（93,212 字节）取自 pressure.ogg，单声道、高通并保留循环。原录音 TSP-Talk，加上 Mildly Useless 的合成风，均为 CC0 1.0。
+- flyby_r5.ogg（10,161 字节）取自 air.ogg 的 0.76 秒风段，单声道、先裁出片段并重置时间轴，带通、起落淡化、调整峰值，单发。原风源 Mildly Useless 及 Luke.RUSTLTD，均为 CC0 1.0。
+
+花园飞艇 R7 爆炸位置音频派生
+处理日期 2026-11-24。两轨为 44.1 kHz 单声道 Vorbis、单次触发。
+- burst_impact_r7.ogg（6,727 字节）截取项目内 assets/adventure/zombies/arbiter_x/audio/impact_explosion.ogg 的起音，限带、短淡出并调整峰值。上游为 Kodack 的 Deep Explosion 及 Za-Games 的 Deep Boom，CC0 1.0。
+  https://freesound.org/people/Kodack/sounds/258195/
+  https://freesound.org/people/Za-Games/sounds/539968/
+- burst_tail_r7.ogg（12,252 字节）将 flyby_r5.ogg 的短破风与项目内 assets/adventure/zombies/arbiter_x/audio/wreck_fire.ogg 的燃烧片段限带混合，分别收束气浪和余火。风声源为 Mildly Useless 及 Luke.RUSTLTD，CC0 1.0，作品与许可链接见上。燃烧声为 TheWoodlandNomad 的 Fire Crackle and Flames 001，CC0 1.0。
+  https://freesound.org/people/TheWoodlandNomad/sounds/363093/
+  CC0 1.0 允许修改及再分发。完整许可 https://creativecommons.org/publicdomain/zero/1.0/

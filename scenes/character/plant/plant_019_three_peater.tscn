@@ -256,6 +256,9 @@ skew = 0.019831782
 texture = ExtResource("14_g422m")
 centered = false
 
+[node name="LaserMuzzle" type="Marker2D" parent="Body/BodyCorrect/Anim_head1/Node2D/ThreePeater_mouth1"]
+position = Vector2(12.5, 21.5)
+
 [node name="Anim_head3" type="Sprite2D" parent="Body/BodyCorrect" index="11" unique_id=1864656253]
 position = Vector2(22.091064, 21.654469)
 centered = false
@@ -312,6 +315,9 @@ scale = Vector2(0.64, 0.6046391)
 texture = ExtResource("14_g422m")
 centered = false
 
+[node name="LaserMuzzle" type="Marker2D" parent="Body/BodyCorrect/Anim_head3/Node2D/ThreePeater_mouth3"]
+position = Vector2(12.5, 21.5)
+
 [node name="Anim_head2" type="Sprite2D" parent="Body/BodyCorrect" index="12" unique_id=1432740116]
 position = Vector2(34.52715, 34.02715)
 centered = false
@@ -358,6 +364,9 @@ skew = -0.0244346
 texture = ExtResource("13_p64lq")
 centered = false
 
+[node name="LaserMuzzle" type="Marker2D" parent="Body/BodyCorrect/Anim_head2/Node2D/ThreePeater_mouth2"]
+position = Vector2(12.5, 21.5)
+
 [node name="ThreePeater_head2_blink2" type="Sprite2D" parent="Body/BodyCorrect/Anim_head2/Node2D" index="5" unique_id=1435602761]
 visible = false
 position = Vector2(41.618786, 21.252367)
@@ -389,9 +398,10 @@ parameters/OneShot/internal_active = false
 parameters/OneShot/request = 0
 parameters/TimeScale/scale = 1.0
 
-[node name="AttackComponent" type="Node2D" parent="." index="10" unique_id=1509550506 node_paths=PackedStringArray("markers_2d_bullet")]
+[node name="AttackComponent" type="Node2D" parent="." index="10" unique_id=1509550506 node_paths=PackedStringArray("markers_2d_bullet", "laser_muzzles")]
 script = ExtResource("26_jdor8")
 markers_2d_bullet = [NodePath("../Body/BodyCorrect/Marker2DBullet")]
+laser_muzzles = [NodePath("../Body/BodyCorrect/Anim_head3/Node2D/ThreePeater_mouth3/LaserMuzzle"), NodePath("../Body/BodyCorrect/Anim_head2/Node2D/ThreePeater_mouth2/LaserMuzzle"), NodePath("../Body/BodyCorrect/Anim_head1/Node2D/ThreePeater_mouth1/LaserMuzzle")]
 
 [node name="BulletAttackCdTimer" type="Timer" parent="AttackComponent" index="0" unique_id=992679642]
 script = ExtResource("speed_timer")

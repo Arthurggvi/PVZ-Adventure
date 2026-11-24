@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/character/zombie/arbiter_x/arbiter_x_crash.gd" id="1_crash"]
+
+[ext_resource type="Texture2D" path="res://assets/image/plant/plantshadow.png" id="2_shadow"]
+
+[node name="ArbiterXCrash" type="Node2D"]
+script = ExtResource("1_crash")
+
+[node name="WreckShadow" type="Sprite2D" parent="."]
+visible = false
+scale = Vector2(2.55, 0.85)
+modulate = Color(0.10, 0.085, 0.07, 0.4)
+texture = ExtResource("2_shadow")

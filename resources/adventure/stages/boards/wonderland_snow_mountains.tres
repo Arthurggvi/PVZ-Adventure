@@ -1,0 +1,20 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/snow_mountain_board.gd" id="board"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_surface_definition.gd" id="surface"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_terrain_definition.gd" id="terrain"]
+
+[sub_resource type="Resource" id="Ground"]
+script = ExtResource("surface")
+
+[sub_resource type="Resource" id="Snow"]
+script = ExtResource("terrain")
+terrain_id = &"snow"
+tags = Array[StringName]([&"land", &"snow"])
+
+[resource]
+script = ExtResource("board")
+board_id = &"wonderland.snow_mountains"
+surfaces = Array[ExtResource("surface")]([SubResource("Ground")])
+terrains = Array[ExtResource("terrain")]([SubResource("Snow")])
+accelerate_entry_from_last_column = true

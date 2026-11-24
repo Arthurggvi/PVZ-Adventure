@@ -17,16 +17,17 @@ func setup(battle: MainGameManager) -> void:
 ## [param glo_pos] 为清场位置；先保存本阶段奖励，再询问是否续战。
 func complete_checkpoint(glo_pos: Vector2) -> void:
 	game.zombie_manager.zombie_wave_manager.stop_wave_refresh()
-	if not TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.AdventureContinue, false):
+	if not TreePauseManager.is_paused_for(TreePauseManager.E_PauseFactor.AdventureContinue):
 		TreePauseManager.start_tree_pause(TreePauseManager.E_PauseFactor.AdventureContinue)
 	if not AdventureSession.settle_victory():
 		AdventureSession.prompt_victory_retry(complete_checkpoint.bind(glo_pos))
 		return
-	var presentation: Tween = game.drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase) # 续战弹窗等中央钱币落稳后再显示。
-	if presentation != null:
-		await presentation.finished
-		if not is_instance_valid(game) or not game.is_inside_tree() or game.is_queued_for_deletion():
-			return
+	if not AdventureSession.is_stage_preview:
+		var presentation: Tween = game.drop_item_manager.spawn_first_clear_coins(AdventureSession.active_phase) # 续战弹窗等中央钱币落稳后再显示。
+		if presentation != null:
+			await presentation.finished
+			if not is_instance_valid(game) or not game.is_inside_tree() or game.is_queued_for_deletion():
+				return
 	if _can_offer_followup():
 		_show_offer(glo_pos)
 	else:
@@ -38,10 +39,12 @@ func _show_offer(glo_pos: Vector2) -> void:
 	var terminal: bool = AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NIGHTMARE # 从噩梦续战时使用下半钥匙。
 	var stage: StageDefinition = AdventureSession.active_stage # 当前关卡的钥匙配置。
 	var key_id: StringName = stage.terminal_key_id if terminal else stage.nightmare_key_id # 本次续战实际使用的物品。
-	var key_name: String = str(ItemRegistry.get_item_definition(str(key_id)).get("name", "钥匙")) # 使用背包显示名。
+	var key_name: String = "" if AdventureSession.is_stage_preview else str(ItemRegistry.get_item_definition(str(key_id)).get("name", "钥匙")) # 正式关卡使用背包显示名。
 	var action: String = "消耗" if terminal or stage.nightmare_key_use == StageDefinition.KeyUse.CONSUME else "使用" # 显示实际扣除规则。
 	var next_phase: String = "终末" if terminal else "噩梦" # 确认按钮对应的目标阶段。
 	var prompt: String = "%s%s来开启%s阶段吗？" % [action, key_name, next_phase] # 明确提示钥匙与阶段。
+	if AdventureSession.is_stage_preview:
+		prompt = "进入%s阶段，继续本局战斗吗？" % ("Boss" if terminal else "噩梦")
 	if not AdventureSession.error_message.is_empty():
 		prompt += "\n" + AdventureSession.error_message
 	dialog = InventoryDialog.new()
@@ -76,6 +79,10 @@ func _continue(_quantity: int, glo_pos: Vector2) -> void:
 		push_error("冒险连续阶段的战场前置条件无效。")
 		_finish_challenge(glo_pos)
 		return
+	if is_instance_valid(game.phase_presentation) and not game.phase_presentation.prepare_phase(next_phase):
+		AdventureSession.error_message = "阶段场景尚未就绪，当前战场已保留。"
+		_show_offer(glo_pos)
+		return
 	var entered: bool = AdventureSession.begin_terminal() if terminal else AdventureSession.begin_nightmare() # 校验并提交钥匙事务。
 	if not entered:
 		_show_offer(glo_pos)
@@ -86,6 +93,11 @@ func _continue(_quantity: int, glo_pos: Vector2) -> void:
 		game.remove_child(game.adventure_runtime)
 		game.adventure_runtime.free()
 		game.adventure_runtime = null
+	# 场景表现只在已提交的阶段交接点运行；暂停期间保留全部植株和卡槽实例。
+	if is_instance_valid(game.phase_presentation):
+		await game.phase_presentation.play_phase(next_phase)
+		if not is_instance_valid(game) or not game.is_inside_tree():
+			return
 	# 旧 ResourceLevelData 是投影，所有阶段动态读取应以 Session.active_phase 为准。
 	AdventureBattleEnvironmentAdapter.project_phase(game.game_para, AdventureSession.active_phase)
 	game.zombie_manager.zombie_refresh_types = game.game_para.zombie_refresh_types

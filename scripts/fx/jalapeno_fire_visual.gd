@@ -42,8 +42,7 @@ static func spawn_cell(cell: PlantCell, origin_column: int, ground: bool = false
 	flame.cell_width = cell.size.x
 	flame.variation = float(cell.row_col.y * 7 + cell.row_col.x * 3)
 	flame.wave_delay = minf(0.12, absf(float(cell.row_col.y - origin_column)) * 0.018)
-	flame.z_index = cell.row_col.x * 50 + 40
-	flame.z_as_relative = false
+	flame.z_index = 30 # 地块所在行的绘制层再加 30，浮台携带余火跨行时一起更新。
 	cell.add_child(flame)
 	flame.position = Vector2(cell.size.x * 0.5, cell.size.y)
 	return flame

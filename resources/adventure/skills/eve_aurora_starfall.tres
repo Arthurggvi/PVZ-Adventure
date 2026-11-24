@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CharacterSkillDefinition" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/skills/character_skill_definition.gd" id="1_definition"]
+[ext_resource type="Script" path="res://scripts/adventure/skills/eve_aurora_starfall_effect.gd" id="2_effect"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/snow_train_conductor_eve.png" id="3_portrait"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/skill_titles/eve_aurora_starfall.svg" id="4_title"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/outfit_icons/snow_train_conductor_eve.png" id="5_icon"]
+[ext_resource type="AudioStream" path="res://assets/audio/SFX/item/chime.ogg" id="6_chime"]
+
+[sub_resource type="Resource" id="AuroraStarfallEffect"]
+script = ExtResource("2_effect")
+
+[resource]
+script = ExtResource("1_definition")
+id = &"eve_aurora_starfall"
+display_name = "极光星弹"
+description = "发射六发极光星弹，优先追踪不同敌人并尽量拉开落点。无目标时随机落下。每发触地即凝成星空冰，对落点周围 3×3 格的敌人造成 200 点伤害，施加 5 秒特殊减速，并分别以 50% 概率直接魅惑存活的普通僵尸。开战时进入冷却。"
+icon = ExtResource("5_icon")
+cut_in_portrait = ExtResource("3_portrait")
+cut_in_title = ExtResource("4_title")
+cut_in_sound = ExtResource("6_chime")
+cut_in_accent = Color(0.36, 0.81, 0.90, 1)
+cooldown_seconds = 90.0
+starts_on_cooldown = true
+effect = SubResource("AuroraStarfallEffect")

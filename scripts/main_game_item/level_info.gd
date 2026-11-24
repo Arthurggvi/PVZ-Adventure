@@ -13,7 +13,7 @@ const BOTTOM_MARGIN := 5.0
 ## 相邻血条之间的最大间距，单位为界面像素。
 const BAR_GAP := 8.0
 
-## 每个登场僵王使用同一场景，各自绑定血量和阶段信号。
+## 独立僵王与共用一条血条的遭遇都使用此场景。
 @export var boss_bar_scene: PackedScene
 
 ## 多轮关卡的轮次标签，显示时为其留出独立空间。
@@ -21,8 +21,8 @@ const BAR_GAP := 8.0
 ## 原波次进度条的容器，保留子进度条各自的显隐状态。
 @onready var wave_progress_root: Control = $WaveProgressRoot
 
-## 按登记顺序保存每个实例的血条，淡出期间继续占用原有位置。
-var _boss_bars: Dictionary[int, BossHpProgressBar] = {}
+## 按登记顺序保存实例或遭遇的血条，淡出期间继续占用原有位置。
+var _boss_bars: Dictionary[StringName, BossHpProgressBar] = {}
 
 
 ## 视口尺寸变化时重新分配血条宽度，等待锚定的轮次标签更新位置。
@@ -42,40 +42,46 @@ func set_round(curr_round: int) -> void:
 ## [param keep_depleted] Boss 击杀判胜时，血条耗尽并淡出，波次进度继续隐藏。[br]
 ## [param restore_wave] 仍在普通波次战斗时，最后一只僵王离场后恢复波次容器。
 func refresh_boss_progress(bosses: Array[ZB000Base], keep_depleted: bool, restore_wave: bool) -> void:
-	# 仅记录本次成功绑定的实例，离场血条仍留在字典中直到淡出完成。
-	var live_ids: Dictionary[int, bool] = {}
-	# 依次同步场上的角色，新角色追加到血条末尾。
-	for boss: ZB000Base in bosses:
+	# 按登记顺序为本次快照整理各血条的存活成员。
+	var members_by_bar: Dictionary[StringName, Array] = {}
+	for boss: ZB000Base in bosses: # 独立实例也作为单成员记录。
 		if not is_instance_valid(boss) or not boss.is_node_ready() or boss.is_death \
 			or not boss.is_inside_tree() or boss.is_queued_for_deletion():
 			continue
 		if not is_instance_valid(boss.hp_component) or boss.hp_component.max_hp <= 0:
 			continue
-		# 本局僵王的实例 ID，同种僵王也分别占一个位置。
-		var boss_id: int = boss.get_instance_id()
-		# 优先复用对应血条，保留受伤和转阶段动画。
-		var bar: BossHpProgressBar = _boss_bars.get(boss_id)
+		var group_id: int = boss.boss_encounter_group_id() # 0 表示独立血条。
+		# 实例 ID 与分组编号使用不同前缀，避免同一数值对应同一条血条。
+		var bar_key := StringName(
+			"instance:%d" % boss.get_instance_id() if group_id == 0 else "group:%d" % group_id)
+		if not members_by_bar.has(bar_key):
+			var new_members: Array[ZB000Base] = [] # 先建立类型化的成员列表供绑定使用。
+			members_by_bar[bar_key] = new_members
+		members_by_bar[bar_key].append(boss)
+
+	for bar_key: StringName in members_by_bar: # 同遭遇的成员变动继续使用原血条。
+		var bar: BossHpProgressBar = _boss_bars.get(bar_key) # 保留原布局项和补间。
 		if bar == null:
 			bar = boss_bar_scene.instantiate() as BossHpProgressBar
 			add_child(bar)
-			bar.signal_fade_finished.connect(_remove_boss_bar.bind(boss_id))
-			_boss_bars[boss_id] = bar
-		bar.bind_boss(boss)
-		live_ids[boss_id] = true
+			bar.signal_fade_finished.connect(_remove_boss_bar.bind(bar_key))
+			_boss_bars[bar_key] = bar
+		var members: Array[ZB000Base] = members_by_bar.get(bar_key) # 当前占用此血条的类型化成员列表。
+		bar.bind_bosses(members)
 
-	# 对不在新快照中的角色启动淡出，避免立即重排盖住正在离场的血条。
-	for boss_id: int in _boss_bars:
-		if not live_ids.has(boss_id):
-			_boss_bars[boss_id].fade_out(keep_depleted)
+	# 这条血条没有存活成员时启动淡出，淡出结束再腾出位置。
+	for bar_key: StringName in _boss_bars: # 字典包括尚未淡出完的血条。
+		if not members_by_bar.has(bar_key):
+			_boss_bars[bar_key].fade_out(keep_depleted)
 
-	wave_progress_root.visible = live_ids.is_empty() and restore_wave and not keep_depleted
+	wave_progress_root.visible = members_by_bar.is_empty() and restore_wave and not keep_depleted
 	_layout_boss_bars()
 
 
-## [param boss_id] 已完成淡出的实例 ID；释放该血条，再用剩余血条重排。
-func _remove_boss_bar(boss_id: int) -> void:
-	_boss_bars[boss_id].queue_free()
-	_boss_bars.erase(boss_id)
+## [param bar_key] 已完成淡出的实例或遭遇的键；释放该血条，再用剩余血条重排。
+func _remove_boss_bar(bar_key: StringName) -> void:
+	_boss_bars[bar_key].queue_free()
+	_boss_bars.erase(bar_key)
 	_layout_boss_bars()
 
 

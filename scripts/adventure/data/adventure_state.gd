@@ -8,12 +8,17 @@ const LibraryStock = preload("res://scripts/adventure/library/library_stock.gd")
 ## 商店购买记录独立编码，旧档缺失时默认六槽。
 const ShopState = preload("res://scripts/adventure/shop/shop_state.gd")
 
+## 强化记录的持久化结果编号，失败保星时仍与普通失败分开显示。
+enum EnhancementOutcome { SUCCESS = 0, FAILURE = 1, PROTECTED = 2 }
+
 ## 第一阶段协议版本，未知版本不自动初始化或迁移。
 var schema_version: int = 1
 ## 按独立 UID 索引的植物卡实例。
 var cards: Dictionary[String, PlantCardInstance] = {}
 ## 按静态道具 ID 索引的正整数数量，数量为零的条目不保留。
 var items: Dictionary[String, int] = {}
+## 最近一次整理保存的道具 ID 顺序。已消耗的条目可跳过，未登记的道具在背包末尾显示。
+var item_order_ids: Array[String] = []
 ## 有序出战 UID 列表，必须存在于 cards 且不重复。
 var selected_card_uids: Array[String] = []
 ## 背包植物永久展示顺序；与上次出战 UID 分离，必须覆盖 cards 的每张实例。
@@ -42,6 +47,18 @@ var almanac_discoveries: Dictionary[String, bool] = {}
 var library: LibraryStock = LibraryStock.new()
 ## 每日限购、永久槽位与购买版本属于当前玩家档案。
 var shop: ShopState = ShopState.new()
+## 按结算先后保留本档所有强化记录；单条记录只含不可变的基础值。
+var enhancement_history: Array[Dictionary] = []
+
+## 以本机墙钟记录 [param plant_type] 的 [param before_stars] 到 [param after_stars] 及 [param outcome]。
+## 由强化事务在存档前追加，保存失败时事务会移除本次记录。
+func record_enhancement(plant_type: int, before_stars: int, after_stars: int,
+		outcome: EnhancementOutcome) -> void:
+	var entry: Dictionary = {"time": Time.get_datetime_string_from_system(false, true),
+		"plant_type": plant_type, "before_stars": before_stars, "after_stars": after_stars,
+		"outcome": outcome} # 时间精确到秒，保存操作当时设备显示的日期与时间。
+	entry.make_read_only()
+	enhancement_history.append(entry)
 
 ## 记录 [param kind] 类别的 [param type_id]；首次发现返回 true，重复或非法输入不改变状态。
 func discover_character(kind: String, type_id: int) -> bool:
@@ -53,24 +70,30 @@ func discover_character(kind: String, type_id: int) -> bool:
 	almanac_discoveries[key] = true
 	return true
 
-## 返回深拷贝的 JSON 基础数据；非法内存状态返回空字典，不泄漏对象引用。
+## 返回经过协议校验的独立数据；装备使用读档及变更入口已验证的运行态。
 func to_dict() -> Dictionary:
-	if shop == null or ShopState.from_dict(shop.to_dict()) == null:
+	var data: Dictionary = save_snapshot() # 普通序列化调用仍可同步确认存档快照有效。
+	return data if validate_save_snapshot(data) else {}
+
+## 复制独立的存档字段，完整的纯数据协议校验由持久化入口执行。
+func save_snapshot() -> Dictionary:
+	if shop == null or library == null or quests == null or equipment == null:
 		return {}
-	if library == null or LibraryStock.from_dict(library.to_dict()) == null:
+	# 这些容器允许变长的嵌套结构，在复制前拒绝场景对象和循环引用。
+	if not is_json_value(regions) or not is_json_value(quests.records) or not is_json_value(library.offers):
 		return {}
-	if not _is_json_value(regions) or quests == null or AdventureQuestState.from_dict(quests.to_dict()) == null \
-			or equipment == null or PlayerEquipmentState.from_dict(equipment.to_dict()) == null:
-		return {}
-	var encoded_cards: Dictionary = {} # 卡实例逐个编码，不将 RefCounted 对象交给 JSON。
-	for card_uid: String in cards: # 字典键和实例 UID 还会经协议校验回比。
-		if cards[card_uid] == null:
+	var encoded_cards: Dictionary = {} # 保留每张卡的独立字段，不传递实例对象。
+	for card_uid: String in cards: # 键与实例的 UID 由存档协议核对。
+		var card: PlantCardInstance = cards[card_uid] # 一次取出可以安全复制的卡片实例。
+		if card == null:
 			return {}
-		encoded_cards[card_uid] = cards[card_uid].to_dict()
+		encoded_cards[card_uid] = card.save_snapshot()
 	var data: Dictionary = {"schema_version": schema_version, "cards": encoded_cards,
 		"items": items.duplicate(true), "selected_card_uids": selected_card_uids.duplicate(),
 		"card_order_uids": card_order_uids.duplicate(), "next_card_id": next_card_id, "regions": regions.duplicate(true),
 		"claimed_rewards": claimed_rewards.duplicate(true)} # 所有嵌套容器独立于运行态。
+	if not item_order_ids.is_empty():
+		data["item_order_ids"] = item_order_ids.duplicate() # JSON 字典按键写出，道具顺序单独用数组保存。
 	data["quests"] = quests.to_dict()
 	if facilities_unlocked_by_cheat:
 		data["facilities_unlocked_by_cheat"] = true
@@ -81,10 +104,20 @@ func to_dict() -> Dictionary:
 	data["almanac_discoveries"] = almanac_discoveries.duplicate()
 	data["library"] = library.to_dict()
 	data["shop"] = shop.to_dict()
-	return data if from_dict(data) != null else {}
+	if not enhancement_history.is_empty():
+		data["enhancement_history"] = enhancement_history.duplicate() # 冻结的记录可以与后台快照安全共享。
+	return data
+
+## 校验由 [method save_snapshot] 生成的 [param data]；装备字段已由读档和变更入口校验。
+static func validate_save_snapshot(data: Dictionary) -> bool:
+	return _decode(data, false) != null
 
 ## 从 [param data] 校验并创建独立状态；非法结构、版本、UID、出战列表或数量返回 null。
 static func from_dict(data: Variant) -> AdventureState:
+	return _decode(data, true)
+
+## 共用 [param data] 的协议检查；[param load_profile_details] 为 true 时恢复装备和强化记录。
+static func _decode(data: Variant, load_profile_details: bool) -> AdventureState:
 	if not data is Dictionary:
 		return null
 	for field: String in ["schema_version", "cards", "items", "selected_card_uids", "next_card_id", "regions", "claimed_rewards"]: # 协议字段不凭缺失值伪造新档。
@@ -94,11 +127,21 @@ static func from_dict(data: Variant) -> AdventureState:
 		or not PlantCardInstance.is_positive_integer(data.next_card_id):
 		return null
 	if not data.cards is Dictionary or not data.items is Dictionary or not data.selected_card_uids is Array \
-		or not data.regions is Dictionary or not data.claimed_rewards is Dictionary or not _is_json_value(data.regions):
+			or not data.regions is Dictionary or not data.claimed_rewards is Dictionary or not is_json_value(data.regions):
 		return null
 	if data.has("card_order_uids") and not data.card_order_uids is Array:
 		return null
 	var state := AdventureState.new() # 所有容器和卡片都在此新实例中恢复。
+	var history: Variant = data.get("enhancement_history", []) # 旧档缺少日志时从空记录开始。
+	if not history is Array:
+		return null
+	for entry: Variant in history: # 每条记录独立于当前卡片，卡片消耗后依然有效。
+		if not _is_enhancement_record(entry):
+			return null
+		if load_profile_details:
+			var restored: Dictionary = entry.duplicate() # 读档对象独占记录，且只允许追加或回滚整条记录。
+			restored.make_read_only()
+			state.enhancement_history.append(restored)
 	state.shop = ShopState.from_dict(data.get("shop", {}))
 	if state.shop == null:
 		return null
@@ -133,7 +176,7 @@ static func from_dict(data: Variant) -> AdventureState:
 		state.set(field, int(value))
 	# 旧档保留累计经验；等级缓存按统一成长曲线恢复，不在读档时发放任何奖励。
 	state.player_level = int(PlayerProgression.progress(state.experience).level)
-	if data.has("equipment"):
+	if load_profile_details and data.has("equipment"):
 		state.equipment = PlayerEquipmentState.from_dict(data.equipment)
 		if state.equipment == null:
 			return null
@@ -153,6 +196,7 @@ static func from_dict(data: Variant) -> AdventureState:
 		if number == 0 or number >= state.next_card_id or card == null or card.uid != card_uid \
 			or not Promotions.is_valid_chain(card):
 			return null
+		card.promotion_2 = Promotions.canonical_book_id(card.promotion_2)
 		state.cards[card_uid] = card
 		state.discover_character("plant", card.plant_type)
 	# 旧版存档没有显式排序：从稳定 UID 数字恢复首次顺序，不触碰卡组。
@@ -170,8 +214,8 @@ static func from_dict(data: Variant) -> AdventureState:
 	for item_id: Variant in data.items: # 不接受未知种类、零/负数或非整数数量。
 		if typeof(item_id) != TYPE_STRING or not PlantCardInstance.is_positive_integer(data.items[item_id]):
 			return null
-		# 仅在读档边界将旧单级生长剂归并为一级；运行态与新存档不再保留旧 ID。
-		var canonical_id: String = "growth_agent_lv1" if item_id == "growth_agent" else item_id
+		# 读档时归并旧生长剂和旧转职书，保留同一现行道具的合计数量。
+		var canonical_id: String = "growth_agent_lv1" if item_id == "growth_agent" else Promotions.canonical_book_id(item_id)
 		if not ItemRegistry.has_item(canonical_id):
 			return null
 		var quantity: int = int(data.items[item_id]) # 单个合法正整数数量。
@@ -179,6 +223,17 @@ static func from_dict(data: Variant) -> AdventureState:
 		if quantity > PlantCardInstance.MAX_JSON_INTEGER - existing:
 			return null
 		state.items[canonical_id] = existing + quantity
+	var item_order: Variant = data.get("item_order_ids", []) # 旧档缺字段时沿用原有的库存遍历顺序。
+	if not item_order is Array:
+		return null
+	var ordered_items: Dictionary[String, bool] = {} # 整理顺序中的道具 ID 去重，不要求当前仍持有。
+	var canonical_order: Dictionary[String, bool] = {} # 合并前后的同一本书保留第一次出现的位置。
+	for item_id: Variant in item_order: # 允许已消耗或目录已移除的道具占有历史位置。
+		if typeof(item_id) != TYPE_STRING or item_id.is_empty() or ordered_items.has(item_id):
+			return null
+		ordered_items[item_id] = true
+		canonical_order[Promotions.canonical_book_id(item_id)] = true
+	state.item_order_ids.assign(canonical_order.keys())
 	for card_uid: Variant in data.selected_card_uids: # 先验证整个输入，新状态失败时不会触及调用者的旧状态。
 		if typeof(card_uid) != TYPE_STRING or not state.cards.has(card_uid) or state.selected_card_uids.has(card_uid):
 			return null
@@ -194,12 +249,28 @@ static func from_dict(data: Variant) -> AdventureState:
 		state.claimed_rewards[reward_id] = data.claimed_rewards[reward_id]
 	return state
 
+## 校验 [param entry] 的固定格式和结果范围，容许档案记录中出现已移除的植物物种。
+static func _is_enhancement_record(entry: Variant) -> bool:
+	if not entry is Dictionary or entry.size() != 5:
+		return false
+	var local_time: Variant = entry.get("time") # 以固定宽度保留当时本机日期和秒数。
+	var before: Variant = entry.get("before_stars") # 从零星起记录实际结算前的星级。
+	var after: Variant = entry.get("after_stars") # 结算后可能升星、掉星或保持原星级。
+	var outcome: Variant = entry.get("outcome") # JSON 读回的整数也可能以浮点类型表示。
+	return (local_time is String and local_time.length() == 19
+		and local_time[4] == "-" and local_time[7] == "-" and local_time[10] == " "
+		and local_time[13] == ":" and local_time[16] == ":"
+		and PlantCardInstance.is_positive_integer(entry.get("plant_type"))
+		and PlantCardInstance.is_nonnegative_integer(before) and before < PlantCardInstance.MAX_STARS
+		and PlantCardInstance.is_nonnegative_integer(after) and after <= PlantCardInstance.MAX_STARS
+		and PlantCardInstance.is_nonnegative_integer(outcome) and outcome <= EnhancementOutcome.PROTECTED)
+
 ## 旧存档首次排序按 UID 递增；文本排序在编号超过六位时会失序。
 static func _uid_before(a: String, b: String) -> bool:
 	return PlantCardInstance.uid_number(a) < PlantCardInstance.uid_number(b)
 
 ## [param value] 仅可包含 JSON 基础类型；[param depth] 限制异常深度与循环容器。
-static func _is_json_value(value: Variant, depth: int = 0) -> bool:
+static func is_json_value(value: Variant, depth: int = 0) -> bool:
 	if depth > 64:
 		return false
 	match typeof(value):
@@ -211,12 +282,12 @@ static func _is_json_value(value: Variant, depth: int = 0) -> bool:
 			return is_finite(value)
 		TYPE_ARRAY:
 			for entry: Variant in value: # 递归校验，不接受 Object、向量或 Resource 等非 JSON 数据。
-				if not _is_json_value(entry, depth + 1):
+				if not is_json_value(entry, depth + 1):
 					return false
 			return true
 		TYPE_DICTIONARY:
 			for key: Variant in value: # JSON 对象键必须为字符串。
-				if typeof(key) != TYPE_STRING or not _is_json_value(value[key], depth + 1):
+				if typeof(key) != TYPE_STRING or not is_json_value(value[key], depth + 1):
 					return false
 			return true
 	return false

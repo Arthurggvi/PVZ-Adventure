@@ -50,12 +50,12 @@ func advance_idle(animation: AnimationPlayer, elapsed: float, audible: bool, dea
 		play_idle(animation, false)
 
 
-## 播放原版蓄电起手声音。
-static func play_start() -> void:
-	SoundManager.play_sfx_with_pool(START_SOUND, -12.0)
+## 播放原版蓄电起手声音。[param emitter] 为植株的实际发射锚点。
+static func play_start(emitter: Node2D = null) -> void:
+	SoundManager.play_world_sfx(START_SOUND, emitter, Vector2.INF, -12.0, 1.0, &"electric_charge")
 
 
-## 同时播放原版发射主体与电光声音，近距离重叠由音效池处理。
-static func play_fire() -> void:
-	SoundManager.play_sfx_with_pool(FIRE_BODY_SOUND, -20.0)
-	SoundManager.play_sfx_with_pool(FIRE_ZAP_SOUND, -14.0)
+## 在 [param emitter] 同时播放原版发射主体与电光，分成两个独立的音色层。
+static func play_fire(emitter: Node2D = null) -> void:
+	SoundManager.play_world_sfx(FIRE_BODY_SOUND, emitter, Vector2.INF, -20.0, 1.0, &"electric_body")
+	SoundManager.play_world_sfx(FIRE_ZAP_SOUND, emitter, Vector2.INF, -14.0, 1.0, &"electric_arc")

@@ -32,6 +32,10 @@ func validate() -> PackedStringArray:
             continue
         if frame.time_seconds <= last_time or frame.rain < 0.0 or frame.rain > 1.0 or frame.lens < 0.0 or frame.lens > 1.0 or frame.sand < 0.0 or frame.sand > 1.0:
             errors.append("天气关键帧时间未递增或强度超出 0..1。")
+        for channel: float in [frame.snow, frame.snow_wind, frame.snow_cloud]: # 旧资源中这三个字段默认关闭。
+            if not is_finite(channel) or channel < 0.0 or channel > 1.0:
+                errors.append("雪、风及云量必须为 0..1 内的有限值。")
+                break
         last_time = frame.time_seconds
     if frames[0] != null and not is_zero_approx(frames[0].time_seconds):
         errors.append("天气时间轴第一个关键帧必须从 0 秒开始。")
@@ -49,12 +53,22 @@ func sample(elapsed_seconds: float) -> Vector2:
 ## 在 [param elapsed_seconds] 秒处采样雨、湿镜头、风沙，返回 Vector3(x=雨, y=镜头, z=沙)。
 ## 三个通道使用同一插值与末帧保持规则，旧资源缺少 sand 时默认为零。
 func sample_channels(elapsed_seconds: float) -> Vector3:
+    return _sample_channels(elapsed_seconds, false)
+
+
+## 在 [param elapsed_seconds] 秒处采样独立的落雪、雪风、云量；过渡结束保持末值。
+func sample_snow_channels(elapsed_seconds: float) -> Vector3:
+    return _sample_channels(elapsed_seconds, true)
+
+
+## 以同一个 [param elapsed_seconds] 和平滑插值读取通道；[param use_snow] 选择雪通道。
+func _sample_channels(elapsed_seconds: float, use_snow: bool) -> Vector3:
     if frames.is_empty():
         return Vector3.ZERO
     var t: float = maxf(elapsed_seconds, 0.0) # 非负查询时刻。
     var first: WeatherKeyframe = frames[0] # 时间轴起始状态。
     if t <= first.time_seconds:
-        return Vector3(first.rain, first.lens, first.sand)
+        return _frame_channels(first, use_snow)
     for index: int in range(1, frames.size()): # 定位查询时刻所处的相邻关键帧。
         var next_frame: WeatherKeyframe = frames[index] # 右侧关键帧。
         if t > next_frame.time_seconds:
@@ -64,10 +78,20 @@ func sample_channels(elapsed_seconds: float) -> Vector3:
         var fraction: float = clampf((t - previous.time_seconds) /
             maxf(0.001, next_frame.time_seconds - previous.time_seconds), 0.0, 1.0)
         var eased: float = fraction * fraction * (3.0 - 2.0 * fraction) # smoothstep 插值。
+        if use_snow:
+            return Vector3(lerpf(previous.snow, next_frame.snow, eased),
+                lerpf(previous.snow_wind, next_frame.snow_wind, eased),
+                lerpf(previous.snow_cloud, next_frame.snow_cloud, eased))
         return Vector3(lerpf(previous.rain, next_frame.rain, eased),
             lerpf(previous.lens, next_frame.lens, eased), lerpf(previous.sand, next_frame.sand, eased))
     var last: WeatherKeyframe = frames[frames.size() - 1] # 持续天气，永不自动回晴。
-    return Vector3(last.rain, last.lens, last.sand)
+    return _frame_channels(last, use_snow)
+
+
+## 读取 [param frame] 的天气值；[param use_snow] 为 true 时使用独立雪通道。
+func _frame_channels(frame: WeatherKeyframe, use_snow: bool) -> Vector3:
+    return Vector3(frame.snow, frame.snow_wind, frame.snow_cloud) if use_snow \
+        else Vector3(frame.rain, frame.lens, frame.sand)
 
 
 ## 返回本次天气变化的总时间，单位为秒。

@@ -1,16 +1,15 @@
 shader_type canvas_item;
 render_mode unshaded;
 // 同一母图：地面改变在受光前混合；墙面/地面接收光与灯源光晕独立。
+// 复用同尺寸的空闲通道，把自定义纹理采样器控制在 Compatibility 的八槽预算内。
 uniform sampler2D base_working : filter_nearest, repeat_disable;
 uniform sampler2D ground_finished : filter_nearest, repeat_disable;
 uniform sampler2D normal_data : filter_nearest, repeat_disable;
 uniform sampler2D control_data : filter_nearest, repeat_disable;
 uniform sampler2D environment_data : filter_nearest, repeat_disable;
-uniform sampler2D spill_data : filter_nearest, repeat_disable;
 uniform sampler2D local_receiver_data : filter_nearest, repeat_disable;
 uniform sampler2D local_emission_data : filter_nearest, repeat_disable;
 uniform sampler2D source_halo_data : filter_nearest, repeat_disable;
-uniform sampler2D old_group_emission_data : filter_nearest, repeat_disable;
 uniform bool enabled = true;
 uniform float normal_strength = 1.0;
 uniform float repair_mix = 1.0;
@@ -65,9 +64,10 @@ void fragment() {
     if (!enabled) {
         COLOR=original;
     } else {
-        vec3 control=texture(control_data,UV).rgb;
+        vec4 control=texture(control_data,UV); // Alpha 为旧灯组自发光，用于扣除重复照明。
         vec4 environment=texture(environment_data,UV);
-        vec3 working=mix(texture(base_working,UV).rgb,texture(ground_finished,UV).rgb,ground_strength);
+        vec4 base=texture(base_working,UV); // Alpha 为旧溢光权重，与底图颜色独立。
+        vec3 working=mix(base.rgb,texture(ground_finished,UV).rgb,ground_strength);
         vec3 painted=mix(original.rgb,working,repair_mix);
         vec3 normal=normalize(mix(vec3(0,0,1),normalize(texture(normal_data,UV).rgb*2.0-1.0),control.r*normal_strength));
         float incidence=max(dot(normal,normalize(light_direction)),0.0);
@@ -92,10 +92,10 @@ void fragment() {
         float local_field=dot(texture(local_receiver_data,UV),local_group_energy);
         lit+=base_linear*local_color*local_field*local_strength;
         float grouped=dot(texture(local_emission_data,UV),emission_group_energy);
-        float other=max(control.b-texture(old_group_emission_data,UV).r,0.0);
+        float other=max(control.b-control.a,0.0);
         float emission=mix(control.b,grouped+other,emission_balance);
         lit+=window_color*window_energy*emission;
-        lit+=spill_color*spill_energy*texture(spill_data,UV).r*spill_scale*legacy_spill_strength;
+        lit+=spill_color*spill_energy*base.a*spill_scale*legacy_spill_strength;
         // 仅少量灯源光晕，不替代墙面与地面受光；可单独归零。
         lit+=halo_color*dot(texture(source_halo_data,UV),halo_group_energy)*halo_strength;
         vec3 result=to_srgb(lit);

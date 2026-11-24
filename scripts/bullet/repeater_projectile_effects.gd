@@ -29,7 +29,7 @@ static func impact(kind: StringName, target: Character000Base, position: Vector2
 			AdventurePlantNegativeEffects.apply(target, AdventurePlantNegativeEffects.Kind.DEGRADATION,
 				shot.source_id, 0.1, 0.0, {"stackable": true, "family": &"repeater_detonation", "cap": 0.5})
 			AdventurePlantNegativeEffects.apply(target, AdventurePlantNegativeEffects.Kind.DETONATION_CHARGE,
-				shot.source_id, 2.0, 0.0, {"on_detonate": RepeaterAreaEffects.detonate.bind(shot)})
+				shot.source_id, 1.0, 0.0, {"on_detonate": RepeaterAreaEffects.detonate.bind(shot)})
 		&"hell", &"kaguya", &"hades":
 			RepeaterAreaEffects.impact(kind, position, shot.lane, shot)
 

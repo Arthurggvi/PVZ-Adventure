@@ -2,6 +2,9 @@
 extends Control
 class_name CardSlotNorm
 
+## 冒险选卡板共用的植物预览卡。
+const PromotionDetails = preload("res://scripts/ui/card/card_slot/card_slot_norm/card_promotion_details.gd")
+
 ## 移动选卡时的临时挂载节点，防止卡片被原卡槽遮挡。
 @onready var temporary_card: Control = $TemporaryCard
 ## 备选卡页面与返回容器的管理节点。
@@ -10,6 +13,8 @@ class_name CardSlotNorm
 @onready var card_slot_battle: CardSlotBattle = $CardSlotBattle
 ## 重排期间每张卡只接受最新的移动，避免快速选择或取消后的旧回调覆盖新归属。
 var _selection_motion := CardSelectionMotion.new()
+## 冒险模式的右侧植物预览；关卡收起选卡板时停止跟踪卡牌。
+var _promotion_details: PromotionDetails
 
 ## 使用 [param game_para] 初始化槽位、候选点击信号和不可取消的预选卡。
 ## 冒险候选页可能分帧装配；必须等全部 UID 索引完成后才连接交互或恢复预选。
@@ -19,6 +24,10 @@ func init_card_slot_norm(game_para: ResourceLevelData) -> void:
 		if not is_inside_tree() or is_queued_for_deletion():
 			return
 	card_slot_battle.init_card_slot_battle(game_para.max_choosed_card_num, game_para.start_sun)
+	if AdventureSession.owns_battle(game_para):
+		_promotion_details = PromotionDetails.new()
+		_promotion_details.chooser = card_slot_candidate
+		add_child(_promotion_details)
 	# 候选容器按引用的完整选择键定位，模仿修饰决定点击处理方法。
 	for container: CardCandidateContainer in card_slot_candidate.get_all_candidates():
 		if container.card.card_reference.is_imitater:
@@ -103,6 +112,8 @@ func _on_card_click(card: Card) -> void:
 			return
 		card.is_choosed_pre_card = true
 		move_card_to(card, slot, true)
+		if _promotion_details != null:
+			_promotion_details.remember_touch_choice(card)
 
 ## [param card] 的模仿植物选择信号；独立入口本身不作为出战卡。
 func _on_imitater_card_click(card: Card) -> void:
@@ -160,8 +171,11 @@ func pre_choosed_card(card: Card, target_parent: Control) -> void:
 			ResourceCardReference.CardType.Zombie:
 				card.card_change_cool_time(0)
 
-## 根据 [param is_appeal] 显示或隐藏候选卡槽，等待原有 0.2 秒移动完成。
+## 根据 [param is_appeal] 同步选卡占位和候选板开合，等待原有 0.2 秒移动完成。
 func move_card_slot_candidate(is_appeal: bool) -> void:
+	card_slot_battle.set_selection_open(is_appeal)
+	if _promotion_details != null:
+		_promotion_details.set_tracking_enabled(is_appeal)
 	# 候选卡槽位移动画。
 	var tween: Tween = create_tween()
 	tween.tween_property(card_slot_candidate, "position", Vector2(0, 89.0) if is_appeal else Vector2(0, 615.0), 0.2)

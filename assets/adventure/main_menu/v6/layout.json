@@ -1,0 +1,199 @@
+{
+  "reference_size": [
+    1920,
+    1080
+  ],
+  "scale_mode": "keep_aspect_centered",
+  "default_language": "zh_CN",
+  "editor_text_is_not_in_sprites": true,
+  "layers": [
+    {
+      "id": "home",
+      "path": "subjects/home_house_yard.png",
+      "rect": [
+        20,
+        138,
+        585,
+        472
+      ],
+      "position_normalized": [
+        0.010417,
+        0.127778
+      ],
+      "label": null,
+      "is_interactive": false,
+      "hit_target": null
+    },
+    {
+      "id": "ship",
+      "path": "subjects/adventure_ship.png",
+      "rect": [
+        1230,
+        165,
+        677,
+        508
+      ],
+      "position_normalized": [
+        0.640625,
+        0.152778
+      ],
+      "label": null,
+      "is_interactive": false,
+      "hit_target": null
+    },
+    {
+      "id": "research",
+      "path": "subjects/research_greenhouse.png",
+      "rect": [
+        647,
+        440,
+        560,
+        417
+      ],
+      "position_normalized": [
+        0.336979,
+        0.407407
+      ],
+      "label": null,
+      "is_interactive": false,
+      "hit_target": null
+    },
+    {
+      "id": "supply",
+      "path": "subjects/supply_pickup.png",
+      "rect": [
+        34,
+        664,
+        540,
+        404
+      ],
+      "position_normalized": [
+        0.017708,
+        0.614815
+      ],
+      "label": null,
+      "is_interactive": false,
+      "hit_target": null
+    },
+    {
+      "id": "home_button",
+      "path": "buttons/home_blank.png",
+      "rect": [
+        288,
+        460,
+        230,
+        136
+      ],
+      "position_normalized": [
+        0.15,
+        0.425926
+      ],
+      "label": "家园",
+      "is_interactive": true,
+      "hit_target": "home"
+    },
+    {
+      "id": "ship_button",
+      "path": "buttons/sail_blank.png",
+      "rect": [
+        1480,
+        515,
+        263,
+        118
+      ],
+      "position_normalized": [
+        0.770833,
+        0.476852
+      ],
+      "label": "即刻启航",
+      "is_interactive": true,
+      "hit_target": "ship"
+    },
+    {
+      "id": "research_button",
+      "path": "buttons/research_blank.png",
+      "rect": [
+        815,
+        816,
+        260,
+        121
+      ],
+      "position_normalized": [
+        0.424479,
+        0.755556
+      ],
+      "label": "研究棚",
+      "is_interactive": true,
+      "hit_target": "research"
+    },
+    {
+      "id": "supply_button",
+      "path": "buttons/supply_blank.png",
+      "rect": [
+        273,
+        878,
+        258,
+        126
+      ],
+      "position_normalized": [
+        0.142187,
+        0.812963
+      ],
+      "label": "补给车",
+      "is_interactive": true,
+      "hit_target": "supply"
+    }
+  ],
+  "preserve_original_user_manager": true,
+  "background": "background/coastal_yard.png",
+  "foreground_overlays": [
+    "overlays/contact_shadows.png",
+    "overlays/dock_foreground.png",
+    "overlays/ship_waterline_ripples.png"
+  ],
+  "button_state_paths": {
+    "home": {
+      "hover": "buttons/states/home_hover.png",
+      "pressed": "buttons/states/home_pressed.png",
+      "disabled": "buttons/states/home_disabled.png"
+    },
+    "sail": {
+      "hover": "buttons/states/sail_hover.png",
+      "pressed": "buttons/states/sail_pressed.png",
+      "disabled": "buttons/states/sail_disabled.png"
+    },
+    "research": {
+      "hover": "buttons/states/research_hover.png",
+      "pressed": "buttons/states/research_pressed.png",
+      "disabled": "buttons/states/research_disabled.png"
+    },
+    "supply": {
+      "hover": "buttons/states/supply_hover.png",
+      "pressed": "buttons/states/supply_pressed.png",
+      "disabled": "buttons/states/supply_disabled.png"
+    }
+  },
+  "text_labels_on_preview_only": true,
+  "native_profile_safe_area": [
+    20,
+    10,
+    500,
+    110
+  ],
+  "render_stack": [
+    "background/coastal_yard.png",
+    "overlays/contact_shadows.png",
+    "subjects/home_house_yard.png",
+    "subjects/adventure_ship.png",
+    "subjects/research_greenhouse.png",
+    "subjects/supply_pickup.png",
+    "overlays/dock_foreground.png",
+    "overlays/ship_waterline_ripples.png",
+    "buttons/home_blank.png",
+    "buttons/sail_blank.png",
+    "buttons/research_blank.png",
+    "buttons/supply_blank.png",
+    "runtime_labels",
+    "existing_original_profile_and_auxiliary_controls"
+  ]
+}

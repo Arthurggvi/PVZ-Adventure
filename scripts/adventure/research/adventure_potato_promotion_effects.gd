@@ -108,7 +108,7 @@ func _launch_potatoes(count: int) -> void:
 		return
 	var destinations: Array[Dictionary] = [] # 即时地块坐标，不把稀疏数组下标当成列号。
 	for cell: PlantCell in _game.board.neighbors(_mine.plant_cell): # 同平台拓扑邻接。
-		destinations.append({"point": cell.get_global_rect().get_center(), "lane": cell.row_col.x})
+		destinations.append({"point": cell.get_global_rect().get_center(), "lane": cell.combat_lane})
 	if destinations.is_empty():
 		return
 	destinations.shuffle()

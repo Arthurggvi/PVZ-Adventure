@@ -14,7 +14,7 @@ static func populate(battle: CardSlotBattle, candidates: CardSlotCandidate,
 		var card: Card = AllCards.create_card(reference, Card.CardContext.Selection) # 独立出战实例。
 		if card == null:
 			continue
-		if AdventureSession.owns_battle(Global.game_para):
+		if AdventureSession.owns_battle(Global.game_para) and not AdventureSession.is_stage_preview:
 			var build: Dictionary = AdventureSession.get_prechosen_battle_data(index, reference) # 先匹配本卡 UID。
 			card.plant_spawn_profile = AdventureBattleAdapter.profile_for(build)
 			if card.plant_spawn_profile == null:
@@ -35,6 +35,6 @@ static func populate(battle: CardSlotBattle, candidates: CardSlotCandidate,
 
 ## 为 [param card] 在 [param candidates] 中找回对应身份，不使用同物种的其他冒险卡。
 static func _candidate(candidates: CardSlotCandidate, card: Card) -> CardCandidateContainer:
-	if AdventureSession.owns_battle(Global.game_para):
+	if AdventureSession.owns_battle(Global.game_para) and not AdventureSession.is_stage_preview:
 		return candidates.get_adventure_candidate(str(card.battle_card_data.get("uid", "")))
 	return candidates.get_candidate(card.card_reference)

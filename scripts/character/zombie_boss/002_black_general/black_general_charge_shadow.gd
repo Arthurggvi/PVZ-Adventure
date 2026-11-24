@@ -27,11 +27,14 @@ var _visual: BlackGeneralVisual
 var _ink: ShaderMaterial
 ## 当前正在延伸的地面轨迹。
 var _wake: BlackGeneralChargeWake
+## 实战分路残影的可选坡面，图鉴未绑定场地。
+var _ground: MainGameSlope
 ## 持有残影和已留下的拖影、烟带，可由战斗或展示舞台提供。
 var _effects_host: Node2D
 
 ## 取 [param boss] 的外观比例，在 [param row] 路的 [param origin] 等待 [param delay] 秒后冲锋。
 func setup(boss: ZB002BlackGeneral, row: int, origin: Vector2, delay: float) -> void:
+	_ground = boss.sampled_ground()
 	setup_visual(boss, boss.visual, boss, row, origin, delay)
 	_charge.begin(0)
 
@@ -82,7 +85,7 @@ func advance_visual(step: float, move: Callable) -> bool:
 	var finished: bool = move.call(self, movement_step) # 本帧是否到达调用者提供的停止线。
 	if global_position.x < feet.x:
 		if _wake == null:
-			_wake = BlackGeneralChargeWake.spawn(_effects_host, feet, z_index - 2, 0.60)
+			_wake = BlackGeneralChargeWake.spawn(_effects_host, feet, z_index - 2, 0.60, _ground)
 		_wake.follow(global_position.x)
 	return finished
 

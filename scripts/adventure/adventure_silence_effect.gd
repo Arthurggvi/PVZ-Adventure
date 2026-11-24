@@ -4,7 +4,7 @@ class_name AdventureSilenceEffect
 
 ## 每个目标复用一个沉默实例，时长刷新不会重建能力。
 const NODE_NAME: StringName = &"AdventureSilenceEffect"
-## 僵尸或 Boss；没有等阶技能接口的 Boss 仅表现状态滤镜。
+## 当前接受沉默并暂停等阶技能的敌方僵尸。
 var _target: Character000Base
 ## 状态所属的实际战场，不能沿用到新场景。
 var _game: MainGameManager
@@ -20,6 +20,7 @@ var _active := false
 ## 为 [param target] 添加 [param duration] 秒沉默；返回是否接受请求。
 static func apply_to(target: Character000Base, duration: float) -> bool:
 	if not is_instance_valid(target) or not (target is Zombie000Base or target is ZB000Base) \
+			or not target.can_receive_control_effects() \
 			or target.is_death or target.is_hypno or target.is_queued_for_deletion() or not target.is_inside_tree() \
 			or target.character_init_type != Character000Base.E_CharacterInitType.IsNorm \
 			or not is_finite(duration) or duration <= 0.0:
@@ -73,6 +74,7 @@ func _physics_process(delta: float) -> void:
 ## 状态只能在同一场景、轮次、冒险阶段继续；魅惑与真正离场都清除负面控制。
 func _battle_active() -> bool:
 	return is_instance_valid(_target) and not _target.is_death and not _target.is_hypno \
+		and _target.can_receive_control_effects() \
 		and not _target.is_queued_for_deletion() and _target.is_inside_tree() \
 		and is_instance_valid(_game) and _game.is_inside_tree() and not _game.is_queued_for_deletion() \
 		and _game == Global.main_game and _game.get_tree().current_scene == _game \

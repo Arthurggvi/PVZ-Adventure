@@ -48,7 +48,7 @@ static func apply_to(target: Character000Base, points: float, on_detonate: Calla
 	effect._points = minf(MAX_POINTS, effect._points + points)
 	if effect._points >= MAX_POINTS:
 		var position: Vector2 = target.global_position # 先冻结位置，再清零，回调重入也不会再次消费旧点数。
-		var lane: int = target.lane # Boss 按来源命中时的空间坐标结算，行号只用于普通敌人筛选。
+		var lane: int = target.lane # 记录触发时的逻辑行，供延迟引爆筛选目标。
 		effect.clear()
 		on_detonate.call(position, lane)
 	else:

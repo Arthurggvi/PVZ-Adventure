@@ -2,7 +2,8 @@ extends ZB000Base
 class_name ZB003WhiteDuke
 ## Boss execution state machine. Animation and grave revival live in reused adapters.
 enum State { ENTER, OPENING, IDLE, CAST, MOVING, PHASE_CAST, PHASE_OUT, PHASE_IN, DYING }
-@export var config: WhiteDukeConfig = WhiteDukeConfig.new()
+## 由 Boss 场景绑定的技能配置，每个出战或展示实例独立持有。
+@export var config: WhiteDukeConfig
 @onready var visual: WhiteDukeVisual = $Body/WhiteDukeVisual
 var behavior := WhiteDukeBehaviorTree.new()
 var skills := WhiteDukeSkillExecutor.new()

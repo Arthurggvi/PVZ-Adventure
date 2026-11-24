@@ -21,7 +21,6 @@ var is_next_wave_refresh:=false
 var is_end_wave:=false
 
 func _ready() -> void:
-	Global.config_service.signal_change_disappear_spare_card_placeholder.connect(judge_disappear_add_card_bar)
 	update_label_info()
 	Global.main_game.p_yeti_run = curr_p
 	Global.global_game_state.coin_value_changed.connect(func(_new_value: int): curr_coin_value.text = str(Global.global_game_state.coin_value))
@@ -57,7 +56,6 @@ func main_game_refresh_card():
 		card.judge_sun_enough(int(Global.global_game_state.coin_value / 10.0))
 		if not card.signal_card_use_end.is_connected(card_use_end):
 			card.signal_card_use_end.connect(card_use_end)
-	judge_disappear_add_card_bar()
 
 ## [param card] 成功使用后扣除金币与本波次数，保留金币卡槽的专用结算规则。
 func card_use_end(card:Card):
@@ -97,14 +95,6 @@ func next_wave():
 	update_label_info()
 	if curr_wave == 10:
 		EventBus.push_event("end_wave_zombie")
-
-#region 控制台相关
-## 是否显示多余卡槽
-func judge_disappear_add_card_bar():
-	if Global.main_game.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME:
-		_set_spare_slots_hidden(Global.config_service.disappear_spare_card_Placeholder)
-#endregion
-
 
 func _on_next_wave_timer_timeout() -> void:
 	next_wave()

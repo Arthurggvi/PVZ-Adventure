@@ -5,12 +5,28 @@ extends RefCounted
 const Books = preload("res://scripts/adventure/research/research_promotion_catalog.gd")
 ## 四阶售价，索引为等阶减一。
 const PRICES: Array[int] = [10000, 30000, 60000, 100000]
-## 千分位整数权重，避免浮点概率边界误差。
-const WEIGHTS: Array[int] = [395, 276, 194, 135]
+## 一至四阶的千分位整数权重，按 15:6:3:1 分配。
+const WEIGHTS: Array[int] = [600, 240, 120, 40]
 ## 每批固定书籍数。
 const SHELF_SIZE := 5
 ## 整批换书金币费用。
 const REFRESH_COST := 3000
+## 定向已启用、尚未选定植物。零沿用不限物种的普通转换。
+const UNSELECTED_TARGET := -1
+
+## 返回 [param mode] 的投入数量；[param target_plant] 非零时，转换多消耗一本。
+static func required_books(mode: String, target_plant: int = 0) -> int:
+	return 3 if mode == "synthesize" or target_plant != 0 else 2
+
+## 返回拥有 [param tier] 等阶书目的植物编号。尚无材料时传零，可从完整目录选择。
+static func target_plants(tier: int) -> Array[int]:
+	var plants: Array[int] = [] # 按植物图鉴编号排列，重复技能归入同一种植物。
+	for book: Dictionary in Books.BOOKS.values(): # 选项随权威书目更新。
+		var plant: int = int(book.plant_type) # 对应目录中的植物物种编号。
+		if (tier == 0 or int(book.tier) == tier) and plant not in plants:
+			plants.append(plant)
+	plants.sort()
+	return plants
 
 ## 返回 [param tier] 等阶的候选 ID；[param plant] 为零时不限物种，[param excluded] 排除投入书。
 static func pool(tier: int, plant: int = 0, excluded: Array[String] = []) -> Array[String]:
@@ -42,11 +58,14 @@ static func draw_shelf(rng: RandomNumberGenerator) -> Array[Dictionary]:
 		result.append({"id": candidates[rng.randi_range(0, candidates.size() - 1)], "sold": false})
 	return result
 
-## 校验 [param mode] 和完整材料 [param ids]；返回候选池或简短原因，不检查库存数量。
-static func quote(mode: String, ids: Array[String]) -> Dictionary:
+## 校验 [param mode] 和完整材料 [param ids]。[param target_plant] 为零时普通转换，大于零时限定产出物种。
+## [constant UNSELECTED_TARGET] 表示定向已启用但未选植物。返回候选池或简短原因，库存数量由事务服务核对。
+static func quote(mode: String, ids: Array[String], target_plant: int = 0) -> Dictionary:
 	if mode not in ["convert", "synthesize"]:
 		return {"ready": false, "message": "未知操作"}
-	var required: int = 2 if mode == "convert" else 3 # 转换两本，升阶三本。
+	if mode != "convert" and target_plant != 0:
+		return {"ready": false, "message": "仅转换支持定向"}
+	var required: int = required_books(mode, target_plant) # 定向转换和合成都需要三本。
 	if ids.size() != required:
 		return {"ready": false, "message": "选择 %d 本技能书" % required}
 	var first: Dictionary = Books.definition(ids[0]) # 首本确定等阶与升阶时的物种。
@@ -60,6 +79,13 @@ static func quote(mode: String, ids: Array[String]) -> Dictionary:
 			return {"ready": false, "message": "请选择同等阶技能书"}
 		if mode == "synthesize" and book.plant_type != first.plant_type:
 			return {"ready": false, "message": "请选择同物种技能书"}
-	var candidates: Array[String] = pool(int(first.tier), 0, ids) if mode == "convert" \
-		else pool(int(first.tier) + 1, int(first.plant_type)) # 转换排除所有投入 ID，合成保留物种。
+	if target_plant < 0:
+		return {"ready": false, "message": "请选择目标植物"}
+	var candidates: Array[String] # 候选池中的每个技能书 ID 等概率。
+	if mode == "synthesize":
+		candidates = pool(int(first.tier) + 1, int(first.plant_type))
+	elif target_plant > 0:
+		candidates = pool(int(first.tier), target_plant) # 定向抽取该植物的完整同阶书目。
+	else:
+		candidates = pool(int(first.tier), 0, ids) # 普通转换排除投入书。
 	return {"ready": not candidates.is_empty(), "message": "" if not candidates.is_empty() else "暂无可生成的技能书", "pool": candidates}

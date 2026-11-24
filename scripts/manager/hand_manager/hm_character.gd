@@ -37,7 +37,7 @@ func init_hm_character() -> void:
 ## 当前预览存在时更新为鼠标的全局位置。
 func character_process() -> void:
 	if is_instance_valid(characte_static):
-		characte_static.global_position = temporary_character.get_global_mouse_position()
+		characte_static.global_position = BattleEnvironmentLens.mouse_position(temporary_character)
 	if is_instance_valid(hand_manager.curr_plant_cell) and is_instance_valid(characte_static_shadow):
 		mouse_enter(hand_manager.curr_plant_cell)
 
@@ -115,8 +115,10 @@ func mouse_enter(plant_cell: PlantCell) -> void:
 	if curr_card == null:
 		return
 	is_shadow_in_cell = _update_cell_shadow(plant_cell, characte_static_shadow)
-	if is_shadow_in_cell and is_mode_column:
-		_mouse_enter_column(plant_cell)
+	if is_mode_column:
+		_mouse_exit_column()
+		if is_shadow_in_cell:
+			_mouse_enter_column(plant_cell)
 
 ## 更新 [param plant_cell] 上的 [param curr_characte_static_shadow] 并返回能否放置。
 ## 僵王只检查召唤资格，在当前格子的普通植物位置显示虚影，不读取格子占用或行地形。
@@ -124,19 +126,18 @@ func _update_cell_shadow(plant_cell: PlantCell, curr_characte_static_shadow: Nod
 	curr_characte_static_shadow.modulate.a = 0
 	if not AllCards.is_battle_card(curr_card.card_reference):
 		return false
+	var anchor: Vector2 # 当前物理帧的实际放置锚点，单位为棋盘世界像素。
 	match curr_card.card_reference.card_type:
 		ResourceCardReference.CardType.Plant:
-			if plant_condition.judge_is_can_plant(plant_cell, curr_card.card_reference.content_id):
-				curr_characte_static_shadow.global_position = plant_cell.get_new_plant_static_shadow_global_position(plant_condition.place_plant_in_cell)
-				curr_characte_static_shadow.modulate.a = 0.5
-				return true
+			if not plant_condition.judge_is_can_plant(plant_cell, curr_card.card_reference.content_id) \
+					and _reinforce_placement(plant_cell, false) == null:
+				return false
+			anchor = plant_cell.get_new_plant_static_shadow_global_position(plant_condition.placement_slot(plant_cell))
 		ResourceCardReference.CardType.Zombie:
 			if not hand_manager.main_game.zombie_manager.can_place_zombie_at_cell(
 				curr_card.card_reference.content_id, plant_cell):
 				return false
-			curr_characte_static_shadow.global_position = get_zombie_static_shadow_global_position(plant_cell)
-			curr_characte_static_shadow.modulate.a = 0.5
-			return true
+			anchor = get_zombie_static_shadow_global_position(plant_cell)
 		ResourceCardReference.CardType.ZombieBoss:
 			# 召唤资格由所属关卡判断，虚影位置使用当前植物格子的已有锚点。
 			var manager: ZombieManager = hand_manager.main_game.zombie_manager
@@ -144,16 +145,21 @@ func _update_cell_shadow(plant_cell: PlantCell, curr_characte_static_shadow: Nod
 				or not hand_manager.main_game.is_ancestor_of(plant_cell) or not is_instance_valid(manager) \
 				or not curr_card.is_can_click or not manager.can_summon_boss(curr_card.card_reference.content_id):
 				return false
-			curr_characte_static_shadow.global_position = plant_cell.get_new_plant_static_shadow_global_position(CharacterRegistry.PlacePlantInCell.Norm)
-			curr_characte_static_shadow.modulate.a = 0.5
-			return true
-	return false
+			anchor = plant_cell.get_new_plant_static_shadow_global_position(CharacterRegistry.PlacePlantInCell.Norm)
+		_:
+			return false
+	# 使用两层各自的画布变换；缩放、镜头横移或甲板升降时仍与实际种下的位置重合。
+	curr_characte_static_shadow.position = temporary_character.get_global_transform_with_canvas().affine_inverse() \
+		* (plant_cell.get_canvas_transform() * anchor)
+	curr_characte_static_shadow.modulate.a = 0.5
+	return true
 
 ## 返回普通僵尸在 [param plant_cell] 对应行的预览全局位置，包含屋顶坡面修正。
 func get_zombie_static_shadow_global_position(plant_cell: PlantCell) -> Vector2:
 	var global_pos: Vector2 = plant_cell.get_spawn_global_position() # 即时地块坐标。
-	if plant_cell.board.definition == null and is_instance_valid(Global.main_game.main_game_slope):
-		global_pos += Vector2(0, Global.main_game.main_game_slope.get_all_slope_y(global_pos.x))
+	var slope: MainGameSlope = Global.main_game.main_game_slope # 多段斜面和旧屋顶都将基线还原为表现脚点。
+	if is_instance_valid(slope) and (plant_cell.board.definition == null or slope.sample_walking_height):
+		global_pos.y += slope.get_all_slope_y(global_pos.x)
 	return global_pos
 
 
@@ -165,33 +171,32 @@ func mouse_exit(_plant_cell: PlantCell) -> void:
 	if is_mode_column:
 		_mouse_exit_column()
 
-## 在 [param plant_cell] 确认时重验卡片可用性；成功创建后仅发送一次使用结算。
+## 在 [param plant_cell] 重验卡片和落点。成功创建后仅发送一次使用结算并返回 true。
+## 返回 false 时由手持管理器保留仍有效的卡片，方便直接改点其他格子。
 ## 僵王再次检查召唤资格且不执行柱子复制，失败不扣费用或进入冷却。
-func click_cell(plant_cell: PlantCell) -> void:
+func click_cell(plant_cell: PlantCell) -> bool:
 	if not is_instance_valid(curr_card) or curr_card.is_queued_for_deletion() \
-		or not is_shadow_in_cell or not AllCards.is_battle_card(curr_card.card_reference):
-		return
+		or not AllCards.is_battle_card(curr_card.card_reference):
+		return false
 	# 先保留卡槽的显式禁用状态，再重算费用、冷却及本类型的出战条件。
 	if not curr_card.is_can_click:
 		SoundManager.play_other_SFX("buzzer")
-		return
+		return false
 	curr_card.judge_card_ready()
 	if not curr_card.is_can_click:
 		SoundManager.play_other_SFX("buzzer")
-		return
-	if curr_card.card_reference.card_type == ResourceCardReference.CardType.ZombieBoss:
-		if not is_instance_valid(plant_cell) or plant_cell.is_queued_for_deletion() \
-			or not hand_manager.main_game.is_ancestor_of(plant_cell) \
-			or not hand_manager.main_game.zombie_manager.can_summon_boss(curr_card.card_reference.content_id):
-			SoundManager.play_other_SFX("buzzer")
-			return
+		return false
+	# 点击时复核当前格子，避免地块移动或占用变化后仍依赖上一帧的虚影。
+	mouse_enter(plant_cell)
+	if not is_shadow_in_cell:
+		SoundManager.play_other_SFX("buzzer")
+		return false
 	_placement_use_context = PlantPlacementUseContext.new()
 	_placement_cooldown_extension = 0.0
 	if not _create_character_at_cell(plant_cell):
 		_placement_use_context = null
-		if curr_card.card_reference.card_type == ResourceCardReference.CardType.ZombieBoss:
-			SoundManager.play_other_SFX("buzzer")
-		return
+		SoundManager.play_other_SFX("buzzer")
+		return false
 	if is_mode_column and curr_card.card_reference.card_type != ResourceCardReference.CardType.ZombieBoss:
 		_click_cell_column(plant_cell)
 	# 模式专属附加种植只响应本次玩家主操作，内部复制不重复通知或结算。
@@ -201,12 +206,15 @@ func click_cell(plant_cell: PlantCell) -> void:
 	curr_card.complete_placement(_placement_cooldown_extension)
 	_placement_use_context = null
 	_placement_cooldown_extension = 0.0
+	return true
 
 ## 在 [param plant_cell] 创建植物或普通僵尸，僵王使用所属关卡的固定位置；返回创建成功与否。
 ## 本函数不进行卡槽结算，僵王必须返回新实例才算成功。
 func _create_character_at_cell(plant_cell: PlantCell) -> bool:
 	match curr_card.card_reference.card_type:
 		ResourceCardReference.CardType.Plant:
+			if _reinforce_placement(plant_cell, true) != null:
+				return true # 原株已经提交增益，后续走普通用卡结算。
 			var created: Plant000Base = plant_cell.create_plant( # 必须读取实际提交的效果结果，不能按书目预估冷却。
 				curr_card.card_reference.content_id, curr_card.card_reference.is_imitater,
 				true, false, false, curr_card.plant_spawn_profile,
@@ -223,11 +231,11 @@ func _create_character_at_cell(plant_cell: PlantCell) -> bool:
 			# 普通僵尸仍按行初始化，保留关卡模式与特殊僵尸回调。
 			var zombie_init_para: Dictionary = {
 				Zombie000Base.E_ZInitAttr.CharacterInitType: Character000Base.E_CharacterInitType.IsNorm,
-				Zombie000Base.E_ZInitAttr.Lane: plant_cell.row_col.x,
+				Zombie000Base.E_ZInitAttr.Lane: plant_cell.combat_lane,
 			}
 			return Global.main_game.zombie_manager.create_norm_zombie(
 				curr_card.card_reference.content_id,
-				Global.main_game.zombie_manager.all_zombie_rows[plant_cell.row_col.x],
+				Global.main_game.zombie_manager.all_zombie_rows[plant_cell.combat_lane],
 				zombie_init_para,
 				plant_cell.get_spawn_global_position(),
 				GlobalUtils.get_special_zombie_callable(curr_card.card_reference.content_id, plant_cell)
@@ -235,6 +243,13 @@ func _create_character_at_cell(plant_cell: PlantCell) -> bool:
 		ResourceCardReference.CardType.ZombieBoss:
 			return hand_manager.main_game.zombie_manager.try_create_boss_from_card(curr_card.card_reference.content_id) != null
 	return false
+
+## 预检或提交 [param cell] 的叠种。[param commit] 为真时由当前冻结卡同步执行。
+func _reinforce_placement(cell: PlantCell, commit: bool) -> Plant000Base:
+	var profile: PlantSpawnProfile = curr_card.plant_spawn_profile # 原版模式与模仿者仍走普通放置。
+	if profile == null or curr_card.card_reference.is_imitater:
+		return null
+	return profile.reinforce_placement(cell, plant_condition, commit)
 
 ## 退出手持角色状态并清理所有预览。
 func exit_status() -> void:
@@ -259,7 +274,6 @@ func click_card_column() -> void:
 
 ## 检查 [param plant_cell] 同列的其余行，仅为可放置格子显示额外虚影。
 func _mouse_enter_column(plant_cell: PlantCell) -> void:
-	_mouse_exit_column()
 	for lane: int in characte_static_shadow_colum.size(): # 虚影索引仍对应固定攻击行。
 		if lane == plant_cell.row_col.x:
 			continue

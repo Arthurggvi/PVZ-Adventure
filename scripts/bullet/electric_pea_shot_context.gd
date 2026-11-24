@@ -19,6 +19,14 @@ enum HitKind {
 	FIELD, ## 矩阵持续帧伤。
 }
 
+## 同一同步查询区间已确认的组件和受击监听。各承伤层只在实际访问时记录。
+enum FieldAuditFlag { BASE = 1, BODY = 2, ARMOR = 4 }
+
+## 矩阵候选附带的监听核对结果。一次未知回调后随世界几何一起作废。
+class FieldAudit:
+	## 对应矩阵原候选槽位的 [enum FieldAuditFlag] 位标记。
+	var flags := PackedByteArray()
+
 ## 同一株实际出战实例的身份，母株死亡后仍用于合并矩阵。
 var source_id: int = 0
 ## 本轮离手的电球规则；所有路线及后代共享。
@@ -83,7 +91,122 @@ func target_lane(target: Character000Base, impact: Vector2) -> int:
 	if not target is ZB000Base:
 		return target.lane
 	var cell: PlantCell = board.nearest_cell(impact) # 僵王落点可能同时覆盖多行。
-	return cell.row_col.x if is_instance_valid(cell) else lane
+	return cell.combat_lane if is_instance_valid(cell) else lane
+
+
+## 用本球快照对 [param target] 结算矩阵场伤，[param scope] 按实际承伤者去重。
+## [param audit] 仅在矩阵同步区间复用已验证的 [param slot] 监听；省略时逐次核对。
+## 返回本击是否可能经同步回调改变后续候选的受击几何。
+func hit_field(target: Character000Base, scope: CombatHitScope, audit: FieldAudit = null, slot: int = 0) -> bool:
+	if matrix_damage <= 0 or not is_active() or game.get_tree().paused:
+		return false
+	if attack_context != null or not target is Zombie000Base:
+		hit(target, matrix_damage, HitKind.FIELD, scope)
+		return true
+	var zombie: Zombie000Base = target as Zombie000Base # 矩阵在精确相交前已核对仍可命中。
+	var hp: HpComponentZombie = zombie.hp_component as HpComponentZombie # 真实伤害仍由原生命组件处理。
+	var resolved: int = _resolved_stable_field_damage(zombie, hp, scope, audit, slot) # 负值表示必须即时结算并刷新几何。
+	var hit_game: MainGameManager = game # 回调前后成对处理同一战场，即使期间切换关卡。
+	if resolved < 0:
+		ElectricPeaFlightQuery.begin_sync_hit(hit_game)
+	hp.apply_hit(matrix_damage, BulletRegistry.AttackMode.Real,
+		true, false, true, 1.0, 0, -1, null, scope, resolved)
+	if resolved < 0:
+		ElectricPeaFlightQuery.end_sync_hit(hit_game)
+	return resolved < 0
+
+
+## 仅在 [param zombie] 的普通受击路径不会运行未知回调或触发阶段改变时，允许复用候选几何。
+## [param hp] 和 [param scope] 对应本次真实承伤入口。未知组件、代伤和可见血条走保守路径。
+## [param audit] 记录同一同步区间内 [param slot] 的稳定监听。返回已减伤的伤害，-1 交给完整入口。
+func _resolved_stable_field_damage(zombie: Zombie000Base, hp: HpComponentZombie, scope: CombatHitScope,
+		audit: FieldAudit, slot: int) -> int:
+	if hp.is_visible_in_tree() or hp.bonus_armor != 0 or hp._bypass_damage_block or hp._resolving_hit \
+			or hp._handling_transferred_hit or hp.armor1_fixed_damage_per_hit != 0 \
+			or (scope != null and (scope.before_death.is_valid() or scope.get_script() != CombatHitScope)):
+		return -1
+	var checked: int = audit.flags[slot] if audit != null else 0 # 只复用本候选及本同步区间的成功检查。
+	var stage: HpStageChangeComponent = zombie.hp_stage_change_component # 血量和阶段阈值始终使用本击即时数据。
+	if not (checked & FieldAuditFlag.BASE):
+		if not _has_native_field_observers(zombie, hp, stage):
+			return -1
+		checked |= FieldAuditFlag.BASE
+	if hp.damage_transfer.has_sources():
+		return -1
+	var damage: int = hp.resolve_damage(matrix_damage) # 已核对受击监听，正式生命入口复用本次结果。
+	if damage > 0:
+		if hp.curr_hp_armor1 > 0:
+			# 一倍倍率的防具减伤只降低此上限。无法证明安全的临界情况沿用原入口。
+			var armor_ceiling: int = roundi(float(damage)) # 与原护甲分流使用相同的整数到浮点取整。
+			if hp.armor_1_control.is_visible_in_tree() or hp.curr_hp_armor1 <= armor_ceiling \
+					or not _stays_in_hp_stage(hp.curr_hp_armor1 - armor_ceiling,
+						stage.curr_hp_armor1_stage, stage.boundary_value_hp_armor1):
+				return -1
+			if not (checked & FieldAuditFlag.ARMOR):
+				if hp.armor1_reduction == null or hp.armor1_reduction.get_script().resource_path \
+						!= "res://scripts/character/components/damage_reduction_effect.gd" \
+						or not _only_field_listener(hp.signal_hp_armor1_loss, stage.judge_body_change_armor.bind(true)):
+					return -1
+				checked |= FieldAuditFlag.ARMOR
+		else:
+			if hp.curr_hp - damage <= hp.death_hp or not _stays_in_hp_stage(hp.curr_hp - damage,
+					stage.curr_hp_stage, stage.boundary_value_hp):
+				return -1
+			if not (checked & FieldAuditFlag.BODY):
+				if not _only_field_listener(hp.signal_hp_loss, stage.judge_body_change):
+					return -1
+				checked |= FieldAuditFlag.BODY
+	if audit != null:
+		audit.flags[slot] = checked
+	return damage
+
+
+## 验证 [param zombie]、[param hp]、[param stage] 使用已核对的原生组件及同步监听。
+## 成功结果可保留到这批矩阵遇到未知回调为止；此处不冻结血量、减伤或阶段阈值。
+func _has_native_field_observers(zombie: Zombie000Base, hp: HpComponentZombie, stage: HpStageChangeComponent) -> bool:
+	if zombie.get_script().resource_path != "res://scripts/character/zombie/zombie_001_norm.gd" \
+			or hp.get_script().resource_path != "res://scripts/character/components/hp_component/component_hp_zombie.gd" \
+			or hp.owner_character != zombie or hp.owner != zombie \
+			or hp.received_attack.has_connections() or hp.combat_health_lost.has_connections():
+		return false
+	if hp.damage_transfer == null or hp.damage_transfer.get_script().resource_path \
+			!= "res://scripts/character/components/damage_transfer_effect.gd" \
+			or hp.damage_block == null or hp.damage_block.get_script().resource_path \
+			!= "res://scripts/character/components/damage_block_effect.gd" \
+			or hp.damage_reduction == null or hp.damage_reduction.get_script().resource_path \
+			!= "res://scripts/character/components/damage_reduction_effect.gd":
+		return false
+	if not is_instance_valid(stage) or stage.get_script().resource_path \
+			!= "res://scripts/character/components/hp_component/component_hp_stage_change.gd":
+		return false
+	if not _only_field_listener(hp.signal_zombie_hp_loss, zombie._relay_zombie_hp_loss):
+		return false
+	if not zombie.signal_zombie_hp_loss.has_connections():
+		return true
+	var roster: ZombieManager = game.zombie_manager # 原生刷新状态只读取当前战场。
+	if not is_instance_valid(roster) or not is_instance_valid(roster.zombie_wave_manager) \
+			or roster.get_script().resource_path != "res://scripts/manager/zombie_manager/zombie_manager.gd":
+		return false
+	var manager: ZombieWaveRefreshManager = roster.zombie_wave_manager.zombie_wave_refresh_manager # 原生残半统计延迟发布下一波。
+	return is_instance_valid(manager) and manager.zombie_manager == roster and manager.get_script().resource_path \
+		== "res://scripts/manager/zombie_manager/zm_zombie_wave_refresh_manager.gd" \
+		and _only_field_listener(zombie.signal_zombie_hp_loss, manager.judge_half_refresh)
+
+
+## [param remaining] 保守的最低剩余生命；以 [param stage_index] 和 [param thresholds] 检查原阶段监听是否为空操作。
+static func _stays_in_hp_stage(remaining: int, stage_index: int, thresholds: Array[int]) -> bool:
+	for index: int in range(maxi(0, stage_index + 1), thresholds.size()): # 检查所有尚未到达的阶段，兼容非单调配置。
+		if remaining <= thresholds[index]:
+			return false
+	return true
+
+
+## [param hook] 只允许已核对的同步回调 [param listener]；动态增加的监听器会切回即时几何查询。
+static func _only_field_listener(hook: Signal, listener: Callable) -> bool:
+	for connection: Dictionary in hook.get_connections(): # 比较完整 Callable，包含绑定参数。
+		if connection["callable"] != listener:
+			return false
+	return true
 
 
 ## 对 [param target] 结算 [param base_damage]，保留防具、保护者、免疫及击杀归属。
@@ -94,6 +217,9 @@ func hit(target: Character000Base, base_damage: int, kind: HitKind,
 	if not is_active() or game.get_tree().paused or not ElectricPeaFlightQuery.can_hit(target) or base_damage <= 0:
 		HpComponent.reset_hit_receipt(hit_receipt, null)
 		return 0
+	# 伤害信号可同步改变受击盒或棋盘，后续电球按新世界几何查询。
+	var hit_game: MainGameManager = game # 回调前后成对处理同一战场。
+	ElectricPeaFlightQuery.begin_sync_hit(hit_game)
 	var damage: int = attack_context.modify_damage(base_damage, target) if attack_context != null else base_damage # 动态目标修饰只执行一次。
 	var receipt: Dictionary = hit_receipt # 生命入口先清空回执，再写入真实承伤者、损血及死亡者。
 	if target is Zombie000Base:
@@ -115,4 +241,5 @@ func hit(target: Character000Base, base_damage: int, kind: HitKind,
 		if seconds > 0.0 and is_instance_valid(recipient):
 			AdventurePlantNegativeEffects.apply(recipient, AdventurePlantNegativeEffects.Kind.STUN,
 				source_id, seconds)
+	ElectricPeaFlightQuery.end_sync_hit(hit_game)
 	return loss

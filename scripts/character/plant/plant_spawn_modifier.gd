@@ -18,6 +18,12 @@ func selection_slot_cost(_snapshot: Dictionary) -> int:
 func placement_condition(_snapshot: Dictionary, base_condition: ResourcePlantCondition) -> ResourcePlantCondition:
 	return base_condition
 
+## 模式可让 [param _snapshot] 用卡作用于 [param _cell] 的原株。
+## [param _condition] 为本卡原生种植条件；[param _commit] 为真才执行，否则只预检。默认没有可叠种的对象。
+func reinforce_placement(_snapshot: Dictionary, _cell: PlantCell, _condition: ResourcePlantCondition,
+		_commit: bool) -> Plant000Base:
+	return null
+
 ## 玩家主种植成功后接收一次通知；默认无附加效果，不负责费用或冷却结算。
 ## [param _cell] 为已成功占用的中心格；[param _profile] 是本次使用的冻结配置。
 func player_placement_committed(_cell: PlantCell, _profile: PlantSpawnProfile) -> void:

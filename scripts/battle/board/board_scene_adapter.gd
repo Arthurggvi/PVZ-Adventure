@@ -15,6 +15,10 @@ static func install(game: MainGameManager) -> BoardRuntime:
 		_adopt_legacy(game, board, plant_root, zombie_root)
 	else:
 		var definition := level.board_definition.duplicate(true) as BoardDefinition # 禁止污染共享布局。
+		if level.game_round != 1 and level.save_game_data_main_game != null:
+			var saved: ResourceSaveGamePlantCellManager = level.save_game_data_main_game.plant_cell_manager_data # 先恢复形状，再按常规校验占用。
+			if saved != null:
+				definition.apply_saved_topology(saved.board_state)
 		var errors: PackedStringArray = definition.validate() # 全量预检。
 		if not level.terrain_rows.is_empty():
 			errors.append("board_definition 与旧 terrain_rows 不得同时定义地形。")

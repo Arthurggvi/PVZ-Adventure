@@ -83,10 +83,10 @@ func shoot_bullet():
 
 	var bullet_cob_cannon :Bullet016CobCannon =  Global.bullet_registry.get_bullet_scenes(BulletRegistry.BulletType.Bullet016CobCannon).instantiate()
 	bullet_cob_cannon.init_cannon(attack_target_global_pos, battle_damage_multiplier)
+	bullet_cob_cannon.position = Global.main_game.bullets.to_local(marker_2d_bullet.global_position)
 	Global.main_game.bullets.add_child(bullet_cob_cannon)
-	bullet_cob_cannon.global_position = marker_2d_bullet.global_position
 
-	SoundManager.play_character_SFX("coblaunch")
+	SoundManager.play_character_SFX(&"coblaunch", self, marker_2d_bullet.global_position, 3)
 
 ## 充能完毕
 func charge_end():

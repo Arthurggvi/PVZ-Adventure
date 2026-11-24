@@ -10,7 +10,8 @@ font_color = Color(1, 1, 0, 1)
 shadow_color = Color(0, 0, 0, 1)
 
 [node name="OneUserButton" type="Button"]
-custom_minimum_size = Vector2(450, 35)
+custom_minimum_size = Vector2(0, 35)
+mouse_filter = 1
 script = ExtResource("2_vtk8y")
 
 [node name="Label" type="Label" parent="."]

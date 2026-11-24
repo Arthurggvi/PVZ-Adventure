@@ -54,11 +54,12 @@ static func try_detonate(plant: Plant021Jalapeno, statuses: int) -> bool:
 	blast._statuses = statuses
 	blast._footprint.configure(plant.plant_cell, blast._rules.has("jalapeno_wildfire"), blast._rules.has("jalapeno_fire_tongue"))
 	game.bombs.add_child(blast)
-	blast._detonate()
+	blast._detonate(plant.bomb_component.boss_blast_damage_cap())
 	return true
 
 ## 直接复用普通灰烬爆炸、设施穿透及僵王辣椒入口，然后执行选中的后续效果。
-func _detonate() -> void:
+## [param boss_damage_cap] 仅限制本次主爆对僵王的伤害。
+func _detonate(boss_damage_cap: int) -> void:
 	TreePauseManager.pause_factors_changed.connect(_check_boundary)
 	EventBus.subscribe("main_game_progress_update", _on_progress)
 	_footprint.display(_rules.has("jalapeno_combustion"))
@@ -71,7 +72,7 @@ func _detonate() -> void:
 			continue
 		if target is ZB000Base:
 			_remember_death_point(target)
-			target.be_jalapeno(_damage[0])
+			target.be_jalapeno(_damage[0], boss_damage_cap)
 			if target.is_death:
 				_on_kill(target)
 		elif _footprint.touches(target) and (_footprint.rows.has(target.lane) or not target is Zombie000Base or (target.curr_be_attack_status & _statuses) != 0):

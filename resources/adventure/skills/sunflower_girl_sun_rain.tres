@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CharacterSkillDefinition" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/skills/character_skill_definition.gd" id="1_definition"]
+[ext_resource type="Script" path="res://scripts/adventure/skills/sunflower_girl_sun_rain_effect.gd" id="2_effect"]
+[ext_resource type="AudioStream" path="res://assets/adventure/audio/skills/sunflower_sun_rain.ogg" id="6_cue"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/sunflower_girl.png" id="3_portrait"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/skill_titles/sunflower_girl_sun_rain.svg" id="4_title"]
+
+[sub_resource type="AtlasTexture" id="Icon"]
+atlas = ExtResource("3_portrait")
+region = Rect2(78, 10, 666, 666)
+filter_clip = true
+
+[sub_resource type="Resource" id="SunRainEffect"]
+script = ExtResource("2_effect")
+
+[resource]
+script = ExtResource("1_definition")
+id = &"sunflower_girl_sun_rain"
+display_name = "向日葵娘"
+description = "立即使全场友方生产植物额外生产一次，随后天降 10 枚 25 阳光。开战即就绪。"
+icon = SubResource("Icon")
+cut_in_portrait = ExtResource("3_portrait")
+cut_in_title = ExtResource("4_title")
+cut_in_sound = ExtResource("6_cue")
+cut_in_accent = Color(1, 0.66, 0.22, 1)
+cooldown_seconds = 150.0
+starts_on_cooldown = false
+effect = SubResource("SunRainEffect")

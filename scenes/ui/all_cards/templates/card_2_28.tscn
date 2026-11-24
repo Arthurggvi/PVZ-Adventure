@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" uid="uid://cjuiaaq33o5aa" path="res://scenes/ui/all_cards/card.tscn" id="card_base"]
+[ext_resource type="Texture2D" uid="uid://cdm356vgex30b" path="res://assets/image/ui/ui_card/SeedPacket_Larger.png" id="packet"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/stone_statue/skin_hollow.png" id="portrait_atlas"]
+[ext_resource type="Script" uid="uid://brtidnnpm2a7x" path="res://scripts/resources/card/card_reference.gd" id="card_reference"]
+
+[sub_resource type="Resource" id="CardReference_2_28"]
+script = ExtResource("card_reference")
+card_type = 2
+content_id = 28
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_portrait"]
+atlas = ExtResource("portrait_atlas")
+region = Rect2(2, 2, 166, 260)
+filter_clip = true
+
+[node name="CardStoneStatue" instance=ExtResource("card_base")]
+layout_mode = 2
+card_reference = SubResource("CardReference_2_28")
+
+[node name="CardBg" parent="." index="0"]
+texture = ExtResource("packet")
+
+[node name="ZombieStoneStatue" type="Node2D" parent="CardBg/CharacterStatic" index="0"]
+
+[node name="Portrait" type="Sprite2D" parent="CardBg/CharacterStatic/ZombieStoneStatue"]
+scale = Vector2(0.2, 0.2)
+texture = SubResource("AtlasTexture_portrait")

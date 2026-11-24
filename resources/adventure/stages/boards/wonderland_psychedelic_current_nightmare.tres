@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="BoardGridDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/board/board_grid_definition.gd" id="grid"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_surface_definition.gd" id="surface"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_terrain_definition.gd" id="terrain"]
+
+[sub_resource type="Resource" id="DreamLand"]
+script = ExtResource("terrain")
+terrain_id = &"grass"
+planting_flags = 3
+supported_flags = 3
+spawn_type = 0
+presentation_kind = 0
+tags = Array[StringName]([&"land"])
+
+[sub_resource type="Resource" id="Surface"]
+script = ExtResource("surface")
+
+[resource]
+script = ExtResource("grid")
+board_id = &"wonderland.psychedelic_current.nightmare"
+surfaces = Array[ExtResource("surface")]([SubResource("Surface")])
+terrains = Array[ExtResource("terrain")]([SubResource("DreamLand")])
+dimensions = Vector2i(6, 9)
+column_edges = PackedFloat32Array(33.617, 125.426, 217.234, 310.956, 405.315, 502.224, 598.495, 693.492, 787.850, 882.847)
+row_edges = PackedFloat32Array(147.163, 214.376, 281.590, 347.664, 413.739, 482.661, 550.444)
+default_terrain_id = &"grass"
+spawn_x = 965.0
+mower_x = 12.0
+default_lane_spawn_type = 0
+lane_baseline_inset = 10.0

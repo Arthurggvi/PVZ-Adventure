@@ -1,0 +1,76 @@
+仲裁者坠毁演出与音效更新（2026-11-24）
+双喷口巡航烟迹、触地烟尘继续使用用户提供的 smoke_atlas.png。火球复用工程内
+BossExplosion1–3.png，地面冲击波、爆光与火花以 Godot 动态绘制和发射。
+下列音源的 Freesound 页面均标注 CC0，已剪辑、均衡并压为单声道 Vorbis。
+touchdown_scrape.ogg · Metal Scrape · magnuswaker
+https://freesound.org/people/magnuswaker/sounds/530075/
+damage_alarm.ogg · aircraftalarm.wav · guitarguy1985
+https://freesound.org/people/guitarguy1985/sounds/57806/
+slipstream.ogg · Whoosh_Passby_Jet_Long_Stereo.wav · Nox_Sound
+https://freesound.org/people/Nox_Sound/sounds/623015/
+impact_explosion.ogg · Deep Explosion · Kodack
+https://freesound.org/people/Kodack/sounds/258195/
+impact_followup.ogg 从 impact_explosion.ogg 剪出较短的爆炸起音，用于错开的次爆。
+impact_explosion.ogg 的低频叠层 · Deep Boom · Za-Games
+https://freesound.org/people/Za-Games/sounds/539968/
+wreck_fire.ogg · Fire Crackle and Flames 001 · TheWoodlandNomad
+https://freesound.org/people/TheWoodlandNomad/sounds/363093/
+
+仲裁者运行美术更新（2026-11-24）
+巡航机体、双喷口尾焰与坠毁烟雾取自用户提供的 aircraft_complete_assets.zip。
+机腹蓝黄地基已按用户标注抠除。机身保留原画的画布尺寸、像素颜色和喷口坐标。
+airframe.png 为包内机体的透明修订版，exhaust_sheet.png 和 smoke_atlas.png 来自包内同名 RGBA 素材。
+dive.tres 由 dive/dive_animation.json 的 132 个时间点转为 Godot 动画值轨，记录相对位移、转角和两股尾焰功率。
+原有保护光束、护盾光斑和音效仍由下方记录的裁片和音源提供。
+
+以下为 2026-11-23 的分件版历史记录，旧机体裁片保留为参考。
+
+仲裁者-X型（Arbiter-X） · 原作分件重构素材记录
+日期：2026-11-23
+工程：PVZ-Adventure / Godot 4.7.2
+状态：运行素材已接入。原版 PAM 时间轴未取得；本版本是原版 PNG 裁片的独立重建，不冒称原版动作完整还原。
+
+一、原版美术的可核验来源
+提取自《植物大战僵尸2 中国版》4.2.8 的原始机体图集：
+https://github.com/969981/PVZ2_Resources/blob/master/Images/CHN/V4.2.8/Media/shard-07/PNG/zombie2/ZombieInvisiblePlaneGroup_1200/ATLASES/ZOMBIEINVISIBLEPLANEGROUP_1200_00.png
+源文件 ZOMBIEINVISIBLEPLANEGROUP_1200_00.png
+尺寸 2048×4096，8位 RGBA，源 PNG 3,488,772 字节
+SHA256：50b8b837ca8360a506bb520e004620b74c2f80533ee8661b77d4c7b01475b532
+本站源件保存在本机 _review/arbiter_reconstruction_audit/source_atlas.png；
+为避免 3.5 MB 的完整源图被无谓装进移动端 APK，不在运行目录复制原始源图。
+静态数据及原游戏内部资源名 POPANIM_ZOMBIE_ZOMBIE_INVISIBLE_PLANE：
+https://github.com/969981/PVZ2_Resources/blob/master/docs/Entities/CHN/V4.2.8/Zombies/invisible_plane--338e8cbe97.md
+原版作者及美术所有权：PopCap / EA 及对应权利人；第三方资源提供方不等于商业授权。
+
+二、工作时实际裁取/重组的运行素材（全部原版源图裁片）
+hull_base.png：机翼＋座舱背壳＋尾部机体，原作分件合成。
+canopy_front.png：独立玻璃和前缘外壳，表面透明变化。
+pilot_body.png、pilot_goggles.png：原作驾驶员头部与护目镜。
+pilot_torso.png、pilot_arm.png：原作驾驶服、独立操纵手臂。
+glow_disk.png：原作能量光斑，用于后方目标保护视觉。
+cloak_beam.png、energy_arc.png：原作遮罩/青蓝能量效果。
+为了完整反馈三行保护，还使用 Godot 内置 Polygon2D/Line2D 动态绘制轻透明扇形、
+上下光束边缘和扫描线，均随真实减伤生效/关闭，不绘制在背景图里。
+采用轻微俯仰、独立驾驶员动作和能量喷口呼吸，还原为兼容 Android 的分层动画。
+原 PAM 未取得，不含原版精确关键帧、元件锚点或动作速度；正式用户审核尚未完成。
+
+三、音效来源与响度处理（不冒称原版专属）
+audio/engine_start.ogg：工程已有 zombie/hydraulic_short.ogg，滤波、音量约0.38、短尾淡出。
+audio/beam_charge.ogg：工程电能豌豆 plantfood_fire_1.wav，低通/高通、音量约0.55。
+audio/beam_pulse.ogg：工程 whale_ocean_freeze.ogg，滤波和-10dB左右增益。
+audio/crash.ogg：工程 zombie/explosion.ogg，均衡并降低峰值。
+以上均用 FFmpeg 转为 24 kHz 单声道 Vorbis OGG；由场景事件触发，不使用每帧反复发音。
+如需精确的原版音效，需取得原游戏资源或有授权的 SFX 包后再核对。
+
+四、实装与测试
+Zombie038ArbiterX / Z038ArbiterX：3000生命，单一战场实体，三行碾压（300/秒），
+约5秒/格的前进速度，进家保留本游戏现有失败判定。
+ArbiterXField：保护自身后方的三行普通僵尸（最多6格），周期施放，90%减伤，
+仍可见、仍可选中。用 DamageReductionEffect.set_uncapped_source 解决普通软上限问题；
+与其他减伤独立乘算，离场后撤销此光束独占来源。
+三叶草可一键吹走整架，不触发死亡爆炸或重复波次结算。
+真实战场验证：3行保护均为0.900；250点名义伤害实际扣25；效果结束回0；
+三叶草真实出场后移除本体；第二架机体受致死伤害正常死亡。录制使用正式草坪场景
+res://scenes/main/MainGame01Front.tscn 的正常 PlantCell 与 ZombieManager 入口。
+录像非合成动画视频：Godot --write-movie 直接录制渲染帧、含正式战斗HUD；
+素材／表现仍待用户根据视频审查。

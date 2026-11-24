@@ -10,6 +10,7 @@ var collected := false  # 是否已被点击收集
 var spawn_sun_tween:Tween
 
 func _ready() -> void:
+	add_to_group(&"touch_collectibles")
 	_sun_scale(sun_value)
 	## 启动一个10秒定时器
 	await get_tree().create_timer(exist_time, false).timeout
@@ -40,15 +41,14 @@ func collect() -> void:
 		return  # 防止重复点击
 
 	collected = true  # 设置已被收集
-	var target_position = Vector2()
+	var target_position := Vector2.ZERO # 没有活跃战场时保留原点回收表现。
 	SoundManager.play_other_SFX("points")
 	if is_instance_valid(Global.main_game):
-		if is_instance_valid(Global.main_game.marker_2d_sun_target):
-			## 出战卡槽在canvaslayer中，位置和摄像头位置有偏移
-			target_position = Global.main_game.marker_2d_sun_target.global_position + Global.main_game.camera_2d.global_position
-			#print(Global.main_game.marker_2d_sun_target.get_canvas_layer_node().get_final_transform())
-		else:
-			target_position = Global.main_game.marker_2d_sun_target_default.global_position
+		var target: Marker2D = Global.main_game.marker_2d_sun_target # 当前卡槽的实际回收点。
+		if not is_instance_valid(target):
+			target = Global.main_game.marker_2d_sun_target_default
+		# 经视口坐标跨越卡槽和战场画布，同时考虑镜头缩放与位移。
+		target_position = get_canvas_transform().affine_inverse() * target.get_global_transform_with_canvas().origin
 
 		EventBus.push_event("add_sun_value", [sun_value])
 
