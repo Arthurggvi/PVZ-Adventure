@@ -24,7 +24,7 @@ func _physics_process(_delta: float) -> void:
     if not _sled.is_hypno and not _sled.is_action_suspended() and not is_equal_approx(front, _last_front) \
             and _sled.lane >= 0:
         AdventureZombieLaneImpact.hit_plants(_sled.lane,
-                _last_front, front, 0, true, _hit)
+                _last_front, front, 0, true, _hit, _sled)
     _last_front = front
 
 ## [param _active] 变化时重置扫掠起点，恢复能力不会碾压沉默期间已经经过的路径。

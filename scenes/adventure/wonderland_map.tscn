@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/world_map/wonderland_map.gd" id="1_wonderland"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/transitions/SceneTransition.tscn" id="2_transition"]
+
+[node name="WonderlandMap" type="Node2D" groups=["adventure_toolbar_surface"]]
+script = ExtResource("1_wonderland")
+
+[node name="SceneTransition" parent="." instance=ExtResource("2_transition")]

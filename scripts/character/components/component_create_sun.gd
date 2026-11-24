@@ -2,6 +2,9 @@
 extends ComponentNormBase
 class_name CreateSunComponent
 
+## 分批产出时单个阳光的价值上限，避免大额产出遮挡棋盘。
+const MAX_BATCH_SUN_VALUE: int = 50
+
 ## 生产阳光计时器，周期保存为正常角色速度下的秒数。
 @onready var create_sun_timer: SpeedTimer = $CreateSunTimer
 ## 身体节点，负责生产前后的短暂发光。
@@ -17,6 +20,8 @@ class_name CreateSunComponent
 var extra_small_sun_min: int = 0
 ## 冻结转职规定的每轮额外小阳光最多份数。
 var extra_small_sun_max: int = 0
+## 每轮独立于单份价值与倍率的固定额外产值，零表示没有额外产出。
+var extra_sun_value_per_production: int = 0
 ## 每轮生产完成后累加的单份价值。
 var production_growth_step: int = 0
 ## 单份生产成长加值的上限。
@@ -53,7 +58,7 @@ func _on_be_eat_once() -> void:
 func _on_character_death() -> void:
 	if remaining_sun_on_zombie_mode > 0:
 		for _index: int in range(remaining_sun_on_zombie_mode): # 每份仍沿用完整生产流程。
-			_spawn_sun()
+			_spawn_sun(true)
 		remaining_sun_on_zombie_mode = 0
 
 ## 保存首轮基础周期和速度；展示场景不启动生产。
@@ -94,20 +99,37 @@ func change_production_interval() -> void:
 	create_interval = randf_range(create_time_range_other.x, create_time_range_other.y)
 	create_sun_timer.start_scaled(create_interval)
 
-## 只允许存活本株完成正常生产；睡眠、死亡和退场后的晚到发光回调不再产出。
-func _spawn_sun() -> void:
-	if not _can_spawn_sun(false) or (not is_enabling and not owner.is_zombie_mode):
+## [param allow_death_payout] 仅供我是僵尸模式同步结算剩余产出，保留原有生产事件。
+## 正常生产拒绝冻结、死亡和退场后的晚到回调；死亡结算仍须属于当前战场。
+func _spawn_sun(allow_death_payout: bool = false) -> void:
+	if not _can_spawn_sun(allow_death_payout) or (not is_enabling and not owner.is_zombie_mode):
 		return
 	SoundManager.play_character_SFX(&"Throw1")
-	var total_value: int = 0 # 累计已创建的实际价值，包括成长加值和额外小阳光。
+	_produce_sun()
+
+## 为角色技能额外结算一轮真实生产，返回是否有产出；批量音效由施放者统一播放。
+## 睡眠只对本轮额外生产豁免，其他禁用原因及原生产时钟照常生效。
+func produce_for_skill() -> bool:
+	if not _can_spawn_sun(false):
+		return false
+	for factor: E_IsEnableFactor in is_enable_factors: # 逐项检查，避免睡眠与其他禁用重叠时一起绕过。
+		if factor != E_IsEnableFactor.Sleep and not is_enable_factors[factor]:
+			return false
+	return _produce_sun() > 0
+
+## 执行已经获准的一轮生产，沿用本株转职、产量和阳光事件，返回实际产值。
+func _produce_sun() -> int:
+	var total_value: int = 0 # 累计已创建的实际价值，包括固定额外产值和额外小阳光。
 	for _index: int in range(num_create_sun): # 普通生产份数不被单份价值加成放大。
 		total_value += _spawn_sun_value(roundi(float(sun_value + _production_growth_bonus) * (1.0 + coffee_solar_bonus)))
 	var extra: int = randi_range(extra_small_sun_min, extra_small_sun_max) # 本轮额外小阳光份数。
 	for _index: int in range(extra): # 额外小阳光也属于本株实际生产。
 		total_value += _spawn_sun_value(roundi(15.0 * (1.0 + coffee_solar_bonus)))
+	total_value += _spawn_sun_batch(extra_sun_value_per_production, MAX_BATCH_SUN_VALUE)
 	advance_production_growth_bonus()
 	if total_value > 0:
 		production_created.emit(total_value)
+	return total_value
 
 ## 当前生产完成后累加下轮单份价值；返回受上限约束的新加值。
 func advance_production_growth_bonus() -> int:
@@ -125,25 +147,33 @@ func spawn_specific_sun(value: int) -> void:
 
 ## 将 [param total_value] 精确拆成不大于 [param max_piece_value] 的奖励阳光，只播放一次音效。
 ## 两参数必须为正；默认每份最多五十，避免高额储蓄生成遮挡棋盘的巨大阳光，且不发生产事件。
-func spawn_specific_sun_batch(total_value: int, max_piece_value: int = 50) -> void:
+func spawn_specific_sun_batch(total_value: int, max_piece_value: int = MAX_BATCH_SUN_VALUE) -> void:
 	if total_value <= 0 or max_piece_value <= 0 or not _can_spawn_sun(true):
 		return
 	SoundManager.play_character_SFX(&"Throw1")
-	var remaining: int = total_value # 尚未发放的精确总值，最后一份保留不足整份的余数。
-	while remaining > 0:
-		var piece: int = mini(remaining, max_piece_value) # 本份合法价值，不放大原版阳光比例。
-		if _spawn_sun_value(piece) <= 0:
-			return
-		remaining -= piece
+	_spawn_sun_batch(total_value, max_piece_value)
 
-## [param allow_dead] 只为同步奖励允许本株已经死亡；排队释放、预览和跨场景回调一律拒绝。
+## 将 [param total_value] 拆成单份至多 [param max_piece_value] 的阳光，返回实际发放总值。
+## 调用方负责确认生产或奖励资格；本函数不额外发信号或播放音效。
+func _spawn_sun_batch(total_value: int, max_piece_value: int) -> int:
+	var spawned: int = 0 # 已经实际发放的价值，生成被中断时只返回已完成部分。
+	while spawned < total_value:
+		var piece: int = mini(total_value - spawned, max_piece_value) # 最后一份保留不足整份的余数。
+		var actual: int = _spawn_sun_value(piece) # 创建失败返回零，结束本次分批处理。
+		if actual <= 0:
+			break
+		spawned += actual
+	return spawned
+
+## [param allow_dead] 仅同步奖励或死亡剩余产出允许死亡及冻结；正常生产及技能产阳受冻结限制。
+## 排队释放、预览和跨场景回调一律拒绝；冻结前已排队的发光回调不能继续产阳。
 func _can_spawn_sun(allow_dead: bool) -> bool:
 	var game: MainGameManager = Global.main_game # 必须仍属于实际产出发生的当前战场。
 	var character: Character000Base = owner as Character000Base # 场景所有者决定真实生命周期。
 	return is_inside_tree() and not is_queued_for_deletion() \
 			and is_instance_valid(character) and not character.is_queued_for_deletion() \
 			and character.character_init_type == Character000Base.E_CharacterInitType.IsNorm \
-			and (allow_dead or not character.is_death) \
+			and (allow_dead or (not character.is_death and not character.is_cold_frozen())) \
 			and is_instance_valid(game) and game.is_inside_tree() and not game.is_queued_for_deletion() \
 			and game.get_tree().current_scene == game and game.is_ancestor_of(self) \
 			and game.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME \

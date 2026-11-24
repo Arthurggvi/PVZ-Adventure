@@ -32,6 +32,8 @@ var _restore_owner: RefCounted
 signal terrain_changed(cell: PlantCell)
 ## 已有植株换位完成；邻接效果刷新，不触发新种植或死亡的收益。
 signal plant_relocated
+## [param plant] 的实体与占格尚未释放，供环境在死亡前捕获姿态。
+signal plant_dying(plant: Plant000Base)
 
 ## 初始化行容器，[param lane_definitions] 的数组顺序就是战斗行号。
 func configure_lanes(lane_definitions: Array[BoardLaneDefinition]) -> void:
@@ -65,12 +67,30 @@ func rows() -> Array[Array]:
 		result.append(row.duplicate())
 	return result
 
-## 按 [param lane] 枚举种植点；无效行返回空数组。
+## 按实际攻防行 [param lane] 枚举种植点；无效行返回空数组。
 func row_cells(lane: int) -> Array[PlantCell]:
 	var result: Array[PlantCell] = [] # 类型明确的空行/结果。
-	if lane >= 0 and lane < _rows.size():
+	if lane < 0 or lane >= _rows.size():
+		return result
+	if definition != null and definition.project_surface_combat_lanes:
+		for cell: PlantCell in _cells: # 当前攻防行可能不同于存档中的初始种植行。
+			if cell.combat_lane == lane:
+				result.append(cell)
+		result.sort_custom(func(left: PlantCell, right: PlantCell): return left.row_col.y < right.row_col.y)
+	else:
 		result.assign(_rows[lane])
 	return result
+
+## 将战场局部脚点 [param foot_y] 投影到固定进攻线；无行返回 -1，等距时取上行。
+func lane_at_foot_y(foot_y: float) -> int:
+	var nearest: int = -1 # 当前最近的进攻线。
+	var distance: float = INF # 当前最短的纵向像素差。
+	for index: int in lanes.size(): # 与正式出怪标记共享同一条基线。
+		var offset: float = absf(lanes[index].spawn_position.y - foot_y) # 只按高度匹配进攻方向。
+		if offset < distance:
+			nearest = index
+			distance = offset
+	return nearest
 
 ## 稳定 ID 查询；不存在的 [param id] 返回 null，不回退数组下标。
 func cell_by_id(id: StringName) -> PlantCell:
@@ -97,13 +117,7 @@ func right_of(origin: PlantCell) -> PlantCell:
 
 ## 返回当前世界坐标 [param point] 下实际交互地块；重叠时与 GUI 的场景树顺序一致。
 func pick_cell(point: Vector2) -> PlantCell:
-	var result: PlantCell = null # 命中重叠地块时按场景树输入顺序选择。
-	for cell: PlantCell in _cells: # 地块几何与 Button._has_point 使用同一接口。
-		if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_visible_in_tree():
-			continue
-		if cell.contains_world_point(point) and (result == null or cell.is_greater_than(result)):
-			result = cell
-	return result
+	return BoardQueries.pick_cell_from(point, _cells)
 
 
 ## 在可选 [param lane] 内寻找离 [param point] 最近的种植点，-1 表示所有行。
@@ -185,3 +199,83 @@ func begin_restore(transaction: RefCounted) -> bool:
 func end_restore(transaction: RefCounted) -> void:
 	assert(_restore_owner == transaction)
 	_restore_owner = null
+
+## 移去最后一行的全部格子和占用，保留其余地址及原实例。
+func retire_last_lane() -> bool:
+	if lanes.size() <= 1:
+		return false
+	var transaction := RefCounted.new() # 清理植物期间禁止死亡回调重入种植。
+	if not begin_restore(transaction):
+		return false
+	for cell: PlantCell in _rows.back().duplicate(): # 收缩永久拓扑，按逻辑末行清理占用。
+		if is_instance_valid(cell.tombstone):
+			cell.tombstone.tombstone_death()
+		if is_instance_valid(cell.ladder):
+			cell.ladder.ladder_death()
+		_remove_for_layout(cell)
+	_rows.pop_back()
+	lanes.pop_back()
+	extent.x = lanes.size()
+	end_restore(transaction)
+	return true
+
+## 将 [param cell] 及其实体从当前布局移去，沿用原植物清场的死亡语义。
+func _remove_for_layout(cell: PlantCell) -> void:
+	for plant: Plant000Base in cell.living_plants(): # 占用多格的同一实例仍只死亡一次。
+		plant.is_can_death_language = false
+	cell.clear_data_plant_cell()
+	_by_id.erase(cell.cell_id)
+	_by_address.erase(cell.row_col)
+	_rows[cell.row_col.x].erase(cell)
+	_cells.erase(cell)
+	cell.hide()
+	cell.queue_free()
+
+## 安装已预检的 [param layout] 和 [param layers]；[param transaction] 独占本次索引变更。
+## 移除的格子按原死亡协议清理，保留格子及所有植株继续使用原实例。
+func commit_phase_layout(layout: BoardDefinition, layers: Dictionary, transaction: RefCounted) -> void:
+	var accepted: bool = begin_restore(transaction) # 发行构建也必须执行互斥获取，不能藏在 assert 中。
+	assert(accepted)
+	if not accepted:
+		return
+	var game: MainGameManager = surfaces.values()[0].game # 本棋盘所属战斗。
+	for cell: PlantCell in cells(): # 先清理退出布局的完整占用，再更新索引。
+		if layers.has(cell.cell_id):
+			continue
+		_remove_for_layout(cell)
+	definition = layout
+	board_id = layout.board_id
+	revision = layout.revision
+	lanes = layout.lane_definitions()
+	extent = Vector2i(lanes.size(), 0)
+	terrains.clear()
+	for terrain: BoardTerrainDefinition in layout.terrains: # 丢弃旧水路能力目录。
+		terrains[terrain.terrain_id] = terrain
+	for data: BoardCellDefinition in layout.cell_definitions(): # 原 Control 的锚点更新其所有植物容器。
+		var cell: PlantCell = cell_by_id(data.cell_id) # 预检保证存在且身份不变。
+		cell.board_definition = data
+		cell.position = data.position
+		cell.size = data.size
+		cell.update_ground_anchors()
+		cell.install_prepared_terrain(layers[data.cell_id])
+		extent.y = maxi(extent.y, data.address.y + 1)
+	for data: BoardSurfaceDefinition in layout.surfaces: # 水体区域不留在已成为陆地的战场。
+		var surface: BoardSurface = surfaces[data.surface_id] # 保留所有种植节点的父平台。
+		for child: Node in surface.get_children(): # 移除原平台的连续水域接触节点。
+			if child is WaterBodyArea:
+				surface.remove_child(child)
+				child.queue_free()
+		surface.configure(data, game)
+		for region: Rect2 in data.water_regions: # 当前噩梦配置为空，协议仍按资源执行。
+			surface.add_child(WaterBodyArea.from_region(region))
+	for index: int in range(lanes.size()): # 同步正式出怪标记和水陆资格。
+		var row: ZombieRow = game.zombie_manager.all_zombie_rows[index] # 保留原攻击行节点。
+		row.zombie_row_type = lanes[index].spawn_type
+		row.zombie_create_position.global_position = game.to_global(lanes[index].spawn_position)
+	# 选行器缓存地形资格；布局交接后必须刷新，避免陆地阶段仍沿用水路权重。
+	game.zombie_manager.zombie_wave_manager.zombie_wave_create_manager.zombie_choose_row_system.init_zombie_choose_row_system(game.zombie_manager.all_zombie_rows)
+	game.game_para.board_definition = definition
+	game.plant_cell_manager.rebuild_plant_counts()
+	end_restore(transaction)
+	plant_relocated.emit()
+	EventBus.push_event("update_card_purple_sun_cost")

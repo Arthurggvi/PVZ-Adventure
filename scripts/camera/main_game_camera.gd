@@ -4,8 +4,12 @@ class_name MainGameCamera
 
 ## 主游戏短促震动事件；参数依次为二维幅度、持续游戏秒数和每秒振动次数。
 const SHAKE_EVENT: String = "main_game_camera_shake"
-## 入树前设为 false 时只接收直接调用，供独立演出舞台使用。
-var listen_for_battle_shake: bool = true
+## 选卡时展示僵尸的镜头目标，单位为战场世界像素。
+@export var zombie_preview_position := Vector2(120.0, 0.0)
+## 设为 false 时只接收直接调用，供画面无裁边余量的战场和独立演出舞台使用。
+@export var listen_for_battle_shake: bool = true
+## 场景编排的战斗机位，选卡或重新选卡结束后返回同一世界坐标。
+@onready var _battle_position: Vector2 = global_position
 ## 当前震动开始前的相机偏移；重复触发期间不重新取值，避免偏移累积。
 var _shake_base_offset: Vector2 = Vector2.ZERO
 ## 当前震动的横向和纵向最大幅度，单位为相机坐标像素。
@@ -98,10 +102,10 @@ func move_to(target_pos: Vector2, duration: float) -> Signal:
 	return tween.finished
 
 
-## 开始游戏查看僵尸
+## 移向当前战场的选卡展示机位。
 func move_look_zombie():
-	return move_to(Vector2(120, 0), 2)
+	return move_to(zombie_preview_position, 2)
 
-## 返回原点
+## 选卡结束后回到本关的初始战斗机位。
 func move_back_ori():
-	return move_to(Vector2(-150, 0), 2)
+	return move_to(_battle_position, 2)

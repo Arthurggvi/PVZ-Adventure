@@ -65,14 +65,18 @@ func areas(node: Node2D, start: Vector2, finish: Vector2, mask: int) -> Array[Ar
 	return CombatExplosion.query_areas(node.get_world_2d().direct_space_state, _profile, start)
 
 ## 返回 [param node] 从 [param start] 至 [param finish] 在 [param mask] 中的有序接触。
+## [param already_hit_ids] 为本程已受击的角色实例 ID，这些角色无需再次做高成本的窄相检测。
 ## 每项含 area 与 fraction；使用形状边缘而非角色中心排序，僵王大受击框也遵守实际先后。
-func contacts(node: Node2D, start: Vector2, finish: Vector2, mask: int) -> Array[Dictionary]:
+func contacts(node: Node2D, start: Vector2, finish: Vector2, mask: int,
+		already_hit_ids: Dictionary[int, bool] = {}) -> Array[Dictionary]:
 	var result: Array[Dictionary] = [] # 该线段的实际接触候选，伤害资格由弹体逐项复核。
 	var seen: Dictionary[int, bool] = {} # 同一 Area 的多个形状只窄查一次。
 	for area: Area2D in areas(node, start, finish, mask): # 广查只给候选，不提前消耗穿透次数。
 		if not is_instance_valid(area) or area.is_queued_for_deletion() or seen.has(area.get_instance_id()):
 			continue
 		seen[area.get_instance_id()] = true
+		if is_instance_valid(area.owner) and already_hit_ids.has(area.owner.get_instance_id()):
+			continue # 本程已命中过的角色不会再次受击，直接跳过精确形状二分。
 		var fraction: float = area_fraction(area, start, finish) # 首次进入真实形状的路径比例。
 		if is_finite(fraction):
 			result.append({"area": area, "fraction": fraction})
@@ -81,6 +85,14 @@ func contacts(node: Node2D, start: Vector2, finish: Vector2, mask: int) -> Array
 		return a.area.get_instance_id() < b.area.get_instance_id() if a.fraction == b.fraction \
 			else a.fraction < b.fraction)
 	return result
+
+## 检查 [param area] 是否仍真实横穿 [param points] 描述的完整折线路径。
+## 用于复用已验证的前方目标，失效或移出路线时由发射弹重新扫描全部目标。
+func area_intersects_path(area: Area2D, points: Array[Vector2]) -> bool:
+	for index: int in range(points.size() - 1): # 与正式逐段扫描使用相同的坡面路径。
+		if is_finite(area_fraction(area, points[index], points[index + 1])):
+			return true
+	return false
 
 ## 返回 [param area] 在 [param start] 至 [param finish] 上的最早接触比例，无接触为 INF。
 func area_fraction(area: Area2D, start: Vector2, finish: Vector2) -> float:

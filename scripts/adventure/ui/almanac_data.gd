@@ -84,6 +84,15 @@ static func detail(kind: String, type_id: int, tier: int) -> Dictionary:
 			"防具生命": "×%s" % values.get("armor", 1),
 			"普通啃咬": "×%s" % values.get("attack", 1),
 		}
+		if type_id == CharacterRegistry.ZombieType.Z028StoneStatue:
+			# 石壳不接受等阶防具倍率；阶级只决定破壳后的普通僵尸。
+			stats.erase("防具生命")
+			stats["石壳生命"] = "3000 点（各阶固定）"
+			stats["破壳本体"] = "%d 阶普通僵尸" % tier
+		elif type_id == CharacterRegistry.ZombieType.Z029LargeFusion:
+			# 融合体不啃咬，碰撞伤害也不使用普通攻击的等阶倍率。
+			stats.erase("普通啃咬")
+			stats["碰撞伤害"] = "1000 点（各阶固定）"
 		var ability: String = AdventureZombieTierTraits.description_for(type_id, id) # 和战斗特性系统共享现有说明接口。
 		if not ability.is_empty():
 			effects.append({"title": "", "options": {"": ability}})

@@ -7,6 +7,8 @@ const ItemName = preload("res://scripts/adventure/ui/item_name_style.gd")
 const Layout = preload("res://scripts/adventure/ui/research_panel_skin.gd")
 ## 槽位组件负责复用背包格并派发点击。
 const Slots = preload("res://scripts/adventure/ui/research_slot_view.gd")
+## 合成产物与工作槽共用植物悬停预览。
+const PromotionDetails = preload("res://scripts/ui/card/card_slot/card_slot_norm/card_promotion_details.gd")
 ## 槽位类型与当前选择状态。
 const Picker = preload("res://scripts/adventure/ui/research_slot_picker.gd")
 ## 耗材槽数量与强化规则一致。
@@ -16,32 +18,43 @@ const Growth = preload("res://scripts/adventure/adventure_plant_growth_catalog.g
 ## 这些植物通过爆炸组件或炮弹使用战斗伤害倍率；寒冰菇的冻结不消耗该倍率。
 const BLAST_PLANTS := [CharacterRegistry.PlantType.P003CherryBomb, CharacterRegistry.PlantType.P005PotatoMine,
 	CharacterRegistry.PlantType.P016DoomShroom, CharacterRegistry.PlantType.P021Jalapeno, CharacterRegistry.PlantType.P048CobCannon]
-## 直接在植物脚本调用战斗伤害结算、不经通用攻击组件的植物。
-const DIRECT_DAMAGE_PLANTS := [CharacterRegistry.PlantType.P007Chomper, CharacterRegistry.PlantType.P018Squash,
-	CharacterRegistry.PlantType.P020TangleKelp, CharacterRegistry.PlantType.P022Caltrop, CharacterRegistry.PlantType.P047SpikeRock,
-	CharacterRegistry.PlantType.P050LightningReed, CharacterRegistry.PlantType.P052ElectricPeashooter]
+## 不挂通用 AttackComponent、由植物脚本直接结算或自建投射物的伤害来源。
+## 仅声明强化预览展示项；实际星级倍率统一由出战配方应用。
+const CUSTOM_ATTACK_PLANTS: Array[int] = [
+	CharacterRegistry.PlantType.P007Chomper,
+	CharacterRegistry.PlantType.P018Squash,
+	CharacterRegistry.PlantType.P020TangleKelp,
+	CharacterRegistry.PlantType.P022Caltrop,
+	CharacterRegistry.PlantType.P047SpikeRock,
+	CharacterRegistry.PlantType.P050LightningReed,
+	CharacterRegistry.PlantType.P051Bloomerang,
+	CharacterRegistry.PlantType.P052ElectricPeashooter,
+]
 
 ## 转职工作槽按原始宽高的 60% 绘制。
 const PROMOTION_SLOT_SCALE: float = 0.60
 
+## 在 [param parent] 的 [param pos] 和 [param dimensions] 内展示 [param type_id] 的合成产物。
+## 有效产物可悬停查看基础卡牌，空槽显示占位图。
 static func plant(parent: Control, type_id: int, pos: Vector2, dimensions: Vector2) -> void:
 	Art.image(parent, "slots/plant_slot_normal.png", pos, dimensions)
 	if not PlantCardInstance.is_plant_type(type_id):
 		Art.image(parent, "slots/empty_plant_symbol.png",
 			pos + dimensions * 0.22, dimensions * 0.55)
 		return
-	var ref := ResourceCardReference.create(ResourceCardReference.CardType.Plant, type_id)
-	var card: Card = AllCards.create_card(ref, Card.CardContext.Catalog)
+	var ref := ResourceCardReference.create(ResourceCardReference.CardType.Plant, type_id) # 合成产物使用基础物种引用。
+	var card: Card = AllCards.create_card(ref, Card.CardContext.Catalog) # 零星产物与植物预览共用此卡面和基础费用。
 	if card == null:
 		return
 	parent.add_child(card)
 	card.visible = true
 	card.size = card.get_combined_minimum_size()
-	var factor := minf(dimensions.x / card.size.x, dimensions.y / card.size.y) * 0.88
+	var factor := minf(dimensions.x / card.size.x, dimensions.y / card.size.y) * 0.88 # 卡面等比适配槽内可用空间。
 	card.scale = Vector2.ONE * factor
 	card.position = pos + (dimensions - card.size * factor) * 0.5
-	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	card.button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	PromotionDetails.set_hover_card(card, card)
 
 ## 用 [param preview] 绘制强化信息，在 [param parent] 以 [param picker] 和 [param inventory] 展示可选工作槽。
 ## [param owner] 接收主卡、耗材、花盆、肥料和生长剂的槽位交互；[param coin_balance] 用于价格提示。
@@ -83,16 +96,49 @@ static func upgrade(owner: Control, parent: Control, preview: Dictionary,
 	if PlantCardInstance.is_plant_type(plant_type):
 		var stars: int = int(preview.stars) # 当前主卡的实际星级，包括零星。
 		var next_star: int = int(preview.target_star) # 已封顶时等于当前星级。
-		var stats: Dictionary[String, String] = _star_stat_labels(plant_type) # 两个星级使用相同的植物属性范围。
-		_star_effect(parent, stars, stats, bounds.position + Vector2(0, 105), bounds.size.x, Color("382719"))
+		var effects := Control.new() # 本次选卡的属性区，重绘或换卡时旧目标随之失效。
+		effects.position = bounds.position + Vector2(0, 105)
+		effects.size = Vector2(bounds.size.x, 260)
+		effects.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		parent.add_child(effects)
+		# 从注册表取路径，选择时不读取战斗场景。
+		var scene_path: String = CharacterRegistry.PlantInfo[plant_type][CharacterRegistry.PlantInfoAttribute.PlantScenes]
+		owner.visual_queue.enqueue(effects, PackedStringArray([scene_path]),
+			_draw_star_effects.bind(effects, scene_path, plant_type, stars, next_star))
 		if next_star > stars:
-			_star_effect(parent, next_star, stats, bounds.position + Vector2(0, 245), bounds.size.x, Color("24558c"))
+			# 沿用实际结算规则预览失败后的星级，选定主卡后即可提示风险。
+			var failure_star: int = Enhancement.result_star(stars, false, bool(preview.get("use_pot", false)))
+			if failure_star < stars and (chance == null or float(chance) < 1.0):
+				_star_loss_warning(parent, bounds, stars - failure_star)
 	price(parent, bounds, int(preview.get("fee", Enhancement.COST)), coin_balance)
 
-## 按 [param plant_type] 读取战斗场景的能力，返回实际使用的星级加成及其名称。
-static func _star_stat_labels(plant_type: int) -> Dictionary[String, String]:
+## 在 [param parent] 的 [param bounds] 内、价格上方提示失败将掉 [param stars_lost] 星。
+static func _star_loss_warning(parent: Control, bounds: Rect2, stars_lost: int) -> void:
+	var note: Label = Art.label(parent, "未使用保育花盆，失败将掉 %d 星" % stars_lost,
+		Vector2(bounds.position.x, bounds.end.y - 118), Vector2(bounds.size.x, 52),
+		26, Color("74391f")) # 与价格左对齐，在星级效果下方独立成行。
+	var style := StyleBoxFlat.new() # 半透明赭色保留羊皮纸纹理，左侧细边标出风险。
+	style.bg_color = Color("aa62252e")
+	style.border_color = Color("9b542c")
+	style.border_width_left = 4
+	style.set_corner_radius_all(6)
+	style.content_margin_left = 16.0
+	style.content_margin_right = 16.0
+	note.add_theme_stylebox_override("normal", style)
+
+## [param scene_path] 由预览队列准备并保持缓存，用于在 [param parent] 显示 [param plant_type] 的 [param stars] 和 [param next_star] 加成。
+static func _draw_star_effects(parent: Control, scene_path: String, plant_type: int, stars: int, next_star: int) -> void:
+	var scene: PackedScene = ResourceLoader.get_cached_ref(scene_path) as PackedScene # 只取得队列已准备的场景，不触发同步加载。
+	if scene == null:
+		return
+	var stats: Dictionary[String, String] = _star_stat_labels(plant_type, scene) # 前后星级共用同一份属性说明。
+	_star_effect(parent, stars, stats, Vector2.ZERO, parent.size.x, Color("382719"))
+	if next_star > stars:
+		_star_effect(parent, next_star, stats, Vector2(0, 140), parent.size.x, Color("24558c"))
+
+## 按 [param plant_type] 和已准备的 [param scene] 返回实际使用的星级加成及其名称，不实例化植物。
+static func _star_stat_labels(plant_type: int, scene: PackedScene) -> Dictionary[String, String]:
 	var labels: Dictionary[String, String] = {} # 按伤害、生命、产阳光频率的顺序展示。
-	var scene: PackedScene = Global.character_registry.get_plant_scene(plant_type) # 只读场景结构，不实例化植物。
 	var scene_state: SceneState = scene.get_state() # 反向双发等植物可能从父场景继承攻击组件。
 	var has_attack := false # 通用攻击组件会把倍率传给子弹，部分组件则由植物脚本执行攻击。
 	var produces_sun := false # 与战斗代码检测同名产阳光组件。
@@ -104,7 +150,7 @@ static func _star_stat_labels(plant_type: int) -> Dictionary[String, String]:
 		scene_state = scene_state.get_base_scene_state()
 	if plant_type in BLAST_PLANTS:
 		labels["damage"] = "爆炸伤害"
-	elif has_attack or plant_type in DIRECT_DAMAGE_PLANTS:
+	elif has_attack or plant_type in CUSTOM_ATTACK_PLANTS:
 		labels["damage"] = "伤害"
 	labels["max_health"] = "生命"
 	if produces_sun:

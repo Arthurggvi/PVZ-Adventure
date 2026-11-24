@@ -1,0 +1,208 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/savior/savior_atlas.png" id="atlas"]
+
+[sub_resource type="AtlasTexture" id="idle_01"]
+atlas = ExtResource("atlas")
+region = Rect2(0, 0, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_02"]
+atlas = ExtResource("atlas")
+region = Rect2(210, 0, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_03"]
+atlas = ExtResource("atlas")
+region = Rect2(420, 0, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_04"]
+atlas = ExtResource("atlas")
+region = Rect2(630, 0, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_05"]
+atlas = ExtResource("atlas")
+region = Rect2(840, 0, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_06"]
+atlas = ExtResource("atlas")
+region = Rect2(1050, 0, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_07"]
+atlas = ExtResource("atlas")
+region = Rect2(0, 349, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_08"]
+atlas = ExtResource("atlas")
+region = Rect2(210, 349, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_09"]
+atlas = ExtResource("atlas")
+region = Rect2(420, 349, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_10"]
+atlas = ExtResource("atlas")
+region = Rect2(630, 349, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_11"]
+atlas = ExtResource("atlas")
+region = Rect2(840, 349, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_12"]
+atlas = ExtResource("atlas")
+region = Rect2(1050, 349, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_01"]
+atlas = ExtResource("atlas")
+region = Rect2(0, 698, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_02"]
+atlas = ExtResource("atlas")
+region = Rect2(210, 698, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_03"]
+atlas = ExtResource("atlas")
+region = Rect2(420, 698, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_04"]
+atlas = ExtResource("atlas")
+region = Rect2(630, 698, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_05"]
+atlas = ExtResource("atlas")
+region = Rect2(840, 698, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_06"]
+atlas = ExtResource("atlas")
+region = Rect2(1050, 698, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_07"]
+atlas = ExtResource("atlas")
+region = Rect2(0, 1047, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_08"]
+atlas = ExtResource("atlas")
+region = Rect2(210, 1047, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_09"]
+atlas = ExtResource("atlas")
+region = Rect2(420, 1047, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_10"]
+atlas = ExtResource("atlas")
+region = Rect2(630, 1047, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_11"]
+atlas = ExtResource("atlas")
+region = Rect2(840, 1047, 210, 349)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="pray_12"]
+atlas = ExtResource("atlas")
+region = Rect2(1050, 1047, 210, 349)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.4,
+"texture": SubResource("idle_01")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_02")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_03")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_04")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_05")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_06")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_07")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_08")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_09")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_10")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_11")
+}, {
+"duration": 1.4,
+"texture": SubResource("idle_12")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.4,
+"texture": SubResource("pray_01")
+}, {
+"duration": 1.4,
+"texture": SubResource("pray_02")
+}, {
+"duration": 1.4,
+"texture": SubResource("pray_03")
+}, {
+"duration": 1.4,
+"texture": SubResource("pray_04")
+}, {
+"duration": 7.0,
+"texture": SubResource("pray_05")
+}, {
+"duration": 1.4,
+"texture": SubResource("pray_06")
+}, {
+"duration": 1.4,
+"texture": SubResource("pray_07")
+}, {
+"duration": 1.4,
+"texture": SubResource("pray_08")
+}, {
+"duration": 1.4,
+"texture": SubResource("pray_09")
+}, {
+"duration": 1.4,
+"texture": SubResource("pray_10")
+}, {
+"duration": 1.4,
+"texture": SubResource("pray_11")
+}, {
+"duration": 1.4,
+"texture": SubResource("pray_12")
+}],
+"loop": true,
+"name": &"pray",
+"speed": 10.0
+}]

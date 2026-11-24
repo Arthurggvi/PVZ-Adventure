@@ -2,6 +2,9 @@
 ## Run with isolated user data in both headless and graphical mode.
 extends Node
 
+## 复用回城验收的背景细节检查。
+const CoastalFrameCheck = preload("res://tests/adventure/coastal_frame_check.gd")
+
 var _started_usec := 0
 
 func _ready() -> void:
@@ -27,8 +30,23 @@ func _watch() -> void:
 					push_error("FAIL: main menu unexpectedly initialized card catalogue")
 					get_tree().quit(1)
 					return
-				print("PASS: bootstrap → rendered and interactive coastal menu; elapsed_ms=",
-					roundi(float(Time.get_ticks_usec() - _started_usec) / 1000.0))
+				var ready_ms := roundi(float(Time.get_ticks_usec() - _started_usec) / 1000.0) # 揭幕耗时不含验收读回。
+				var graphical := DisplayServer.get_name() != "headless" # 无渲染设备只核对冷启动流程。
+				if graphical:
+					await RenderingServer.frame_post_draw
+					var sampler_error := CoastalFrameCheck.sampler_budget_error(scene.host) # 验证正式合成的各次绘制。
+					if not sampler_error.is_empty():
+						push_error("FAIL: " + sampler_error)
+						get_tree().quit(1)
+						return
+					var town_frame: Image = scene.host.output_view.get_texture().get_image() # 仅检查最终城镇背景，避免 UI 掩盖白屏。
+					var frame_error := CoastalFrameCheck.error_for(town_frame) # 揭幕后的画面失败原因。
+					if not frame_error.is_empty():
+						push_error("FAIL: " + frame_error)
+						get_tree().quit(1)
+						return
+				print("PASS: bootstrap → interactive coastal menu; elapsed_ms=", ready_ms,
+					"; visual_check=", "passed" if graphical else "skipped (headless)")
 				get_tree().quit(0)
 				return
 		await get_tree().process_frame

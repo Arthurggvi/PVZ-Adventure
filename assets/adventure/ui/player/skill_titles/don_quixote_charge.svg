@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1116" height="386" viewBox="0 0 558 193">
+  <title>冲锋！！！</title>
+  <defs>
+    <linearGradient id="steel" x1="8" y1="2" x2="40" y2="148" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff5d3"/>
+      <stop offset=".29" stop-color="#ffca99"/>
+      <stop offset=".45" stop-color="#f57667"/>
+      <stop offset=".48" stop-color="#fff2cb"/>
+      <stop offset=".64" stop-color="#ffd29a"/>
+      <stop offset="1" stop-color="#ef6356"/>
+    </linearGradient>
+    <g id="type" transform="translate(29 20) skewX(-8)">
+      <path d="M15 30 25 22 44 37 40 50 31 54 15 39Z M12 124 24 117 40 86 50 86 46 108 31 137 20 144 9 137Z"/>
+      <path d="M57 48 72 44 73 107 64 117 53 113Z M71 45 141 39 150 46 145 94 135 104 68 110 69 96 130 91 134 54 71 60Z
+               M104 10 120 5 128 13 120 145 109 158 99 151Z"/>
+      <path transform="translate(167 0)" d="M28 12 40 7 49 14 40 30 23 51 7 57 3 49 18 31Z
+               M29 31 60 24 65 30 59 40 26 45Z M20 56 60 49 64 56 58 65 16 72 11 66Z
+               M13 82 61 73 66 79 60 89 9 98 4 91Z M29 65 44 62 41 121 60 107 66 110 62 122 33 149 23 143Z
+               M95 10 111 6 116 14 106 28 86 48 72 54 67 45 84 29Z
+               M100 28 144 21 151 28 146 42 Q132 60 99 76 L77 83 69 76 Q105 57 127 38 L96 44Z
+               M91 45 101 40 Q120 59 157 64 L160 73 149 80 Q117 74 91 56Z
+               M78 91 147 82 153 88 147 97 75 106 70 100Z
+               M74 111 148 102 155 109 147 118 70 127 64 121Z
+               M68 132 153 121 160 128 151 138 64 149 58 142Z
+               M107 75 121 72 129 78 118 153 107 164 97 157Z"/>
+      <path id="mark" d="M363 17 384 11 393 17 379 97 370 109 350 105 353 91Z
+               M347 125 363 118 376 127 371 143 352 150 340 140Z"/>
+      <use xlink:href="#mark" transform="translate(53 0)"/>
+      <use xlink:href="#mark" transform="translate(106 0)"/>
+    </g>
+  </defs>
+  <path fill="#350a1b" d="M26 166 369 149 537 139 484 158 143 177 11 182Z"/>
+  <path fill="#d51f48" d="M16 170 353 156 521 143 478 154 105 178Z"/>
+  <path fill="#ff876b" d="M114 172 500 149 473 155 171 174Z"/>
+  <path fill="#f45c5a" d="M29 36 79 20 105 20 50 39Z M484 24 546 16 530 25 487 32Z M497 116 549 104 541 112 503 122Z"/>
+  <use xlink:href="#type" transform="translate(-3 7)" fill="#8e1033" stroke="#260517" stroke-width="13" stroke-linejoin="round"/>
+  <use xlink:href="#type" fill="#451023" stroke="#f85057" stroke-width="4.7" stroke-linejoin="round"/>
+  <use xlink:href="#type" fill="url(#steel)" stroke="#401020" stroke-width="1.35" stroke-linejoin="round"/>
+</svg>

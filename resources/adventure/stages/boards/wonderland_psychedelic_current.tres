@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BoardGridDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/board/board_grid_definition.gd" id="grid"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_surface_definition.gd" id="surface"]
+[ext_resource type="Script" path="res://scripts/battle/board/board_terrain_definition.gd" id="terrain"]
+
+[sub_resource type="Resource" id="OpenWater"]
+script = ExtResource("terrain")
+terrain_id = &"pool"
+planting_flags = 9
+supported_flags = 17
+spawn_type = 1
+presentation_kind = 1
+tags = Array[StringName]([&"water"])
+
+[sub_resource type="Resource" id="Surface"]
+script = ExtResource("surface")
+water_regions = Array[Rect2]([Rect2(-50, 131.214, 1105, 468.786)])
+
+[resource]
+script = ExtResource("grid")
+board_id = &"wonderland.psychedelic_current"
+surfaces = Array[ExtResource("surface")]([SubResource("Surface")])
+terrains = Array[ExtResource("terrain")]([SubResource("OpenWater")])
+dimensions = Vector2i(6, 10)
+column_edges = PackedFloat32Array(5.565, 97.373, 187.269, 277.165, 367.061, 456.957, 548.128, 638.661, 731.108, 823.554, 916)
+row_edges = PackedFloat32Array(131.214, 206.971, 280.451, 353.930, 426.270, 499.180, 572.659)
+default_terrain_id = &"pool"
+spawn_x = 965.0
+mower_x = -22.0
+default_lane_spawn_type = 1
+lane_baseline_inset = 10.0

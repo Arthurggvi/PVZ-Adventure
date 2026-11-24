@@ -1,0 +1,454 @@
+[gd_resource type="SpriteFrames" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/cailleach/cailleach_idle_36f.png" id="idle"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/cailleach/cailleach_staff_tap_36f.png" id="tap"]
+
+[sub_resource type="AtlasTexture" id="idle_00"]
+atlas = ExtResource("idle")
+region = Rect2(0, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_01"]
+atlas = ExtResource("idle")
+region = Rect2(384, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_02"]
+atlas = ExtResource("idle")
+region = Rect2(768, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_03"]
+atlas = ExtResource("idle")
+region = Rect2(1152, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_04"]
+atlas = ExtResource("idle")
+region = Rect2(1536, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_05"]
+atlas = ExtResource("idle")
+region = Rect2(1920, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_06"]
+atlas = ExtResource("idle")
+region = Rect2(0, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_07"]
+atlas = ExtResource("idle")
+region = Rect2(384, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_08"]
+atlas = ExtResource("idle")
+region = Rect2(768, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_09"]
+atlas = ExtResource("idle")
+region = Rect2(1152, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_10"]
+atlas = ExtResource("idle")
+region = Rect2(1536, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_11"]
+atlas = ExtResource("idle")
+region = Rect2(1920, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_12"]
+atlas = ExtResource("idle")
+region = Rect2(0, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_13"]
+atlas = ExtResource("idle")
+region = Rect2(384, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_14"]
+atlas = ExtResource("idle")
+region = Rect2(768, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_15"]
+atlas = ExtResource("idle")
+region = Rect2(1152, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_16"]
+atlas = ExtResource("idle")
+region = Rect2(1536, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_17"]
+atlas = ExtResource("idle")
+region = Rect2(1920, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_18"]
+atlas = ExtResource("idle")
+region = Rect2(0, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_19"]
+atlas = ExtResource("idle")
+region = Rect2(384, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_20"]
+atlas = ExtResource("idle")
+region = Rect2(768, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_21"]
+atlas = ExtResource("idle")
+region = Rect2(1152, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_22"]
+atlas = ExtResource("idle")
+region = Rect2(1536, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_23"]
+atlas = ExtResource("idle")
+region = Rect2(1920, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_24"]
+atlas = ExtResource("idle")
+region = Rect2(0, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_25"]
+atlas = ExtResource("idle")
+region = Rect2(384, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_26"]
+atlas = ExtResource("idle")
+region = Rect2(768, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_27"]
+atlas = ExtResource("idle")
+region = Rect2(1152, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_28"]
+atlas = ExtResource("idle")
+region = Rect2(1536, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_29"]
+atlas = ExtResource("idle")
+region = Rect2(1920, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_30"]
+atlas = ExtResource("idle")
+region = Rect2(0, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_31"]
+atlas = ExtResource("idle")
+region = Rect2(384, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_32"]
+atlas = ExtResource("idle")
+region = Rect2(768, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_33"]
+atlas = ExtResource("idle")
+region = Rect2(1152, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_34"]
+atlas = ExtResource("idle")
+region = Rect2(1536, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="idle_35"]
+atlas = ExtResource("idle")
+region = Rect2(1920, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_00"]
+atlas = ExtResource("tap")
+region = Rect2(0, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_01"]
+atlas = ExtResource("tap")
+region = Rect2(384, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_02"]
+atlas = ExtResource("tap")
+region = Rect2(768, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_03"]
+atlas = ExtResource("tap")
+region = Rect2(1152, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_04"]
+atlas = ExtResource("tap")
+region = Rect2(1536, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_05"]
+atlas = ExtResource("tap")
+region = Rect2(1920, 0, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_06"]
+atlas = ExtResource("tap")
+region = Rect2(0, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_07"]
+atlas = ExtResource("tap")
+region = Rect2(384, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_08"]
+atlas = ExtResource("tap")
+region = Rect2(768, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_09"]
+atlas = ExtResource("tap")
+region = Rect2(1152, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_10"]
+atlas = ExtResource("tap")
+region = Rect2(1536, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_11"]
+atlas = ExtResource("tap")
+region = Rect2(1920, 384, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_12"]
+atlas = ExtResource("tap")
+region = Rect2(0, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_13"]
+atlas = ExtResource("tap")
+region = Rect2(384, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_14"]
+atlas = ExtResource("tap")
+region = Rect2(768, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_15"]
+atlas = ExtResource("tap")
+region = Rect2(1152, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_16"]
+atlas = ExtResource("tap")
+region = Rect2(1536, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_17"]
+atlas = ExtResource("tap")
+region = Rect2(1920, 768, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_18"]
+atlas = ExtResource("tap")
+region = Rect2(0, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_19"]
+atlas = ExtResource("tap")
+region = Rect2(384, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_20"]
+atlas = ExtResource("tap")
+region = Rect2(768, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_21"]
+atlas = ExtResource("tap")
+region = Rect2(1152, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_22"]
+atlas = ExtResource("tap")
+region = Rect2(1536, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_23"]
+atlas = ExtResource("tap")
+region = Rect2(1920, 1152, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_24"]
+atlas = ExtResource("tap")
+region = Rect2(0, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_25"]
+atlas = ExtResource("tap")
+region = Rect2(384, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_26"]
+atlas = ExtResource("tap")
+region = Rect2(768, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_27"]
+atlas = ExtResource("tap")
+region = Rect2(1152, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_28"]
+atlas = ExtResource("tap")
+region = Rect2(1536, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_29"]
+atlas = ExtResource("tap")
+region = Rect2(1920, 1536, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_30"]
+atlas = ExtResource("tap")
+region = Rect2(0, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_31"]
+atlas = ExtResource("tap")
+region = Rect2(384, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_32"]
+atlas = ExtResource("tap")
+region = Rect2(768, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_33"]
+atlas = ExtResource("tap")
+region = Rect2(1152, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_34"]
+atlas = ExtResource("tap")
+region = Rect2(1536, 1920, 384, 384)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="tap_35"]
+atlas = ExtResource("tap")
+region = Rect2(1920, 1920, 384, 384)
+filter_clip = true
+
+[resource]
+animations = [
+{
+"frames": [
+{ "duration": 1.41000, "texture": SubResource("idle_00") },
+{ "duration": 1.41000, "texture": SubResource("idle_01") },
+{ "duration": 1.38000, "texture": SubResource("idle_02") },
+{ "duration": 1.41000, "texture": SubResource("idle_03") },
+{ "duration": 1.41000, "texture": SubResource("idle_04") },
+{ "duration": 1.38000, "texture": SubResource("idle_05") },
+{ "duration": 1.41000, "texture": SubResource("idle_06") },
+{ "duration": 1.41000, "texture": SubResource("idle_07") },
+{ "duration": 1.38000, "texture": SubResource("idle_08") },
+{ "duration": 1.41000, "texture": SubResource("idle_09") },
+{ "duration": 1.41000, "texture": SubResource("idle_10") },
+{ "duration": 1.38000, "texture": SubResource("idle_11") },
+{ "duration": 1.41000, "texture": SubResource("idle_12") },
+{ "duration": 1.41000, "texture": SubResource("idle_13") },
+{ "duration": 1.38000, "texture": SubResource("idle_14") },
+{ "duration": 1.41000, "texture": SubResource("idle_15") },
+{ "duration": 1.41000, "texture": SubResource("idle_16") },
+{ "duration": 1.38000, "texture": SubResource("idle_17") },
+{ "duration": 1.41000, "texture": SubResource("idle_18") },
+{ "duration": 1.41000, "texture": SubResource("idle_19") },
+{ "duration": 1.38000, "texture": SubResource("idle_20") },
+{ "duration": 1.41000, "texture": SubResource("idle_21") },
+{ "duration": 1.41000, "texture": SubResource("idle_22") },
+{ "duration": 1.38000, "texture": SubResource("idle_23") },
+{ "duration": 1.41000, "texture": SubResource("idle_24") },
+{ "duration": 1.41000, "texture": SubResource("idle_25") },
+{ "duration": 1.38000, "texture": SubResource("idle_26") },
+{ "duration": 1.41000, "texture": SubResource("idle_27") },
+{ "duration": 1.41000, "texture": SubResource("idle_28") },
+{ "duration": 1.38000, "texture": SubResource("idle_29") },
+{ "duration": 1.41000, "texture": SubResource("idle_30") },
+{ "duration": 1.41000, "texture": SubResource("idle_31") },
+{ "duration": 1.38000, "texture": SubResource("idle_32") },
+{ "duration": 1.41000, "texture": SubResource("idle_33") },
+{ "duration": 1.41000, "texture": SubResource("idle_34") },
+{ "duration": 1.38000, "texture": SubResource("idle_35") }
+],
+"loop": true,
+"name": &"idle",
+"speed": 30.0
+},
+{
+"frames": [
+{ "duration": 1.14000, "texture": SubResource("tap_00") },
+{ "duration": 1.14000, "texture": SubResource("tap_01") },
+{ "duration": 1.14000, "texture": SubResource("tap_02") },
+{ "duration": 1.14000, "texture": SubResource("tap_03") },
+{ "duration": 1.14000, "texture": SubResource("tap_04") },
+{ "duration": 1.14000, "texture": SubResource("tap_05") },
+{ "duration": 1.14000, "texture": SubResource("tap_06") },
+{ "duration": 1.14000, "texture": SubResource("tap_07") },
+{ "duration": 1.14000, "texture": SubResource("tap_08") },
+{ "duration": 1.32000, "texture": SubResource("tap_09") },
+{ "duration": 1.32000, "texture": SubResource("tap_10") },
+{ "duration": 1.32000, "texture": SubResource("tap_11") },
+{ "duration": 0.54000, "texture": SubResource("tap_12") },
+{ "duration": 0.54000, "texture": SubResource("tap_13") },
+{ "duration": 0.54000, "texture": SubResource("tap_14") },
+{ "duration": 0.48000, "texture": SubResource("tap_15") },
+{ "duration": 0.48000, "texture": SubResource("tap_16") },
+{ "duration": 0.48000, "texture": SubResource("tap_17") },
+{ "duration": 2.22000, "texture": SubResource("tap_18") },
+{ "duration": 0.69000, "texture": SubResource("tap_19") },
+{ "duration": 0.69000, "texture": SubResource("tap_20") },
+{ "duration": 0.75000, "texture": SubResource("tap_21") },
+{ "duration": 0.75000, "texture": SubResource("tap_22") },
+{ "duration": 0.75000, "texture": SubResource("tap_23") },
+{ "duration": 1.02000, "texture": SubResource("tap_24") },
+{ "duration": 1.02000, "texture": SubResource("tap_25") },
+{ "duration": 1.02000, "texture": SubResource("tap_26") },
+{ "duration": 1.14000, "texture": SubResource("tap_27") },
+{ "duration": 1.14000, "texture": SubResource("tap_28") },
+{ "duration": 1.14000, "texture": SubResource("tap_29") },
+{ "duration": 1.14000, "texture": SubResource("tap_30") },
+{ "duration": 1.14000, "texture": SubResource("tap_31") },
+{ "duration": 1.14000, "texture": SubResource("tap_32") },
+{ "duration": 1.14000, "texture": SubResource("tap_33") },
+{ "duration": 1.14000, "texture": SubResource("tap_34") },
+{ "duration": 1.14000, "texture": SubResource("tap_35") }
+],
+"loop": false,
+"name": &"staff_tap",
+"speed": 30.0
+}
+]

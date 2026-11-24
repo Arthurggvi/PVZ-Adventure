@@ -1,0 +1,92 @@
+[gd_resource type="Resource" script_class="WaveProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="profile"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="band"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_spawn_group.gd" id="spawn"]
+
+[sub_resource type="Resource" id="Opening"]
+script = ExtResource("band")
+band_id = &"wonderland.garden_airship.nightmare.opening"
+first_wave = 1
+last_wave = 10
+minimum_regular_power = 10
+zombie_weights = Dictionary[int, int]({1: 6, 3: 3, 4: 2, 5: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 3, &"elite": 1})
+
+[sub_resource type="Resource" id="Newspapers"]
+script = ExtResource("band")
+band_id = &"wonderland.garden_airship.nightmare.newspapers"
+first_wave = 11
+last_wave = 30
+minimum_regular_power = 16
+zombie_weights = Dictionary[int, int]({1: 5, 3: 3, 4: 2, 5: 2, 6: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 2, &"elite": 1})
+
+[sub_resource type="Resource" id="Football"]
+script = ExtResource("band")
+band_id = &"wonderland.garden_airship.nightmare.football"
+first_wave = 31
+last_wave = 50
+minimum_regular_power = 24
+zombie_weights = Dictionary[int, int]({1: 4, 3: 3, 4: 2, 5: 2, 6: 2, 8: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="Flag10"]
+script = ExtResource("spawn")
+wave = 10
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="FirstNewspapers"]
+script = ExtResource("spawn")
+wave = 10
+count_range = Vector2i(2, 2)
+zombie_weights = Dictionary[int, int]({6: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Flag20"]
+script = ExtResource("spawn")
+wave = 20
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="Flag30"]
+script = ExtResource("spawn")
+wave = 30
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="FirstFootball"]
+script = ExtResource("spawn")
+wave = 30
+zombie_weights = Dictionary[int, int]({8: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1})
+
+[sub_resource type="Resource" id="TransportAirship"]
+script = ExtResource("spawn")
+wave = 30
+zombie_weights = Dictionary[int, int]({40: 1})
+tier_weights = Dictionary[StringName, int]({&"base": 1})
+
+[sub_resource type="Resource" id="Flag40"]
+script = ExtResource("spawn")
+wave = 40
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="Flag50"]
+script = ExtResource("spawn")
+wave = 50
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[resource]
+script = ExtResource("profile")
+profile_id = &"wonderland.garden_airship.nightmare.waves"
+wave_count = 50
+max_zombies_per_wave = 26
+use_classic_spawn_timing = true
+classic_opening_protection = false
+flag_waves = Array[int]([10, 20, 30, 40])
+scheduled_spawns = Array[ExtResource("spawn")]([SubResource("Flag10"), SubResource("FirstNewspapers"), SubResource("Flag20"), SubResource("Flag30"), SubResource("TransportAirship"), SubResource("FirstFootball"), SubResource("Flag40"), SubResource("Flag50")])
+bands = Array[ExtResource("band")]([SubResource("Opening"), SubResource("Newspapers"), SubResource("Football")])

@@ -18,6 +18,11 @@ func enqueue(target: Control, paths: PackedStringArray, draw: Callable) -> void:
 ## 资源准备和主线程装配按帧推进，旧目标和不可见目标不做工作。
 func _process(_delta: float) -> void:
 	if _batch != null:
+		if not _valid_target(_job_target(_current)):
+			_batch.abandon() # 重绘已移除旧目标，下一批无需等待其资源。
+			_batch = null
+			_current = {}
+			return
 		var status: int = _batch.poll() # 只获取已经完成的资源。
 		if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 			return
@@ -44,7 +49,7 @@ func _process(_delta: float) -> void:
 func _complete_current(status: int) -> void:
 	var target: Control = _job_target(_current) # 弱引用先解析，列表刷新后的失效节点不会参与类型转换。
 	if status == ResourceLoader.THREAD_LOAD_LOADED and _valid_target(target):
-		target.set_meta("prepared_visual_resources", _batch.resources.duplicate())
+		# _batch 在同步绘制返回前保留资源；画面节点接管，不附加永久元数据。
 		if _current.draw.is_valid():
 			_current.draw.call()
 	elif _valid_target(target):

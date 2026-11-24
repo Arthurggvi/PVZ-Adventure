@@ -2,6 +2,9 @@
 extends Zombie000Base
 class_name Zombie014Bobsled
 
+## 同一辆雪橇内三名同动作乘客的可见姿态复用，不触碰原版角色场景。
+const BobsledPose = preload("res://scripts/character/zombie/bobsled_shared_pose.gd")
+
 ## 初代推行 500 个 10 毫秒逻辑刻后上车。
 const PUSH_SECONDS := 5.0
 ## 上车动作原始帧率为 20，项目导入帧率为 12。
@@ -44,6 +47,10 @@ var _breaking := false
 ## 按同一线速度推进推行和乘坐阶段，车上的队员无法啃食植物。
 func ready_norm() -> void:
 	super()
+	# 第一辆雪橇出现后便让本战场调度器预备对应等阶的下车队员，避免护甲破碎瞬间才冷加载。
+	if is_instance_valid(Global.main_game) and is_instance_valid(Global.main_game.zombie_manager) \
+			and is_instance_valid(Global.main_game.zombie_manager.periodic_updates):
+		Global.main_game.zombie_manager.periodic_updates.request_bobsled_crew(adventure_tier_id)
 	move_child(shadow, 0)
 	move_child(sled_inside, zombie_bobsled_1.get_index())
 	# i 从第二名队员开始，领头队员复用角色已有的影子。
@@ -56,6 +63,16 @@ func ready_norm() -> void:
 	attack_component.disable_component(ComponentNormBase.E_IsEnableFactor.Character)
 	hp_component.signal_armor1_death.connect(_queue_crash)
 	_play_crew(&"Zombie_bobsled_push", PUSH_ANIM_SPEED)
+	# 全部原动画播放成功后验证本局等阶的三人轨道；不一致时继续使用原四播放器。
+	var game: MainGameManager = Global.main_game # 仅实际雪橇入场需要共享姿态。
+	if is_instance_valid(game) and is_instance_valid(game.zombie_manager) \
+			and is_instance_valid(game.zombie_manager.periodic_updates) \
+			and game.zombie_manager.periodic_updates.can_share_bobsled_pose(adventure_tier_id, all_anim_player):
+		var shared: Node = BobsledPose.new() # 此车独占的分件映射，随整辆车自动离场。
+		shared.name = "BobsledSharedPose" # 稳定组件名称，便于验收和角色生命周期审查。
+		add_child(shared)
+		if not shared.configure(all_anim_player):
+			shared.queue_free() # 兼容检查通过但实际场景缺少分件时回退原版。
 
 ## 展示时使用原版的单人乘坐剪影和两层雪橇。
 func ready_show() -> void:
@@ -76,12 +93,12 @@ func _play_crew(animation: StringName, rate: float) -> void:
 	for player: AnimationPlayer in all_anim_player:
 		player.play(animation, 0.0, rate)
 
-## [param delta] 为本帧游戏秒数，用于上车和冰道检查。
+## [param delta] 为本帧游戏秒数；推车起步使用行动倍率，冰道磨损使用战场时间。
 func _process(delta: float) -> void:
 	if is_show or is_death or _breaking or is_action_suspended():
 		return
 	if not _boarding:
-		_push_elapsed += delta
+		_push_elapsed += delta * action_rate()
 		if _push_elapsed >= PUSH_SECONDS:
 			_boarding = true
 			shadow.hide()
@@ -134,12 +151,23 @@ func _check_ice(delta: float) -> void:
 		hp_component.apply_unblocked_loss(mini(hp_component.curr_hp_armor1, ticks * ICE_DAMAGE),
 				BulletRegistry.AttackMode.Real, true, false)
 
-## 车体护甲归零后安排拆队，等待触发该信号的一次攻击完整结算。
+## 车体护甲归零后安排拆队，不在同一伤害结算帧同步生成其他雪橇的乘员。
 func _queue_crash() -> void:
 	if _breaking or is_death:
 		return
 	_breaking = true
-	_crash.call_deferred()
+	move_component.set_move_rate_source(get_instance_id(), 0.0) # 等待完整拆队事务时车体不继续滑走。
+	var game: MainGameManager = Global.main_game # 仍属于本轮实际战斗的管理器。
+	if is_instance_valid(game) and is_instance_valid(game.zombie_manager) \
+			and is_instance_valid(game.zombie_manager.periodic_updates):
+		game.zombie_manager.periodic_updates.enqueue_bobsled_crash(self)
+	else:
+		_crash.call_deferred() # 无正式调度器时沿用原版立即队尾拆队。
+
+## 由本场唯一事务队列调用；仍一次性生成四人、转移自然波次并释放雪橇。
+func commit_queued_crash() -> void:
+	if _breaking:
+		_crash()
 
 ## 生成四名下车队员并交接自然波次登记。致死攻击期间取消拆队。
 func _crash() -> void:
@@ -181,16 +209,17 @@ func _crash() -> void:
 	_slide_wreck(row)
 	queue_free()
 
-## [param member] 在撞车后先踉跄前行，随后恢复啃食与地面受击。
+## [param member] 在撞车后先踉跄前行。计时结束时，仍存活且未排队释放的队员恢复啃食与地面受击。
 func _begin_member_crash(member: Zombie000Base) -> void:
 	member.curr_be_attack_status = E_BeAttackStatusZombie.IsJump
 	member.attack_component.disable_component(ComponentNormBase.E_IsEnableFactor.Jump)
-	# timer 受关卡暂停控制，超时前队员可能已经被范围伤害消灭。
-	var timer: SceneTreeTimer = get_tree().create_timer(CRASH_SECONDS, false)
+	var member_ref: WeakRef = weakref(member) # 计时期间允许队员随死亡或离场释放。
+	var timer: SceneTreeTimer = get_tree().create_timer(CRASH_SECONDS, false) # 关卡暂停时停止计时。
 	timer.timeout.connect(func() -> void:
-		if is_instance_valid(member) and not member.is_death and not member.is_queued_for_deletion():
-			member.curr_be_attack_status = E_BeAttackStatusZombie.IsNorm
-			member.attack_component.enable_component(ComponentNormBase.E_IsEnableFactor.Jump)
+		var survivor := member_ref.get_ref() as Zombie000Base # 只在到期时取队员，已释放时为 null。
+		if survivor != null and not survivor.is_death and not survivor.is_queued_for_deletion():
+			survivor.curr_be_attack_status = E_BeAttackStatusZombie.IsNorm
+			survivor.attack_component.enable_component(ComponentNormBase.E_IsEnableFactor.Jump)
 	)
 
 ## [param row] 承载残骸的战斗行；残骸先向前滑动，最后 0.3 秒淡出。

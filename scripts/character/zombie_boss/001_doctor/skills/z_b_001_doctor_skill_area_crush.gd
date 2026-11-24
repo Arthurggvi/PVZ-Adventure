@@ -41,6 +41,7 @@ func _release_action() -> void:
 				seen_ids[instance_id] = true
 				plants.append(plant_reference)
 	# 死亡回调可能释放后续目标，执行前必须再次验证 Variant 引用。
+	var crush: CombatHitScope = CombatHitScope.for_plant_attack(owner as ZB000Base, CombatHitScope.PlantImpact.CRUSH) # 原砸击不触发地刺接触反击。
 	for plant_reference: Variant in plants:
 		if _get_active_plant_cell_manager() != manager:
 			return
@@ -48,4 +49,4 @@ func _release_action() -> void:
 			continue
 		# 公共资格检查通过后才转换；每次死亡回调返回后，下一个目标仍重新验证。
 		var plant := plant_reference as Plant000Base
-		plant.be_flattened()
+		plant.be_hit_instantly(crush)

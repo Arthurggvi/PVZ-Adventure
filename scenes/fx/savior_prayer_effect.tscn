@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/savior_prayer_effect.gd" id="prayer"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/savior_prayer_ground.gdshader" id="sigil"]
+
+[sub_resource type="QuadMesh" id="StampQuad"]
+size = Vector2(2, 2)
+
+[sub_resource type="MultiMesh" id="GroundBatch"]
+resource_local_to_scene = true
+use_custom_data = true
+mesh = SubResource("StampQuad")
+
+[sub_resource type="ShaderMaterial" id="GroundMaterial"]
+resource_local_to_scene = true
+shader = ExtResource("sigil")
+
+[node name="SaviorPrayerEffect" type="Node2D"]
+top_level = true
+script = ExtResource("prayer")
+
+[node name="GroundMarks" type="MultiMeshInstance2D" parent="."]
+z_index = -4
+z_as_relative = false
+material = SubResource("GroundMaterial")
+multimesh = SubResource("GroundBatch")

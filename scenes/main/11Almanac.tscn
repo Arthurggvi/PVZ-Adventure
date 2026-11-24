@@ -336,7 +336,7 @@ theme_override_constants/shadow_offset_y = 1
 [node name="ScrollContainer" parent="ZombiePage/AlmanacCharacterShowPanel/AllBg" index="1" unique_id=984674381]
 offset_left = -133.0
 offset_top = -195.0
-offset_right = 127.0
+offset_right = 132.0
 offset_bottom = -40.0
 
 [node name="PlantPara3" parent="ZombiePage/AlmanacCharacterShowPanel/AllBg/ScrollContainer/VBoxContainer/CharacterText2Para" parent_id_path=PackedInt32Array(1963963608, 559803575) index="2" unique_id=174842321]

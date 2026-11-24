@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EquipmentDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/player/equipment_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/icons/beloved_badge.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"beloved_badge"
+display_name = "挚爱之章"
+description = "陪你我走过的漫长岁月"
+slot = 3
+icon = ExtResource("2")
+edition_inscriptions = Dictionary[int, String]({
+1: "猪猪"
+})
+material_drop_chance_multiplier = 11.0
+coin_drop_chance_multiplier = 11.0

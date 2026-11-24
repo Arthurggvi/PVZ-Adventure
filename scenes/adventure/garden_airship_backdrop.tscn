@@ -1,0 +1,84 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship_backdrop.gd" id="backdrop"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/garden_airship_backdrop.gdshader" id="compose"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/garden_airship/skybox.webp" id="sky"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/garden_airship/flower_plane_r3.webp" id="fields"]
+[ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v1/main_menu/clouds/far/cloud_far_01.png" id="far"]
+[ext_resource type="Texture2D" path="res://assets/adventure/environment_fx/v1/main_menu/clouds/far/cloud_far_03.png" id="middle"]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/garden_airship/cloud_under_r3.webp" id="below"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/garden_airship/cloud_ceiling_r3.webp" id="ceiling"]
+
+[sub_resource type="ShaderMaterial" id="FlowerValley"]
+resource_local_to_scene = true
+shader = ExtResource("compose")
+shader_parameter/ground_plane = ExtResource("fields")
+
+[node name="GardenAirshipBackdrop" type="Node2D"]
+texture_filter = 4
+script = ExtResource("backdrop")
+
+[node name="Skybox" type="Sprite2D" parent="."]
+position = Vector2(-150, -151)
+scale = Vector2(1.18, 1.18)
+material = SubResource("FlowerValley")
+texture = ExtResource("sky")
+centered = false
+
+[node name="FarCloud" type="Sprite2D" parent="."]
+position = Vector2(825, 448)
+scale = Vector2(0.78, 0.65)
+self_modulate = Color(0.91, 0.95, 1, 0.71)
+texture = ExtResource("far")
+
+[node name="MiddleCloud" type="Sprite2D" parent="."]
+position = Vector2(1570, 549)
+scale = Vector2(0.59, 0.49)
+self_modulate = Color(0.96, 0.98, 1, 0.78)
+texture = ExtResource("middle")
+
+[node name="DeepDrift" type="Sprite2D" parent="."]
+position = Vector2(400, 521)
+scale = Vector2(0.42, 0.16)
+self_modulate = Color(0.85, 0.94, 1, 0.57)
+texture = ExtResource("below")
+
+[node name="DeepBreak" type="Sprite2D" parent="."]
+position = Vector2(1360, 553)
+scale = Vector2(0.35, 0.16)
+self_modulate = Color(0.86, 0.95, 1, 0.54)
+texture = ExtResource("below")
+flip_h = true
+
+[node name="BelowPort" type="Sprite2D" parent="."]
+position = Vector2(-520, 565)
+scale = Vector2(0.86, 0.43)
+self_modulate = Color(0.96, 0.985, 1, 0.88)
+texture = ExtResource("below")
+
+[node name="BelowStarboard" type="Sprite2D" parent="."]
+position = Vector2(555, 602)
+scale = Vector2(0.94, 0.55)
+self_modulate = Color(0.95, 0.97, 1, 0.86)
+texture = ExtResource("below")
+flip_h = true
+
+[node name="BelowWake" type="Sprite2D" parent="."]
+position = Vector2(1810, 702)
+scale = Vector2(0.77, 0.44)
+self_modulate = Color(0.92, 0.96, 1, 0.77)
+texture = ExtResource("below")
+
+[node name="Ceiling" type="Sprite2D" parent="."]
+position = Vector2(914, -88)
+scale = Vector2(1.36, 0.61)
+self_modulate = Color(0.91, 0.97, 1, 0.88)
+texture = ExtResource("ceiling")
+flip_h = true
+
+[node name="CeilingPass" type="Sprite2D" parent="."]
+visible = false
+scale = Vector2(1.88, 0.84)
+self_modulate = Color(0.92, 0.96, 1, 0)
+texture = ExtResource("ceiling")

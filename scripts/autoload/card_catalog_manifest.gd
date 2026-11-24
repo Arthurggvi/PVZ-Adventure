@@ -86,5 +86,11 @@ const PATHS: Dictionary[Vector2i, String] = {
 	Vector2i(2, 25): "res://scenes/ui/all_cards/templates/card_2_25.tscn",
 	Vector2i(2, 1001): "res://scenes/ui/all_cards/templates/card_2_1001.tscn",
 	Vector2i(2, 27): "res://scenes/ui/all_cards/templates/card_2_27.tscn",
+	Vector2i(2, 28): "res://scenes/ui/all_cards/templates/card_2_28.tscn",
+	Vector2i(2, 29): "res://scenes/ui/all_cards/templates/card_2_29.tscn",
+	Vector2i(2, 30): "res://scenes/ui/all_cards/templates/card_2_30.tscn",
+	Vector2i(2, 31): "res://scenes/ui/all_cards/templates/card_2_31.tscn",
+	Vector2i(2, 32): "res://scenes/ui/all_cards/templates/card_2_32.tscn",
+	Vector2i(2, 33): "res://scenes/ui/all_cards/templates/card_2_33.tscn",
 	Vector2i(3, 1): "res://scenes/ui/all_cards/templates/card_3_1.tscn",
 }

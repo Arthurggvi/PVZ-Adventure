@@ -16,7 +16,7 @@ func judge_is_run():
 	## 如果已经逃跑，判断是否离开当前视野
 	if is_run_end:
 		if global_position.x > 900:
-			character_death_disappear()
+			retire_from_battle()
 
 		return
 	var p = randf()

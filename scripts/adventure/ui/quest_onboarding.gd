@@ -14,7 +14,7 @@ const SHOP_DIALOGUE = preload("res://resources/adventure/dave_shop_unlock.tres")
 ## 图书馆教学依次介绍真实页签和可执行的操作。
 const LIBRARY_PAGES := [
 	{"mode": "today", "text": "今日书籍\n书架每天 00:00 自动更新，用金币买书。\n每天可花金币手动换一批，仅限一次。"},
-	{"mode": "convert", "text": "书籍转换\n投入两本同阶转职书，\n随机换成一本不同的同阶转职书。"},
+	{"mode": "convert", "text": "书籍转换\n两本同阶书随机换一本不同的同阶书。\n定向多放一本同阶书，并选定植物。"},
 	{"mode": "synthesize", "text": "书籍合成\n投入三本同植物、同阶转职书，\n合成一本该植物的下一阶转职书。"},
 ]
 ## 工具栏入口提供宿主、窗口和玩家档案的快照。

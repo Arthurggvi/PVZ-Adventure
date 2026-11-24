@@ -68,7 +68,12 @@ func loss_iron_item():
 		is_norm_end = false
 		charred_component.anim_lib_name = "ALL_ANIMS2"
 		zombie_questionmark.visible = true
-		await get_tree().create_timer(1.0,false).timeout
+		var recovery: Tween = create_action_tween(self) # 丢镐后的待机仍属于矿工动作。
+		recovery.tween_interval(1.0)
+		await recovery.finished
+		if is_death or is_queued_for_deletion():
+			zombie_questionmark.hide()
+			return
 		zombie_questionmark.visible = false
 		dig_end()
 

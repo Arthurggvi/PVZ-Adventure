@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/bullet/bullet_000_norm_base.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/bullet/three_pea_laser.gd" id="2"]
+
+[node name="ThreePeaLaser" instance=ExtResource("1")]
+script = ExtResource("2")
+max_attack_num = -1
+trigger_be_attack_sfx = false
+type_bullet_SFX = 0
+
+[node name="BulletEffect" parent="." index="2"]
+is_bullet_effect = false
+
+[node name="Area2DAttack" parent="." index="3"]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false

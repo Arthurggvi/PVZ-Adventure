@@ -16,8 +16,8 @@ const BOOKS: Dictionary = {
 		"title": "斩切", "summary": "每程可穿透的目标增加2个。", "plant_type": 51, "tier": 2,
 		"effects": [{"kind": "bloomerang_slice", "extra_hits": 2}]},
 	"promotion_bloomerang_hunt": {
-		"title": "追猎", "summary": "每次命中追加目标已损生命9%的伤害；对Boss的附伤不超过其最大生命的0.2%。", "plant_type": 51, "tier": 3,
-		"effects": [{"kind": "bloomerang_hunt", "missing_health_ratio": 0.09, "boss_cap_ratio": 0.002}]},
+		"title": "追猎", "summary": "每次命中追加目标已损生命9%的伤害；对Boss的附伤不超过其最大生命的0.08%。", "plant_type": 51, "tier": 3,
+		"effects": [{"kind": "bloomerang_hunt", "missing_health_ratio": 0.09, "boss_cap_ratio": 0.0008}]},
 	"promotion_bloomerang_storm_blade": {
 		"title": "岚刀", "summary": "攻速和回旋镖飞行速度均提高70%。", "plant_type": 51, "tier": 3,
 		"effects": [{"kind": "bloomerang_storm_blade", "attack_rate_bonus": 0.7, "flight_speed_bonus": 0.7}]},

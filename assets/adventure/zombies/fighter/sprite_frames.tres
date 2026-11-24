@@ -1,0 +1,122 @@
+[gd_resource type="SpriteFrames" load_steps=24 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/fighter/fly_atlas.png" id="1"]
+
+[sub_resource type="AtlasTexture" id="A_00"]
+atlas = ExtResource("1")
+region = Rect2(0, 0, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_01"]
+atlas = ExtResource("1")
+region = Rect2(519, 0, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_02"]
+atlas = ExtResource("1")
+region = Rect2(1038, 0, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_03"]
+atlas = ExtResource("1")
+region = Rect2(1557, 0, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_04"]
+atlas = ExtResource("1")
+region = Rect2(0, 312, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_05"]
+atlas = ExtResource("1")
+region = Rect2(519, 312, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_06"]
+atlas = ExtResource("1")
+region = Rect2(1038, 312, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_07"]
+atlas = ExtResource("1")
+region = Rect2(1557, 312, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_08"]
+atlas = ExtResource("1")
+region = Rect2(0, 624, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_09"]
+atlas = ExtResource("1")
+region = Rect2(519, 624, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_10"]
+atlas = ExtResource("1")
+region = Rect2(1038, 624, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_11"]
+atlas = ExtResource("1")
+region = Rect2(1557, 624, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_12"]
+atlas = ExtResource("1")
+region = Rect2(0, 936, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_13"]
+atlas = ExtResource("1")
+region = Rect2(519, 936, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_14"]
+atlas = ExtResource("1")
+region = Rect2(1038, 936, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_15"]
+atlas = ExtResource("1")
+region = Rect2(1557, 936, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_16"]
+atlas = ExtResource("1")
+region = Rect2(0, 1248, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_17"]
+atlas = ExtResource("1")
+region = Rect2(519, 1248, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_18"]
+atlas = ExtResource("1")
+region = Rect2(1038, 1248, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_19"]
+atlas = ExtResource("1")
+region = Rect2(1557, 1248, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_20"]
+atlas = ExtResource("1")
+region = Rect2(0, 1560, 519, 312)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="A_21"]
+atlas = ExtResource("1")
+region = Rect2(519, 1560, 519, 312)
+filter_clip = true
+
+[resource]
+animations = [
+{"frames": [{"duration": 1.0, "texture": SubResource("A_00")}, {"duration": 1.0, "texture": SubResource("A_01")}, {"duration": 1.0, "texture": SubResource("A_02")}, {"duration": 1.0, "texture": SubResource("A_03")}, {"duration": 1.0, "texture": SubResource("A_04")}, {"duration": 1.0, "texture": SubResource("A_05")}, {"duration": 1.0, "texture": SubResource("A_06")}, {"duration": 1.0, "texture": SubResource("A_07")}, {"duration": 1.0, "texture": SubResource("A_08")}, {"duration": 1.0, "texture": SubResource("A_09")}, {"duration": 1.0, "texture": SubResource("A_10")}, {"duration": 1.0, "texture": SubResource("A_11")}, {"duration": 1.0, "texture": SubResource("A_12")}, {"duration": 1.0, "texture": SubResource("A_13")}, {"duration": 1.0, "texture": SubResource("A_14")}, {"duration": 1.0, "texture": SubResource("A_15")}], "loop": true, "name": &"idle", "speed": 14.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("A_00")}, {"duration": 1.0, "texture": SubResource("A_01")}, {"duration": 1.0, "texture": SubResource("A_02")}, {"duration": 1.0, "texture": SubResource("A_03")}, {"duration": 1.0, "texture": SubResource("A_04")}, {"duration": 1.0, "texture": SubResource("A_05")}, {"duration": 1.0, "texture": SubResource("A_06")}, {"duration": 1.0, "texture": SubResource("A_07")}, {"duration": 1.0, "texture": SubResource("A_08")}, {"duration": 1.0, "texture": SubResource("A_09")}, {"duration": 1.0, "texture": SubResource("A_10")}, {"duration": 1.0, "texture": SubResource("A_11")}, {"duration": 1.0, "texture": SubResource("A_12")}, {"duration": 1.0, "texture": SubResource("A_13")}, {"duration": 1.0, "texture": SubResource("A_14")}, {"duration": 1.0, "texture": SubResource("A_15")}], "loop": true, "name": &"walk", "speed": 18.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("A_00")}, {"duration": 1.0, "texture": SubResource("A_01")}, {"duration": 1.0, "texture": SubResource("A_02")}, {"duration": 1.0, "texture": SubResource("A_03")}, {"duration": 1.0, "texture": SubResource("A_04")}, {"duration": 1.0, "texture": SubResource("A_05")}, {"duration": 1.0, "texture": SubResource("A_06")}, {"duration": 1.0, "texture": SubResource("A_07")}, {"duration": 1.0, "texture": SubResource("A_08")}, {"duration": 1.0, "texture": SubResource("A_09")}, {"duration": 1.0, "texture": SubResource("A_10")}, {"duration": 1.0, "texture": SubResource("A_11")}, {"duration": 1.0, "texture": SubResource("A_12")}, {"duration": 1.0, "texture": SubResource("A_13")}, {"duration": 1.0, "texture": SubResource("A_14")}, {"duration": 1.0, "texture": SubResource("A_15")}], "loop": true, "name": &"eat", "speed": 18.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("A_16")}, {"duration": 1.0, "texture": SubResource("A_17")}, {"duration": 1.0, "texture": SubResource("A_18")}, {"duration": 1.0, "texture": SubResource("A_19")}, {"duration": 1.0, "texture": SubResource("A_20")}, {"duration": 1.0, "texture": SubResource("A_21")}], "loop": false, "name": &"fire", "speed": 30.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("A_00")}], "loop": false, "name": &"death", "speed": 8.0}
+]

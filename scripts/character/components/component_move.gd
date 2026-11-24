@@ -55,6 +55,8 @@ var curr_speed_move :float = 1
 var _move_rate_sources: Dictionary[int, float] = {}
 ## 当前所有移动专属倍率的乘积；没有来源时为 1。
 var _move_rate: float = 1.0
+## 本次入场加速区的世界左界。正无穷表示加速未启用或已结束。
+var _entry_acceleration_left_x: float = INF
 ## 恐惧来源独立于魅惑阵营；任一来源存活时反向行走。
 var _flee_sources: Dictionary[int, bool] = {}
 
@@ -87,6 +89,11 @@ enum E_MoveFactor{
 }
 
 signal signal_move_body_y(move_y_value:float)
+
+## 地面推移已经完成一个实际步段，[param from_x] 和 [param to_x] 为修正坡面后的世界横坐标范围。
+signal signal_ground_slide(from_x: float, to_x: float)
+## 由共用抛飞真实轨迹触地时发出；途中取消、换行或推移结束均不会发出。
+signal signal_forced_landed
 
 ## 不同来源的轨迹可同时结算，同类轨迹至多保留一条。
 enum E_ForcedMotion {
@@ -142,11 +149,14 @@ func is_forced_moving() -> bool:
 
 
 ## [param source_id] 的移动倍率更新为 [param multiplier]；1 撤销，0 停止位移但不停止啃咬。
+## 免控只拒绝新的减速，保留加速和来源解除；物种自身耗能不经此入口。
 func set_move_rate_source(source_id: int, multiplier: float) -> void:
 	if not is_finite(multiplier) or multiplier < 0.0:
 		return
 	if is_equal_approx(multiplier, 1.0):
 		_move_rate_sources.erase(source_id)
+	elif multiplier < 1.0 and is_instance_valid(owner_zombie) and not owner_zombie.can_receive_control_effects():
+		return
 	else:
 		_move_rate_sources[source_id] = multiplier
 	_move_rate = 1.0
@@ -157,6 +167,8 @@ func set_move_rate_source(source_id: int, multiplier: float) -> void:
 
 ## 设置 [param source_id] 的恐惧 [param enabled]；只改变行走方向和攻击资格，不改变阵营。
 func set_flee_source(source_id: int, enabled: bool) -> void:
+	if enabled and is_instance_valid(owner_zombie) and not owner_zombie.can_receive_control_effects():
+		return
 	var was_fleeing: bool = is_fleeing() # 仅在总开关变化时翻转，重复命中不会来回转向。
 	if enabled:
 		_flee_sources[source_id] = true
@@ -176,11 +188,29 @@ func is_fleeing() -> bool:
 	return not _flee_sources.is_empty()
 
 
-## 强制位移的公共资格门禁；载具和已被水草抓住的僵尸不接受击退、抛起或换行。
-func can_receive_forced_displacement() -> bool:
+## [param blover_airborne] 允许三叶草吹动被归类为飞行目标的载具，其他强制位移仍受载具门禁限制。
+func _can_shift_alive(blover_airborne: bool = false) -> bool:
 	return is_inside_tree() and is_instance_valid(owner_zombie) and not owner_zombie.is_death \
 		and owner_zombie.curr_be_attack_status != Zombie000Base.E_BeAttackStatusZombie.IsDraggedUnder \
-		and not owner_zombie.is_queued_for_deletion() and not owner_zombie.is_vehicle()
+		and not owner_zombie.is_queued_for_deletion() \
+		and (not owner_zombie.is_vehicle() or (blover_airborne and owner_zombie.is_blover_flying_target()))
+
+
+## 外部击退、抛起和换行遵守免控资格，且不得与原生飞行同时写入脚点或身体高度。
+## [param blover_airborne] 是三叶草飞行分类的载具例外，沿用其余通用门禁。
+func can_receive_forced_displacement(blover_airborne: bool = false) -> bool:
+	return _can_shift_alive(blover_airborne) and owner_zombie.can_receive_control_effects() \
+		and not owner_zombie.is_native_airborne()
+
+
+## 原生飞行控制者提交 [param offset] 世界位移；复用坡面和行走基准维护，不创建第二条强制轨迹。
+## 只有正在原生飞行且没有旧强制轨迹的存活角色可使用，拒绝时由控制者收尾。
+func apply_native_flight_displacement(offset: Vector2) -> bool:
+	if not _can_shift_alive() or not owner_zombie.is_native_airborne() \
+			or not _forced_motions.is_empty() or not offset.is_finite():
+		return false
+	_shift_forced(offset)
+	return true
 
 
 ## 将存活角色移动 [param offset] 世界像素，X 向右，Y 向下。
@@ -188,15 +218,19 @@ func can_receive_forced_displacement() -> bool:
 ## [param landed] 在完成位移时调用。连续抛起保留剩余位移和回调，死亡时取消。
 ## [param smooth_push] 仅为纯水平推移启用缓动；重叠的同向风推合并到当前终点，不累计多格位移。
 ## [param push_validity] 可限制缓动风推的战局寿命；其他原生位移不使用此门禁。
+## [param blover_airborne] 由三叶草统一分类入口传入，只解除飞行载具的位移限制。
 ## 返回是否接受本次位移。离场、死亡或无效参数返回 false。
 func apply_forced_displacement(offset: Vector2, seconds: float = 0.0,
 		height: float = 0.0, landed: Callable = Callable(), smooth_push: bool = false,
-		push_validity: Callable = Callable()) -> bool:
-	if not can_receive_forced_displacement() or not offset.is_finite() \
+		push_validity: Callable = Callable(), blover_airborne: bool = false) -> bool:
+	if not can_receive_forced_displacement(blover_airborne) or not offset.is_finite() \
 			or not is_finite(seconds) or seconds < 0.0 or not is_finite(height) or height < 0.0:
 		return false
 	if seconds == 0.0:
-		_shift_forced(offset)
+		if height == 0.0 and offset.y == 0.0 and not is_forced_airborne():
+			_shift_ground_push(offset)
+		else:
+			_shift_forced(offset)
 		if landed.is_valid():
 			landed.call()
 		return true
@@ -239,6 +273,7 @@ func _physics_process(delta: float) -> void:
 		cancel_forced_displacement()
 		return
 	var completed: Array[Callable] = [] # 回调可结束战斗或新增位移，延迟到更新所有轨迹之后。
+	var grounded: bool = false # 只在本帧达到抛飞的真实终点时报告落地。
 	for kind: E_ForcedMotion in _forced_motions.keys(): # 键快照允许删除已完成的轨迹。
 		var motion: ForcedMotion = _forced_motions[kind] # 本帧正在推进的轨迹。
 		if motion.push_validity.is_valid() and not bool(motion.push_validity.call()):
@@ -247,18 +282,32 @@ func _physics_process(delta: float) -> void:
 		var before: float = motion.elapsed / motion.duration # 本帧开始前已走过的比例。
 		motion.elapsed = minf(motion.elapsed + delta, motion.duration)
 		var progress: float = motion.elapsed / motion.duration # 本帧结束时应走到的比例。
-		_shift_forced(motion.offset * (motion.travel_at(progress) - motion.travel_at(before)))
+		var offset: Vector2 = motion.offset * (motion.travel_at(progress) - motion.travel_at(before)) # 本步实际世界位移。
+		if kind == E_ForcedMotion.Push and not is_forced_airborne():
+			_shift_ground_push(offset)
+		else:
+			_shift_forced(offset)
 		if kind == E_ForcedMotion.Launch:
 			body.set_forced_lift(motion.lift_at(progress))
 		if progress == 1.0:
 			_forced_motions.erase(kind)
 			completed.append_array(motion.on_finish)
+			grounded = grounded or kind == E_ForcedMotion.Launch
 	_update_forced_motion_state()
+	if grounded:
+		signal_forced_landed.emit()
 	for callback: Callable in completed: # 已落地或已到达吹飞终点的回调。
 		if owner_zombie.is_death or owner_zombie.is_queued_for_deletion():
 			break
 		if callback.is_valid():
 			callback.call()
+
+## 按统一规则完成横向推移 [param offset] 后通知地面表现，不改变推移量或回调时序。
+func _shift_ground_push(offset: Vector2) -> void:
+	var start_x: float = owner_zombie.global_position.x # 当前实际脚点的世界横坐标。
+	_shift_forced(offset)
+	if offset.x != 0.0:
+		signal_ground_slide.emit(start_x, owner_zombie.global_position.x)
 
 
 ## 应用本步 [param offset] 世界位移。横移跨斜坡时更新脚点并防止非致死击退触发清场。
@@ -310,6 +359,13 @@ func update_only_move_speed(new_speed_move:float=1):
 	self.curr_speed_move = new_speed_move
 	curr_speed = ori_speed * curr_speed_product * self.curr_speed_move
 
+
+## 返回速度模式合成后的局部移速，单位为像素/秒，包含只影响位移的倍率。
+## 启停和方向由调用方根据当前角色状态决定。
+func get_speed_mode_speed() -> float:
+	return curr_speed * _move_rate
+
+
 ## 更新影响移动的因素 true表示不移动
 func update_move_factor(value:bool, move_factor:E_MoveFactor):
 	move_factors[move_factor] = value
@@ -328,13 +384,29 @@ func get_exclude_dancer_move_res():
 func update_move_mode(new_move_mode:E_MoveMode):
 	move_mode = new_move_mode
 
+## 初始化敌人首次向左入场的移速倍率，[param left_x] 是包含在加速区内的世界左界。
+func begin_entry_acceleration(left_x: float) -> void:
+	if owner_zombie.global_position.x >= left_x and owner_zombie.direction_x_root > 0 and not owner_zombie.is_hypno:
+		_entry_acceleration_left_x = left_x
+		set_move_rate_source(get_instance_id(), 2.0)
+
+## 魅惑友军的这次原生右行从 [param previous_x] 开始；强制位移、传送和坡度修正不会发出。
+signal walked_right(previous_x: float)
+
 func _process(delta: float) -> void:
+	# 跨过左界或转向后只撤销本次入场倍率，被推回右侧也不会重新开启。
+	if is_finite(_entry_acceleration_left_x) and (owner_zombie.global_position.x < _entry_acceleration_left_x \
+			or owner_zombie.direction_x_root <= 0 or owner_zombie.is_hypno):
+		_entry_acceleration_left_x = INF
+		set_move_rate_source(get_instance_id(), 1.0)
 	if owner_zombie.is_stunned() or is_forced_moving():
 		update_previous_ground_global_x()
 		return
 	if ladder_state == E_LadderState.Down:
 		move_y_correct_ladder_down(delta)
 	if is_move:
+		var previous_x: float = owner_zombie.global_position.x if owner_zombie.is_hypno \
+			and owner_zombie.direction_x_root < 0 and walked_right.has_connections() else INF # 只有订阅实际右行的友军需要追踪脚点。
 		match move_mode:
 			E_MoveMode.Ground:
 				if walking_status == WalkingStatus.end:
@@ -346,10 +418,12 @@ func _process(delta: float) -> void:
 					_walk()
 
 			E_MoveMode.Speed:
-				var move_x: float = delta * curr_speed * _move_rate * owner_zombie.direction_x_root # 冻结值等仅缩放实际位移。
+				var move_x: float = delta * get_speed_mode_speed() * owner_zombie.direction_x_root # 冻结值等仅缩放实际位移。
 				owner_zombie.position.x -= move_x
 
 				move_y_correct(move_x)
+		if is_finite(previous_x) and owner_zombie.global_position.x > previous_x:
+			walked_right.emit(previous_x)
 
 func _walk():
 	# 计算ground的全局坐标变化量
@@ -360,10 +434,20 @@ func _walk():
 	_previous_ground_global_x = _ground.global_position.x
 	move_y_correct(ground_global_offset)
 
-## 移动y方向上的修正
+## 按已完成的水平位移 [param move_x] 修正斜坡和梯子的纵向位置。
+## [param move_x] 沿用调用方的左向为正约定，世界坐标的跨步终点为当前脚点。
 func move_y_correct(move_x:float):
-	## 斜面移动修正
-	if move_dir_y_correct_slope != Vector2.ZERO:
+	var game: MainGameManager = Global.main_game # 预览僵尸和独立演出节点可能没有活跃战场。
+	var slope: MainGameSlope = game.main_game_slope if is_instance_valid(game) else null # 可选的场地高度查询。
+	if is_instance_valid(slope) and slope.sample_walking_height and game.is_ancestor_of(owner_zombie):
+		var destination_x: float = owner_zombie.global_position.x # 已完成横移后的世界 X。
+		var row := owner_zombie.get_parent() as CanvasItem # 攻击行的局部变换决定步幅的世界长度。
+		var step: Vector2 = row.get_global_transform().basis_xform(Vector2(move_x, 0.0)) # 将已扣除的局部步幅映射到世界。
+		var source_x: float = destination_x + step.x # 由终点和反向步幅还原跨步起点。
+		var height_delta: float = slope.get_all_slope_y(destination_x) - slope.get_all_slope_y(source_x) # 精确跨坡差量。
+		if not is_zero_approx(height_delta):
+			signal_move_body_y.emit(height_delta)
+	elif move_dir_y_correct_slope != Vector2.ZERO:
 		move_y_correct_slope(move_x)
 	if ladder_state == E_LadderState.Up:
 		move_y_correct_ladder_up(move_x)
@@ -394,6 +478,9 @@ func move_y_correct_ladder_down(delta: float):
 
 ## 开始爬梯子
 func start_ladder():
+	# 临时飞行期间脚点只是地面投影，不能把飞越的梯子状态带到远处落点。
+	if owner_zombie.is_native_airborne():
+		return
 	if ladder_state != E_LadderState.None:
 		#printerr("正在爬梯子,无法继续爬梯子")
 		pass

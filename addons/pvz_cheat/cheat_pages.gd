@@ -208,18 +208,24 @@ static func _items(root: VBoxContainer, service: RefCounted, report: Callable) -
 
 ## 角色调试入口只调用正式命令；[param root] 为页面容器，[param service] 提交事务，[param report] 显示结果。
 static func _player(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
-	_equipment(root, service, report)
+	_equipment(root, service, report, true)
 	var row: HBoxContainer = _row(root) # 等级设置与装备授予各自独立提交。
 	var highest: int = int(PlayerProgression.progress(PlayerProgression.MAX_EXPERIENCE).level) # 取真实可表示上限。
 	var level: SpinBox = _count(row, 1, highest) # 输入值为目标等级，不是经验。
 	_button(row, "设置角色等级", func(): report.call(service.set_player_level(int(level.value))))
 
 ## 在 [param root] 创建共用的装备发放区；[param service] 提交事务，[param report] 显示结果。
-static func _equipment(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
+## [param include_numbered] 为 true 时在角色装备页追加单独的编号领取区。
+static func _equipment(root: VBoxContainer, service: RefCounted, report: Callable, include_numbered: bool = false) -> void:
 	_title(root, "获得装备")
 	_note(root, "在地图上发放装备，领取后到角色的装备背包查看。限时装备从发放时开始计时。")
 	var choice: OptionButton = _select(root) # 内容来自正式装备目录。
+	var numbered: Array[EquipmentDefinition] = [] # 编号装备单独按已登记号码领取。
 	for item: EquipmentDefinition in EquipmentCatalog.definitions(): # 不复制装备 ID 列表。
+		if not item.edition_inscriptions.is_empty():
+			if include_numbered:
+				numbered.append(item)
+			continue
 		var caption: String = item.display_name # 获取前标明限时版本的有效天数。
 		if item.lifetime_days > 0:
 			caption += "（%d 天）" % item.lifetime_days
@@ -231,6 +237,12 @@ static func _equipment(root: VBoxContainer, service: RefCounted, report: Callabl
 		if choice.item_count > 0:
 			report.call(service.grant_equipment(str(choice.get_selected_metadata()))))
 	grant.disabled = choice.item_count == 0
+	if not numbered.is_empty():
+		_title(root, "单独获得编号装备")
+	for item: EquipmentDefinition in numbered: # 每个按钮只发放一枚指定编号。
+		for edition_uid: int in item.edition_inscriptions: # 只列出已登记的收藏编号。
+			var caption: String = "获得「%s」 · UID #%d" % [item.display_name, edition_uid] # 按钮上直接区分同款编号。
+			_button(root, caption, func(): report.call(service.grant_numbered_equipment(item.id, edition_uid)))
 
 static func _coins(root: VBoxContainer, service: RefCounted, report: Callable) -> void:
 	_title(root, "统一金币")

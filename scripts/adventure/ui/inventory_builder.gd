@@ -21,6 +21,8 @@ const DETAIL_PREVIEW_BOUNDS := Rect2(24, 76, 360, 220)
 const CATEGORIES := ["plants", "recipes", "materials", "items"]
 const CAPTIONS := ["植物", "配方", "材料", "道具"]
 const ICONS := ["category_plants", "category_recipes", "category_materials", "category_items"]
+## 整理按钮的常态文案，短暂反馈结束后恢复。
+const ORGANIZE_CAPTION := "整理背包"
 
 static func build(owner: Control) -> Dictionary:
 	var backdrop := ColorRect.new()
@@ -70,6 +72,11 @@ static func build(owner: Control) -> Dictionary:
 	search.add_theme_font_size_override("font_size", 22)
 	search.text_changed.connect(Callable(owner, "search_changed"))
 	canvas.add_child(search)
+	var organize_size := Vector2(200, 50) # 与搜索框等高，置于物品网格右沿。
+	# 沿用中性木质按钮的按压和悬停状态。
+	var organize_button: Button = Art.action_button(canvas, ORGANIZE_CAPTION, "buttons/action_neutral",
+		Vector2(GRID_BOUNDS.end.x - organize_size.x, 136), organize_size, Callable(owner, "organize_backpack"))
+	organize_button.name = "InventoryOrganizeButton"
 	var cells := Control.new()
 	canvas.add_child(cells)
 	fit_content(cells, GRID_NATIVE_SIZE, GRID_BOUNDS)
@@ -82,7 +89,7 @@ static func build(owner: Control) -> Dictionary:
 	var detail := Control.new()
 	canvas.add_child(detail)
 	fit_content(detail, DETAIL_NATIVE_SIZE, DETAIL_BOUNDS)
-	return {"canvas": canvas, "coin": coin, "tabs": tabs, "search": search,
+	return {"canvas": canvas, "coin": coin, "tabs": tabs, "search": search, "organize_button": organize_button,
 		"page_label": page_text, "cells": cells, "detail": detail}
 
 ## 将 [param node] 按 [param native_size] 的比例最大化放入 [param bounds] 并居中，不改变内部坐标。

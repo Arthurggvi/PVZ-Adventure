@@ -1,0 +1,99 @@
+[gd_resource type="Resource" script_class="DropTable" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_table.gd" id="Table"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/drop_entry_definition.gd" id="Entry"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/explosive_seed.tres" id="explosive_seed"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/plant_starch.tres" id="plant_starch"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/pea_stem.tres" id="pea_stem"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/pea_pod.tres" id="pea_pod"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/sun_nectar.tres" id="sun_nectar"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/flower_pollen.tres" id="flower_pollen"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/common_materials/plant_fiber.tres" id="plant_fiber"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/nightmare_consumables/fertilizer_lv1.tres" id="fertilizer_lv1"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/nightmare_consumables/fertilizer_lv2.tres" id="fertilizer_lv2"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/nightmare_consumables/growth_agent_lv1.tres" id="growth_agent_lv1"]
+
+[sub_resource type="Resource" id="recipe_p001"]
+script = ExtResource("Entry")
+entry_id = &"wonderland.psychedelic_current.nightmare.drops.recipe_p001"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p001"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="recipe_p002"]
+script = ExtResource("Entry")
+entry_id = &"wonderland.psychedelic_current.nightmare.drops.recipe_p002"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_p002"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="recipe_wall_nut"]
+script = ExtResource("Entry")
+entry_id = &"wonderland.psychedelic_current.nightmare.drops.recipe_wall_nut"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_wall_nut"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="recipe_potato_mine"]
+script = ExtResource("Entry")
+entry_id = &"wonderland.psychedelic_current.nightmare.drops.recipe_potato_mine"
+rule = 2
+asset_kind = 1
+asset_id = &"recipe_potato_mine"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
+[sub_resource type="Resource" id="unsaturated_fat"]
+script = ExtResource("Entry")
+entry_id = &"wonderland.psychedelic_current.nightmare.drops.unsaturated_fat"
+rule = 3
+asset_kind = 1
+asset_id = &"unsaturated_fat"
+quantity_min = 2
+quantity_max = 2
+
+[sub_resource type="Resource" id="nut_fragments"]
+script = ExtResource("Entry")
+entry_id = &"wonderland.psychedelic_current.nightmare.drops.nut_fragments"
+rule = 3
+asset_kind = 1
+asset_id = &"nut_fragments"
+quantity_min = 2
+quantity_max = 2
+
+[resource]
+script = ExtResource("Table")
+table_id = &"wonderland.psychedelic_current.nightmare.drops"
+entries = Array[ExtResource("Entry")]([
+SubResource("recipe_p001"),
+SubResource("recipe_p002"),
+SubResource("recipe_wall_nut"),
+SubResource("recipe_potato_mine"),
+SubResource("unsaturated_fat"),
+SubResource("nut_fragments"),
+ExtResource("explosive_seed"),
+ExtResource("plant_starch"),
+ExtResource("pea_stem"),
+ExtResource("pea_pod"),
+ExtResource("sun_nectar"),
+ExtResource("flower_pollen"),
+ExtResource("plant_fiber"),
+ExtResource("fertilizer_lv1"),
+ExtResource("fertilizer_lv2"),
+ExtResource("growth_agent_lv1")
+])
+min_material_count = 8
+min_recipe_count = 2
+min_distinct_materials = 8
+weighted_draw_count = 1
+weighted_selection = 1

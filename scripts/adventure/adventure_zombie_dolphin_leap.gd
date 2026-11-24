@@ -49,4 +49,4 @@ func _on_landed() -> void:
         return
     AdventureZombieLaneImpact.hit_plants(
             _rider.lane, _start_x, _rider.global_position.x,
-            _damage, false, _impact)
+            _damage, false, _impact, _rider)

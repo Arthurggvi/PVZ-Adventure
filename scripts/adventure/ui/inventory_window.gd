@@ -3,6 +3,8 @@ extends Control
 class_name AdventureInventoryWindow
 signal closed
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
+## 物品与植物技能说明共用原生滚动区。
+const ContentScroll = preload("res://scripts/ui/content_scroll.gd")
 const Data = preload("res://scripts/adventure/ui/inventory_data.gd")
 const Builder = preload("res://scripts/adventure/ui/inventory_builder.gd")
 const Tile = preload("res://scripts/adventure/ui/inventory_tile.gd")
@@ -27,16 +29,17 @@ var _render_revision := 0
 var _content_ready := false
 ## 当前页准备期间持有的请求，换页或关闭时移交宿主回收。
 var _page_batch: ResourceBatch
-## 当前页资源强引用随窗口存在，避免构造时再次读盘。
+## 当前页分帧装配期间的资源；完成或取消时释放准备引用。
 var _page_resources: Array[Resource] = []
 var category := "plants"
 var search := ""
-var sort_mode := 0
 var page := 0
 var selected: Dictionary = {}
 var ui: Dictionary = {}
 var closing := false
 var _anim: Tween
+## 整理成功后短暂改写按钮文案，重复点击重置显示时间。
+var _organize_feedback: Tween
 ## 当前唯一的确认或提示弹窗。
 var _dialog: InventoryDialog
 ## 打开背包时的玩家状态引用，用于拒绝跨档或重载后的旧界面请求。
@@ -47,12 +50,13 @@ var _opened_profile: String
 static func get_initial_resource_paths() -> PackedStringArray:
 	var paths: PackedStringArray = ResourcePaths.frame() # 本窗口实际使用的公共皮肤。
 	paths.append_array(ResourcePaths.skin(PackedStringArray(["sidebar/sidebar_wood.png", "controls/search_field.png",
-		"controls/filter_field.png", "icons/search_magnifier.png", "slots/empty_plant_symbol.png",
+		"icons/search_magnifier.png", "slots/empty_plant_symbol.png",
 		"slots/plant_slot_hover_frame.png", "slots/plant_slot_selected_frame.png",
 		"slots/item_slot_hover_frame.png", "slots/item_slot_selected_frame.png",
 		"icons/category_plants.png", "icons/category_recipes.png", "icons/category_materials.png", "icons/category_items.png"]),
-		PackedStringArray(["tabs/tab", "controls/arrow", "slots/plant_slot", "slots/item_slot", "buttons/action_danger"])))
-	ResourcePaths.inventory_rows(paths, Data.rows("plants", "", 0).slice(0, PAGE_SIZE))
+		PackedStringArray(["tabs/tab", "controls/arrow", "slots/plant_slot", "slots/item_slot", "buttons/action_danger",
+			"buttons/action_neutral"])))
+	ResourcePaths.inventory_rows(paths, Data.rows("plants", "").slice(0, PAGE_SIZE))
 	return paths
 
 ## 首屏所有格子和详情完成后释放入口反馈。
@@ -84,6 +88,8 @@ func _fit() -> void:
 	# Account for the centered pivot used by the entrance / exit scale tween.
 	canvas.position = Vector2((size.x - Builder.DESIGN.x) * 0.5,
 		size.y * 0.015 - (1.0 - factor) * Builder.DESIGN.y * 0.5)
+
+## [param event] 的取消操作在确认框存在时交由确认框处理。
 func _input(event: InputEvent) -> void:
 	if closing or not visible:
 		return
@@ -92,6 +98,8 @@ func _input(event: InputEvent) -> void:
 			return
 		request_close()
 		get_viewport().set_input_as_handled()
+
+## 取消当前页资源准备并播放背包的关闭动画。
 func request_close() -> void:
 	if closing:
 		return
@@ -105,6 +113,8 @@ func request_close() -> void:
 	_anim.tween_property(self, "modulate:a", 0.0, 0.17)
 	_anim.tween_property(ui.canvas, "scale", ui.canvas.scale * 0.965, 0.17)
 	_anim.chain().tween_callback(func(): closed.emit(); queue_free())
+
+## 切换到 [param value] 对应的分类并显示第一页。
 func choose_category(value: String) -> void:
 	if category == value:
 		return
@@ -118,9 +128,32 @@ func search_changed(value: String) -> void:
 	page = 0
 	selected = {}
 	_render()
+
+## 一键整理当前档案的全部背包内容，保存成功后更新当前分类。
+func organize_backpack() -> void:
+	if closing or is_instance_valid(_dialog):
+		return
+	if not _is_current_profile():
+		_show_message("玩家状态已变更，请关闭并重新打开背包。")
+		return
+	if not Global.adventure_inventory.organize(Global.save_service.save_now):
+		_show_message("整理失败，背包顺序已恢复。")
+		return
+	page = 0
+	selected = {}
+	SoundManager.play_other_SFX(&"tap")
+	_render()
+	var button: Button = ui.organize_button # 复用按钮文字反馈，避免打开成功弹窗。
+	button.text = "已整理"
+	if is_instance_valid(_organize_feedback):
+		_organize_feedback.kill()
+	_organize_feedback = create_tween()
+	_organize_feedback.tween_interval(1.2)
+	_organize_feedback.tween_callback(button.set_text.bind(Builder.ORGANIZE_CAPTION))
+
+## 按 [param delta] 请求翻页，页码由重绘时生成的结果约束。
 func change_page(delta: int) -> void:
-	var total: int = Data.rows(category, search, sort_mode).size()
-	page = clampi(page + delta, 0, maxi(0, floori(float(total - 1) / float(PAGE_SIZE))))
+	page += delta
 	SoundManager.play_other_SFX(&"bleep")
 	_render()
 func _render() -> void:
@@ -134,8 +167,8 @@ func _render() -> void:
 	for key: String in ui.tabs:
 		var button: TextureButton = ui.tabs[key]
 		button.texture_normal = Art.texture("tabs/tab_selected.png" if key == category else "tabs/tab_normal.png")
-	var rows: Array[Dictionary] = Data.rows(category, search, sort_mode)
-	page = mini(page, maxi(0, floori(float(rows.size() - 1) / float(PAGE_SIZE))))
+	var rows: Array[Dictionary] = Data.rows(category, search)
+	page = clampi(page, 0, maxi(0, floori(float(rows.size() - 1) / float(PAGE_SIZE))))
 	ui.page_label.text = "%d / %d" % [page + 1, maxi(1, ceili(float(rows.size()) / PAGE_SIZE))]
 	var grid: Control = ui.cells
 	for child: Node in grid.get_children():
@@ -162,6 +195,7 @@ func _render() -> void:
 		return
 	_page_resources = _page_batch.resources.duplicate()
 	_page_batch = null
+	var allow_reorder: bool = category == "plants" and search.is_empty() # 植物完整列表可拖拽微调。
 	var frame_started: int = Time.get_ticks_usec() # 只累计当前帧实际装配时间，首格立即开始。
 	for i in PAGE_SIZE:
 		if Time.get_ticks_usec() - frame_started >= BUILD_BUDGET_USEC:
@@ -174,7 +208,8 @@ func _render() -> void:
 		var tile: Control = Tile.new()
 		tile.position = Vector2((i % 11) * 92.0, floori(float(i) / 11.0) * 103.0)
 		grid.add_child(tile)
-		tile.setup(entry, position_index, category == "plants" and sort_mode == 0 and search.is_empty(), category == "plants", _row_key(entry) == _row_key(selected) and not selected.is_empty())
+		tile.setup(entry, position_index, allow_reorder, category == "plants",
+			_row_key(entry) == _row_key(selected) and not selected.is_empty())
 		tile.chosen.connect(_select)
 		tile.reorder_requested.connect(_reorder)
 	if not selected.is_empty():
@@ -188,10 +223,12 @@ func _render() -> void:
 		selected = rows[0].duplicate(true)
 	_update_tile_selection()
 	_render_detail()
+	_page_resources.clear() # 已构造格子和详情独立持有实际使用的纹理。
 	_content_ready = true
 
 ## 关闭或重绘时撤销旧准备；已经发出的请求由工具栏轮询回收。
 func _retire_page_batch() -> void:
+	_page_resources.clear() # 取消旧分帧构造的准备引用。
 	if _page_batch != null:
 		AdventureToolbar.retire_resource_batch(_page_batch)
 		_page_batch = null
@@ -215,10 +252,11 @@ func _select(record: Dictionary) -> void:
 	SoundManager.play_other_SFX(&"tap")
 	_update_tile_selection()
 	_render_detail()
+## 将植物 [param uid] 拖到 [param target] 位置并保存，失败时恢复原排列。
 func _reorder(uid: String, target: int) -> void:
-	if category != "plants" or sort_mode != 0 or not search.is_empty():
+	if closing or category != "plants" or not search.is_empty() or not _is_current_profile():
 		return
-	var before: Array[String] = Global.adventure_inventory.get_card_order()
+	var before: Array[String] = Global.adventure_inventory.get_card_order() # 保存失败时用于恢复原顺序。
 	if before.is_empty() or not Global.adventure_inventory.move_card(uid, mini(target, before.size() - 1)):
 		return
 	if not Global.save_service.save_now():
@@ -280,8 +318,7 @@ func _render_description(root: Control, top: float) -> void:
 	var bottom: float = root.size.y - 65.0 - 12.0 - 18.0 # 所有分类为统一丢弃按钮留出空间。
 	var box_size := Vector2(367, bottom - top) # 填满预览下方剩余空间。
 	var box: NinePatchRect = Art.panel(root, "panels/parchment_ninepatch.png", Vector2(24, top), box_size, 18) # 沿用背包的羊皮纸方框样式。
-	var scroll := ScrollContainer.new() # 说明过长时可滚动，丢弃按钮留在框外。
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var scroll := ContentScroll.new() # 说明过长时可滚动，丢弃按钮留在框外。
 	box.add_child(scroll)
 	scroll.position = Vector2(18, 14)
 	scroll.size = box_size - Vector2(36, 28)
@@ -343,7 +380,8 @@ func _is_current_profile() -> bool:
 	return Global.save_service != null and Global.save_service.is_current_profile_loaded() \
 		and Global.user_manager.curr_user_name == _opened_profile \
 		and Global.global_game_state.adventure_state == _opened_state \
-		and Global.adventure_inventory != null and _opened_state != null
+		and Global.adventure_inventory != null and _opened_state != null \
+		and Global.adventure_inventory.owns_state(_opened_state)
 
 ## 创建唯一素材弹窗，参数 [param heading]、[param message]、[param limit] 原样交给只读界面。
 func _open_dialog(heading: String, message: String, limit: int = 0) -> InventoryDialog:

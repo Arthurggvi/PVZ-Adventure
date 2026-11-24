@@ -1,8 +1,10 @@
-## 仅声明单关特有差异；未设置的字段继承地区默认关卡。
+## 仅声明单关特有差异，未设置的字段继承所用关卡模板。
 ## 这是内容覆盖资源，不创建新战斗流程，也不保存玩家数据。
 extends Resource
 class_name AdventureStageOverride
 
+## 专属战场仍走冒险统一切场。空路径继承阶段模板的战场。
+@export_file("*.tscn") var battle_scene: String = ""
 @export var environment: AdventureBattleEnvironment
 ## 单关空间覆盖；定义自有地形，不能同时使用 terrain_rows_override。
 @export var board_definition: BoardDefinition
@@ -63,6 +65,8 @@ func apply(stage: StageDefinition) -> bool:
 			nightmare = phase
 	if normal == null or nightmare == null:
 		return false
+	if not battle_scene.is_empty():
+		stage.battle_scene = battle_scene
 	if environment != null:
 		stage.environment = environment.duplicate(true) as AdventureBattleEnvironment
 	if board_definition != null and stage.environment != null:

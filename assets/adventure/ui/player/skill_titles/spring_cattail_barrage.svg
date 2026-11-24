@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="776" height="340" viewBox="0 0 388 170">
+  <title>火力倾泻</title>
+  <defs>
+    <linearGradient id="face" gradientUnits="userSpaceOnUse" x1="12" y1="14" x2="30" y2="112">
+      <stop stop-color="#fff8cc"/>
+      <stop offset=".44" stop-color="#ffd49f"/>
+      <stop offset=".63" stop-color="#ff825b"/>
+      <stop offset="1" stop-color="#e74c6e"/>
+    </linearGradient>
+    <g id="strokes" fill="none" stroke-linecap="square" stroke-linejoin="bevel">
+      <path transform="translate(13 18) skewX(-8)" d="M18 34 Q19 53 12 63 M71 30 58 49 M43 17 Q45 52 38 72 31 92 11 105 M42 65 Q53 90 79 104"/>
+      <path transform="translate(105 18) skewX(-8)" d="M12 43 73 39 69 87 Q67 101 58 105 L47 104 M44 17 Q43 57 33 79 23 97 10 105"/>
+      <path transform="translate(196 18) skewX(-8)" d="M22 19 Q17 43 6 62 M17 47 16 107 M34 32 46 26 M31 45 31 86 43 77 M49 29 79 27 M65 30 59 47 M51 52 76 51 74 82 M51 52 50 82 M63 58 Q63 88 44 102 M66 89 82 104"/>
+      <path transform="translate(286 18) skewX(-8)" d="M11 30 22 39 M6 53 17 61 M8 98 20 77 M32 42 34 28 80 26 77 42 M48 40 40 64 72 62 70 96 62 105 55 103 M44 51 70 49 M30 80 65 78"/>
+    </g>
+  </defs>
+  <path d="M17 51 33 25 25 47Z M104 134 114 140 99 150Z M207 31 220 19 216 37Z M350 139 373 127 366 138Z" fill="#ffd099"/>
+  <path d="M7 84 18 79 M367 43 381 38 M278 145 288 141" stroke="#fff1b6" stroke-width="2.2" stroke-linecap="round"/>
+  <use xlink:href="#strokes" x="1.7" y="6" stroke="#32122e" stroke-width="16"/>
+  <use xlink:href="#strokes" y="2.6" stroke="#9a3452" stroke-width="14"/>
+  <use xlink:href="#strokes" stroke="#32122e" stroke-width="12"/>
+  <use xlink:href="#strokes" stroke="#ffefd8" stroke-width="9.2"/>
+  <use xlink:href="#strokes" stroke="url(#face)" stroke-width="7.6"/>
+</svg>

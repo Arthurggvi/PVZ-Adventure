@@ -7,6 +7,11 @@ script = ExtResource("1_f6quq")
 black_dirs = ["addons", "res://addons"]
 script_list_meta = {
 "res://scenes/test/test.gd": [-1, -1],
+"res://scripts/Almanac/almanac_zombie_card.gd": [-1, -1],
+"res://scripts/Almanac/main_almanac.gd": [-1, -1],
+"res://scripts/Almanac/panel_container.gd": [-1, -1],
+"res://scripts/Almanac/plant_page.gd": [-1, -1],
+"res://scripts/Almanac/zombie_page.gd": [-1, -1],
 "res://scripts/autoload/event_bus.gd": [-1, -1],
 "res://scripts/autoload/global/bullet_registry.gd": [-1, -1],
 "res://scripts/autoload/global/character_registry.gd": [-1, -1],
@@ -368,6 +373,7 @@ script_list_meta = {
 "res://scripts/ui/main_game_ui/ui_flag_progress_bar_flag.gd": [-1, -1],
 "res://scripts/ui/main_game_ui/ui_remind_word.gd": [-1, -1],
 "res://scripts/ui/reminder_information.gd": [-1, -1],
+"res://scripts/ui/start_menu/start_menu_root.gd": [-1, -1],
 "res://scripts/ui/ui_main_game_menu/battle_pause_menu.gd": [-1, -1],
 "res://scripts/util/image_combiner.gd": [-1, -1],
 "res://scripts/util/speed_timer.gd": [-1, -1]

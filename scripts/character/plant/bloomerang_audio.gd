@@ -18,10 +18,10 @@ static func tier_for(profile: PlantSpawnProfile) -> int:
 	return clampi(floori(stars / 3.0), 0, 2)
 
 
-## [param tier] 为出战时冻结的音色档。按原事件的延迟在发射前播放，音高浮动 ±150 音分。
-static func play_throw(tier: int) -> void:
-	SoundManager.play_sfx_with_pool(THROW_SOUND, -7.0,
-		_pitch_scale(THROW_CENTS[tier] + randf_range(-150.0, 150.0)), false)
+## [param tier] 为出战时冻结的音色档，[param emitter] 是投掷当帧的真实锚点。音高浮动 ±150 音分。
+static func play_throw(tier: int, emitter: Node2D = null) -> void:
+	SoundManager.play_world_sfx(THROW_SOUND, emitter, Vector2.INF, -7.0,
+		_pitch_scale(THROW_CENTS[tier] + randf_range(-150.0, 150.0)), &"boomerang_throw", false)
 
 
 ## [param tier] 为发射时冻结的音色档。每次完成伤害结算播放命中声，音高浮动 ±100 音分。

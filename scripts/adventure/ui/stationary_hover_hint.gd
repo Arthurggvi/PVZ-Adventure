@@ -69,7 +69,7 @@ func dismiss() -> void:
 func _restart() -> void:
 	dismiss()
 	if is_visible_in_tree() and is_instance_valid(_target) and _target.is_visible_in_tree():
-		_pointer_position = get_global_transform_with_canvas().affine_inverse() * get_viewport().get_mouse_position()
+		_pointer_position = BattleEnvironmentLens.mouse_position(self, false)
 		_timer.start()
 
 ## [param event] 只用于观察静止；不消费目标输入。

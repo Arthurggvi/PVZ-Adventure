@@ -1,0 +1,374 @@
+[gd_resource type="SpriteFrames" format=3]
+
+
+[sub_resource type="PlaceholderTexture2D" id="page_geometry"]
+size = Vector2(2508, 1880)
+
+[sub_resource type="AtlasTexture" id="f_00"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_01"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_02"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_03"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_04"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_05"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_06"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_07"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_08"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_09"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_10"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_11"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_12"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_13"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_14"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_15"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_16"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_17"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_18"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_19"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_20"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_21"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_22"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_23"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_24"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_25"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_26"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_27"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_28"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_29"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_30"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_31"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_32"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_33"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_34"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_35"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_36"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_37"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_38"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_39"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_40"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_41"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_42"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_43"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_44"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_45"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_46"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_47"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_48"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_49"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_50"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 0, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_51"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_52"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_53"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 470, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_54"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_55"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_56"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 940, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_57"]
+atlas = SubResource("page_geometry")
+region = Rect2(0, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_58"]
+atlas = SubResource("page_geometry")
+region = Rect2(836, 1410, 836, 470)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="f_59"]
+atlas = SubResource("page_geometry")
+region = Rect2(1672, 1410, 836, 470)
+filter_clip = true
+
+[resource]
+animations = [{
+"frames": [
+{ "duration": 2.2200, "texture": SubResource("f_00") },
+{ "duration": 2.2200, "texture": SubResource("f_01") },
+{ "duration": 2.2200, "texture": SubResource("f_02") },
+{ "duration": 2.2200, "texture": SubResource("f_03") },
+{ "duration": 2.2200, "texture": SubResource("f_04") },
+{ "duration": 1.9800, "texture": SubResource("f_05") },
+{ "duration": 1.9800, "texture": SubResource("f_06") },
+{ "duration": 1.9800, "texture": SubResource("f_07") },
+{ "duration": 1.9800, "texture": SubResource("f_08") },
+{ "duration": 1.9800, "texture": SubResource("f_09") },
+{ "duration": 1.8600, "texture": SubResource("f_10") },
+{ "duration": 1.8600, "texture": SubResource("f_11") },
+{ "duration": 1.8600, "texture": SubResource("f_12") },
+{ "duration": 1.8600, "texture": SubResource("f_13") },
+{ "duration": 1.8600, "texture": SubResource("f_14") },
+{ "duration": 1.9500, "texture": SubResource("f_15") },
+{ "duration": 1.9500, "texture": SubResource("f_16") },
+{ "duration": 1.9500, "texture": SubResource("f_17") },
+{ "duration": 1.9500, "texture": SubResource("f_18") },
+{ "duration": 1.9500, "texture": SubResource("f_19") },
+{ "duration": 2.0700, "texture": SubResource("f_20") },
+{ "duration": 2.0700, "texture": SubResource("f_21") },
+{ "duration": 2.0700, "texture": SubResource("f_22") },
+{ "duration": 2.0700, "texture": SubResource("f_23") },
+{ "duration": 2.0700, "texture": SubResource("f_24") },
+{ "duration": 2.3400, "texture": SubResource("f_25") },
+{ "duration": 2.3400, "texture": SubResource("f_26") },
+{ "duration": 2.3400, "texture": SubResource("f_27") },
+{ "duration": 2.3400, "texture": SubResource("f_28") },
+{ "duration": 2.3400, "texture": SubResource("f_29") },
+{ "duration": 2.4600, "texture": SubResource("f_30") },
+{ "duration": 2.4600, "texture": SubResource("f_31") },
+{ "duration": 2.4600, "texture": SubResource("f_32") },
+{ "duration": 2.4600, "texture": SubResource("f_33") },
+{ "duration": 2.4600, "texture": SubResource("f_34") },
+{ "duration": 2.1900, "texture": SubResource("f_35") },
+{ "duration": 2.1900, "texture": SubResource("f_36") },
+{ "duration": 2.1900, "texture": SubResource("f_37") },
+{ "duration": 2.1900, "texture": SubResource("f_38") },
+{ "duration": 2.1900, "texture": SubResource("f_39") },
+{ "duration": 1.9200, "texture": SubResource("f_40") },
+{ "duration": 1.9200, "texture": SubResource("f_41") },
+{ "duration": 1.9200, "texture": SubResource("f_42") },
+{ "duration": 1.9200, "texture": SubResource("f_43") },
+{ "duration": 1.9200, "texture": SubResource("f_44") },
+{ "duration": 1.8600, "texture": SubResource("f_45") },
+{ "duration": 1.8600, "texture": SubResource("f_46") },
+{ "duration": 1.8600, "texture": SubResource("f_47") },
+{ "duration": 1.8600, "texture": SubResource("f_48") },
+{ "duration": 1.8600, "texture": SubResource("f_49") },
+{ "duration": 1.9800, "texture": SubResource("f_50") },
+{ "duration": 1.9800, "texture": SubResource("f_51") },
+{ "duration": 1.9800, "texture": SubResource("f_52") },
+{ "duration": 1.9800, "texture": SubResource("f_53") },
+{ "duration": 1.9800, "texture": SubResource("f_54") },
+{ "duration": 2.2500, "texture": SubResource("f_55") },
+{ "duration": 2.2500, "texture": SubResource("f_56") },
+{ "duration": 2.2500, "texture": SubResource("f_57") },
+{ "duration": 2.2500, "texture": SubResource("f_58") },
+{ "duration": 2.2500, "texture": SubResource("f_59") }
+],
+"loop": true,
+"name": &"idle",
+"speed": 30.0
+}]

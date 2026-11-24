@@ -11,12 +11,18 @@ const Service = preload("res://scripts/adventure/research/research_service.gd")
 const Picker = preload("res://scripts/adventure/ui/research_slot_picker.gd")
 ## 独立绘制操作结果，不把提示混在工作槽刷新逻辑中。
 const Feedback = preload("res://scripts/adventure/ui/research_feedback.gd")
+## 强化与转职共用书页外壳，点击入口时才绘制正文。
+const RulesPanel = preload("res://scripts/adventure/ui/research_rules_panel.gd")
+## 强化档案页只在玩家打开时创建。
+const HistoryPanel = preload("res://scripts/adventure/ui/research_history_panel.gd")
 ## 与背包复用面板、按钮与模态交互。
 const InventoryDialog = preload("res://scripts/adventure/ui/inventory_dialog.gd")
 ## 只读首屏依赖，复用既有卡牌与物品路径。
 const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
 ## 窗口范围内的可见格子装配，不为屏幕外候选建立卡面。
 const VisualQueue = preload("res://scripts/adventure/ui/prepared_visual_queue.gd")
+## 与冒险选卡共用的植物悬停预览。
+const PromotionDetails = preload("res://scripts/ui/card/card_slot/card_slot_norm/card_promotion_details.gd")
 ## 当前窗口唯一的可见预览队列。
 var visual_queue: VisualQueue
 
@@ -64,8 +70,14 @@ var _closing := false
 var _busy := false
 ## 可复用的屏幕提示条，随研究室进出。
 var _feedback: Feedback
+## 当前窗口唯一的植物预览，位于滚动选择区之外。
+var _promotion_details: PromotionDetails
 ## 当前打开的转职确认；关闭后解除对研究槽位的输入限制。
 var _confirmation: InventoryDialog
+## 正在阅读或退场的规则页，退场结束后才恢复槽位输入。
+var _rules: RulesPanel
+## 从打开到退场结束期间由历史页占用操作区。
+var _history: HistoryPanel
 ## 当前进出动画，入场途中关闭时从当前透明度转为淡出。
 var _fade: Tween
 
@@ -87,8 +99,16 @@ func _ready() -> void:
 	ui = Builder.build(self, with_background)
 	if Global.global_game_state != null:
 		Global.global_game_state.coin_value_changed.connect(_on_coin_value_changed, CONNECT_DEFERRED)
+	if Global.user_manager != null:
+		Global.user_manager.signal_users_update.connect(_on_profile_changed, CONNECT_DEFERRED)
 	_feedback = Feedback.new()
 	add_child(_feedback)
+	var content: Control = ui.content # 内容区保留，切换槽位时只替换它的子节点。
+	_promotion_details = PromotionDetails.new()
+	_promotion_details.hover_scope = content
+	add_child(_promotion_details)
+	content.visibility_changed.connect(_promotion_details.dismiss)
+	_promotion_details.set_tracking_enabled(true)
 	resized.connect(_fit)
 	_fit()
 	_render()
@@ -121,8 +141,93 @@ func _is_current_profile() -> bool:
 func choose_mode(value: String) -> void:
 	if _closing or _busy or is_instance_valid(_confirmation) or not Meta.MODES.has(value) or value == mode:
 		return
+	if is_instance_valid(_rules):
+		_rules.dismiss(false)
+	if is_instance_valid(_history):
+		_history.dismiss(false)
 	_select_mode(value)
 	SoundManager.play_other_SFX(&"buttonclick")
+	_render()
+
+## 在当前强化或转职页开合规则说明，阅读期间保留正常页的所有槽位选择。
+func toggle_rules() -> void:
+	if _closing or _busy or is_instance_valid(_confirmation) or is_instance_valid(_history) or mode == "craft":
+		return
+	if is_instance_valid(_rules):
+		_rules.dismiss()
+		return
+	ui.content.hide()
+	ui.action.hide()
+	_rules = RulesPanel.new()
+	_rules.mode = mode
+	_rules.closed.connect(_on_rules_closed)
+	ui.canvas.add_child(_rules)
+	_update_detail_buttons()
+	SoundManager.play_other_SFX(&"buttonclick")
+
+## 规则页退场后重新显示原工作区，并还原规则入口的可见状态与焦点。
+func _on_rules_closed() -> void:
+	_rules = null
+	_update_detail_buttons()
+	if _closing:
+		return
+	ui.content.show()
+	ui.action.show()
+	if ui.rules.visible:
+		ui.rules.grab_focus()
+
+## 在强化页打开当前档案的记录；重复点击入口会退回原工作区。
+func toggle_history() -> void:
+	if _closing or _busy or is_instance_valid(_confirmation) or is_instance_valid(_rules) \
+			or mode != "upgrade" or not _is_current_profile():
+		return
+	if is_instance_valid(_history):
+		_history.dismiss()
+		return
+	ui.content.hide()
+	ui.action.hide()
+	_history = HistoryPanel.new()
+	_history.entries = _opened_state.enhancement_history
+	_history.closed.connect(_on_history_closed)
+	ui.canvas.add_child(_history)
+	_update_detail_buttons()
+	SoundManager.play_other_SFX(&"buttonclick")
+
+## 日志退场后恢复原有槽位和操作，在强化页内将焦点还给入口。
+func _on_history_closed() -> void:
+	_history = null
+	_update_detail_buttons()
+	if _closing:
+		return
+	ui.content.show()
+	ui.action.show()
+	if ui.history.visible and not ui.history.disabled:
+		ui.history.grab_focus()
+
+## 更新金币旁的入口，并保证历史和规则只有一页能占用工作区。
+func _update_detail_buttons() -> void:
+	var rules_open: bool = is_instance_valid(_rules) # 动效结束前仍保持互斥。
+	var history_open: bool = is_instance_valid(_history) # 历史入口在该页开启时仍可用于关闭。
+	var button: Button = ui.rules # 两种规则复用同一个问号入口。
+	button.visible = mode != "craft"
+	button.disabled = history_open
+	button.set_pressed_no_signal(rules_open and _rules.mode == mode)
+	if button.visible:
+		button.accessibility_name = Meta.title(mode) + "规则"
+		button.tooltip_text = button.accessibility_name
+	ui.history.visible = mode == "upgrade"
+	ui.history.disabled = rules_open or not _is_current_profile()
+	ui.history.set_pressed_no_signal(history_open)
+
+## 切档后立即清掉旧档的记录页，延迟信号保证读到已提交的档案身份。
+func _on_profile_changed() -> void:
+	if _closing or _is_current_profile():
+		return
+	if is_instance_valid(_history):
+		_history.hide()
+		_history.closed.disconnect(_on_history_closed)
+		_history.queue_free()
+		_on_history_closed()
 	_render()
 
 ## 激活 [param value] 对应的选择状态，首次进入该页时从当前档案加载。
@@ -148,8 +253,12 @@ func choose_entry(index: int) -> void:
 		Picker.Slot.MAIN_CARD:
 			issue = _service.main_card_issue(mode, str(entry.uid))
 		Picker.Slot.MATERIAL_CARD:
+			var material_uids: Array[String] = _picker.operation_choice("upgrade")["materials"] # 当前耗材选择的独立副本。
+			var replaced_uid: String = _picker.key_for(Picker.Slot.MATERIAL_CARD, _picker.active_index) # 当前槽原卡被换下后不计为耗材。
+			material_uids.erase(replaced_uid)
+			material_uids.append(str(entry.uid))
 			issue = AdventureEnhancementRules.validate(_service.state,
-				_picker.key_for(Picker.Slot.MAIN_CARD), [str(entry.uid)], false, "")
+				_picker.key_for(Picker.Slot.MAIN_CARD), material_uids, false, "")
 	if not issue.is_empty():
 		_show_result(mode, issue, false)
 		return
@@ -185,15 +294,17 @@ func clear_slot(slot: Picker.Slot, index: int) -> void:
 	_render()
 	_remember_selection()
 
-## 仅当前有效档案能交互，确认弹窗和退出动效期间锁定槽位。
+## 仅当前有效档案能交互，详情页、确认弹窗和退出动效期间锁定槽位。
 func _can_select() -> bool:
 	return not _closing and not _busy and not is_instance_valid(_confirmation) \
+		and not is_instance_valid(_rules) and not is_instance_valid(_history) \
 		and _service != null and _is_current_profile()
 
 ## 依据实时库存重绘当前页，并保留仍可用的工作槽选择。
 func _render() -> void:
 	if ui.is_empty():
 		return
+	_promotion_details.dismiss()
 	var service: AdventureResearchService = _service if _is_current_profile() else null # 切档后不继续读取旧库存。
 	var primary: Array[Dictionary] = [] # 当前页的主卡或配方候选。
 	if service != null:
@@ -208,6 +319,7 @@ func _render() -> void:
 		var tab: TextureButton = ui.tabs[key]
 		tab.texture_normal = Builder.Art.texture(
 			"tabs/tab_selected.png" if key == mode else "tabs/tab_normal.png")
+	_update_detail_buttons()
 	ui.action_text.text = Meta.title(mode)
 	# 有效档案可点击操作按钮查看不足原因，真正执行前仍重新报价。
 	ui.action.disabled = _busy or _closing or service == null
@@ -223,7 +335,7 @@ func _on_coin_value_changed(_balance: int) -> void:
 		_render()
 
 func perform_action() -> void:
-	if _busy or _closing or is_instance_valid(_confirmation):
+	if _busy or _closing or is_instance_valid(_confirmation) or is_instance_valid(_rules) or is_instance_valid(_history):
 		return
 	if _service == null or not _is_current_profile():
 		_show_result(mode, "请先加载有效玩家档案。", false)
@@ -245,7 +357,10 @@ func _confirm_promotion(chosen: Dictionary) -> void:
 	var dialog: InventoryDialog = InventoryDialog.new() # 只收集确认，不直接修改资产。
 	dialog.setup_confirmation("确认转职吗？", "转职后将无法撤销", "是", "算了", Color("a32824"))
 	_confirmation = dialog
-	dialog.closed.connect(func(): _confirmation = null)
+	_promotion_details.set_tracking_enabled(false)
+	dialog.closed.connect(func():
+		_confirmation = null
+		_promotion_details.set_tracking_enabled(not _closing))
 	dialog.confirmed.connect(func(_quantity: int): _execute_action("promotion", chosen))
 	dialog.canceled.connect(SoundManager.play_other_SFX.bind(&"tap"))
 	add_child(dialog)
@@ -275,7 +390,9 @@ func _execute_action(operation_mode: String, chosen: Dictionary) -> void:
 			detail = "星级保持不变。"
 		elif operation_mode == "upgrade":
 			succeeded = result.get("success", false)
-			detail = "主卡当前为 %d 星。" % int(result.get("stars", 0))
+			var stars: int = int(result.get("stars", 0)) # 主卡结算后的实际星级。
+			detail = "主卡仍为 %d 星，耗材卡已保留。" % stars if result.get("protected_failure", false) \
+				else "主卡当前为 %d 星。" % stars
 	_busy = false
 	_render()
 	if committed:
@@ -304,7 +421,12 @@ func _input(event: InputEvent) -> void:
 	if _closing or not is_visible_in_tree() or is_instance_valid(_confirmation):
 		return
 	if event.is_action_pressed(&"ui_cancel"):
-		request_close()
+		if is_instance_valid(_rules):
+			_rules.dismiss()
+		elif is_instance_valid(_history):
+			_history.dismiss()
+		else:
+			request_close()
 		get_viewport().set_input_as_handled()
 
 ## 开始关闭动效；外部入口已播放按键音时将 [param play_sound] 设为 false。
@@ -312,6 +434,7 @@ func request_close(play_sound: bool = true) -> void:
 	if _closing:
 		return
 	_closing = true
+	_promotion_details.set_tracking_enabled(false)
 	if play_sound:
 		SoundManager.play_other_SFX(&"buttonclick")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE

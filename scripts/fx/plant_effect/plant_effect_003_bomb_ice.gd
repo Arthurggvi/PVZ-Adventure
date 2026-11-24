@@ -3,8 +3,8 @@ class_name BombEffectIce
 
 @onready var gpu_particles_2d: GPUParticles2D = $GPUParticles2D
 
-func activate_bomb_effect():
-	super()
+## 释放冰雾并播放全屏冻结提示。
+func _play_effect() -> void:
 	EventBus.push_event("canvas_layer_effect_once", [CanvasLayerEffect.E_CanvasLayerEffectType.Ice])
 
 	gpu_particles_2d.emitting = true

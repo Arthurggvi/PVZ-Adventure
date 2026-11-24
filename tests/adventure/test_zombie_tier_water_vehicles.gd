@@ -1,6 +1,5 @@
 extends Node
 
-const BattleFixture = preload("res://tests/adventure/zombie_tier_battle_fixture.gd") ## 真实战场管理器的测试入口。
 const SNORKEL := preload("res://scenes/character/zombie/zombie_012_snorkle.tscn")
 const ZAMBONI := preload("res://scenes/character/zombie/zombie_013_zamboni.tscn")
 const BOBSLED := preload("res://scenes/character/zombie/zombie_014_bobsled.tscn")
@@ -8,8 +7,6 @@ const DOLPHIN := preload("res://scenes/character/zombie/zombie_015_dolphinrider.
 const MEMBER := preload("res://scenes/character/zombie/zombie_1001_bobsled_signle.tscn")
 
 var failed := false
-## 测试实体归属的真实战场。
-var _battle: MainGameManager
 
 func _ready() -> void:
     call_deferred("_test")
@@ -18,7 +15,7 @@ func spawn(scene: PackedScene, tier: StringName) -> Zombie000Base:
     var zombie: Zombie000Base = scene.instantiate() as Zombie000Base
     zombie.character_init_type = Character000Base.E_CharacterInitType.IsShow
     check(AdventureZombieTierBinding.new(tier).apply(zombie), "tier bound")
-    _battle.add_child(zombie)
+    add_child(zombie)
     return zombie
 
 func check(ok: bool, reason: String) -> void:
@@ -27,7 +24,6 @@ func check(ok: bool, reason: String) -> void:
         push_error("ZOMBIE_WATER_VEHICLE_FAIL: " + reason)
 
 func _test() -> void:
-    _battle = BattleFixture.mount(self)
     for tier: StringName in [&"base", &"veteran", &"elite", &"tier4", &"tier5"]:
         check(AdventureZombieTierTraits.for_spawn(
             CharacterRegistry.ZombieType.Z011Duckytube, tier).is_empty(),

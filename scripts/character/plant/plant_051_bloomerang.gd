@@ -79,7 +79,7 @@ func _physics_process(delta: float) -> void:
 	BloomerangEmitter.update_detection(_detect, edges)
 	var step: Dictionary = _cycle.advance(delta * _owner_speed * _attack_multiplier) # 所有自然动作只消费这一个时钟。
 	if bool(step.sound):
-		Audio.play_throw(_sound_tier)
+		Audio.play_throw(_sound_tier, _launch)
 	for _wave: int in range(int(step.waves)): # 单帧至多三轮，每个方向都重新检查发射资格。
 		if _shot == null or not _can_emit():
 			_cancel_attack()
@@ -141,7 +141,7 @@ func _on_boomerang_returned(projectile_id: int, shot: BloomerangShotContext) -> 
 	if not _can_emit() or shot == null or not shot.is_active() or shot.source_id != get_instance_id():
 		return
 	if shot.allow_echo and not shot.is_split and _emit_shot(shot.for_echo()):
-		Audio.play_throw(_sound_tier)
+		Audio.play_throw(_sound_tier, _launch)
 	if not _cycle.is_busy() and _animation.current_animation != &"catch":
 		_animation.play(&"catch")
 

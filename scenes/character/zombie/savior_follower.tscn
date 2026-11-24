@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_001_norm.tscn" id="1_normal"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/savior/savior_follower.gd" id="2_follower"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/savior/savior_follower_health.gd" id="3_health"]
+
+[node name="SaviorFollower" instance=ExtResource("1_normal")]
+script = ExtResource("2_follower")
+
+[node name="HpComponent" parent="." index="4"]
+script = ExtResource("3_health")
+
+[node name="DetectComponent" parent="AttackComponent" index="0"]
+detect_friendly_barriers = false
+is_detect_items = 0
+can_attack_plant_status = 15

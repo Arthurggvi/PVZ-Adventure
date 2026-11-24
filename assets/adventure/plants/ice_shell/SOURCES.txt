@@ -1,0 +1,25 @@
+植物冰块：复用 Plants vs. Zombies 2 原版完整前后层贴图。
+原画版权：PopCap Games / Electronic Arts。
+提取及 PNG 整理上传者：Redtarp，The Spriters Resource。
+来源页：https://www.spriters-resource.com/mobile/plantsvszombies2/asset/483802/
+原 ZIP：https://www.spriters-resource.com/media/assets/466/483802.zip?updated=1759111123
+本次复用日期：2026-11-21；使用此前已经下载的原始 ZIP，不重新下载或生成美术。
+ZIP SHA-256：96e0802f3bb2a083cae009302933ff6157638c428c0fcc32f68ce36629184f98
+
+原包目录：Frozen Block and Frost Winds/Plants/
+完整前层：frostbite_ice_block_plant_164x169.png
+实际 PNG 尺寸：210 × 217；非透明像素范围：[2, 2, 204, 213)，右端和底端不包含。
+SHA-256：777733f660f90a98543bf112020dc34ea01626200e949acc7c7b3fb9cdfa6da3
+完整后层：frostbite_ice_block_plant_behind_164x171_4.png
+实际 PNG 尺寸：210 × 219；非透明像素范围：[2, 2, 208, 216)，右端和底端不包含。
+SHA-256：64bc379ff9ae79f42e7314f30d44de1d13e998e4e655918bd2783e53a832e7fc
+
+上述两张 PNG 与原 ZIP 中的文件逐字节一致；没有重采样、裁剪、重绘或新增像素。
+文件名保留来源名称，其中标注的尺寸不等于实际 PNG 尺寸。
+显示时仅设置透明度、缩放与贴图偏移，冰效根保持植物阴影脚点锚定，图像底边包覆脚点以下身体并额外保留2个局部像素，顶端位置不变。
+前层默认透明度 0.55，后层 0.72，使冰中植物轮廓仍可辨认。
+场景继承原 IceEffect 的前后层级和碎冰粒子，不在受击代理中重复持有美术。
+本次只接入完整状态，不把破损图片当作初始冰块，也不新增独立裂损状态机。
+
+素材站使用条款：https://www.spriters-resource.com/page/tou/
+此为受版权保护的游戏提取素材，不是开放商业授权；保留原来源与作者说明。

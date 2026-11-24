@@ -1,0 +1,12 @@
+[gd_resource type="Resource" format=3]
+
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/sky_duke/sky_duke_clip.gd" id="clip"]
+
+[resource]
+script = ExtResource("clip")
+frame_count = 60
+visible_frame_count = 60
+region_size = Vector2i(344, 429)
+tile_step = Vector2i(352, 440)
+draw_offset = Vector2(-174, -227)
+cue_seconds = 0.0

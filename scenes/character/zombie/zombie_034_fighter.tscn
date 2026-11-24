@@ -1,0 +1,123 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/zombie/zombie_034_fighter.gd" id="2_fighter"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_imported.gd" id="3_anim"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/fighter/sprite_frames.tres" id="4_frames"]
+[ext_resource type="Script" path="res://scripts/resources/resource_body_change.gd" id="5_body_change"]
+[ext_resource type="Script" path="res://scripts/character/components/attack_behavior_component/component_attack_zombie_fighter.gd" id="6_weapon"]
+[ext_resource type="Script" path="res://scripts/character/zombie/fighter/fighter_presentation.gd" id="7_visual"]
+[ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred_black_anim.gd" id="9_charred"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/fighter/muzzle_frames.tres" id="10_muzzle"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_balloon_propeller.png" id="11_rotor"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/transport_airship/audio/fighter_launch.ogg" id="12_launch"]
+
+[sub_resource type="CapsuleShape2D" id="FighterHitbox"]
+radius = 31.0
+height = 112.0
+
+[node name="Zombie034Fighter" instance=ExtResource("1_base")]
+script = ExtResource("2_fighter")
+zombie_type = 34
+iron_type = 0
+random_speed_range = Vector2(1, 1)
+
+[node name="Shadow" parent="." index="0"]
+scale = Vector2(1.6, 0.85)
+modulate = Color(0, 0, 0, 0.36)
+
+[node name="SourceSprite" type="AnimatedSprite2D" parent="Body" index="2"]
+unique_name_in_owner = true
+sprite_frames = ExtResource("4_frames")
+animation = &"idle"
+scale = Vector2(0.46, 0.46)
+offset = Vector2(-116, -156)
+
+[node name="MuzzleFlash" type="AnimatedSprite2D" parent="Body/SourceSprite" index="0"]
+unique_name_in_owner = true
+visible = false
+position = Vector2(-245.5, -93.5)
+sprite_frames = ExtResource("10_muzzle")
+animation = &"flash"
+
+[node name="Rotor" type="Sprite2D" parent="Body/SourceSprite" index="1"]
+unique_name_in_owner = true
+position = Vector2(-155, -68)
+scale = Vector2(1.65, 1.75)
+texture = ExtResource("11_rotor")
+modulate = Color(1, 1, 1, 0.80)
+
+[node name="RotorBlur" type="Sprite2D" parent="Body/SourceSprite" index="2"]
+unique_name_in_owner = true
+position = Vector2(-155, -68)
+scale = Vector2(1.85, 1.95)
+texture = ExtResource("11_rotor")
+modulate = Color(1, 1, 1, 0.23)
+
+[node name="MuzzleMarker" type="Marker2D" parent="Body/SourceSprite" index="3"]
+unique_name_in_owner = true
+position = Vector2(-160, -67)
+
+[node name="HeadAnchor" type="Marker2D" parent="Body" index="3"]
+position = Vector2(-22, -112)
+
+[node name="DeathBlastOrigin" type="Marker2D" parent="Body" index="4"]
+unique_name_in_owner = true
+position = Vector2(-13, -61)
+
+[node name="CargoLaunchAudio" type="AudioStreamPlayer2D" parent="Body/DeathBlastOrigin" index="0"]
+stream = ExtResource("12_launch")
+max_distance = 1500.0
+panning_strength = 0.8
+bus = &"SFX"
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("3_anim")
+
+[node name="HpStageChangeComponent" parent="." index="3"]
+boundary_value_hp = Array[int]([0])
+body_change = Array[ExtResource("5_body_change")]([null])
+
+[node name="HpComponent" parent="." index="4"]
+position = Vector2(-10, -112)
+max_hp_armor1 = 0
+max_hp_armor2 = 0
+max_hp = 750
+
+[node name="CharredComponent" parent="." index="5"]
+script = ExtResource("9_charred")
+
+[node name="AttackComponent" parent="." index="6"]
+script = ExtResource("6_weapon")
+
+[node name="Area2d" parent="AttackComponent/DetectComponent" index="0"]
+monitoring = false
+
+[node name="MoveComponent" parent="." index="7"]
+move_mode = 1
+ori_speed = 32.0
+
+[node name="SwimBoxComponent" parent="." index="8"]
+is_enable_default = false
+
+[node name="HurtBoxComponent" parent="." index="10"]
+x_correct_on_attack = 0.0
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection" index="0"]
+position = Vector2(-5, -65)
+shape = SubResource("FighterHitbox")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(-5, -65)
+shape = SubResource("FighterHitbox")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetectionOnAttack" index="0"]
+position = Vector2(-5, -65)
+shape = SubResource("FighterHitbox")
+
+[node name="FighterPresentation" type="Node" parent="." index="11"]
+script = ExtResource("7_visual")
+
+[node name="FireTimer" type="Timer" parent="FighterPresentation" index="0"]
+one_shot = true
+wait_time = 0.18

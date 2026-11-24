@@ -139,6 +139,7 @@ func focus(mode: String, slot: Slot, index: int = 0) -> bool:
 	return true
 
 ## 把当前候选 [param row] 放入 [param mode] 下正在选取的槽位。重选主卡自身时保留其余槽位。
+## 强化页填入主卡或耗材后，自动聚焦下一个空耗材槽。
 func pick(mode: String, row: Dictionary) -> void:
 	match active_slot:
 		Slot.RECIPE:
@@ -146,8 +147,11 @@ func pick(mode: String, row: Dictionary) -> void:
 		Slot.MAIN_CARD:
 			if str(row.uid) != _main_uid:
 				_set_primary(mode, str(row.uid))
+			if mode == "upgrade":
+				_focus_next_empty_material(mode, 0)
 		Slot.MATERIAL_CARD:
 			_materials[active_index] = str(row.uid)
+			_focus_next_empty_material(mode, active_index + 1)
 		Slot.POT:
 			_use_pot = true
 		Slot.FERTILIZER:
@@ -156,6 +160,15 @@ func pick(mode: String, row: Dictionary) -> void:
 			_growth_agent = str(row.id)
 		Slot.PROMOTION_BOOK:
 			_book_id = str(row.id)
+
+## 在 [param mode] 中从 [param start_index] 起向右查找并聚焦空耗材槽，必要时从首槽继续查找。
+## 耗材槽全满时保留当前焦点。
+func _focus_next_empty_material(mode: String, start_index: int) -> void:
+	var next_index: int = _materials.find("", start_index) # 优先使用起点至末尾的第一个空槽。
+	if next_index < 0 and start_index > 0:
+		next_index = _materials.find("")
+	if next_index >= 0:
+		focus(mode, Slot.MATERIAL_CARD, next_index)
 
 ## 清空已聚焦的附加槽。主卡和制作书通过选择其他候选替换。
 func clear_active() -> void:

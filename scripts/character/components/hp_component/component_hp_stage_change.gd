@@ -154,6 +154,21 @@ func update_hp_armor_stage(curr_hp_arm:int, curr_hp_armor_stage:int, boundary_va
 	return curr_hp_armor_stage
 #endregion
 
+## 将 [param stages] 中已发生的伤势应用到新身体，不重复生成掉落物。
+func restore_body_stages(stages: Vector3i) -> void:
+	_restore_visual_stages(body_change, stages.x)
+	_restore_visual_stages(body_change_armor1, stages.y)
+	_restore_visual_stages(body_change_armor2, stages.z)
+	curr_hp_stage = stages.x
+	curr_hp_armor1_stage = stages.y
+	curr_hp_armor2_stage = stages.z
+
+## 按原变化顺序应用 [param changes]，只重放到 [param stage]。
+func _restore_visual_stages(changes: Array[ResourceBodyChange], stage: int) -> void:
+	for index: int in range(mini(stage + 1, changes.size())): # 从首个可见损伤阶段开始，并保持原顺序。
+		if changes[index] != null:
+			changes[index].update_body(self, false)
+
 ## 小僵尸大麻烦更新僵尸血量变化临界值
 func update_mini_zombie_hp_stage_change():
 	for i in range(boundary_value_hp.size()):

@@ -8,6 +8,8 @@ const AURA_SOURCE: StringName = &"electric_pea_symbiosis"
 const ELECTRIC_TYPES: Array[int] = [50, 52]
 ## 共生和电球共用本物种的电青、紫白色表，不改变闪电芦苇的本体。
 const PromotionArt = preload("res://scripts/adventure/plant_art/adventure_electric_peashooter_promotion_art.gd")
+## 同一株的所有电磁细流与亮包共用一个有序的绘制批次。
+const StrokeBatch = preload("res://scripts/fx/electric_pea_stroke_batch.gd")
 
 ## 光环接受者；节点随此株一起离场。
 var plant: Plant000Base
@@ -19,12 +21,16 @@ var bonus_per_plant: float = 0.0
 var _bonus: float = 0.0
 ## 当前邻居的绘制端点，相对于本画布。
 var _links := PackedVector2Array()
+## 端点在物理步移动，等待画面更新统一提交最新位置。
+var _redraw_pending: bool = false
 ## 冻结的出战外观等级，仅影响光环连线，不参与增伤计算。
 var _appearance_rank: int = 0
 ## 共生细流的有效表现秒数，暂停时不推进。
 var _visual_age: float = 0.0
 ## 表现更新的未消费秒数，最多每秒重绘二十次。
 var _visual_remainder: float = 0.0
+## 共生连线的画布局部三角网格。
+var _strokes := StrokeBatch.new()
 
 
 ## 为 [param owner_plant] 安装从 [param mouth] 显示的共生；未选择 [param bonus] 时返回空。
@@ -82,7 +88,10 @@ func _set_links(endpoints: PackedVector2Array) -> void:
 	if _links != endpoints:
 		_links = endpoints
 		set_process(not _links.is_empty())
-		queue_redraw()
+		_redraw_pending = not _links.is_empty()
+		if _links.is_empty():
+			# 死亡、暂停或禁用也可能撤销光环，此时本节点可能已经停止处理。
+			queue_redraw()
 
 
 ## [param delta] 只推进连接中的低亮度电流，空光环不占用逐帧处理。
@@ -91,6 +100,9 @@ func _process(delta: float) -> void:
 	_visual_remainder += delta
 	if _visual_remainder >= 0.05:
 		_visual_remainder = fmod(_visual_remainder, 0.05)
+		_redraw_pending = true
+	if _redraw_pending:
+		_redraw_pending = false
 		queue_redraw()
 
 
@@ -103,6 +115,7 @@ func _exit_tree() -> void:
 func _draw() -> void:
 	var colors: Dictionary = PromotionArt.effect_colors(_appearance_rank) # 五阶共生与电球使用相同的清亮配色。
 	var phase: int = floori(_visual_age * 7.0) # 离散电流节奏避免每帧随机抖动。
+	_strokes.clear()
 	for index: int in range(0, _links.size(), 2): # 每对端点仍只代表一株邻居。
 		var start: Vector2 = _links[index] # 本株枪口在画布中的位置。
 		var finish: Vector2 = _links[index + 1] # 相邻植物的真实锚点。
@@ -110,6 +123,7 @@ func _draw() -> void:
 			continue
 		var strand: PackedVector2Array = ElectricPeaArcVisual.make_path(start, finish,
 			index * 43 + phase, 1.8, 16.0, 16) # 只有微小摆动，不能表现成伤害范围。
-		ElectricPeaArcVisual.draw_strand(self, strand, colors, 0.24, 0.65)
+		_strokes.add_strand(strand, colors, 0.24, 0.65)
 		var progress: float = fposmod(_visual_age * 0.65 + float(index) * 0.17, 1.0) # 各连线错相，能量从邻株流向本株。
-		draw_circle(finish.lerp(start, progress), 1.15, Color(colors.core, 0.50), true, -1.0, true)
+		_strokes.add_disc(finish.lerp(start, progress), 1.15, Color(colors.core, 0.50))
+	_strokes.submit(self)

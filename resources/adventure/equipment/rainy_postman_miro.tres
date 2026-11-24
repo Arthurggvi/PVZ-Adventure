@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EquipmentDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/player/equipment_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/rainy_postman_miro.png" id="3"]
+
+[sub_resource type="AtlasTexture" id="Avatar"]
+atlas = ExtResource("3")
+region = Rect2(136, 0, 620, 620)
+filter_clip = true
+
+[resource]
+script = ExtResource("1")
+id = &"rainy_postman_miro"
+display_name = "雨季邮差·米露"
+description = "背负长满翅膀的信件，穿着云朵雨衣和珊瑚红雨靴。"
+slot = 0
+icon = SubResource("Avatar")
+portrait = ExtResource("3")
+active_skill_id = &"rainy_postman_airmail"

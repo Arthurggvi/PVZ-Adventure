@@ -12,10 +12,12 @@ const PHASE_SUMMON_ROWS := [[0, 4], [1, 3], [2]]
 enum State { ENTER, OPENING, IDLE, RAISE, WINDUP, CHARGE, STOP,
 	CHANGE_LANE, PHASE_RAISE, PHASE_CHARGE_OUT, PHASE_CHARGE_IN,
 	PHASE_OUT, PHASE_IN, PHASE_FINISH, DYING }
-## 场景可覆盖的技能数值。
-@export var config: BlackGeneralConfig = BlackGeneralConfig.new()
+## 由 Boss 场景绑定的技能配置，每个出战或展示实例独立持有。
+@export var config: BlackGeneralConfig
 ## 已接入的纯视觉角色。
 @onready var visual: BlackGeneralVisual = $Body/BlackGeneralVisual
+## 斜坡上与植物索敌保持在同一水平基线的受检区域。
+@onready var _row_hurt_detection: Area2D = $HurtBoxComponent/HurtBoxDetection
 ## 只负责动作选择的行为树实例。
 var behavior := BlackGeneralBehaviorTree.new()
 ## 本次冲锋的移动与命中历史。
@@ -26,6 +28,8 @@ var state: State = State.ENTER
 var _action: BlackGeneralBehaviorTree.Action = BlackGeneralBehaviorTree.Action.NONE
 ## 固定所属关卡，防止切场后回调访问新关卡。
 var _game: MainGameManager
+## 当前脚点已应用的坡面高度，单位世界像素。
+var _applied_ground_height: float = 0.0
 ## 转阶段动作是否仍在进行，期间保持无敌。
 var _transitioning: bool = false
 ## 本次举旗释放门闩，防止动画事件被重复发送。
@@ -76,7 +80,8 @@ func _start_battle() -> void:
 	var row: Array = _game.plant_cell_manager.all_plant_cells[lane] # 初始行的场地范围。
 	if row.size() < 2:
 		return
-	visual.bind_effects(self, self, _game, _shake_battle_camera)
+	_apply_ground_height(_ground_height_at(global_position.x))
+	visual.bind_effects(self, self, _game, _shake_battle_camera, sampled_ground())
 	signal_status_update.emit()
 	state = State.ENTER
 	visual.play_action(&"teleport_in")
@@ -87,13 +92,13 @@ func _battle_active() -> bool:
 		and _game.is_ancestor_of(self) and _game.zombie_manager.is_game_running() \
 		and not is_death and not is_queued_for_deletion()
 
-## [param delta] 物理秒数；移动和行动等待受角色速度影响，插旗冷却按战斗时间计。
+## [param delta] 物理秒数；插旗冷却随独立行动倍率变化，保留其原有固定基础间隔。
 func _physics_process(delta: float) -> void:
 	if not _battle_active():
 		visual.retire_charge_effects()
 		_clear_charge_shadows()
 		return
-	behavior.advance_flag_cooldown(delta)
+	behavior.advance_flag_cooldown(delta * action_rate())
 	var step: float = delta * _speed # 经角色控制效果缩放的逻辑时间。
 	if step <= 0.0:
 		return
@@ -210,7 +215,7 @@ func _begin_charge_shadows() -> void:
 				continue
 			var row: int = center_lane if planned_row == lane else planned_row # 换位后每路仍最多一影。
 			var charge_shadow := BlackGeneralChargeShadow.new() # 该行的冲锋与命中独立结算。
-			charge_shadow.setup(self, row, Vector2(boss_home_x, _row_y(row)), (group_index + 1) * interval)
+			charge_shadow.setup(self, row, Vector2(boss_home_x, _row_y(row) + _ground_height_at(boss_home_x)), (group_index + 1) * interval)
 			_charge_shadows.append(charge_shadow)
 
 ## 用 [param step] 推进各路残影，扫到各自停止线后转入纯视觉退场。
@@ -361,6 +366,11 @@ func _plant_flag() -> void:
 	(flag.get_node("HpComponent") as HpComponent).max_hp = config.flag_health
 	_game.add_child(flag)
 	flag.global_position = global_position - Vector2(_cell_width(), 0.0)
+	var flag_height: float = _ground_height_at(flag.global_position.x) # 令旗实际位置所在的坡面高度。
+	if not is_zero_approx(flag_height) or not is_zero_approx(_applied_ground_height):
+		flag.global_position.y += flag_height - _applied_ground_height
+		var detection: Area2D = flag.get_node(^"HurtBoxComponent/HurtBoxDetection") # 保持与植物索敌的行基线一致。
+		detection.global_position.y -= flag_height
 	_flags.append(flag)
 	flag.tree_exiting.connect(_forget_flag.bind(flag.get_instance_id()))
 	flag.activate(_game.zombie_manager, config.phase_one_block)
@@ -393,7 +403,11 @@ func _summon(type: CharacterRegistry.ZombieType, row: int, tier: StringName, x: 
 	var zombie: Zombie000Base = _game.zombie_manager.zombie_wave_manager.zombie_wave_create_manager.wave_create_zombie(
 		type, row, -1, Callable(), false, AdventureZombieTierBinding.new(encounter_summon_tier(tier))) # 统一登记与等阶初始化。
 	if is_instance_valid(zombie) and is_finite(x):
+		var source_x: float = zombie.global_position.x # 出生标记处已应用对应的坡面高度。
 		zombie.global_position.x = x
+		if sampled_ground() != null:
+			zombie.move_y_zombie(_ground_height_at(x) - _ground_height_at(source_x))
+			zombie.move_component.update_previous_ground_global_x()
 
 ## 返回本行格宽，召唤与插旗共享前方一格定义。
 func _cell_width() -> float:
@@ -404,9 +418,60 @@ func _cell_width() -> float:
 func _row_y(row: int) -> float:
 	return _game.zombie_manager.all_zombie_rows[row].zombie_create_position.global_position.y
 
+## [param manager] 持有僵王容器和分路基线，[param spawn_position] 为容器局部坐标。
+## 有限的 [param home_local_x] 表示从存档恢复，先还原坡面前的坐标再选择逻辑行。
+func place_boss_at_spawn(manager: ZombieManager, spawn_position: Vector2, home_local_x: float = INF) -> void:
+	if is_finite(home_local_x) and is_instance_valid(manager.main_game):
+		var slope: MainGameSlope = manager.main_game.main_game_slope # 入树前通过生成管理器读取所属地形。
+		if is_instance_valid(slope) and slope.sample_walking_height:
+			var feet: Vector2 = manager.zombie_boss_root.to_global(spawn_position) # 存档保留了已投影的真实脚点。
+			feet.y -= slope.get_all_slope_y(feet.x)
+			spawn_position = manager.zombie_boss_root.to_local(feet)
+	super.place_boss_at_spawn(manager, spawn_position, home_local_x)
+
+## 返回使用跨步高度采样的坡面，其他场景沿用原始水平动作。
+func sampled_ground() -> MainGameSlope:
+	var slope: MainGameSlope = _game.main_game_slope if is_instance_valid(_game) else null # 所属战场的可选坡面。
+	return slope if is_instance_valid(slope) and slope.sample_walking_height else null
+
+## 返回 [param world_x] 对应的坡面高度，平地和原场景为零。
+func _ground_height_at(world_x: float) -> float:
+	var slope: MainGameSlope = sampled_ground() # 只采用声明精确采样的地形。
+	return slope.get_all_slope_y(world_x) if slope != null else 0.0
+
+## 按 [param height] 更新本体和真实受击框，索敌区域仍留在所属行的水平基线。
+func _apply_ground_height(height: float) -> void:
+	var delta_y: float = height - _applied_ground_height # 本次与已应用高度之差。
+	_applied_ground_height = height
+	if not is_zero_approx(delta_y):
+		global_position.y += delta_y
+		_row_hurt_detection.global_position.y -= delta_y
+
+## 将冲锋者 [param actor] 移到 [param world_x]，沿坡面修正本体或分路残影的脚点。
+func move_charge_to(actor: Node2D, world_x: float) -> void:
+	var destination_height: float = _ground_height_at(world_x) # 本步终点对应的坡面高度。
+	if actor == self:
+		global_position.x = world_x
+		_apply_ground_height(destination_height)
+	else:
+		var source_height: float = _ground_height_at(actor.global_position.x) # 残影起点已贴在坡上。
+		actor.global_position = Vector2(world_x, actor.global_position.y + destination_height - source_height)
+
+## [param manager] 提供分路基线，[param distance] 为本帧世界位移。
+## 在平面中复用分路算法，再将新脚点投影到地面，完成换行时返回 true。
+func advance_boss_lane_change(manager: ZombieManager, distance: float) -> bool:
+	if sampled_ground() == null:
+		return super.advance_boss_lane_change(manager, distance)
+	global_position.y -= _applied_ground_height
+	var completed: bool = super.advance_boss_lane_change(manager, distance) # 基线坐标用于进度和层级。
+	global_position.y += _applied_ground_height
+	_apply_ground_height(_ground_height_at(global_position.x))
+	return completed
+
 ## 传送回当前行右端，重置渲染层级并通知重新索敌。
 func _return_to_home() -> void:
-	global_position = Vector2(boss_home_x, _row_y(lane))
+	global_position = Vector2(boss_home_x, _row_y(lane) + _applied_ground_height)
+	_apply_ground_height(_ground_height_at(boss_home_x))
 	set_boss_depth(lane)
 	signal_status_update.emit()
 

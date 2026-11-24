@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/bullet/bullet_000_linear_base.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/bullet/three_pea_kinetic.gd" id="2"]
+
+[node name="ThreePeaKinetic" instance=ExtResource("1")]
+script = ExtResource("2")
+type_bullet_SFX = 1
+
+[node name="BulletEffect" parent="." index="2"]
+is_bullet_effect = false

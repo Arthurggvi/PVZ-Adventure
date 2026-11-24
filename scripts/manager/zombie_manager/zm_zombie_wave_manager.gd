@@ -3,8 +3,6 @@ extends Node
 class_name ZombieWaveManager
 
 #region 波次管理器参数
-## 初代 PC 冒险模式从可种植到首波的游戏秒数。
-const CLASSIC_OPENING_SECONDS: float = 18.0
 ## 是否有墓碑,即墓碑是否生成僵尸
 var is_have_tombston := false
 ## 一轮游戏最大波次
@@ -41,12 +39,16 @@ var curr_wave_type:E_WaveType
 var max_wave :int
 ## 当前波次
 var curr_wave := -1
+## 各行最后一次启动车辆时已开始的自然波数，键为零起始行号；离开本轮时清空。
+var _mower_started_wave_counts: Dictionary[int, int] = {}
 ## 每波进度条所占大小
 var progress_bar_segment_every_wave:float
 ## 每段根据当前波次时间，每秒多长
 var progress_bar_segment_mini_every_sec:float
 ## 每次停止或切轮递增；等待中的旧波流程不能在下一轮重新进入战斗后恢复。
 var _refresh_generation: int = 0
+## 冒险波次分帧生成期间，暂不接受同一波次的重复推进或判定清波。
+var _spawning_wave := false
 ## 同一战斗最多显示一个援军旗帜波提示，防止重复请求叠加红字。
 var _support_flag_wave_pending: bool = false
 ## 共同挂起自然波次的来源；默认来源保留既有 Boss 契约。
@@ -120,6 +122,7 @@ func init_zombie_wave_manager(game_para:ResourceLevelData):
 	_pending_advancement = false
 	_before_wave_signalled = -1
 	_last_refresh_request = -1
+	_mower_started_wave_counts.clear()
 	every_wave_progress_timer.paused = false
 	is_have_tombston = game_para.is_have_tombston
 	max_wave_one_round = game_para.max_wave
@@ -183,7 +186,7 @@ func start_first_wave():
 	var refresh_generation: int = _refresh_generation # 首波保护与进度计时都只属于当前阶段。
 	var profile: WaveProfile = zombie_wave_create_manager.adventure_wave_profile # 本次开波使用的阶段配置。
 	if profile != null and profile.use_classic_spawn_timing and profile.classic_opening_protection:
-		await _wait_for_natural_spawn(CLASSIC_OPENING_SECONDS)
+		await _wait_for_natural_spawn(profile.classic_opening_seconds)
 	if not _is_wave_refresh_current(refresh_generation):
 		return
 	if profile != null:
@@ -201,6 +204,8 @@ func start_first_wave():
 ## 停止自然波次与进度计时并失效旧轮等待；下一轮进入战斗也不会恢复旧波流程。
 func stop_wave_refresh() -> void:
 	_refresh_generation += 1
+	_spawning_wave = false
+	_mower_started_wave_counts.clear()
 	_advancement_sources.clear()
 	is_advancement_suspended = false
 	_pending_advancement = false
@@ -228,11 +233,46 @@ func _wait_for_natural_spawn(seconds: float) -> void:
 func _is_wave_refresh_current(refresh_generation: int) -> bool:
 	return refresh_generation == _refresh_generation and zombie_manager.is_game_running()
 
+## 返回 [param wave_number] 对应的一起始波次是否还有计划内的僵尸未生成。
+func is_wave_spawning(wave_number: int) -> bool:
+	return _spawning_wave and wave_number == curr_wave + 1
+
+## [param generation] 仍属于本轮才继续出怪，暂停或遭遇挂起期间保留本批计划。
+func _yield_wave_spawn(generation: int) -> bool:
+	await get_tree().process_frame
+	while _is_wave_refresh_current(generation) and (get_tree().paused or is_advancement_suspended):
+		await get_tree().process_frame
+	return _is_wave_refresh_current(generation)
+
+## 在自然出怪战斗中，记录零起始行号 [param lane] 的推车启动时已开始多少自然波。
+func record_mower_started(lane: int) -> void:
+	if zombie_manager.monster_mode != ConstLevelData.E_MonsterMode.Norm or not zombie_manager.is_game_running():
+		return
+	if lane < 0 or lane >= zombie_manager.all_zombie_rows.size():
+		return
+	_mower_started_wave_counts[lane] = curr_wave + 1 # curr_wave 从 0 开始，开波前为 -1。
+
+## 返回零起始波次 [param wave] 的逐行基础权重，常规关卡末波同样适用。[br]
+## 各行权重均为 1 时返回空数组，沿用默认选行。
+func _mower_spawn_weights(wave: int) -> Array[float]:
+	var weights: Array[float] = [] # 有行仍在保护期时才构造整张战场的权重。
+	for lane: int in _mower_started_wave_counts: # 记录了推车启动的零起始行号。
+		if not zombie_manager.is_lane_open(lane):
+			continue
+		var wave_delta: int = wave - _mower_started_wave_counts[lane] # 启动后首个尚未选行的波次为 0。
+		if wave_delta > 2:
+			continue
+		if weights.is_empty():
+			weights.resize(zombie_manager.all_zombie_rows.size())
+			weights.fill(1.0)
+		weights[lane] = 0.01 if wave_delta <= 1 else 0.5
+	return weights
+
 ## 战斗阶段生成下一波并发出刷新信号；大波提示等待后检查战斗阶段及停止版本。
 ## 一次自然波次：先判断并展示，再确认未暂停，最后才更新波次编号与实例。
 ## await 期间出现 Boss 时保留待启动波次，不会偷跑生成。
 func start_next_wave() -> void:
-	if not zombie_manager.is_game_running() or curr_wave + 1 >= max_wave:
+	if _spawning_wave or not zombie_manager.is_game_running() or curr_wave + 1 >= max_wave:
 		return
 	if is_advancement_suspended:
 		_pending_advancement = true
@@ -278,7 +318,16 @@ func start_next_wave() -> void:
 	curr_wave = next_wave_index
 	curr_wave_type = next_type
 	var is_big_wave: bool = next_type in [E_WaveType.Final, E_WaveType.Flag]
-	var spawned: Array[Zombie000Base] = zombie_wave_create_manager.create_curr_wave_all_zombies(curr_wave, is_big_wave)
+	_spawning_wave = profile != null
+	var yield_for_budget: Callable = _yield_wave_spawn.bind(refresh_generation) if _spawning_wave else Callable() # 原版波次走原同步流程。
+	var mower_weights: Array[float] = _mower_spawn_weights(curr_wave) # 整波共用快照；分帧中启动的车影响后续波次。
+	var spawned: Array[Zombie000Base] = await zombie_wave_create_manager.create_curr_wave_all_zombies(
+		curr_wave, is_big_wave, yield_for_budget, mower_weights) # 敌人分批入场，整波结束后才结算波次。
+	if refresh_generation != _refresh_generation:
+		return
+	_spawning_wave = false
+	if not _is_wave_refresh_current(refresh_generation):
+		return
 	var flag_index: int = profile.flag_wave_numbers().find(wave_number) if profile != null and is_big_wave else -1 # 和进度条共用旗帜顺序。
 	set_progress_bar(flag_index)
 	if profile == null and is_big_wave:
@@ -288,15 +337,41 @@ func start_next_wave() -> void:
 	if not _is_wave_refresh_current(refresh_generation):
 		return
 	var wave_all_hp := 0
-	for zombie: Zombie000Base in spawned:
+	for zombie: Zombie000Base in spawned: # 早入场的实例可能已经死亡或被魅惑，不能计入剩余血量。
+		if not is_instance_valid(zombie) or zombie.is_death or zombie.is_queued_for_deletion() \
+				or zombie_manager.all_zombies_be_hypno.has(zombie):
+			continue
 		zombie.signal_zombie_hp_loss.connect(zombie_wave_refresh_manager.judge_half_refresh)
 		wave_all_hp += zombie.hp_component.get_all_hp()
+		# 后续形态只进入波次预算，不污染石壳的百分比伤害和当前血条。
+		wave_all_hp += zombie.contained_zombie_wave_health()
 		if zombie is Zombie014Bobsled:
 			wave_all_hp += zombie.passenger_wave_health()
-	zombie_wave_refresh_manager.update_wave_health_data(wave_all_hp, curr_wave_type, curr_wave)
+	var interval_multiplier: float = profile.wave_interval_multiplier if profile != null else 1.0 # 从本波所属阶段读取波间计时。
+	zombie_wave_refresh_manager.update_wave_health_data(wave_all_hp, curr_wave_type, curr_wave, interval_multiplier)
 	signal_wave_refresh.emit(is_final)
 	if profile != null:
 		adventure_wave_started.emit(wave_number)
+
+## 将 [param statue] 的当前波名单和掉血监听交接给已正式登记的 [param replacement]。
+## 石壳归零后调用；预留的普僵生命已经计入初始预算，不重复增减血量或推进波次。
+## 支援单位或不属于当前名单的来源不修改自然波次；调用方随后退役旧石像。
+func replace_stone_statue_with_zombie(statue: Zombie000Base, replacement: Zombie000Base) -> void:
+	if not is_instance_valid(statue) or not is_instance_valid(replacement) \
+			or replacement.is_queued_for_deletion() or not replacement.is_inside_tree() \
+			or not zombie_manager.all_zombies_1d.has(replacement):
+		return
+	var roster: Array[Zombie000Base] = zombie_wave_create_manager.wave_all_zombies # 只修改本波权威名单，不建立平行集合。
+	var index: int = roster.find(statue) # 无归属的脚本生成不接管当前波。
+	if index < 0:
+		return
+	roster[index] = replacement
+	var receiver: Callable = zombie_wave_refresh_manager.judge_half_refresh # 继承已有监听，避免整波尚未生成完时提前重复连接。
+	if statue.signal_zombie_hp_loss.is_connected(receiver):
+		statue.signal_zombie_hp_loss.disconnect(receiver)
+		if not replacement.signal_zombie_hp_loss.is_connected(receiver):
+			replacement.signal_zombie_hp_loss.connect(receiver)
+
 
 ## [param sled] 已损毁的雪橇；[param crew] 继承原波次的下车队员。
 ## 只交接本波已经纳入血量预算的雪橇，支援和脚本刷出的队伍沿用原归属。

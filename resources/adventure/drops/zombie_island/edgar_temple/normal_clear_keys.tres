@@ -44,6 +44,16 @@ quantity_min = 1
 quantity_max = 1
 weight = 1
 
+[sub_resource type="Resource" id="sewer"]
+script = ExtResource("Entry")
+entry_id = &"zombie_island.edgar_temple.normal.clear_keys.sewer"
+rule = 2
+asset_kind = 2
+asset_id = &"zombie_island.sewer.nightmare_key"
+quantity_min = 1
+quantity_max = 1
+weight = 1
+
 [sub_resource type="Resource" id="Keys"]
 script = ExtResource("Table")
 table_id = &"zombie_island.edgar_temple.normal.clear_keys"
@@ -51,7 +61,8 @@ entries = Array[ExtResource("Entry")]([
 SubResource("fallen_camp"),
 SubResource("lawn"),
 SubResource("grave_upstream"),
-SubResource("grave_downstream")
+SubResource("grave_downstream"),
+SubResource("sewer")
 ])
 weighted_draw_count = 2
 weighted_selection = 2

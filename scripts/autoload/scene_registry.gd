@@ -28,22 +28,22 @@ const PATHS := {
 	&"DIRT_RISE_EFFECT": "res://scenes/character/item/dirt_rise_effect.tscn",
 	&"LADDER": "res://scenes/item/game_scenes_item/ladder.tscn",
 }
-## 已解析的 PackedScene 资源统一缓存，避免反复磁盘访问。
-var _cache: Dictionary[StringName, PackedScene] = {}
+## 与角色注册表共用战斗租约协议，战外只由实际使用者持有场景。
+const BattleScope = preload("res://scripts/autoload/global/battle_resource_scope.gd")
+## 本注册表独立的战斗资源租约。
+var _battle_scope := BattleScope.new()
 
-## [param key] 为历史资源名称；首次访问时加载，缺失则返回 null。
+## [param key] 为历史资源名称；无注册或解析失败返回 null。
 func _scene(key: StringName) -> PackedScene:
-	if _cache.has(key):
-		return _cache[key]
-	var path: String = PATHS.get(key, "")
+	var path: String = PATHS.get(key, "") # 原有路径表仍是唯一身份来源。
 	if path.is_empty():
 		push_error("SceneRegistry: unregistered scene: " + str(key))
 		return null
-	var resource: PackedScene = load(path) as PackedScene
+	var global_node: Node = get_node_or_null("/root/Global") # 允许启动期独立查询。
+	var owner: Node = global_node.get("main_game") if global_node != null else null # 当前真实战斗根。
+	var resource: PackedScene = _battle_scope.resolve(owner, path) as PackedScene # 共享现有资源。
 	if resource == null:
 		push_error("SceneRegistry: resource not found: " + path)
-		return null
-	_cache[key] = resource
 	return resource
 
 ## 花园植物格子：保留原属性名称，首次使用时解析对应资源。

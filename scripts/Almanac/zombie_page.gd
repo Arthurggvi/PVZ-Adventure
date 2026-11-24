@@ -23,7 +23,7 @@ func init_almanac_page() -> void:
 	var first_reference: ResourceCardReference = null # 没有有效图鉴卡时维持空引用。
 	# 当前候选目录引用；模板与资料都存在才创建头像。
 	for reference: ResourceCardReference in references:
-		if not _has_almanac_entry(reference) or AllCards.get_template(reference) == null:
+		if not _has_almanac_entry(reference) or AllCards.get_template_path(reference).is_empty():
 			continue
 		# 当前图鉴头像卡片，初始化引用在加入场景树之前完成。
 		var portrait_card: AlmanacPortraitCard = ALMANAC_PORTRAIT_CARD.instantiate()

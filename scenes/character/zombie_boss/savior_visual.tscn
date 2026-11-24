@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/savior/savior_frames.tres" id="savior_frames"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/savior/savior_visual.gd" id="visual"]
+
+[node name="SaviorVisual" type="AnimatedSprite2D"]
+script = ExtResource("visual")
+texture_filter = 2
+sprite_frames = ExtResource("savior_frames")
+animation = &"idle"
+autoplay = "idle"
+centered = false
+offset = Vector2(-122, -347)
+
+[node name="PrayerPalm" type="Marker2D" parent="."]
+position = Vector2(-38, -203)

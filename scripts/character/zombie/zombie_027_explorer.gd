@@ -92,8 +92,11 @@ func _physics_process(_delta: float) -> void:
 		return
 	# 保留检测组件选出的同一行植物及格内保护层优先顺序。
 	var detector := attack_component.detect_component # 本实例的同行攻击检测器。
-	var target := detector.enemy_can_be_attacked as Plant000Base # 格内实际受击的植物。
-	if not is_instance_valid(target) or target.is_death or target.is_queued_for_deletion() \
+	var candidate: Variant = detector.enemy_can_be_attacked # 同帧连锁伤害可能已经释放候选。
+	if not is_instance_valid(candidate) or not candidate is Plant000Base:
+		return
+	var target: Plant000Base = candidate # 通过存活验证后再读取格内目标。
+	if target.is_death or target.is_queued_for_deletion() \
 		or (target.curr_be_attack_status & detector.can_attack_plant_status) == 0 \
 		or target.hp_component.is_damage_immune():
 		return
@@ -105,8 +108,7 @@ func _burn_plant(target: Plant000Base) -> void:
 	# 特效和声音在植物移除后继续播放，因此提前保存世界位置和层级。
 	var burn_position := target.global_position + Vector2(0, -25)
 	var burn_z_index := target.z_index + 1 # 在目标所在图层上方播放燃烧。
-	target.is_can_death_language = false
-	target.hp_component.Hp_loss_death(false)
+	target.be_hit_instantly(CombatHitScope.for_plant_attack(self), true)
 	# 使用战场节点承载一次性燃烧动画，不受植物或僵尸后续移除影响。
 	var effect := PLANT_BURN.instantiate() as Node2D
 	Global.main_game.bullets.add_child(effect)

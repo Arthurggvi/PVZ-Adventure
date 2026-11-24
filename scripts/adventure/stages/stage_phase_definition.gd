@@ -2,6 +2,11 @@
 extends Resource
 class_name StagePhaseDefinition
 
+## 可选阶段布局；续战由演出安装，重开由统一适配器构建。
+@export var board_definition: BoardDefinition
+## 可选阶段底图，重开时与地形一起投影。
+@export var background_texture: Texture2D
+
 ## 阶段身份必须显式指定，不由名字或数组位置推断。
 enum Kind { UNSET, NORMAL, NIGHTMARE, TERMINAL }
 ## 阶段只有战斗内容；钥匙/卡槽/预览属于整关入口契约。
@@ -27,6 +32,8 @@ enum Kind { UNSET, NORMAL, NIGHTMARE, TERMINAL }
 @export var gravestone_rules: GravestoneWaveRules
 ## 可选、仅此阶段触发的天气变化；未指定时保持上个阶段的天气。
 @export var weather_sequence: WeatherSequence
+## 可选的场景滤镜及音效环境；空值明确退出上一阶段的环境处理，音乐独立。
+@export var environment_profile: BattleEnvironmentProfile
 
 ## 静态阶段校验只关心自身战斗资源，不查询玩家入口条件。
 func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
@@ -62,6 +69,8 @@ func validate(known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 		errors.append_array(gravestone_rules.validate())
 	if weather_sequence != null:
 		errors.append_array(weather_sequence.validate())
+	if environment_profile != null:
+		errors.append_array(environment_profile.validate())
 	var encounter_ids: Array[StringName] = [] # 先建立完整目录，允许事件引用列表中稍后的遭遇。
 	for encounter: BossEncounterDefinition in boss_encounters: # 不实例化遭遇资源所描述的角色。
 		if encounter == null:

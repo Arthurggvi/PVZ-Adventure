@@ -20,7 +20,7 @@ var _has_attack_animation_rate: bool = false
 var _attack_animation_base: float = 1.0
 ## 持续范围攻击的单次执行入口，空值使用原生动画发射；不创建额外计时器。
 var _continuous_attack: Callable
-## 持续模式的固定战斗秒周期，不受正向角色速度或攻击专用倍率影响。
+## 持续模式在基础攻速下的脉冲周期，单位为秒。
 var _continuous_interval: float = 0.5
 
 ## 可攻击的植物状态位，初始化时继承检测组件设置。
@@ -91,14 +91,12 @@ func set_attack_rate_source(source_id: int, bonus: float) -> void:
 func _refresh_attack_rate() -> void:
 	if not is_instance_valid(bullet_attack_cd_timer):
 		return
-	var rate: float = _owner_speed_product * _attack_rate_multiplier # 普通攻击保留既有速度来源合成。
-	if _continuous_attack.is_valid():
-		rate = 1.0 if _owner_speed_product > 0.0 else 0.0
+	var rate: float = _owner_speed_product * _attack_rate_multiplier # 普通攻击与持续伤害共用攻速合成。
 	bullet_attack_cd_timer.set_speed_scale(rate)
 	if _has_attack_animation_rate:
 		animation_tree.set(ATTACK_ANIMATION_RATE_PROPERTY, _attack_animation_base * _attack_rate_multiplier)
 
-## [param interval] 是正的固定战斗秒周期；[param callback] 为空时恢复原生动画攻击。
+## [param interval] 是基础攻速下的正周期；[param callback] 为空时恢复原生动画攻击。
 ## 持续模式保留原生目标条件，同一个SpeedTimer保持暂停、零速和离树语义。
 func configure_continuous_attack(interval: float, callback: Callable) -> void:
 	if callback.is_valid() and (not is_finite(interval) or interval <= 0.0):
@@ -116,7 +114,7 @@ func clear_continuous_attack(callback: Callable) -> void:
 	if _continuous_attack == callback:
 		configure_continuous_attack(attack_cd, Callable())
 
-## 开始原生攻击；持续模式完整等待固定周期，普通模式保留首次随机等待。
+## 开始原生攻击；持续模式完整等待一个缩放后的周期，普通模式保留首次随机等待。
 func attack_start():
 	super()
 	if bullet_attack_cd_timer.is_stopped():
@@ -135,6 +133,8 @@ func attack_end():
 
 ## 同一时钟只执行一种攻击：持续脉冲直接结算，普通发射仍等待动画方法轨道。
 func _on_bullet_attack_cd_timer_timeout() -> void:
+	if owner is Plant000Base and owner.is_cold_frozen():
+		return # 冻结与到期同帧时也不发布持续脉冲或新的攻击动画。
 	if _continuous_attack.is_valid():
 		if is_enabling and is_attack_res:
 			_continuous_attack.call()
@@ -145,8 +145,10 @@ func _on_bullet_attack_cd_timer_timeout() -> void:
 func set_cancel_attack():
 	pass
 
-## 动画调用的一次射击；暂停行动的僵尸不发射，物种齐射覆盖仍使用原入口。
+## 动画调用的一次射击；冻结植物与暂停行动的僵尸不发射，物种齐射覆盖仍使用原入口。
 func _shoot_bullet():
+	if owner is Plant000Base and owner.is_cold_frozen():
+		return # 阻止冻结前已经排队的动画回调越过零速控制。
 	if _continuous_attack.is_valid():
 		return
 	if owner is Zombie000Base and owner.is_action_suspended():
@@ -161,7 +163,7 @@ func _shoot_bullet():
 		var bullet_paras: Dictionary[Bullet000NormBase.E_InitParasAttr, Variant] = get_bullet_paras(markers_2d_bullet[i].global_position, detect_component.ray_area_direction[i]) # 本弹口的初始化快照。
 		bullet.init_bullet(bullet_paras)
 		bullets.add_child(bullet)
-		play_throw_sfx()
+		play_throw_sfx(markers_2d_bullet[i].global_position)
 
 ## [param marker_2d_bullet_glo_pos] 为弹口世界坐标；[param ray_direction] 为该弹口的射击方向。
 ## 返回原生命中参数及本次攻击上下文；非植物来源不生成植物词条快照。
@@ -179,8 +181,13 @@ func get_bullet_paras(marker_2d_bullet_glo_pos: Vector2, ray_direction: Vector2)
 		Bullet000NormBase.E_InitParasAttr.AttackContext: (
 			(owner as Plant000Base).capture_attack_context()
 			if owner is Plant000Base else null),
+		Bullet000NormBase.E_InitParasAttr.PlantHitScope: (
+			CombatHitScope.for_plant_attack(owner) if owner is Zombie000Base or owner is ZB000Base else null),
 	}
 
-## 播放当前原生攻击音效，不参与攻速或伤害计算。
-func play_throw_sfx():
-	SoundManager.play_character_SFX(attack_sfx)
+## 播放当前原生攻击音效。[param point] 为实际弹口，无参数的齐射用首个弹口。
+func play_throw_sfx(point: Vector2 = Vector2.INF) -> void:
+	var origin: Vector2 = point # 不从逻辑列号估算动态甲板上的枪口。
+	if not origin.is_finite() and not markers_2d_bullet.is_empty():
+		origin = markers_2d_bullet[0].global_position
+	SoundManager.play_character_SFX(attack_sfx, owner, origin)

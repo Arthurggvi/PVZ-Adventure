@@ -1,0 +1,1037 @@
+{
+  "schema_version": 1,
+  "clock": "explicit_animation_seconds",
+  "world_size": [
+    1774,
+    887
+  ],
+  "regions": {
+    "ocean": {
+      "kind": "water",
+      "mask": "masks/water/runtime/ocean_mask.png",
+      "flow": "masks/water/runtime/water_flow_field_rgba.png",
+      "surface_state": "masks/water/runtime/water_state_atlas.exr",
+      "surface_state_info": {
+        "frame_size": [
+          384,
+          360
+        ],
+        "atlas_grid": [
+          8,
+          8
+        ],
+        "frame_count": 64,
+        "padding": 2,
+        "origin_world": [
+          0,
+          168
+        ],
+        "extent_world": [
+          768,
+          720
+        ],
+        "slope_range": 0.45,
+        "height_range": 1.5
+      },
+      "enabled": true,
+      "active_tiles": [
+        4,
+        5
+      ],
+      "profile": {
+        "water": {
+          "pattern": "drift",
+          "period_seconds": 18.0,
+          "phase_radians": 0.0,
+          "transverse_ratio": 0.32,
+          "shimmer_scale": [
+            37.0,
+            9.0,
+            21.0
+          ]
+        },
+        "amplitude_world": 3.2,
+        "wavelength_world": [
+          20.0,
+          11.0
+        ],
+        "shimmer_strength": 0.045,
+        "aurora_strength": 0.38,
+        "spectral_strength": 0.42,
+        "dream_strength": 0.9,
+        "film_thickness_nm": 520.0,
+        "aurora_scale_world": [
+          90.0,
+          38.0
+        ],
+        "swirl_strength": 0.35,
+        "swirl_center_world": [
+          170.0,
+          760.0
+        ]
+      },
+      "display_name": "致幻洋流"
+    },
+    "river": {
+      "kind": "water",
+      "mask": "masks/water/runtime/river_mask.png",
+      "flow": "masks/water/runtime/water_flow_field_rgba.png",
+      "surface_state": "masks/water/runtime/water_state_atlas.exr",
+      "surface_state_info": {
+        "frame_size": [
+          384,
+          360
+        ],
+        "atlas_grid": [
+          8,
+          8
+        ],
+        "frame_count": 64,
+        "padding": 2,
+        "origin_world": [
+          0,
+          168
+        ],
+        "extent_world": [
+          768,
+          720
+        ],
+        "slope_range": 0.45,
+        "height_range": 1.5
+      },
+      "enabled": true,
+      "active_tiles": [
+        1,
+        4,
+        5
+      ],
+      "profile": {
+        "water": {
+          "pattern": "drift",
+          "period_seconds": 18.0,
+          "phase_radians": 0.0,
+          "transverse_ratio": 0.32,
+          "shimmer_scale": [
+            37.0,
+            9.0,
+            21.0
+          ]
+        },
+        "amplitude_world": 1.7,
+        "wavelength_world": [
+          14.0,
+          9.0
+        ],
+        "shimmer_strength": 0.032,
+        "aurora_strength": 0.0,
+        "spectral_strength": 0.0,
+        "dream_strength": 0.0,
+        "film_thickness_nm": 520.0,
+        "aurora_scale_world": [
+          90.0,
+          38.0
+        ],
+        "swirl_strength": 0.0,
+        "swirl_center_world": [
+          170.0,
+          760.0
+        ]
+      }
+    },
+    "waterfall": {
+      "kind": "waterfall",
+      "enabled": true,
+      "style": "fall",
+      "mask": "masks/runtime_fx/waterfall.png",
+      "bounds_world": [
+        704,
+        130,
+        62,
+        66
+      ],
+      "mask_origin_world": [
+        704,
+        130
+      ],
+      "mask_extent_world": [
+        62,
+        66
+      ],
+      "mask_pixels": [
+        286,
+        305
+      ],
+      "z_index": -70,
+      "profile": {
+        "period_seconds": 3.2,
+        "amplitude_world": 0.5,
+        "strength": 0.4
+      },
+      "event": ""
+    },
+    "edgar_portal": {
+      "kind": "aperture",
+      "enabled": true,
+      "style": "portal",
+      "mask": "masks/runtime_fx/edgar_portal.png",
+      "bounds_world": [
+        1456,
+        7,
+        72,
+        75
+      ],
+      "mask_origin_world": [
+        1456,
+        7
+      ],
+      "mask_extent_world": [
+        72,
+        75
+      ],
+      "mask_pixels": [
+        332,
+        346
+      ],
+      "z_index": -70,
+      "profile": {
+        "period_seconds": 6.0,
+        "amplitude_world": 0.65,
+        "strength": 0.7
+      },
+      "event": "portal",
+      "center_world": [
+        1493,
+        44
+      ],
+      "radii_world": [
+        25,
+        30
+      ]
+    },
+    "furnace_core": {
+      "kind": "aperture",
+      "enabled": true,
+      "style": "furnace",
+      "mask": "masks/runtime_fx/furnace_core.png",
+      "bounds_world": [
+        1552,
+        560,
+        58,
+        63
+      ],
+      "mask_origin_world": [
+        1552,
+        560
+      ],
+      "mask_extent_world": [
+        58,
+        63
+      ],
+      "mask_pixels": [
+        268,
+        291
+      ],
+      "z_index": -70,
+      "profile": {
+        "period_seconds": 12.0,
+        "amplitude_world": 0.35,
+        "strength": 0.8
+      },
+      "event": "furnace",
+      "center_world": [
+        1582,
+        590
+      ],
+      "radii_world": [
+        22,
+        27
+      ]
+    },
+    "grass": {
+      "kind": "wind",
+      "enabled": true,
+      "style": "grass",
+      "mask": "masks/runtime_fx/grass.png",
+      "bounds_world": [
+        380,
+        220,
+        1030,
+        450
+      ],
+      "mask_origin_world": [
+        380,
+        220
+      ],
+      "mask_extent_world": [
+        1030,
+        450
+      ],
+      "mask_pixels": [
+        1030,
+        450
+      ],
+      "z_index": -70,
+      "profile": {
+        "period_seconds": 9.0,
+        "amplitude_world": 0.5,
+        "strength": 1.0
+      },
+      "event": ""
+    },
+    "canopy": {
+      "kind": "wind",
+      "enabled": true,
+      "style": "canopy",
+      "mask": "masks/runtime_fx/canopy.png",
+      "bounds_world": [
+        0,
+        175,
+        540,
+        370
+      ],
+      "mask_origin_world": [
+        0,
+        175
+      ],
+      "mask_extent_world": [
+        540,
+        370
+      ],
+      "mask_pixels": [
+        540,
+        370
+      ],
+      "z_index": -70,
+      "profile": {
+        "period_seconds": 9.0,
+        "amplitude_world": 0.4,
+        "strength": 1.0
+      },
+      "event": ""
+    },
+    "mushroom_rim": {
+      "kind": "wind",
+      "enabled": true,
+      "style": "mushroom",
+      "mask": "masks/runtime_fx/mushroom_rim.png",
+      "bounds_world": [
+        0,
+        210,
+        430,
+        220
+      ],
+      "mask_origin_world": [
+        0,
+        210
+      ],
+      "mask_extent_world": [
+        430,
+        220
+      ],
+      "mask_pixels": [
+        430,
+        220
+      ],
+      "z_index": -70,
+      "profile": {
+        "period_seconds": 9.0,
+        "amplitude_world": 0.18,
+        "strength": 1.0
+      },
+      "event": ""
+    },
+    "spores": {
+      "kind": "particle",
+      "enabled": true,
+      "style": "spore",
+      "mask": "masks/runtime_fx/spores.png",
+      "bounds_world": [
+        0,
+        230,
+        560,
+        345
+      ],
+      "mask_origin_world": [
+        0,
+        230
+      ],
+      "mask_extent_world": [
+        560,
+        345
+      ],
+      "mask_pixels": [
+        560,
+        345
+      ],
+      "z_index": 12,
+      "profile": {
+        "period_seconds": 14,
+        "strength": 0.48,
+        "count": 38,
+        "size_world": 0.45,
+        "speed_world": 2.4,
+        "color": [
+          0.81,
+          0.84,
+          0.54
+        ]
+      },
+      "event": ""
+    },
+    "snow": {
+      "kind": "particle",
+      "enabled": true,
+      "style": "snow",
+      "mask": "masks/runtime_fx/snow.png",
+      "bounds_world": [
+        0,
+        0,
+        766,
+        273
+      ],
+      "mask_origin_world": [
+        0,
+        0
+      ],
+      "mask_extent_world": [
+        766,
+        273
+      ],
+      "mask_pixels": [
+        766,
+        273
+      ],
+      "z_index": 12,
+      "profile": {
+        "period_seconds": 14,
+        "strength": 0.62,
+        "count": 96,
+        "size_world": 0.38,
+        "speed_world": 10,
+        "color": [
+          0.85,
+          0.93,
+          1.0
+        ]
+      },
+      "event": ""
+    },
+    "dust": {
+      "kind": "particle",
+      "enabled": true,
+      "style": "dust",
+      "mask": "masks/runtime_fx/dust.png",
+      "bounds_world": [
+        900,
+        400,
+        874,
+        487
+      ],
+      "mask_origin_world": [
+        900,
+        400
+      ],
+      "mask_extent_world": [
+        874,
+        487
+      ],
+      "mask_pixels": [
+        874,
+        487
+      ],
+      "z_index": 12,
+      "profile": {
+        "period_seconds": 28,
+        "strength": 0.22,
+        "count": 26,
+        "size_world": 0.65,
+        "speed_world": 5,
+        "color": [
+          0.72,
+          0.57,
+          0.36
+        ]
+      },
+      "event": ""
+    },
+    "church_darkness": {
+      "kind": "atmosphere",
+      "enabled": true,
+      "style": "darkness",
+      "mask": "masks/runtime_fx/church_darkness.png",
+      "bounds_world": [
+        1380,
+        197,
+        394,
+        235
+      ],
+      "mask_origin_world": [
+        1380,
+        197
+      ],
+      "mask_extent_world": [
+        394,
+        235
+      ],
+      "mask_pixels": [
+        788,
+        470
+      ],
+      "z_index": 20,
+      "profile": {
+        "period_seconds": 60.0,
+        "strength": 0.9
+      },
+      "event": "church"
+    },
+    "garden_foliage": {
+      "kind": "wind",
+      "enabled": true,
+      "style": "garden",
+      "mask": "masks/runtime_fx/garden_foliage.png",
+      "bounds_world": [
+        1040,
+        210,
+        240,
+        145
+      ],
+      "mask_origin_world": [
+        1040,
+        210
+      ],
+      "mask_extent_world": [
+        240,
+        145
+      ],
+      "mask_pixels": [
+        480,
+        290
+      ],
+      "z_index": 9,
+      "profile": {
+        "period_seconds": 8.0,
+        "amplitude_world": 0.35,
+        "strength": 1.0
+      },
+      "event": ""
+    },
+    "school_grass": {
+      "kind": "wind",
+      "enabled": true,
+      "style": "grass",
+      "mask": "masks/runtime_fx/school_grass.png",
+      "bounds_world": [
+        558,
+        624,
+        333,
+        118
+      ],
+      "mask_origin_world": [
+        558,
+        624
+      ],
+      "mask_extent_world": [
+        333,
+        118
+      ],
+      "mask_pixels": [
+        666,
+        236
+      ],
+      "z_index": -70,
+      "profile": {
+        "period_seconds": 9.0,
+        "amplitude_world": 0.4,
+        "strength": 1.0
+      },
+      "event": ""
+    },
+    "plain_light": {
+      "kind": "atmosphere",
+      "enabled": true,
+      "style": "sunset",
+      "mask": "masks/runtime_fx/plain_light.png",
+      "bounds_world": [
+        390,
+        216,
+        1045,
+        570
+      ],
+      "mask_origin_world": [
+        390,
+        216
+      ],
+      "mask_extent_world": [
+        1045,
+        570
+      ],
+      "mask_pixels": [
+        1045,
+        570
+      ],
+      "z_index": -70,
+      "profile": {
+        "period_seconds": 46.0,
+        "strength": 0.065
+      },
+      "event": ""
+    },
+    "church_window": {
+      "kind": "atmosphere",
+      "enabled": true,
+      "style": "window",
+      "mask": "masks/runtime_fx/church_window.png",
+      "bounds_world": [
+        1586,
+        289,
+        17,
+        28
+      ],
+      "mask_origin_world": [
+        1586,
+        289
+      ],
+      "mask_extent_world": [
+        17,
+        28
+      ],
+      "mask_pixels": [
+        79,
+        129
+      ],
+      "z_index": 21,
+      "profile": {
+        "period_seconds": 12.0,
+        "strength": 0.06
+      },
+      "event": "church"
+    },
+    "tundra_snow": {
+      "kind": "particle",
+      "enabled": true,
+      "style": "ground_snow",
+      "mask": "masks/runtime_fx/tundra_snow.png",
+      "bounds_world": [
+        737,
+        0,
+        509,
+        234
+      ],
+      "mask_origin_world": [
+        737,
+        0
+      ],
+      "mask_extent_world": [
+        509,
+        234
+      ],
+      "mask_pixels": [
+        509,
+        234
+      ],
+      "z_index": 12,
+      "profile": {
+        "period_seconds": 12,
+        "strength": 0.38,
+        "count": 32,
+        "size_world": 0.32,
+        "speed_world": 8,
+        "color": [
+          0.8,
+          0.88,
+          0.94
+        ]
+      },
+      "event": ""
+    },
+    "school_leaves": {
+      "kind": "particle",
+      "enabled": true,
+      "style": "leaf",
+      "mask": "masks/runtime_fx/school_leaves.png",
+      "bounds_world": [
+        565,
+        645,
+        330,
+        90
+      ],
+      "mask_origin_world": [
+        565,
+        645
+      ],
+      "mask_extent_world": [
+        330,
+        90
+      ],
+      "mask_pixels": [
+        330,
+        90
+      ],
+      "z_index": 12,
+      "profile": {
+        "period_seconds": 20,
+        "strength": 0.6,
+        "count": 5,
+        "size_world": 0.85,
+        "speed_world": 6,
+        "color": [
+          0.61,
+          0.39,
+          0.17
+        ]
+      },
+      "event": ""
+    },
+    "garden_petals": {
+      "kind": "particle",
+      "enabled": true,
+      "style": "petal",
+      "mask": "masks/runtime_fx/garden_petals.png",
+      "bounds_world": [
+        1040,
+        230,
+        290,
+        190
+      ],
+      "mask_origin_world": [
+        1040,
+        230
+      ],
+      "mask_extent_world": [
+        290,
+        190
+      ],
+      "mask_pixels": [
+        290,
+        190
+      ],
+      "z_index": 12,
+      "profile": {
+        "period_seconds": 17,
+        "strength": 0.65,
+        "count": 6,
+        "size_world": 0.65,
+        "speed_world": 4,
+        "color": [
+          0.96,
+          0.65,
+          0.57
+        ]
+      },
+      "event": ""
+    },
+    "forest_mist": {
+      "kind": "atmosphere",
+      "enabled": true,
+      "style": "mist",
+      "mask": "masks/runtime_fx/forest_mist.png",
+      "bounds_world": [
+        15,
+        320,
+        480,
+        200
+      ],
+      "mask_origin_world": [
+        15,
+        320
+      ],
+      "mask_extent_world": [
+        480,
+        200
+      ],
+      "mask_pixels": [
+        480,
+        200
+      ],
+      "z_index": 11,
+      "profile": {
+        "period_seconds": 18.0,
+        "strength": 0.085
+      },
+      "event": ""
+    },
+    "tundra_mist": {
+      "kind": "atmosphere",
+      "enabled": true,
+      "style": "ice_mist",
+      "mask": "masks/runtime_fx/tundra_mist.png",
+      "bounds_world": [
+        760,
+        40,
+        460,
+        185
+      ],
+      "mask_origin_world": [
+        760,
+        40
+      ],
+      "mask_extent_world": [
+        460,
+        185
+      ],
+      "mask_pixels": [
+        460,
+        185
+      ],
+      "z_index": 11,
+      "profile": {
+        "period_seconds": 18.0,
+        "strength": 0.075
+      },
+      "event": ""
+    },
+    "badlands_haze": {
+      "kind": "atmosphere",
+      "enabled": true,
+      "style": "dust_mist",
+      "mask": "masks/runtime_fx/badlands_haze.png",
+      "bounds_world": [
+        930,
+        490,
+        810,
+        390
+      ],
+      "mask_origin_world": [
+        930,
+        490
+      ],
+      "mask_extent_world": [
+        810,
+        390
+      ],
+      "mask_pixels": [
+        810,
+        390
+      ],
+      "z_index": 11,
+      "profile": {
+        "period_seconds": 18.0,
+        "strength": 0.06
+      },
+      "event": ""
+    },
+    "church_mist": {
+      "kind": "atmosphere",
+      "enabled": true,
+      "style": "mist",
+      "mask": "masks/runtime_fx/church_mist.png",
+      "bounds_world": [
+        1385,
+        340,
+        385,
+        90
+      ],
+      "mask_origin_world": [
+        1385,
+        340
+      ],
+      "mask_extent_world": [
+        385,
+        90
+      ],
+      "mask_pixels": [
+        385,
+        90
+      ],
+      "z_index": 11,
+      "profile": {
+        "period_seconds": 18.0,
+        "strength": 0.07
+      },
+      "event": ""
+    },
+    "ridge_snow": {
+      "kind": "atmosphere",
+      "enabled": true,
+      "style": "ridge",
+      "mask": "masks/runtime_fx/ridge_snow.png",
+      "bounds_world": [
+        0,
+        0,
+        740,
+        230
+      ],
+      "mask_origin_world": [
+        0,
+        0
+      ],
+      "mask_extent_world": [
+        740,
+        230
+      ],
+      "mask_pixels": [
+        740,
+        230
+      ],
+      "z_index": 11,
+      "profile": {
+        "period_seconds": 18.0,
+        "strength": 0.12
+      },
+      "event": ""
+    },
+    "fall_mist": {
+      "kind": "atmosphere",
+      "enabled": true,
+      "style": "mist",
+      "mask": "masks/runtime_fx/fall_mist.png",
+      "bounds_world": [
+        714,
+        154,
+        49,
+        42
+      ],
+      "mask_origin_world": [
+        714,
+        154
+      ],
+      "mask_extent_world": [
+        49,
+        42
+      ],
+      "mask_pixels": [
+        98,
+        84
+      ],
+      "z_index": 11,
+      "profile": {
+        "period_seconds": 5.0,
+        "strength": 0.16
+      },
+      "event": ""
+    },
+    "furnace_embers": {
+      "kind": "particle",
+      "enabled": true,
+      "style": "ember",
+      "mask": "masks/runtime_fx/furnace_embers.png",
+      "bounds_world": [
+        1553,
+        562,
+        57,
+        61
+      ],
+      "mask_origin_world": [
+        1553,
+        562
+      ],
+      "mask_extent_world": [
+        57,
+        61
+      ],
+      "mask_pixels": [
+        114,
+        122
+      ],
+      "z_index": 12,
+      "profile": {
+        "period_seconds": 7.0,
+        "strength": 0.8,
+        "count": 8,
+        "size_world": 0.5,
+        "speed_world": 2.0,
+        "color": [
+          1.0,
+          0.5,
+          0.12
+        ]
+      },
+      "event": "",
+      "center_world": [
+        1582,
+        590
+      ],
+      "radii_world": [
+        22,
+        27
+      ]
+    },
+    "furnace_smoke": {
+      "kind": "atmosphere",
+      "enabled": true,
+      "style": "smoke",
+      "mask": "masks/runtime_fx/furnace_smoke.png",
+      "bounds_world": [
+        1575,
+        405,
+        85,
+        100
+      ],
+      "mask_origin_world": [
+        1575,
+        405
+      ],
+      "mask_extent_world": [
+        85,
+        100
+      ],
+      "mask_pixels": [
+        85,
+        100
+      ],
+      "z_index": 11,
+      "profile": {
+        "period_seconds": 14.0,
+        "strength": 0.09
+      },
+      "event": ""
+    },
+    "fall_spray": {
+      "kind": "particle",
+      "enabled": true,
+      "style": "spray",
+      "mask": "masks/runtime_fx/fall_spray.png",
+      "bounds_world": [
+        714,
+        154,
+        49,
+        42
+      ],
+      "mask_origin_world": [
+        714,
+        154
+      ],
+      "mask_extent_world": [
+        49,
+        42
+      ],
+      "mask_pixels": [
+        98,
+        84
+      ],
+      "z_index": 12,
+      "profile": {
+        "period_seconds": 3.2,
+        "strength": 0.55,
+        "count": 12,
+        "size_world": 0.28,
+        "speed_world": 4.0,
+        "color": [
+          0.76,
+          0.89,
+          0.95
+        ]
+      },
+      "event": ""
+    }
+  },
+  "implementation_status": "Water baseline preserved; localized environment surfaces, atmosphere and deterministic particles enabled; full airship articulation requires accepted clean layers.",
+  "water_data": {
+    "resolution": [
+      1774,
+      887
+    ],
+    "flow_channels": "RG direction encoded [0,1]; B speed weight; A shore safety",
+    "shore_guard_world": 2.5,
+    "shore_fade_world": 4.5,
+    "max_displacement_world": 4.0,
+    "ownership": "ocean + river <= 1, shared shore distance and estuary crossfade"
+  },
+  "environment_data": {
+    "revision": 1,
+    "mask_channels": "R coverage; G response/rim; B depth; A one",
+    "texture_bytes_rgba8": 16332604,
+    "full_airship_enabled": false,
+    "full_airship_reason": "Legacy extracted parts and backing do not match the preserved 8K silhouette and rigging."
+  }
+}

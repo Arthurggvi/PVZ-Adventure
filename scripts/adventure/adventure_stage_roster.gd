@@ -17,6 +17,11 @@ static func entries(phase: StagePhaseDefinition) -> Array[Dictionary]:
 				continue
 			_merge_pool(result, band.zombie_weights, band.tier_weights,
 				Vector2i(band.first_wave, band.last_wave), band.species_tier_weights)
+		if profile.bonus_zombie_type != CharacterRegistry.ZombieType.Null: # 独立配额不参与随机池，但仍应出现在预览名单。
+			for band: WaveBandDefinition in profile.bands:
+				if band != null:
+					_merge(result, profile.bonus_zombie_type, _positive_tiers(band.tier_weights),
+						Vector2i(band.first_wave, band.last_wave))
 		for group: WaveSpawnGroup in profile.scheduled_spawns: # 预排出怪：展示其覆盖的波次区间。
 			if group == null:
 				continue

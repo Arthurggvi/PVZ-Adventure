@@ -1,0 +1,146 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/main/MainGame00Base.tscn" id="battle"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship_battle.gd" id="entry"]
+[ext_resource type="PackedScene" path="res://scenes/adventure/garden_airship_backdrop.tscn" id="backdrop"]
+[ext_resource type="PackedScene" path="res://scenes/adventure/garden_airship_foreground_air.tscn" id="foreground_air"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/garden_airship/frame.webp" id="frame"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/garden_airship_frame.gdshader" id="frame_shader"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/garden_airship/propulsion_atlas.png" id="propulsion"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/garden_airship/cloth_atlas.png" id="cloth"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship/garden_airship_rigging.gd" id="rigging"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship/garden_airship_flight.gd" id="flight"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship/garden_airship_falling_debris.gd" id="debris"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship/garden_airship_spatial_audio.gd" id="world_audio"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship/garden_airship_blast_director.gd" id="blast_director"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship/garden_airship_death.gd" id="death"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship/garden_airship_air_combat.gd" id="air_combat"]
+[ext_resource type="Script" path="res://scripts/adventure/garden_airship/sky_duke/sky_duke_presentation.gd" id="sky_duke"]
+
+[sub_resource type="ShaderMaterial" id="PanoramicFrame"]
+resource_local_to_scene = true
+shader = ExtResource("frame_shader")
+shader_parameter/propulsion_atlas = ExtResource("propulsion")
+shader_parameter/cloth_atlas = ExtResource("cloth")
+
+[sub_resource type="RectangleShape2D" id="GlobalDetectBounds"]
+size = Vector2(1821, 600)
+
+[node name="GardenAirshipBattle" node_paths=PackedStringArray("world_audio", "world_wind") instance=ExtResource("battle")]
+script = ExtResource("entry")
+world_audio = NodePath("GardenAirshipSpatial")
+world_wind = NodePath("FlightEnvironment")
+
+[node name="BackgroundManager" parent="Manager" node_paths=PackedStringArray("background", "environment_sky")]
+background = NodePath("../../CanvasLayerBG/BattleFrame")
+environment_sky = NodePath("../../CanvasLayerSky/Backdrop/Skybox")
+
+[node name="ZombieManager" parent="Manager" index="1"]
+zombie_range_pos_x = Vector2(-300, 2131)
+
+[node name="DaySunsManager" parent="Manager"]
+sun_x_min = 125.0
+sun_x_max = 1359.0
+sun_y_min = 225.0
+sun_y_max = 555.0
+
+[node name="Background" parent="CanvasLayerBG" index="0"]
+self_modulate = Color(1, 1, 1, 0)
+
+[node name="CollisionShape2D" parent="CanvasLayerBG/Background/Home/Area2DHome" index="0"]
+position = Vector2(42.694, 378.5)
+
+[node name="Marker2DZombieGoHome" parent="CanvasLayerBG/Background/Home/Door/DoorDown/PanelZombieGoHome" index="0"]
+position = Vector2(148, 478)
+
+[node name="ShowZombiePanel" parent="CanvasLayerBG/Background" index="1"]
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 1790.0
+offset_top = 284.0
+offset_right = 2070.0
+offset_bottom = 510.0
+
+[node name="ShowZombiePanel2" parent="CanvasLayerBG/Background" index="2"]
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 1790.0
+offset_right = 2070.0
+
+[node name="CanvasLayerSky" type="CanvasLayer" parent="."]
+layer = -12
+follow_viewport_enabled = true
+
+[node name="Backdrop" parent="CanvasLayerSky" instance=ExtResource("backdrop")]
+
+[node name="CanvasLayerAir" type="CanvasLayer" parent="."]
+layer = 1
+follow_viewport_enabled = true
+
+[node name="ForegroundAir" parent="CanvasLayerAir" instance=ExtResource("foreground_air")]
+
+[node name="FallingDebris" type="Node2D" parent="CanvasLayerAir"]
+z_index = -1
+script = ExtResource("debris")
+
+[node name="Rigging" type="Node2D" parent="CanvasLayerBG"]
+z_index = -2
+script = ExtResource("rigging")
+
+[node name="BattleFrame" type="Sprite2D" parent="CanvasLayerBG"]
+z_index = -1
+self_modulate = Color(1, 0.991, 0.974, 1)
+material = SubResource("PanoramicFrame")
+position = Vector2(-150, -24)
+scale = Vector2(1.159752, 0.9)
+texture = ExtResource("frame")
+centered = false
+
+[node name="Camera2D" parent="." index="18"]
+position = Vector2(-55, -30)
+zoom = Vector2(0.7, 0.7)
+limit_left = -150
+limit_top = -30
+limit_right = 1930
+limit_bottom = 860
+listen_for_battle_shake = false
+zombie_preview_position = Vector2(382, -30)
+
+[node name="CollisionShape2D" parent="DetectComponentGlobal/Area2D" index="0"]
+position = Vector2(890.5, 385)
+shape = SubResource("GlobalDetectBounds")
+
+[node name="GardenAirshipSpatial" type="Node3D" parent="."]
+script = ExtResource("world_audio")
+
+[node name="GardenAirshipDeath" type="Node2D" parent="."]
+script = ExtResource("death")
+
+[node name="GardenAirshipBlasts" type="Node2D" parent="."]
+script = ExtResource("blast_director")
+
+[node name="FlightEnvironment" type="Node" parent="." node_paths=PackedStringArray("ship_frame", "backdrop", "rigging", "foreground_air", "falling_debris", "death_presentation", "blasts")]
+script = ExtResource("flight")
+ship_frame = NodePath("../CanvasLayerBG/BattleFrame")
+backdrop = NodePath("../CanvasLayerSky/Backdrop")
+rigging = NodePath("../CanvasLayerBG/Rigging")
+foreground_air = NodePath("../CanvasLayerAir/ForegroundAir")
+falling_debris = NodePath("../CanvasLayerAir/FallingDebris")
+death_presentation = NodePath("../GardenAirshipDeath")
+blasts = NodePath("../GardenAirshipBlasts")
+
+[node name="GardenAirshipAirCombat" type="Node" parent="." node_paths=PackedStringArray("zombies", "audio", "flight", "deaths")]
+script = ExtResource("air_combat")
+zombies = NodePath("../Manager/ZombieManager")
+audio = NodePath("../GardenAirshipSpatial")
+flight = NodePath("../FlightEnvironment")
+deaths = NodePath("../GardenAirshipDeath")
+
+[node name="SkyDukePresentation" type="Node" parent="." node_paths=PackedStringArray("zombies", "flight", "spatial_audio", "background", "air", "sky")]
+script = ExtResource("sky_duke")
+zombies = NodePath("../Manager/ZombieManager")
+flight = NodePath("../FlightEnvironment")
+spatial_audio = NodePath("../GardenAirshipSpatial")
+background = NodePath("../CanvasLayerBG")
+air = NodePath("../CanvasLayerAir")
+sky = NodePath("../CanvasLayerSky/Backdrop")

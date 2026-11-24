@@ -3,12 +3,6 @@
 extends RefCounted
 class_name AdventureSunShroomCardEffects
 
-## 冻结快照中启用买一赠一的二转分支。
-const BUY_ONE: String = "promotion_sunshroom_buy_one"
-## 下次成功种植的固定阳光减免，不将任意原价强制归零。
-const BUY_ONE_DISCOUNT: int = 25
-
-
 ## [param card] 已完成成功种植、扣费和冷却启动；[param slots] 是该卡所属的普通出战卡槽。
 ## [param consumed_followup] 为 true 时本次已消费续种，不能再次发放同一奖励。[br]
 ## 只修改实际提交的卡实例，同种植物的其他 UID 卡不共享优惠或冷却。
@@ -20,12 +14,17 @@ static func on_card_committed(card: Card, consumed_followup: bool, slots: CardSl
 			or card.card_reference.content_id != CharacterRegistry.PlantType.P010SunShroom \
 			or card.plant_spawn_profile == null:
 		return
-	var snapshot: Dictionary = card.battle_card_data # 本次提交卡牌的冻结转职，不读取或修改存档。
-	if str(snapshot.get("promotion_2", "")) != BUY_ONE:
+	var snapshot: Dictionary = card.plant_spawn_profile.snapshot() # 实际使用的冻结卡牌配方。
+	var book: Dictionary = AdventurePromotionCatalog.definition(str(snapshot.get("promotion_2", ""))) # 二转书声明续种力度。
+	for effect: Dictionary in book.get("effects", []): # 代谢的另一项效果由植株出生时应用。
+		if effect.get("kind") != "card_followup_discount":
+			continue
+		var discount: int = int(effect.get("discount", 0)) # 下一次成功种植的固定阳光减免。
+		if discount > 0:
+			card.set_card_cool_end()
+			card.arm_next_planting_discount_followup(discount)
+			card.judge_sun_enough(slots.sun_value)
 		return
-	card.set_card_cool_end()
-	card.arm_next_planting_discount_followup(BUY_ONE_DISCOUNT)
-	card.judge_sun_enough(slots.sun_value)
 
 
 ## 将 [param slots] 中所有卡牌的当前剩余冷却减半，包含成熟阳光菇自己的来源卡。[br]

@@ -16,6 +16,16 @@ var blacklist_refresh_zombie_types: Array[CharacterRegistry.ZombieType] = [
 	CharacterRegistry.ZombieType.Z010Dancer,
 	CharacterRegistry.ZombieType.Z025Imp,
 	CharacterRegistry.ZombieType.Z027Explorer, ## 冒险关卡通过专用波次配置生成。
+	CharacterRegistry.ZombieType.Z028StoneStatue, ## 石像由明确的关卡配置或卡牌生成，不改变旧关随机池。
+	CharacterRegistry.ZombieType.Z029LargeFusion, ## 融合体仅由明确配置或手动生成，不改变旧关随机池。
+	CharacterRegistry.ZombieType.Z030Troglobite, ## 穴居僵尸只由雪山专属配置或手动生成。
+	CharacterRegistry.ZombieType.Z031YetiImp, ## 雪人小鬼由穴居僵尸携带或明确生成，不扩展旧关随机池。
+	CharacterRegistry.ZombieType.Z032Hunter, ## 猎人只由雪山专属配置或手动生成，不扩展旧关随机池。
+	CharacterRegistry.ZombieType.Z033Ski, ## 滑雪僵尸只由雪山专属配置或手动生成，不扩展旧关随机池。
+	CharacterRegistry.ZombieType.Z034Fighter, ## Fighter is explicitly spawned, not in legacy random pools.
+	CharacterRegistry.ZombieType.Z038ArbiterX, ## Arbiter is only spawned by explicit waves or manual scenes.
+	CharacterRegistry.ZombieType.Z039CannonTurret, ## 导弹炮塔由明确波次或手动召唤出场。
+	CharacterRegistry.ZombieType.Z040TransportAirship, ## 运输舰按预排波次出场。
 	CharacterRegistry.ZombieType.Z1001BobsledSingle,
 ]
 

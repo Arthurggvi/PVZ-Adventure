@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="BattleEnvironmentProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/battle/environment/battle_environment_profile.gd" id="profile"]
+[ext_resource type="AudioStream" path="res://assets/adventure/wonderland/audio/abyss/pressure.ogg" id="pressure"]
+[ext_resource type="AudioStream" path="res://assets/adventure/wonderland/audio/abyss/resonance.ogg" id="resonance"]
+
+[resource]
+script = ExtResource("profile")
+enter_seconds = 2.8
+screen_refraction_pixels = 9.0
+refraction_pixels = 0.8
+haze_strength = 0.32
+haze_color = Color(0.094, 0.267, 0.353, 1)
+veil_strength = 0.10
+bloom_threshold = 0.4
+bloom_gains = Vector2(0.34, 0.72)
+bloom_radii = Vector2(12, 96)
+event_interval = Vector2(2.5, 6.0)
+event_probability = 1.0
+event_duration = Vector2(7.0, 10.0)
+first_event_delay = 1.2
+pressure_stream = ExtResource("pressure")
+resonance_stream = ExtResource("resonance")
+pressure_db = -10.0
+filter_all_sfx = true
+resonance_db = -2.0
+combat_cutoff_hz = 3200.0
+combat_filter_db = 0
+combat_gain_db = 2.5
+distant_cutoff_hz = 1100.0
+ambience_cutoff_hz = 1800.0
+reverb_wet = Vector3(0.12, 0.24, 0.28)

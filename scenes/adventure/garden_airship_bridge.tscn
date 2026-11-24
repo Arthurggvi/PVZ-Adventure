@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/garden_airship/platform_1x5.webp" id="deck"]
+
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/garden_airship_turf.gdshader" id="turf"]
+
+[sub_resource type="ShaderMaterial" id="BridgeCloudLight"]
+resource_local_to_scene = true
+shader = ExtResource("turf")
+shader_parameter/turf_lighting = 0.0
+
+[node name="Bridge" type="Sprite2D"]
+z_index = -40
+material = SubResource("BridgeCloudLight")
+position = Vector2(-17, -48.13)
+scale = Vector2(0.31, 0.633)
+texture = ExtResource("deck")
+centered = false

@@ -1,5 +1,5 @@
-## One transient boost channel per zombie. Multiple applications retain their own
-## duration; the strongest active multiplier wins (never exponential stacking).
+## 每只僵尸持有一个临时加速通道，各来源独立计时，只应用最高倍率。
+## 换行保留计时。节点随僵尸销毁，速度更新只在战斗生命周期内发生。
 extends Node
 class_name AdventureZombieTimedSpeedBoost
 
@@ -24,35 +24,41 @@ func _ready() -> void:
 	_zombie = get_parent() as Character000Base
 	set_process(false)
 	if _zombie != null:
-		_zombie.signal_character_death.connect(_on_character_death)
-		_zombie.signal_character_be_hypno.connect(_on_character_death)
+		_zombie.signal_character_death.connect(_clear_boosts)
+		_zombie.signal_character_be_hypno.connect(_clear_boosts)
 		if _zombie is Zombie000Base:
 			(_zombie as Zombie000Base).signal_tier_skills_changed.connect(_on_tier_changed)
 
-## 保存 [param multiplier]、[param duration] 和显式归属 [param tier_owned]，不与外部奖励混用。
+## 同 [param multiplier]、同 [param tier_owned] 的奖励只保留最晚到期时间。
+## [param duration] 为此加速的持续秒数。
 func grant(multiplier: float, duration: float, tier_owned: bool = false) -> void:
 	if _zombie == null or _zombie.is_death or multiplier <= 1.0 or duration <= 0.0:
 		return
+	for effect: Dictionary in _active: # 同归属等倍率的时钟受同一沉默规则控制。
+		if float(effect["multiplier"]) == multiplier and bool(effect["tier_owned"]) == tier_owned:
+			effect["remaining"] = maxf(float(effect["remaining"]), duration)
+			return
 	_active.append({"multiplier": multiplier, "remaining": duration, "tier_owned": tier_owned})
 	_sync_speed()
 	set_process(true)
 
+## 推进 [param delta] 游戏秒，倍率仅在授予、到期或状态变化时合成。
 func _process(delta: float) -> void:
 	if not is_instance_valid(_zombie) or _zombie.is_death or _zombie.is_hypno:
-		_on_character_death()
+		_clear_boosts()
 		return
-	for index: int in range(_active.size() - 1, -1, -1):
+	var expired := false # 记录本帧是否需要重新选择生效倍率。
+	for index: int in range(_active.size() - 1, -1, -1): # 倒序允许原地移除已到期记录。
 		var effect: Dictionary = _active[index] # 沉默期间自身等阶加速保持剩余秒数。
 		if _effect_suppressed(effect):
 			continue
 		effect["remaining"] = float(effect["remaining"]) - delta
 		if float(effect["remaining"]) <= 0.0:
 			_active.remove_at(index)
-		else:
-			_active[index] = effect
-	_sync_speed()
-	if _active.is_empty():
-		set_process(false)
+			expired = true
+	if expired:
+		_sync_speed()
+		set_process(not _active.is_empty())
 
 func _sync_speed() -> void:
 	var multiplier := 1.0
@@ -73,15 +79,11 @@ func _effect_suppressed(effect: Dictionary) -> bool:
 func _on_tier_changed(_active: bool) -> void:
 	_sync_speed()
 
-func _on_character_death() -> void:
+## 死亡或魅惑时结束加速计时；仍存活的魅惑僵尸恢复原有速度。
+func _clear_boosts() -> void:
 	_active.clear()
 	set_process(false)
 	if is_instance_valid(_zombie) and not _zombie.is_death:
 		_applied_multiplier = 1.0
 		_zombie.update_speed_factor(1.0,
 				Character000Base.E_Influence_Speed_Factor.AdventureTierBoost)
-
-func _exit_tree() -> void:
-	if _zombie is Zombie000Base and (_zombie as Zombie000Base).is_changing_lane:
-		return
-	_on_character_death()

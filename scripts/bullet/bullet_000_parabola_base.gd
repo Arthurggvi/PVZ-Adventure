@@ -19,6 +19,13 @@ var is_have_slope:=false
 var global_pos_y_shadow:float
 #endregion
 
+## [param displacement] 同时用于弹体、现有弧线、落点快照和地面影子。
+func translate_with_board(displacement: Vector2) -> void:
+	super(displacement)
+	movement_component.translate_world_path(displacement)
+	target_enemy_glo_pos_init += displacement
+	global_pos_y_shadow += displacement.y
+
 func _ready() -> void:
 	super()
 
@@ -63,7 +70,7 @@ func _physics_process(delta: float) -> void:
 	update_shadow_global_pos()
 
 	## 移动超过最大距离后销毁，部分子弹有限制
-	if global_position.distance_to(start_pos) > max_distance:
+	if global_position.distance_to(start_world_position) > max_distance:
 		queue_free()
 
 ## 攻击一次
@@ -95,21 +102,7 @@ func update_global_pos_y_shadow_on_have_slope():
 
 ## [param plant] 是实际命中实体；保留普通层优先级并覆盖不占位伴生植物。
 func get_first_be_hit_plant_in_cell(plant: Plant000Base) -> Plant000Base:
-	if not is_instance_valid(plant) or not is_instance_valid(plant.plant_cell):
-		return null
-	var cell: PlantCell = plant.plant_cell # 从当前命中格子解析保护层。
-	for slot: CharacterRegistry.PlacePlantInCell in [CharacterRegistry.PlacePlantInCell.Norm,
-			CharacterRegistry.PlacePlantInCell.Shell]: # 原有两种弹道保留各自的优先顺序。
-		var candidate: Variant = cell.plant_in_cell.get(slot) # 前一回调可能已经移除了该层。
-		if is_instance_valid(candidate) and not candidate.is_death and not candidate.is_queued_for_deletion():
-			return candidate as Plant000Base
-	var companion: Plant000Base = cell.first_companion_plant() # 伴生可被子弹直接命中。
-	if companion != null:
-		return companion
-	var support: Variant = cell.plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Down) # 最后才命中承托物。
-	if is_instance_valid(support) and not support.is_death and not support.is_queued_for_deletion():
-		return support as Plant000Base
-	return null
+	return BulletLinear000Base.first_plant_in_cell(plant, false)
 
 ## 被保护伞弹开,更新移动贝塞尔曲线
 func be_umbrella_bounce():

@@ -42,7 +42,7 @@ var _busy := false
 var _celebrating := false
 ## 关闭期间拒绝全部资产操作。
 var _closing := false
-## 上次观察的本机自然日，用于午夜更新界面。
+## 上次观察的有效货架日期，用于午夜更新商品与限购。
 var _observed_day := ""
 ## 最近一次购买结果或错误文案。
 var _notice := ""
@@ -69,12 +69,12 @@ func _ready() -> void:
 	_view.dave.celebration_finished.connect(_celebration_finished)
 	Global.user_manager.signal_users_update.connect(_profile_changed)
 	Global.global_game_state.coin_value_changed.connect(_coins_changed, CONNECT_DEFERRED)
-	var timer := Timer.new() # 不逐帧读取系统时钟，跨午夜时刷新剩余次数。
+	var timer := Timer.new() # 每秒检查跨日，统一刷新时装和每日限购。
 	timer.wait_time = 1.0
 	timer.timeout.connect(_check_day)
 	add_child(timer)
 	timer.start()
-	_observed_day = AdventureQuestService.today()
+	_observed_day = _service.stock_day()
 	resized.connect(_fit)
 	_fit()
 	_render()
@@ -99,13 +99,17 @@ func _is_current() -> bool:
 func _render() -> void:
 	if not _is_current():
 		return
-	var offers: Array[Dictionary] = [] # 当前分类的只读商品报价。
-	for id: String in Catalog.ids(_category): # 内容扩展后货架自动增加卡片。
-		var offer: Dictionary = _service.quote(id) # 报价为空代表状态无效，不显示可购买按钮。
-		if not offer.is_empty():
-			offers.append(offer)
+	var offers: Array[Dictionary] = _service.offers(_category) # 当前货架的同日报价快照。
+	var selected_offer: Dictionary = {} # 刷新时优先保留仍在货架上的选择。
+	for offer: Dictionary in offers: # 选购条与卡片使用同一份报价。
+		if offer.id == _selected:
+			selected_offer = offer
+			break
+	if selected_offer.is_empty() and not offers.is_empty():
+		selected_offer = offers.front()
+	_selected = str(selected_offer.get("id", ""))
 	_view.render({"category": _category, "selected": _selected, "offers": offers,
-		"offer": _service.quote(_selected), "coins": Global.global_game_state.coin_value,
+		"offer": selected_offer, "coins": Global.global_game_state.coin_value,
 		"locked": _busy or _celebrating or not _actor_available or not _pending.is_empty(), "notice": _notice})
 
 ## 用一句短台词描述当前选择；完整规则由商品悬停展示。
@@ -140,18 +144,19 @@ func _on_action(action: String, id: String) -> void:
 			if id not in Catalog.CATEGORIES or id == _category:
 				return
 			_category = id
-			_selected = Catalog.ids(id)[0]
+			_selected = ""
 			_notice = ""
-			_describe()
 		"select":
-			if id not in Catalog.ids(_category):
+			var offer: Dictionary = _service.quote(id) # 午夜换货后拒绝选择上一批已下架的商品。
+			if offer.is_empty() or offer.category != _category:
 				return
 			_selected = id
 			_notice = ""
-			_describe()
 		"buy":
 			_begin_confirmation()
 	_render()
+	if action == "category" or action == "select":
+		_describe()
 
 ## 生成不可变确认凭据；确认单呈现价格，戴夫只询问成交。
 func _begin_confirmation() -> void:
@@ -170,7 +175,7 @@ func _cancel_confirmation() -> void:
 	_describe()
 	_render()
 
-## 唯一资产提交点；只有持久化成功才让戴夫发疯。
+## 唯一资产提交点，只有持久化成功才播放戴夫的成交台词和动画。
 func _confirm_purchase() -> void:
 	if _pending.is_empty():
 		return
@@ -186,7 +191,8 @@ func _confirm_purchase() -> void:
 		_celebrating = true
 		_notice = "已购入 · %s" % result.title
 		Global.player_changed.emit()
-		_view.dave.celebrate()
+		var product: Dictionary = Catalog.product(str(result.id)) # 按本次成交商品读取专属台词。
+		_view.dave.celebrate(str(product.get("purchase_speech", "")))
 	else:
 		_notice = str(result.message)
 		_view.dave.say(_notice)
@@ -207,24 +213,27 @@ func _coins_changed(_amount: int) -> void:
 	if not _busy:
 		_render()
 
-## 每秒检查换档与跨日，午夜未确认的订单作废并要求重新报价。
+## 每秒检查换档与货架日期；日期变化时作废待确认订单，只有跨入新一天才显示补货提示。
 func _check_day() -> void:
 	if _closing or _busy:
 		return
 	if not _is_current():
 		request_close()
 		return
-	var today: String = AdventureQuestService.today() # 与服务相同的日期口径。
+	var today: String = _service.stock_day() # 使用与报价相同的有效自然日。
 	if today == _observed_day:
 		return
+	var restocked: bool = not _observed_day.is_empty() and today > _observed_day # 日期校正当日沿用已购数量。
 	_observed_day = today
 	if not _pending.is_empty():
 		_pending.clear()
 		_view.hide_confirmation()
-	_notice = "已补货"
+	_notice = ""
+	if restocked:
+		_notice = "每日时装已刷新" if _category == Catalog.OUTFIT_CATEGORY else "已补货"
+	_render()
 	if not _celebrating:
 		_describe()
-	_render()
 
 ## 切换档案即时释放旧页面，不跨档保留确认单。
 func _profile_changed() -> void:

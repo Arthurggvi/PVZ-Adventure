@@ -1,4 +1,4 @@
-## 冻结植物单次攻击的来源与词条；只在命中时读取当前阳光，不依赖母株或弹体存活。
+## 冻结植物单次攻击的来源与词条；命中时读取当前阳光和目标防具，不依赖母株存活。
 extends RefCounted
 class_name PlantAttackContext
 
@@ -11,6 +11,8 @@ const KILL_SUN_VALUE: int = 8
 
 ## 只作用于僵尸一、二类防具的倍率，不改变临时生命池或本体伤害。
 var armor_multiplier: float = 1.0
+## 直接命中的僵尸仍有装备防具时，对该次伤害整体应用的倍率。
+var _armored_target_multiplier: float = 1.0
 ## 来源所属战场；跨场景后停止修饰与奖励。
 var _game: MainGameManager
 ## 来源发出攻击的轮次，阻止旧攻击影响下一轮。
@@ -32,14 +34,15 @@ var _rewarded_ids: Dictionary[int, bool] = {}
 
 ## 从 [param plant] 捕获地面位置、真实格距和战场；无效果或非活动战场返回空。
 ## [param close_damage] 启用近伤；[param armor_multiplier] 是防具倍率，非法值按一倍。
-## [param solar] 启用光能词条；冻结规则后不再读取植物或共享来源。
+## [param solar] 启用光能词条；[param armored_target_multiplier] 与植株的同类倍率取较高值。
 static func capture(plant: Plant000Base, close_damage: bool,
-		armor_multiplier: float, solar: bool) -> PlantAttackContext:
-	# 本次规范化后的防具倍率只允许增伤，不接纳非有限参数。
-	var factor: float = maxf(1.0, armor_multiplier) if is_finite(armor_multiplier) else 1.0
-	if not close_damage and factor <= 1.0 and not solar:
-		return null
+		armor_multiplier: float, solar: bool, armored_target_multiplier: float = 1.0) -> PlantAttackContext:
 	if not is_instance_valid(plant) or not is_instance_valid(plant.plant_cell):
+		return null
+	var factor: float = maxf(1.0, armor_multiplier) if is_finite(armor_multiplier) else 1.0 # 仅放大防具损伤。
+	var shared_factor: float = maxf(1.0, armored_target_multiplier) if is_finite(armored_target_multiplier) else 1.0 # 合成后的动态来源倍率。
+	var target_factor: float = maxf(plant.battle_armored_target_multiplier, shared_factor) # 同类增伤只算一份。
+	if not close_damage and factor <= 1.0 and target_factor <= 1.0 and not solar:
 		return null
 	var game: MainGameManager = Global.main_game # 来源必须属于当前战场，预览不能产生攻击上下文。
 	if not is_instance_valid(game) or not game.is_ancestor_of(plant):
@@ -55,6 +58,7 @@ static func capture(plant: Plant000Base, close_damage: bool,
 		if game.board != null else plant.plant_cell.get_global_rect().size.x)
 	context._close_damage = close_damage
 	context.armor_multiplier = factor
+	context._armored_target_multiplier = target_factor
 	context._solar = solar
 	return context
 
@@ -67,6 +71,10 @@ func modify_damage(base_damage: int, target: Character000Base) -> int:
 	if base_damage <= 0 or not is_active() or not is_instance_valid(target):
 		return 0
 	var factor: float = 1.0 # 仅本次命中的乘数，不回写弹体基础攻值或出战卡。
+	if _armored_target_multiplier > 1.0 and target is Zombie000Base:
+		var health: HpComponentZombie = target.hp_component as HpComponentZombie # 临时护甲池不算装备防具。
+		if is_instance_valid(health) and (health.curr_hp_armor1 > 0 or health.curr_hp_armor2 > 0):
+			factor *= _armored_target_multiplier
 	if _close_damage:
 		var cells: float = _origin.distance_to(target.global_position) / _cell_pitch # 地面欧氏距离对应的真实格数。
 		factor *= 1.0 + clampf((CLOSE_EDGE_CELLS - cells)

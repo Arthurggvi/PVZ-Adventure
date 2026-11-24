@@ -2,8 +2,12 @@
 extends Resource
 class_name StageEventDefinition
 
-## 明确区分波次准备前、开始后、清空后和阶段战斗起止；elapsed 为本阶段有效战斗累计秒数。
-enum Trigger { UNSET, BATTLE_START, WAVE_BEFORE, WAVE_STARTED, WAVE_CLEARED, ELAPSED_TIME, ZOMBIE_COUNT, PLANT_PLACED, BOSS_HP_THRESHOLD, BOSS_EXITED, BATTLE_END }
+## 明确区分波次边界、战斗起止与场景复光；elapsed 为本阶段有效战斗累计秒数。
+enum Trigger {
+	UNSET, BATTLE_START, WAVE_BEFORE, WAVE_STARTED, WAVE_CLEARED,
+	ELAPSED_TIME, ZOMBIE_COUNT, PLANT_PLACED, BOSS_HP_THRESHOLD, BOSS_EXITED, BATTLE_END,
+	LIGHTS_RESTORED,
+}
 ## 阈值从不满足跨到满足时触发；重复策略不等于每帧执行。
 enum Comparison { UNSET, LESS_OR_EQUAL, GREATER_OR_EQUAL }
 ## 每阶段一次或每次匹配触发，禁止隐式重复策略。
@@ -54,7 +58,7 @@ enum BattleResult { UNSET = 0, DEFEAT = 2 }
 @export var action_zombie_type: CharacterRegistry.ZombieType = CharacterRegistry.ZombieType.Null
 ## 生成动作引用的已定义等阶。
 @export var action_tier_id: StringName = &""
-## 生成动作的正数量参数。
+## 生成动作的正数量；复光出怪从一只起随自然波进度增长，本字段为单次上限。
 @export var action_count: int = 0
 ## 请求掉落动作使用的独立静态表，不在校验期间结算。
 @export var action_drop_table: DropTable
@@ -126,6 +130,8 @@ func validate(wave_count: int = 0, known_tier_ids: Array[StringName] = [], encou
 	# 终局事件发生在胜负已确定、资产结算尚未落盘之间；只能写结算账本。
 	if trigger == Trigger.BATTLE_END and action not in [Action.REQUEST_DROP, Action.SET_REGION_FLAG]:
 		errors.append("BATTLE_END 只允许写入掉落或地区标记，不能重启/修改战斗。")
+	if trigger == Trigger.LIGHTS_RESTORED and (wave_count < 2 or action != Action.SPAWN_ZOMBIES):
+		errors.append("复光出怪必须配置在有自然波次的阶段，并指定生成僵尸动作。")
 	errors.append_array(_validate_action(known_tier_ids, encounter_ids))
 	return errors
 

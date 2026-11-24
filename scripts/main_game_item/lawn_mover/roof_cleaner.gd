@@ -3,25 +3,30 @@ class_name RoofCleaner
 
 ## 屋顶斜坡 移动方向y值修正,移动时,对应y方向的修正,
 var move_dir_y_correct_slope:Vector2 = Vector2.ZERO
+## 本帧本地水平步长，单位为像素。
 var move_x:float
+## 所属棋盘的高度入口。多段坡面采样实际跨步的世界坐标。
+var _terrain: MainGameSlope
 
 func _ready() -> void:
 	super()
-	if is_instance_valid(Global.main_game.main_game_slope):
-		#await get_tree().process_frame
-		## 获取对应位置的斜面y相对位置
-		var slope_y_first = Global.main_game.main_game_slope.get_all_slope_y(global_position.x)
-		position.y += slope_y_first
-		print("x位置：", global_position.x, "修正位置：", slope_y_first)
+	var game: MainGameManager = Global.main_game # 只使用当前清洁车所属战场的坡面。
+	if is_instance_valid(game) and game.is_ancestor_of(self):
+		_terrain = game.main_game_slope
+		if is_instance_valid(_terrain):
+			global_position.y += _terrain.get_all_slope_y(global_position.x)
 
 
+## 用 [param delta] 游戏秒行驶。启用精确高度采样时，跨坡脚、坡顶或平台的步长使用统一地形。
 func _process(delta: float) -> void:
 	if is_moving and not cheat_fixed_enabled:
+		var start_x: float = global_position.x # 横移前的实际世界位置。
 		move_x = move_speed * delta
 		position.x += move_x
 
-		## 斜面移动修正
-		if move_dir_y_correct_slope != Vector2.ZERO:
+		if is_instance_valid(_terrain) and _terrain.sample_walking_height:
+			global_position.y += _terrain.get_all_slope_y(global_position.x) - _terrain.get_all_slope_y(start_x)
+		elif move_dir_y_correct_slope != Vector2.ZERO:
 			position.y += move_x / move_dir_y_correct_slope.x * move_dir_y_correct_slope.y
 
 		if not screen_rect.has_point(global_position):

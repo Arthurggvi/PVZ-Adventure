@@ -13,6 +13,8 @@ var _claim_button: Button
 var reward_playing := false
 ## 共享木框、羊皮纸、按钮和文字绘制入口。
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
+## 任务目录使用与图鉴相同的滚动区。
+const ContentScroll = preload("res://scripts/ui/content_scroll.gd")
 ## 任务簿的动态皮肤和初次远征奖励美术由自身声明。
 const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
 
@@ -88,11 +90,9 @@ func _ready() -> void:
 	Art.button(_canvas, "controls/close", Vector2(1364, 28), Vector2(65, 65), request_close)
 	Art.panel(_canvas, "panels/parchment_ninepatch.png", Vector2(35, 112), Vector2(390, 678), 30)
 	Art.label(_canvas, "任务目录", Vector2(67, 131), Vector2(320, 50), 29)
-	# 目录滚动允许将来增加任意数量任务。
-	var scroll := ScrollContainer.new()
+	var scroll := ContentScroll.new() # 目录滚动允许将来增加任意数量任务。
 	scroll.position = Vector2(57, 193)
 	scroll.size = Vector2(345, 568)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_canvas.add_child(scroll)
 	_directory = VBoxContainer.new()
 	_directory.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -125,6 +125,7 @@ func _build_directory() -> void:
 		# 分类标题保留木质纹理，与任务条目区分。
 		var header := Art.action_button(_directory, "", "buttons/action_neutral", Vector2.ZERO, Vector2.ZERO, Callable())
 		header.custom_minimum_size = Vector2(0, 51)
+		header.mouse_filter = Control.MOUSE_FILTER_PASS # 从分组标题开始也能滑动任务目录。
 		header.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		header.add_theme_font_size_override("font_size", 24)
 		header.text = ("▾  " if _expanded[group] else "▸  ") + group
@@ -133,14 +134,14 @@ func _build_directory() -> void:
 		for task: Dictionary in _tasks: # 选择任务仅替换详情显示。
 			if task.group != group:
 				continue
-			# 任务行自带键盘焦点和点击区域。
-			var row := Button.new()
+			var row := Button.new() # 任务行自带键盘焦点和点击区域。
 			row.text = "    " + str(task.title) + ("  · 可领取" if task.status == "complete" else "")
 			row.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 			row.custom_minimum_size = Vector2(0, 43)
 			row.alignment = HORIZONTAL_ALIGNMENT_LEFT
 			row.add_theme_font_size_override("font_size", 23)
 			row.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			row.mouse_filter = Control.MOUSE_FILTER_PASS # 保留点击选择，并让触摸拖动到达目录。
 			row.pressed.connect(_select_task.bind(str(task.id)))
 			entries.add_child(row)
 			_rows[task.id] = row
@@ -227,7 +228,7 @@ func _render_details(task: Dictionary) -> void:
 		_render_equipment_reward(task, Vector2(40, 548))
 	_render_claim_button(task)
 
-## 展示 [param task] 的活动信和时装奖励；正文可滚动，奖励与领取按钮保持可见。
+## 展示 [param task] 的活动信和装备奖励；正文可滚动，奖励与领取按钮保持可见。
 func _render_letter(task: Dictionary) -> void:
 	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2.ZERO, Vector2(1000, 491), 30)
 	Art.label(_details, task.group, Vector2(48, 22), Vector2(900, 34), 22, Color("24685b"))
@@ -244,20 +245,52 @@ func _render_letter(task: Dictionary) -> void:
 	letter.meta_clicked.connect(_open_author_profile)
 	_details.add_child(letter)
 	Art.panel(_details, "panels/parchment_ninepatch.png", Vector2(0, 507), Vector2(1000, 171), 30)
-	Art.label(_details, "活动奖励", Vector2(39, 520), Vector2(270, 38), 26, Color("24685b"))
-	_render_equipment_reward(task, Vector2(39, 565))
+	# 补领时标明面板展示的是本次可领的奖励。
+	var heading: String = "追加奖励" if task.get("additional_equipment_only", false) else "活动奖励"
+	Art.label(_details, heading, Vector2(39, 520), Vector2(270, 38), 26, Color("24685b"))
+	_render_letter_equipment_rewards(task)
 
-## 以 [param pos] 绘制 [param task] 的装备图标及名称；活动别名可与角色装备名并列显示。
+## 在活动信底部并排展示 [param task] 的奖励，限时装备注明计时起点与装备入口。
+func _render_letter_equipment_rewards(task: Dictionary) -> void:
+	var original_id: String = task.get("equipment_reward", "") # 补领投影省略原奖励。
+	var reward_ids: Array = task.get("additional_equipment_rewards", []).duplicate() # 复制列表以便将原奖励排在前面。
+	if not original_id.is_empty():
+		reward_ids.push_front(original_id)
+	for index: int in reward_ids.size(): # 三列内容区在固定领奖按钮之前结束。
+		var id: String = reward_ids[index] # 根据目录 ID 读取图标、名称和期限。
+		var equipment: EquipmentDefinition = EquipmentCatalog.definition(id) # 与角色背包使用同一份装备定义。
+		if equipment == null:
+			continue
+		var pos := Vector2(39 + index * 215, 557) # 每列宽 208，图标与两行文字居中排列。
+		# 时装保留活动信中的名称，收集器使用角色页的装备名称。
+		var title: String = task.get("equipment_label", equipment.display_name) if id == original_id else equipment.display_name
+		var subtitle: String = equipment.display_name if title != equipment.display_name else "" # 时装别名与角色页名称对应。
+		if equipment.lifetime_days > 0:
+			subtitle = "领取起 %d 天 · 角色页装备" % equipment.lifetime_days
+		_render_equipment_reward_icon(equipment, pos + Vector2(72, 0), 64)
+		var name_label: Label = Art.label(_details, title, pos + Vector2(0, 63), Vector2(208, 28), 22, Color("185f8c")) # 图标下方的装备名。
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		var detail_label: Label = Art.label(_details, subtitle, pos + Vector2(0, 91), Vector2(208, 24), 18) # 名称下方的角色页名称或限时说明。
+		detail_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+## 以 [param pos] 绘制 [param task] 的普通任务装备图标、名称和效果说明。
 func _render_equipment_reward(task: Dictionary, pos: Vector2) -> void:
 	var equipment: EquipmentDefinition = EquipmentCatalog.definition(task.equipment_reward) # 复用角色面板的装备定义。
 	if equipment == null:
 		return
-	var title: String = task.get("equipment_label", equipment.display_name) # 活动时装可显示玩家熟悉的别名。
-	Art.image(_details, "slots/item_slot_normal.png", pos, Vector2(82, 82))
-	Art.image(_details, equipment.icon.resource_path, pos + Vector2(8, 8), Vector2(66, 66))
+	var title: String = task.get("equipment_label", equipment.display_name) # 未设别名时沿用定义名称。
+	_render_equipment_reward_icon(equipment, pos, 82)
 	Art.label(_details, title, pos + Vector2(102, 2), Vector2(510, 42), 33, Color("185f8c"))
 	Art.label(_details, equipment.display_name if title != equipment.display_name else equipment.description,
 		pos + Vector2(104, 45), Vector2(510, 34), 24)
+
+## 在 [param pos] 绘制边长 [param edge] 的 [param equipment] 奖励图标，悬停可查看效果。
+func _render_equipment_reward_icon(equipment: EquipmentDefinition, pos: Vector2, edge: float) -> void:
+	Art.image(_details, "slots/item_slot_normal.png", pos, Vector2.ONE * edge)
+	var icon: TextureRect = Art.image(_details, "", pos + Vector2(8, 8), Vector2.ONE * (edge - 16)) # 直接使用装备贴图，兼容裁切图集。
+	icon.texture = equipment.icon
+	icon.mouse_filter = Control.MOUSE_FILTER_PASS
+	icon.tooltip_text = equipment.description
 
 ## 将活动信中点击的 [param meta] 与作者主页核对后交给系统浏览器。
 func _open_author_profile(meta: Variant) -> void:
@@ -266,8 +299,10 @@ func _open_author_profile(meta: Variant) -> void:
 
 ## 为 [param task] 绘制共用的领奖入口；实际点击时重新核验档案和周期。
 func _render_claim_button(task: Dictionary) -> void:
-	# 固定位置与新手引导和礼盒演出的坐标对齐。
-	var claim := Art.action_button(_details, "已领取" if task.status == "claimed" else "领取奖励", "buttons/action_confirm", Vector2(695, 551), Vector2(260, 74), _claim_reward)
+	var caption: String = "已领取" if task.status == "claimed" else "领取奖励" # 首次领取与已完成任务沿用原提示。
+	if task.get("additional_equipment_only", false):
+		caption = "领取追加奖励"
+	var claim := Art.action_button(_details, caption, "buttons/action_confirm", Vector2(695, 551), Vector2(260, 74), _claim_reward) # 与引导和礼盒演出的坐标对齐。
 	_claim_button = claim
 	claim.disabled = task.status != "complete"
 	claim.tooltip_text = "完成任务后领取奖励" if task.status == "active" else ""

@@ -1,0 +1,61 @@
+Double-Cabin Aircraft Zombie — source manifest
+Audit date: 2026-11-23
+Project: PVZ-Adventure / PvZ2 Chinese Sky City
+Status: WIKI REFERENCE + 2015 RESOURCE GROUP IDENTIFIED; ORIGINAL ANIMATION UNOBTAINED.
+
+Identity:
+  Display name: Double-Cabin Aircraft Zombie / 双舱飞机僵尸
+  Original codename: skycity_twinsplane
+  Sky City - Day 6 (Hard Mode), Day 7 normal introduction
+  Source: https://plantsvszombies.wiki.gg/wiki/Double-Cabin_Aircraft_Zombie
+  Health: 1200 total / two separate cabins at 600 HP each
+  Geometry: two adjacent lanes, visual footprint approximately 2x2
+  Motion: 3 seconds/tile (user's Chinese almanac screenshot)
+  Damage: 1000/s crush; 800 damage when ramming the player's ship
+  Destroy only one cabin: surviving cabin can continue; kill requires both zero.
+  Freezing: converted to slow.
+  Blover: original not treated as a blowable flying zombie, but this game WILL
+  override so that a single Blover effect can remove the entire twin-cabin unit.
+
+Artwork references / candidate source leads:
+1. Character Gallery, includes HD body, attack image, 'Sprites' visual reference:
+   https://plantsvszombies.wiki.gg/wiki/Double-Cabin_Aircraft_Zombie
+2. PvZ2 Chinese original zombie sprite gallery, Sky City section:
+   https://plantsvszombies.wiki.gg/wiki/Plants_vs._Zombies_2_(Chinese_version)/Gallery_of_zombie_sprites
+3. RSB extraction chat from 2015-08-21 gives resource group '21477000'
+   and codename 'skycity_twinsplane':
+   https://plantsvszombies.wiki.gg/wiki/Plants_vs._Zombies_Wiki:Chat/Logs/21_August_2015
+   The group value is quoted verbatim; hexadecimal/decimal semantics not verified.
+4. The Spriters Resource / Plants vs. Zombies 2 (Chinese Version) listing:
+   https://www.spriters-resource.com/mobile/plantsvszombies2/
+   This audit DID NOT confirm a matching downloadable Double-Cabin Aircraft
+   Zombie asset page or ZIP. Other nearby Sky City entries are DIFFERENT zombies.
+   Do NOT invent asset ID/ZIP URL from 502486, 502490, or 502497.
+
+Retrieval and archive verification:
+  Original ZIP/RSB/PAM bytes: NOT FOUND or copied.
+  Confirmed matching third-party downloadable ZIP: NONE.
+  SHA-256: NOT AVAILABLE.
+  Exact original animation clips, first/last frames, alpha, fps: NOT VERIFIED.
+  Crash, single-cabin damage, rotor and explosion original artwork: NOT VERIFIED.
+  Dedicated original engine/propeller/crash/break audio: NOT FOUND.
+  Runtime PNG atlases / SpriteFrames / audio: NONE installed.
+  The user's uploaded almanac screenshot is a visual reference, not an
+  editable original sprite source or proof that animation is complete.
+  PopCap/EA asset rights retained by their original owners; fan wiki availability
+  does not establish a commercial redistribution license.
+
+Known distinct derivative reference: Gardendless fan remake, sky_twin:
+  https://pvzge.com/en/almanac/zombies/sky_twin
+  It documents a 50%-damage transfer from a disabled cabin to its partner.
+  DO NOT inherit this mechanic as original PvZ2C without independent evidence.
+
+Design doc and future integration:
+  docs/adventure/double_cabin_aircraft_zombie.txt
+  Proposed class/ID: Zombie037DoubleCabin / Z037DoubleCabinAircraft (not registered)
+  One Zombie000Base + 2 cabin HP pools (not two separately registered zombies);
+  one motor and 2 row-specific hitboxes; no double kill or reward.
+  Dedicated Blover exit via is_blover_flying_target/handle_blover_wind.
+  Plan to use only confirmed native source frames or declare missing asset.
+  Prefer verified original Sky City RSB extraction for resource 21477000.
+  Do not claim a sprite ZIP has been integrated until bytes and hashes exist.

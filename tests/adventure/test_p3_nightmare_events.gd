@@ -7,7 +7,7 @@ func _run() -> void:
 	await _frames()
 	Global.save_service.stop_autosave()
 	var username := "p3-nightmare-%d" % Time.get_ticks_usec()
-	var user: User = _profile_selector()
+	var user: User = get_tree().current_scene.user
 	user.panel_create_new_user.line_edit.text = username
 	user.panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username)
@@ -20,9 +20,8 @@ func _run() -> void:
 	# 续战测试的钥匙由测试档预置，正式关卡奖励不发放。
 	assert(Global.adventure_inventory.add_item("lawn_nightmare_key", 1))
 	map._select_stage(1)
-	await _wait_battle()
-	# 正式切场只在接受战场后发布活动关卡。
 	_add_test_encounters()
+	await _wait_battle()
 	var battle: MainGameManager = Global.main_game
 	assert(AdventureSession.active_phase_kind == StagePhaseDefinition.Kind.NORMAL)
 	# 通过真实自然波次和清怪接口推进普通清场，再使用预置钥匙续战。
@@ -131,7 +130,6 @@ func _add_test_encounters() -> void:
 	var boss_phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(
 		AdventureStageCatalog.load_stage(2), StagePhaseDefinition.Kind.NIGHTMARE) # 地区模板提供 Boss 召唤参数。
 	var boss: BossEncounterDefinition = boss_phase.boss_encounters[0] # 将测试 Boss 配置在本局末波。
-	boss.timing = BossEncounterDefinition.Timing.WAVE_STARTED
 	boss.wave = phase.wave_profile.wave_count
 	phase.boss_encounters.append(boss)
 	var horde := StageEventDefinition.new() # 在第二波模拟原突袭事件。

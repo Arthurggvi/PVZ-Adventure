@@ -1,0 +1,89 @@
+[gd_resource type="Resource" script_class="AdventureStageOverride" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/adventure_stage_override.gd" id="override"]
+[ext_resource type="Script" path="res://scripts/adventure/adventure_battle_environment.gd" id="environment"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/boards/wonderland_zombie_church.tres" id="board"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/zombie_church/board.png" id="art"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/zombie_church_normal.mp3" id="normal"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/zombie_church_nightmare.mp3" id="nightmare"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/zombie_church_boss.mp3" id="boss"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/boss_encounter_definition.gd" id="encounter"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/stage_event_definition.gd" id="event"]
+[ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/fallen_camp/boss.tres" id="reward"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/waves/wonderland_zombie_church_normal.tres" id="normal_waves"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/waves/wonderland_zombie_church_nightmare.tres" id="nightmare_waves"]
+
+[sub_resource type="Resource" id="ChurchEnvironment"]
+script = ExtResource("environment")
+board_definition = ExtResource("board")
+background = 1
+background_texture = ExtResource("art")
+daytime = false
+daytime_sun = false
+lawn_mowers = false
+
+[sub_resource type="Resource" id="SaviorEncounter"]
+script = ExtResource("encounter")
+encounter_id = &"wonderland.zombie_church.nightmare.savior"
+boss_type = 5
+timing = 4
+wave = 100
+require_defeat = true
+natural_waves = 1
+summon_rule = 2
+wait_for_death_presentation = true
+summon_while_paused = 1
+summon_end = 1
+summon_interval_seconds = 22.0
+summon_count = 18
+max_alive_periodic_summons = 30
+summon_zombie_weights = Dictionary[int, int]({1: 1})
+summon_tier_weights = Dictionary[StringName, int]({&"tier4": 1})
+
+[sub_resource type="Resource" id="NormalRelight"]
+script = ExtResource("event")
+event_id = &"wonderland.zombie_church.normal.relight_statues"
+trigger = 11
+order = 0
+repeat_rule = 2
+action = 3
+action_zombie_type = 28
+action_tier_id = &"elite"
+action_count = 5
+
+[sub_resource type="Resource" id="NightmareRelight"]
+script = ExtResource("event")
+event_id = &"wonderland.zombie_church.nightmare.relight_statues"
+trigger = 11
+order = 1
+repeat_rule = 2
+action = 3
+action_zombie_type = 28
+action_tier_id = &"tier4"
+action_count = 5
+
+[sub_resource type="Resource" id="SaviorReward"]
+script = ExtResource("event")
+event_id = &"wonderland.zombie_church.nightmare.savior.defeat_drops"
+trigger = 9
+order = 0
+repeat_rule = 1
+encounter_id = &"wonderland.zombie_church.nightmare.savior"
+boss_exit_reason = 2
+action = 5
+action_drop_table = ExtResource("reward")
+
+[resource]
+script = ExtResource("override")
+battle_scene = "res://scenes/adventure/zombie_church_battle.tscn"
+environment = SubResource("ChurchEnvironment")
+normal_wave_profile = ExtResource("normal_waves")
+nightmare_wave_profile = ExtResource("nightmare_waves")
+normal_battle_music = ExtResource("normal")
+nightmare_battle_music = ExtResource("nightmare")
+nightmare_boss_music = ExtResource("boss")
+additional_normal_events = Array[ExtResource("event")]([SubResource("NormalRelight")])
+replace_nightmare_bosses = true
+nightmare_bosses = Array[ExtResource("encounter")]([SubResource("SaviorEncounter")])
+replace_nightmare_events = true
+nightmare_events = Array[ExtResource("event")]([SubResource("NightmareRelight"), SubResource("SaviorReward")])

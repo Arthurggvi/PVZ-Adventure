@@ -6,7 +6,8 @@ func _run() -> void:
 	get_tree().change_scene_to_file("res://scenes/main/01StartMenuCoastal.tscn")
 	await _frames()
 	Global.save_service.stop_autosave()
-	assert(not AdventureToolbar.feature_status("map").allowed)
+	Global.user_manager.set_current_user("")
+	await _enter_island_from_menu()
 	assert(AdventureSession.progress == null and not AdventureSession.adventure_active)
 	var a := "entry-a-%s" % Time.get_ticks_usec()
 	var b := a + "-b"
@@ -41,7 +42,6 @@ func _run() -> void:
 	_menu_return()
 	await _frames()
 	_select_user(a)
-	await _postpone_quest_notice()
 	await _enter_island_from_menu()
 	await _frames()
 	assert(AdventureSession.progress.stage_1_cleared and AdventureSession.is_unlocked(2))
@@ -51,7 +51,7 @@ func _run() -> void:
 	get_tree().quit(0)
 
 func _create_user(username: String) -> void:
-	var user: User = _profile_selector()
+	var user: User = get_tree().current_scene.user
 	user.panel_create_new_user.line_edit.text = username
 	user.panel_create_new_user.button_ok.pressed.emit()
 

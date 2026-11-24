@@ -1,7 +1,7 @@
 ## 大喷菇单株攻击接入；原生射击与海神脉冲共用检测、伤害上下文和命中词条。
 extends Node
 class_name AdventureFumePromotionEffects
-## 海神伤害使用固定战斗秒，正向射速加成不能缩短该周期。
+## 海神在基础攻速下的伤害周期，单位为秒。
 const PULSE_SECONDS: float = 0.5
 ## 全行几何的兜底更新周期，射击或脉冲前还会即时更新。
 const RANGE_REFRESH_SECONDS: float = 0.2
@@ -25,6 +25,8 @@ var _range_left: float = RANGE_REFRESH_SECONDS
 var _cleanup_pending: bool = false
 ## 全行矩形等待原生物理重叠缓存更新时，只保留一次已冻结的脉冲。
 var _pulse_pending: bool = false
+## 涌潮当前累计的有效攻击次数，丢失全部目标时清零。
+var _surge_stacks: int = 0
 ## 保存 [param plant] 和已验证的 [param events]，实际组件绑定等待父节点ready。
 func configure(plant: Plant011FumeShroom, events: Array[Dictionary]) -> void:
 	_plant = plant
@@ -55,6 +57,8 @@ func _bind() -> void:
 	if _rules.has("fume_full_row"):
 		_range = AdventureFumeRange.new()
 		_range.configure(_plant)
+		_attack.detect_component.signal_not_can_attack.connect(_reset_surge)
+	_refresh_attack_rate()
 	if _rules.has("fume_poseidon"):
 		var sample: Bullet000NormBase = Global.bullet_registry.get_bullet_scenes(_attack.attack_bullet_type).instantiate() as Bullet000NormBase # 只读取原生资源攻值，不将样本入树或发射。
 		if sample == null:
@@ -66,7 +70,7 @@ func _bind() -> void:
 		_attack.configure_continuous_attack(PULSE_SECONDS, _pulse)
 	set_process(_range != null or _rules.has("fume_poseidon"))
 
-## [param delta] 是受战场暂停控制的秒数；每帧只同步视觉，伤害仅由固定脉冲触发。
+## [param delta] 是受战场暂停控制的秒数；每帧只同步视觉，伤害由攻击时钟触发。
 func _process(delta: float) -> void:
 	if _rules.has("fume_poseidon") and is_instance_valid(_plant):
 		_plant.set_continuous_fume(true, _can_act())
@@ -92,6 +96,28 @@ func _on_native_shot() -> void:
 	if _range != null:
 		_range.refresh()
 	_shot = AdventureFumeHitEffects.capture(_plant, _rules) if _can_act() else null
+	if _shot != null:
+		_advance_surge()
+
+## 每轮真正的喷射或脉冲至多叠一层；对多目标的命中数不影响层数。
+func _advance_surge() -> void:
+	var surge: Dictionary = _rules.get("fume_full_row", {}) # 没选涌潮时上限为零。
+	if _surge_stacks < int(surge.get("max_stacks", 0)):
+		_surge_stacks += 1
+		_refresh_attack_rate()
+
+## 原生索敌确认范围内已无可攻击目标时撤销涌潮层数，保留固定来源攻速。
+func _reset_surge() -> void:
+	if is_inside_tree() and _surge_stacks > 0:
+		_surge_stacks = 0
+		_refresh_attack_rate()
+
+## 腐能利用和涌潮按基础攻速相加，交给唯一攻击时钟保持当前计时进度。
+func _refresh_attack_rate() -> void:
+	var decay: Dictionary = _rules.get("fume_attack_rate", {}) # 一转固定攻速加成。
+	var surge: Dictionary = _rules.get("fume_full_row", {}) # 二转每层攻速加成。
+	var bonus: float = float(decay.get("bonus", 0.0)) + _surge_stacks * float(surge.get("attack_rate_per_stack", 0.0)) # 本株两条书目的总加成。
+	_attack.set_attack_rate_source(get_instance_id(), bonus)
 
 ## [param created] 是尚未初始化的原生弹体；只添加范围、单目标去重和冻结命中回调。
 func _on_bullet_created(created: Bullet000Base) -> void:
@@ -109,7 +135,7 @@ func _on_bullet_created(created: Bullet000Base) -> void:
 ## 无效来源的迟到动画仍可能进入原生发射；对应弹体在主伤害前直接被统一门禁拒绝。
 static func _reject_attack() -> bool:
 	return false
-## 海神有目标时每半秒结算一次；目标清空后由原攻击门禁停止时钟和喷雾。
+## 海神按当前攻速结算伤害；目标清空后由原攻击门禁停止时钟和喷雾。
 func _pulse() -> void:
 	if _pulse_pending or not _can_act():
 		return
@@ -136,6 +162,7 @@ func _resolve_pulse(effects: AdventureFumeHitEffects, context: PlantAttackContex
 		get_tree().physics_frame.connect(_resolve_pulse.bind(effects, context, damage), CONNECT_ONE_SHOT)
 		return
 	_pulse_pending = false
+	var attacked: bool = false # 整次脉冲有至少一个真实目标时才计一层涌潮。
 	for target: Character000Base in _attack.detect_component.get_all_enemy_can_be_attacked(): # 复用原生范围、行、状态过滤与实例去重。
 		if not effects.is_active() or (context != null and not context.is_active()):
 			break
@@ -143,6 +170,7 @@ func _resolve_pulse(effects: AdventureFumeHitEffects, context: PlantAttackContex
 				or target.is_hypno or not is_instance_valid(target.hurt_box_component) \
 				or not target.hurt_box_component.is_enabling:
 			continue
+		attacked = true
 		var position: Vector2 = target.hurt_box_component.global_position # 扣血可能使目标离场，提前保存实际命中点。
 		var amount: int = context.modify_damage(damage, target) if context != null else damage # 每个目标独立按距离修饰。
 		var casualty: Character000Base = null # 真实死者可为承受保护转伤的僵尸。
@@ -159,6 +187,8 @@ func _resolve_pulse(effects: AdventureFumeHitEffects, context: PlantAttackContex
 		if context != null:
 			context.resolve_kill(casualty) # 未致死也消费本次同步结算资格。
 		effects.apply(target if is_instance_valid(target) else null, position)
+	if attacked and _can_act():
+		_advance_surge()
 
 ## 死亡时立即停止产生新喷雾，已发射的快照仍由弹体自己持有。
 func _stop_visuals() -> void:
@@ -171,9 +201,9 @@ func _exit_tree() -> void:
 		return
 	_cleanup_pending = true
 	AdventureFumePromotionEffects._finish_exit.call_deferred(
-		weakref(self), weakref(_plant), weakref(_attack), _range, _pulse)
+		weakref(self), weakref(_plant), weakref(_attack), _range, _pulse, get_instance_id())
 
-## 恢复监控不再configure攻击时钟，避免重复启动半秒计时。
+## 恢复监控不重新配置攻击时钟，避免重置当前脉冲周期。
 func _resume() -> void:
 	if not is_inside_tree() or is_queued_for_deletion() or not is_instance_valid(_attack):
 		return
@@ -182,8 +212,9 @@ func _resume() -> void:
 		_range.refresh()
 ## [param reference] 是控制器弱引用；[param plant_ref] 与 [param attack_ref] 指向原生节点。
 ## [param range_effect] 保存私有范围基线；[param pulse] 标识原回调，不能清除后来新装的攻击模式。
+## [param source_id] 只撤销本控制器登记的攻速加成。
 static func _finish_exit(reference: WeakRef, plant_ref: WeakRef, attack_ref: WeakRef,
-		range_effect: AdventureFumeRange, pulse: Callable) -> void:
+		range_effect: AdventureFumeRange, pulse: Callable, source_id: int) -> void:
 	var controller: AdventureFumePromotionEffects = reference.get_ref() as AdventureFumePromotionEffects # 控制器可能已随母株销毁。
 	if is_instance_valid(controller):
 		controller._cleanup_pending = false
@@ -192,6 +223,7 @@ static func _finish_exit(reference: WeakRef, plant_ref: WeakRef, attack_ref: Wea
 			return
 	var attack: AttackComponentBulletBase = attack_ref.get_ref() as AttackComponentBulletBase # 原生组件可先于回收任务被销毁。
 	if is_instance_valid(attack):
+		attack.set_attack_rate_source(source_id, 0.0)
 		attack.clear_continuous_attack(pulse)
 	var plant: Plant011FumeShroom = plant_ref.get_ref() as Plant011FumeShroom # 仅还原仍存在的原生喷雾。
 	if is_instance_valid(plant):

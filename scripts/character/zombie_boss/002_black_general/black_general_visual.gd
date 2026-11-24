@@ -45,6 +45,8 @@ var _actor: Node2D
 var _motion_host: Node2D
 ## 举旗黑焰和常驻剪影的宿主。
 var _ground_host: Node2D
+## 冲锋效果共用的精确坡面，水平关卡和独立展示为空。
+var _ground: MainGameSlope
 ## 接受震幅和时长的镜头回调，未绑定时不震动。
 var _shake_camera: Callable
 ## 本体下一次采样拖影的世界横坐标。
@@ -64,11 +66,14 @@ func _ready() -> void:
 
 ## [param actor] 提供脚底坐标和绘制深度，[param motion_host]、[param ground_host] 持有对应特效。[br]
 ## [param shake_camera] 接收演出产生的镜头震动，可绑定战斗镜头或独立舞台镜头。
-func bind_effects(actor: Node2D, motion_host: Node2D, ground_host: Node2D, shake_camera: Callable) -> void:
+## [param ground] 为冲锋路线上的可选坡面。
+func bind_effects(actor: Node2D, motion_host: Node2D, ground_host: Node2D, shake_camera: Callable,
+		ground: MainGameSlope = null) -> void:
 	_actor = actor
 	_motion_host = motion_host
 	_ground_host = ground_host
 	_shake_camera = shake_camera
+	_ground = ground
 
 ## 播放 [param action]，沿用实战步频和角色受控速度倍率。
 func play_action(action: StringName) -> void:
@@ -131,7 +136,7 @@ func advance_charge_effects(feet: Vector2) -> void:
 	if _actor.global_position.x >= feet.x:
 		return
 	if _charge_wake == null:
-		_charge_wake = BlackGeneralChargeWake.spawn(_motion_host, feet, _actor.z_index - 2, 1.0)
+		_charge_wake = BlackGeneralChargeWake.spawn(_motion_host, feet, _actor.z_index - 2, 1.0, _ground)
 		BlackGeneralShadowBurst.erupt(_motion_host, feet, _actor.z_index - 1, 0.82)
 		_play_charge_impact(Vector2(4.0, 7.0), 0.24)
 	_charge_wake.follow(_actor.global_position.x)
@@ -148,8 +153,16 @@ func _place_silhouette(x: float) -> void:
 	else:
 		silhouette.lane = _charge_lane
 		silhouette.z_index = _charge_lane * 50 + 34
-	silhouette.position = _ground_host.to_local(Vector2(x, _actor.global_position.y))
+	var feet := Vector2(x, _actor.global_position.y) # 默认沿用平地与图鉴的水平剪影。
+	var height: float = 0.0 # 剪影所在横坐标的真实坡面高度。
+	if is_instance_valid(_ground):
+		height = _ground.get_all_slope_y(x)
+		feet.y += height - _ground.get_all_slope_y(_actor.global_position.x)
+	silhouette.position = _ground_host.to_local(feet)
 	_ground_host.add_child(silhouette)
+	if not is_zero_approx(height):
+		var detection: Area2D = silhouette.get_node(^"HurtBoxComponent/HurtBoxDetection") # 保持与植物索敌的行基线一致。
+		detection.global_position.y -= height
 	silhouette.imprint(self, _actor.global_position)
 
 ## 让烟带在原地淡出；本体实际移动过才触发急停的黑焰、音效和震动。

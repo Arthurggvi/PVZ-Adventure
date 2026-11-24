@@ -1,6 +1,12 @@
 extends Character000Base
 class_name Plant000Base
 
+## 首次冻结时才加载植物冰块，不把贴图加入植物基类的静态依赖。
+const PLANT_ICE_EFFECT_SCENE_PATH: String = "res://scenes/fx/plant_ice_effect.tscn"
+
+## 植株真正冻住或解冻时通知已重叠的僵尸重新索敌。
+signal signal_cold_frozen_changed
+
 @onready var sleep_component: SleepComponent = %SleepComponent
 @onready var blink_component: BlinkComponent = %BlinkComponent
 ## 花园组件
@@ -23,13 +29,17 @@ var native_day_sleep: bool = false
 var curr_be_attack_status:E_BeAttackStatusPlant = E_BeAttackStatusPlant.IsNorm
 ## 行和列
 var row_col:Vector2i = Vector2i(-1, -1)
+## 实际攻防行改变，供已重叠的索敌组件重新检查当前目标。
+signal combat_lane_changed
 ## 植物所在格子
 var plant_cell:PlantCell
 ## Immutable source recipe for transformations into another plant instance.
 var plant_spawn_profile: PlantSpawnProfile = null
 ## Transient attack scaling from the frozen adventure card; never saved to the card.
 var battle_damage_multiplier: float = 1.0
-## 当前实例的攻击词条提供者；由唯一运行时管理，空值保持原生攻击。
+## 本株配方对仍佩戴防具的僵尸的总伤害倍率，在每次命中时检查目标资格。
+var battle_armored_target_multiplier: float = 1.0
+## 当前实例的动态攻击词条提供者，与冻结配方的固定来源在捕获时合成。
 var battle_attack_context_provider: Callable
 ## 死亡信号清空动态来源前冻结的最后一份攻击上下文，仅供同步亡语使用。
 var _death_attack_context: PlantAttackContext
@@ -39,6 +49,8 @@ var _battle_aura_damage_bonus: float = 0.0
 var _battle_aura_damage_sources: Dictionary[StringName, float] = {}
 ## 冒险转职赋予的负面效果免疫；仅在冻结出战卡生成时写入，不进入角色原版数据。
 var battle_negative_effect_immune: bool = false
+## 敌方主动索敌跳过本株，保留种植、碾压和真实受击区域。
+var battle_hidden_from_zombies: bool = false
 var spawn_attributes_applied: bool = false
 ## 同一次卡片点击共享的提交身份；自动生成或独立放置可以为空。
 var placement_use_context: PlantPlacementUseContext
@@ -95,9 +107,11 @@ func battle_damage(source_damage: int) -> int:
 func capture_attack_context() -> PlantAttackContext:
 	if is_death:
 		return _death_attack_context
-	if not battle_attack_context_provider.is_valid():
-		return null
-	return battle_attack_context_provider.call() as PlantAttackContext
+	if battle_attack_context_provider.is_valid():
+		return battle_attack_context_provider.call() as PlantAttackContext
+	if battle_armored_target_multiplier > 1.0:
+		return PlantAttackContext.capture(self, false, 1.0, false)
+	return null
 
 ## The species represented by this spawn, independent of rendering/transform.
 func spawn_species_id() -> int:
@@ -108,6 +122,8 @@ var battle_placement_cells: Array[PlantCell] = []
 var is_being_relocated := false
 ## 铲除、升级替换与场景清理显式关闭尸体记录；正常消耗与战斗死亡保持开启。
 var death_recording_enabled: bool = true
+## 铲除仍是环境中的真实损失，但不会进入复生账本。
+var _shoveled := false
 ## 复生后的永久最大生命比例，存档单独保存，不修改来源卡牌配方。
 var revival_health_scale: float = 1.0
 ## 植物死亡后是否直接删除
@@ -179,7 +195,7 @@ func init_plant(plant_init_para:Dictionary):
 		E_CharacterInitType.IsNorm:
 			self.plant_cell = plant_init_para[E_PInitAttr.PlantCell]
 			self.row_col = plant_cell.row_col
-			self.lane = plant_cell.row_col.x
+			self.lane = plant_cell.combat_lane
 		E_CharacterInitType.IsShow:
 			### 南瓜背景-1,这里所有植物+1
 			#z_index += 1
@@ -231,11 +247,21 @@ func update_battle_cell(destination: PlantCell) -> void:
 	var height_delta: float = plant_cell.get_ground_height() - destination.get_ground_height() # 撤回旧坡面偏移后再应用新高度。
 	plant_cell = destination
 	row_col = destination.row_col
-	lane = row_col.x
 	if not is_zero_approx(height_delta):
 		for detector: Node2D in node2d_detect_in_slope: # 只移动仍存活的检测节点，身体随父容器换位。
 			if is_instance_valid(detector):
 				detector.position.y += height_delta
+	sync_combat_lane()
+
+## 从当前种植点同步攻防行与冰壳代理；植物身份、占用地址和攻击时钟保持连续。
+func sync_combat_lane() -> void:
+	var changed: bool = lane != plant_cell.combat_lane # 同行换格也要移动冰壳代理。
+	lane = plant_cell.combat_lane
+	var plant_hp: HpComponentPlant = hp_component as HpComponentPlant # 同一冰壳跟随原株的脚点。
+	if plant_hp != null:
+		plant_hp.sync_ice_shell_target()
+	if changed:
+		combat_lane_changed.emit()
 
 ## 初始化展示角色
 func ready_show():
@@ -264,6 +290,8 @@ func plant_imitater_update_body():
 #region 植物受伤、死亡
 ## 被蹦极僵尸偷走
 func be_bungi()->Node2D:
+	if battle_hidden_from_zombies:
+		return null
 	var body_copy:Node2D = body.duplicate()
 	plant_cell.add_child(body_copy)
 	body_copy.global_position = body.global_position
@@ -271,14 +299,117 @@ func be_bungi()->Node2D:
 	character_death_disappear()
 	return body_copy
 
-## 被僵尸啃食
-## attack_value:伤害
-## attack_zombie:攻击的僵尸
-func be_zombie_eat(attack_value:int, _attack_zombie:Zombie000Base):
-	hp_component.Hp_loss(attack_value,BulletRegistry.AttackMode.Penetration, true, false)
+## [param attack_value] 为啃食伤害，[param attack_zombie] 为攻击者；冻结期间忽略迟到的啃食结算。
+func be_zombie_eat(attack_value:int, attack_zombie:Zombie000Base):
+	if not is_cold_frozen():
+		hp_component.Hp_loss(attack_value, BulletRegistry.AttackMode.Penetration, true, false, true, 0, -1,
+			null, CombatHitScope.for_plant_attack(attack_zombie))
 
-## 被僵尸啃食一次发光
-func be_zombie_eat_once(attack_zombie:Zombie000Base):
+## [param attack_value] 是来自 [param attacker] 的战斗伤害；[param impact] 为原命中的类别。
+## [param mode]、[param drop] 与 [param sfx] 保留原生扣血表现选项。
+func be_hit_from(attack_value: int, attacker: Character000Base, mode: BulletRegistry.AttackMode,
+		drop: bool = true, sfx: bool = false, impact: CombatHitScope.PlantImpact = CombatHitScope.PlantImpact.DIRECT) -> void:
+	be_attacked_bullet(attack_value, mode, drop, sfx, 0, -1, null, CombatHitScope.for_plant_attack(attacker, impact))
+
+## [param attacker] 是实际碾压者；该入口可使监牢承受一次原生比例伤害。
+func be_flattened_from_enemy(attacker: Character000Base):
+	be_hit_instantly(CombatHitScope.for_plant_attack(attacker, CombatHitScope.PlantImpact.CRUSH))
+
+## 没有角色来源的碾压仍按碾压类型结算。
+func be_flattened() -> void:
+	be_flattened_from_enemy(null)
+
+## [param scope] 表示实际战斗必杀；[param suppress_language] 维持火把等攻击的死亡表现。
+## 占格清理、铲除和解存档等维护路径仍直接使用原生退出入口。
+func be_hit_instantly(scope: CombatHitScope, suppress_language: bool = false) -> void:
+	if is_death or is_queued_for_deletion():
+		return
+	var health := hp_component as HpComponentPlant # 植物防御先判断本次必杀能否被拦截。
+	if health != null and health.intercept_lethal_plant_hit(scope):
+		if scope.plant_impact == CombatHitScope.PlantImpact.CRUSH:
+			show_crush_contact()
+		return
+	var loss: int = health.get_all_hp() if health != null and health.reflects_damage else 0 # 即死也可反伤已消耗的血池。
+	if suppress_language:
+		is_can_death_language = false
+		hp_component.Hp_loss_death(false)
+	elif scope.plant_impact == CombatHitScope.PlantImpact.CRUSH:
+		super.be_flattened()
+	else:
+		character_death_disappear()
+	if loss > 0 and is_instance_valid(health) and is_death:
+		health.reflect_plant_loss(loss, scope)
+
+## 碾压后仍然存活时更新接触表现，由需要表现的植物覆写。
+func show_crush_contact() -> void:
+	pass
+
+## 冻结卡片的负面免疫同时应用于状态门面和底层的直接调用。
+func can_receive_negative_effects() -> bool:
+	return not battle_negative_effect_immune and super.can_receive_negative_effects()
+
+## 普通冻结的 [param time]、冻后减速 [param followup] 和 [param scope] 均沿用原生实现。
+## 对应状态免疫时，也跳过冻结附带的20点状态伤害。
+func be_ice_freeze(time: float, followup: float, scope: CombatHitScope = null) -> void:
+	if can_receive_negative_effects():
+		super.be_ice_freeze(time, followup, scope)
+
+## 返回本株是否仍有普通冻结冰壳，供雪球阻挡和冰壳耐久查询使用。
+func has_ice_shell() -> bool:
+	var plant_hp: HpComponentPlant = hp_component as HpComponentPlant # 非标准生命组件不伪造冰壳。
+	return plant_hp != null and plant_hp.has_ice_shell()
+
+## [param value] 更新 [param influent_speed_factor]；只在完全冻结资格变化时通知索敌。
+func update_speed_factor(value: float, influent_speed_factor: E_Influence_Speed_Factor) -> void:
+	if influent_speed_factor != E_Influence_Speed_Factor.IceFreezeSpeed \
+			and influent_speed_factor != E_Influence_Speed_Factor.DeepColdFreeze:
+		super(value, influent_speed_factor)
+		return
+	var was_frozen: bool = is_cold_frozen() # 多种冻结重叠时，只有最后一个来源退出才恢复索敌。
+	super(value, influent_speed_factor)
+	if was_frozen != is_cold_frozen():
+		signal_cold_frozen_changed.emit()
+
+## 植物的普通冻结和猎人冰壳共用植物原版冰块，返回未入树且由角色唯一持有的冰效。
+func _create_ice_effect() -> IceEffect:
+	var effect_scene: PackedScene = load(PLANT_ICE_EFFECT_SCENE_PATH) as PackedScene # 复用引擎资源缓存，不另设全局资源表。
+	return effect_scene.instantiate() as IceEffect
+
+## 返回本株此刻是否可以接收猎人持久冰封，供按数量的随机抽取先排除免疫与已有冰壳。
+func can_apply_hunter_ice_shell() -> bool:
+	return is_node_ready() and is_inside_tree() and not is_death and not is_queued_for_deletion() \
+		and character_init_type == E_CharacterInitType.IsNorm and not battle_negative_effect_immune \
+		and can_receive_negative_effects() and can_receive_control_effects() \
+		and can_receive_cold() and can_cold_freeze() and not is_cold_frozen() and hp_component is HpComponentPlant
+
+## 对活动且可受寒冷控制的本株施加猎人持久冰封，返回是否首次成功。
+## 不造成原生二十点冻结伤害、不启动冻结计时；已有冻结只阻挡雪球，不刷新耐久。
+func apply_hunter_ice_shell() -> bool:
+	if not can_apply_hunter_ice_shell():
+		return false
+	var plant_hp: HpComponentPlant = hp_component as HpComponentPlant # 冰壳始终由本株标准生命组件持有。
+	on_cold_control()
+	if not plant_hp.begin_persistent_ice_shell():
+		return false
+	var freeze_timer: Timer = all_timer.get(E_TimerType.IceFreeze) as Timer # 已结束的旧定时器不能接管持久冰封。
+	if is_instance_valid(freeze_timer):
+		freeze_timer.stop()
+	time_ice_end_decelerate = 0.0
+	_begin_ice_freeze_control()
+	return has_ice_shell()
+
+## [param time] 为普通冻结秒数，[param followup] 为冻后减速秒数。
+## 既有猎人冰壳保留持久性与耐久；其他情况沿用角色原生定时冻结。
+func apply_ice_freeze_control(time: float, followup: float) -> void:
+	var plant_hp: HpComponentPlant = hp_component as HpComponentPlant # 只拦截持久冰封，定时冻结仍可正常续时。
+	if plant_hp != null and plant_hp.has_persistent_ice_shell():
+		return
+	super.apply_ice_freeze_control(time, followup)
+
+## [param attack_zombie] 是本次啃食动画的发起者；冻结植株不触发受咬闪光或本体效果。
+func be_zombie_eat_once(attack_zombie: Zombie000Base) -> void:
+	if is_cold_frozen():
+		return
 	body.body_light()
 	_be_zombie_eat_once_special(attack_zombie)
 
@@ -294,6 +425,8 @@ func character_death():
 	_death_attack_context = capture_attack_context()
 	# 在占用释放、光环撤销和亡语之前冻结永久状态；记录不会保存死亡实例本身。
 	PlantRevivalArchive.record_death(self)
+	if (death_recording_enabled or _shoveled) and is_instance_valid(plant_cell) and plant_cell.board != null:
+		plant_cell.board.plant_dying.emit(self)
 	## 发射死亡信号并执行原生亡语，此时不再依赖动态提供者。
 	super()
 	if is_instance_valid(hurt_box_component):
@@ -340,6 +473,7 @@ func be_shovel_look_end() -> void:
 func be_shovel_kill():
 	is_can_death_language = false
 	death_recording_enabled = false
+	_shoveled = true
 	hp_component.Hp_loss_death()
 
 ## 手持紫卡植物可以种植在该植物上

@@ -17,8 +17,7 @@ signal signal_smash_completed(hit_target: Character000Base)
 
 ## 动画开始时,获取攻击对象
 func anim_start():
-	if is_instance_valid(detect_component.enemy_can_be_attacked):
-		enemy = detect_component.enemy_can_be_attacked
+	enemy = detect_component.enemy_can_be_attacked
 	if is_instance_valid(detect_component.pot):
 		pot = detect_component.pot
 	elif is_instance_valid(detect_component.brain):
@@ -27,6 +26,9 @@ func anim_start():
 ## 攻击一次，动画调用
 func attack_once():
 	if owner.is_action_suspended():
+		return
+	# 出手前锁定的植株可能在挥锤中途冻住，此时不结算下砸与命中衍生效果。
+	if is_instance_valid(enemy) and enemy is Plant000Base and enemy.is_cold_frozen():
 		return
 	_attack_once_native()
 	signal_smash_completed.emit(enemy)
@@ -43,8 +45,13 @@ func _attack_once_native() -> void:
 	if is_instance_valid(enemy) and not owner.is_death:
 		if enemy is Plant000Base:
 			enemy.plant_cell.be_gargantuar_attack(owner)
+		elif enemy is FriendlyBattleBarrier:
+			enemy.be_zombie_eat(1800, owner)
 		elif enemy is Zombie000Base:
-			enemy.be_attacked_bullet(1800,BulletRegistry.AttackMode.Penetration, true, true)
+			if owner.is_hypno:
+				(owner as Zombie000Base).hit_as_hypnotized(enemy, 1800, true, true)
+			else:
+				enemy.be_attacked_bullet(1800,BulletRegistry.AttackMode.Penetration, true, true)
 
 		SoundManager.play_character_SFX("gargantuar_thump")
 

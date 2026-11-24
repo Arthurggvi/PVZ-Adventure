@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CharacterSkillDefinition" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/skills/character_skill_definition.gd" id="1_definition"]
+[ext_resource type="Script" path="res://scripts/adventure/skills/spring_cattail_barrage_effect.gd" id="2_effect"]
+[ext_resource type="AudioStream" path="res://assets/adventure/audio/skills/cattail_firework_barrage.ogg" id="6_cue"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/spring_cattail.png" id="3_portrait"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/skill_titles/spring_cattail_barrage.svg" id="4_title"]
+
+[sub_resource type="AtlasTexture" id="Icon"]
+atlas = ExtResource("3_portrait")
+region = Rect2(119, 8, 578, 578)
+filter_clip = true
+
+[sub_resource type="Resource" id="BarrageEffect"]
+script = ExtResource("2_effect")
+
+[resource]
+script = ExtResource("1_definition")
+id = &"spring_cattail_barrage"
+display_name = "火力倾泻"
+description = "在后四列的三个不同格子及其余列的一个格子依次射出两圈贯穿尖刺，每支 50 点伤害。开战时进入冷却。"
+icon = SubResource("Icon")
+cut_in_portrait = ExtResource("3_portrait")
+cut_in_title = ExtResource("4_title")
+cut_in_sound = ExtResource("6_cue")
+cut_in_accent = Color(1, 0.29, 0.35, 1)
+cooldown_seconds = 90.0
+starts_on_cooldown = true
+effect = SubResource("BarrageEffect")

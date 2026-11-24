@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "image_scale": 0.5,
+  "canvas_size": [
+    102,
+    160
+  ],
+  "foot_point": [
+    51,
+    160
+  ],
+  "hp": 600,
+  "damage_thresholds": [
+    0,
+    120,
+    240,
+    360,
+    450,
+    540
+  ],
+  "layer_order": [
+    "back",
+    "frozen_imp",
+    "front"
+  ],
+  "alignment_note": "Authored PNG files have no original rig offsets. All back layers align bottom-right in the largest back canvas; front canvases align bottom-center. Pixels are mechanically resized only.",
+  "stages": [
+    {
+      "index": 0,
+      "damage_threshold": 0,
+      "front": {
+        "file": "front_0.png",
+        "size": [
+          98,
+          156
+        ],
+        "canvas_position": [
+          2.0,
+          4
+        ],
+        "offset": [
+          -49.0,
+          -156
+        ],
+        "source_file": "frostbite_ice_block_zombie_153x243.png"
+      },
+      "back": {
+        "file": "back_0.png",
+        "size": [
+          102,
+          160
+        ],
+        "canvas_position": [
+          0,
+          0
+        ],
+        "offset": [
+          -51,
+          -160
+        ],
+        "source_file": "frostbite_ice_block_zombie_behind_159x250.png"
+      }
+    },
+    {
+      "index": 1,
+      "damage_threshold": 120,
+      "front": {
+        "file": "front_1.png",
+        "size": [
+          98,
+          156
+        ],
+        "canvas_position": [
+          2.0,
+          4
+        ],
+        "offset": [
+          -49.0,
+          -156
+        ],
+        "source_file": "frostbite_ice_block_zombie_153x243_2.png"
+      },
+      "back": {
+        "file": "back_1.png",
+        "size": [
+          102,
+          158
+        ],
+        "canvas_position": [
+          0,
+          2
+        ],
+        "offset": [
+          -51,
+          -158
+        ],
+        "source_file": "frostbite_ice_block_zombie_behind_159x247_3.png"
+      }
+    },
+    {
+      "index": 2,
+      "damage_threshold": 240,
+      "front": {
+        "file": "front_2.png",
+        "size": [
+          98,
+          156
+        ],
+        "canvas_position": [
+          2.0,
+          4
+        ],
+        "offset": [
+          -49.0,
+          -156
+        ],
+        "source_file": "frostbite_ice_block_zombie_153x243_3.png"
+      },
+      "back": {
+        "file": "back_2.png",
+        "size": [
+          102,
+          158
+        ],
+        "canvas_position": [
+          0,
+          2
+        ],
+        "offset": [
+          -51,
+          -158
+        ],
+        "source_file": "frostbite_ice_block_zombie_behind_159x247_2.png"
+      }
+    },
+    {
+      "index": 3,
+      "damage_threshold": 360,
+      "front": {
+        "file": "front_3.png",
+        "size": [
+          98,
+          156
+        ],
+        "canvas_position": [
+          2.0,
+          4
+        ],
+        "offset": [
+          -49.0,
+          -156
+        ],
+        "source_file": "frostbite_ice_block_zombie_153x243_4.png"
+      },
+      "back": {
+        "file": "back_3.png",
+        "size": [
+          102,
+          158
+        ],
+        "canvas_position": [
+          0,
+          2
+        ],
+        "offset": [
+          -51,
+          -158
+        ],
+        "source_file": "frostbite_ice_block_zombie_behind_159x247.png"
+      }
+    },
+    {
+      "index": 4,
+      "damage_threshold": 450,
+      "front": {
+        "file": "front_4.png",
+        "size": [
+          98,
+          156
+        ],
+        "canvas_position": [
+          2.0,
+          4
+        ],
+        "offset": [
+          -49.0,
+          -156
+        ],
+        "source_file": "frostbite_ice_block_zombie_153x243_5.png"
+      },
+      "back": {
+        "file": "back_4.png",
+        "size": [
+          85,
+          158
+        ],
+        "canvas_position": [
+          17,
+          2
+        ],
+        "offset": [
+          -34,
+          -158
+        ],
+        "source_file": "frostbite_ice_block_zombie_behind_133x247.png"
+      }
+    },
+    {
+      "index": 5,
+      "damage_threshold": 540,
+      "front": {
+        "file": "front_5.png",
+        "size": [
+          98,
+          156
+        ],
+        "canvas_position": [
+          2.0,
+          4
+        ],
+        "offset": [
+          -49.0,
+          -156
+        ],
+        "source_file": "frostbite_ice_block_zombie_153x243_6.png"
+      },
+      "back": {
+        "file": "back_5.png",
+        "size": [
+          73,
+          158
+        ],
+        "canvas_position": [
+          29,
+          2
+        ],
+        "offset": [
+          -22,
+          -158
+        ],
+        "source_file": "frostbite_ice_block_zombie_behind_114x247.png"
+      }
+    }
+  ]
+}

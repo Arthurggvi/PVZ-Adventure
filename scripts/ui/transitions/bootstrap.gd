@@ -15,6 +15,8 @@ var _failed := false
 
 ## 启动时异步进入菜单，失败保持本页面并显示错误。
 func _ready() -> void:
+	if OS.has_feature("android"):
+		print("PVZ startup: bootstrap_ready elapsed_ms=", Time.get_ticks_msec())
 	_transition.transition_failed.connect(_show_failure)
 	_transition.revealed.connect(_on_revealed)
 	_request_menu()

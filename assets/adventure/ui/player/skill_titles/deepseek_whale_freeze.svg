@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="776" height="340" viewBox="0 0 388 170">
+  <title>冻结海洋</title>
+  <defs>
+    <linearGradient id="face" gradientUnits="userSpaceOnUse" x1="12" y1="14" x2="30" y2="112">
+      <stop stop-color="#fbffff"/>
+      <stop offset=".44" stop-color="#b4f8ff"/>
+      <stop offset=".63" stop-color="#65bcf1"/>
+      <stop offset="1" stop-color="#5573cd"/>
+    </linearGradient>
+    <g id="strokes" fill="none" stroke-linecap="square" stroke-linejoin="bevel">
+      <path transform="translate(13 18) skewX(-4)" d="M9 32 21 42 M8 89 19 64 M31 33 77 30 M47 15 32 58 73 55 M54 46 54 99 45 108 36 104 M41 74 25 94 M66 73 78 92"/>
+      <path transform="translate(105 18) skewX(-4)" d="M26 15 12 45 30 43 M32 33 12 70 31 65 M10 94 34 83 M40 32 79 29 M58 15 57 51 M43 51 75 49 M44 67 73 65 72 101 43 103Z"/>
+      <path transform="translate(196 18) skewX(-4)" d="M10 28 22 36 M6 52 19 58 M8 96 21 75 M45 15 31 36 79 32 M43 45 74 44 72 91 66 102 55 103 M43 45 35 89 78 87 M28 66 81 64 M53 49 61 58 M49 72 58 82"/>
+      <path transform="translate(286 18) skewX(-4)" d="M11 26 23 36 M6 51 18 59 M8 96 20 76 M40 16 49 31 M71 15 63 31 M33 41 80 38 M37 63 75 60 M31 85 82 82 M56 42 55 109"/>
+    </g>
+  </defs>
+  <path d="M5 46 17 38 12 58Z M98 135 110 126 104 143Z M198 33 211 22 206 40Z M369 126 385 118 374 141Z" fill="#b1f7ff" opacity=".77"/>
+  <path d="M14 145Q79 126 140 148T264 145Q322 138 372 140" fill="none" stroke="#91ddff" stroke-width="1.5" opacity=".65"/>
+  <use xlink:href="#strokes" x="1.7" y="6" stroke="#0a2349" stroke-width="16"/>
+  <use xlink:href="#strokes" y="2.6" stroke="#2d599d" stroke-width="14"/>
+  <use xlink:href="#strokes" stroke="#0a2349" stroke-width="12"/>
+  <use xlink:href="#strokes" stroke="#ddfbff" stroke-width="9.2"/>
+  <use xlink:href="#strokes" stroke="url(#face)" stroke-width="7.6"/>
+</svg>

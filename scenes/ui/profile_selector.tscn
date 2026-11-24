@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" uid="uid://parybxg7tb1k" path="res://scripts/ui/PVZ_button_base.gd" id="5_j2mjb"]
 [ext_resource type="FontFile" uid="uid://dqb8lum530s2f" path="res://assets/fonts/方正少儿_GBK.ttf" id="54_343qg"]
@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://bubdoydqtlc6d" path="res://scripts/start_menu/panel_create_new_user.gd" id="79_xqlaa"]
 [ext_resource type="Script" uid="uid://b6dhsamdijupk" path="res://scripts/start_menu/panel_rename_user.gd" id="81_dj5t5"]
 [ext_resource type="Script" uid="uid://cwusfudks6mhf" path="res://scripts/ui/dialog_error.gd" id="82_krdmy"]
+[ext_resource type="Script" path="res://scripts/ui/content_scroll.gd" id="83_content_scroll"]
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_altii"]
 texture = ExtResource("75_ito2j")
 texture_margin_left = 60.0
@@ -127,15 +128,17 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_altii")
 [node name="ScrollContainer" type="ScrollContainer" parent="Panel/PanelContainer" unique_id=1195160765]
 custom_minimum_size = Vector2(350, 260)
 layout_mode = 2
+script = ExtResource("83_content_scroll")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel/PanelContainer/ScrollContainer" unique_id=1851056741]
-custom_minimum_size = Vector2(450, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 5
 
 [node name="ButtonCreate" type="Button" parent="Panel/PanelContainer/ScrollContainer/VBoxContainer" unique_id=1899630750]
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
+mouse_filter = 1
 
 [node name="Label" type="Label" parent="Panel/PanelContainer/ScrollContainer/VBoxContainer/ButtonCreate" unique_id=31457117]
 layout_mode = 1

@@ -1,0 +1,58 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/character_000_base.tscn" id="base"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/ming_lantern/ming_lantern_rod.gd" id="rod"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_static.gd" id="anim"]
+
+[sub_resource type="RectangleShape2D" id="hurt"]
+size = Vector2(82, 89)
+
+[node name="MingLanternRod" instance=ExtResource("base")]
+script = ExtResource("rod")
+random_speed_range = Vector2(1, 1)
+
+[node name="Shadow" parent="." index="0"]
+visible = false
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("anim")
+
+[node name="HpComponent" parent="." index="3"]
+max_hp = 2000
+
+[node name="ProgressBarHp" type="ProgressBar" parent="HpComponent"]
+unique_name_in_owner = true
+offset_left = -17.0
+offset_top = -114.0
+offset_right = 45.0
+offset_bottom = -107.0
+mouse_filter = 2
+max_value = 1.0
+value = 1.0
+show_percentage = false
+
+[node name="LabelHp" type="Label" parent="HpComponent"]
+unique_name_in_owner = true
+offset_left = -19.0
+offset_top = -135.0
+offset_right = 47.0
+offset_bottom = -114.0
+mouse_filter = 2
+text = "2000"
+horizontal_alignment = 1
+
+[node name="HurtBoxComponent" parent="." index="4"]
+position = Vector2(20, -34)
+
+[node name="HurtBoxDetection" parent="HurtBoxComponent" index="0"]
+collision_layer = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection"]
+shape = SubResource("hurt")
+
+[node name="HurtBoxReal" parent="HurtBoxComponent" index="1"]
+collision_layer = 512
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(0, 0)
+shape = SubResource("hurt")

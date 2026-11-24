@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CharacterSkillDefinition" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/skills/character_skill_definition.gd" id="definition"]
+[ext_resource type="Script" path="res://scripts/adventure/skills/tiramisu_guard_effect.gd" id="effect"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/tiramisu_flower_crown.png" id="portrait"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/skill_titles/tiramisu_flower_guard.svg" id="title"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/outfit_icons/tiramisu_flower_crown.png" id="icon"]
+
+[sub_resource type="Resource" id="FlowerGuardEffect"]
+script = ExtResource("effect")
+
+[resource]
+script = ExtResource("definition")
+id = &"tiramisu_flower_guard"
+display_name = "花冠守护"
+description = "立刻在最前方的僵尸面前升起一道横跨全行的屏障，共享 500,000 点生命，最多持续 20 秒。屏障存在时，全体植物获得 70% 减伤。开战时进入冷却。"
+icon = ExtResource("icon")
+cut_in_portrait = ExtResource("portrait")
+cut_in_title = ExtResource("title")
+cut_in_accent = Color(1, 0.76, 0.37, 1)
+cooldown_seconds = 120.0
+starts_on_cooldown = true
+effect = SubResource("FlowerGuardEffect")

@@ -58,9 +58,13 @@ var _tier_active_at_death := true
 var _native_direction_x_root: int = 0
 ## 持续能力据此撤销或恢复自己的输出，禁止重建初始化奖励。
 signal signal_tier_skills_changed(active: bool)
+## [param visual] 是已独立于脚点的真死亡残余；[param velocity] 保留原有世界抛速。
+signal signal_zombie_death_residue(visual: Node2D, velocity: Vector2)
 
 ## 设置 [param source_id] 的沉默 [param suppressed]，死亡期间只清理登记而不改变冻结资格。
 func set_tier_suppressed(source_id: int, suppressed: bool) -> void:
+	if suppressed and not can_receive_control_effects():
+		return
 	var before: bool = are_tier_skills_active() # 只在总资格改变时广播。
 	if suppressed:
 		_tier_suppressors[source_id] = true
@@ -82,7 +86,13 @@ func _capture_tier_death_state() -> void:
 ## 返回是否仍为载具整体；散架后的单个雪橇僵尸属于普通僵尸。
 func is_vehicle() -> bool:
 	return zombie_type in [CharacterRegistry.ZombieType.Z013Zamboni,
-		CharacterRegistry.ZombieType.Z014Bobsled, CharacterRegistry.ZombieType.Z023Catapult]
+		CharacterRegistry.ZombieType.Z014Bobsled, CharacterRegistry.ZombieType.Z023Catapult,
+		CharacterRegistry.ZombieType.Z034Fighter, CharacterRegistry.ZombieType.Z038ArbiterX]
+
+## [param row] 供攻击者按实际行筛选多行受击机体；普通角色只接受自身行。
+func covers_attack_lane(row: int) -> bool:
+	return row == lane
+
 
 ## [param direction_x] 是原生行为期望的朝向，恐惧只在最终方向上额外取反。
 func update_direction_x_root(direction_x: int) -> void:
@@ -100,11 +110,38 @@ func refresh_flee_direction() -> void:
 
 ## 向右击退越过清场边界后，允许仍在向战场移动的僵尸走回来。
 var nonlethal_displacement_exile := false
+## 正式从右侧入场的完成坐标，单位为世界像素；正无穷表示无未完成的入场。
+var _right_entry_end_x: float = INF
+## 逃跑、撤退和清场沿用死亡信号清理登记；该同步退场期间不记玩家击杀。
+var retiring_from_battle := false
 ## Original combat spawn modifier; used to derive explicit child-spawn policy.
 var combat_spawn_modifier: ZombieSpawnModifier = null
 
 func inherited_child_modifier() -> ZombieSpawnModifier:
 	return combat_spawn_modifier.for_child() if combat_spawn_modifier != null else null
+
+## 在场外出生后登记入场，[param end_x] 是首次向左到达即完成入场的世界 X。
+func begin_right_entry(end_x: float) -> void:
+	if is_finite(end_x) and global_position.x > end_x:
+		_right_entry_end_x = end_x
+		set_notify_transform(true)
+
+## 只有仍在右侧等待入场的敌人有资格绕过波次越界清理。
+func is_right_entry_pending() -> bool:
+	return not is_hypno and is_finite(_right_entry_end_x) and global_position.x > _right_entry_end_x
+
+## 越过入场终点后销掉本次登记；之后的吹退由独立位移规则处理。
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_TRANSFORM_CHANGED and is_finite(_right_entry_end_x) \
+			and global_position.x <= _right_entry_end_x:
+		_right_entry_end_x = INF
+		set_notify_transform(false)
+
+## 返回尚未独立入场的后续形态生命，单位为生命点；只供波次预算读取。
+## 默认没有封存形态；派生类可覆盖，但不得把该值混入当前受击组件的血量。
+func contained_zombie_wave_health() -> int:
+	return 0
+
 ## 是否参与自然出怪的提前刷新数量统计；博士召唤及其衍生僵尸为 false，全场计数不受影响。
 var participates_natural_refresh: bool = true
 ## 战场内换行会短暂离树；管理器在这次重挂期间保留原有登记。
@@ -216,6 +253,8 @@ enum E_ZInitAttr{
 	IsZombieMode,		## 是否为我是僵尸模式的僵尸，气球落地,撑杆食脑
 	## 是否参与自然出怪提前刷新，子僵尸继承来源；默认 true 保留原有生成方式的行为。
 	ParticipatesNaturalRefresh,
+	## 生成管理器在角色就绪后、登记前完成魅惑，使子代直接加入友军。
+	StartsHypnotized,
 }
 
 ## 修改初始化状态，在添加到场景树之前调用
@@ -310,8 +349,18 @@ var judge_battlefield_timer:Timer
 ## 进入战场信号
 signal signal_enter_battlefield
 
-## 僵尸判断宽屏战场外移动加速
-func judge_battlefield_update_speed():
+## 出战初始化时选择棋盘指定的末列加速区或既有宽屏入场逻辑。
+func judge_battlefield_update_speed() -> void:
+	var game: MainGameManager = Global.main_game # 当前角色所用的关卡规则与棋盘。
+	if is_instance_valid(game):
+		if not game.game_para.accelerate_offscreen_zombies:
+			return
+		var board: BoardRuntime = game.board # 已装配的格位提供实际世界边界。
+		if board != null and board.definition != null and board.definition.accelerate_entry_from_last_column:
+			var cell: PlantCell = board.cell_at(Vector2i(lane, board.extent.y - 1)) # 当前攻击行的最右列。
+			if cell != null:
+				move_component.begin_entry_acceleration(cell.get_global_rect().position.x)
+			return
 	if global_position.x >= 800:
 		## 初始化角色速度
 		update_speed_factor(2, E_Influence_Speed_Factor.OutBattlefield)
@@ -347,7 +396,7 @@ func ready_norm_signal_connect():
 			sfx_enter.finished.connect(func():is_sfxing = false)
 			hp_component.signal_hp_component_death.connect(_stop_sfx_enter)
 
-	hp_component.signal_zombie_hp_loss.connect(func(hp_loss:int): signal_zombie_hp_loss.emit(hp_loss, curr_wave))
+	hp_component.signal_zombie_hp_loss.connect(_relay_zombie_hp_loss)
 	## 角色死亡时禁用攻击组件
 	hp_component.signal_hp_component_death.connect(attack_component.disable_component.bind(ComponentNormBase.E_IsEnableFactor.Death))
 	## 攻击组件
@@ -395,6 +444,10 @@ func ready_norm_signal_connect():
 	## 对攻击影响,
 	signal_update_speed.connect(attack_component.owner_update_speed)
 
+## 将 [param hp_loss] 同步转发给当前波次，受击查询可核对这个固定回调的实际订阅者。
+func _relay_zombie_hp_loss(hp_loss: int) -> void:
+	signal_zombie_hp_loss.emit(hp_loss, curr_wave)
+
 ## 初始化展示角色
 func ready_show():
 	super()
@@ -420,12 +473,26 @@ func move_y_zombie(move_y:float):
 func change_is_swimming(value:bool):
 	is_swimming = value
 	move_component.update_move_factor(true, MoveComponent.E_MoveFactor.IsSwimingChange)
-	await get_tree().create_timer(0.2).timeout
+	await get_tree().create_timer(0.2, false).timeout
 	move_component.update_move_factor(false, MoveComponent.E_MoveFactor.IsSwimingChange)
 	if not swim_box_component.swim_pose_locked:
 		shadow.visible = not is_swimming
 
 #region 僵尸受伤、死亡、
+## 返回属于本场花园飞艇的死亡表现入口。其他战场和独立预览可直接沿用自己的表现。
+func airship_death_presentation() -> Node:
+	var game: MainGameManager = Global.main_game # 只在本实体所属战斗根节点下寻找表现服务。
+	if is_instance_valid(game) and game.is_ancestor_of(self):
+		return game.get_node_or_null(^"GardenAirshipDeath")
+	return null
+
+
+## 报告已按原逻辑脱落的 [param visual]；[param local_velocity] 是原碎片坐标的起始速度。
+func report_death_residue(visual: Node2D, local_velocity: Vector2) -> void:
+	if is_death and not retiring_from_battle and signal_zombie_death_residue.has_connections():
+		signal_zombie_death_residue.emit(visual, visual.global_transform.basis_xform(local_velocity))
+
+
 ## 角色死亡
 func character_death():
 	_capture_tier_death_state()
@@ -452,6 +519,16 @@ func character_death_disappear():
 	is_can_death_language = false
 	hp_component.Hp_loss_death(false)
 	queue_free()
+
+## 非击杀退场，继续派发原死亡与波次通知。[param keep_body] 为真时保留原死亡演出。
+func retire_from_battle(keep_body: bool = false) -> void:
+	var was_retiring: bool = retiring_from_battle # 保留嵌套同步退场的状态，未死亡的特例仍可被后续命中击杀。
+	retiring_from_battle = true
+	if keep_body:
+		character_death_not_disappear()
+	else:
+		character_death_disappear()
+	retiring_from_battle = was_retiring
 
 ## 被小推车碾压
 func be_mowered_run(lawn_mover:LawnMover):
@@ -503,7 +580,7 @@ func be_mowered_run_anim_norm(lawn_mover:LawnMover):
 		node_drop.visible = true
 		node_drop.acitvate_it_on_ground(lawn_mover.global_position.x)
 		SoundManager.play_character_SFX("limbs_pop")
-		await get_tree().create_timer(0.1).timeout
+		await get_tree().create_timer(0.1, false).timeout
 
 
 ## 被水草缠住后锁定目标、动作及游泳过渡，等待拖拽动画结算。
@@ -514,6 +591,32 @@ func begin_pool_grab() -> void:
 	move_component.update_move_factor(true, MoveComponent.E_MoveFactor.IsDeath)
 	move_component.cancel_forced_displacement()
 	swim_box_component.lock_swim_pose()
+
+## 只在本次伤害实际击杀了敌方普通僵尸时通知仍存活的魅惑攻击者。
+signal signal_hypno_enemy_killed(victim: Zombie000Base)
+
+## [param attack_value] 是本次啃食伤害；[param attacker] 接收生命路由确认的实际死者。
+func be_zombie_eat(attack_value: int, attacker: Zombie000Base) -> void:
+	if not is_instance_valid(attacker) or not attacker.signal_hypno_enemy_killed.has_connections():
+		super.be_zombie_eat(attack_value, attacker)
+		return
+	var health := hp_component as HpComponentZombie # 沿用穿透、代伤和护甲处理。
+	attacker.report_hypno_kill(health.apply_hit(attack_value, BulletRegistry.AttackMode.Penetration, true, false))
+
+## 以原生穿透入口伤害 [param target]。[param damage] 是原始攻击值。
+## [param drop] 和 [param sfx] 沿用原生表现；只在有杀敌监听时构造回执。
+func hit_as_hypnotized(target: Zombie000Base, damage: int, drop: bool, sfx: bool) -> void:
+	var receipt: Variant = {} if signal_hypno_enemy_killed.has_connections() else null # 不让普通群伤分配无用回执。
+	var amount: int = hp_component.outgoing_damage(damage) if hp_component.missing_health_damage_per_percent > 0.0 else damage # 普通爆炸和巨人保留原始基数。
+	target.be_attacked_bullet(amount, BulletRegistry.AttackMode.Penetration, drop, sfx, 0, -1, receipt)
+	if receipt != null:
+		report_hypno_kill(receipt.get("casualty") as Zombie000Base)
+
+## 发布 [param victim] 的一次真实击杀；死亡、退场和友军都没有复制资格。
+func report_hypno_kill(victim: Zombie000Base) -> void:
+	if is_hypno and not is_death and not is_queued_for_deletion() and is_instance_valid(victim) \
+			and victim != self and victim.is_death and not victim.is_hypno and not victim.retiring_from_battle:
+		signal_hypno_enemy_killed.emit(victim)
 
 ## 承受 [param attack_value] 点爆炸伤害，返回本次实际击杀的僵尸。
 ## [param is_cherry_bomb] 为 true 时，普通致死爆炸使用原版灰烬演出。
@@ -537,6 +640,7 @@ func be_bomb(attack_value: int, is_cherry_bomb: bool = false, armor_multiplier: 
 		## 在在灰烬动画条件下
 		if is_cherry_bomb and (not is_swimming or not curr_be_attack_status != E_BeAttackStatusZombie.IsDownGround):
 			charred_component.play_charred_anim()
+			report_death_residue(charred_component, Vector2.ZERO)
 		queue_free()
 	set_deferred("is_can_death_language", true)
 	return casualty
@@ -555,14 +659,18 @@ func be_chomper_eat(attack_value:int):
 	#await get_tree().process_frame
 	set_deferred("is_can_death_language", true)
 
-## 被倭瓜压
-func be_squash(attack_value:int=1800):
+## 承受 [param attack_value] 压砸伤害；[param armor_multiplier] 修正防具消耗，[param hit_scope] 观察真正的承伤者。
+## 返回本次实际被压死的敌人，保护者承伤后可能与原目标不同。
+func be_squash(attack_value: int = 1800, armor_multiplier: float = 1.0,
+		hit_scope: CombatHitScope = null) -> Zombie000Base:
 	is_can_death_language = false
-	hp_component.Hp_loss(attack_value,BulletRegistry.AttackMode.Penetration, false, false)
+	var health := hp_component as HpComponentZombie # 原生穿透及防具状态统一从僵尸生命入口结算。
+	var casualty: Zombie000Base = health.apply_hit(attack_value, BulletRegistry.AttackMode.Penetration,
+		false, false, true, armor_multiplier, 0, -1, null, hit_scope)
 	if is_death:
 		queue_free()
-	#await get_tree().process_frame
 	set_deferred("is_can_death_language", true)
+	return casualty
 
 #endregion
 ## 铁器被吸走
@@ -610,6 +718,23 @@ func is_stunned() -> bool:
 	return influence_speed_factors.get(E_Influence_Speed_Factor.Stun, 1.0) == 0.0
 
 
+## 返回是否正在执行会自行落地的原生飞行；普通行走及气球不受此临时门禁影响。
+## 飞行者独占自身位移和身体抬升，房屋只在该状态结束后判断地面投影。
+func is_native_airborne() -> bool:
+	return false
+
+
+## Blover target category is independent from the actual normal hit layer.
+func is_blover_flying_target() -> bool:
+	return curr_be_attack_status == E_BeAttackStatusZombie.IsSky
+
+
+## 原生飞行者可接管三叶草向右吹退 [param _cells] 格；[param _flying] 为本次风力判定的天空状态。
+## 默认返回 false，由共用风服务继续执行既有地面/气球规则；不得同时建立两条位移。
+func handle_blover_wind(_cells: int, _flying: bool) -> bool:
+	return false
+
+
 ## 返回是否因水草缠绕、眩晕、恐惧或抛起暂停攻击和跳跃行为。
 func is_action_suspended() -> bool:
 	return curr_be_attack_status == E_BeAttackStatusZombie.IsDraggedUnder \
@@ -619,12 +744,16 @@ func is_action_suspended() -> bool:
 
 ## [param duration] 为负面效果入口验证过的游戏秒数；连续命中只延长当前剩余时间。
 func be_stunned(duration: float) -> void:
+	if not can_receive_control_effects():
+		return
 	# 每个僵尸复用一个随场景暂停的计时器，由角色持有并随角色释放。
 	var timer: Timer = all_timer[E_TimerType.Stun]
 	if not is_instance_valid(timer):
 		timer = GlobalUtils.create_new_timer_once(self, _end_stun)
 		timer.process_callback = Timer.TIMER_PROCESS_PHYSICS
 		all_timer[E_TimerType.Stun] = timer
+		# 多发眩晕复用同一个死亡清理连接。
+	if not signal_character_death.is_connected(_end_stun):
 		signal_character_death.connect(_end_stun, CONNECT_ONE_SHOT)
 	if timer.time_left < duration:
 		timer.start(duration)
@@ -644,7 +773,7 @@ func _end_stun() -> void:
 ## 黄油糊脸
 ##[butter_time:float]:黄油糊脸时间
 func be_butter(butter_time:float=4):
-	if not is_death:
+	if not is_death and can_receive_control_effects():
 		## 黄油节点
 		if not is_instance_valid(butter_splat):
 			butter_splat = SceneRegistry.BUTTER_SPLAT.instantiate()
@@ -674,6 +803,8 @@ func _on_butter_timer_timeout() -> void:
 #region 僵尸吃大蒜换行
 ## 大蒜反应结束后，仍存活的僵尸开始换行。
 func update_lane_on_eat_garlic():
+	if not can_receive_control_effects():
+		return
 	SoundManager.play_character_SFX("yuck")
 	update_speed_factor(0.0, E_Influence_Speed_Factor.EatGarlic)
 	await get_tree().create_timer(0.5, false).timeout
@@ -694,11 +825,11 @@ func update_lane() -> void:
 	if not move_component.can_receive_forced_displacement():
 		return
 	var rows: Array[ZombieRow] = game.zombie_manager.all_zombie_rows # 行索引与战斗登记一致。
-	if lane < 0 or lane >= rows.size():
+	if not game.zombie_manager.is_lane_open(lane):
 		return
 	var available: Array[int] = [] # 能保持当前陆地或水路状态的相邻行。
 	for neighbor: int in [lane - 1, lane + 1]: # 当前行的两侧候选。
-		if neighbor >= 0 and neighbor < rows.size() and rows[neighbor].zombie_row_type == curr_zombie_row_type:
+		if game.zombie_manager.is_lane_open(neighbor) and rows[neighbor].zombie_row_type == curr_zombie_row_type:
 			available.append(neighbor)
 	if available.is_empty():
 		return

@@ -1,0 +1,88 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/zombie/zombie_030_troglobite.gd" id="2_zombie"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_imported.gd" id="3_animation"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/troglobite/sprite_frames.tres" id="4_frames"]
+[ext_resource type="Script" path="res://scripts/resources/resource_body_change.gd" id="5_body_change"]
+[ext_resource type="Script" path="res://scripts/character/zombie/troglobite/troglobite_push.gd" id="6_push"]
+[ext_resource type="Script" path="res://scripts/character/zombie/troglobite/troglobite_ice_train.gd" id="7_train"]
+[ext_resource type="Script" path="res://scripts/character/components/attack_behavior_component/component_attack_zombie_imported.gd" id="8_attack"]
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_031_yeti_imp.tscn" id="9_imp"]
+[ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred_black_anim.gd" id="10_charred"]
+
+[sub_resource type="CapsuleShape2D" id="TroglobiteBody"]
+radius = 29.0
+height = 132.0
+
+[sub_resource type="RectangleShape2D" id="TroglobiteBite"]
+size = Vector2(52, 8)
+
+[node name="Zombie030Troglobite" instance=ExtResource("1_base")]
+script = ExtResource("2_zombie")
+zombie_type = 30
+is_ignore_ladder = true
+random_speed_range = Vector2(1, 1)
+
+[node name="Shadow" parent="." index="0"]
+scale = Vector2(1.5, 1.0)
+
+[node name="SourceSprite" type="AnimatedSprite2D" parent="Body" index="2"]
+unique_name_in_owner = true
+sprite_frames = ExtResource("4_frames")
+animation = &"idle"
+offset = Vector2(-41.25, -72)
+
+[node name="HeadAnchor" type="Marker2D" parent="Body" index="3"]
+position = Vector2(-48, -115)
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("3_animation")
+
+[node name="HpStageChangeComponent" parent="." index="3"]
+boundary_value_hp = Array[int]([445, 224])
+body_change = Array[ExtResource("5_body_change")]([null, null])
+
+[node name="HpComponent" parent="." index="4"]
+position = Vector2(-8, -145)
+max_hp_armor1 = 0
+max_hp_armor2 = 0
+max_hp = 670
+
+[node name="CharredComponent" parent="." index="5"]
+script = ExtResource("10_charred")
+
+[node name="AttackComponent" parent="." index="6"]
+script = ExtResource("8_attack")
+
+[node name="Area2d" parent="AttackComponent/DetectComponent" index="0"]
+position = Vector2(-35, -35)
+
+[node name="CollisionShape2D" parent="AttackComponent/DetectComponent/Area2d" index="0"]
+shape = SubResource("TroglobiteBite")
+
+[node name="MoveComponent" parent="." index="7"]
+move_mode = 1
+ori_speed = 14.545455
+
+[node name="HurtBoxComponent" parent="." index="10"]
+x_correct_on_attack = 0.0
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection" index="0"]
+position = Vector2(-12, -69)
+shape = SubResource("TroglobiteBody")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(-12, -69)
+shape = SubResource("TroglobiteBody")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetectionOnAttack" index="0"]
+position = Vector2(-12, -69)
+shape = SubResource("TroglobiteBody")
+
+[node name="IcePush" type="Node" parent="." index="11"]
+script = ExtResource("6_push")
+
+[node name="IceTrain" type="Node" parent="." index="12"]
+script = ExtResource("7_train")
+frozen_imp_scene = ExtResource("9_imp")

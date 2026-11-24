@@ -20,7 +20,6 @@ static func render(owner: Control, target: Control, mode: String,
 	for child: Node in target.get_children():
 		target.remove_child(child)
 		child.queue_free()
-	Slots.choices(owner, target, options, picker)
 	match mode:
 		"craft":
 			_craft(target, preview, coin_balance)
@@ -28,6 +27,8 @@ static func render(owner: Control, target: Control, mode: String,
 			ModeView.upgrade(owner, target, preview, picker, inventory, coin_balance)
 		"promotion":
 			ModeView.promotion(owner, target, preview, picker, inventory, coin_balance)
+	# 强化主卡属性排在可见候选卡面之前，避免详情等完整候选网格装配。
+	Slots.choices(owner, target, options, picker)
 
 ## 在 [param parent] 显示 [param preview] 的产物和材料。产物居于上排，材料按固定位置放在下排。
 ## 右侧显示配方卷轴用量及金币费用，[param coin_balance] 不足时价格标红。

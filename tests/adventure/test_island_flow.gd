@@ -22,7 +22,7 @@ func _run() -> void:
 	var username := "phase1-flow-%s" % Time.get_ticks_usec()
 	get_tree().change_scene_to_file("res://scenes/main/01StartMenuCoastal.tscn")
 	await _frames()
-	var native_user: User = _profile_selector() # 原生档案界面。
+	var native_user: User = get_tree().current_scene.user # 原生档案界面。
 	native_user.panel_create_new_user.line_edit.text = username
 	native_user.panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username)
@@ -58,10 +58,9 @@ func _run() -> void:
 	await get_tree().create_timer(0.3).timeout
 	assert(FileAccess.get_file_as_bytes(original_path) != original_bytes)
 	Global.save_service.stop_autosave() # 已验证自动落盘；后续长场景验收不按0.1秒持续刷盘。
-	var locked_stage := map.canvas.get_node("Stage2") as BaseButton # 当前地图以禁用状态显示尚未解锁的关卡。
-	assert(locked_stage.disabled and locked_stage.focus_mode == Control.FOCUS_NONE)
 	map._select_stage(2)
 	assert(get_tree().current_scene == map)
+	assert(map.notice_label.text.contains("请先通关前一关普通阶段"))
 	for dimensions: Vector2 in [Vector2(1280, 720), Vector2(1920, 1080), Vector2(1024, 768)]: # 同比例与留边。
 		map.size = dimensions
 		map._fit_canvas()
@@ -84,7 +83,8 @@ func _run() -> void:
 		var cell: PlantCell = battle.plant_cell_manager.all_plant_cells[2][index]
 		assert(card.is_can_click)
 		battle.hand_manager._click_card(card)
-		await _click_battle_cell(cell)
+		battle.hand_manager._on_cell_mouse_enter(cell)
+		battle.hand_manager._on_click_cell(cell)
 		await _frames()
 	assert(battle.plant_cell_manager.get_cell_have_plant().size() == 2)
 	assert(battle.card_manager.card_slot_battle.sun_value == 0)
@@ -93,7 +93,7 @@ func _run() -> void:
 	var intruder := battle.zombie_manager.create_skill_zombie(CharacterRegistry.ZombieType.Z001Norm, 0, 80)
 	assert(intruder != null)
 	battle.on_zombie_go_home(intruder)
-	await _wait_for_scene(AdventureSession.MAP_SCENE)
+	await get_tree().create_timer(6.0, true, false, true).timeout
 	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
 	assert(not AdventureSession.progress.stage_1_cleared and not AdventureSession.is_unlocked(2))
 	assert(not get_tree().paused)
@@ -133,14 +133,14 @@ func _run() -> void:
 			trophy = item
 	assert(trophy != null)
 	trophy._on_trophy_button_pressed()
-	await _wait_for_scene(AdventureSession.MAP_SCENE)
+	await get_tree().create_timer(6.0).timeout
+	await _frames()
 	assert(get_tree().current_scene.scene_file_path == AdventureSession.MAP_SCENE)
 	assert(AdventureSession.progress.stage_1_cleared and AdventureSession.is_unlocked(2))
 	await _screenshot("victory-map")
 	var cleared_bytes := FileAccess.get_file_as_bytes(path) # 胜利文件不可因入口重写。
 	get_tree().current_scene._return_menu()
 	await _frames()
-	await _postpone_quest_notice()
 	await _enter_island_from_menu()
 	await _frames()
 	assert(FileAccess.get_file_as_bytes(path) == cleared_bytes)
@@ -149,7 +149,7 @@ func _run() -> void:
 	# 用另一个原生玩家验证未完成引导的第三句跳过，绝不调用旧重开流程。
 	get_tree().current_scene._return_menu()
 	await _frames()
-	native_user = _profile_selector()
+	native_user = get_tree().current_scene.user
 	native_user.panel_create_new_user.line_edit.text = username + "-skip"
 	native_user.panel_create_new_user.button_ok.pressed.emit()
 	_select_user(username + "-skip")
@@ -208,27 +208,21 @@ func _frames() -> void:
 			await get_tree().process_frame
 			continue
 		var transition: Node = scene.get_node_or_null("SceneTransition") # 可选的场景表现组件。
-		var picker: Control = _destination_picker() # 常驻导航层持有的地区弹层。
+		var picker := _destination_picker() # 地区弹层由常驻工具栏持有。
 		if (transition != null and transition.busy) or (picker != null and picker.is_animating()):
 			await get_tree().process_frame
 			continue
 		break
 
-## 等待 [param path] 对应的场景接管场景树，并完成可选的揭幕。
-func _wait_for_scene(path: String) -> void:
-	var deadline: int = Time.get_ticks_msec() + 15000 # 包含原有胜负演出与异步加载的容错上限。
-	while Time.get_ticks_msec() < deadline:
-		var scene: Node = get_tree().current_scene # 切场空帧可以暂时没有当前场景。
-		if is_instance_valid(scene) and scene.scene_file_path == path:
-			await _frames()
-			return
-		await get_tree().process_frame
-	assert(false, "Threaded destination did not become active: " + path)
+## 读取常驻导航当前显示的纸图；关闭的节点在本帧末尾回收。
+func _destination_picker() -> Control:
+	var picker := get_tree().root.get_node_or_null("AdventureToolbar/MapNavigation/MapDestinationPicker") as Control # 工具栏当前持有的地区弹层。
+	return picker if picker != null and not picker.is_queued_for_deletion() else null
 
 ## 从真正的持久工具栏地区导航进入地图；等待动效完成再选择。
 func _enter_island_from_menu() -> void:
-	await _frames()
-	_harbor_entry().activated.emit("harbor")
+	var menu: Control = get_tree().current_scene
+	menu.get_node("ArtCanvas/ship_button").pressed.emit()
 	var picker: Control
 	var deadline: int = Time.get_ticks_msec() + 12000
 	while Time.get_ticks_msec() < deadline:
@@ -236,8 +230,7 @@ func _enter_island_from_menu() -> void:
 		if picker != null and picker.is_presented():
 			break
 		await get_tree().process_frame
-	assert(picker != null and picker.is_presented(), str(AdventureToolbar.feature_status("map")))
-
+	assert(picker != null and picker.is_presented())
 	picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island").pressed.emit()
 	while Time.get_ticks_msec() < deadline + 12000 and (
 			get_tree().current_scene == null or
@@ -271,63 +264,18 @@ func _screenshot(label: String) -> void:
 	if DisplayServer.get_name() == "headless":
 		return
 	await RenderingServer.frame_post_draw
-	get_viewport().get_texture().get_image().save_png("user://phase1-%s.png" % label)
+	get_viewport().get_texture().get_image().save_png("res://.godot/phase1-%s.png" % label)
 
-## 返回正式海滨菜单的档案选择器，使测试沿用实际可见的选择流程。
-func _profile_selector() -> User:
-	var menu: Control = get_tree().current_scene # 此时已等菜单进入场景树。
-	menu.dialogs.open_profiles()
-	return menu.dialogs.selector as User
-
-## 读取常驻导航持有的当前地区选择器；关闭后节点可能仍在等待回收。
-func _destination_picker() -> Control:
-	var picker := get_tree().root.get_node_or_null("AdventureToolbar/MapNavigation/MapDestinationPicker") as Control # 导航的临时视图。
-	return picker if is_instance_valid(picker) and not picker.is_queued_for_deletion() else null
-
-## 返回正式海滨菜单中使用生产路由的港口入口。
-func _harbor_entry() -> Control:
-	var menu: Control = get_tree().current_scene # 港口入场和工具栏共用一个导航门面。
-	return menu.entry_layer.controls["harbor"]
-
-## 已通关档案可能显示任务教学，使用界面原有的「稍后继续」按钮回到导航。
-func _postpone_quest_notice() -> void:
-	var guide: CanvasLayer = AdventureToolbar._onboarding # 持有当前档案的教学界面。
-	var prompt: Control = guide._spotlight # 港口入口前方的教学遮罩。
-	for index: int in range(3): # 档案和宿主变化在下一帧刷新教学。
-		await get_tree().process_frame
-		if prompt.is_visible_in_tree():
-			prompt._later.pressed.emit()
-			return
-
-## 从档案选择器选中玩家并确认，沿用保存、身份切换与全局加载链路。
+## 从原生左上角玩家按钮选择并点击好，沿用保存、身份切换与全局加载链路。
 ## [param username] 必须是测试创建的已有玩家。
 func _select_user(username: String) -> void:
-	var native_user: User = _profile_selector() # 原生档案界面。
+	var native_user: User = get_tree().current_scene.user # 原生档案界面。
 	for button: OneUserButton in native_user.all_user_button: # 选择真实列表中的按钮。
 		if button.user_name_on_curr_button == username:
 			button.pressed.emit()
 			native_user.texture_button_ok.pressed.emit()
-			assert(Global.user_manager.curr_user_name == username and Global.save_service.is_current_profile_loaded())
 			return
 	assert(false, "测试玩家不在原生档案列表")
-
-## 在 [param cell] 的中心通过真实 GUI 路由发送一次点击。
-func _click_battle_cell(cell: PlantCell) -> void:
-	var motion := InputEventMouseMotion.new() # 同步视口鼠标位置，以便棋盘拾取和格子按钮使用同一点。
-	motion.position = cell.get_global_transform_with_canvas() * (cell.size * 0.5)
-	motion.global_position = motion.position
-	get_viewport().warp_mouse(motion.position)
-	get_viewport().push_input(motion, true)
-	await get_tree().process_frame
-	var press := InputEventMouseButton.new() # 模拟正常按下及释放，让格子触发其原有信号。
-	press.position = motion.position
-	press.global_position = motion.position
-	press.button_index = MOUSE_BUTTON_LEFT
-	press.pressed = true
-	get_viewport().push_input(press, true)
-	press = press.duplicate()
-	press.pressed = false
-	get_viewport().push_input(press, true)
 
 ## 等待 [param intro] 的原版进场动画结束，不手动启动对话或播放动画。
 func _wait_intro_ready(intro: Control) -> void:

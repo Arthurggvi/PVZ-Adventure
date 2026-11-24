@@ -8,7 +8,7 @@ const NODE_NAME: StringName = &"AdventureSunBeanEffect"
 const DAMAGE_PER_PACKET: int = 25
 ## 每份结算单位的阳光价值；较大掉落由统一入口合并为正常尺寸。
 const SUN_PER_PACKET: int = 5
-## 受益的敌方角色，普通僵尸与僵王均使用同一血池损失信号。
+## 通过实际损失的战斗血池产光的角色。
 var _target: Character000Base
 ## 授予状态的战场，拒绝跨场景沿用。
 var _game: MainGameManager
@@ -18,16 +18,20 @@ var _round_index: int = -1
 var _phase: StagePhaseDefinition
 ## 每次光能赋予增加一层转换效率，不创建第二个节点或第二条监听。
 var _stacks: int = 0
+## 肉体改造在魅惑后单独施加友军光能。
+var _allied: bool = false
 ## 加权实际损伤积分；不足一个5阳光单位的部分留待下次。
 var _damage_credit: int = 0
 ## 同步死亡通知可能早于最后一次损失通知，仅允许该帧的真实损失完成结算。
 var _death_frame: int = -1
 
-## 为 [param target] 赋予一层光能；仅接受当前正式战场的存活敌人。
-static func apply_to(target: Character000Base) -> bool:
+## 为 [param target] 赋予光能。[param allied] 显式允许肉体改造的魅惑友军。
+## [param stacks] 和 [param credit] 可继承已有层数和未兑现积分，默认授予一层。
+static func apply_to(target: Character000Base, allied: bool = false, stacks: int = 1, credit: int = 0) -> bool:
 	var game: MainGameManager = Global.main_game # 不通过全局轮询查找受伤目标。
 	if not is_instance_valid(target) or not (target is Zombie000Base or target is ZB000Base) \
-			or target.is_death or target.is_hypno or target.is_queued_for_deletion() \
+			or not target.can_receive_negative_effects() \
+			or target.is_death or target.is_hypno != allied or target.is_queued_for_deletion() or stacks <= 0 \
 			or not target.is_inside_tree() or not is_instance_valid(target.hp_component) \
 			or target.character_init_type != Character000Base.E_CharacterInitType.IsNorm \
 			or not is_instance_valid(game) or not game.is_inside_tree() or game.is_queued_for_deletion() \
@@ -47,11 +51,17 @@ static func apply_to(target: Character000Base) -> bool:
 	effect._game = game
 	effect._round_index = game.curr_game_round
 	effect._phase = AdventureSession.get_active_phase(game.game_para)
-	effect._stacks += 1
+	effect._allied = allied
+	effect._stacks += stacks
+	effect._damage_credit += maxi(0, credit)
 	effect._death_frame = -1
 	effect._set_tint(true)
 	effect.set_physics_process(true)
 	return true
+
+## 返回实际在场的层数和未兑现积分；复制个体据此独立继续产光。
+func copy_charge() -> Vector2i:
+	return Vector2i(_stacks, _damage_credit) if _same_battle() else Vector2i.ZERO
 
 ## 伤害事件来自真实生命结算，死亡先撤表现但保留本帧最后一次伤害的兑现资格。
 func _ready() -> void:
@@ -62,7 +72,7 @@ func _ready() -> void:
 
 ## [param amount] 是本次真实损失，含装备与临时护甲；强制卸甲和过量伤害不会进入此信号。
 func _on_damage(amount: int) -> void:
-	if amount <= 0 or _stacks <= 0 or not _same_battle() or _target.is_hypno \
+	if amount <= 0 or _stacks <= 0 or not _same_battle() or _target.is_hypno != _allied \
 			or (_target.is_death and _death_frame != Engine.get_process_frames()):
 		return
 	var finishing_hit: bool = _target.is_death and _death_frame == Engine.get_process_frames() # 只给当前同步末击保留结算窗口。
@@ -76,7 +86,7 @@ func _on_damage(amount: int) -> void:
 
 ## [param _delta] 仅用于场景生命周期检查；状态没有自发产光时钟。
 func _physics_process(_delta: float) -> void:
-	if not _battle_active() or _target.is_death or _target.is_hypno:
+	if not _battle_active() or _target.is_death or _target.is_hypno != _allied:
 		clear()
 
 ## 真实死亡不会重新授予光能；延后清理给当前同步HP通知留出一次结算机会。

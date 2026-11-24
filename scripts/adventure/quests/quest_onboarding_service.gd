@@ -1,6 +1,9 @@
 ## 根据任务进度派生教学节点，并保存已完成的对话和引导。
 extends RefCounted
 
+## 教学完成标记的共用存档事务，不依赖任务派生逻辑。
+const Progress = preload("res://scripts/adventure/tutorial/tutorial_progress.gd")
+
 ## 根据 [param state] 的真实任务状态返回教学节点；重启从尚未完成的节点继续。
 static func next_step(state: AdventureState) -> String:
 	if not AdventureQuestService.quests_unlocked(state):
@@ -17,14 +20,4 @@ static func next_step(state: AdventureState) -> String:
 
 ## 将 [param step] 写入 [param state]；验证 [param wallet] 档案归属，通过 [param persist] 保存，失败回滚。
 static func mark_step(state: AdventureState, wallet: GlobalGameState, persist: Callable, step: String) -> bool:
-	if state == null or wallet == null or wallet.adventure_state != state or not persist.is_valid() \
-			or step not in ["quest_notice", "research_dave", "library_tour", "shop_dave"]:
-		return false
-	if state.tutorial_steps.get(step, false):
-		return true
-	var before: Dictionary = state.tutorial_steps.duplicate() # 不提前消耗可重试的教学节点。
-	state.tutorial_steps[step] = true
-	if persist.call() != true:
-		state.tutorial_steps.assign(before)
-		return false
-	return true
+	return Progress.mark_step(state, wallet, persist, step)

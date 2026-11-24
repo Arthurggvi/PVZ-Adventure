@@ -28,8 +28,13 @@ func _run() -> void:
 	Global.save_service.save_selected_cards()
 	var after_selected: Variant = JSON.parse_string(FileAccess.get_file_as_string(first_path))
 	assert(after_selected["adventure"]["items"]["nut_fragments"] == 3)
+	await _verify_scheduled_save(first_path)
+	var before_switch: int = _saved_sweep_count(first_path) # 合并窗口还未提交的击杀应写入离开的档案。
+	Global.record_zombie_defeat()
+	assert(_saved_sweep_count(first_path) == before_switch)
 	Global.user_manager.curr_user_name = second_name
-	Global.reload_session_for_current_user()
+	assert(Global.reload_session_for_current_user())
+	assert(_saved_sweep_count(first_path) == before_switch + 1)
 	assert(Global.adventure_inventory.list_cards().is_empty())
 	assert(Global.adventure_inventory.get_item_count("nut_fragments") == 0)
 	assert(Global.global_game_state.adventure_state.regions.is_empty())
@@ -49,5 +54,26 @@ func _run() -> void:
 	assert(Global.adventure_inventory.get_card_order() == [second_uid, first_uid])
 	assert(Global.global_game_state.adventure_state.selected_card_uids == [first_uid])
 	Global.user_manager.curr_user_name = original_name
-	print("PASS: adventure global save/load, selected_cards preservation, new profile isolation")
+	print("PASS: adventure global save/load, ordered scheduled save, selected_cards preservation, profile isolation")
 	get_tree().quit(0)
+
+## [param path] 为隔离档案。等待普通写入接纳后，立即提交更新版本并核对备份顺序。
+func _verify_scheduled_save(path: String) -> void:
+	var progress: int = _saved_sweep_count(path) # 之前已持久化的起点。
+	Global.record_zombie_defeat()
+	Global.refresh_quests()
+	assert(_saved_sweep_count(path) == progress, "任务刷新不应同步写盘")
+	var deadline: int = Time.get_ticks_msec() + 5000 # 等待调度器接纳后台快照，超时明确失败。
+	while Global.save_service._writing_path != path and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+	assert(Global.save_service._writing_path == path, "普通变更应由后台线程持久化")
+	Global.record_zombie_defeat()
+	assert(Global.save_service.save_now())
+	assert(_saved_sweep_count(path) == progress + 2)
+	assert(_saved_sweep_count(path + SaveFileStore.BACKUP_SUFFIX) == progress + 1)
+
+## 读取 [param path] 中前线扫荡的持久化计数。
+func _saved_sweep_count(path: String) -> int:
+	var saved: Dictionary = SaveFileStore.read(path) # 从文件核对持久版本，不读取内存状态。
+	assert(saved.get("ok") and saved.get("exists"))
+	return int(saved.data.adventure.quests.records["daily_frontline_sweep"].progress)

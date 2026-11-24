@@ -106,36 +106,37 @@ func accept_transferred_hit(amount: int, mode: BulletRegistry.AttackMode,
 @onready var armor_1_control: Control = %Armor1Control
 @onready var hp_control: Control = %HpControl
 
+## 一类防具的数值尚未写入血条，隐藏期间延后到显示时刷新。
+var _armor1_display_dirty: bool = false
+## 二类防具的数值尚未写入血条，隐藏期间延后到显示时刷新。
+var _armor2_display_dirty: bool = false
+
 @export_group("防具血量")
+## 一类防具的满血值，也是血条比例的分母；零表示没有防具。
 @export var max_hp_armor1:int
+## 一类防具的实际剩余生命；降到零立即隐藏血条并发射破甲信号。
 var curr_hp_armor1:int:
-	set(value):
+	set(value): # value 为本次更新后的一类防具生命，负值按零处理。
 		value = max(value, 0)
 		curr_hp_armor1 = value
-
-		label_hp_armor_1.text = str(curr_hp_armor1)
-		if max_hp_armor1 == 0:
-			progress_bar_hp_armor_1.value = 0
-		else:
-			progress_bar_hp_armor_1.value = float(curr_hp_armor1) / max_hp_armor1
+		_armor1_display_dirty = true
+		_flush_armor1_display()
 
 		if value == 0:
 			armor_1_control.visible = false
 			signal_armor1_death.emit()
 
 
+## 二类防具的满血值，也是血条比例的分母；零表示没有防具。
 @export var max_hp_armor2:int
+## 二类防具的实际剩余生命；降到零立即隐藏血条并发射破甲信号。
 var curr_hp_armor2:int:
-	set(value):
+	set(value): # value 为本次更新后的二类防具生命，负值按零处理。
 		value = max(value, 0)
 		curr_hp_armor2 = value
+		_armor2_display_dirty = true
+		_flush_armor2_display()
 
-		## 血量ui显示
-		label_hp_armor_2.text = str(curr_hp_armor2)
-		if max_hp_armor2 == 0:
-			progress_bar_hp_armor_2.value = 0
-		else:
-			progress_bar_hp_armor_2.value = float(curr_hp_armor2) / max_hp_armor2
 		if value == 0:
 			armor_2_control.visible = false
 			signal_armor2_death.emit()
@@ -166,14 +167,43 @@ signal signal_zombie_hp_loss(all_loss_hp:int)
 
 func _ready() -> void:
 	super()
+	armor_1_control.visibility_changed.connect(_flush_armor1_display)
+	armor_2_control.visibility_changed.connect(_flush_armor2_display)
 	self.curr_hp_armor1 = max_hp_armor1
 	self.curr_hp_armor2 = max_hp_armor2
+	# 存活时不注册无效物理帧；死亡信号发出后按原四帧周期推进余血。
+	signal_hp_component_death.connect(_refresh_decay_processing)
+	owner_character.signal_character_death.connect(_refresh_decay_processing)
+	_refresh_decay_processing()
 
+## 将一类防具的当前血量写入可见血条；隐藏期间只保留刷新标记。
+func _flush_armor1_display() -> void:
+	if _armor1_display_dirty and armor_1_control.is_visible_in_tree():
+		_armor1_display_dirty = false
+		label_hp_armor_1.text = str(curr_hp_armor1)
+		progress_bar_hp_armor_1.value = float(curr_hp_armor1) / max_hp_armor1 if max_hp_armor1 != 0 else 0.0
+
+## 将二类防具的当前血量写入可见血条；隐藏期间只保留刷新标记。
+func _flush_armor2_display() -> void:
+	if _armor2_display_dirty and armor_2_control.is_visible_in_tree():
+		_armor2_display_dirty = false
+		label_hp_armor_2.text = str(curr_hp_armor2)
+		progress_bar_hp_armor_2.value = float(curr_hp_armor2) / max_hp_armor2 if max_hp_armor2 != 0 else 0.0
+
+## 仅在角色已进入死亡状态且还有原生余血时登记物理帧。
+func _refresh_decay_processing() -> void:
+	set_physics_process(owner_character.is_death and curr_hp > 0)
+
+## [param delta] 为物理秒数；保留原四帧衰减节奏及生命阈值。
 func _physics_process(delta: float) -> void:
-	if owner_character.is_death and curr_hp != 0:
-		num_frame = wrapi(num_frame + 1, 0, 4)
-		if num_frame == 0:
-			curr_hp -= max(int(delta * 50 * 4), 1)
+	if not owner_character.is_death or curr_hp == 0:
+		set_physics_process(false)
+		return
+	num_frame = wrapi(num_frame + 1, 0, 4)
+	if num_frame == 0:
+		curr_hp -= max(int(delta * 50 * 4), 1)
+		if curr_hp == 0:
+			set_physics_process(false)
 
 
 func get_all_hp():
@@ -217,15 +247,19 @@ func Hp_loss(attack_value:int, bullet_mode :BulletRegistry.AttackMode =BulletReg
 ## [param bonus_damage] 普通、穿透或背击携带的同击附伤；[param bonus_cap] 为放大后上限，-1 不限制。
 ## [param receipt] 可选字典，报告实际承伤者及损失；无敌、旧尸体和强制生命调整均记零战斗损失。
 ## [param hit_scope] 在保护者转移完成后、发出受击事件前消费；重复承伤回报零损失并标记 duplicate_hit，区别于格挡归零。
+## [param pre_resolved_damage] 默认为 -1，使用正式减伤结算。矩阵仅在核对原生路径且无前置回调时，
+## 可传入本组件对同击完成减伤后的非负值；护甲分流照常执行，转伤时由保护者重新结算。
 ## 返回本次从存活变死亡的实际受击者；转移伤害时可返回保护者。
 func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 		is_drop_on_death: bool, trigger_be_attack_SFX: bool, is_drop_2: bool = true,
 		armor_multiplier: float = 1.0, bonus_damage: int = 0, bonus_cap: int = -1,
-		receipt: Variant = null, hit_scope: CombatHitScope = null) -> Zombie000Base:
-	reset_hit_receipt(receipt, owner_character)
+		receipt: Variant = null, hit_scope: CombatHitScope = null, pre_resolved_damage: int = -1) -> Zombie000Base:
+	var has_receipt: bool = receipt is Dictionary # 矩阵等高频伤害可省略回执。
+	if has_receipt:
+		reset_hit_receipt(receipt, owner_character)
 	# A protector receives the raw hit and re-runs its own block -> DR -> armor.
 	# Scripted forced loss and nested transfers never redirect.
-	if not _bypass_damage_block and not _handling_transferred_hit and not is_damage_immune() \
+	if not _bypass_damage_block and not _handling_transferred_hit and damage_transfer.has_sources() and not is_damage_immune() \
 			and owner_character is Zombie000Base:
 		var protector: Zombie000Base = damage_transfer.select_protector(owner_character)
 		if protector != null:
@@ -234,7 +268,7 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 					is_drop_on_death, trigger_be_attack_SFX, is_drop_2, armor_multiplier, bonus_damage, bonus_cap, receipt, hit_scope)
 	# 转移先决定真正承伤者；不能在原接触目标提前占用资格。
 	if hit_scope != null and not hit_scope.try_claim(owner_character):
-		if receipt is Dictionary:
+		if has_receipt:
 			receipt["duplicate_hit"] = true
 		return null
 	# 只有本次受击产生的状态变化算击杀，已死亡的角色不重复回报。
@@ -242,40 +276,61 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 	var raw_damage: int = attack_value + maxi(0, bonus_damage) # 附伤不另发攻击事件，也不另扣一次脆弱防具。
 	var combat_loss: bool = was_alive and raw_damage > 0 and not _bypass_damage_block # 只允许实际战斗血池损失产光，卸甲与处决不算。
 	# Ordinary hits are mitigated once before any health-pool routing.
-	if raw_damage > 0 and not is_death and not _bypass_damage_block:
+	if raw_damage > 0 and not is_death and not _bypass_damage_block and received_attack.has_connections():
+		# 受击监听器可同步改变减伤，需在发射前丢弃预先计算的数值。
+		pre_resolved_damage = -1
 		received_attack.emit(raw_damage)
-	var ori_hp = get_all_hp()
-	_resolving_hit = true
-	_armor_granted_in_hit = 0
 	# Balloons count actual projectile impacts, even when ordinary flat
 	# block or damage reduction would round a positive impact to zero.
 	# Immunity and a separate temporary shield still take precedence.
 	var fragile_hit: bool = armor1_fixed_damage_per_hit > 0 \
 			and curr_hp_armor1 > 0 and raw_damage > 0 \
 			and not is_damage_immune() and not _bypass_damage_block
-	if bullet_mode not in [BulletRegistry.AttackMode.BowlingFront,
-			BulletRegistry.AttackMode.BowlingSide, BulletRegistry.AttackMode.Hammer]:
-		var resolved: int = resolve_damage(attack_value, bonus_damage, bonus_cap) # 两部分共享一次减伤与护甲容量。
+	var is_regular_hit: bool = bullet_mode != BulletRegistry.AttackMode.BowlingFront \
+		and bullet_mode != BulletRegistry.AttackMode.BowlingSide and bullet_mode != BulletRegistry.AttackMode.Hammer # 特殊模式在分流时决定伤害。
+	if is_regular_hit:
+		if pre_resolved_damage >= 0 and bullet_mode == BulletRegistry.AttackMode.Real:
+			attack_value = pre_resolved_damage
+		else:
+			attack_value = resolve_damage(attack_value, bonus_damage, bonus_cap)
 		if fragile_hit:
-			resolved = maxi(1, resolved)
-		attack_value = _absorb_bonus_armor(resolved)
-	## 掉血标志, 1:本体 2:一类防具 4:二类防具
-	var flag_loss: int = ZombieDamageRouter.route(self, bullet_mode, attack_value, armor_multiplier, receipt, hit_scope)
-
-	var res_hp = get_all_hp()
-	# A gear-loss trigger can award armor in this impact. The received-hit
-	# signal reports damage suffered, not net resource gain.
-	var loss_hp: int = maxi(0, ori_hp - res_hp + _armor_granted_in_hit)
-	_resolving_hit = false
-	_armor_granted_in_hit = 0
-	if receipt is Dictionary:
+			attack_value = maxi(1, attack_value)
+		# 无实际扣血时保持受击事件与波次报告，省去空的护甲分流。
+		if attack_value <= 0 and not is_death and not _resolving_hit:
+			signal_zombie_hp_loss.emit(0)
+			return null
+	var flag_loss: int # 1 为本体受击，2 和 4 分别为两类防具受击。
+	var loss_hp: int # 本击真实损失，供后续原有信号按顺序派发。
+	var remaining_hp: int = curr_hp - attack_value # 命中前回调与减伤已经完成，以当前血量判定。
+	if (bullet_mode == BulletRegistry.AttackMode.Real and attack_value > 0
+			and remaining_hp > maxi(0, death_hp) and not is_death
+			and not has_receipt and hit_scope == null
+			and curr_hp_armor1 == 0 and bonus_armor == 0
+			and not _bypass_damage_block and not _handling_transferred_hit and not _resolving_hit
+			and not is_visible_in_tree() and get_script() == HpComponentZombie):
+		# 此时只写入本体血量，血条与死亡通知均不会在写入期间触发。
+		curr_hp = remaining_hp
+		flag_loss = 1
+		loss_hp = attack_value
+	else:
+		var ori_hp = get_all_hp() # 受击监听已运行，开始记录本次实际血池损失。
+		_resolving_hit = true
+		_armor_granted_in_hit = 0
+		if is_regular_hit:
+			attack_value = _absorb_bonus_armor(attack_value)
+		flag_loss = ZombieDamageRouter.route(self, bullet_mode, attack_value, armor_multiplier, receipt, hit_scope)
+		var res_hp = get_all_hp() # 破甲回调可能授甲，实际掉血需要加回同击新授生命。
+		loss_hp = maxi(0, ori_hp - res_hp + _armor_granted_in_hit)
+		_resolving_hit = false
+		_armor_granted_in_hit = 0
+	if has_receipt:
 		receipt["actual_loss"] = loss_hp if combat_loss else 0
 		receipt["body_loss"] = int(receipt.get("body_loss", 0)) if combat_loss else 0
 		receipt["casualty"] = owner_character if was_alive and is_death else null
 
-	var is_drop = not (owner.is_death and not is_drop_on_death) and is_drop_2
+	var is_drop: bool = is_drop_2 and (is_drop_on_death or not owner.is_death) # 保留本击的掉落资格。
 
-	if combat_loss and loss_hp > 0:
+	if combat_loss and loss_hp > 0 and combat_health_lost.has_connections():
 		combat_health_lost.emit(loss_hp) # 已扣除减伤、过量伤害并补回本击新授护甲，保护者在自己的组件报告。
 	## 组件发射掉血信号,僵尸发射僵尸掉血信号给僵尸管理器处理残半刷新
 	signal_zombie_hp_loss.emit(loss_hp)
@@ -283,19 +338,19 @@ func apply_hit(attack_value: int, bullet_mode: BulletRegistry.AttackMode,
 		signal_hp_loss.emit(curr_hp, is_drop)
 		## 如果有受击音效并且触发受击音效
 		if sfx_be_attack_body != SoundManager.TypeBeAttackSFX.Null and trigger_be_attack_SFX:
-			SoundManager.play_be_attack_SFX(sfx_be_attack_body)
+			_play_hit_sound(sfx_be_attack_body)
 
 	if flag_loss & 2:
 		signal_hp_armor1_loss.emit(curr_hp_armor1, curr_hp, is_drop)
 		## 如果有受击音效并且触发受击音效
 		if sfx_be_attack_armor1 != SoundManager.TypeBeAttackSFX.Null and trigger_be_attack_SFX:
-			SoundManager.play_be_attack_SFX(sfx_be_attack_armor1)
+			_play_hit_sound(sfx_be_attack_armor1)
 
 	if flag_loss & 4:
 		signal_hp_armor2_loss.emit(curr_hp_armor2, curr_hp, is_drop)
 		## 如果有受击音效并且触发受击音效
 		if sfx_be_attack_armor2 != SoundManager.TypeBeAttackSFX.Null and trigger_be_attack_SFX:
-			SoundManager.play_be_attack_SFX(sfx_be_attack_armor2)
+			_play_hit_sound(sfx_be_attack_armor2)
 	return owner_character as Zombie000Base if was_alive and is_death else null
 
 ## 小僵尸大麻烦更新僵尸血量
@@ -307,4 +362,3 @@ func update_mini_zombie_hp():
 	curr_hp = max_hp
 	curr_hp_armor1 = max_hp_armor1
 	curr_hp_armor2 = max_hp_armor2
-

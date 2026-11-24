@@ -14,6 +14,8 @@ python D:\Dev\PvZ\PVZ-Adventure\tools\art_bake\electric_peashooter\bake.py
 
 转换器只需要 Python 标准库，读取本目录 `source/` 的原 PAM 解码数据和图集区域，重建三个独立 Godot 场景以及五个不连续重复的音频随机容器。转换保留 30 fps、完整仿射矩阵、颜色乘数、保留式显示列表、原始绘制顺序及 stop 帧。所有子符号均为单帧，转换器对此有断言。`_custom` 是未装备的装扮槽，不参与基础植物显示。
 
+战斗飞行图集通过同目录的 `bake_flight.py` 单独重建，依赖 Pillow 和 NumPy。输出 `flight_atlas.png` 将原球面裁尾、三套 30 fps 循环及两种出生电光合入一张遮罩，根点保持在球心。RGB 分别为主电色、白芯、辅色的权重，实际等阶仍由运行时色表决定。
+
 重跑原始提取前，从同目录的 `pvz2_original_6_1_1.zip` 解出原始 OBB 为 `pvz2_main_6_1_1.obb`。原始提取过程保存在 `_review/electric_peashooter/extract.py`、`install_sources.py`、`install_hit.py` 和 `decode_audio.py`：按 OBB 资源表定位 `PlantElectricPeashooter_*`、`PlantLightningReedHit_*`、`Packages`、`WiseAlwaysLoaded` 与 `WiseInit`，解压 RSG 分段，读取其文件名表与偏移；RTON 使用已有 pyvz2rton 解码器，PAM 使用已有 `decode_grave_pam.Reader` 逐字段解码。PTX 为 ETC1 RGB 加 A8，不改像素颜色，解码后 PNG 分别是 1024×2048 与 256×256。原 PAM 和 PTX 的校验记录见 `source/sha256.json`。
 
 音频先由 wwiser 解析 `GLOBAL_DATA.BNK` 中的事件树，再按 `PLANT_ELECTRICPEASHOOTER.BNK` 的 DIDX/DATA 导出指定 WEM，用 vgmstream 转为 PCM WAV。`source/audio_events/*.txtp` 保存完整事件层级、随机规则和相对增益，`audio_events.json` 保存 WAV 名称到原媒体 ID 的映射。原植物 BNK 一并保留，可重新解码；WAV 没有合成替换、变速或音高处理。

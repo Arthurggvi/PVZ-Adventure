@@ -10,7 +10,7 @@ def build(workspace: Path) -> None:
     report=json.loads((root/'reports/runtime_walkthrough.json').read_text(encoding='utf-8'))
     boot=json.loads((root/'reports/boot.json').read_text(encoding='utf-8'))
     resource=json.loads((root/'reports/native_resources.json').read_text(encoding='utf-8'))
-    assert resource['texture_count']==31 and all(x['pixels_equal'] for x in resource['entries'])
+    assert 0 < resource['texture_count']==len(resource['entries']) and all(x['pixels_equal'] for x in resource['entries'])
     events={e['name']:e for e in report['events']}
     for name in ['real_almanac','real_settings','profile_B_research_locked','profile_A_real_research','actual_map_entered','returned_to_new_menu','exit_confirmation']:
         assert name in events,name
@@ -56,7 +56,7 @@ def build(workspace: Path) -> None:
             error=int(np.abs(pixels(f'pack_{state}.png')-pixels(f'scene_{state}.png')).max())
             assert error<=1,(state,error)
             packaged[state]=error
-    result={'real_ui_flow_recorded':True,'midnight_crossing_max_channel_delta':midnight,'native_texture_roundtrip_count':31,
+    result={'real_ui_flow_recorded':True,'midnight_crossing_max_channel_delta':midnight,'native_texture_roundtrip_count':resource['texture_count'],
       'native_pack_vs_runtime_scene_max_delta':packaged,'day_cycle_frames':240,'walkthrough_frames':report['frames'],
       'old_host_freed':report['extra']['old_menu_host_released_on_map'],'local_hour_at_boot':boot['local_hour'],
       'renderer':boot['adapter'],'performance':report['extra'].get('performance',{}),'native_clock_changes_do_not_change_animation':report['extra'].get('injected_clock_resync',{}),

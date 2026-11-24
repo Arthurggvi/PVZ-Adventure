@@ -1,0 +1,20 @@
+原作美术来源：植物大战僵尸2（中国版）天空之城战斗机僵尸。
+原画参考与来源：https://www.clipartmax.com/png/full/185-1856739_hdimpplane-plants-vs-zombies.png
+原作逐帧素材目录：https://www.spriters-resource.com/mobile/plantsvszombies2/asset/502497/
+该完整逐帧包目前无法下载，不应将本文件夹描述为全量原版动画。
+
+资源清单（2026-11-23 二次核验）：
+idle.png / fire.png：原作静态立绘（开火原图包含机枪火焰），仅作为离线处理原件；
+fly_atlas.png：基于该原作立绘制作的16帧飞行机械/驾驶员变形及6帧后坐力，非官方原版动作；
+sprite_frames.tres：16帧 idle / 16帧 walk / 16帧 eat / 6帧 fire / 1帧 death（共22张独特帧图）；
+muzzle_atlas.png / muzzle_frames.tres：从原版带火焰立绘抠出的6帧独立机枪火焰；
+bullet.png：从原作开火立绘提取的光核，用于弹丸与命中闪光；
+引擎螺旋桨：复用既有 assets/reanim/Zombie_balloon_propeller.png，持续独立旋转；
+音效：audio/gunshot.ogg，为 Mixkit「Game gun shot」音效（ID 1662）的短促裁切，
+来源 https://mixkit.co/free-sound-effects/gun/ 与 https://assets.mixkit.co/active_storage/sfx/1662/1662.mp3
+属于免付费的游戏用途许可素材，不是 PVZ2 原作机枪音效。
+击毁爆炸复用 scenes/character/zombie/arbiter_x/arbiter_x_impact.tscn 的火球、碎屑、烟尘和音效，
+音源见 ../arbiter_x/SOURCES.txt。
+已移除不合适的冰车（zamboni）入场声及小喷菇（puff）机枪声。
+
+当前缺失：原版官方完整飞行、攻击、死亡的逐帧序列及专属原版发动机/机枪音效。

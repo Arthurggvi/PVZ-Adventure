@@ -3,13 +3,16 @@
 extends RefCounted
 class_name AdventurePlantNegativeEffects
 
+## 妇人的悲寒从首次命中才加载颜色材质。
+const CailleachGrief = preload("res://scripts/character/zombie_boss/cailleach/cailleach_plant_grief.gd")
+
 ## 现有负面状态类型。数值仅为接口标识，不进入存档。
 enum Kind {
 	DEGRADATION, ## 永久增伤与减攻；原有最强通道与可选叠加通道独立保存。
 	NULLIFICATION, ## 来源独立的活动封锁；保留受击与铲除接口。
 	ICE_SLOW, ## 具有原生时长的减速，保留角色自身的寒冷免疫。
 	ICE_FREEZE, ## 具有原生时长的冻结。
-	STUN, ## 使可受控的僵尸暂停行动，重复命中刷新时长。
+	STUN, ## 使可受控的僵尸或植物暂停行动，重复命中刷新时长。
 	POISON, ## 每半秒造成本体最大生命 2% 的普通伤害，层数按秒数解释。
 	CHARM, ## 调用角色原有魅惑入口，保留物种与僵王的魅惑免疫。
 	BURN, ## 独立半秒灼烧，层数表示持续秒数；共享原生火豆命中视觉。
@@ -21,6 +24,10 @@ enum Kind {
 	RESENTMENT, ## 永久且不叠伤的每秒损血，黑白滤镜独立于其他状态。
 	BRITTLENESS, ## 仅增加承伤的脆弱层数。
 	DEEP_COLD, ## 抗火寒冷，冻结和减速有独立的持续时间。
+	SORROW_COLD, ## 妇人的逐层减速，十层时停止植物行动。
+	CACTUS_WOUND, ## 创伤每层给后续的非零攻击增加一点固定伤害。
+	CACTUS_SHOCK, ## 感电在实际消耗血池后释放受限的局部闪电链。
+	CACTUS_THUNDER, ## 惊雷满五层对目标脚下的真实格子落雷。
 }
 
 ## [param target] 目标角色；[param kind] 为已登记状态；[param source_id] 用于独立解除无效化。
@@ -37,8 +44,13 @@ static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 	if not is_instance_valid(target) or target.is_death or target.is_queued_for_deletion() \
 			or not is_finite(amount) or not target.can_receive_negative_effects():
 		return false
+	# 控制免疫只拒绝行动限制，毒、灼烧、劣化、脆弱等伤害状态仍由原分支处理。
+	if not target.can_receive_control_effects() and kind in [Kind.NULLIFICATION, Kind.ICE_SLOW,
+			Kind.ICE_FREEZE, Kind.STUN, Kind.CHARM, Kind.FREEZE_CHARGE, Kind.FEAR,
+			Kind.SILENCE, Kind.DEEP_COLD, Kind.SORROW_COLD]:
+		return false
 	var plant: Plant000Base = target as Plant000Base # 植物沿用原有负面效果总免疫。
-	var zombie: Zombie000Base = target as Zombie000Base # 眩晕仅支持普通僵尸的独立行动计时。
+	var zombie: Zombie000Base = target as Zombie000Base # 普通僵尸沿用原生负面状态入口。
 	if plant != null:
 		if plant.battle_negative_effect_immune:
 			return false
@@ -75,9 +87,12 @@ static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 				return false
 			target.be_ice_freeze(amount, maxf(0.0, followup))
 		Kind.STUN:
-			if zombie == null or amount <= 0.0:
+			if amount <= 0.0 or (plant == null and zombie == null):
 				return false
-			zombie.be_stunned(amount)
+			if plant != null:
+				AdventurePlantNullification.grant_stun(plant, amount)
+			else:
+				zombie.be_stunned(amount)
 		Kind.POISON, Kind.BURN:
 			var on_kill: Variant = context.get("on_kill", Callable()) # 非法回调不能进入延迟状态。
 			if not on_kill is Callable:
@@ -117,6 +132,14 @@ static func apply(target: Character000Base, kind: Kind, source_id: int = 0,
 			return AdventureSilenceEffect.apply_to(target, amount)
 		Kind.SUN_INFUSION:
 			return AdventureSunBeanEffect.apply_to(target)
+		Kind.SORROW_COLD:
+			return plant != null and plant.is_inside_tree() and plant.is_node_ready() \
+				and plant.character_init_type == Character000Base.E_CharacterInitType.IsNorm \
+				and CailleachGrief.apply_to(plant, int(clampf(amount, 0.0, CailleachGrief.MAX_STACKS)))
+		Kind.CACTUS_WOUND, Kind.CACTUS_SHOCK, Kind.CACTUS_THUNDER:
+			var runtime := context.get("cactus_runtime") as Node # 出战快照指定当前战场的共享结算器。
+			return zombie != null and amount > 0.0 and is_instance_valid(runtime) \
+				and runtime.apply_status(zombie, kind, int(amount), context.get("shot"))
 		Kind.CHARM:
 			if plant != null:
 				return false
@@ -142,6 +165,7 @@ static func release(plant: Plant000Base, kind: Kind, source_id: int,
 static func purge(plant: Plant000Base) -> void:
 	if not is_instance_valid(plant) or plant.is_death or plant.is_queued_for_deletion():
 		return
+	CailleachGrief.clear_from(plant)
 	AdventurePlantNullification.purge(plant)
 	plant.hp_component.clear_degradation()
 	plant.clear_cold()

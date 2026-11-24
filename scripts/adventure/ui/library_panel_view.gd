@@ -5,12 +5,16 @@ extends Control
 signal action_requested(action: String, data: Variant)
 ## 共用木框、羊皮纸与按钮素材。
 const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
+## 技能书列表在鼠标与触屏上共用滚动区。
+const ContentScroll = preload("res://scripts/ui/content_scroll.gd")
 ## 四阶书本与植物封面组合。
 const BookArt = preload("res://scripts/adventure/ui/promotion_book_visual.gd")
 ## 书架只装配可见书本，其他页和滚动区外条目保持轻量按钮。
 const VisualQueue = preload("res://scripts/adventure/ui/prepared_visual_queue.gd")
 ## 书本依赖由物品与卡牌权威目录解析。
 const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
+## 图书馆内部的目标植物目录及浅色输入样式。
+const PlantPicker = preload("res://scripts/adventure/ui/library_plant_picker.gd")
 ## 当前书架的唯一预览装配队列。
 var _visual_queue: VisualQueue
 
@@ -49,6 +53,8 @@ var _last_mode := ""
 var _focus_targets: Dictionary = {}
 ## 材料满槽时供键盘焦点自然跳至确认操作。
 var _submit: Button
+## 仅在选择定向植物时挂载的弹层。
+var _plant_picker: PlantPicker
 
 ## 构造固定外框；所有内容绘制采用设计坐标。
 func _ready() -> void:
@@ -82,6 +88,7 @@ func tab_control(mode: String) -> Control:
 
 ## 用 [param model] 的只读快照更新书卡、材料槽与结果；不接收可写玩家状态。
 func render(model: Dictionary) -> void:
+	dismiss_plant_picker()
 	_coins.text = "金币  %s" % money(int(model.coins))
 	var previous_focus: Control = get_viewport().gui_get_focus_owner() # 重绘前记录输入身份，避免连续键盘选择中断。
 	var focus_key: String = str(previous_focus.get_meta("library_focus", "")) if is_instance_valid(previous_focus) else "" # 不恢复外部或页签焦点。
@@ -110,7 +117,8 @@ func _today(model: Dictionary) -> void:
 	Art.label(_body, "每日甄选", Vector2(54, 5), Vector2(300, 42), 28, Color("ffe8b0"))
 	var period: Label = Art.label(_body, "每日 00:00 更新 · 换一批每日限 1 次", Vector2(54, 48), Vector2(450, 32), 20, Color("d7bc8c")) # 概率放入悬停，不占主要阅读空间。
 	period.mouse_filter = Control.MOUSE_FILTER_STOP
-	period.tooltip_text = "一阶 39.5% · 二阶 27.6% · 三阶 19.4% · 四阶 13.5%"
+	var percentages: Array = Rules.WEIGHTS.map(func(weight: int) -> float: return weight / 10.0) # 将抽取权重从千分位换算为百分比。
+	period.tooltip_text = "一阶 %.1f%% · 二阶 %.1f%% · 三阶 %.1f%% · 四阶 %.1f%%" % percentages
 	var is_current_day: bool = model.shelf.day == model.today # 只有当天生成的货架可手动换书。
 	var refresh_used: bool = is_current_day and model.shelf.refresh_used # 已用状态只对应本机今天。
 	var refresh_caption: String = "今日已换一批" if refresh_used else "换一批 · %s" % money(Rules.REFRESH_COST) # 显示当日用量或金币费用。
@@ -153,45 +161,138 @@ func _workbench(model: Dictionary) -> void:
 			Vector2(320 + tier * 94, 19), Vector2(88, 43), _emit.bind("tier", tier)) # 使用紧凑短文案。
 		filter_button.add_theme_font_size_override("font_size", 20)
 		filter_button.modulate = Color.WHITE if int(model.tier) == tier else Color("b8a78c")
-	_scroll = ScrollContainer.new()
+	_scroll = ContentScroll.new()
 	_scroll.position = Vector2(59, 82)
 	_scroll.size = Vector2(750, 481)
-	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_body.add_child(_scroll)
 	var grid := GridContainer.new() # 目录滚动支持任意新增物种，无硬编码书目数量。
 	grid.columns = 4
 	grid.add_theme_constant_override("h_separation", 12)
 	grid.add_theme_constant_override("v_separation", 12)
 	_scroll.add_child(grid)
-	var required: int = 2 if model.mode == "convert" else 3 # 决定材料槽数量和确认文案。
+	var converting: bool = model.mode == "convert" # 转换页单独提供定向选项。
+	var target: int = int(model.get("target_plant", 0)) # 目标为零时沿用普通转换。
+	var required: int = Rules.required_books(model.mode, target) # 与配方校验共用材料数量。
 	for entry: Dictionary in model.available: # 已按实际剩余数量过滤，已选材料仍显示在右侧。
 		var tile: Button = _book_tile(grid, str(entry.id), Vector2(172, 176), "select", str(entry.id)) # 只选择一本，可按库存重复选择。
+		tile.mouse_filter = Control.MOUSE_FILTER_PASS # 保留点击选书，并将滑动交给书目。
 		tile.disabled = model.selected.size() >= required
 		Art.count_badge(tile, "×%d" % int(entry.count), Vector2(154, 118))
 	if model.available.is_empty():
 		_centered(_body, "暂无符合条件的技能书", Vector2(110, 245), Vector2(650, 70), 25, Color("887353"))
 	Art.label(_body, "投入书籍  %d / %d" % [model.selected.size(), required], Vector2(880, 17), Vector2(330, 45), 27)
 	Art.action_button(_body, "清空", "buttons/action_neutral", Vector2(1260, 20), Vector2(112, 44), _emit.bind("clear", null))
-	var hint: String = "同阶两本 → 同阶新书" if model.mode == "convert" else "同物种同阶三本 → 高一阶" # 唯一常驻规则行。
-	Art.label(_body, hint, Vector2(882, 66), Vector2(486, 38), 22, Color("806442"))
+	if converting:
+		_conversion_controls(target, model.target_plants)
+	else:
+		Art.label(_body, "同物种同阶三本 → 高一阶", Vector2(882, 66), Vector2(486, 38), 22, Color("806442"))
+	var slot_size := Vector2(150, 150) if converting else Vector2(152, 160) # 转换材料为上方设置行让出空间。
+	var first_x: float = 1128.0 - ((required - 1) * 166 + slot_size.x) * 0.5 # 两槽和三槽共用同一中心。
 	for slot: int in required: # 已选槽可点击移除，未选槽只提示可添加。
-		var pos := Vector2(886 + slot * 166 + (83 if required == 2 else 0), 117) # 两槽居中，三槽等距。
+		var pos := Vector2(first_x + slot * 166, 147 if converting else 117) # 三槽按等距从左至右排列。
 		if slot < model.selected.size():
-			var tile: Button = _book_tile(_body, str(model.selected[slot]), Vector2(152, 160), "remove", slot) # 不在选择时修改真实库存。
+			var tile: Button = _book_tile(_body, str(model.selected[slot]), slot_size, "remove", slot) # 不在选择时修改真实库存。
 			tile.position = pos
 		else:
-			Art.panel(_body, "slots/item_slot_normal.png", pos, Vector2(152, 160), 16)
-			_centered(_body, "+", pos + Vector2(0, 40), Vector2(152, 65), 42, Color("a28c65"))
+			var extra: bool = target != 0 and slot == 2 # 金边标记定向额外耗材槽。
+			Art.panel(_body, "slots/item_slot_selected.png" if extra else "slots/item_slot_normal.png", pos, slot_size, 16)
+			_centered(_body, "+", pos + Vector2(0, 40 if extra else (slot_size.y - 65) * 0.5),
+				Vector2(slot_size.x, 65), 39 if extra else 42, Color("967449") if extra else Color("a28c65"))
+			if extra:
+				_centered(_body, "额外耗材", pos + Vector2(0, 94), Vector2(slot_size.x, 28), 17, Color("795429"))
+	if converting:
+		_conversion_result(model, target)
+	else:
+		_synthesis_result(model)
+	_submit = Art.action_button(_body, "转换书籍" if converting else "合成书籍", "buttons/action_confirm",
+		Vector2(953, 482), Vector2(350, 68), _emit.bind("combine", null))
+	_submit.disabled = not bool(model.quote.ready)
+	_submit.tooltip_text = str(model.quote.get("message", ""))
+	_track_focus(_submit, "combine")
+
+## 绘制定向开关和目标入口。[param target] 为当前目标编号，[param plants] 为该阶允许选择的物种。
+func _conversion_controls(target: int, plants: Array[int]) -> void:
+	var directed: bool = target != 0 # 开启时使用绿纸和勾选标记。
+	var toggle: Button = PlantPicker.field_button(_body, "定向转换", Rect2(882, 73, 202, 53), directed, Vector2(44, 0)) # 左侧留出方框。
+	toggle.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	toggle.toggle_mode = true
+	toggle.set_pressed_no_signal(directed)
+	toggle.toggled.connect(func(enabled: bool): _emit("directed", enabled))
+	toggle.tooltip_text = "投入三本同阶技能书，指定产出植物"
+	_track_focus(toggle, "directed")
+	var checkbox := Panel.new() # 手绘纸面上的勾选框不拦截按钮输入。
+	checkbox.position = Vector2(14, 15)
+	checkbox.size = Vector2(23, 23)
+	checkbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	checkbox.add_theme_stylebox_override("panel", PlantPicker.inset(
+		Color("627438") if directed else Color("f8ebca"), Color("566336") if directed else Color("a68152"), 5))
+	toggle.add_child(checkbox)
+	if directed:
+		var checkmark := Line2D.new() # 与框分离的浅色勾保持缩放后清晰。
+		checkmark.points = PackedVector2Array([Vector2(5, 11), Vector2(10, 16), Vector2(18, 7)])
+		checkmark.width = 3.0
+		checkmark.default_color = Color("fff5d0")
+		checkmark.antialiased = true
+		checkbox.add_child(checkmark)
+	Art.label(toggle, "+1 本", Vector2(145, 0), Vector2(48, 53), 17, Color("607036") if directed else Color("815a31"))
+	var caption: String = "选择目标植物" if directed else "不限植物" # 关闭时显示当前产出范围。
+	if target > 0:
+		caption = Names.plant_name(target)
+	var field: Button = PlantPicker.field_button(_body, caption, Rect2(1096, 73, 278, 53), false,
+		Vector2(54 if target > 0 else 15, 0)) # 有目标时在名称前留出头像。
+	field.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	field.disabled = not directed or plants.is_empty()
+	field.accessibility_name = "目标植物：%s" % caption
+	field.pressed.connect(_open_plant_picker.bind(plants, target))
+	_track_focus(field, "target")
+	if directed:
+		_centered(field, "▾", Vector2(236, 0), Vector2(36, 53), 23, Color("765536"))
+	if target > 0:
+		PlantPicker.queue_portrait(_visual_queue, field, target, Rect2(11, 8, 35, 37))
+
+## 绘制 [param model] 的转换产出卡；[param target] 决定预览物种，已保存结果显示真实技能书。
+func _conversion_result(model: Dictionary, target: int) -> void:
+	_centered(_body, "↓", Vector2(1044, 306), Vector2(168, 35), 27, Color("967a4c"))
+	var card := Panel.new() # 三种预览状态和已获结果共用稳定的纸面区域。
+	card.position = Vector2(882, 346)
+	card.size = Vector2(492, 114)
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_theme_stylebox_override("panel", PlantPicker.inset(Color("f1e2bcaa"), Color("a7815277"), 14))
+	_body.add_child(card)
+	var result_id: String = str(model.result) # 只有实际入库的书才显示在结果卡上。
+	if not result_id.is_empty():
+		var book: Dictionary = Rules.Books.definition(result_id) # 物种、书名和等阶都取自实际产出的书。
+		_queue_book(card, result_id, Rect2(18, 9, 96, 96))
+		Art.label(card, "已获得", Vector2(132, 11), Vector2(335, 24), 18, Color("507b43"))
+		Art.label(card, str(book.title), Vector2(132, 35), Vector2(335, 35), 26)
+		Art.label(card, "%s · %s" % [Names.plant_name(int(book.plant_type)), tier_name(int(book.tier))],
+			Vector2(132, 73), Vector2(335, 28), 20, Color("806442"))
+		return
+	var rank := "同阶" # 投入任意书后才显示具体等阶。
+	if not model.selected.is_empty():
+		rank = tier_name(int(Rules.Books.definition(str(model.selected[0])).tier))
+	var title: String = "随机技能书" if model.selected.is_empty() else "%s随机技能书" % rank # 普通转换预览。
+	var detail := "投入两本同阶技能书" # 帮助玩家判断所需耗材。
+	if target == Rules.UNSELECTED_TARGET:
+		title = "请选择目标植物"
+		detail = "随机获得该植物的 1 本同阶技能书"
+	elif target > 0:
+		title = "%s · %s技能书" % [Names.plant_name(target), rank]
+		detail = "投入三本同阶书，随机获得 1 本"
+	_centered(card, title, Vector2(12, 16), Vector2(468, 44), 27)
+	_centered(card, detail, Vector2(12, 62), Vector2(468, 32), 20, Color("806442"))
+
+## 绘制 [param model] 的合成结果，保留既有的物种和升阶说明。
+func _synthesis_result(model: Dictionary) -> void:
 	var result_id: String = str(model.result) # 只呈现已提交并保存成功的结果。
 	if result_id.is_empty():
 		var result_caption := "随机技能书" # 尚未投入时不推测结果物种或等阶。
 		if not model.selected.is_empty():
 			var first: Dictionary = Rules.Books.definition(str(model.selected[0])) # 首槽决定预期等阶与合成物种。
-			result_caption = "%s · 随机技能" % tier_name(int(first.tier)) if model.mode == "convert" \
-				else "%s · %s" % [Names.plant_name(int(first.plant_type)), tier_name(int(first.tier) + 1)]
+			result_caption = "%s · %s" % [Names.plant_name(int(first.plant_type)), tier_name(int(first.tier) + 1)]
 		_centered(_body, "↓", Vector2(1044, 294), Vector2(168, 42), 30, Color("967a4c"))
 		_centered(_body, result_caption, Vector2(903, 344), Vector2(450, 60), 28)
-		_centered(_body, "保留等阶 · 不限物种" if model.mode == "convert" else "保留物种 · 提升一阶",
+		_centered(_body, "保留物种 · 提升一阶",
 			Vector2(903, 405), Vector2(450, 34), 20, Color("806442"))
 	else:
 		var result_visual := Control.new() # 独立目标在下次重绘时销毁，旧加载回调不会画入新页面。
@@ -203,13 +304,36 @@ func _workbench(model: Dictionary) -> void:
 		Art.label(_body, str(Rules.Books.definition(result_id).title), Vector2(1056, 351), Vector2(310, 44), 28)
 		Art.label(_body, "%s · %s" % [Names.plant_name(int(Rules.Books.definition(result_id).plant_type)), tier_name(int(Rules.Books.definition(result_id).tier))],
 			Vector2(1056, 399), Vector2(310, 32), 20, Color("806442"))
-	var submit: Button = Art.action_button(_body, "转换书籍" if model.mode == "convert" else "合成书籍", "buttons/action_confirm",
-		Vector2(953, 482), Vector2(350, 68), _emit.bind("combine", null)) # 完整材料和足够库存才可执行。
-	submit.disabled = not bool(model.quote.ready)
-	submit.tooltip_text = str(model.quote.get("message", ""))
-	submit.set_meta("library_focus", "combine")
-	_focus_targets["combine"] = submit
-	_submit = submit
+
+## 打开 [param plants] 的目录，并将 [param current] 标为当前目标。
+func _open_plant_picker(plants: Array[int], current: int) -> void:
+	if is_instance_valid(_plant_picker):
+		return
+	_plant_picker = PlantPicker.new()
+	_plant_picker.size = DESIGN
+	_plant_picker.z_index = 2 # 盖住独立绘制在上一层的库存数量角标。
+	_plant_picker.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
+	focus_behavior_recursive = Control.FOCUS_BEHAVIOR_DISABLED
+	add_child(_plant_picker)
+	_plant_picker.finished.connect(_finish_plant_picker)
+	_plant_picker.open(plants, current)
+
+## 收起打开的植物目录，返回是否拦截了这次取消操作。
+func dismiss_plant_picker() -> bool:
+	if not is_instance_valid(_plant_picker):
+		return false
+	_plant_picker.hide()
+	_plant_picker.queue_free()
+	_plant_picker = null
+	focus_behavior_recursive = Control.FOCUS_BEHAVIOR_INHERITED
+	_restore_focus("target")
+	return true
+
+## 收起目录并将 [param plant] 提交给窗口，零仅关闭目录。
+func _finish_plant_picker(plant: int) -> void:
+	dismiss_plant_picker()
+	if plant > 0:
+		_emit("target_plant", plant)
 
 ## 在 [param parent] 创建 [param id] 的书卡；[param dimensions] 为设计尺寸，[param action] 与 [param data] 为点击意图。
 func _book_tile(parent: Node, id: String, dimensions: Vector2, action: String, data: Variant) -> Button:
@@ -229,9 +353,13 @@ func _book_tile(parent: Node, id: String, dimensions: Vector2, action: String, d
 	tile.tooltip_text = tooltip(id)
 	tile.pressed.connect(_emit.bind(action, data))
 	var focus_key: String = "%s:%s" % [action, str(data)] # 区分候选书 ID 和投入槽索引。
-	tile.set_meta("library_focus", focus_key)
-	_focus_targets[focus_key] = tile
+	_track_focus(tile, focus_key)
 	return tile
+
+## 记录 [param button] 在当前绘制中的 [param key]，便于更新后恢复键盘焦点。
+func _track_focus(button: Button, key: String) -> void:
+	button.set_meta("library_focus", key)
+	_focus_targets[key] = button
 
 ## 用 [param key] 恢复仍存在且可操作的按钮；材料满槽时聚焦确认，其他情况选择首个候选。
 func _restore_focus(key: String) -> void:

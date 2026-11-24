@@ -30,13 +30,12 @@ func get_bullet_paras(marker_2d_bullet_glo_pos:Vector2, ray_direction:Vector2) -
 	bullet_paras[Bullet000NormBase.E_InitParasAttr.Enemy] = get_enemy()
 	return bullet_paras
 
-## 生成子弹时获取攻击敌人
+## 生成子弹时优先返回前方目标，找不到时使用全局选敌。两处都无有效目标时返回 null。
 func get_enemy()->Character000Base:
-	## 如果前方有敌人
-	if is_instance_valid(detect_component.update_first_enemy()):
-		return detect_component.update_first_enemy()
-	## 如果前方没敌人,且全局有敌人
-	elif is_instance_valid(detect_component_global.update_enemy_track_bullet()):
-		return detect_component_global.update_enemy_track_bullet()
-	else:
+	var local_target: Character000Base = detect_component.update_first_enemy() # 前方只执行一次排序。
+	if is_instance_valid(local_target):
+		return local_target
+	if not is_instance_valid(detect_component_global):
 		return null
+	var global_target: Character000Base = detect_component_global.update_enemy_track_bullet() # 沿用全局检测组件的锁定规则。
+	return global_target if is_instance_valid(global_target) else null

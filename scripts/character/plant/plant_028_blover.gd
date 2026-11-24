@@ -8,7 +8,7 @@ var is_blow_away_once:=false
 
 func ready_norm():
 	super()
-	await get_tree().create_timer(blover_time).timeout
+	await get_tree().create_timer(blover_time, false).timeout
 	hp_component.Hp_loss_death()
 
 ## 吹散迷雾

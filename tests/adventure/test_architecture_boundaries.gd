@@ -79,15 +79,11 @@ func _run() -> void:
 	legacy_bar.queue_free()
 
 	# 冒险物种不能被原版随机名单悄悄过滤；地形不相容必须在开战前拒绝。
-	var adversarial_stage := StageDefinition.new() # 单阶段测试，避免其他阶段的布局和预排出怪影响地形断言。
-	adversarial_stage.environment = AdventureBattleEnvironment.new()
-	var adversarial_phase := StagePhaseDefinition.new() # 仅声明测例使用的随机池。
-	adversarial_phase.kind = StagePhaseDefinition.Kind.NORMAL
-	adversarial_phase.wave_profile = WaveProfile.new()
-	adversarial_phase.wave_profile.wave_count = 2
-	var adversarial_band := WaveBandDefinition.new() # 同一只水生僵尸分别在草坪和泳池验证。
-	adversarial_phase.wave_profile.bands = [adversarial_band]
-	adversarial_stage.phases = [adversarial_phase]
+	var adversarial_stage: StageDefinition = AdventureStageCatalog.load_stage(2)
+	var adversarial_phase: StagePhaseDefinition = AdventureStageCatalog.find_phase(
+		adversarial_stage, StagePhaseDefinition.Kind.NORMAL)
+	var adversarial_band: WaveBandDefinition = adversarial_phase.wave_profile.bands[0]
+	adversarial_band.zombie_weights.clear()
 	adversarial_band.zombie_weights[CharacterRegistry.ZombieType.Z012Snorkle] = 1
 	assert(not AdventureBattleEnvironmentAdapter.validate_terrain(adversarial_stage).is_empty())
 	adversarial_stage.environment.scene = MainSceneRegistry.MainScenes.MainGameBack

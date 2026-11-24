@@ -171,13 +171,29 @@ func create_temp_card(reference: ResourceCardReference, global_pos: Vector2, exi
 	var temp_card: Card = AllCards.create_card(reference, Card.CardContext.Battle)
 	if temp_card == null:
 		return null
-	curr_temp_cards.append(temp_card)
 	canvas_layer_card_slot_front.add_child(temp_card)
 	temp_card.global_position = global_pos
-	temp_card.signal_card_use_end.connect(card_use_end)
-	if exist_time >= 0:
-		temp_card_add_exist_timer(temp_card, exist_time)
+	register_temp_card(temp_card, exist_time)
 	return temp_card
+
+## 登记已入树的 [param card]，启动原生一次性用卡结算和可选的 [param exist_time] 游戏秒寿命。
+## 先完成飞行的奖励卡可在落地时调用；重复登记不重置计时。
+func register_temp_card(card: Card, exist_time: float = -1.0) -> void:
+	if not is_instance_valid(card) or not card.is_inside_tree() or card.is_queued_for_deletion() or curr_temp_cards.has(card):
+		return
+	curr_temp_cards.append(card)
+	card.signal_card_use_end.connect(card_use_end)
+	card.tree_exiting.connect(_forget_temp_card.bind(card), CONNECT_ONE_SHOT)
+	if is_instance_valid(curr_temp_card_in_hm):
+		card.mouse_filter_stop()
+	if exist_time >= 0:
+		temp_card_add_exist_timer(card, exist_time)
+
+## [param card] 随所属演出清理时同步从临时库存注销，避免后续手持信号访问失效节点。
+func _forget_temp_card(card: Card) -> void:
+	curr_temp_cards.erase(card)
+	if curr_temp_card_in_hm == card:
+		curr_temp_card_in_hm = null
 
 ## 给 [param temp_card] 添加一次性的正常存在计时器；[param temp_card_exist_time] 单位秒。
 func temp_card_add_exist_timer(temp_card: Card, temp_card_exist_time: float) -> void:

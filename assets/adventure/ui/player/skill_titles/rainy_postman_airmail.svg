@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="776" height="340" viewBox="0 0 388 170">
+  <title>战场速递</title>
+  <defs>
+    <linearGradient id="face" gradientUnits="userSpaceOnUse" x1="12" y1="14" x2="30" y2="112">
+      <stop stop-color="#fffcec"/>
+      <stop offset=".44" stop-color="#fff4c8"/>
+      <stop offset=".63" stop-color="#a6c3f1"/>
+      <stop offset="1" stop-color="#7299d8"/>
+    </linearGradient>
+    <g id="strokes" fill="none" stroke-linecap="square" stroke-linejoin="bevel">
+      <path transform="translate(13 18) skewX(-7)" d="M25 17 24 59 M25 35 40 32 M12 63 40 61 39 99 12 102Z M47 44 83 40 M59 16 Q56 78 72 99 78 110 83 92 M79 51 Q73 79 48 98 M72 20 81 29"/>
+      <path transform="translate(105 18) skewX(-7)" d="M7 50 33 47 M20 21 19 84 M7 89 34 76 M42 28 76 25 61 45 79 44 75 93 69 103 59 102 M60 50 Q55 74 39 86 M69 48 Q65 84 45 103"/>
+      <path transform="translate(196 18) skewX(-7)" d="M9 28 20 41 M6 56 22 53 21 83 9 98 M20 83 Q47 102 80 99 M33 32 78 29 M56 17 55 89 M36 48 74 45 73 64 35 67Z M54 66 Q42 79 31 84 M59 67 77 81"/>
+      <path transform="translate(286 18) skewX(-7)" d="M9 27 20 40 M6 56 22 54 20 84 8 98 M20 84 Q45 102 81 99 M42 19 49 29 M68 17 61 29 M32 39 73 36 72 54 37 56 35 70 75 68 74 81 67 86 M56 39 55 91 M54 70 Q45 83 32 87"/>
+    </g>
+  </defs>
+  <path d="M5 48 28 43 M13 59 21 57 M9 131 37 125 M341 145 382 138 M365 150 376 147" fill="none" stroke="#d1e7ff" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M346 26 372 21 363 31 348 36Z" fill="#e7f4ff" opacity=".7"/>
+  <use xlink:href="#strokes" x="1.7" y="6" stroke="#132943" stroke-width="16"/>
+  <use xlink:href="#strokes" y="2.6" stroke="#3b5583" stroke-width="14"/>
+  <use xlink:href="#strokes" stroke="#132943" stroke-width="12"/>
+  <use xlink:href="#strokes" stroke="#f7fbff" stroke-width="9.2"/>
+  <use xlink:href="#strokes" stroke="url(#face)" stroke-width="7.6"/>
+</svg>

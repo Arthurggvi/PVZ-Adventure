@@ -1,0 +1,103 @@
+边境雪山施工交付
+日期 2026-11-21
+
+入口核对
+工程 AGENTS.md — 保留既有未提交改动，本任务只做静态核对并本地提交。
+project.godot — 声明 Godot 4.7、桌面和移动 GL Compatibility、1066×600、canvas_items；Android 使用 keep。
+本机 Godot_v4.7.2-stable_win64.exe — Windows 文件版本 4.7.2.stable.official；本次未启动引擎，未核对实际导出模板版本。
+scripts/adventure/adventure_stage_registry.gd — 103 号边境雪山，通过既有覆盖资源解析。
+resources/adventure/stages/overrides/wonderland_snow_mountains.tres — 专属战斗场景和普通、噩梦的阶段天气绑定。
+scripts/adventure/adventure_session.gd — 正式进入和返回使用既有 SceneTransition；此次未改场景加载协议。
+scenes/adventure/snow_mountains_battle.tscn — BoardArt、Skybox、TerrainSlope、ShowZombiePanel/2 和战斗及选卡机位。
+scripts/adventure/snow_mountain_board.gd — 6 行 11 列、两段坡和预览区战斗右界的配置。BoardRuntime 保有唯一格位索引。
+scripts/adventure/snow_mountain_slope.gd — 从棋盘原图坐标装配坡段；MainGameSlope.get_all_slope_y 提供真实世界坡高。
+scripts/manager/background_manager.gd — 地板就绪后绑定场景雪控制器，阶段样本仍由 BattleWeatherDirector 分发。
+scripts/autoload/tree_pause_manager.gd、scripts/manager/main_game_manager.gd — 场景树暂停和 Engine.time_scale；天气使用游戏帧 delta。
+scripts/manager/zombie_manager/zombie_manager.gd — signal_zombie_created 和正式出战实体列表，展柜对象独立。
+scripts/character/components/component_move.gd — 地面推移与抛飞结束；正常步行无通用脚落地事件，使用实际位移回退。
+scripts/character/components/attack_behavior_component/component_attack_zombie_large_fusion.gd — 真正的 ROLLING、AIRBORNE、EXHAUSTED、DEAD 状态和 rebound_landed。实际单位为 scenes/character/zombie/zombie_029_large_fusion.tscn。
+scripts/main_game_item/plant_cell.gd — living_plants 读占位、伴生与搬运；角色 sprite 取当前帧及父级变换，受击采用 HpComponent.combat_attack_received。
+scripts/autoload/sound_manager.gd — SFX 总线；连续风声以场景本地 AudioStreamPlayer 接入。
+assets/adventure/wonderland/battle/snow_mountains/ground.png — 1916×821 RGB。装配时提取原图黑底与雪面的交界，供天空与地板共用。
+assets/adventure/wonderland/battle/snow_mountains/sky_clouds.png 与 sky_mountains.png — 同画布 2172×724，最新无极光夜空保留固定远云，透明山体独立固定。
+assets/adventure/wonderland/battle/snow_mountains/aurora_atlas.png — 1122×1402 RGBA，独立条带入口使用图集首带的 1122×337 区域。
+
+实现与验收状态
+01 地图结构：已有 + 本次仅静态核对。复用 66 格、两个坡段和高台，右侧选卡保留环境延伸。
+02 普通雪与暴雪：已实现 + 仅静态核对。普通阶段固定小雪（0.27／0.19／0.15）。噩梦首帧起固定为暴雪目标（0.98／0.98／0.97），含第 50 波清空后黑将军战；重开读取所在阶段。空中表现和两条循环风声随阶段过渡，暴雪音量按共享阵风抬升。
+03 底行、镜头和 UI：已实现 + 仅静态核对。保护带由实际底行边界和坡面投影，抑制近雪与贴地雪尘；远中雪在战斗对象下方，近雪在 UI 下方，右侧选卡降低前景遮盖。
+04 脚印、拖痕和落地：已实现 + 仅静态核对。自然走路基于真实地面弧长和交替足落，原生接触事件和位移回退互斥。撑杆、气球、蹦极、跳杆、小鬼与强制抛飞读取实际落地事件；强制地面推移写拖痕。退出、死亡、暂停、横跨行间与大位移会结束当前轨迹。
+05 大型融合滚动：已实现 + 仅静态核对。真实贴地滚动态扫掠短段，压痕以最大深度合成，回填与角色实例分离。雪山继承的自然波次不含该单位；保留波次。实际跨坡验收可在获授权后使用既有战斗生成入口。
+06 沉积、回填和融雪：已实现 + 仅静态核对。浮点松雪、压实、潮湿与局部回填在 CPU 推进，限频提交 LDR 数据纹理。重复踩压限制深度。原生火爆辣椒视觉事件按实际行施加局部热量。
+07 植物覆盖：已实现 + 仅静态核对。46 个物种的部件映射已与场景核对，涵盖直立花叶、豌豆、坚果与大冠壳、菇类、抛投、低矮贴地及荷叶／花盆。图集植物闪电芦苇、回旋镖和电能豌豆按专用部件绑定。常燃火炬、浸水缠绕水草和海蘑菇、一次性卡和无稳定表面的暂态表现排除。覆盖跟随当前帧、变换与显隐，真实受击和阵风可抖落。
+08 动态天空：独立极光已接入 + 仅静态核对。光幕在固定山体后方持续慢动，暴雪的雪墙仍压低远山对比并让光幕明暗起伏。噩梦增宽青绿主带，密雪中保留最低透光，局部天光在卡槽下方展开。高画质在右侧预览天空保留错相辅带。独立高云的空间遮挡与云层移动仍缺素材。
+09 暂停与时间线收尾：已实现 + 仅静态核对。现有 Director 仍掌握阶段时间，暂停冻结；末值保持后局部雪控制器继续推进。零输入停止积雪并让画面逐渐退场。
+10 退出和重入：已实现 + 仅静态核对。画面、音频和粒子随场；独立植物 RID、地板与天空材质恢复及事件连接按其所有者清理。
+11 长时和预算：已实现 + 仅静态核对。雪位移、阵风、云和极光相位均有界，雪花哈希周期匹配空间回绕。角色接触历史上限 384，单雪步最多 48 个压痕输入，接触雪末上限 96。
+12 画质和设备：已配置 + 仅静态核对。雪场实例 quality_mode 自动／低／高可切换，低档取消独立近雪并加大远中雪格距。低／高档雪状态 128×64／256×128，5／10 Hz；印迹为 384×192／768×384 的单次地板合成，使用有界像素合并而非不断产生覆盖节点。画质不改阶段和战斗逻辑。
+
+素材缺口
+需要独立高云 RGBA，建议 2172×724，沿用同一左上原点和画布。水平首尾无缝，真实透明云缝露出后方极光。此缺口影响高云移动和极光的空间遮挡。当前无极光底图的远云保持固定。
+目前雪允许区域、背风／裸冰倾向由实际地板亮度和透明覆盖推导。若要求逐像素美术指定，需补一张与当前 1916×821 地板对齐的线性数据遮罩（允许覆盖、迎背风、冰岩分别独立通道）。印迹和植株覆雪使用程序形状及实际帧 alpha，无需把完整角色刷白。
+
+文件范围
+修改
+  scenes/adventure/snow_mountains_battle.tscn                 雪节点与雪面合成
+  resources/adventure/stages/overrides/wonderland_snow_mountains.tres  阶段绑定
+  scripts/manager/background_manager.gd                     场景本地绑定
+  scripts/weather/{battle_weather_director,weather_keyframe,weather_sequence}.gd  独立雪通道
+  scripts/character/components/component_move.gd             只读地面移动和抛飞表现信号
+  scripts/character/components/attack_behavior_component/component_attack_zombie_large_fusion.gd  真正滚动态查询
+  scripts/character/zombie/{zombie_019_pogo,zombie_025_imp}.gd  原生落地通知
+新增
+  resources/weather/wonderland_snow_mountains_{normal,nightmare}.tres
+  scripts/weather/snow/snow_{environment_controller,visual_profile,storm_renderer,sky_renderer}.gd
+  scripts/weather/snow/snow_surface{,_mask,_state,_imprints}.gd
+  scripts/weather/snow/{snow_contacts,snow_contact_track,snow_contact_puffs}.gd
+  scripts/weather/snow/snow_plant_{cover,profiles,part,flurries}.gd 与 snow_plant_part.gdshader
+  shaders/weather/snow_{atmosphere,layered_sky}.gdshader 与 snow_surface.gdshaderinc
+  assets/adventure/wonderland/battle/snow_mountains/{sky_clouds,sky_mountains,aurora_atlas}.png
+  docs/adventure/border_snow_mountain_snow_delivery.txt
+
+实际核对
+23 个 GDScript 文件通过独立语法解析，21 处 res:// 引用存在，阶段资源标识与雪通道区间已核对，地板原像素检查覆盖 66 个脚点。依工程及蓝图约定未启动 Godot，未导入或编译着色器，未运行测试，未实际打包或验证 PC／Android 的画面、暂停、退出、切档与性能。施工状态与设备验收分开记录。
+本次天气与天空补充仅静态核对阶段首帧、场景与着色器引用、三张素材的格式及图集取样范围。
+现有 Windows 与 Android release_shipping 仍隐藏并排除奇境雪山。本次改动适用于包含该关卡的工程／开发构建。
+
+暴雪视觉升级 P0–P6
+P0 核对入口与画布。背景 -10，既有世界雪 -9／4，卡槽和阳光 10，手持预览工具 20，特效 30，头像、技能、菜单按钮、波次、暂停菜单、音量滑条和战斗弹窗 50。阶段过渡 80，技能切入 91，新手引导 92，切场 100。战场与 HUD 共用根视口，移动触控由现有 BattleTouchInput 与 BattlePointerRouter 处理。
+P1 环境控制器每帧推进一次本局 SnowGustState。两个不同周期的调制相位分别改变阵风间隔和峰值，阵风强度、能见度损失、镜头冲击、冷白权重和地吹雪都是 0..1。天气时间轴仍负责落雪、雪风和云量的阶段目标。
+P2 世界天空和中景使用同一 2048 世界像素回绕的雪墙。山体保留原图透明边缘与位置，先退隐远峰与山谷，再适度降低中景对比。前后山距离由单张素材的纵向位置估算。极光独立慢动，受风雪遮蔽但保留密雪中的可见亮度。
+P3 镜头层使用 51，在普通战斗 HUD 上方以一个 ColorRect、一个本局材质、单次混色完成冷白和局部雪掠。尺寸取根视口的可见矩形并随 resize 更新。新层忽略鼠标和触摸，不取焦点，不随相机平移。暂停、选卡、结算、切场和第 50 层模态时隐藏，实战红字期间只保留 28% 的淡冷色。
+P4 世界雪按远、中、近、冰粒分别推进，低档保留相同世界网格与相位，减少远中雪覆盖并省去世界近雪。高档增加失焦近雪和峰值横掠冰粒。两档镜头都保留主风带与冰粒，高档加第二股断续雪流。第六行和右侧预览沿真实地形衰减，近镜头雪另按操作区和底部限制。
+P5 原有场景风声入口先响应阵风，远山和镜头依次跟进，贴坡雪流延后退去。暂停不推进相位，续战平滑接收目标，退出随场景释放。足印、滚痕、植物覆盖、投射物及点击入口沿用原脚本与协议。
+P6 静态核对了 15 处资源路径和三份材质的 35 个参数。以固定步长离线推算 240 游戏秒，普通雪无镜头脉冲，暴雪强掠约 0.46–0.76 秒，峰间隔约 8.4–12.3 秒。中央非 HUD 区合成上限 0.102，边侧局部雪掠上限 0.190。未启动 Godot、编译着色器或运行测试。PC／Android 实际画面、双指及暂停交互、低档性能和风声听感仍待运行核验。
+
+本轮改动文件
+  scripts/weather/snow/snow_gust_state.gd                    单一阵风包络和分层滞后
+  scripts/weather/snow/snow_environment_controller.gd        统一天气状态和风速调用、风声前导
+  scripts/weather/snow/snow_visual_profile.gd                冷灰雪墙与冷白镜头预设
+  scripts/weather/snow/snow_lens_overlay.gd                  第 51 层、视口尺寸与 HUD 门禁
+  scripts/weather/snow/snow_storm_renderer.gd                四类世界雪粒的位移、画质预算与真实地形保护
+  scripts/weather/snow/snow_sky_renderer.gd                  独立极光与世界雪墙参数
+  shaders/weather/snow_storm_fields.gdshaderinc              天空和中景共享的周期雪墙
+  shaders/weather/snow_lens_overlay.gdshader                 一遍冷色与局部掠雪合成
+  shaders/weather/snow_atmosphere.gdshader                   世界雪雾、分层雪粒和地吹雪
+  shaders/weather/snow_layered_sky.gdshader                  远山分层散射与极光遮蔽
+
+风雪声音、极光可见性与清洁车
+- 两轨素材均为 CC0 1.0（https://creativecommons.org/publicdomain/zero/1.0/）。从作者公开音频取适用片段，滤波并做等功率首尾交叠后以 48 kHz 立体声 Vorbis 输出，按关卡音效总线独立循环。
+- resources/adventure/audio/snow_mountains_light_wind.ogg，26.0 秒。来源为 TSP-Talk 的 Quiet Winter Night with Light Snow & Wind – Altenthann Ambience。
+  https://freesound.org/people/TSP-Talk/sounds/845502/
+- resources/adventure/audio/snow_mountains_blizzard.ogg，33.5 秒。低沉阵风取自 HECKFRICKER 的 Winter Snowstorm Ambience，风卷雪粒取自 martypinso 的 DMP013016 HEAVYSNOWSTORM，混合后限制尖峰。
+  https://freesound.org/people/HECKFRICKER/sounds/754256/
+  https://freesound.org/people/martypinso/sounds/22606/
+- 普通雪与暴雪使用共享天气权重交叉渐变。黑将军战延续噩梦的风雪状态，稳定阶段只有当前底声解码。风声随本场暂停及退出。
+- 噩梦卡槽与头像区域的稳定冷白混色约 0.119，上限 0.170；中央稳定混色约 0.044。噩梦极光已按天空透出区域、山体透明度和雪墙衰减做离线亮度估算。
+- 边境雪山的关卡环境关闭清洁车，各阶段均不生成。
+- 两轨均已完整解码并核对循环接缝、关卡引用及分阶段混音参数。未启动 Godot 或运行游戏测试，实际混音与画面仍待游戏内验证。
+
+山脊与雪地材质
+- 天幕和地板共享从原图提取的 512 列轮廓。贴近雪线的冷灰雾跟随现有世界雪墙，前景边缘从实雪取色并做短距离羽化。
+- 地板减淡原图的格状底色，保持细雪纹。雪堆明暗按现有坡面修正，积雪、脚印和滚痕在材质起伏之上继续独立合成。
+- 用真实素材离线合成核对战斗镜头和右侧选卡镜头，确认 66 个脚点不落入羽化区。未启动 Godot、编译着色器或运行游戏测试。

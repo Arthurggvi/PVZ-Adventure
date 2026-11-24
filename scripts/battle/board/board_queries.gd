@@ -30,24 +30,45 @@ static func neighbors(board: BoardRuntime, origin: PlantCell, radius: int) -> Ar
 static func nearest(board: BoardRuntime, point: Vector2, lane: int = -1) -> PlantCell:
 	var result: PlantCell = null # 没有候选返回 null。
 	var distance: float = INF # 当前最佳平方距离。
-	for cell: PlantCell in board.cells(): # 独立几何，不假定每行首格代表全行。
-		if lane >= 0 and cell.row_col.x != lane:
-			continue
+	var candidates: Array[PlantCell] = board.row_cells(lane) if lane >= 0 else board.cells() # 爆炸及光环提供行时复用分行索引。
+	var registered: Array[PlantCell] = [] # 等距时才需要原登记顺序。
+	for cell: PlantCell in candidates: # 独立几何，不假定每行首格代表全行。
 		var candidate: float = cell.get_global_rect().get_center().distance_squared_to(point) # 当前距离。
 		if candidate < distance:
 			distance = candidate
 			result = cell
+		elif lane >= 0 and candidate == distance and result != null:
+			if registered.is_empty():
+				registered = board.cells()
+			if registered.find(cell) < registered.find(result):
+				result = cell
+	return result
+
+## 在 [param candidates] 中查找 [param point] 下可交互的格子；重叠时采用 GUI 的场景树顺序。
+static func pick_cell_from(point: Vector2, candidates: Array[PlantCell]) -> PlantCell:
+	var result: PlantCell = null # 当前最上层的有效格子。
+	for cell: PlantCell in candidates: # 精确命中仍与格子按钮共用局部矩形及多边形。
+		if not is_instance_valid(cell) or cell.is_queued_for_deletion() or not cell.is_visible_in_tree():
+			continue
+		if cell.process_mode == Node.PROCESS_MODE_DISABLED:
+			continue
+		if cell.contains_world_point(point) and (result == null or cell.is_greater_than(result)):
+			result = cell
 	return result
 
 ## 在 [param board] 的 [param lane] 内精确匹配世界脚点 [param point]，失败返回 null。
-## 底边闭合以兼容地块生成脚点；水平边界保持左闭右开，不跨空洞寻找邻格。
 static func cell_at_ground_point(board: BoardRuntime, point: Vector2, lane: int) -> PlantCell:
+	return ground_cell_from(board, point, lane, board.row_cells(lane))
+
+## 在 [param candidates] 中精确匹配 [param board] 的 [param lane] 内的世界脚点 [param point]。
+## 底边闭合以兼容地块生成脚点；水平边界保持左闭右开，不跨空洞寻找邻格。
+static func ground_cell_from(board: BoardRuntime, point: Vector2, lane: int, candidates: Array[PlantCell]) -> PlantCell:
 	var result: PlantCell = null # 重叠地块按现有 GUI 场景树顺序选取。
 	if lane < 0 or not point.is_finite():
 		return null
-	for cell: PlantCell in board.row_cells(lane): # 即时查询当前地块，不缓存平台运动前的几何。
+	for cell: PlantCell in candidates: # 读取地块的当前行与变换，不依赖候选的先后顺序。
 		if not is_instance_valid(cell) or cell.is_queued_for_deletion() \
-				or not cell.is_visible_in_tree() or board.cell_by_id(cell.cell_id) != cell:
+				or cell.combat_lane != lane or not cell.is_visible_in_tree() or board.cell_by_id(cell.cell_id) != cell:
 			continue
 		var local_point: Vector2 = cell.get_global_transform().affine_inverse() * point # 当前地块局部脚点。
 		if local_point.x < 0.0 or local_point.x >= cell.size.x \

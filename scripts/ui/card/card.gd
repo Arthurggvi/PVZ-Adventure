@@ -15,10 +15,18 @@ enum CardContext {
 	Almanac, ## 打开图鉴详情。
 }
 
-## 当前实例的点击用途；创建入口应在入树前设置。
-var card_context: CardContext = CardContext.Catalog
+## 当前实例的点击用途；入树后选择与战斗切换时同步转职标注。
+var card_context: CardContext = CardContext.Catalog:
+	set(value):
+		if card_context == value:
+			return
+		card_context = value
+		if is_node_ready():
+			_sync_selection_promotion()
 ## The profile is the sole source for card UI and any spawned plant.
 var _plant_spawn_profile: PlantSpawnProfile = null
+## 临时派发卡的零费规则优先于永久费用及战场加减价，入树前设置。
+var is_free_temporary: bool = false
 var _registry_sun_cost: int = -1
 var _registry_cooldown: float = 0.0
 ## Runtime field additions are separate from permanent star/promotion modifiers.
@@ -37,6 +45,10 @@ var _pea_synergy_count: int = 0
 var _resonance_next_free: bool = false
 var _star_badge: Control = null
 const StarBadge = preload("res://scripts/adventure/ui/star_badge_view.gd")
+## 选卡阶段专用的转职标注，只有实际转职的卡才创建。
+const SelectionPromotion = preload("res://scripts/ui/card/card_selection_promotion.gd")
+## 当前实例的转职标注，随真实卡片移入及移出出战栏。
+var _selection_promotion: SelectionPromotion
 ## 豌豆射手的转职配件和配色。
 const PeaArt = preload("res://scripts/adventure/plant_art/adventure_peashooter_promotion_art.gd")
 ## 向日葵转职的分层卡面资源。
@@ -65,6 +77,7 @@ var plant_spawn_profile: PlantSpawnProfile:
 			_apply_profile_card_stats()
 			_sync_star_badge()
 			_sync_promotion_appearance()
+			_sync_selection_promotion()
 
 ## 返回本卡占用的选卡名额；普通卡占1格，冻结配方可声明免占位。
 func selection_slot_cost() -> int:
@@ -93,6 +106,19 @@ func _sync_promotion_appearance() -> void:
 		return
 	if not apply_promotion_appearance(character_static, card_reference.content_id, promotion_tier()):
 		push_error("无法更新植物卡的转职外观：%d" % card_reference.content_id)
+
+## 根据本卡冻结配方显示转职刻线；进入战斗后收起。
+func _sync_selection_promotion() -> void:
+	var tier: int = promotion_tier() # 转职次数来自本实例，星级和物种相同也可能选择不同路线。
+	if card_context != CardContext.Selection or tier == 0:
+		if _selection_promotion != null:
+			_selection_promotion.hide()
+		return
+	if _selection_promotion == null:
+		_selection_promotion = SelectionPromotion.new()
+		add_child(_selection_promotion)
+	_selection_promotion.show()
+	_selection_promotion.configure(tier)
 
 ## One UI component for inventory, research and adventure battle cards.
 ## The active spawn profile is the sole star-level authority.
@@ -124,7 +150,8 @@ func _apply_profile_card_stats() -> void:
 		return
 	_refresh_battle_sun_cost()
 	_fixed_cooldown_seconds = float(stats.cooldown) if bool(stats.get("cooldown_fixed", false)) else -1.0
-	cool_time = _fixed_cooldown_seconds if _fixed_cooldown_seconds >= 0.0 else maxf(0.0, float(stats.cooldown) * (1.0 - 0.1 * _pea_synergy_count))
+	var factor: float = (1.0 - 0.1 * _pea_synergy_count) * (1.0 - _battle_cooldown_reduction) # 本局常驻的后续冷却倍率。
+	cool_time = _fixed_cooldown_seconds if _fixed_cooldown_seconds >= 0.0 else maxf(0.0, float(stats.cooldown) * factor)
 
 ## Dynamic board costs are added after permanent card modifiers.
 func set_sun_surcharge(amount: int) -> void:
@@ -164,12 +191,12 @@ func set_battle_discount_source(family: StringName, source_id: int, amount: int)
 		if is_instance_valid(slots) and slots.curr_cards.has(self):
 			judge_sun_enough(slots.sun_value)
 
-## 由永久配方、动态加价、一次优惠及持续减费合成当前价格，免费续种仍优先。
+## 由永久配方、动态加价、一次优惠及持续减费合成当前价格；临时免费与免费续种优先。
 func _refresh_battle_sun_cost() -> void:
 	var stats: Dictionary = _resolved_card_stats() # 每次从注册基础值与冻结配方重新取永久费用。
 	if stats.is_empty():
 		return
-	sun_cost = 0 if _resonance_next_free else maxi(0,
+	sun_cost = 0 if is_free_temporary or _resonance_next_free else maxi(0,
 		int(stats.sun_cost) + _sun_surcharge - _next_planting_discount - 10 * _pea_synergy_count - _battle_discount_total)
 
 ## [param count] 场上同物种存活株数；仅协同卡牌由战斗运行时调用，最多五株。
@@ -226,12 +253,34 @@ var cheat_ignore_sun_cost := false
 var _cool_timer: float = 0.0
 ## 冒险事件倍率只影响新开始的冷却；固定时长技能不再乘此倍率。
 var adventure_cooldown_multiplier := 1.0
+## 同类共享冷却缩短按有效受益株的实例 ID 保存，允许各株独立退出。
+var _battle_cooldown_sources: Dictionary[int, float] = {}
+## 共生提供的最大冷却缩短比例，仅参与新开始的普通冷却。
+var _battle_cooldown_reduction: float = 0.0
 ## 配方声明的最终固定冷却秒数；负数表示使用普通倍率结算。
 var _fixed_cooldown_seconds: float = -1.0
 ## 仅在同步成功使用通知期间存在的额外冷却，避免残留到下一次使用。
 var _placement_cooldown_bonus: float = 0.0
 ## 防止同次使用通知的监听器重入，再次扣费和开始冷却。
 var _placement_commit_in_progress: bool = false
+
+## 登记 [param source_id] 提供的 [param reduction]。同类只取最大值，零撤销，进行中的冷却保持原进度。
+func set_battle_cooldown_reduction_source(source_id: int, reduction: float) -> void:
+	if source_id <= 0 or not is_finite(reduction):
+		return
+	var next_amount: float = clampf(reduction, 0.0, 1.0) # 以正的比例表示缩短幅度。
+	if _battle_cooldown_sources.get(source_id, 0.0) == next_amount:
+		return
+	if next_amount > 0.0:
+		_battle_cooldown_sources[source_id] = next_amount
+	else:
+		_battle_cooldown_sources.erase(source_id)
+	var highest: float = 0.0 # 多株共生受益者不能叠加同一个冷却词条。
+	for amount: float in _battle_cooldown_sources.values(): # 其他仍在场的来源维持自己贡献的比例。
+		highest = maxf(highest, amount)
+	if highest != _battle_cooldown_reduction:
+		_battle_cooldown_reduction = highest
+		_apply_profile_card_stats()
 
 ## 结算一次成功放置，[param extra_cooldown] 由实际施效结果提供，单位为秒。
 ## 沿用原有单参数信号；无冷却模式跳过计时后，附加值也会立即清空。
@@ -253,12 +302,25 @@ func adventure_adjust_remaining_cooldown(seconds: float) -> void:
 		_is_cooling = false
 		judge_card_ready()
 
+## 为当前卡牌追加 [param seconds] 秒冷却；已就绪时从零开始。基础冷却和未来的用卡倍率不变。
+func add_cooldown_penalty(seconds: float) -> void:
+	if not is_finite(seconds) or seconds <= 0.0 or card_context != CardContext.Battle:
+		return
+	var remaining: float = maxf(0.0, _cool_timer) if _is_cooling else 0.0 # 已就绪时不使用上次计时的余量。
+	_cool_timer = remaining + seconds
+	_cool_mask.max_value = maxf(_cool_mask.max_value, _cool_timer) if _is_cooling else _cool_timer
+	_cool_mask.value = _cool_timer
+	_is_cooling = true
+	card_not_can_click()
+
 ## 将当前剩余冷却乘以 [param factor]；负数按 0 处理，0 立即结束冷却。[br]
 ## 已就绪卡保持原状，不改基础冷却、遮罩最大值或后续冷却的事件倍率。
-func adventure_multiply_remaining_cooldown(factor: float) -> void:
+## 有在途冷却并处理时返回 true。
+func adventure_multiply_remaining_cooldown(factor: float) -> bool:
 	if not _is_cooling:
-		return
+		return false
 	adventure_adjust_remaining_cooldown(_cool_timer * (maxf(0.0, factor) - 1.0))
+	return true
 
 ## 当前是否可以使用，由冷却、费用和种植条件共同决定。
 var is_can_click: bool = true
@@ -289,6 +351,7 @@ func _ready() -> void:
 		return
 	_sync_star_badge()
 	_sync_promotion_appearance()
+	_sync_selection_promotion()
 	if card_reference.card_type == ResourceCardReference.CardType.ZombieBoss:
 		# 源模板隐藏了费用，复制实例入树时必须按用途显式恢复可见性。
 		cost.visible = card_context == CardContext.Selection or card_context == CardContext.Battle

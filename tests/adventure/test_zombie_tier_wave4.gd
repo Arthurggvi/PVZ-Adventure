@@ -6,10 +6,6 @@ const DIGGER := preload("res://scenes/character/zombie/zombie_018_digger.tscn")
 const PLANT := preload("res://scenes/character/plant/plant_001_pea_shooter_single.tscn")
 
 var failed := false
-## 测试实体归属的真实战场。
-var _battle: MainGameManager
-## 通过原生场景装配战斗环境。
-const BattleFixture = preload("res://tests/adventure/zombie_tier_battle_fixture.gd")
 
 func _ready() -> void:
     call_deferred("_run")
@@ -21,7 +17,7 @@ func _spawn(scene: PackedScene, tier: StringName = &"") -> Zombie000Base:
         zombie.position.x = 800.0 # Do not auto-surface the staged test miner at x=0.
     if tier != &"":
         _check(AdventureZombieTierBinding.new(tier).apply(zombie), "spawn tier binding")
-    _battle.add_child(zombie)
+    add_child(zombie)
     return zombie
 
 func _check(ok: bool, reason: String) -> void:
@@ -36,7 +32,6 @@ func _child_of_kind(node: Node, script_kind: Script) -> Node:
     return null
 
 func _run() -> void:
-    _battle = BattleFixture.mount(self)
     var vanilla: Zombie017Balloon = _spawn(BALLOON) as Zombie017Balloon
     var balloon5: Zombie017Balloon = _spawn(BALLOON, &"tier5") as Zombie017Balloon
     var jack2: Zombie016Jackbox = _spawn(JACKBOX, &"veteran") as Zombie016Jackbox
@@ -47,7 +42,7 @@ func _run() -> void:
     var miner5: Zombie018Digger = _spawn(DIGGER, &"tier5") as Zombie018Digger
     var plant: Plant000Base = PLANT.instantiate() as Plant000Base
     plant.character_init_type = Character000Base.E_CharacterInitType.IsShow
-    _battle.add_child(plant)
+    add_child(plant)
     await get_tree().process_frame
     await get_tree().process_frame
     await get_tree().process_frame

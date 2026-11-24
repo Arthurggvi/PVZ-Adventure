@@ -24,7 +24,7 @@ func _start_eat_grave():
 	## 播放音效
 	SoundManager.play_character_SFX(&"GraveBusterChomp")
 
-	await get_tree().create_timer(0.5).timeout
+	await get_tree().create_timer(0.5, false).timeout
 	gpu_particles_2d_grave_buster.emitting = true
 	gpu_particles_2d_grave_buster.visible = true
 	if not is_instance_valid(plant_cell.tombstone):

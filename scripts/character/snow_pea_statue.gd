@@ -69,6 +69,7 @@ func _copy_pose(zombie: Zombie000Base, feet: Vector2) -> void:
 	display.add_child(_pose)
 
 ## 在安全阶段使用 [param feet] 安装设施；[param original] 只在原死亡事务结束后隐藏原身体。
+## 失效的离树节点延迟到帧末释放，避免正式模板解析自身 free() 时失败。
 func _mount(feet: Vector2, original: WeakRef) -> void:
 	if not _shot.battle.is_active():
 		queue_free()

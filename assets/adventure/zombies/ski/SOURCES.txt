@@ -1,0 +1,20 @@
+Ski Zombie — existing Plants vs. Zombies 2 Chinese artwork
+Original game artwork: PopCap Games / Electronic Arts. Original rights remain with their owners.
+Assembled PNG uploader: Redtarp, The Spriters Resource.
+Asset page: https://www.spriters-resource.com/mobile/plantsvszombies2/asset/483430/
+Original ZIP: https://www.spriters-resource.com/media/assets/465/483430.zip?updated=1759038546
+Archive SHA-256: 617492826ce13b215e2adb99243294b2578b3d67743ef4d06bea9cd3486e1a64
+Retrieved: 2026-11-21.
+
+Only existing assembled PNGs are used. Exact 0.5 resize uses premultiplied alpha and transparent padding on odd edges. Transparent areas are trimmed and packed into RGBA atlases no larger than 2048 per side. All 565 original sequence entries and their order are retained; duplicate bitmaps may share storage. No generated art, redrawing, invented frames, composited body parts, or per-frame pose normalization was used. Portrait is the first original idle frame.
+
+Original source preview timing: idle 61/1.83 s; walk 44/1.32 s; eat 259/7.77 s; rush_start 41/1.23 s; rush 20/0.60 s; air 41/1.23 s; land 49/1.47 s; death 50/1.50 s. Every selected source-site GIF was inspected and has the same frame count as its PNG sequence, at 30 ms per frame. Exact preview URLs are in animations.json. This records uploader preview timing; no original PAM timebase or animation commands were supplied.
+
+The SpriteFrames resource gives air a nominal duration of 0.45 action seconds (41 frames at 91.1111111111 fps). In battle, air playback is scaled to match the jump duration. Land plays for 0.30 action seconds (49 frames at 163.3333333333 fps). Other clips retain the original preview speed. Frame contents, sequence order and relative duration weights (1.0 each) are preserved. Metadata separates the original preview timing from the timing stored in the resource.
+
+Fly 2 preserves both skis and poles. Rush Stop preserves equipment and is used as the game's landing recovery. Rush Up and Fall Down contain baked translation and were excluded because the game supplies the two-cell world flight. Fixed action anchors and AtlasTexture margins align a common foot point without repainting pixels. These are documented image-space integration choices, not original skeleton data. Selected death retains its head throughout; no detached head effect should be added. Separate assembled armless walking/eating states are absent.
+
+Takeoff audio: takeoff.ogg is a 0.38-second mono mix from the existing assets/audio/SFX/item/swing.ogg and assets/adventure/zombies/troglobite/audio/push_slide.ogg. A pitched-down air sweep gives the cue its onset, and a midrange-focused ice scrape fades behind it. Compression brings out the scrape against the snow-stage mix while a limiter controls the peak. Source ownership follows the original clips.
+
+Source site terms: https://www.spriters-resource.com/page/tou/
+Preserve original rights and source attribution. These game rips are not represented as newly created work or an open commercial art license. Full archive, original GIFs and analysis contact sheets stay outside the runtime asset directory.

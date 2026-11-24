@@ -5,6 +5,8 @@ class_name AdventureBattleEnvironment
 
 ## 可选种植空间定义；为空时适配原场景布局。
 @export var board_definition: BoardDefinition
+## 右侧登场缓冲区加速开关，只由本关环境决定。
+@export var accelerate_offscreen_zombies: bool = true
 
 @export var scene: MainSceneRegistry.MainScenes = MainSceneRegistry.MainScenes.MainGameFront
 @export var background: ConstLevelData.GameBg = ConstLevelData.GameBg.FrontDay
@@ -14,6 +16,8 @@ class_name AdventureBattleEnvironment
 ## 战场逐行地形；空数组沿用原版场景节点设置，顺序自上而下。
 @export var terrain_rows: Array[CharacterRegistry.ZombieRowType] = []
 @export var music: ConstLevelData.GameBGM = ConstLevelData.GameBGM.FrontDay
+## 可复用的阶段曲目组合，阶段单独指定的曲目仍拥有更高优先级。
+@export var battle_music_profile: BattleMusicProfile
 @export var fog := false
 ## 进入战斗时的静态默认天气；阶段关键帧可以在战斗中改变雨势。
 @export var rain := false

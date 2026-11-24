@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/adventure/test_tanglekelp_promotions.gd" id="1"]
+
+[node name="TanglekelpPromotionsTest" type="Node"]
+script = ExtResource("1")

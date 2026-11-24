@@ -1,0 +1,243 @@
+[gd_resource type="Resource" script_class="WaveProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_profile.gd" id="profile"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_band_definition.gd" id="band"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/wave_spawn_group.gd" id="spawn"]
+
+[sub_resource type="Resource" id="Opening"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.nightmare.opening"
+first_wave = 1
+last_wave = 10
+minimum_regular_power = 38
+zombie_weights = Dictionary[int, int]({1: 6, 3: 3, 5: 2, 6: 2, 7: 2, 8: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="Second"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.nightmare.second"
+first_wave = 11
+last_wave = 20
+minimum_regular_power = 58
+zombie_weights = Dictionary[int, int]({1: 6, 3: 3, 5: 2, 6: 2, 7: 2, 8: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="Third"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.nightmare.third"
+first_wave = 21
+last_wave = 30
+minimum_regular_power = 88
+zombie_weights = Dictionary[int, int]({1: 6, 3: 3, 5: 2, 6: 2, 7: 2, 8: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="Fourth"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.nightmare.fourth"
+first_wave = 31
+last_wave = 40
+minimum_regular_power = 135
+zombie_weights = Dictionary[int, int]({1: 6, 3: 3, 5: 2, 6: 2, 7: 2, 8: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="Late"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.nightmare.late"
+first_wave = 41
+last_wave = 49
+minimum_regular_power = 220
+zombie_weights = Dictionary[int, int]({1: 6, 3: 3, 5: 2, 6: 2, 7: 2, 8: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="Final"]
+script = ExtResource("band")
+band_id = &"wonderland.psychedelic_current.nightmare.final"
+first_wave = 50
+last_wave = 50
+minimum_regular_power = 300
+zombie_weights = Dictionary[int, int]({1: 6, 3: 3, 5: 2, 6: 2, 7: 2, 8: 2})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="Flag10"]
+script = ExtResource("spawn")
+wave = 10
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="PapersRow1"]
+script = ExtResource("spawn")
+wave = 10
+row = 1
+zombie_weights = Dictionary[int, int]({6: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="PapersRow2"]
+script = ExtResource("spawn")
+wave = 10
+row = 2
+zombie_weights = Dictionary[int, int]({6: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="PapersRow3"]
+script = ExtResource("spawn")
+wave = 10
+row = 3
+zombie_weights = Dictionary[int, int]({6: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="PapersRow4"]
+script = ExtResource("spawn")
+wave = 10
+row = 4
+zombie_weights = Dictionary[int, int]({6: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="PapersRow5"]
+script = ExtResource("spawn")
+wave = 10
+row = 5
+zombie_weights = Dictionary[int, int]({6: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="Flag20"]
+script = ExtResource("spawn")
+wave = 20
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="DoorsRow1"]
+script = ExtResource("spawn")
+wave = 20
+row = 1
+zombie_weights = Dictionary[int, int]({7: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="DoorsRow2"]
+script = ExtResource("spawn")
+wave = 20
+row = 2
+zombie_weights = Dictionary[int, int]({7: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="DoorsRow3"]
+script = ExtResource("spawn")
+wave = 20
+row = 3
+zombie_weights = Dictionary[int, int]({7: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="DoorsRow4"]
+script = ExtResource("spawn")
+wave = 20
+row = 4
+zombie_weights = Dictionary[int, int]({7: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="DoorsRow5"]
+script = ExtResource("spawn")
+wave = 20
+row = 5
+zombie_weights = Dictionary[int, int]({7: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="Flag30"]
+script = ExtResource("spawn")
+wave = 30
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="BucketsRow1"]
+script = ExtResource("spawn")
+wave = 30
+row = 1
+zombie_weights = Dictionary[int, int]({5: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="BucketsRow2"]
+script = ExtResource("spawn")
+wave = 30
+row = 2
+zombie_weights = Dictionary[int, int]({5: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="BucketsRow3"]
+script = ExtResource("spawn")
+wave = 30
+row = 3
+zombie_weights = Dictionary[int, int]({5: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="BucketsRow4"]
+script = ExtResource("spawn")
+wave = 30
+row = 4
+zombie_weights = Dictionary[int, int]({5: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="BucketsRow5"]
+script = ExtResource("spawn")
+wave = 30
+row = 5
+zombie_weights = Dictionary[int, int]({5: 1})
+tier_weights = Dictionary[StringName, int]({&"elite": 1})
+
+[sub_resource type="Resource" id="Flag40"]
+script = ExtResource("spawn")
+wave = 40
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="FootballRow1"]
+script = ExtResource("spawn")
+wave = 40
+row = 1
+zombie_weights = Dictionary[int, int]({8: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="FootballRow2"]
+script = ExtResource("spawn")
+wave = 40
+row = 2
+zombie_weights = Dictionary[int, int]({8: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="FootballRow3"]
+script = ExtResource("spawn")
+wave = 40
+row = 3
+zombie_weights = Dictionary[int, int]({8: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="FootballRow4"]
+script = ExtResource("spawn")
+wave = 40
+row = 4
+zombie_weights = Dictionary[int, int]({8: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="FootballRow5"]
+script = ExtResource("spawn")
+wave = 40
+row = 5
+zombie_weights = Dictionary[int, int]({8: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[sub_resource type="Resource" id="Flag50"]
+script = ExtResource("spawn")
+wave = 50
+zombie_weights = Dictionary[int, int]({2: 1})
+tier_weights = Dictionary[StringName, int]({&"veteran": 1, &"elite": 1})
+
+[resource]
+script = ExtResource("profile")
+profile_id = &"wonderland.psychedelic_current.nightmare.waves"
+wave_count = 50
+flag_waves = Array[int]([10, 20, 30, 40])
+scheduled_spawns = Array[ExtResource("spawn")]([
+SubResource("Flag10"), SubResource("PapersRow1"), SubResource("PapersRow2"), SubResource("PapersRow3"), SubResource("PapersRow4"), SubResource("PapersRow5"),
+SubResource("Flag20"), SubResource("DoorsRow1"), SubResource("DoorsRow2"), SubResource("DoorsRow3"), SubResource("DoorsRow4"), SubResource("DoorsRow5"),
+SubResource("Flag30"), SubResource("BucketsRow1"), SubResource("BucketsRow2"), SubResource("BucketsRow3"), SubResource("BucketsRow4"), SubResource("BucketsRow5"),
+SubResource("Flag40"), SubResource("FootballRow1"), SubResource("FootballRow2"), SubResource("FootballRow3"), SubResource("FootballRow4"), SubResource("FootballRow5"),
+SubResource("Flag50")
+])
+bands = Array[ExtResource("band")]([SubResource("Opening"), SubResource("Second"), SubResource("Third"), SubResource("Fourth"), SubResource("Late"), SubResource("Final")])

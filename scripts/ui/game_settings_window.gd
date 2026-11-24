@@ -1,4 +1,4 @@
-## 工具栏的桌面设置弹窗，提供音量和窗口模式设置。
+## 工具栏的设置弹窗，提供音量、全屏和桌面快捷键。
 extends Control
 class_name GameSettingsWindow
 
@@ -15,12 +15,28 @@ static func get_initial_resource_paths() -> PackedStringArray:
 	return ResourcePaths.skin(PackedStringArray(["panels/wood_ninepatch.png"]))
 ## 与战斗暂停菜单共用的音量滑块。
 const VolumeSlider = preload("res://scripts/ui/audio_volume_slider.gd")
+## 独立的小行组件，仅扩展现有设置页的「显示」区域。
+const RenderCompatibility = preload("res://scripts/ui/render_compat_settings_row.gd")
+## 安卓游戏内直接导出当前玩家的原始存档，不强制依赖任何外部助手。
+const SaveExport = preload("res://scripts/adventure/player/adventure_save_export.gd")
+## 桌面版同样提供原始存档导出，用本机文件保存窗口选择位置。
+const DesktopExportButton = preload("res://scripts/ui/desktop_save_export_button.gd")
+## 仅有异常加载记录时显示的底栏复制按钮，正常设置界面完全不变。
+const LoadReportButton = preload("res://scripts/ui/settings_loading_report_button.gd")
 ## 弹窗以基准视口像素布局，小窗口下才额外缩放。
-const DESIGN := Vector2(468, 296)
+const DESIGN := Vector2(468, 552)
+## 安卓音量与显示设置页的布局尺寸，单位为视口像素。
+const ANDROID_DESIGN := Vector2(468, 432)
 ## 纸面控件的正文色。
 const INK := Color("382719")
 ## 标题和深色按钮的文字色。
 const CREAM := Color("fff0ce")
+## 纸面分组标题与操作反馈的配色。
+const MUTED_INK := Color("77532e")
+## 绿色提示表示等待按键或设置已应用。
+const GREEN_INK := Color("48602f")
+## 红棕提示表示按键冲突或保存失败。
+const ERROR_INK := Color("88402d")
 
 ## 居中的弹窗本体。
 var _panel: Panel
@@ -30,8 +46,16 @@ var _previous_focus: Control
 var _fade: Tween
 ## 避免在关闭动画期间重复处理关闭请求。
 var _closing := false
+## 正在等待绑定的动作，空名称表示正常浏览设置。
+var _capture_action: StringName = &""
+## 各战斗动作对应的键帽按钮。
+var _shortcut_buttons: Dictionary[StringName, Button] = {}
+## 键帽下方的操作提示与反馈。
+var _shortcut_hint: Label
+## 安卓导出后的状态文字，不保存额外玩家状态。
+var _save_export_hint: Label
 
-## 在全屏输入遮罩内构建紧凑的桌面设置窗。
+## 在全屏输入遮罩内构建设置窗，并按平台添加可用选项。
 func _ready() -> void:
 	var opener: WeakRef = get_meta("modal_opener_focus") as WeakRef if has_meta("modal_opener_focus") else null # 异步入口保存真正的打开按钮，不返回已释放的加载反馈。
 	if opener != null:
@@ -48,7 +72,8 @@ func _ready() -> void:
 
 	_panel = Panel.new()
 	_panel.name = "Panel"
-	_panel.size = DESIGN
+	var is_android := OS.has_feature("android") # 安卓与桌面共用音量和全屏操作。
+	_panel.size = ANDROID_DESIGN if is_android else DESIGN
 	_panel.theme = _make_theme()
 	var frame := _surface(Color("34231a"), Color("a17b4e"), 7) # 细木色边框和投影保持窗口层次。
 	frame.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
@@ -59,13 +84,19 @@ func _ready() -> void:
 	Art.panel(_panel, "panels/wood_ninepatch.png", Vector2(1, 1), Vector2(DESIGN.x - 2, 54), 21).self_modulate = Color("a17d60")
 	_label(_panel, "设置", Rect2(20, 10, 280, 34), 23, CREAM)
 	var close := _close_button("×", Rect2(420, 11, 29, 29)) # 标题栏关闭按钮。
-	close.tooltip_text = "关闭（Esc）"
+	close.tooltip_text = "关闭" if is_android else "关闭（Esc）"
 	close.accessibility_name = "关闭设置"
+	var desktop_export: Button = null # 桌面版的顶部存档按钮，与安卓的内容区按钮互斥。
+	if not is_android:
+		desktop_export = DesktopExportButton.new() # 只新增一个入口，不改变快捷键布局。
+		desktop_export.position = Vector2(275, 11)
+		desktop_export.size = Vector2(134, 29)
+		_panel.add_child(desktop_export)
 
 	var general := Panel.new() # 音频和窗口模式使用同一纸色内页。
 	general.name = "General"
 	general.position = Vector2(16, 54)
-	general.size = Vector2(436, 188)
+	general.size = Vector2(436, 324) if is_android else Vector2(436, 264)
 	general.add_theme_stylebox_override("panel", _surface(Color("eddbb4"), Color("bda176"), 4))
 	_panel.add_child(general)
 	_label(general, "音频", Rect2(14, 9, 90, 23), 14, Color("77532e"))
@@ -78,10 +109,38 @@ func _ready() -> void:
 	divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	general.add_child(divider)
 	_label(general, "显示", Rect2(14, 119, 90, 23), 14, Color("77532e"))
-	_label(general, "窗口模式", Rect2(14, 145, 114, 28), 17)
-	var fullscreen := _add_fullscreen_toggle(general) # 浏览窗口模式时可用空格切换。
-	var done := _close_button("完成", Rect2(354, 252, 98, 32)) # 设置即时应用，按钮只负责关闭。
-	_set_focus_order([music, effects, fullscreen, done, close])
+	_label(general, "显示模式" if is_android else "窗口模式", Rect2(14, 145, 114, 28), 17)
+	var fullscreen := _add_fullscreen_toggle(general) # 使用平台当前的全屏状态初始化。
+	if is_android:
+		fullscreen.position.y = 141
+		fullscreen.size = Vector2(144, 36)
+	var compat_divider := ColorRect.new() # 在原显示区域下方留一条轻巧分界，不新建设置页。
+	compat_divider.color = Color("c9ae81")
+	compat_divider.position = Vector2(14, 184)
+	compat_divider.size = Vector2(408, 1)
+	compat_divider.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	general.add_child(compat_divider)
+	var compatibility := RenderCompatibility.new() # ? 说明与 8 秒自测由独立组件管理。
+	compatibility.position = Vector2(14, 193)
+	compatibility.size = Vector2(409, 72)
+	general.add_child(compatibility)
+	var focus_order: Array[Control] = [music, effects, fullscreen]
+	if desktop_export != null:
+		focus_order.push_front(desktop_export) # Tab 从顶部导出按钮开始，保持视觉顺序。
+	focus_order.append_array(compatibility.focus_controls())
+	if is_android:
+		focus_order.append_array(_add_save_export(general))
+	if not is_android:
+		focus_order.append_array(_add_shortcuts())
+	if LoadReportButton.available(): # 只复用底栏空位，不增加测试页或弹窗。
+		var report_button: Button = LoadReportButton.new()
+		_panel.add_child(report_button)
+		report_button.position = Vector2(18, _panel.size.y - 44)
+		focus_order.append(report_button)
+	var done := _close_button("完成", Rect2(354, _panel.size.y - 44, 98, 32)) # 设置即时应用，按钮只负责关闭。
+	focus_order.append(done)
+	focus_order.append(close)
+	_set_focus_order(focus_order)
 	if is_visible_in_tree():
 		music.grab_focus()
 	else:
@@ -92,6 +151,132 @@ func _ready() -> void:
 	modulate.a = 0.0
 	_fade = create_tween()
 	_fade.tween_property(self, "modulate:a", 1.0, 0.12)
+
+## 安卓导出：先提交当前存档，再保存公共下载副本并打开系统分享面板。
+func _add_save_export(general: Control) -> Array[Control]:
+	var send := Button.new() # 游戏设置只保留一个导出入口，不增加技术配置控件。
+	send.text = "导出当前存档"
+	send.position = Vector2(14, 269)
+	send.size = Vector2(408, 30)
+	send.theme_type_variation = &"Keycap"
+	send.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	send.accessibility_name = "导出当前玩家存档文件"
+	send.disabled = Global.save_service == null or not Global.save_service.is_current_profile_loaded()
+	general.add_child(send)
+	_save_export_hint = _label(general, "导出后可直接发给作者", Rect2(14, 301, 408, 19), 12, MUTED_INK)
+	send.pressed.connect(func() -> void:
+		send.disabled = true # 防止连续点击产生重叠的分享流程。
+		var outcome: Dictionary = SaveExport.export_current() # 单独完成平台操作，不修改存档协议。
+		_save_export_hint.text = str(outcome.get("message", "无法导出存档，请重试。"))
+		_save_export_hint.add_theme_color_override("font_color", GREEN_INK if outcome.get("ok", false) else ERROR_INK)
+		send.disabled = false)
+	return [send]
+
+## 构建快捷键区，返回键帽与恢复默认按钮供焦点导航。
+func _add_shortcuts() -> Array[Control]:
+	var page := Panel.new() # 和音频区使用一致的纸色与内边距。
+	page.name = "Shortcuts"
+	page.position = Vector2(16, 328)
+	page.size = Vector2(436, 164)
+	page.add_theme_stylebox_override("panel", _surface(Color("eddbb4"), Color("bda176"), 4))
+	_panel.add_child(page)
+	_label(page, "战斗快捷键", Rect2(14, 8, 128, 24), 14, MUTED_INK)
+	var reset := Button.new() # 浅色次按钮与深色的完成按钮区分操作层级。
+	reset.text = "恢复默认"
+	reset.position = Vector2(332, 7)
+	reset.size = Vector2(90, 26)
+	reset.theme_type_variation = &"Keycap"
+	reset.add_theme_font_size_override("font_size", 13)
+	reset.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	reset.pressed.connect(_reset_shortcuts)
+	page.add_child(reset)
+	var shovel := _add_keycap(page, "铲子", ConfigService.SHOVEL_ACTION, 14) # 左列对应战斗栏左侧工具。
+	var glove := _add_keycap(page, "手套", ConfigService.GLOVE_ACTION, 224) # 右列与左列保持同宽。
+	var skill := _add_keycap(page, "角色技能", ConfigService.SKILL_ACTION, 14, 86) # 与现有工具共用键帽、改键和冲突校验。
+	var battle_speed := _add_keycap(page, "二倍速", ConfigService.BATTLE_SPEED_ACTION, 224, 86) # 放在角色技能右侧。
+	_shortcut_hint = _label(page, "点击键帽修改 · 字母、F1–F12、鼠标侧键，二倍速可用 Shift", Rect2(14, 132, 408, 24), 13, MUTED_INK)
+	Global.config_service.tool_shortcuts_changed.connect(_refresh_shortcuts)
+	_refresh_shortcuts()
+	return [shovel, glove, skill, battle_speed, reset]
+
+## 在 [param page] 的 [param x]、[param y] 坐标处添加 [param caption] 和 [param action] 键帽。
+func _add_keycap(page: Control, caption: String, action: StringName, x: float, y: float = 39) -> Button:
+	var tile := Panel.new() # 将工具名称与键帽放在同一张浅色卡片上。
+	tile.position = Vector2(x, y)
+	tile.size = Vector2(198, 40)
+	tile.add_theme_stylebox_override("panel", _surface(Color("f7e9ca"), Color("d0b78b"), 4))
+	page.add_child(tile)
+	_label(tile, caption, Rect2(12, 0, 82, 40), 17)
+	var button := Button.new() # 按下样式只在等待按键时保留。
+	button.position = Vector2(99, 5)
+	button.size = Vector2(92, 30)
+	button.theme_type_variation = &"Keycap"
+	button.toggle_mode = true
+	button.accessibility_name = "绑定%s快捷键" % caption
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.pressed.connect(_begin_shortcut_capture.bind(action))
+	tile.add_child(button)
+	_shortcut_buttons[action] = button
+	return button
+
+## 监听 [param action] 的新键位，再次点击同一键帽则取消。
+func _begin_shortcut_capture(action: StringName) -> void:
+	if _capture_action == action:
+		_finish_shortcut_capture("已取消修改", MUTED_INK)
+		return
+	_capture_action = action
+	_show_shortcut_hint("按下新键或鼠标侧键，Esc 取消", GREEN_INK)
+	_refresh_shortcuts()
+
+## 用键盘或鼠标侧键事件 [param event] 绑定当前动作，遇到非法键或冲突时继续等待。
+func _capture_shortcut(event: InputEventWithModifiers) -> void:
+	if event.is_action_pressed(&"ui_cancel"):
+		_finish_shortcut_capture("已取消修改", MUTED_INK)
+		return
+	# 键盘取物理键码，鼠标取侧键编号。
+	var code: int = event.physical_keycode if event is InputEventKey else (event as InputEventMouseButton).button_index
+	var invalid_key_hint := "请按单个字母、F1–F12 或鼠标侧键" # 提示当前动作可用的键。
+	if _capture_action == ConfigService.BATTLE_SPEED_ACTION:
+		invalid_key_hint += "，也可以按 Shift"
+	if event.alt_pressed or event.ctrl_pressed or event.meta_pressed or (event.shift_pressed and code != KEY_SHIFT):
+		_show_shortcut_hint(invalid_key_hint, ERROR_INK)
+		return
+	var result := Global.config_service.set_tool_shortcut(_capture_action, code) # 统一校验并保存当前绑定。
+	match result:
+		OK:
+			_finish_shortcut_capture("快捷键已更新", GREEN_INK)
+		ERR_ALREADY_IN_USE:
+			_show_shortcut_hint("该按键已绑定另一项操作，请换一个键", ERROR_INK)
+		ERR_INVALID_PARAMETER:
+			_show_shortcut_hint(invalid_key_hint, ERROR_INK)
+		_:
+			_finish_shortcut_capture("保存失败，请重试", ERROR_INK)
+
+## 恢复所有战斗快捷键的默认值并退出按键监听。
+func _reset_shortcuts() -> void:
+	if Global.config_service.reset_tool_shortcuts() == OK:
+		_finish_shortcut_capture("已恢复默认快捷键", GREEN_INK)
+	else:
+		_finish_shortcut_capture("保存失败，请重试", ERROR_INK)
+
+## 结束监听，并以 [param color] 显示操作结果 [param message]。
+func _finish_shortcut_capture(message: String, color: Color) -> void:
+	_capture_action = &""
+	_show_shortcut_hint(message, color)
+	_refresh_shortcuts()
+
+## 在快捷键卡片下方用 [param color] 显示 [param message]，保持布局稳定。
+func _show_shortcut_hint(message: String, color: Color) -> void:
+	_shortcut_hint.text = message
+	_shortcut_hint.add_theme_color_override("font_color", color)
+
+## 刷新键帽文字与监听状态。
+func _refresh_shortcuts() -> void:
+	for action: StringName in _shortcut_buttons: # 每个按钮始终读取实际生效的键位。
+		var button := _shortcut_buttons[action] # 当前动作的键帽。
+		var listening := action == _capture_action # 只突出正在改键的动作。
+		button.set_pressed_no_signal(listening)
+		button.text = "按键…" if listening else Global.config_service.get_tool_shortcut_label(action)
 
 ## 在 [param page] 的 [param y] 处添加 [param caption] 和对应 [param bus_name] 的滑块，并返回焦点控件。
 func _add_audio_slider(page: Control, caption: String, bus_name: StringName, y: float) -> HSlider:
@@ -125,7 +310,7 @@ func _add_fullscreen_toggle(page: Control) -> CheckBox:
 	page.add_child(toggle)
 	return toggle
 
-## 根据 [param enabled] 切换当前窗口模式，沿用全屏仅作用于当前运行的行为。
+## 根据 [param enabled] 切换本次运行的全屏状态；安卓由显示服务器显示或隐藏系统栏。
 func _set_fullscreen(enabled: bool) -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if enabled else DisplayServer.WINDOW_MODE_WINDOWED)
 
@@ -178,12 +363,22 @@ func _make_theme() -> Theme:
 	focus.set_border_width_all(2)
 	style.set_stylebox("focus", "Button", focus)
 	style.set_stylebox("focus", "CheckBox", focus)
+	style.set_type_variation(&"Keycap", &"Button")
+	var keycap := _surface(Color("ebd5a8"), Color("b99561"), 4) # 加厚下沿来表现实体键帽。
+	keycap.border_width_bottom = 2
+	style.set_stylebox("normal", "Keycap", keycap)
+	style.set_stylebox("hover", "Keycap", _surface(Color("fff0ce"), Color("b99561"), 4))
+	var listening := _surface(Color("d9e5b7"), Color("82975b"), 4) # 绿色表示正在等待快捷键输入。
+	style.set_stylebox("pressed", "Keycap", listening)
+	style.set_stylebox("hover_pressed", "Keycap", listening)
 	var checkbox_background := StyleBoxEmpty.new() # 复选框置于纸面上，去掉继承的深色按钮底板。
 	for state: String in ["normal", "hover", "pressed", "hover_pressed", "disabled"]: # 勾选标记由原生 CheckBox 绘制。
 		style.set_stylebox(state, "CheckBox", checkbox_background)
 	for state: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]: # 保持不同交互状态下的对比度。
 		style.set_color(state, "Button", CREAM)
 		style.set_color(state, "CheckBox", INK)
+		style.set_color(state, "Keycap", INK)
+	style.set_color("font_hover_pressed_color", "Keycap", INK)
 	style.set_stylebox("slider", "HSlider", _slider_track(Color("ae9370"), Color("876b4e")))
 	style.set_stylebox("grabber_area", "HSlider", _slider_track(Color("886037"), Color("74502d")))
 	style.set_stylebox("grabber_area_highlight", "HSlider", _slider_track(Color("9a6b37"), Color("74502d")))
@@ -218,12 +413,20 @@ func _slider_thumb(edge: Color, fill: Color) -> ImageTexture:
 ## 视口变化时维持居中，在空间不足时缩小并留出边距。
 func _fit() -> void:
 	var available := size - Vector2(32, 32) # 基准视口像素留边。
-	var factor := clampf(minf(available.x / DESIGN.x, available.y / DESIGN.y), 0.1, 1.0) # 大窗口不额外放大弹窗。
+	var factor := clampf(minf(available.x / _panel.size.x, available.y / _panel.size.y), 0.1, 1.0) # 大窗口不额外放大弹窗。
 	_panel.scale = Vector2.ONE * factor
-	_panel.position = ((size - DESIGN * factor) * 0.5).round()
+	_panel.position = ((size - _panel.size * factor) * 0.5).round()
 
-## [param event] 为取消操作时优先关闭设置，避免焦点控件和宿主处理同一次按键。
+## 优先捕获用于改键的 [param event]；浏览设置时取消键关闭窗口。
 func _input(event: InputEvent) -> void:
+	if not is_visible_in_tree() or _closing:
+		return
+	if _capture_action != &"" and (event is InputEventKey \
+			or (event is InputEventMouseButton and ConfigService.is_tool_shortcut_mouse_button(event.button_index))):
+		get_viewport().set_input_as_handled()
+		if event.is_pressed() and not event.is_echo():
+			_capture_shortcut(event as InputEventWithModifiers)
+		return
 	if event.is_action_pressed(&"ui_cancel"):
 		get_viewport().set_input_as_handled()
 		request_close()

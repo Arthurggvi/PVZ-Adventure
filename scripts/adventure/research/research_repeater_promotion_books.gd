@@ -13,7 +13,7 @@ const BOOKS: Dictionary = {
 		"title": "傲慢之眼", "summary": "每轮多射1发；25%的豌豆化为震撼弹，命中眩晕0.2秒，并击退无二类防具的非载具僵尸。", "plant_type": 8, "tier": 2,
 		"effects": [{"kind": "repeater_variant", "variant": "shock", "extra_shots": 1, "chance": 0.25}]},
 	"promotion_repeater_wrath": {
-		"title": "暴怒之眼", "summary": "每轮多射1发；25%的豌豆化为引爆弹，命中叠加10%劣化，最多50%，并积累2点引爆值；满10点引爆，造成一格1800点伤害。", "plant_type": 8, "tier": 2,
+		"title": "暴怒之眼", "summary": "每轮多射1发；25%的豌豆化为引爆弹，命中叠加10%劣化，最多50%，并积累1点引爆值；满10点引爆，造成一格1800点伤害。", "plant_type": 8, "tier": 2,
 		"effects": [{"kind": "repeater_variant", "variant": "detonation", "extra_shots": 1, "chance": 0.25}]},
 	"promotion_repeater_poor_star": {
 		"title": "穷星之触", "summary": "每轮多射1发；25%的豌豆化为晨星弹。命中散出5颗同伤深色星，每颗再分裂3颗半伤浅色星。", "plant_type": 8, "tier": 3,

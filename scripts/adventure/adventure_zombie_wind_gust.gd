@@ -24,7 +24,7 @@ static func blow_all(manager: ZombieManager) -> void:
         if seen.has(id):
             continue
         seen[id] = true
-        var flying: bool = zombie.curr_be_attack_status == Zombie000Base.E_BeAttackStatusZombie.IsSky
+        var flying: bool = zombie.is_blover_flying_target()
         blow_target(zombie, displacement_cells(flying), flying)
 
 static func _cell_width(target: Character000Base) -> float:
@@ -46,8 +46,11 @@ static func blow_target(target: Zombie000Base, cells: int, flying: bool) -> void
     var width: float = _cell_width(target) # 当前行附近一格的像素宽度。
     if width <= 0.0 or cells <= 0 or not is_instance_valid(target.move_component):
         return
+    if target.handle_blover_wind(cells, flying):
+        return # 原生飞行已经接管余程，共用通道不再创建第二条强制位移。
     var visible_right: float = _visible_right(target) # 本次吹飞允许清除气球的屏幕边界。
-    target.move_component.apply_forced_displacement(Vector2(width * float(cells), 0.0), 0.35, 0.0,
-        func() -> void:
-            if is_wind_elimination(flying, target.global_position.x, visible_right):
-                target.character_death_disappear())
+    var resolve_exit := func() -> void: # 吹离屏幕是非击杀退场，仍派发战场注销通知。
+        if is_wind_elimination(flying, target.global_position.x, visible_right):
+            target.retire_from_battle()
+    target.move_component.apply_forced_displacement(Vector2(width * float(cells), 0.0),
+        0.35, 0.0, resolve_exit, false, Callable(), flying)

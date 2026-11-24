@@ -1,0 +1,126 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/zombie/zombie_041_rocket_imp.gd" id="2_imp"]
+[ext_resource type="Script" path="res://scripts/character/zombie/rocket_imp/rocket_imp_presentation.gd" id="3_anim"]
+[ext_resource type="SpriteFrames" path="res://assets/adventure/zombies/rocket_imp/sprite_frames.tres" id="4_frames"]
+[ext_resource type="Script" path="res://scripts/resources/resource_body_change.gd" id="5_body_change"]
+[ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred.gd" id="6_charred"]
+
+[ext_resource type="Script" path="res://scripts/character/components/drop_body/ZombieArm1Drop.gd" id="7_drop"]
+[ext_resource type="Script" path="res://scripts/character/components/iron_node/iron_node_armor.gd" id="8_iron"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_cone1.png" id="cone1"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_cone2.png" id="cone2"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_cone3.png" id="cone3"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_bucket1.png" id="bucket1"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_bucket2.png" id="bucket2"]
+[ext_resource type="Texture2D" path="res://assets/reanim/Zombie_bucket3.png" id="bucket3"]
+
+[sub_resource type="Resource" id="ConeWear2"]
+script = ExtResource("5_body_change")
+sprite_change = Array[NodePath]([NodePath("../Body/HeadAnchor/HeadArmor"), NodePath("../Body/NodeDrop/HeadArmorDrop/Sprite")])
+sprite_change_texture = Array[Texture2D]([ExtResource("cone2"), ExtResource("cone2")])
+
+[sub_resource type="Resource" id="ConeWear3"]
+script = ExtResource("5_body_change")
+sprite_change = Array[NodePath]([NodePath("../Body/HeadAnchor/HeadArmor"), NodePath("../Body/NodeDrop/HeadArmorDrop/Sprite")])
+sprite_change_texture = Array[Texture2D]([ExtResource("cone3"), ExtResource("cone3")])
+
+[sub_resource type="Resource" id="BucketWear2"]
+script = ExtResource("5_body_change")
+sprite_change = Array[NodePath]([NodePath("../Body/HeadAnchor/HeadArmor"), NodePath("../Body/NodeDrop/HeadArmorDrop/Sprite")])
+sprite_change_texture = Array[Texture2D]([ExtResource("bucket2"), ExtResource("bucket2")])
+
+[sub_resource type="Resource" id="BucketWear3"]
+script = ExtResource("5_body_change")
+sprite_change = Array[NodePath]([NodePath("../Body/HeadAnchor/HeadArmor"), NodePath("../Body/NodeDrop/HeadArmorDrop/Sprite")])
+sprite_change_texture = Array[Texture2D]([ExtResource("bucket3"), ExtResource("bucket3")])
+
+[sub_resource type="Resource" id="ArmorBreak"]
+script = ExtResource("5_body_change")
+node_drop = NodePath("../Body/NodeDrop/HeadArmorDrop")
+
+[sub_resource type="CapsuleShape2D" id="RocketImpHitbox"]
+radius = 23.0
+height = 86.0
+
+[sub_resource type="RectangleShape2D" id="RocketImpBiteReach"]
+size = Vector2(30, 5)
+
+[node name="Zombie041RocketImp" node_paths=PackedStringArray("iron_node") instance=ExtResource("1_base")]
+script = ExtResource("2_imp")
+cone_armor_texture = ExtResource("cone1")
+bucket_armor_texture = ExtResource("bucket1")
+cone_armor_changes = Array[ExtResource("5_body_change")]([SubResource("ConeWear2"), SubResource("ConeWear3"), SubResource("ArmorBreak")])
+bucket_armor_changes = Array[ExtResource("5_body_change")]([SubResource("BucketWear2"), SubResource("BucketWear3"), SubResource("ArmorBreak")])
+zombie_type = 41
+iron_node = NodePath("Body/HeadAnchor/IronNode")
+
+[node name="Shadow" parent="." index="0"]
+scale = Vector2(0.66, 0.6)
+modulate = Color(0, 0, 0, 0.42)
+
+[node name="SourceSprite" type="AnimatedSprite2D" parent="Body" index="2"]
+unique_name_in_owner = true
+position = Vector2(0, -68)
+scale = Vector2(0.48, 0.48)
+sprite_frames = ExtResource("4_frames")
+animation = &"idle"
+
+[node name="HeadAnchor" type="Marker2D" parent="Body" index="3"]
+position = Vector2(-23, -94)
+
+[node name="HeadArmor" type="Sprite2D" parent="Body/HeadAnchor"]
+visible = false
+scale = Vector2(0.7, 0.7)
+
+[node name="IronNode" type="Node2D" parent="Body/HeadAnchor" node_paths=PackedStringArray("iron_armor_sprite", "body_armor_sprite", "all_disappear_nodes")]
+visible = false
+script = ExtResource("8_iron")
+iron_armor_sprite = NodePath("Sprite")
+body_armor_sprite = NodePath("../HeadArmor")
+all_disappear_nodes = [NodePath("../HeadArmor")]
+
+[node name="Sprite" type="Sprite2D" parent="Body/HeadAnchor/IronNode"]
+
+[node name="HeadArmorDrop" type="Node2D" parent="Body/NodeDrop"]
+script = ExtResource("7_drop")
+bounce_damping = 0.2
+
+[node name="Sprite" type="Sprite2D" parent="Body/NodeDrop/HeadArmorDrop"]
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("3_anim")
+
+[node name="HpStageChangeComponent" parent="." index="3"]
+boundary_value_hp = Array[int]([0])
+body_change = Array[ExtResource("5_body_change")]([null])
+
+[node name="HpComponent" parent="." index="4"]
+position = Vector2(-10, -128)
+max_hp = 180
+
+[node name="CharredComponent" parent="." index="5"]
+script = ExtResource("6_charred")
+
+[node name="CollisionShape2D" parent="AttackComponent/DetectComponent/Area2d" index="0"]
+position = Vector2(-8, 0)
+shape = SubResource("RocketImpBiteReach")
+
+[node name="MoveComponent" parent="." index="7"]
+move_mode = 1
+ori_speed = 35.4
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection" index="0"]
+position = Vector2(-9, -72)
+shape = SubResource("RocketImpHitbox")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(-9, -72)
+shape = SubResource("RocketImpHitbox")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetectionOnAttack" index="0"]
+position = Vector2(-9, -72)
+shape = SubResource("RocketImpHitbox")
+
+[connection signal="signal_armor1_death" from="HpComponent" to="Body/HeadAnchor/HeadArmor" method="hide"]

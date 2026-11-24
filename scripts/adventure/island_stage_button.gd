@@ -15,10 +15,11 @@ var is_unlocked := false
 ## [param label_offsets] 由地图一次性读取；独立编辑器/验收入口可省略并使用原布局。
 func configure(stage: Dictionary, unlocked: bool, _cleared: bool, callback: Callable,
 		label_offsets: Dictionary = {}) -> void:
-	texture_normal = load("res://assets/adventure/zombie_island/" + stage.button)
+	texture_normal = load(str(stage.get("button_path", "res://assets/adventure/zombie_island/" + str(stage.get("button", "")))))
 	ignore_texture_size = true
 	stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	size = Vector2(200, 200)
+	var dimensions: Array = stage.get("button_size", [200, 200]) # 新地图可复用较紧凑的节点尺寸。
+	size = Vector2(dimensions[0], dimensions[1])
 	pivot_offset = size / 2
 	position = Vector2(stage.position_normalized[0] * 1920, stage.position_normalized[1] * 1080) - pivot_offset
 	is_unlocked = unlocked
@@ -36,7 +37,8 @@ func configure(stage: Dictionary, unlocked: bool, _cleared: bool, callback: Call
 		offsets = JSON.parse_string(FileAccess.get_file_as_string("res://resources/adventure/island_label_offsets.json"))
 	var configured: Array = offsets.get(str(int(stage.id)), [0, 0]) # 未配置时沿用下方标签。
 	var shift := Vector2(configured[0], configured[1]) # 只作用于文字层。
-	title_label = UI.label(self, stage.name if unlocked else "？", Rect2(Vector2(-70, 202) + shift, Vector2(340, 48)), 36)
+	var width: float = float(stage.get("label_width", 340)) # 名称独立于图标宽度，长地名保持一行。
+	title_label = UI.label(self, stage.name if unlocked else "？", Rect2(Vector2((size.x-width)/2, size.y+2) + shift, Vector2(width, 48)), int(stage.get("label_font_size", 36)))
 	mouse_entered.connect(_update_title_highlight)
 	mouse_exited.connect(_update_title_highlight)
 	pressed.connect(callback)

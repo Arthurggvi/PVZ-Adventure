@@ -1,4 +1,4 @@
-[gd_scene load_steps=43 format=3 uid="uid://b5hkuknpeg7bl"]
+[gd_scene load_steps=44 format=3 uid="uid://b5hkuknpeg7bl"]
 
 [ext_resource type="Script" uid="uid://biw3o2t4rr2yr" path="res://scripts/util/speed_timer.gd" id="speed_timer"]
 [ext_resource type="PackedScene" uid="uid://c5cke4cm02um7" path="res://scenes/character/plant/plant_000_base.tscn" id="1_8djfp"]
@@ -106,6 +106,9 @@ node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"AnimationNode
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_kp7v2"]
 size = Vector2(55, 5)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bite_contact"]
+size = Vector2(20, 80)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_blast"]
 radius = 60.0
@@ -250,6 +253,11 @@ tree_root = SubResource("AnimationNodeBlendTree_f5s5r")
 advance_expression_base_node = NodePath("..")
 anim_player = NodePath("../AnimationPlayer")
 parameters/TimeScale/scale = 1.0
+
+; 收近来袭侧的啃食接触面，避免领头僵尸在爆炸边缘就进入啃食状态并引爆。
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection" index="0"]
+position = Vector2(-10, -40)
+shape = SubResource("RectangleShape2D_bite_contact")
 
 [node name="DetectComponent" type="Node2D" parent="." index="10"]
 script = ExtResource("24_kp7v2")

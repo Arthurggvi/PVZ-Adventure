@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EquipmentDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/player/equipment_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/unemployed_reaper_moi.png" id="3"]
+
+[sub_resource type="AtlasTexture" id="Avatar"]
+atlas = ExtResource("3")
+region = Rect2(155, 120, 548, 548)
+filter_clip = true
+
+[resource]
+script = ExtResource("1")
+id = &"unemployed_reaper_moi"
+display_name = "失业的死神·莫伊"
+description = "把镰刀当钓竿的休假死神，披风里藏着星空。"
+slot = 0
+icon = SubResource("Avatar")
+portrait = ExtResource("3")
+active_skill_id = &"unemployed_reaper_slash"

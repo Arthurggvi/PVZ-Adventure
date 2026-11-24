@@ -2,6 +2,9 @@ extends Node2D
 class_name LawnMover
 ## 小推车
 
+## 本车首次启动时发出，[param lane] 为零起始行号。
+signal started(lane: int)
+
 ## 推车行号，从 0 开始，由小推车管理器在入树前赋值。
 var lane: int = -1
 ## 推车启动后的移动速度，单位为像素/秒。
@@ -14,7 +17,14 @@ var lane: int = -1
 @onready var body: Node2D = $Body
 
 ## 是否已启动；固定开关仅暂停位移，关闭后已启动的车继续移动。
-var is_moving: bool = false
+var is_moving: bool = false:
+	set(value):
+		# 三种清洁车共用启动记录；重复到达的矿工信号不能刷新保护。
+		if is_moving == value:
+			return
+		is_moving = value
+		if is_moving:
+			started.emit(lane)
 ## 本局固定状态：禁止行驶但保留碰撞击杀，未启动的车不会因此被消耗。
 var cheat_fixed_enabled: bool = false
 ## 被碾压后立即置为 true，阻止排队删除前的启动、攻击和重复碾压。

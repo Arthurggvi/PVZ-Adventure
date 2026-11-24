@@ -1,6 +1,9 @@
 extends Plant000Base
 class_name Plant026Plantern
 
+## 随待机动画移动的灯罩精灵，提供局部照明的真实投光位置。
+@onready var lantern_face: Sprite2D = $Body/BodyCorrect/Anim_face
+
 func ready_norm():
 	super()
 	_refresh_pot_reveal([])

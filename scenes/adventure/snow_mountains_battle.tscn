@@ -1,0 +1,126 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/main/MainGame00Base.tscn" id="battle"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/snow_mountains/ground.png" id="ground"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/snow_mountains/sky_clouds.png" id="sky"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/snow_mountains/sky_mountains.png" id="mountains"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/snow_mountains/aurora_atlas.png" id="ribbon"]
+[ext_resource type="Shader" path="res://shaders/weather/snow_layered_sky.gdshader" id="sky_shader"]
+[ext_resource type="Shader" path="res://shaders/weather/snow_ground.gdshader" id="ground_shader"]
+[ext_resource type="Script" path="res://scripts/adventure/snow_mountain_slope.gd" id="slope"]
+[ext_resource type="Script" path="res://scripts/adventure/snow_mountain_collapse.gd" id="collapse"]
+[ext_resource type="Script" path="res://scripts/weather/snow/snow_environment_controller.gd" id="snow"]
+[ext_resource type="Script" path="res://scripts/weather/snow/snow_visual_profile.gd" id="snow_profile"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/snow_mountains_light_wind.ogg" id="light_wind"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/snow_mountains_blizzard.ogg" id="blizzard_wind"]
+
+[sub_resource type="Resource" id="SnowProfile"]
+script = ExtResource("snow_profile")
+lens_tint = Color(0.84, 0.925, 0.98, 1)
+lens_frost_alpha = 0.17
+sky_without_aurora = ExtResource("sky")
+mountains = ExtResource("mountains")
+aurora_ribbon = ExtResource("ribbon")
+aurora_region = Rect2(0, 0, 1, 0.2403709)
+wind_loop = ExtResource("light_wind")
+blizzard_wind_loop = ExtResource("blizzard_wind")
+
+[sub_resource type="ShaderMaterial" id="StaticSkyMaterial"]
+shader = ExtResource("sky_shader")
+shader_parameter/mountains = ExtResource("mountains")
+
+[sub_resource type="RectangleShape2D" id="DefeatBounds"]
+size = Vector2(120, 750)
+
+[sub_resource type="RectangleShape2D" id="GlobalDetectBounds"]
+size = Vector2(1440, 850)
+
+[sub_resource type="ShaderMaterial" id="GroundMaterial"]
+shader = ExtResource("ground_shader")
+
+[node name="SnowMountainsBattle" node_paths=PackedStringArray("main_game_slope") instance=ExtResource("battle")]
+main_game_slope = NodePath("TerrainSlope")
+
+[node name="ZombieManager" parent="Manager" index="1" unique_id=1727066989]
+zombie_range_pos_x = Vector2(-300, 1300)
+
+[node name="BackgroundManager" parent="Manager" node_paths=PackedStringArray("background", "environment_sky", "snow_environment")]
+background = NodePath("../../CanvasLayerBG/BoardArt")
+environment_sky = NodePath("../../CanvasLayerSky/Skybox")
+snow_environment = NodePath("../../SnowEnvironment")
+
+[node name="Background" parent="CanvasLayerBG" parent_id_path=PackedInt32Array(710587300) index="0" unique_id=518558670]
+self_modulate = Color(1, 1, 1, 0)
+
+[node name="CollisionShape2D" parent="CanvasLayerBG/Background/Home/Area2DHome" parent_id_path=PackedInt32Array(118183924) index="0" unique_id=2000876210]
+position = Vector2(-72.306, 367)
+shape = SubResource("DefeatBounds")
+
+[node name="PanelZombieGoHome" parent="CanvasLayerBG/Background/Home/Door/DoorDown" index="4" unique_id=51098949]
+offset_left = 35.0
+offset_right = 210.0
+offset_bottom = 750.0
+
+[node name="Marker2DZombieGoHome" parent="CanvasLayerBG/Background/Home/Door/DoorDown/PanelZombieGoHome" parent_id_path=PackedInt32Array(51098949) index="0" unique_id=497105737]
+position = Vector2(77, 560)
+
+[node name="ShowZombiePanel" parent="CanvasLayerBG/Background" index="1" unique_id=1803483627]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 1582.0
+offset_top = 232.0
+offset_right = 2001.0
+offset_bottom = 585.0
+
+[node name="ShowZombiePanel2" parent="CanvasLayerBG/Background" index="2" unique_id=1939552798]
+anchors_preset = 0
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 1582.0
+offset_top = 232.0
+offset_right = 2001.0
+offset_bottom = 338.0
+
+[node name="CanvasLayerSky" type="CanvasLayer" parent="."]
+layer = -12
+follow_viewport_enabled = true
+
+[node name="Skybox" type="Sprite2D" parent="CanvasLayerSky"]
+material = SubResource("StaticSkyMaterial")
+position = Vector2(-150, 0)
+scale = Vector2(0.94236209335, 1.03591160221)
+texture = ExtResource("sky")
+centered = false
+
+[node name="BoardArt" type="Sprite2D" parent="CanvasLayerBG"]
+z_index = -1
+material = SubResource("GroundMaterial")
+position = Vector2(-150, 12.43)
+scale = Vector2(1.06827268620, 1.03591160221)
+texture = ExtResource("ground")
+centered = false
+
+[node name="Camera2D" parent="." index="18" unique_id=630787185]
+zoom = Vector2(0.8, 0.8)
+limit_left = -150
+limit_top = 0
+limit_right = 1896
+limit_bottom = 750
+listen_for_battle_shake = false
+zombie_preview_position = Vector2(555, 0)
+
+[node name="CollisionShape2D" parent="DetectComponentGlobal/Area2D" index="0" unique_id=419757523]
+position = Vector2(580, 325)
+shape = SubResource("GlobalDetectBounds")
+
+[node name="TerrainSlope" type="Node2D" parent="."]
+script = ExtResource("slope")
+
+[node name="TerrainCollapse" type="Node2D" parent="."]
+script = ExtResource("collapse")
+
+[node name="SnowEnvironment" type="Node" parent="."]
+process_mode = 1
+script = ExtResource("snow")
+profile = SubResource("SnowProfile")

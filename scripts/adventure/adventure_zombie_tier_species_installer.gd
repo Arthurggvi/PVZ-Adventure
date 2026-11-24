@@ -12,19 +12,26 @@ const EFFECTS: Array[StringName] = [
     &"catapult_tier", &"gargantuar_tier", &"imp_tier",
 ]
 
+## 即使角色在延迟安装前已转为友军，这些能力仍绑定到角色；出生奖励有各自的资格。
+const EFFECTS_FOR_BOTH_FACTIONS: Array[StringName] = [&"gargantuar_tier", &"imp_tier"]
+
 static func handles(effect: StringName) -> bool:
     return effect in EFFECTS
 
-## Called after native zombie _ready: paper, dance and attack children are now initialized.
+## 角色就绪后按物种能力的阵营范围完成绑定。
+## [param zombie] 是能力所属僵尸，[param rule] 来自其等阶配置。
 static func install(zombie: Zombie000Base, rule: Dictionary) -> void:
-    if not is_instance_valid(zombie) or zombie.is_death or zombie.is_hypno \
+    if not is_instance_valid(zombie) or zombie.is_death \
             or zombie.is_queued_for_deletion() or not zombie.is_inside_tree():
+        return
+    var effect_type: StringName = StringName(rule.get("effect", &"")) # 物种等阶效果及其绑定策略的标识。
+    if zombie.is_hypno and effect_type not in EFFECTS_FOR_BOTH_FACTIONS:
         return
     var game: MainGameManager = Global.main_game # 永久能力只绑定当前战场里的来源，保留跨续战阶段重算。
     if not is_instance_valid(game) or not game.is_inside_tree() or game.is_queued_for_deletion() \
             or not game.is_ancestor_of(zombie):
         return
-    match StringName(rule.get("effect", &"")):
+    match effect_type:
         &"paper_rage":
             var paper: Zombie006Paper = zombie as Zombie006Paper
             if paper == null:

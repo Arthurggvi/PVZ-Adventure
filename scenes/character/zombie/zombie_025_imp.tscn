@@ -930,6 +930,9 @@ animation = &"Zombie_imp_death"
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_btf2t"]
 animation = &"Zombie_imp_land"
+use_custom_timeline = true
+timeline_length = 0.3125
+stretch_time_scale = true
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_kp36n"]
 animation = &"Zombie_imp_thrown"
@@ -942,12 +945,17 @@ advance_mode = 2
 advance_expression = "is_thrown"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_16r2g"]
-switch_mode = 2
 advance_mode = 2
+advance_expression = "not is_thrown and not is_death"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1fvp5"]
 switch_mode = 2
 advance_mode = 2
+advance_expression = "not is_death"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_throw_death"]
+advance_mode = 2
+advance_expression = "is_death"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ybxg7"]
 advance_mode = 2
@@ -987,7 +995,7 @@ states/Zombie_imp_thrown/node = SubResource("AnimationNodeAnimation_kp36n")
 states/Zombie_imp_thrown/position = Vector2(341, 41)
 states/Zombie_imp_walk/node = SubResource("AnimationNodeAnimation_v156j")
 states/Zombie_imp_walk/position = Vector2(539, 149)
-transitions = ["Start", "Zombie_imp_thrown", SubResource("AnimationNodeStateMachineTransition_sd2ba"), "Zombie_imp_thrown", "Zombie_imp_land", SubResource("AnimationNodeStateMachineTransition_16r2g"), "Zombie_imp_land", "Zombie_imp_walk", SubResource("AnimationNodeStateMachineTransition_1fvp5"), "Start", "Zombie_imp_walk", SubResource("AnimationNodeStateMachineTransition_ybxg7"), "Zombie_imp_walk", "Zombie_imp_death", SubResource("AnimationNodeStateMachineTransition_ufw2q"), "Zombie_imp_walk", "BlendTreeEat", SubResource("AnimationNodeStateMachineTransition_6jbbi"), "BlendTreeEat", "Zombie_imp_walk", SubResource("AnimationNodeStateMachineTransition_mn08r"), "BlendTreeEat", "Zombie_imp_death", SubResource("AnimationNodeStateMachineTransition_utid2")]
+transitions = ["Start", "Zombie_imp_thrown", SubResource("AnimationNodeStateMachineTransition_sd2ba"), "Zombie_imp_thrown", "Zombie_imp_land", SubResource("AnimationNodeStateMachineTransition_16r2g"), "Zombie_imp_land", "Zombie_imp_walk", SubResource("AnimationNodeStateMachineTransition_1fvp5"), "Start", "Zombie_imp_walk", SubResource("AnimationNodeStateMachineTransition_ybxg7"), "Zombie_imp_walk", "Zombie_imp_death", SubResource("AnimationNodeStateMachineTransition_ufw2q"), "Zombie_imp_walk", "BlendTreeEat", SubResource("AnimationNodeStateMachineTransition_6jbbi"), "BlendTreeEat", "Zombie_imp_walk", SubResource("AnimationNodeStateMachineTransition_mn08r"), "BlendTreeEat", "Zombie_imp_death", SubResource("AnimationNodeStateMachineTransition_utid2"), "Zombie_imp_thrown", "Zombie_imp_death", SubResource("AnimationNodeStateMachineTransition_throw_death"), "Zombie_imp_land", "Zombie_imp_death", SubResource("AnimationNodeStateMachineTransition_throw_death")]
 graph_offset = Vector2(160, -65)
 
 [sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_h5ypr"]
@@ -1002,7 +1010,6 @@ node_connections = [&"output", 0, &"TimeScale", &"TimeScale", 0, &"StateMachine"
 
 [node name="Zombie025Imp" instance=ExtResource("1_cklgi")]
 script = ExtResource("2_r3fwd")
-is_thrown = false
 zombie_type = 25
 
 [node name="BodyCorrect" parent="Body" index="0"]

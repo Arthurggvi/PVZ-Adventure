@@ -1,0 +1,96 @@
+铁桶飞行员僵尸（Buckethead Pilot Zombie）｜原版核验、资源定位和后续接入方案
+日期：2026-11-23
+工程：PVZ-Adventure / Godot 4.7.2
+状态：原版身份与普通飞行员动作包已定位；铁桶完整素材未取得；本轮仅接入文档，尚未创建物种、贴图或运行测试。
+
+一、身份和原版规则
+物种：中文版《植物大战僵尸2》天空之城铁桶飞行员僵尸，Buckethead Pilot Zombie。
+不要混同飞行小鬼（Flying Imp Zombie）、国际版喷气背包僵尸或战斗机僵尸。
+在原天空之城中，它属于普通飞行员僵尸的护甲变种：沿所在道以 5 秒/格推进，
+接触植物啃咬，到达戴夫号时喷火攻击舰船；本体是 270 血普通飞行员。
+飞行背包/脚下火焰属于角色表现，但该敌人的原版逻辑不被认作三叶草可吹走的“飞行僵尸”。
+原版天空之城还禁用三叶草。完全冻结转化为减速，不是额外免疫所有控制。
+用户本轮明确变更：本工程的飞行铁桶僵尸必须可被三叶草吹走，不沿用原版免吹规则。
+建议本物种即便采用普通地面攻击受击层，仍返回 Blover 专用可吹资格；
+吹走不是杀伤，不穿透 550 铁桶护甲造成虚假掉血、不触发击杀或掉落。
+
+二、数值冲突（必须保留，不自动抹平）
+用户截图/中文图鉴：550（铁桶）+ 180 + 90（本体）= 820 总耐久。
+PvZ Wiki / PvZ2C 社区表：500（铁桶）+ 270（本体）= 770 总耐久。
+后续按本轮用户截图实装：本体 max_hp=270、铁桶独立护甲 max_hp_armor1=550。
+不要误写成“本体 820”；破桶才应关闭铁器受击层，剩余本体按 270 继续存在。
+社区条目还提到原作内存在基础 skycity_armor2 和仅部分挑战模式出现的更厚护甲
+skycity_armor3；这属于两个强度版本，不应把其数值混到普通铁桶里。
+wiki 所给 500 护甲的破损阈值、断臂阈值不应直接复制到 550 版本：
+应以最终原始动画和引擎护甲值决定二段外观与护甲破碎的时机。
+来源：
+https://bkso.baidu.com/item/植物大战僵尸2僵尸图鉴/64026631
+https://plantsvszombies.wiki.gg/wiki/Zombies_%28PvZ2C%29
+https://plantsvszombies.wiki.gg/wiki/Buckethead_Pilot_Zombie
+
+三、找到的对应美术资源及范围
+已找到专属基础人物包“Pilot Zombie”（请注意：不是独立 Buckethead Pilot 素材包）：
+https://www.spriters-resource.com/mobile/plantsvszombies2/asset/502486/
+The Spriters Resource，Redtarp 上传，页面列出 2025-12-14，37.30 MB / 897 files，
+附有 Chinese Assembled / Splitted Sprites。
+原网页明确列出 11 组基础动作：
+Attack - Start、Attack - Loop、Attack - End（贴近战舰的攻击动作）；
+Shoot - Start、Shoot - Loop、Shoot - End（发射/喷射表现）；
+Idle、Walking、Eating、Death、Burnt。
+Split 部分包含 zombie_skycity_basic_*、zombie_attack_fire_* 和 zombie_skycity_ash_* 零件。
+重要：这份 Pilot Zombie 索引没有列出“Buckethead Pilot Zombie”的独立组合动画目录，
+也未检出带有 bucket、skycity_armor2、skycity_armor3 名称的分件；
+因此不能把 897 个文件宣称为铁桶角色完整资源。
+可明确复用基础飞行员动作与喷火/飞行机构原画；铁桶专用护甲模型、
+破损状态、掉落旋转动画的原文件仍须继续寻找/从可信原版资产包验证。
+可辅助对照角色原版外观：
+https://plantsvszombies.wiki.gg/wiki/Buckethead_Zombie/Gallery
+https://plantsvszombies.fandom.com/wiki/Plants_vs._Zombies_2_%28Chinese_version%29/Gallery_of_zombie_sprites
+第一个参考是图鉴图／展示图，不等于官方逐帧动画或者装配骨架。
+
+四、资源到位状态和工程建议位置
+开发机尝试下载 502486 资源站点页面、/download/502486/、
+/media/assets/502/502486.zip：均返回 HTTP 403。
+原始 ZIP 未下载，无 SHA-256；未校验 897 个源文件的实际完整性、透明度或骨骼对齐。
+现有工程 assets、animation、scripts、scenes 搜索未发现 skycity/pilot/armor2/armor3
+名称的现成资产；项目里的通用铁桶贴图不是天空之城铁桶的原版特有外观。
+记录本轮素材情况：assets/adventure/zombies/buckethead_pilot/SOURCES.txt
+未来正式素材（仅在取得原文件后）：
+assets/adventure/zombies/pilot_common/ 共享基础 Pilot Zombie 原帧与动效；
+assets/adventure/zombies/buckethead_pilot/ 专属桶盔、破损/脱落素材与来源；
+不在同一个 Atlas 中存三套完整且重复的普通、路障、铁桶飞行员动作。
+原版权归属 EA / PopCap 与相应权利人；第三方拆包不代表取得商业授权。
+
+五、未来接入的实体、状态和动画契约（未实施）
+建议稳定物种 Z036BucketheadPilot：Z034Fighter 已用；Z035FlyingImp 在文档中预留。
+角色脚本 Zombie036BucketheadPilot extends Zombie000Base；基础移动/血量/攻击复用通用入口，
+与原版普通飞行员共享身体动画和移动服务，仅护甲数据与铁桶外观不同。
+动画层：独立机体/背包/火焰、头部护甲和受击阶段；
+按 Idle/Walking/Eating/Attack(船)/Shoot(船)/Death 原始帧逐帧播放，禁止整张静图摆动。
+护甲：沿用现成 HpComponentZombie、IronNode、HpStageChangeComponent，
+本体 270 + 铁桶 550 两段独立血池。盔体受击时显示金属反馈与原版破损；
+破桶时仅剥离铁桶、切换无桶飞行员姿态，喷射火焰/背包不能被误删。
+普通受击：虽然画面背着飞行装置，仍能被地面和常规植物命中；
+不得把 curr_be_attack_status 强行改为 IsSky 后丢失原生落点及进家判定。
+三叶草：本物种 is_blover_flying_target() 返回 true，handle_blover_wind(...) 单独接管，
+一次性取消攻击/喷火/移动、向外吹离后 retire_from_battle()，而非击杀。
+磁力菇是否能取下本桶先核对该变种原作数据；工程中仅当确实配置为铁器护甲才接通
+既有 be_magnet_iron/iron_node，不允许复制普通铁桶贴图当作已经验证的天空桶。
+喷火攻击：原版对戴夫号战舰，不是针对植物的机枪；如果本工程当前战场仅有普通房门，
+先沿用现有失败判定，不擅自创造一次额外范围燃烧或把船体火焰当作射弹。
+动作优先级：死亡 > 三叶草吹离 > 掉桶 > 喷火/啃食 > 行进。
+离场、换关、魅惑、冰冻状态解除、战斗结束统一撤销本物种动作时钟；
+角色本体与帽子状态不能独立留在波次计数中。
+
+六、后续验收门槛
+(1) 取得对应原版基础动作 ZIP；在下载后核对实际文件清单、SHA-256、全部透明 PNG、
+帧顺序/脚点/原动画播速，未取得不得标注“全量素材齐全”。
+(2) 补齐并核对铁桶专属零件：完整、受击/损坏、掉落和无桶动作的头部坐标；
+如资源不全需明确缺失，禁止静态截图 + 伪逐帧动画替代。
+(3) 在真实 Godot 战场实机分别核验：完整桶阶段、破桶、普通啃咬、船/家结算、
+常规射手命中、冻结转减速、三叶草吹离、连续吹风、死亡和波次计数。
+(4) 音效需真正匹配事件：背包/引擎、啃食、铁桶撞击和掉桶、对船喷火；若缺
+原版专属声音，逐项标记来源为“替代”，不能将与角色无关的音效命名为原版。
+(5) 当前没有注册角色、没有更改 GlobalReadData/CharacterRegistry，没有新建动画图集；
+不触及正在并行修改的关卡/主交接文档，不调用任何未授权的自动测试。
+(6) 正式素材放 assets/adventure/zombies/ 时需 git add -f 定向纳入，否则会被 .gitignore 忽略。

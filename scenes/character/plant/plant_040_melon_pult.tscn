@@ -15,7 +15,7 @@
 [ext_resource type="Texture2D" uid="uid://300aew7liup" path="res://assets/reanim/PeaShooter_frontleaf.png" id="11_42var"]
 [ext_resource type="Animation" uid="uid://bkp3alta7lpu0" path="res://animation/character/plant/040_melon_pult/MelonPult_idle.tres" id="12_41ay8"]
 [ext_resource type="Animation" uid="uid://mthlll85nupo" path="res://animation/character/plant/040_melon_pult/MelonPult_shooting.tres" id="13_186uu"]
-[ext_resource type="Script" uid="uid://b5t3ejxgko6nc" path="res://scripts/character/components/attack_behavior_component/component_attack_bullet_pult_base.gd" id="14_g6087"]
+[ext_resource type="Script" path="res://scripts/character/components/attack_behavior_component/component_attack_bullet_melon.gd" id="14_g6087"]
 [ext_resource type="Script" uid="uid://bafp0ax1lmlge" path="res://scripts/character/components/detect_component/component_detect.gd" id="15_myj7b"]
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_o3ogr"]

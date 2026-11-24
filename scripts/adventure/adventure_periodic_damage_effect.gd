@@ -123,12 +123,12 @@ func _battle_context_active() -> bool:
 		and not TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.GameOver, false) \
 		and not TreePauseManager.curr_pause_factor.get(TreePauseManager.E_PauseFactor.AdventureContinue, false)
 
-## 伤害沿既有格挡、减伤、防具和保护者转移路径，僵王保留自己的受击窗口。
+## 伤害沿既有格挡、减伤、防具和保护者转移路径。
 func _deal_tick() -> void:
 	var hp: HpComponent = _target.hp_component # 分母只取本体最大生命。
 	if not is_instance_valid(hp) or hp.is_death:
 		return
-	var damage: int = roundi(float(roundi(float(hp.max_hp) * _max_health_fraction())) * _final_multiplier) # 原生整数跳伤结算完毕后才乘来源倍率。
+	var damage: int = roundi(float(_base_tick_damage(hp.max_hp)) * _final_multiplier) # 整数基础跳伤结算完毕后才乘来源倍率。
 	if damage <= 0:
 		return
 	var callback: Callable = _on_kill # 扣血可同步清除状态，先保存本次来源。
@@ -139,11 +139,11 @@ func _deal_tick() -> void:
 	if scope != null:
 		scope.before_death = _before_death
 	if _target is Zombie000Base and hp is HpComponentZombie:
-		casualty = (hp as HpComponentZombie).apply_hit(damage, BulletRegistry.AttackMode.Norm, true, false, true, 1.0, 0, -1, null, scope)
+		casualty = (hp as HpComponentZombie).apply_hit(damage, _tick_attack_mode(), true, false, true, 1.0, 0, -1, null, scope)
 	else:
 		if _before_death.is_valid():
 			_before_death.call(_target)
-		_target.be_attacked_bullet(damage, BulletRegistry.AttackMode.Norm, true, false, 0, -1, null, scope)
+		_target.be_attacked_bullet(damage, _tick_attack_mode(), true, false, 0, -1, null, scope)
 		if is_instance_valid(_target) and _target.is_death:
 			casualty = _target
 	if is_instance_valid(casualty) and callback.is_valid() and (tracks_boundary or _battle_context_active()):
@@ -187,6 +187,14 @@ func _tick_seconds() -> float:
 ## 子类可替换最大生命比例；默认两种旧状态均为每跳 2%。
 func _max_health_fraction() -> float:
 	return MAX_HEALTH_FRACTION
+
+## 由本体生命上限 [param max_hp] 得出整数基础跳伤；定额状态可覆盖计算方式。
+func _base_tick_damage(max_hp: int) -> int:
+	return roundi(float(max_hp) * _max_health_fraction())
+
+## 默认使用原中毒的普通伤害路径，独立状态可指定本体伤害。
+func _tick_attack_mode() -> BulletRegistry.AttackMode:
+	return BulletRegistry.AttackMode.Norm
 
 ## 中毒和缠怨保持普通死因；具体火焰状态覆盖此来源，不影响其已有结算节拍。
 func _damage_cause() -> CombatHitScope.DeathCause:

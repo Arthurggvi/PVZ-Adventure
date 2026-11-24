@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="AdventureStageOverride" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/adventure_stage_override.gd" id="override"]
+[ext_resource type="Script" path="res://scripts/adventure/adventure_battle_environment.gd" id="environment"]
+[ext_resource type="Script" path="res://scripts/adventure/stages/boss_encounter_definition.gd" id="cailleach_boss"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/encounters/wonderland_snow_mountains_cailleach.tres" id="cailleach_encounter"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/boards/wonderland_snow_mountains.tres" id="board"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/snow_mountains/ground.png" id="art"]
+[ext_resource type="Resource" path="res://resources/weather/wonderland_snow_mountains_normal.tres" id="normal_snow"]
+[ext_resource type="Resource" path="res://resources/weather/wonderland_snow_mountains_nightmare.tres" id="nightmare_snow"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/snow_mountains_normal.mp3" id="music_normal"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/snow_mountains_nightmare.mp3" id="music_nightmare"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/snow_mountains_boss.mp3" id="music_boss"]
+
+[ext_resource type="Resource" path="res://resources/adventure/stages/waves/wonderland_snow_mountains_normal.tres" id="normal_waves"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/waves/wonderland_snow_mountains_nightmare.tres" id="nightmare_waves"]
+
+[sub_resource type="Resource" id="SnowMountainsEnvironment"]
+script = ExtResource("environment")
+board_definition = ExtResource("board")
+accelerate_offscreen_zombies = true
+background = 1
+background_texture = ExtResource("art")
+daytime = false
+daytime_sun = false
+lawn_mowers = false
+boss_spawn_position = Vector2(1125, 350.97)
+
+[resource]
+script = ExtResource("override")
+battle_scene = "res://scenes/adventure/snow_mountains_battle.tscn"
+environment = SubResource("SnowMountainsEnvironment")
+normal_wave_profile = ExtResource("normal_waves")
+nightmare_wave_profile = ExtResource("nightmare_waves")
+replace_nightmare_bosses = true
+nightmare_bosses = Array[ExtResource("cailleach_boss")]([ExtResource("cailleach_encounter")])
+replace_nightmare_events = true
+normal_weather_sequence = ExtResource("normal_snow")
+nightmare_weather_sequence = ExtResource("nightmare_snow")
+normal_battle_music = ExtResource("music_normal")
+nightmare_battle_music = ExtResource("music_nightmare")
+nightmare_boss_music = ExtResource("music_boss")

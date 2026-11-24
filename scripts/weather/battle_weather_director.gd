@@ -43,6 +43,12 @@ var _sand: SandStormRenderer
 var _sand_cursor: WeatherCursorDrift
 ## 当前阶段允许的最大指针漂移速度，单位视口像素/秒。
 var _sand_cursor_speed: float = 0.0
+## 雪场景专属的表现组件；非雪战场保持为空。
+var _snow: SnowEnvironmentController
+
+## 绑定本局的 [param controller]，首帧和末帧与现有天气同步发送。
+func bind_snow(controller: SnowEnvironmentController) -> void:
+    _snow = controller
 
 
 ## 创建天气导演前配置权威挂载点和默认环境。
@@ -63,7 +69,14 @@ func setup(rain_parent: Node2D, overlay_parent: Node, lens_profile: WeatherLensP
 ## 默认保持当前环境，不存在时间轴时没有逐帧计算。
 func _ready() -> void:
     set_process(false)
+    # 兼容模式只停用可选湿镜头，不影响降雨、天气结算和音效。
+    if is_instance_valid(Global.config_service):
+        Global.config_service.optional_rendering_changed.connect(_on_optional_rendering_changed)
     _apply_strength(_initial)
+
+## 设置页切换后立即隐藏或恢复既有湿镜头，不重新启动天气计时。
+func _on_optional_rendering_changed(_disabled: bool) -> void:
+    _apply_strength(_strength)
 
 
 ## 任意事件可以请求新天气时间轴；空值意味着原天气持续，不清零、不回晴。
@@ -89,7 +102,7 @@ func play_sequence(timeline: WeatherSequence) -> void:
         _rain.set_visual_profile(_rain_visual_profile)
         _rain.rain_audio_profile = _rain_audio_profile
     _elapsed = 0.0
-    _apply_channels(timeline.sample_channels(0.0))
+    _apply_sequence_sample()
     set_process(timeline.get_duration() > 0.0)
 
 
@@ -105,11 +118,18 @@ func advance_weather(delta: float) -> void:
     if _sequence == null:
         return
     _elapsed = minf(_sequence.get_duration(), _elapsed + maxf(delta, 0.0))
-    _apply_channels(_sequence.sample_channels(_elapsed))
+    _apply_sequence_sample()
     if _elapsed >= _sequence.get_duration():
         # 释放过渡但保留各通道末帧强度，渲染器继续推进自身风场。
         _sequence = null
         set_process(false)
+
+
+## 使用同一阶段时钟分发两组通道；雪组件自行推进后续表现。
+func _apply_sequence_sample() -> void:
+    _apply_channels(_sequence.sample_channels(_elapsed))
+    if is_instance_valid(_snow):
+        _snow.apply_weather_sample(_sequence.sample_snow_channels(_elapsed))
 
 
 ## 读取已生效的天气强度，供调试器或预览使用。
@@ -131,11 +151,13 @@ func _apply_channels(values: Vector3) -> void:
         _sand.name = "SandStorm"
         _sand.setup(_background_sprite, _sand_visual_profile)
         _rain_parent.add_child(_sand)
-        _sand_cursor = WeatherCursorDrift.new()
-        _sand_cursor.battle = _overlay_parent as MainGameManager
-        _sand_cursor.speed = _sand_cursor_speed
-        _sand.add_child(_sand_cursor)
-        _sand.wind_advanced.connect(_sand_cursor.advance_wind)
+        # 触屏需要保持手指与命中位置一致，风沙只在桌面推动系统鼠标。
+        if not OS.has_feature("mobile"):
+            _sand_cursor = WeatherCursorDrift.new()
+            _sand_cursor.battle = _overlay_parent as MainGameManager
+            _sand_cursor.speed = _sand_cursor_speed
+            _sand.add_child(_sand_cursor)
+            _sand.wind_advanced.connect(_sand_cursor.advance_wind)
     if is_instance_valid(_sand):
         _sand.set_intensity(_sand_strength)
 
@@ -154,14 +176,18 @@ func _apply_strength(values: Vector2) -> void:
     if is_instance_valid(_rain):
         _rain.set_intensity(_strength.x)
         _rain.visible = _strength.x > 0.001
-    if _strength.y > 0.001 and _lens == null and _lens_profile != null:
+    # 未创建的镜头在兼容模式下不实例化：避免进入可选 Shader 路径。
+    var disable_fx: bool = is_instance_valid(Global.config_service) \
+        and Global.config_service.optional_rendering_disabled
+    if _strength.y > 0.001 and _lens == null and _lens_profile != null and not disable_fx:
         _lens = LENS_SCENE.instantiate() as WeatherLensController
         _lens.profile = _lens_profile
         _lens.background_sprite = _background_sprite
         _lens.set_weather_strength(_strength.y)
         _overlay_parent.add_child(_lens)
     if is_instance_valid(_lens):
-        _lens.set_weather_strength(_strength.y)
+        # 已在本关卡创建的镜头直接淡出，保留雨幕的有效光场引用。
+        _lens.set_weather_strength(0.0 if disable_fx else _strength.y)
         if is_instance_valid(_rain) and _lens.get_light_field_texture() != null:
             var response: float = _lens_profile.light_profile.rain_response
             _rain.set_light_field(_lens.get_light_field_texture(), response)

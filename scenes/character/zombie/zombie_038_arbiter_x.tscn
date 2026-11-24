@@ -1,0 +1,150 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/zombie_000_base.tscn" id="1_base"]
+[ext_resource type="Script" path="res://scripts/character/zombie/zombie_038_arbiter_x.gd" id="2_species"]
+[ext_resource type="Script" path="res://scripts/character/components/attack_behavior_component/component_attack_zombie_arbiter_x.gd" id="3_attack"]
+[ext_resource type="Script" path="res://scripts/character/zombie/arbiter_x_field.gd" id="4_field"]
+[ext_resource type="Script" path="res://scripts/character/zombie/arbiter_x_presentation.gd" id="5_visual"]
+[ext_resource type="PackedScene" path="res://scenes/character/zombie/arbiter_x/arbiter_x_airframe.tscn" id="6_airframe"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/arbiter_x/cloak_beam.png" id="12_beam"]
+[ext_resource type="Texture2D" path="res://assets/adventure/zombies/arbiter_x/energy_arc.png" id="13_arc"]
+[ext_resource type="Script" path="res://scripts/resources/resource_body_change.gd" id="14_body_change"]
+[ext_resource type="Script" path="res://scripts/character/components/anim_component/component_anim_empty.gd" id="15_anim"]
+[ext_resource type="Script" path="res://scripts/character/components/charred_component/component_charred_black_anim.gd" id="16_charred"]
+
+[sub_resource type="CapsuleShape2D" id="ArbiterHurt"]
+radius = 45.0
+height = 316.0
+
+[sub_resource type="RectangleShape2D" id="ArbiterCrush"]
+size = Vector2(112, 208)
+
+[node name="Zombie038ArbiterX" instance=ExtResource("1_base")]
+script = ExtResource("2_species")
+zombie_type = 38
+random_speed_range = Vector2(1, 1)
+
+[node name="Shadow" parent="." index="0"]
+scale = Vector2(2.6, 1.05)
+modulate = Color(0, 0, 0, 0.25)
+
+[node name="PlaneVisual" type="Node2D" parent="Body" index="2"]
+unique_name_in_owner = true
+position = Vector2(0, -123)
+
+[node name="ProtectionBeam" type="Sprite2D" parent="Body/PlaneVisual" index="0"]
+unique_name_in_owner = true
+visible = false
+position = Vector2(178, 8)
+scale = Vector2(0.56, 0.40)
+texture = ExtResource("12_beam")
+modulate = Color(0.68, 1, 1, 0)
+
+[node name="BeamArc" type="Sprite2D" parent="Body/PlaneVisual" index="1"]
+unique_name_in_owner = true
+visible = false
+position = Vector2(156, -7)
+scale = Vector2(1.15, 1.25)
+texture = ExtResource("13_arc")
+modulate = Color(1, 1, 1, 0)
+
+[node name="Airframe" parent="Body/PlaneVisual" index="2" instance=ExtResource("6_airframe")]
+unique_name_in_owner = true
+position = Vector2(0, -27)
+scale = Vector2(0.6, 0.6)
+
+[node name="ProtectionCone" type="Polygon2D" parent="Body/PlaneVisual" index="3"]
+unique_name_in_owner = true
+visible = false
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(112, -20, 455, -150, 455, 150, 112, 20)
+vertex_colors = PackedColorArray(0.25, 0.97, 1, 0.33, 0.25, 0.97, 1, 0.14, 0.25, 0.97, 1, 0.14, 0.25, 0.97, 1, 0.33)
+
+[node name="BeamTopEdge" type="Line2D" parent="Body/PlaneVisual" index="4"]
+unique_name_in_owner = true
+visible = false
+points = PackedVector2Array(115, -20, 455, -150)
+width = 3.0
+default_color = Color(0.35, 1, 1, 0.72)
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="BeamBottomEdge" type="Line2D" parent="Body/PlaneVisual" index="5"]
+unique_name_in_owner = true
+visible = false
+points = PackedVector2Array(115, 20, 455, 150)
+width = 3.0
+default_color = Color(0.35, 1, 1, 0.72)
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="BeamScan" type="Line2D" parent="Body/PlaneVisual" index="6"]
+unique_name_in_owner = true
+visible = false
+points = PackedVector2Array(115, 0, 450, 0)
+width = 2.5
+default_color = Color(0.48, 1, 1, 0.62)
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="HeadAnchor" type="Marker2D" parent="Body" index="3"]
+position = Vector2(-44, -172)
+
+[node name="HpStageChangeComponent" parent="." index="3"]
+boundary_value_hp = Array[int]([0])
+body_change = Array[ExtResource("14_body_change")]([null])
+
+[node name="AnimComponent" parent="." index="2"]
+script = ExtResource("15_anim")
+
+[node name="HpComponent" parent="." index="4"]
+position = Vector2(13, -162)
+max_hp = 3500
+max_hp_armor1 = 0
+max_hp_armor2 = 0
+
+[node name="CharredComponent" parent="." index="5"]
+script = ExtResource("16_charred")
+
+[node name="AttackComponent" parent="." index="6"]
+script = ExtResource("3_attack")
+
+[node name="DetectComponent" parent="AttackComponent" index="0"]
+can_attack_plant_status = 15
+
+[node name="Area2d" parent="AttackComponent/DetectComponent" index="0"]
+position = Vector2(-64, -106)
+
+[node name="CollisionShape2D" parent="AttackComponent/DetectComponent/Area2d" index="0"]
+shape = SubResource("ArbiterCrush")
+
+[node name="MoveComponent" parent="." index="7"]
+move_mode = 1
+ori_speed = 16.0
+
+[node name="SwimBoxComponent" parent="." index="8"]
+is_enable_default = false
+
+[node name="HurtBoxComponent" parent="." index="10"]
+x_correct_on_attack = 0.0
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetection" index="0"]
+position = Vector2(-5, -93)
+shape = SubResource("ArbiterHurt")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxReal" index="0"]
+position = Vector2(-5, -93)
+shape = SubResource("ArbiterHurt")
+
+[node name="CollisionShape2D" parent="HurtBoxComponent/HurtBoxDetectionOnAttack" index="0"]
+position = Vector2(-5, -93)
+shape = SubResource("ArbiterHurt")
+
+[node name="ArbiterField" type="Node" parent="." index="11"]
+script = ExtResource("4_field")
+
+[node name="ArbiterPresentation" type="Node" parent="." index="12"]
+script = ExtResource("5_visual")

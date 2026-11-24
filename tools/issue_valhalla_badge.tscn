@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/issue_valhalla_badge.gd" id="1"]
+
+[node name="IssueValhallaBadge" type="Node"]
+script = ExtResource("1")

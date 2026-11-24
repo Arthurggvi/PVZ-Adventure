@@ -25,8 +25,8 @@ const TACKLE_DAMAGE := 1500
 
 ## 当前冲锋、擒抱、步行或死亡状态。
 var charge_state: ChargeState = ChargeState.CHARGING
-## 擒抱开始时锁定的第一株植物；在动作接触帧处理。
-var _tackle_target: Plant000Base
+## 擒抱开始时锁定的植物或友方屏障；在动作接触帧处理。
+var _tackle_target: Character000Base
 ## 防止擒抱动画关键帧在同一次动作里重复结算。
 var _tackle_hit_applied := false
 
@@ -57,13 +57,13 @@ func ready_norm_signal_connect() -> void:
 	_play_action(&"run")
 
 
-## 冲锋首次撞到植物时停步并锁定目标。
+## 冲锋首次撞到植物或屏障时停步并锁定目标。
 func _on_charge_contact() -> void:
 	if charge_state != ChargeState.CHARGING or is_death or is_hypno:
 		return
 	# 检测组件在发出接触信号前已选定可攻击的目标。
 	var target: Character000Base = attack_component.detect_component.enemy_can_be_attacked
-	if target is Plant000Base and not target.is_death:
+	if (target is Plant000Base or target is FriendlyBattleBarrier) and not target.is_death:
 		_tackle_target = target
 		_tackle_hit_applied = false
 		charge_state = ChargeState.TACKLING
@@ -79,10 +79,15 @@ func _on_visual_tackle_hit() -> void:
 		return
 	_tackle_hit_applied = true
 	_set_move_speed(SPENT_SPEED)
-	# 目标可能在蓄力时被铲掉；攻击只命中本次锁定的植物。
-	var target := _tackle_target
-	if is_instance_valid(target) and not target.is_death and not target.is_queued_for_deletion():
-		target.be_attacked_bullet(TACKLE_DAMAGE, BulletRegistry.AttackMode.Penetration, true, false)
+	# 擒抱只命中本次锁定且仍可接触的实体，出手前已冻住的植物同样跳过。
+	var target := _tackle_target # 冲锋首次接触时锁定的目标。
+	if is_instance_valid(target) and not target.is_death and not target.is_queued_for_deletion() \
+			and (not target is Plant000Base or not target.is_cold_frozen()):
+		if target is FriendlyBattleBarrier:
+			target.be_zombie_eat(TACKLE_DAMAGE, self)
+			return
+		target.be_attacked_bullet(TACKLE_DAMAGE, BulletRegistry.AttackMode.Penetration, true, false, 0, -1, null,
+			CombatHitScope.for_plant_attack(self, CombatHitScope.PlantImpact.CRUSH))
 		if is_instance_valid(target) and target.is_death:
 			target.body.be_flattened_body()
 

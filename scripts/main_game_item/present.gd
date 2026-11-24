@@ -9,6 +9,7 @@ class_name Present
 @onready var gpu_particles_2d: GPUParticles2D = $GPUParticles2D
 
 func _ready():
+	add_to_group(&"touch_collectibles")
 	var tween = create_tween()
 	tween.tween_property(pick_up_glow, "scale", Vector2(1.5, 1.5), 1.0) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)

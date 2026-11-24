@@ -44,17 +44,44 @@ func selection_slot_cost(snapshot: Dictionary) -> int:
 	var record := _record(snapshot) # 卡片身份必须来自已验证的配方。
 	return roundi(Promotions.resolve_stat(1.0, _stats(record).get("selection_slots", {}))) if record != null else 1
 
-## 用 [param snapshot] 为 [param base_condition] 生成咖啡专属条件；其他物种原样返回。
+## 用 [param snapshot] 为 [param base_condition] 投影咖啡和寄生的种植资格。
 func placement_condition(snapshot: Dictionary, base_condition: ResourcePlantCondition) -> ResourcePlantCondition:
+	if base_condition != null and int(snapshot.get("plant_type", 0)) == CharacterRegistry.PlantType.P020TangleKelp:
+		var record := _record(snapshot) # 与战斗出生共用同一份合法转职效果。
+		for event: Dictionary in Promotions.effects(record).events: # 仅寄生会开放额外落点。
+			if event.kind == "tanglekelp_parasite":
+				return ResourcePlantConditionTanglekelp.new(base_condition)
 	return AdventureCoffeePromotionRules.condition_for(snapshot, base_condition)
 
+## 仅同一冻结卡可对 [param cell] 的三线射手叠种。[param commit] 为真时同步重验并增加一层。
+## [param snapshot] 提供稳定 UID；[param condition] 仍检查承托、禁种及当前地形。
+func reinforce_placement(snapshot: Dictionary, cell: PlantCell, condition: ResourcePlantCondition,
+		commit: bool) -> Plant000Base:
+	if int(snapshot.get("plant_type", 0)) != CharacterRegistry.PlantType.P019ThreePeater \
+			or str(snapshot.get("promotion_1", "")) != Promotions.ThreePeaterBooks.FLOOD_ID \
+			or not is_instance_valid(cell) or cell.is_queued_for_deletion() \
+			or cell.board == null or not cell.board.allows_mutation():
+		return null
+	var target := cell.plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Norm) as Plant019ThreePeater # 只对原有普通占位生效。
+	var card_uid: String = str(snapshot.get("uid", "")) # 同物种其他卡的 UID 永远不能借用洪流。
+	if not is_instance_valid(target) or target.plant_cell != cell or not target.can_reinforce(card_uid) \
+			or condition == null or not condition.judge_is_can_plant(cell, CharacterRegistry.PlantType.P019ThreePeater, true):
+		return null
+	if commit:
+		if not Promotions.is_valid_chain(_record(snapshot)) or not target.reinforce(card_uid):
+			return null
+	return target
+
+## 将冻结卡牌 [param snapshot] 的数值和转职安装到 [param plant]，无效配方返回 false。
 func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 	var record := _record(snapshot)
 	if record == null:
 		return false
 	var modifiers: Dictionary = _stats(record)
 	if modifiers.has("damage"):
-		plant.set_battle_card_damage_multiplier(maxf(0.0, 1.0 + float(modifiers.damage.get("percent", 0.0))))
+		plant.set_battle_card_damage_multiplier(Promotions.resolve_stat(1.0, modifiers.damage))
+	if modifiers.has("armored_target_damage"):
+		plant.battle_armored_target_multiplier = maxf(1.0, Promotions.resolve_stat(1.0, modifiers.armored_target_damage))
 	# 原有角色速度信号同时驱动发射计时与动画，转职攻速共用此入口。
 	if modifiers.has("attack_rate"):
 		var rate: float = maxf(0.0, 1.0 + float(modifiers.attack_rate.get("percent", 0.0)))
@@ -113,6 +140,7 @@ func apply(plant: Plant000Base, snapshot: Dictionary) -> bool:
 func player_placement_committed(cell: PlantCell, profile: PlantSpawnProfile) -> void:
 	AdventurePuffPropagation.expand_player_placement(cell, profile)
 	AdventureLilyPropagation.expand_player_placement(cell, profile)
+	Plant020Tanglekelp.expand_player_placement(cell, profile)
 
 ## 为入树前的出战植物 [param plant] 挂载 [param rank] 星角标；零星无需显示。
 func _attach_root_badge(plant: Plant000Base, rank: int) -> void:

@@ -1,0 +1,278 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/main/MainGame00Base.tscn" id="battle"]
+[ext_resource type="Script" path="res://scripts/adventure/zombie_church_battle.gd" id="battle_script"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/zombie_church/board.png" id="board_art"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/zombie_church/skybox.png" id="sky_art"]
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/zombie_church/dark_board.png" id="dark_board_art"]
+[ext_resource type="Resource" path="res://resources/adventure/stages/boards/wonderland_zombie_church.tres" id="board"]
+[ext_resource type="Script" path="res://scripts/resources/level/level_data.gd" id="level"]
+[ext_resource type="Script" path="res://scripts/resources/card/card_reference.gd" id="card"]
+[ext_resource type="Script" path="res://scripts/resources/level/battle_music_profile.gd" id="music"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/zombie_church_normal.mp3" id="normal_track"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/zombie_church_interior.gdshader" id="interior"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/zombie_church_composite.gdshader" id="composite"]
+[ext_resource type="Shader" path="res://shaders/environment/battle_visibility_light.gdshader" id="light_shader"]
+[ext_resource type="Script" path="res://scripts/adventure/zombie_church_lighting.gd" id="lighting"]
+[ext_resource type="PackedScene" path="res://scenes/fx/savior_battle.tscn" id="savior_battle"]
+[ext_resource type="Script" path="res://scripts/adventure/zombie_church_light_sources.gd" id="light_sources"]
+[ext_resource type="Script" path="res://scripts/adventure/zombie_church_plant_remains.gd" id="plant_remains"]
+[ext_resource type="Script" path="res://scripts/battle/environment/battle_visibility_light_field.gd" id="light_field"]
+[ext_resource type="Script" path="res://scripts/battle/environment/battle_shadow_projection.gd" id="shadow_projection"]
+[ext_resource type="Script" path="res://scripts/battle/environment/battle_shadow_atlas.gd" id="shadow_atlas"]
+[ext_resource type="Shader" path="res://shaders/environment/battle_shadow_projection.gdshader" id="shadow_shader"]
+[ext_resource type="Shader" path="res://shaders/environment/battle_shadow_body_clear.gdshader" id="body_clear_shader"]
+[ext_resource type="Script" path="res://scripts/adventure/zombie_church_hud.gd" id="hud_script"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/zombie_church_hud.gdshader" id="hud_shader"]
+
+[sub_resource type="ShaderMaterial" id="Interior"]
+resource_local_to_scene = true
+shader = ExtResource("interior")
+shader_parameter/dark_interior = ExtResource("dark_board_art")
+shader_parameter/lit_sky = ExtResource("sky_art")
+
+[sub_resource type="ShaderMaterial" id="WorldComposite"]
+resource_local_to_scene = true
+shader = ExtResource("composite")
+
+[sub_resource type="ShaderMaterial" id="RevealLight"]
+resource_local_to_scene = true
+shader = ExtResource("light_shader")
+shader_parameter/gameplay_warm_radiance_multiplier = 1.5
+
+[sub_resource type="ShaderMaterial" id="ProjectedShadow"]
+resource_local_to_scene = true
+shader = ExtResource("shadow_shader")
+
+[sub_resource type="ShaderMaterial" id="ShadowBodyClear"]
+resource_local_to_scene = true
+shader = ExtResource("body_clear_shader")
+
+[sub_resource type="ShaderMaterial" id="HudGrade"]
+resource_local_to_scene = true
+shader = ExtResource("hud_shader")
+
+[sub_resource type="QuadMesh" id="LightQuad"]
+size = Vector2(2, 2)
+
+[sub_resource type="MultiMesh" id="LightInstances"]
+resource_local_to_scene = true
+use_custom_data = true
+mesh = SubResource("LightQuad")
+
+[sub_resource type="MultiMesh" id="RedLightInstances"]
+resource_local_to_scene = true
+use_colors = true
+use_custom_data = true
+mesh = SubResource("LightQuad")
+
+[sub_resource type="MultiMesh" id="ShadowInstances"]
+resource_local_to_scene = true
+use_custom_data = true
+
+[sub_resource type="MultiMesh" id="ShadowBodyInstances"]
+resource_local_to_scene = true
+use_custom_data = true
+mesh = SubResource("LightQuad")
+
+[sub_resource type="Resource" id="PreviewMusic"]
+script = ExtResource("music")
+normal_music = ExtResource("normal_track")
+
+[sub_resource type="Resource" id="Peashooter"]
+script = ExtResource("card")
+card_type = 1
+content_id = 1
+
+[sub_resource type="Resource" id="Sunflower"]
+script = ExtResource("card")
+card_type = 1
+content_id = 2
+
+[sub_resource type="Resource" id="WallNut"]
+script = ExtResource("card")
+card_type = 1
+content_id = 4
+
+[sub_resource type="Resource" id="Plantern"]
+script = ExtResource("card")
+card_type = 1
+content_id = 26
+
+[sub_resource type="Resource" id="PreviewLevel"]
+script = ExtResource("level")
+board_definition = ExtResource("board")
+game_BG = 1
+battle_music_profile = SubResource("PreviewMusic")
+battle_background_texture = ExtResource("board_art")
+is_day = false
+is_day_sun = false
+is_lawn_mover = false
+is_zombie_can_home = false
+look_show_zombie = false
+can_choosed_card = false
+monster_mode = 0
+max_choosed_card_num = 4
+start_sun = 5000
+prechosen_cards = Array[ExtResource("card")]([SubResource("Peashooter"), SubResource("Sunflower"), SubResource("WallNut"), SubResource("Plantern")])
+
+[node name="ZombieChurchBattle" node_paths=PackedStringArray("phase_presentation", "trophy_layer") instance=ExtResource("battle")]
+script = ExtResource("battle_script")
+game_para = SubResource("PreviewLevel")
+phase_presentation = NodePath("ChurchLighting")
+trophy_layer = NodePath("TrophyLayer")
+
+[node name="ZombieManager" parent="Manager"]
+max_live_enemies = 30
+
+[node name="BackgroundManager" parent="Manager" node_paths=PackedStringArray("background")]
+background = NodePath("../../CanvasLayerBG/BoardArt")
+
+[node name="Background" parent="CanvasLayerBG" parent_id_path=PackedInt32Array(710587300) index="0" unique_id=518558670]
+self_modulate = Color(1, 1, 1, 0)
+
+[node name="CollisionShape2D" parent="CanvasLayerBG/Background/Home/Area2DHome" parent_id_path=PackedInt32Array(118183924) index="0" unique_id=2000876210]
+position = Vector2(-63.306, 290.79)
+
+[node name="Marker2DZombieGoHome" parent="CanvasLayerBG/Background/Home/Door/DoorDown/PanelZombieGoHome" parent_id_path=PackedInt32Array(51098949) index="0" unique_id=497105737]
+position = Vector2(42, 396)
+
+[node name="ShowZombiePanel" parent="CanvasLayerBG/Background" index="1" unique_id=1803483627]
+anchor_left = 0.0
+anchor_right = 0.0
+offset_left = 910.0
+offset_top = 235.0
+offset_right = 1087.0
+offset_bottom = 512.0
+
+[node name="BoardArt" type="Sprite2D" parent="CanvasLayerBG"]
+material = SubResource("Interior")
+position = Vector2(-182, 0)
+scale = Vector2(0.59, 0.73081599)
+texture = ExtResource("board_art")
+centered = false
+
+[node name="CanvasLayerCardSlot" parent="." index="2" unique_id=1183860696]
+layer = 42
+battle_layer = 41
+raised_layer = 42
+
+[node name="Camera2D" parent="." index="18" unique_id=630787185]
+limit_left = -182
+limit_right = 948
+zombie_preview_position = Vector2(-122, 0)
+
+[node name="SaviorBattle" parent="." instance=ExtResource("savior_battle")]
+
+[node name="TrophyLayer" type="CanvasLayer" parent="."]
+layer = 43
+follow_viewport_enabled = true
+
+[node name="ChurchLighting" type="CanvasLayer" parent="." node_paths=PackedStringArray("artwork")]
+process_mode = 1
+process_priority = 20
+layer = 39
+script = ExtResource("lighting")
+artwork = NodePath("../CanvasLayerBG/BoardArt")
+
+[node name="WorldCapture" type="BackBufferCopy" parent="ChurchLighting"]
+copy_mode = 2
+
+[node name="Composite" type="ColorRect" parent="ChurchLighting"]
+material = SubResource("WorldComposite")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Cursor" type="Marker2D" parent="ChurchLighting"]
+
+[node name="LightSources" type="Node" parent="ChurchLighting"]
+script = ExtResource("light_sources")
+
+[node name="PlantRemains" type="Node" parent="ChurchLighting"]
+script = ExtResource("plant_remains")
+
+[node name="LightField" type="SubViewport" parent="ChurchLighting" node_paths=PackedStringArray("shadow_projection")]
+disable_3d = true
+transparent_bg = true
+gui_disable_input = true
+render_target_update_mode = 0
+size = Vector2i(267, 150)
+script = ExtResource("light_field")
+shadow_projection = NodePath("ShadowProjection")
+
+[node name="LightBatch" type="MultiMeshInstance2D" parent="ChurchLighting/LightField"]
+material = SubResource("RevealLight")
+multimesh = SubResource("LightInstances")
+
+[node name="ShadowProjection" type="Node" parent="ChurchLighting/LightField" node_paths=PackedStringArray("body_clear")]
+script = ExtResource("shadow_projection")
+body_clear = NodePath("../BodyClearBatch")
+
+[node name="ShadowMaskAtlas" type="SubViewport" parent="ChurchLighting/LightField/ShadowProjection"]
+disable_3d = true
+transparent_bg = true
+gui_disable_input = true
+size = Vector2i(384, 384)
+render_target_update_mode = 0
+
+[node name="Casts" type="MultiMeshInstance2D" parent="ChurchLighting/LightField/ShadowProjection/ShadowMaskAtlas"]
+material = SubResource("ProjectedShadow")
+multimesh = SubResource("ShadowInstances")
+
+[node name="SilhouetteAtlas" type="SubViewport" parent="ChurchLighting/LightField/ShadowProjection/ShadowMaskAtlas"]
+disable_3d = true
+transparent_bg = true
+gui_disable_input = true
+size = Vector2i(768, 448)
+render_target_clear_mode = 1
+render_target_update_mode = 0
+script = ExtResource("shadow_atlas")
+
+[node name="BodyClearBatch" type="MultiMeshInstance2D" parent="ChurchLighting/LightField"]
+z_index = 2
+material = SubResource("ShadowBodyClear")
+multimesh = SubResource("ShadowBodyInstances")
+
+[node name="RedMask" type="SubViewport" parent="ChurchLighting/LightField"]
+disable_3d = true
+transparent_bg = true
+gui_disable_input = true
+render_target_update_mode = 0
+size = Vector2i(2, 2)
+
+[node name="LightBatch" type="MultiMeshInstance2D" parent="ChurchLighting/LightField/RedMask"]
+material = SubResource("RevealLight")
+multimesh = SubResource("RedLightInstances")
+
+[node name="BodyClearBatch" type="MultiMeshInstance2D" parent="ChurchLighting/LightField/RedMask"]
+z_index = 2
+material = SubResource("ShadowBodyClear")
+multimesh = SubResource("ShadowBodyInstances")
+
+[node name="HudGrade" type="CanvasLayer" parent="ChurchLighting" node_paths=PackedStringArray("card_layer", "battle_hud")]
+layer = 60
+script = ExtResource("hud_script")
+card_layer = NodePath("../../CanvasLayerCardSlot")
+battle_hud = NodePath("../../CanvasLayerUI")
+
+[node name="HudViewport" type="SubViewport" parent="ChurchLighting/HudGrade"]
+disable_3d = true
+transparent_bg = true
+gui_disable_input = true
+size = Vector2i(2, 2)
+size_2d_override_stretch = true
+render_target_update_mode = 0
+
+[node name="Grade" type="ColorRect" parent="ChurchLighting/HudGrade"]
+visible = false
+material = SubResource("HudGrade")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

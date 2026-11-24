@@ -1,0 +1,119 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/savior/savior_battle.gd" id="battle"]
+[ext_resource type="Script" path="res://scripts/fx/savior_skill_effects.gd" id="savior_fx"]
+[ext_resource type="Script" path="res://scripts/fx/savior_gospel_effects.gd" id="savior_gospel"]
+[ext_resource type="Script" path="res://scripts/fx/savior_entry_cross.gd" id="savior_entry_cross"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/savior/savior_cinematic.gd" id="savior_cinematic"]
+[ext_resource type="Script" path="res://scripts/character/zombie_boss/savior/savior_split_portraits.gd" id="split_portraits"]
+[ext_resource type="Script" path="res://scripts/fx/savior_teleport.gd" id="savior_teleport"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/savior_teleport_air.gdshader" id="savior_air"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/savior/savior_cathedral_bell.ogg" id="savior_bell"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/savior/savior_gospel_summon.wav" id="gospel_summon"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/savior/savior_gospel_annihilation.wav" id="gospel_annihilation"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/savior_madness_pillars.gdshader" id="madness_pillars"]
+[ext_resource type="Script" path="res://scripts/fx/savior_black_flash.gd" id="savior_flash"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/savior_black_flash.gdshader" id="savior_afterimage"]
+[ext_resource type="PackedScene" path="res://scenes/fx/savior_spell_track.tscn" id="spell_track"]
+
+[sub_resource type="ShaderMaterial" id="SaviorAfterimage"]
+resource_local_to_scene = true
+shader = ExtResource("savior_afterimage")
+
+[sub_resource type="ShaderMaterial" id="SaviorAir"]
+shader = ExtResource("savior_air")
+
+[sub_resource type="ShaderMaterial" id="GospelPillars"]
+resource_local_to_scene = true
+shader = ExtResource("madness_pillars")
+
+[sub_resource type="QuadMesh" id="LightQuad"]
+size = Vector2(2, 2)
+
+[sub_resource type="MultiMesh" id="SaviorAirInstances"]
+resource_local_to_scene = true
+use_colors = true
+use_custom_data = true
+mesh = SubResource("LightQuad")
+
+[sub_resource type="MultiMesh" id="GospelInstances"]
+resource_local_to_scene = true
+use_colors = true
+use_custom_data = true
+mesh = SubResource("LightQuad")
+
+[node name="SaviorBattle" type="CanvasLayer"]
+process_mode = 1
+process_priority = 19
+process_physics_priority = -10
+layer = 40
+script = ExtResource("battle")
+
+[node name="Ground" type="CanvasLayer" parent="."]
+layer = -9
+follow_viewport_enabled = true
+
+[node name="SaviorAir" type="MultiMeshInstance2D" parent="Ground"]
+material = SubResource("SaviorAir")
+multimesh = SubResource("SaviorAirInstances")
+
+[node name="SaviorTeleport" type="Node" parent="." node_paths=PackedStringArray("air")]
+script = ExtResource("savior_teleport")
+air = NodePath("../Ground/SaviorAir")
+
+[node name="Bell" type="AudioStreamPlayer" parent="SaviorTeleport"]
+stream = ExtResource("savior_bell")
+volume_db = -4.0
+max_polyphony = 8
+bus = &"SFX"
+
+[node name="SaviorSkillEffects" type="Node2D" parent="."]
+script = ExtResource("savior_fx")
+
+[node name="SaviorEntryCross" type="Node2D" parent="."]
+script = ExtResource("savior_entry_cross")
+
+[node name="SaviorCinematic" type="Node" parent="."]
+script = ExtResource("savior_cinematic")
+
+[node name="SplitPortraits" type="Node" parent="SaviorCinematic"]
+script = ExtResource("split_portraits")
+
+[node name="SaviorGospel" type="Node2D" parent="."]
+script = ExtResource("savior_gospel")
+
+[node name="Beams" type="MultiMeshInstance2D" parent="SaviorGospel"]
+show_behind_parent = true
+material = SubResource("GospelPillars")
+multimesh = SubResource("GospelInstances")
+
+[node name="SummonCue" type="AudioStreamPlayer" parent="SaviorGospel"]
+stream = ExtResource("gospel_summon")
+volume_db = -2.0
+bus = &"SFX"
+
+[node name="AnnihilationCue" type="AudioStreamPlayer" parent="SaviorGospel"]
+stream = ExtResource("gospel_annihilation")
+volume_db = -1.0
+bus = &"SFX"
+
+[node name="SpellTrack" parent="." instance=ExtResource("spell_track")]
+
+[node name="SaviorBlackout" type="CanvasLayer" parent="."]
+layer = 90
+
+[node name="Veil" type="ColorRect" parent="SaviorBlackout"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Flash" type="Node2D" parent="SaviorBlackout" node_paths=PackedStringArray("veil")]
+visible = false
+material = SubResource("SaviorAfterimage")
+script = ExtResource("savior_flash")
+veil = NodePath("../Veil")

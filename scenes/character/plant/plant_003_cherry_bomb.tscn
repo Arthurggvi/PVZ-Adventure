@@ -230,6 +230,7 @@ parameters/TimeScale/scale = 1.0
 unique_name_in_owner = true
 script = ExtResource("20_dniyj")
 bomb_lane = 1
+limit_boss_blast_damage = true
 is_auto_bomb_in_death = false
 can_attack_plant_status = 7
 can_attack_zombie_status = 63

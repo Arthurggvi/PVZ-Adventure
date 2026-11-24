@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/adventure/garden_airship_island.tscn" id="island"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/garden_airship_turf.gdshader" id="turf"]
+
+[sub_resource type="ShaderMaterial" id="TurfVariation"]
+resource_local_to_scene = true
+shader = ExtResource("turf")
+shader_parameter/variation = 1.0
+
+[node name="IslandVariant" instance=ExtResource("island")]
+material = SubResource("TurfVariation")

@@ -13,8 +13,8 @@ const RELEASE_TIME: float = 4.0 / 30.0
 const TARGET_RECHECK_DELAY: float = 0.05
 ## 电弧贴图在特效场景缩放后的参考长度，单位为像素。
 const BOLT_LENGTH: float = 104.0
-## 原版放电、跳转和命中动画场景。
-const EFFECTS: PackedScene = preload("res://scenes/character/plant/lightning_reed_effects.tscn")
+## 本场战斗共享的电弧、跳转和命中表现。
+const ReedEffects = preload("res://scripts/character/plant/lightning_reed_effect_pool.gd")
 ## 每次普通放电都会播放的基础电击层。
 const FIRE_SFX = preload("res://assets/adventure/plants/lightning_reed/sfx/fire.tres")
 ## 原版 Plant_Level_02 的额外音色层，映射到 3～5 星。
@@ -85,36 +85,26 @@ func _release_attack(game: MainGameManager) -> void:
 
 ## 播放本次普通放电的原版音效。以 0 星对应原版 1 级，额外音色与基础电击同时播放。
 func _play_fire_sfx() -> void:
-	SoundManager.play_sfx_with_pool(FIRE_SFX)
+	SoundManager.play_world_sfx(FIRE_SFX, _bolt_origin)
 	if _sound_stars >= 6:
-		SoundManager.play_sfx_with_pool(FIRE_TIER_03_SFX)
+		SoundManager.play_world_sfx(FIRE_TIER_03_SFX, _bolt_origin, Vector2.INF, 0.0, 1.0, &"reed_accent")
 	elif _sound_stars >= 3:
-		SoundManager.play_sfx_with_pool(FIRE_TIER_02_SFX)
+		SoundManager.play_world_sfx(FIRE_TIER_02_SFX, _bolt_origin, Vector2.INF, 0.0, 1.0, &"reed_accent")
 
 
 ## 在 [param game] 中从 [param origin] 到 [param impact] 播放电弧，[param first_hit] 选择首段贴图。
 func _show_strike(game: MainGameManager, origin: Vector2, impact: Vector2, first_hit: bool) -> void:
-	# 电弧沿横向伸缩，使两端对准实际起点和落点。
-	var bolt: Node2D = _spawn_effect(game, &"bolt_default" if first_hit else &"bolt", origin)
-	var direction: Vector2 = impact - origin
+	var effects: ReedEffects = game.bullets.get_node_or_null(NodePath(ReedEffects.POOL_NAME)) as ReedEffects # 同场共享一个池。
+	if effects == null:
+		# 出战场景拥有已开始的效果，植株离场后仍可播完。
+		effects = ReedEffects.new()
+		effects.name = ReedEffects.POOL_NAME
+		game.bullets.add_child(effects)
+	var bolt: Node2D = effects.play(&"bolt_default" if first_hit else &"bolt", origin, _appearance_rank) # 首段和折射沿用各自原片段。
+	var direction: Vector2 = impact - origin # 电弧沿横向伸缩，使两端对准实际起点和落点。
 	bolt.global_rotation = direction.angle()
 	bolt.scale.x = maxf(direction.length(), 1.0) / BOLT_LENGTH
-	_spawn_effect(game, &"hit", impact)
-
-
-## 在 [param game] 的战场特效层播放 [param clip]；[param at] 为全局坐标，动画结束时释放实例。
-func _spawn_effect(game: MainGameManager, clip: StringName, at: Vector2) -> Node2D:
-	# 每段电弧和每个命中表现独立播放，植物移除后已经出现的特效仍可自然结束。
-	var effect: Node2D = EFFECTS.instantiate() as Node2D
-	PromotionArt.apply_to_effect(effect, _appearance_rank)
-	game.bullets.add_child(effect)
-	effect.global_position = at
-	effect.z_index = 350
-	# 美术场景自带的播放器负责该特效的生命周期。
-	var player: AnimationPlayer = effect.get_node(^"AnimationPlayer") as AnimationPlayer
-	player.animation_finished.connect(func(_finished_clip: StringName) -> void: effect.queue_free(), CONNECT_ONE_SHOT)
-	player.play(clip)
-	return effect
+	effects.play(&"hit", impact, _appearance_rank)
 
 
 ## [param anim_name] 为结束的片段，攻击完成后恢复待机。

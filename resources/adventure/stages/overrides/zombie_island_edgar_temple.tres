@@ -15,6 +15,9 @@
 [ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/edgar_temple/nightmare_white_duke.tres" id="duke_drops"]
 [ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/edgar_temple/terminal.tres" id="terminal_drops"]
 [ext_resource type="Resource" path="res://resources/adventure/drops/zombie_island/edgar_temple/terminal_doctor.tres" id="doctor_drops"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/edgar_temple_normal.mp3" id="music_normal"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/edgar_temple_nightmare.mp3" id="music_nightmare"]
+[ext_resource type="AudioStream" path="res://resources/adventure/audio/edgar_temple_terminal.mp3" id="music_terminal"]
 
 [sub_resource type="Resource" id="BlackGeneralRetreat"]
 script = ExtResource("boss")
@@ -178,6 +181,8 @@ skill_summon_tier = &"elite"
 script = ExtResource("phase")
 phase_id = &"zombie_island.edgar_temple.terminal"
 kind = 3
+battle_music = ExtResource("music_terminal")
+boss_music = ExtResource("music_terminal")
 drop_table = ExtResource("terminal_drops")
 boss_encounters = Array[ExtResource("boss")]([SubResource("TerminalDoctor")])
 events = Array[ExtResource("event")]([ExtResource("doctor_drops")])
@@ -197,4 +202,6 @@ additional_nightmare_events = Array[ExtResource("event")]([ExtResource("general_
 replace_nightmare_bosses = true
 nightmare_bosses = Array[ExtResource("boss")]([SubResource("BlackGeneralRetreat"), SubResource("WhiteDukeRetreat"), SubResource("BlackGeneralFinal"), SubResource("WhiteDukeFinal")])
 terminal_key_id = &"zombie_island.edgar_temple.nightmare_key_lower"
+normal_battle_music = ExtResource("music_normal")
+nightmare_battle_music = ExtResource("music_nightmare")
 terminal_phase = SubResource("TerminalPhase")

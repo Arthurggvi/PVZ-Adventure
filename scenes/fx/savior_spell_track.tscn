@@ -1,0 +1,72 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/fx/savior_spell_track.gd" id="track"]
+[ext_resource type="Script" path="res://scripts/fx/savior_despair_effects.gd" id="savior_despair"]
+[ext_resource type="Script" path="res://scripts/fx/savior_despair_meteor_mesh.gd" id="despair_ribbon"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/savior_despair_meteor.gdshader" id="despair_meteor"]
+[ext_resource type="Script" path="res://scripts/fx/savior_madness_effects.gd" id="savior_madness"]
+[ext_resource type="Script" path="res://scripts/fx/savior_madness_ground.gd" id="madness_ground"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/savior_madness_pillars.gdshader" id="madness_pillars"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/savior_madness_fissure.gdshader" id="madness_fissure"]
+[ext_resource type="AudioStream" path="res://assets/adventure/zombies/savior/savior_madness_quake.wav" id="madness_quake"]
+
+[sub_resource type="ShaderMaterial" id="MadnessPillars"]
+resource_local_to_scene = true
+shader = ExtResource("madness_pillars")
+
+[sub_resource type="ShaderMaterial" id="DespairMeteor"]
+resource_local_to_scene = true
+shader = ExtResource("despair_meteor")
+
+[sub_resource type="ShaderMaterial" id="MadnessContact"]
+resource_local_to_scene = true
+shader = ExtResource("madness_pillars")
+shader_parameter/ground_only = true
+
+[sub_resource type="ShaderMaterial" id="MadnessFissure"]
+resource_local_to_scene = true
+shader = ExtResource("madness_fissure")
+
+[sub_resource type="QuadMesh" id="LightQuad"]
+size = Vector2(2, 2)
+
+[sub_resource type="MultiMesh" id="MadnessPillarInstances"]
+resource_local_to_scene = true
+use_colors = true
+use_custom_data = true
+mesh = SubResource("LightQuad")
+
+[node name="SpellTrack" type="Node2D"]
+script = ExtResource("track")
+
+[node name="MadnessContact" type="MultiMeshInstance2D" parent="."]
+material = SubResource("MadnessContact")
+multimesh = SubResource("MadnessPillarInstances")
+script = ExtResource("madness_ground")
+
+[node name="Fissures" type="MeshInstance2D" parent="MadnessContact"]
+visible = false
+show_behind_parent = true
+material = SubResource("MadnessFissure")
+
+[node name="SaviorDespair" type="Node2D" parent="."]
+script = ExtResource("savior_despair")
+
+[node name="Ribbon" type="MeshInstance2D" parent="SaviorDespair"]
+material = SubResource("DespairMeteor")
+script = ExtResource("despair_ribbon")
+
+[node name="Cue" type="AudioStreamPlayer" parent="SaviorDespair"]
+volume_db = -1.5
+bus = &"SFX"
+
+[node name="SaviorMadness" type="Node2D" parent="."]
+script = ExtResource("savior_madness")
+
+[node name="Beams" type="MultiMeshInstance2D" parent="SaviorMadness"]
+material = SubResource("MadnessPillars")
+multimesh = SubResource("MadnessPillarInstances")
+
+[node name="Quake" type="AudioStreamPlayer" parent="SaviorMadness"]
+stream = ExtResource("madness_quake")
+bus = &"SFX"

@@ -1,0 +1,22 @@
+Hunter Zombie — existing Plants vs. Zombies 2 artwork and sound
+Original game artwork/audio: PopCap Games / Electronic Arts. Original rights remain with their owners.
+Assembled sprite and split-image uploader: Redtarp, The Spriters Resource.
+Sprite asset page: https://www.spriters-resource.com/mobile/plantsvszombies2/asset/215457/
+Original ZIP: https://www.spriters-resource.com/media/assets/212/215457.zip?updated=1758921798
+Original ZIP SHA-256: 84c8b1e0ef39b10e1e47e0c7a8f7dab30fb03b41e0a5313d3cd71a2c8a7eaac1
+Retrieved: 2026-11-21.
+
+Production image processing: only the supplied international assembled frames and split images are used. Images were resized to exactly 0.5 (transparent padding for odd dimensions), cropped only in transparent areas and packed into PNG atlases no larger than 2048 per side. Every original frame and its order is retained. Duplicate bitmap storage is shared without dropping sequence entries. No image generation, painting, invented intermediate animation or replacement pixels was used. Portrait uses the first idle frame. The four snowball images are existing split images, not procedurally painted shapes.
+
+Timing: all five source-site GIF previews have the same number of frames as their PNG sequences. Each GIF frame has a 30 ms duration: idle 63/1.89 s; walk 90/2.70 s; eat 121/3.63 s; throw 63/1.89 s; death 65/1.95 s. animations.json records the exact GIF URLs. This preserves the uploader preview timing; the original PAM timebase and animation commands were not supplied.
+
+Registration and release event: action foot points are fixed from original first frames, using measured feet ROIs that exclude the bone. See animations.json. Source throw0025 still holds its snowball; throw0026 first shows an empty forward hand, therefore release is placed at zero-based frame 25, 0.75 seconds. The hand anchor is an approximate image-space measurement. These are documented integration choices, not claimed original skeleton/event metadata.
+
+Damage artwork: the original death sequence is already headless and lacks the bone-holding arm. The original split parts contain separate limbs, but the ZIP has no original PAM rig or assembled armless walking/eating/throwing sequences. Those missing sequences were not fabricated.
+
+Audio provenance: the Hunter Zombie audio table identifies Throwingsnowball1-3.ogg (throw effort), Snowballthrown1-2.ogg (snowball release), Snowballhit1-3.ogg (plant impact), Hunterded1-2.ogg (death).
+Audio table: https://plantsvszombies.fandom.com/wiki/Hunter_Zombie#Audio
+Public original file pages and exact public media CDN URLs are recorded per file in animations.json. OGGs are copied byte-for-byte, without resynthesis, recompression or pitch shifting. No separately labelled idle/walking Hunter groan was located, so no clip is mislabelled as one.
+
+Source site terms: https://www.spriters-resource.com/page/tou/
+Preserve original copyright and uploader/source attribution. These game rips are not represented as a newly created work or as an open commercial license. The original archive, source-site GIFs, page snapshot, and research contact sheets remain in the research directory rather than the runtime asset tree.

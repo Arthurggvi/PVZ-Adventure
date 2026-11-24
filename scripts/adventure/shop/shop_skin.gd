@@ -133,21 +133,19 @@ static func set_button_disabled(node: Button, value: bool) -> void:
 	node.disabled = value
 	_button_motion(node, 1.025 if not value and node.is_hovered() else 1.0)
 
-## 绘制 [param offer] 的低对比商品光晕色，只强化原图，不增加营销标签。
+## 返回普通商品 [param offer] 的低对比图标光晕色。
 static func product_accent(offer: Dictionary) -> Color:
-	if bool(offer.get("unique", false)):
-		return Color("ddbd96") if str(offer.id) == "spring_cattail" else Color("ead680")
 	return Color("b9d78b") if str(offer.get("kind", "")) == "item" else Color("a6c7bf")
 
-## 按 [param offer] 获取已有商品美术；[param portrait] 为时装时使用全身立绘。
-static func product_texture(offer: Dictionary, portrait: bool = false) -> Texture2D:
+## 按 [param offer] 获取商品美术；[param full_portrait] 为 true 时优先使用角色全身立绘。
+static func product_texture(offer: Dictionary, full_portrait: bool = false) -> Texture2D:
 	match str(offer.get("kind", "")):
 		"item":
 			return Art.texture(ItemArt.icon_uri(str(offer.asset)))
 		"equipment":
 			var item: EquipmentDefinition = EquipmentCatalog.definition(StringName(offer.asset)) # 视觉配置不复制装备效果。
 			if item != null:
-				return item.portrait if portrait and item.portrait != null else item.icon
+				return item.portrait if full_portrait and item.portrait != null else item.icon
 		"slots":
 			return preload("res://assets/image/store/Store_PacketUpgrade.png")
 		"glove":

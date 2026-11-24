@@ -1,0 +1,116 @@
+双舱飞行僵尸（Double-Cabin Aircraft Zombie）｜原版核验、素材来源与未来接入蓝图
+更新：2026-11-23　工程：PVZ-Adventure / Godot 4.7.2
+阶段：原版数据和拆包索引已核对；完整动作包未取得；本轮仅写工程文档，不注册、不实装、不运行测试。
+
+一、物种身份与原版规则
+- 身份：中国版 PVZ2 天空之城 Double-Cabin Aircraft Zombie（双舱飞机僵尸）。
+- 游戏内部名称：skycity_twinsplane；2015 年实物拆包讨论记载资源组 21477000（其十六进制／索引格式未验证）。
+- 原版首次出场：Sky City Day 6 困难模式；普通关第 7 天正式引入。
+- 生命：1200，总计两舱各 600；机舱独立受击和死亡资格，不是统一 1200 血条。
+- 位移：每 3 秒前进一格；占两条相邻攻击行，整体物理占位近似 2×2 格。
+- 伤害：撞击沿途植物为每秒 1000（用户截图“碾压”）；撞上玩家飞船造成 800 伤害。
+- 若仅一个机舱血量归零，另一舱仍然能够推进；两个均归零才判整机被击毁。
+- 飞机靠近戴夫号甲板后无返航，会直接撞击舰体并结束本体；不混入之前战斗机的返航原逻辑。
+- 植物攻击：两条行都能分别攻击相应机舱，命中必须对齐实际行与当前机舱。
+- 寒冷：冰封状态转为减速，保留真正伤害，不自行增加全控免疫。
+- 原版不被归为可被三叶草直接吹走的“飞行僵尸”；天空之城原关禁止三叶草。
+- 本项目用户规则覆盖原版：必须能被三叶草吹走，含单舱已毁、双舱未毁及正常推进态。
+来源：
+https://plantsvszombies.wiki.gg/wiki/Double-Cabin_Aircraft_Zombie
+https://plantsvszombies.wiki.gg/zh/wiki/PvZ2C:%E5%8F%8C%E8%88%B1%E9%A3%9E%E6%9C%BA%E5%83%B5%E5%B0%B8
+https://www.newton.com.tw/wiki/植物大戰殭屍2殭屍圖鑑/64026631
+原版数据属社区整理，与本次截图一致；后续若取得游戏原始配置，可再逐字段验证。
+
+二、素材定位：有游戏资源组线索，但没有完整原帧档案
+1. Wiki 英文条目角色 Gallery：HD 本体、攻击画面、Sprites、Almanac、魅惑参考。
+   https://plantsvszombies.wiki.gg/wiki/Double-Cabin_Aircraft_Zombie
+2. 中国版原僵尸贴图图库（含 Double-Cabin Aircraft Zombie）：
+   https://plantsvszombies.wiki.gg/wiki/Plants_vs._Zombies_2_(Chinese_version)/Gallery_of_zombie_sprites
+3. 2015-08-21 资源拆包者记录：Twins Plane Zombie: 21477000；
+   Internal name: skycity_twinsplane。该记录声称从当时的中国版 RSB 提取贴图：
+   https://plantsvszombies.wiki.gg/wiki/Plants_vs._Zombies_Wiki:Chat/Logs/21_August_2015
+4. The Spriters Resource 的 PVZ2 资源目录：
+   https://www.spriters-resource.com/mobile/plantsvszombies2/
+   本轮核对了该列表的检索文本，尚未核实“双舱飞机僵尸”的独立条目／ZIP 文件。
+   故不要凭相邻物种 502486/502490/502497 猜造一个 502xxx 资产编号；
+   这些是其他僵尸，不能被写成此物种专属原始素材。
+5. 若从真实授权持有的 PVZ2C 游戏资源导出，优先按 skycity_twinsplane
+   及资源组 21477000 追索真实贴图、动画绑定、粒子、声音，而非靠截图拼接。
+6. 图鉴截图/设计概念图是静态参考，不是 Fly/Crash/Death/Degrade 完整逐帧动画。
+   Wiki 记载其设计曾有未用的完整健康形态与多个破损等级，现有形象可能已经是末级破损；
+   未拿到源文件前不承诺可用的分段动画，也不伪造断舱帧。
+
+当前素材状态：
+- 原版完整 ZIP / RSB / PAM / PNG 逐帧：未取得。
+- 双舱独立动画与损坏帧：未校验。
+- 机头两套螺旋桨、驾驶员、机翼、机尾等分件：未取得可验证源件。
+- 对船撞击、机舱破损/坠落、风吹退场专属音效：未取得。
+- 文件数 / 源格式 / Alpha / 帧序 / 播速 / SHA-256：均不可验证。
+- 原版权利属于 PopCap/EA 等相应权利人；第三方贴图和社区图库不表示商用授权。
+
+三、工程路径与编号（仅供未来施工）
+文档：docs/adventure/double_cabin_aircraft_zombie.txt（本文件）。
+资产索引：assets/adventure/zombies/double_cabin_aircraft/SOURCES.txt。
+将来取得原资源后：assets/adventure/zombies/double_cabin_aircraft/ 下分源件、图集、
+SpriteFrames、animations.json、声音；图集按真实源文件清单和序帧生成，不猜现成规格。
+建议物种 Z037DoubleCabinAircraft（Z034Fighter 已在 Registry；Z035FlyingImp、
+Z036BucketheadPilot 已在前轮文档预留），本轮不修改 CharacterRegistry。
+未来实例只在有明确关卡波次时经 ZombieInfo 惰性字符串路径加载；
+不预加载全部 2 舱动画到引擎启动入口，不改旧关自然刷新池。
+候选原生复用：
+- scripts/character/zombie/zombie_000_base.gd：本体、死亡信号、等阶与战斗注册。
+- scripts/character/components/component_move.gd：同一父机体的唯一推进者。
+- scripts/character/components/anim_component/component_anim_imported.gd：真正原作逐帧播放器。
+- scripts/adventure/adventure_zombie_wind_gust.gd：物种级三叶草事件分发。
+- scripts/main_game_item/back_ground/main_game_home.gd：原生进家/失败信号。
+- scripts/battle/board/board_runtime.gd：实际行、有效稀疏种植格与平台高度。
+- scripts/character/components/attack_behavior_component/component_attack_zombie_zamboni.gd：
+  可参考其原生压扁表现与碰撞细节，不直接复制单行的碰撞区域当作双行实现。
+- GlobalReadData / CharacterRegistry / 图鉴：仅正式资源齐备后登记。
+
+四、建议的数据与生命周期结构
+一架飞机对应一名 Zombie000Base 战场敌人；单一波次预算、唯一死亡与清场登记，
+不能为了每舱受击在 ZombieManager 中注册两只完整僵尸。
+一个 PlaneMotion 负责统一世界脚点/横向位移，始终保持两舱相对距离固定；
+两个 CabinHitbox 分别属于两条相邻逻辑行（upper/lower），每舱单独持有当前 0–600 HP。
+受击路由按攻击行确定 cabin_id，跨两行范围伤害每舱最多结算一次，不叠计一发子弹；
+若玩家攻击实际覆盖两个区域，可根据原版命中规则对两舱各结算一次。
+生命值扣到零的机舱永久记 disabled，不接受负血；保留机体继续飞行直到另一舱也失去生命。
+不要创建单侧死亡立即 queue_free 的破机体；只有两舱都 disabled 才触发一次整体死亡，
+或者完整机体到达甲板按原版冲撞一次退场。
+损坏美术与检测框必须随 cabin 状态同时改变：是否仍能在该行撞击以及残存机翼表现，
+等拿到真实分段动画后再确认原作细节，不用猜测单舱拆除后的碰撞宽度。
+原游戏贴近舰体时按 800 伤害调用“舰体耐久”机制；本工程若当前战场没有舰体血池，
+优先复用一次 zombie_go_home 失败事件，不凭空添加一个不可见的飞船血条。
+撞击与击毁两个原因不可重入；若同一帧两舱死光且处于冲撞区，只提交一个最终结果。
+三叶草吹离需优先于继续碾压/撞船的待执行回调：is_blover_flying_target() 为 true，
+handle_blover_wind() 接管统一飞机；一次吹离停止两舱的攻击与推进并走
+retire_from_battle()，不产生每舱分别被吹、双倍波次减员或额外爆炸。
+普通子弹和地面植物仍能针对其所在行命中机体；“三叶草视为飞行目标”和
+“真实受击类别”必须是两个不同的查询，不把 IsSky 当成唯一统一标志。
+如果原版空中机舱场景有特殊高度判定，保持逻辑脚点与展示离地量分离。
+两舱整体最少需要两条相邻有效行；单行关卡拒绝刷出。不得跨越关闭的行、
+稀疏棋盘的有效种植位边界或将两个不同平台的 hitbox 锁死到初始世界 Y。
+冻结则统一在机体动作速率上施加“冰封→减速”，不各舱分别叠加双倍减速。
+状态：SPAWNING → ADVANCING (both / only upper / only lower) →
+CRASHING 或 DYING 或 BLOVER_EXIT；终态不能再次切换成移动中。
+
+五、质量门槛
+1. 获取正式原作资源，保存原件哈希与来源；源帧完整性核验在写代码之前。
+2. 原作确切动作：双螺旋桨、两名驾驶员、正常推进、单侧破损、坠毁、舰体撞击；
+   若某个动作缺失，显式标记缺失，不用整张 PNG 以正弦位移冒充完整原版动画。
+3. 音效必须按真实事件绑定，来源未核实者标记“临时替代”，绝不直接套用别的僵尸声音。
+4. 工程实机验收：两行受弹→左舱先归零→右舱持续→另一舱归零且只死一次；
+   右舱先死对照、两舱同帧死亡、冰冻减速与其他状态互斥。
+5. 验证三叶草对完整、单舱残存机体均可吹离；重复吹风不残留区域，
+   一架飞机在波次计数中只消失一次。
+6. 正式甲板撞船、普通草坪/关卡进家失败、移动平台和高低差双行几何，
+   路径只读取真实 board，且不会触发多次失败。
+7. 根据 AGENTS.md 默认不新增或运行测试；本轮只是文档归档，没有实装或实机验收。
+8. 未来资产目录受 .gitignore 排除，正式资源必须定向 git add -f；
+   禁止 git add .、自动 push、覆盖正在并行编辑的文件。
+
+范围说明：Gardendless 玩家改版有“死亡一舱把 50% 后续伤害传给另一舱”的衍生机制，
+这不是本轮 PVZ2 中国版原版截图已证实的规则，不能当作原版直接实现。
+衍生资料：https://pvzge.com/en/almanac/zombies/sky_twin
+本轮只确认原版和源素材线索并写入文档，不创建伪动作、假音效或并行全局管理器。

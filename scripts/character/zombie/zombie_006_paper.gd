@@ -15,5 +15,5 @@ func ready_norm_signal_connect():
 ## 报纸掉落
 func drop_paper():
 	is_gasp = true
-	SoundManager.play_character_SFX("Rarrgh")
-	SoundManager.play_character_SFX("Rip")
+	SoundManager.play_character_SFX(&"Rarrgh", body)
+	SoundManager.play_character_SFX(&"Rip", body)

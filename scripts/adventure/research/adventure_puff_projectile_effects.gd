@@ -35,13 +35,13 @@ func configure(game: MainGameManager, profile: PlantSpawnProfile, rules: Diction
 	_cell_pitch = maxf(1.0, cell_pitch)
 	_source_id = source_id
 
-## 延迟入树回调由弹体自己持有，不依赖已死亡的植物；失效时立即释放离树弹体。
+## 延迟入树回调由弹体自己持有，不依赖已死亡的植物；失效时在帧末释放离树弹体。
 func attach_to_battle() -> void:
 	if get_parent() != null:
 		return
 	if not _battle_active() or not is_instance_valid(_game.bullets) \
 			or _game.bullets.is_queued_for_deletion() or not _game.bullets.is_inside_tree():
-		free()
+		queue_free()
 		return
 	_game.bullets.add_child(self)
 

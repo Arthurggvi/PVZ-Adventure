@@ -8,6 +8,10 @@ var experience_multiplier: float = 1.0
 var loot_multiplier: int = 1
 ## 随机材料/消耗品概率相对倍率。
 var drop_chance_multiplier: float = 1.0
+## 仅用于随机材料的额外概率倍率，与通用掉落概率倍率乘算。
+var material_drop_chance_multiplier: float = 1.0
+## 冒险战斗中击杀掉落钱币的概率相对倍率。
+var coin_drop_chance_multiplier: float = 1.0
 ## 战场金币价值倍率。
 var coin_multiplier: float = 1.0
 ## 阳光收集能力的到期 Unix 秒；-1 表示未装配，0 表示永久。
@@ -26,7 +30,8 @@ static func resolve(state: PlayerEquipmentState) -> PlayerEffects:
 		if state.is_expired(uid, now):
 			continue
 		var item: EquipmentDefinition = EquipmentCatalog.definition(state.owned.get(uid, "")) # 不读取 UI。
-		if item != null:
+		var edition_uid: int = state.edition_uids.get(uid, 0) # 普通装备没有发行编号。
+		if item != null and ProfileEquipmentBinding.allows(item.id, edition_uid, state.profile_uid):
 			result._frozen_items.append({"definition": item, "deadline": state.expires_at.get(uid, 0)})
 	result._apply_equipment(now)
 	return result
@@ -41,6 +46,8 @@ func _apply_equipment(now: int) -> void:
 		experience_multiplier *= item.experience_multiplier
 		loot_multiplier *= item.loot_multiplier
 		drop_chance_multiplier *= item.drop_chance_multiplier
+		material_drop_chance_multiplier *= item.material_drop_chance_multiplier
+		coin_drop_chance_multiplier *= item.coin_drop_chance_multiplier
 		coin_multiplier *= item.coin_multiplier
 		if item.slot == EquipmentDefinition.Slot.SUN_COLLECTOR:
 			_sun_deadline = deadline

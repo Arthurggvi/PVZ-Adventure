@@ -41,8 +41,8 @@ animation = &"Cornpult_shooting"
 animation = &"Cornpult_idle"
 
 [sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_t3okm"]
-fadein_time = 0.2
-fadeout_time = 0.2
+fadein_time = 0.055
+fadeout_time = 0.14
 
 [sub_resource type="AnimationNodeTimeScale" id="AnimationNodeTimeScale_btqik"]
 

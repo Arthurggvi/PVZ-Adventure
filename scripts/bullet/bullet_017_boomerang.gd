@@ -38,6 +38,8 @@ var _flight_x: float = 0.0
 var _turn_x: float = INF
 ## 当前这一程已经命中的角色；折返时清空，成长不清空。
 var _hit_ids: Dictionary[int, bool] = {}
+## 前方已验证且可命中的受击区弱引用；每帧复核其真实路径，失效才做全量扫描。
+var _ahead_area: WeakRef
 ## 每枚弹独享的连续碰撞查询器。
 var _query := BloomerangFlightQuery.new()
 ## 单枚弹体独享的伤害成长与追猎规则。
@@ -52,6 +54,13 @@ var _lifetime: float = 0.0
 var _birth_frame: int = -1
 ## 弱镖的出生重叠只检查一次。
 var _birth_checked: bool = false
+
+## [param displacement] 同步移动逻辑飞行基线，下个物理步仍沿同一条坡面路径。
+func translate_with_board(displacement: Vector2) -> void:
+	super(displacement)
+	_flight_x += displacement.x
+	_level_y += displacement.y
+	_turn_x += displacement.x
 
 ## 入树前注入 [param shot]、可失效的原实例 [param thrower] 与实时枪口 [param launch]。
 func configure_flight(shot: BloomerangShotContext, thrower: Plant000Base, launch: Marker2D) -> void:
@@ -125,24 +134,35 @@ func _physics_process(delta: float) -> void:
 	elif _state != FlightState.OUTBOUND and not _screen.grow(BloomerangFlightQuery.HALF_SIZE).has_point(global_position):
 		_finish(false)
 
-## 首次命中后判断前方是否仍有合法目标；满额或目标耗尽时在一个减速半径内折返。
+## 首次命中后确认前方是否仍有合法目标；同一有效目标只重验形状，不重复扫描整行。
 func _choose_turn_point() -> void:
 	if is_finite(_turn_x) or _hit_ids.is_empty():
 		return
 	if _hit_ids.size() < _shot.hit_limit:
 		var edge: Vector2 = Vector2(_edge_x(), _level_y + BloomerangFlightQuery.height_at(_slope, _edge_x())) # 屏幕侧缘。
-		var points: Array[Vector2] = BloomerangFlightQuery.path_points(global_position, edge, _slope, _level_y) # 屋顶折线路径。
-		for index: int in range(points.size() - 1): # 只查有限的坡面线段，不按像素步进。
+		var points: Array[Vector2] = BloomerangFlightQuery.path_points(global_position, edge, _slope, _level_y) # 与广查一致的坡面折线路径。
+		var cached: Area2D = _ahead_area.get_ref() as Area2D if _ahead_area != null else null # 不延长僵尸生命周期。
+		if is_instance_valid(cached) and cached.is_inside_tree() and not cached.is_queued_for_deletion() \
+				and is_instance_valid(cached.owner) and (cached.collision_layer & area_2d_attack.collision_mask) != 0:
+			var cached_target: Character000Base = cached.owner as Character000Base # 同一真实受击角色。
+			if cached_target != null and _can_attack_character(cached_target) \
+					and not _hit_ids.has(cached_target.get_instance_id()) \
+					and _query.area_intersects_path(cached, points):
+				return
+		_ahead_area = null # 死亡、换行、变阵营或脱离实际弹道，立即回退完整扫描。
+		for index: int in range(points.size() - 1): # 每条坡面折线完整检测，顺序不变。
 			for area: Area2D in _query.areas(self, points[index], points[index + 1], area_2d_attack.collision_mask):
 				if not is_instance_valid(area) or area.is_queued_for_deletion() or not is_instance_valid(area.owner):
 					continue
 				var target: Character000Base = area.owner as Character000Base # 同行实际受击框对应的角色。
 				if _can_attack_character(target) and not _hit_ids.has(target.get_instance_id()):
+					_ahead_area = weakref(area)
 					return
 	_plan_turn()
 
 ## 从当前实际位置计算折返上界，绝不越过当帧屏幕边缘。
 func _plan_turn() -> void:
+	_ahead_area = null
 	_turn_x = _flight_x + _shot.launch_direction * TURN_RADIUS
 	_turn_x = minf(_turn_x, _edge_x()) if _shot.launch_direction > 0 else maxf(_turn_x, _edge_x())
 
@@ -169,7 +189,7 @@ func _move_segment(finish: Vector2) -> void:
 		_finish(_state == FlightState.RETURNING)
 		return
 	if _hit_ids.size() < _shot.hit_limit:
-		for contact: Dictionary in _query.contacts(self, start, endpoint, area_2d_attack.collision_mask): # 按形状首次接触排序。
+		for contact: Dictionary in _query.contacts(self, start, endpoint, area_2d_attack.collision_mask, _hit_ids): # 已命中者无需重复窄相检测。
 			if not is_attack_active():
 				_finish(false)
 				return
@@ -220,6 +240,7 @@ func _source_contact(start: Vector2, finish: Vector2) -> float:
 
 ## 开始唯一一次返程；本程穿透与僵王去重清空，单弹伤害成长保留。
 func _begin_return() -> void:
+	_ahead_area = null
 	_turn_x = _flight_x
 	_state = FlightState.RETURNING
 	_hit_ids.clear()

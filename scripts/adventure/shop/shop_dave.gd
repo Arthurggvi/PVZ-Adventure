@@ -89,12 +89,12 @@ func say(text: String) -> void:
 	_bubble_motion = create_tween()
 	_bubble_motion.tween_property(actor.bubble_2, "modulate:a", 1.0, 0.16)
 
-## 成交成功后触发完整原版发疯动作；不得用于尚未保存的交易。
-func celebrate() -> void:
+## 成交保存后播放原版发疯动作并显示 [param text]，空文本采用默认庆祝台词。
+func celebrate(text: String = "") -> void:
 	if not _ready_to_talk or _celebrating:
 		return
 	_celebrating = true
-	var line: CrazyDaveDialogDetailResource = _detail("歪比巴卜！！") # 疯言疯语走原版动作与音效。
+	var line: CrazyDaveDialogDetailResource = _detail(text if not text.is_empty() else "歪比巴卜！！") # 台词与原版动作及音效一起播放。
 	line.is_crazy = true
 	actor.long_time_dave_start_dialog()
 	actor.external_trigger_dialog(line)

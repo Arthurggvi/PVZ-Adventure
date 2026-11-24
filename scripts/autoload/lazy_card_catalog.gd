@@ -3,7 +3,7 @@
 extends Node
 ## 纯身份和路径映射，不静态引用卡面资源。
 const Manifest = preload("res://scripts/autoload/card_catalog_manifest.gd")
-## 已请求物种的模板节点；同一身份只有一个只读源，生命周期与 Autoload 相同。
+## 当前构造帧内的只读模板；同一身份复用一次，下一帧释放全部临时节点。
 var _templates: Dictionary[Vector2i, Card] = {}
 ## 隐藏且不处理帧回调的模板宿主；复制出的卡牌仍继承实际界面的处理模式。
 var _template_root: Control
@@ -27,7 +27,7 @@ func get_resource_paths(references: Array[ResourceCardReference]) -> PackedStrin
 			paths.append(path)
 	return paths
 
-## 返回 [param reference] 的只读模板；首次访问只加载该物种，失败返回 null。
+## 返回 [param reference] 的临时只读模板，仅供本帧同步复制；不得跨帧持有。失败返回 null。
 func get_template(reference: ResourceCardReference) -> Card:
 	var path: String = get_template_path(reference) # 元数据校验不触碰其他卡面。
 	if path.is_empty():
@@ -52,9 +52,17 @@ func get_template(reference: ResourceCardReference) -> Card:
 		_template_root.hide()
 		_template_root.process_mode = Node.PROCESS_MODE_DISABLED
 		add_child(_template_root)
+		get_tree().process_frame.connect(_release_templates, CONNECT_ONE_SHOT)
 	_template_root.add_child(card) # 保留原 _ready 初始化费用、种植条件及静态图容器。
 	_templates[key] = card
 	return card
+
+## 本批同步复制已经完成；释放源节点，不影响独立卡面持有的资源。
+func _release_templates() -> void:
+	_templates.clear()
+	if is_instance_valid(_template_root):
+		_template_root.free()
+	_template_root = null
 
 ## [param reference] 标识卡牌；[param context] 指定用途；返回尚未入树的独立实例。
 func create_card(reference: ResourceCardReference,

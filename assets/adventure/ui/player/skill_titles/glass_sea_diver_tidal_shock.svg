@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1032" height="340" viewBox="0 0 516 170">
+  <title>深蓝明灯</title>
+  <defs>
+    <linearGradient id="water" x1="0" y1="16" x2="26" y2="142" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f1ffff"/>
+      <stop offset=".32" stop-color="#9ffaf2"/>
+      <stop offset=".50" stop-color="#3db7d6"/>
+      <stop offset=".54" stop-color="#ddfbf5"/>
+      <stop offset=".73" stop-color="#83ddd9"/>
+      <stop offset="1" stop-color="#42a3c7"/>
+    </linearGradient>
+    <g id="lettering" transform="translate(21 13) skewX(-6)">
+      <path d="M11 16 24 18 36 27 29 37 20 36 7 25Z M8 45 22 48 33 57 27 68 17 66 3 54Z
+               M21 78 32 84 27 103 14 125 4 121 5 112Z
+               M43 17 55 18 55 42 43 46 37 42Z M52 17 109 14 117 20 113 41 101 45 97 39 101 28 52 31Z
+               M61 37 73 42 67 52 48 65 39 62 41 55Z M85 38 97 37 96 51 109 48 114 52 108 61 87 64 79 58Z
+               M40 73 112 67 119 73 112 83 40 90 33 83Z M72 59 85 60 83 125 75 133 66 128Z
+               M65 84 74 92 Q60 112 37 123 L30 119 34 111 Q52 101 65 84Z
+               M88 83 Q99 97 119 108 L117 115 107 120 Q90 111 79 94Z"/>
+      <path transform="translate(124 0)" d="M8 20 110 15 118 21 113 31 9 36 2 29Z
+               M29 9 42 8 44 40 34 46 27 41Z M79 7 93 7 87 40 76 45 71 39Z
+               M14 47 27 45 27 77 18 84 10 79Z M35 44 48 42 46 80 36 86 30 81Z
+               M66 41 80 43 Q74 60 55 71 L48 67 51 61Z M70 54 112 50 118 56 112 66 67 69Z
+               M84 71 95 70 108 78 103 87 92 87 82 81Z
+               M17 89 30 87 31 119 19 127 13 120Z M28 88 105 83 113 89 106 119 94 124 90 119 96 97 28 102Z
+               M43 97 54 97 52 120 43 124 38 118Z M70 95 81 94 77 121 68 124 64 118Z
+               M4 122 115 114 121 121 114 131 4 136 -2 130Z"/>
+      <path fill-rule="evenodd" transform="translate(250 0)"
+            d="M11 22 52 18 60 24 56 94 49 102 7 107 1 100 5 32Z
+               M19 36 17 54 44 51 45 32Z M16 68 14 91 41 87 43 64Z
+               M70 20 112 14 120 20 112 113 Q110 125 99 130 L81 132 76 121 82 115 96 114 99 87 75 89
+               Q70 115 55 131 L44 129 43 123 Q61 102 63 66 L64 28Z
+               M79 32 78 44 103 40 104 28Z M77 58 76 75 100 72 102 54Z"/>
+      <path transform="translate(371 0)" d="M32 14 46 11 52 18 47 60 Q45 98 18 127 L7 128 3 120
+               Q27 91 30 59Z M8 40 20 42 24 64 17 74 6 71 7 58 3 48Z
+               M57 35 68 37 69 45 53 65 45 63 45 55Z
+               M40 81 50 80 Q58 98 69 108 L66 117 53 118 Q41 105 33 91Z
+               M71 23 117 18 124 24 120 35 69 42 64 36Z
+               M93 33 108 32 102 114 Q100 127 85 131 L73 129 69 120 75 114 85 115 87 110Z"/>
+    </g>
+  </defs>
+  <path d="M15 142Q73 130 126 141T232 146Q255 143 272 137 M296 146Q350 157 428 141L480 135"
+        fill="none" stroke="#55d8e1" stroke-width="2" stroke-linecap="round" opacity=".7"/>
+  <path d="M47 150Q88 145 115 152 M345 154Q392 152 426 147 M461 20L488 15"
+        fill="none" stroke="#f6d394" stroke-width="1.5" stroke-linecap="round" opacity=".82"/>
+  <use xlink:href="#lettering" x="3" y="6" fill="#0a2146" stroke="#135271" stroke-width="11" stroke-linejoin="round"/>
+  <use xlink:href="#lettering" fill="#174665" stroke="#081b3b" stroke-width="6" stroke-linejoin="round"/>
+  <use xlink:href="#lettering" fill="url(#water)" stroke="#c1f8ed" stroke-width="1.3" stroke-linejoin="round"/>
+  <g fill="none" stroke="#bafcf9" stroke-width="1.25" opacity=".75">
+    <circle cx="18" cy="18" r="3"/>
+    <circle cx="14" cy="7" r="1.5"/>
+    <circle cx="490" cy="121" r="4"/>
+    <circle cx="502" cy="111" r="2"/>
+    <path d="M65 36l18-1 M100 86l20-2 M161 35l17-1 M257 136l11-2 M307 46l8-1 M418 36l5-1 M454 42l15-2"
+          stroke-linecap="round"/>
+  </g>
+</svg>

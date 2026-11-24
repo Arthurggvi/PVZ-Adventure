@@ -3,6 +3,8 @@ class_name ResourceLevelData
 
 ## 战场空间静态协议；为空时由 BoardSceneAdapter 导入旧场景。
 @export var board_definition: BoardDefinition
+## 宽屏右侧待入场区域是否使用两倍速度；默认保留旧关卡行为。
+@export var accelerate_offscreen_zombies: bool = true
 
 #region 选关数据,管理关卡存档
 ## 游戏模式(冒险，迷你游戏，解密，生存)，游戏选关场景
@@ -59,6 +61,8 @@ static func resolve_terrain_type(scene: MainSceneRegistry.MainScenes,
 	return CharacterRegistry.ZombieRowType.Pool if has_pool else CharacterRegistry.ZombieRowType.Land
 ## 游戏背景音乐
 @export var game_BGM: ConstLevelData.GameBGM = ConstLevelData.GameBGM.FrontDay
+## 可选普通、噩梦与 Boss 曲目组合；空值继续使用原版音乐枚举。
+@export var battle_music_profile: BattleMusicProfile
 ## 是否有雾
 @export var is_fog: bool = false
 ## 仅用于关卡刚进入时的静态雨势；动态阶段天气以 BattleWeatherDirector.current_strength 为权威。

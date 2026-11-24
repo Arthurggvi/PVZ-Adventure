@@ -47,13 +47,14 @@ func refresh(revision: int) -> Dictionary:
 func buy(revision: int, slot: int) -> Dictionary:
 	return _run("buy", revision, slot)
 
-## 按 [param mode] 消耗 [param ids] 并生成一本书；所有数量在执行瞬间重新读取。
-func combine(mode: String, ids: Array[String]) -> Dictionary:
-	return _run(mode, -1, -1, ids)
+## 按 [param mode] 消耗 [param ids] 并生成一本书。[param target_plant] 为定向物种，普通转换和合成传零。
+## 所有数量在执行瞬间重新读取。
+func combine(mode: String, ids: Array[String], target_plant: int = 0) -> Dictionary:
+	return _run(mode, -1, -1, ids, target_plant)
 
-## 返回 [param mode]、[param ids] 的实时材料可用性及候选池，不修改资产。
-func quote(mode: String, ids: Array[String]) -> Dictionary:
-	var result: Dictionary = Rules.quote(mode, ids) # 配方校验和 UI 提示使用相同规则。
+## 返回 [param mode]、[param ids]、[param target_plant] 对应的实时材料可用性及候选池，不修改资产。
+func quote(mode: String, ids: Array[String], target_plant: int = 0) -> Dictionary:
+	var result: Dictionary = Rules.quote(mode, ids, target_plant) # 配方校验和 UI 提示使用相同规则。
 	if not result.ready:
 		return result
 	var counts: Dictionary = _counts(ids) # 同书投入多本必须累计，不逐次检查单本。
@@ -98,8 +99,8 @@ static func _counts(ids: Array[String]) -> Dictionary:
 		result[id] = int(result.get(id, 0)) + 1
 	return result
 
-## 统一加锁执行 [param action]；[param revision]、[param slot] 限定货位，[param ids] 为材料。
-func _run(action: String, revision: int = -1, slot: int = -1, ids: Array[String] = []) -> Dictionary:
+## 统一加锁执行 [param action]；[param revision]、[param slot] 限定货位，[param ids] 和 [param target_plant] 为转换或合成参数。
+func _run(action: String, revision: int = -1, slot: int = -1, ids: Array[String] = [], target_plant: int = 0) -> Dictionary:
 	if _committing:
 		return _error("操作处理中")
 	if _state == null or _state.library == null or _wallet == null or _inventory == null \
@@ -109,13 +110,13 @@ func _run(action: String, revision: int = -1, slot: int = -1, ids: Array[String]
 	if not AdventureQuestService.feature_unlocked(_state, "library"):
 		return _error("完成「千锤百炼」后开放图书馆")
 	_committing = true
-	var result: Dictionary = _execute(action, revision, slot, ids) # 所有提前返回在内部完成，外部始终释放锁。
+	var result: Dictionary = _execute(action, revision, slot, ids, target_plant) # 所有提前返回在内部完成，外部始终释放锁。
 	_committing = false
 	return result
 
 ## 在持锁期间校验 [param action] 与参数，构造变更后统一保存；任何失败恢复原资产。
-## [param revision]、[param slot] 为货架定位，[param ids] 为完整投入列表。
-func _execute(action: String, revision: int, slot: int, ids: Array[String]) -> Dictionary:
+## [param revision]、[param slot] 为货架定位，[param ids] 为完整投入列表，[param target_plant] 限定定向产出。
+func _execute(action: String, revision: int, slot: int, ids: Array[String], target_plant: int) -> Dictionary:
 	var today: String = _clock.call() # 与窗口显示周期比较使用同一日期口径。
 	var current: Stock = _state.library # 本次操作开始时的货架对象。
 	var next_stock: Stock = Stock.from_dict(current.to_dict()) # 工作副本，成功提交前不污染真实货架。
@@ -154,7 +155,7 @@ func _execute(action: String, revision: int, slot: int, ids: Array[String]) -> D
 			fee = Rules.PRICES[int(Rules.Books.definition(gained).tier) - 1]
 			next_stock.offers[slot].sold = true
 		"convert", "synthesize":
-			var preview: Dictionary = quote(action, ids) # 先检验配方和总库存，再随机选结果。
+			var preview: Dictionary = quote(action, ids, target_plant) # 先检验配方和总库存，再随机选结果。
 			if not preview.ready:
 				return _error(str(preview.message))
 			consume = _counts(ids)

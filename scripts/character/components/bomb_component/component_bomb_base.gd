@@ -1,6 +1,9 @@
 extends ComponentNormBase
 class_name BombComponentBase
 
+## 启用限伤的炸弹以原始爆炸伤害的 1.5 倍为单次僵王伤害上限。
+const BOSS_BLAST_CAP_MULTIPLIER: float = 1.5
+
 ## 爆炸检测区域,部分爆炸组件(火爆辣椒\寒冰菇)没有
 ## 爆炸检测区域检测敌人的受击检测框而不是受击真实框,角色移动y时,更新爆炸组件位置,更新检测框位置
 @onready var area_2d_bomb: Area2D = get_node_or_null("Area2DBomb")
@@ -9,6 +12,8 @@ class_name BombComponentBase
 @export var bomb_lane:int=-1
 ## 爆炸伤害
 @export var bomb_value:int = 1800
+## 僵王伤害是否以原始爆炸伤害为基准封顶，供樱桃炸弹和火爆辣椒启用。
+@export var limit_boss_blast_damage: bool = false
 ## Bombs normally inherit their plant owner's combat multiplier.
 ## Projectile-owned bombs receive the same factor at projectile creation.
 var projectile_damage_multiplier: float = 1.0
@@ -17,6 +22,11 @@ func resolved_damage() -> int:
 	if owner is Plant000Base:
 		return (owner as Plant000Base).battle_damage(bomb_value)
 	return maxi(0, roundi(float(bomb_value) * projectile_damage_multiplier))
+
+## 返回单次爆炸对僵王的减伤前上限，负一表示不限制；原始伤害不含星级、转职和光环增益。
+func boss_blast_damage_cap() -> int:
+	return maxi(0, floori(float(bomb_value) * BOSS_BLAST_CAP_MULTIPLIER)) if limit_boss_blast_damage else -1
+
 ## 是否为灰烬炸弹（非土豆雷）
 @export var is_cherry_bomb:= true
 ## 死亡时是否自动引爆
@@ -53,7 +63,7 @@ func bomb_once():
 ## 播放音效
 func _play_bome_sfx():
 	## 播放音效
-	SoundManager.play_character_SFX(bomb_sfx)
+	SoundManager.play_character_SFX(bomb_sfx, self, area_2d_bomb.global_position if is_instance_valid(area_2d_bomb) else global_position, 3)
 
 ## 爆炸特效
 func _start_bomb_fx():

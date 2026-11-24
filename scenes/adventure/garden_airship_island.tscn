@@ -1,0 +1,16 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/adventure/wonderland/battle/garden_airship/platform_2x2.webp" id="deck"]
+[ext_resource type="Shader" path="res://shaders/adventure/wonderland/garden_airship_turf.gdshader" id="turf"]
+
+[sub_resource type="ShaderMaterial" id="TurfDaylight"]
+resource_local_to_scene = true
+shader = ExtResource("turf")
+
+[node name="Island" type="Sprite2D"]
+z_index = -40
+material = SubResource("TurfDaylight")
+position = Vector2(-14.28, -34.62)
+scale = Vector2(0.33, 0.47)
+texture = ExtResource("deck")
+centered = false

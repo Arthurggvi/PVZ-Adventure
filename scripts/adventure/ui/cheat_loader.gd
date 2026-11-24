@@ -5,6 +5,9 @@ const RELEASE_PACK := "PVZ_Cheat.pck"
 var implementation: CanvasLayer
 
 func _ready() -> void:
+	# 修改器使用桌面快捷键，安卓导出不加载其界面或插件包。
+	if OS.has_feature("android"):
+		return
 	var allowed := OS.has_feature("debug")
 	if not allowed:
 		var path: String = OS.get_executable_path().get_base_dir().path_join(RELEASE_PACK)

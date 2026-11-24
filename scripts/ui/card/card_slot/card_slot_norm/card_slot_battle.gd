@@ -30,7 +30,6 @@ func _refresh_sun_state() -> void:
 		card.judge_sun_enough(sun_value)
 
 func _ready() -> void:
-	Global.config_service.signal_change_disappear_spare_card_placeholder.connect(judge_disappear_add_card_bar)
 	EventBus.subscribe("test_change_sun_value", func(value): sun_value = value)
 	EventBus.subscribe("add_sun_value", func(value): sun_value+=value)
 	EventBus.subscribe("update_card_purple_sun_cost", update_card_purple_sun_cost)
@@ -57,7 +56,6 @@ func main_game_refresh_card():
 		card.judge_sun_enough(sun_value)
 		if not card.signal_card_use_end.is_connected(card_use_end):
 			card.signal_card_use_end.connect(card_use_end)
-	judge_disappear_add_card_bar()
 
 ## 下一轮重选前恢复选择上下文和冷却，解除本轮的使用结算。
 func start_next_game_card_slot_battle_update():
@@ -109,15 +107,6 @@ func find_plant_card_by_uid(uid: String) -> Card:
 				and str(card.battle_card_data.get("uid", "")) == uid:
 			return card
 	return null
-
-#region 控制台相关
-## 是否显示多余卡槽
-func judge_disappear_add_card_bar():
-	var hide_spare: bool = Global.main_game.main_game_progress == MainGameManager.E_MainGameProgress.MAIN_GAME \
-		and Global.config_service.disappear_spare_card_Placeholder # 选卡时展示配置容量。
-	_set_spare_slots_hidden(hide_spare)
-
-#endregion
 
 ## 植物数量变化一帧后刷新植物紫卡价格，普通僵尸及僵王不查询植物计数。
 func update_card_purple_sun_cost():

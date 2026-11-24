@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="336" viewBox="0 0 600 168">
+  <title>向日葵娘</title>
+  <defs>
+    <linearGradient id="petals" gradientUnits="userSpaceOnUse" x1="0" y1="17" x2="18" y2="148">
+      <stop stop-color="#fffde0"/>
+      <stop offset=".48" stop-color="#ffe99e"/>
+      <stop offset=".54" stop-color="#ffd86b"/>
+      <stop offset="1" stop-color="#f4a42f"/>
+    </linearGradient>
+    <g id="glyphs" transform="translate(17 3) skewX(-6)">
+      <path d="M35 18 56 14 62 21 45 42 25 44 22 37Z M13 49 Q15 39 27 39 L115 36 Q126 36 126 47 L124 122 Q123 137 109 141 L88 144 79 132 86 121 99 122 Q105 121 105 114 L106 56 34 59 33 138 14 141 8 133Z"/>
+      <path fill-rule="evenodd" d="M45 70 93 66 98 72 96 108 90 115 45 118 39 112 40 79Z M58 84 57 101 80 99 81 82Z"/>
+      <path fill-rule="evenodd" d="M149 30 Q153 24 161 24 L243 20 Q255 22 255 32 L251 126 Q249 138 239 140 L152 143 Q140 143 141 133 L144 42Z M165 43 164 72 231 69 232 40Z M163 91 162 123 229 120 230 88Z"/>
+      <path d="M271 25 408 20 412 27 406 39 271 44 264 38Z M291 17 310 15 315 20 317 47 299 49Z M356 13 376 12 381 17 372 45 353 46Z"/>
+      <path d="M274 56 289 49 309 59 322 48 340 48 344 55 Q322 81 278 98 L265 90 271 81 294 70Z M347 58 354 48 368 50 376 58 392 46 404 55 391 69 411 80 412 90 401 97 Q366 83 347 58Z"/>
+      <path d="M304 77 375 74 380 79 374 91 301 95 295 89Z M286 99 395 94 399 99 394 113 284 118 278 110Z M331 87 350 86 349 109 Q343 132 292 148 L281 138 286 126 Q331 116 331 87Z M348 105 Q368 120 400 127 L397 139 386 145 Q354 136 335 116Z"/>
+      <path d="M438 20 457 19 458 28 447 66 438 88 470 116 468 129 455 135 418 101 416 92 431 56Z M422 54 470 51 478 57 Q471 116 430 145 L417 140 419 129 Q449 104 455 71 L425 75 416 67Z"/>
+      <path d="M507 18 523 14 537 28 534 36 518 42 503 27Z M519 104 536 93 Q553 114 579 126 L578 137 567 146 Q534 134 519 104Z M555 92 572 99 570 109 550 122 540 109Z"/>
+      <path fill-rule="evenodd" d="M490 38 563 34 573 42 570 91 562 100 505 103 503 123 524 118 530 129 524 137 485 149 477 140 481 54Z M504 52 504 60 551 58 552 50Z M504 76 503 85 550 82 551 74Z"/>
+    </g>
+  </defs>
+  <use xlink:href="#glyphs" transform="translate(1 6)" fill="#6a3217" stroke="#3b231a" stroke-width="10" stroke-linejoin="round"/>
+  <use xlink:href="#glyphs" fill="#7a3b18" stroke="#7a3b18" stroke-width="9" stroke-linejoin="round"/>
+  <use xlink:href="#glyphs" fill="#fbd36d" stroke="#fbd36d" stroke-width="3.6" stroke-linejoin="round"/>
+  <use xlink:href="#glyphs" fill="url(#petals)"/>
+</svg>

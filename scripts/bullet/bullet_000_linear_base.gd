@@ -26,7 +26,7 @@ func _physics_process(delta: float) -> void:
 
 	## 移动超过最大距离后销毁，部分子弹有限制
 	if global_position.distance_to(start_world_position) > max_distance:
-		queue_free()
+		_finish_projectile(ExitCause.RANGE)
 
 ## 改变y位置(三线调用)
 func change_y(target_y:float):
@@ -38,15 +38,21 @@ func change_y(target_y:float):
 		target_y,
 		0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
-## 子弹与敌人碰撞,直线子弹检测是否有斜面,判断是否与斜面碰撞
+## 处理 [param area] 的碰撞；从地面上方撞入斜面时播放本弹体的撞地效果。
 func _on_area_2d_attack_area_entered(area: Area2D) -> void:
-	## 线性子弹判断是否攻击到斜坡,非穿透子弹
-	if area.owner is Slope:
-		#if bullet_mode !=BulletRegistry.AttackMode.Penetration:
-		var slope:Slope = area.owner
-		## 如果方向与斜面法向量夹角小于90度
-		if direction.dot(slope.normal_vector_slope) < 0:
-			attack_once(null)
+	var slope := area.owner as Slope # 世界层碰撞区域归属于实际坡面。
+	if slope != null:
+		if is_queued_for_deletion() or direction.dot(slope.normal_vector_slope) >= 0.0:
+			return
+		if slope.solid_for_projectiles:
+			if is_activate_lane and lane >= 0 and slope.all_slope_area_real.find(area) != lane:
+				return
+			# 弹体边缘接触时，将撞击特效贴到本行坡面。
+			global_position = Geometry2D.get_closest_point_to_segment(global_position,
+				area.to_global(slope.start_pos_slope), area.to_global(slope.end_pos_slope))
+		attack_once(null)
+		if slope.solid_for_projectiles and not is_queued_for_deletion():
+			_finish_projectile(ExitCause.TERRAIN)
 		return
 	elif area.owner is Character000Base:
 		#print("碰撞到角色")
@@ -54,18 +60,26 @@ func _on_area_2d_attack_area_entered(area: Area2D) -> void:
 
 ## [param plant] 是实际命中实体；保留普通层优先级并覆盖不占位伴生植物。
 func get_first_be_hit_plant_in_cell(plant: Plant000Base) -> Plant000Base:
+	return first_plant_in_cell(plant)
+
+## 从 [param plant] 所在格解析敌方投射物能命中的保护层。[param shell_first] 保留直线和抛射各自的顺序。
+static func first_plant_in_cell(plant: Plant000Base, shell_first: bool = true) -> Plant000Base:
 	if not is_instance_valid(plant) or not is_instance_valid(plant.plant_cell):
 		return null
 	var cell: PlantCell = plant.plant_cell # 从当前命中格子解析保护层。
-	for slot: CharacterRegistry.PlacePlantInCell in [CharacterRegistry.PlacePlantInCell.Shell,
-			CharacterRegistry.PlacePlantInCell.Norm]: # 原有两种弹道保留各自的优先顺序。
+	var shell := CharacterRegistry.PlacePlantInCell.Shell # 直线投射先遇到壳层。
+	var normal := CharacterRegistry.PlacePlantInCell.Norm # 抛射优先直击本体。
+	for slot: CharacterRegistry.PlacePlantInCell in ([shell, normal] if shell_first else [normal, shell]): # 保持原先覆盖顺序。
 		var candidate: Variant = cell.plant_in_cell.get(slot) # 前一回调可能已经移除了该层。
-		if is_instance_valid(candidate) and not candidate.is_death and not candidate.is_queued_for_deletion():
+		if is_instance_valid(candidate) and not candidate.is_death and not candidate.is_queued_for_deletion() \
+				and not candidate.battle_hidden_from_zombies:
 			return candidate as Plant000Base
-	var companion: Plant000Base = cell.first_companion_plant() # 伴生可被子弹直接命中。
+	var companion: Plant000Base = cell.first_companion_plant(
+		func(entry: Plant000Base) -> bool: return not entry.battle_hidden_from_zombies) # 可索敌伴生仍可被直击。
 	if companion != null:
 		return companion
 	var support: Variant = cell.plant_in_cell.get(CharacterRegistry.PlacePlantInCell.Down) # 最后才命中承托物。
-	if is_instance_valid(support) and not support.is_death and not support.is_queued_for_deletion():
+	if is_instance_valid(support) and not support.is_death and not support.is_queued_for_deletion() \
+			and not support.battle_hidden_from_zombies:
 		return support as Plant000Base
 	return null

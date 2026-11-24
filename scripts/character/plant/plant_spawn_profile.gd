@@ -57,6 +57,11 @@ func selection_slot_cost() -> int:
 func placement_condition(base_condition: ResourcePlantCondition) -> ResourcePlantCondition:
 	return _modifier.placement_condition(_snapshot.duplicate(true), base_condition) if is_valid_profile() else base_condition
 
+## 预检或提交 [param cell] 的叠种；沿用 [param condition] 的地形资格。
+## [param commit] 仅由确认使用时传 true。失败返回空，卡槽不扣费。
+func reinforce_placement(cell: PlantCell, condition: ResourcePlantCondition, commit: bool) -> Plant000Base:
+	return _modifier.reinforce_placement(_snapshot.duplicate(true), cell, condition, commit) if is_valid_profile() else null
+
 ## 将玩家已成功种植的 [param cell] 交给所属模式；仅手持卡确认入口调用一次。
 ## 技能生成、转化、预种植和读档不会调用此通知，也不会再次扣费。
 func player_placement_committed(cell: PlantCell) -> void:

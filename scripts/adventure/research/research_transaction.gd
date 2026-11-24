@@ -27,6 +27,7 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 	var promotion_tier := 0
 	var promotion_id := ""
 	var succeeded := false
+	var protected_failure := false # 本次强化失败且使用花盆时，耗材卡保持原 UID 及卡组位置。
 	match operation.kind:
 		AdventureResearchOperation.Kind.CRAFT:
 			var recipe: Dictionary = Recipes.definition(operation.recipe_id)
@@ -44,7 +45,7 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 				return _error("转职数据无效。")
 			promotion_tier = Promotions.next_tier(target)
 			if promotion_tier == 0 or promotion_tier != int(book.tier) \
-					or target.plant_type != int(book.plant_type) \
+					or target.plant_type != int(book.plant_type) or not Promotions.is_compatible(target, book) \
 					or target.stars < Promotions.REQUIREMENTS[promotion_tier - 1]:
 				return _error("当前卡片不满足该技能书条件。")
 			fee = Promotions.COST
@@ -57,12 +58,12 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 			if target == null or chance == null or typeof(chance) not in [TYPE_INT, TYPE_FLOAT] \
 					or not is_finite(chance) or chance < 0.0 or chance > 1.0:
 				return _error("强化概率规则未就绪。")
-			if not Enhancement.validate(state, operation.card_uid, operation.material_uids,
-					operation.use_pot, operation.fertilizer_id, operation.growth_agent_id).is_empty():
-				return _error("强化材料状态已变化。")
+			var material_issue: String = Enhancement.validate(state, operation.card_uid, operation.material_uids,
+				operation.use_pot, operation.fertilizer_id, operation.growth_agent_id) # 提交时按实时库存复核并保留拒绝原因。
+			if not material_issue.is_empty():
+				return _error(material_issue)
 			fee = Enhancement.COST
 			updated_uid = target.uid
-			remove_uids = operation.material_uids.duplicate()
 			if operation.use_pot:
 				consume["seedling_pot"] = Enhancement.protection_count(target.stars + 1)
 			if not operation.fertilizer_id.is_empty():
@@ -70,6 +71,9 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 			if not operation.growth_agent_id.is_empty():
 				consume[operation.growth_agent_id] = 1
 			succeeded = randf() < float(chance)
+			protected_failure = operation.use_pot and not succeeded
+			if not protected_failure:
+				remove_uids = operation.material_uids.duplicate()
 			resulting_stars = Enhancement.result_star(target.stars, succeeded, operation.use_pot)
 		_:
 			return _error("未知研究操作。")
@@ -92,6 +96,7 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 	var before_steps: Dictionary = state.tutorial_steps.duplicate() # 坚果教学完成标记随失败事务回滚。
 	var before_discoveries: Dictionary = state.almanac_discoveries.duplicate() # 合成保存失败时，未真正获得的物种不能留在图鉴。
 	var before_target: Dictionary = state.cards[updated_uid].to_dict() if state.cards.has(updated_uid) else {}
+	var before_history_size: int = state.enhancement_history.size() # 回滚只移除本次追加的记录。
 	var completed := true
 	for id: String in consume:
 		if not inventory.consume_item(id, int(consume[id])):
@@ -116,19 +121,28 @@ static func commit(state: AdventureState, inventory: AdventureInventoryService,
 			AdventureQuestService.record_event(state, "card_crafted", operation.recipe_id, AdventureQuestService.today())
 			if operation.recipe_id == "recipe_wall_nut":
 				state.tutorial_steps["research_wall_nut"] = true
-		elif operation.kind == AdventureResearchOperation.Kind.ENHANCE and succeeded:
-			# 只上报成功升星，失败掉到同一星级或花盆保星都不会完成任务。
-			AdventureQuestService.record_event(state, "card_enhanced", str(resulting_stars), AdventureQuestService.today())
+		elif operation.kind == AdventureResearchOperation.Kind.ENHANCE:
+			var outcome := AdventureState.EnhancementOutcome.FAILURE # 普通失败、花盆保星和成功都属于已结算的强化。
+			if succeeded:
+				outcome = AdventureState.EnhancementOutcome.SUCCESS
+			elif protected_failure:
+				outcome = AdventureState.EnhancementOutcome.PROTECTED
+			state.record_enhancement(int(before_target.plant_type), int(before_target.stars), resulting_stars, outcome)
+			if succeeded:
+				# 任务仍然只上报成功升星。
+				AdventureQuestService.record_event(state, "card_enhanced", str(resulting_stars), AdventureQuestService.today())
 		completed = persist.call() == true
 	if not completed:
 		state.quests = AdventureQuestState.from_dict(before_quests)
 		state.tutorial_steps.assign(before_steps)
 		state.almanac_discoveries.assign(before_discoveries)
+		if state.enhancement_history.size() > before_history_size:
+			state.enhancement_history.resize(before_history_size)
 		_restore(state, wallet, before_cards, before_items, before_order,
 			before_deck, before_next, before_coin, updated_uid, before_target)
 		return _error("操作或存档失败，所有资产已恢复。")
 	return {"ok": true, "message": "操作成功。", "uid": result_uid,
-		"success": succeeded, "stars": resulting_stars}
+		"success": succeeded, "stars": resulting_stars, "protected_failure": protected_failure}
 
 static func _restore(state: AdventureState, wallet: GlobalGameState,
 		cards: Dictionary, items: Dictionary, order: Array[String],

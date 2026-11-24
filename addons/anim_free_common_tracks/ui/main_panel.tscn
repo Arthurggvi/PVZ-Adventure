@@ -96,7 +96,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 6.0
-tooltip_text = "res://scenes/character/zombie/zombie_014_bobsled.tscn"
+tooltip_text = "res://scenes/character/zombie/014_zombie_bobsled_single.tscn"
 clip_text = true
 
 [node name="anim_select_button2" type="Button" parent="HBoxContainer/PluginIntroductionPanel2/ScrollContainer/VBoxContainer/PanelContainer2/VBoxContainer/anim_path_box"]

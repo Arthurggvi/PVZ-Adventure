@@ -1,0 +1,117 @@
+{
+  "snow_mountains": {
+    "name": "边境雪山",
+    "boss": true,
+    "description": "风雪掠过边境的山脊，冰冷的瀑布从悬崖间落下。",
+    "stage_number": 103,
+    "icon_crop_world": [
+      170,
+      15,
+      190
+    ]
+  },
+  "frozen_tundra": {
+    "name": "冻土",
+    "boss": false,
+    "description": "冻结的土地上散落着墓碑，寒风卷着细雪贴地而过。",
+    "icon_crop_world": [
+      925,
+      18,
+      180
+    ]
+  },
+  "edgar_mountain": {
+    "name": "埃德加之山",
+    "boss": true,
+    "description": "与埃德加的决战之地。山巅矗立着他研发的初代传送机。",
+    "icon_crop_world": [
+      1435,
+      0,
+      120
+    ]
+  },
+  "mushroom_forest": {
+    "name": "蘑菇森林",
+    "boss": false,
+    "description": "几十层楼高的巨大蘑菇遮天蔽日，孢子在林间缓缓漂浮。",
+    "icon_crop_world": [
+      0,
+      180,
+      250
+    ]
+  },
+  "resting_plain": {
+    "name": "安息平原",
+    "boss": false,
+    "description": "黄昏笼罩的平原。草叶随风轻摆，眼前只有宁静而美丽的暮色。",
+    "stage_number": 104,
+    "icon_crop_world": [
+      720,
+      450,
+      160
+    ]
+  },
+  "garden_airship": {
+    "name": "花园飞艇",
+    "boss": true,
+    "description": "长满杂草与鲜花的气象飞艇。白爵士的哥哥住在这里，他很喜欢养花。",
+    "stage_number": 105,
+    "icon_crop_world": [
+      1045,
+      202,
+      220
+    ]
+  },
+  "psychedelic_current": {
+    "name": "致幻洋流",
+    "boss": true,
+    "description": "这里的水会让光漂移。变幻的洋流深处，传说栖息着一位海妖。",
+    "stage_number": 101,
+    "icon_crop_world": [
+      135,
+      590,
+      240
+    ]
+  },
+  "abandoned_school": {
+    "name": "废弃学校",
+    "boss": false,
+    "description": "校园已经废弃，操场上只剩杂草与被风吹动的枯叶。",
+    "icon_crop_world": [
+      620,
+      500,
+      220
+    ]
+  },
+  "zombie_church": {
+    "name": "圣堂",
+    "boss": true,
+    "description": "这里有时会突然陷入无边黑暗。寂静之中，你感觉有什么东西正在注视你。",
+    "stage_number": 102,
+    "icon_crop_world": [
+      1510,
+      210,
+      180
+    ]
+  },
+  "badlands": {
+    "name": "恶地",
+    "boss": false,
+    "description": "一片荒凉的乱葬岗。尘土掠过散落的墓碑与枯木。",
+    "icon_crop_world": [
+      1090,
+      655,
+      200
+    ]
+  },
+  "john_furnace": {
+    "name": "约翰兄弟熔炉",
+    "boss": true,
+    "description": "把僵尸丢进去当燃料的工厂。熔炉中心是一枚吞噬光线的黑洞。",
+    "icon_crop_world": [
+      1505,
+      485,
+      180
+    ]
+  }
+}

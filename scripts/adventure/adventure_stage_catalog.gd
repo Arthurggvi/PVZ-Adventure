@@ -33,7 +33,7 @@ static func find_phase(stage: StageDefinition, kind: int) -> StagePhaseDefinitio
 static func is_cleared(state: AdventureState, stage_id: StringName, kind: int) -> bool:
 	if state == null:
 		return false
-	var region: Dictionary = state.regions.get(REGION_ID, {})
+	var region: Dictionary = state.regions.get(AdventureStageRegistry.region_for(stage_id), {}) # 按关卡身份隔离地区进度。
 	if stage_id == LAWN_ID and kind == StagePhaseDefinition.Kind.NORMAL:
 		if region.get("stage_1_cleared", false) == true:
 			return true
@@ -41,13 +41,14 @@ static func is_cleared(state: AdventureState, stage_id: StringName, kind: int) -
 	return cleared.get(_clear_id(stage_id, kind), false) == true
 
 static func mark_cleared(state: AdventureState, stage_id: StringName, kind: int) -> void:
-	var region: Dictionary = state.regions.get(REGION_ID, {}).duplicate(true)
+	var region_id: String = AdventureStageRegistry.region_for(stage_id) # 通关事实所属地区。
+	var region: Dictionary = state.regions.get(region_id, {}).duplicate(true)
 	var cleared: Dictionary = region.get("cleared_phases", {}).duplicate(true)
 	cleared[_clear_id(stage_id, kind)] = true
 	region["cleared_phases"] = cleared
 	if stage_id == LAWN_ID and kind == StagePhaseDefinition.Kind.NORMAL:
 		region["stage_1_cleared"] = true
-	state.regions[REGION_ID] = region
+	state.regions[region_id] = region
 
 ## 将 [param kind] 投影为通关记录和任务事件使用的稳定阶段后缀。
 static func phase_slug(kind: int) -> String:
@@ -66,7 +67,7 @@ static func _clear_id(stage_id: StringName, kind: int) -> String:
 static func is_unlocked(stage_number: int, state: AdventureState) -> bool:
 	if AdventureStageRegistry.stage_id(stage_number) == &"":
 		return false
-	if stage_number == 1:
+	if stage_number in [1, AdventureStageRegistry.PSYCHEDELIC_CURRENT]:
 		return true
 	return is_cleared(state, AdventureStageRegistry.previous_stage_id(stage_number),
 		StagePhaseDefinition.Kind.NORMAL)

@@ -1,112 +1,152 @@
+## 巨人只管理投掷触发、动画和生成；落点与弹道交给投掷规划器。
 extends Zombie000Base
 class_name Zombie024Gargantuar
 
-## 小鬼的头,用于投掷小鬼时定位
-@onready var zombie_imp_head: Sprite2D = $Body/BodyCorrect/Imp1/Zombie_imp_head
+## 用来锁定投掷全程移动及攻击的动画名。
+const THROW_ANIMATION := &"Zombie_gargantuar_throw"
+## 允许出手的首个零基逻辑列，对应从左数第 4 列。
+const FIRST_IMP_THROW_COLUMN: int = 3
 
-@export_group("投掷小鬼相关")
-## body中的小鬼节点和灰烬中的小鬼节点,小鬼抛出时隐藏
-@export var body_imp:Array[Node2D]
-@export_subgroup("数值")
-## 丢小鬼的巨人位置的最小x值,位置小于该值时,不在丢小鬼
-@export var MinXThrowGargantuar:float = 400
-"""
-巨人投掷200像素
-限制在投掷范围内
-然后上下波动50
-"""
-## 小鬼投掷的范围
-@export var RangeXImpThrow:Vector2 = Vector2(200, 360)
-## 巨人投掷的距离
-@export var XThrow:float = 350
-## 投掷波动范围
-@export var RangeRandomXThrow:Vector2 = Vector2(-50, 50)
-## 小鬼投掷的全局位置
-var glo_pos_imp_be_thrown :Vector2
-## Tier upgrades preserve native imp creation and modifier inheritance.
+## 背负小鬼的身体和灰烬部件，在成功出手时一并隐藏。
+@export var body_imp: Array[Node2D]
+## 半血投掷一次生成的小鬼数，由等阶技能覆盖。
 var throw_imp_count := 1
-var fallback_throw_column := -1
+## 五阶巨人受致死爆炸时仍播放倒地演出。
 var preserve_death_animation_after_blast := false
-
-@export_group("动画状态")
-## 是否扔小鬼
-@export var is_throw := false
-## 是否扔过小鬼,辅助判断避免重复丢小鬼
+## 背负的小鬼是否已经出手，与升阶下砸生成的小鬼独立。
 var is_throw_once := false
 
 
-## 初始化正常出战角色信号连接
-func ready_norm_signal_connect():
+## 在正常出战时接入投掷动画的起止事件。
+func ready_norm_signal_connect() -> void:
 	super()
-	## 血量状态变化组件
-	hp_component.signal_hp_loss.connect(jugde_throw_imp_form_hp_change)
+	$AnimationTree.animation_started.connect(_on_throw_animation_started)
+	anim_component.signal_animation_finished.connect(_on_throw_animation_finished)
 
 
-## 血量变化判断是否丢小鬼
-func jugde_throw_imp_form_hp_change(curr_hp:int, _is_drop:=true):
-	if not is_throw_once and global_position.x>MinXThrowGargantuar and curr_hp <= hp_component.max_hp * 0.5:
-		is_throw_once = true
-		is_throw = true
+## 动画状态机查询敌方巨人的半血投掷资格。查询不消耗随机数或投掷次数。
+func can_start_imp_throw() -> bool:
+	if is_hypno or is_throw_once or not is_instance_valid(hp_component):
+		return false
+	@warning_ignore("integer_division")
+	var half_health: int = hp_component.max_hp / 2 # 保留整数半血门槛，精确半血时不触发。
+	var game: MainGameManager = Global.main_game # 本巨人所在的正式战场。
+	return hp_component.curr_hp < half_health and _can_release_imps(game) \
+		and ImpThrowPlanner.can_throw(game, self)
 
-## 扔出小鬼,动画调用
-func throw_out_imp():
-	for n in body_imp:
-		n.visible = false
-	is_throw = false
 
-	if not is_death:
-		for i in range(throw_imp_count):
-			create_imp()
+## [param anim_name] 为开始的动画。投掷全程保持原地并暂停下砸。
+func _on_throw_animation_started(anim_name: StringName) -> void:
+	if anim_name == THROW_ANIMATION and not is_death:
+		move_component.update_move_factor(true, MoveComponent.E_MoveFactor.IsCharacter)
+		attack_component.update_is_attack_factors(false, AttackComponentBase.E_IsAttackFactors.Character)
 
-## 创建投掷小鬼并继承刷新统计来源，避免博士放置的巨人间接影响自然波次。
-func create_imp():
-	# 小鬼的出生参数；刷新归属独立于自然波次编号。
-	var zombie_init_para:Dictionary = {
-		Zombie000Base.E_ZInitAttr.CharacterInitType:Character000Base.E_CharacterInitType.IsNorm,
-		Zombie000Base.E_ZInitAttr.Lane:lane,
-		Zombie000Base.E_ZInitAttr.IsMiniZombie: is_mini_zombie,
-		Zombie000Base.E_ZInitAttr.IsPotZombie: is_pot_zombie,
-		Zombie000Base.E_ZInitAttr.ParticipatesNaturalRefresh: participates_natural_refresh,
+
+## [param anim_name] 为播完的动画。投掷收招后恢复寻敌和行走。
+func _on_throw_animation_finished(anim_name: StringName) -> void:
+	if anim_name == THROW_ANIMATION and not is_death:
+		attack_component.update_is_attack_factors(true, AttackComponentBase.E_IsAttackFactors.Character)
+		move_component.update_move_factor(false, MoveComponent.E_MoveFactor.IsCharacter)
+
+
+## 在半血投掷的动画释放帧复查敌方阵营；整组计划确定后才生成，失败时保留背负小鬼。
+func throw_out_imp() -> void:
+	if is_hypno or is_throw_once:
+		return
+	var plans: Array[ImpThrowPlan] = _plan_imp_volley(throw_imp_count, false) # 同组共享中心和飞行时长。
+	if plans.is_empty():
+		return
+	is_throw_once = true # 在生成信号回调前占用一次性投掷，防止同步重入。
+	if _spawn_imp_volley(plans) == 0:
+		is_throw_once = false
+		return
+	for part: Node2D in body_imp: # 身体和灰烬中的背负小鬼同时移除。
+		part.hide()
+	SoundManager.play_other_SFX(&"swing")
+
+
+## 在保护区外下砸时按当前朝向投掷 [param count] 只同阵营小鬼；短抛落在本行安全地块。
+func throw_smash_imps(count: int) -> void:
+	_spawn_imp_volley(_plan_imp_volley(count, true))
+
+
+## 为 [param count] 只小鬼规划一组轨迹；[param allow_short_throw] 区分下砸与半血投掷意图。
+func _plan_imp_volley(count: int, allow_short_throw: bool) -> Array[ImpThrowPlan]:
+	var game: MainGameManager = Global.main_game # 释放时使用当前战场及其棋盘。
+	if count <= 0 or not _can_release_imps(game):
+		return []
+	return ImpThrowPlanner.plan_volley(game, self, count, allow_short_throw, randf())
+
+
+## 半血和下砸共用 [param game] 的战斗、行动和列边界门槛，动画释放帧重新检查。
+func _can_release_imps(game: MainGameManager) -> bool:
+	return not is_idle and not is_death and not is_queued_for_deletion() \
+		and is_instance_valid(game) and game.is_ancestor_of(self) \
+		and is_instance_valid(game.zombie_manager) and game.zombie_manager.is_game_running() \
+		and not is_action_suspended() and not move_component.is_forced_moving() \
+		and speed_factor_product() > 0.0 and _is_past_imp_throw_protection(game.board)
+
+
+## 以 [param board] 中所在行第 4 列的实时左边界判断巨人脚点是否到达可出手范围。
+## 第 4 列缺格时使用下一有效列，整行都没有可出手地块时返回 false。
+func _is_past_imp_throw_protection(board: BoardRuntime) -> bool:
+	if not is_instance_valid(board) or not board.configured:
+		return false
+	for cell: PlantCell in board.row_cells(lane): # 按逻辑列查找首个有效的可出手地块。
+		if not is_instance_valid(cell) or cell.row_col.y < FIRST_IMP_THROW_COLUMN \
+				or cell.is_queued_for_deletion() or not cell.is_visible_in_tree():
+			continue
+		return global_position.x >= cell.get_global_rect().position.x
+	return false
+
+
+## 通过生成管理器创建 [param plans] 中的实体，返回成功数；同组小鬼继承释放时的阵营和生成来源。
+func _spawn_imp_volley(plans: Array[ImpThrowPlan]) -> int:
+	if plans.is_empty():
+		return 0
+	var game: MainGameManager = Global.main_game # 计划与生成在同一个同步释放回调中执行。
+	var manager: ZombieManager = game.zombie_manager # 所有小鬼继续经过唯一的生成登记入口。
+	var row: ZombieRow = manager.all_zombie_rows[lane] # 攻击行不因落点格子而改变。
+	var chill: Timer = all_timer[E_TimerType.IceDecelerate] # 继承普通寒冷减速的剩余时间。
+	var chill_seconds: float = chill.time_left if is_instance_valid(chill) else 0.0 # 未减速时为零。
+	var parameters: Dictionary = { # 模式、阵营、波次和刷新来源与父巨人保持一致。
+		E_ZInitAttr.CharacterInitType: E_CharacterInitType.IsNorm,
+		E_ZInitAttr.Lane: lane,
+		E_ZInitAttr.CurrWave: curr_wave,
+		E_ZInitAttr.IsMiniZombie: is_mini_zombie,
+		E_ZInitAttr.IsPotZombie: is_pot_zombie,
+		E_ZInitAttr.ParticipatesNaturalRefresh: participates_natural_refresh,
+		E_ZInitAttr.StartsHypnotized: is_hypno,
 	}
-	Global.main_game.zombie_manager.create_norm_zombie(
-		CharacterRegistry.ZombieType.Z025Imp,
-		Global.main_game.zombie_manager.all_zombie_rows[lane],
-		zombie_init_para,
-		_get_imp_throw_glo_pos(),
-		update_imp_throw_pos,
-		inherited_child_modifier()
-	)
+	var created: int = 0 # 部分创建失败也不重复派生已经登记的小鬼。
+	for plan: ImpThrowPlan in plans: # 同步生成回调可能结束战斗，每只创建前再次确认存活状态。
+		if is_death or is_queued_for_deletion() or not manager.is_game_running():
+			break
+		if not plan.is_valid():
+			continue
+		var imp: Zombie000Base = manager.create_norm_zombie(CharacterRegistry.ZombieType.Z025Imp,
+			row, parameters, plan.spawn_position, _initialize_thrown_imp.bind(plan, chill_seconds),
+			inherited_child_modifier()) # 沿用子代修饰器、计数和死亡清理。
+		if is_instance_valid(imp):
+			created += 1
+	return created
 
-## 获取投掷小鬼的目标位置
-func _get_imp_throw_glo_pos()->Vector2:
-	if fallback_throw_column >= 0 and global_position.x <= MinXThrowGargantuar:
-		var target_cell: PlantCell = Global.main_game.board.cell_at(Vector2i(lane, fallback_throw_column)) # 真实逻辑地址。
-		if target_cell != null:
-			glo_pos_imp_be_thrown = target_cell.get_spawn_global_position()
-			return glo_pos_imp_be_thrown
-	var target_x_imp_throw = clamp(global_position.x - XThrow, RangeXImpThrow.x, RangeXImpThrow.y)
-	var target_x_imp_throw_res = target_x_imp_throw + randf_range(RangeRandomXThrow.x, RangeRandomXThrow.y)
-	#prints("全局位置:", global_position.x, "投掷位置:", target_x_imp_throw, "随机位置:", target_x_imp_throw_res)
-	glo_pos_imp_be_thrown = Vector2(target_x_imp_throw_res, Global.main_game.zombie_manager.all_zombie_rows[lane].zombie_create_position.global_position.y)
-	return glo_pos_imp_be_thrown
-	#Vector2(target_x_imp_throw_res - Global.main_game.zombie_manager.all_zombie_rows[lane].global_position.x, \
-	#Global.main_game.zombie_manager.all_zombie_rows[lane].zombie_create_position.position.y)
 
-## 更新投掷小鬼的位置
-func update_imp_throw_pos(zombie_imp:Zombie025Imp):
-	zombie_imp.is_thrown = true
-	zombie_imp.target_pos_anim_head_to_body = zombie_imp_head.global_position - glo_pos_imp_be_thrown
-	print("位置:", zombie_imp.target_pos_anim_head_to_body)
+## 在 [param imp] 入树前保存 [param plan] 和 [param chill_seconds] 秒减速，不访问未就绪的组件。
+func _initialize_thrown_imp(imp: Zombie025Imp, plan: ImpThrowPlan, chill_seconds: float) -> void:
+	imp.initialize_throw(plan, chill_seconds)
 
 
 ## 五阶巨人的致死爆炸保留倒地动画，受击和击杀归因仍走统一入口。
 func _preserves_blast_death_animation() -> bool:
 	return preserve_death_animation_after_blast
 
-## 压扁地刺时被地刺反击无效果
-func be_caltrop():
+
+## 压扁地刺时免疫其反击。
+func be_caltrop() -> void:
 	pass
 
-## 死亡时播放音效,动画调用
-func play_gargantuar_death_sfx():
+
+## 由死亡动画调用，播放巨人倒地音效。
+func play_gargantuar_death_sfx() -> void:
 	SoundManager.play_character_SFX(&"gargantudeath")

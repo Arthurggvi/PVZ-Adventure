@@ -6,6 +6,7 @@ const ROOT := "res://assets/adventure/destination_picker/v1_2/"
 ## 已实现地区的动作契约，选择器与导航层共用此许可。
 const ROUTES := {
 	"zombie_island": "reuse_existing_zombie_island_entry",
+	"wonderland": "open_wonderland_map",
 	"town": "return_to_main_menu",
 }
 ## 最近一次布局错误，交给界面显示。
@@ -51,11 +52,14 @@ func load_layout() -> Dictionary:
 		positions[slot.get("slot")] = slot.rect
 	var used: Array[Rect2] = [] # 防止完整卡片交叠或超出纸张。
 	var ids: Dictionary = {} # 稳定地区 ID 不允许重复。
+	var available: Array = [] # 仅准备本发行版中用于展示的地区和美术。
 	for destination: Variant in data.destinations: # 动态生成同一个 Card 场景的数据。
 		if not destination is Dictionary or not destination.get("id") is String \
 			or not destination.get("name") is String or not destination.get("enabled") is bool \
 			or ids.has(destination.id) or not positions.has(destination.get("slot")):
 			return _invalid("v1.2 地区 ID、名称或位置无效。")
+		if destination.id == "wonderland" and not AdventureStageRegistry.is_wonderland_available():
+			continue
 		destination["rect"] = positions[destination.slot]
 		var bounds := rect(destination.rect) # 完整相框同时也是交互矩形。
 		if not paper.encloses(bounds) or bounds.size != Vector2(data.card.rect_size[0], data.card.rect_size[1]):
@@ -65,6 +69,7 @@ func load_layout() -> Dictionary:
 				return _invalid("v1.2 卡片位置重叠。")
 		used.append(bounds)
 		ids[destination.id] = true
+		available.append(destination)
 		assets.append_array([destination.get("preview"), destination.get("frame")])
 		if destination.has("states_prefix"):
 			for state: String in ["normal", "hover", "pressed"]: # normal 即便透明也必须存在。
@@ -80,10 +85,13 @@ func load_layout() -> Dictionary:
 		var path: String = ROOT + asset # 与展示校验共用权威清单，只移交去重后的路径。
 		if not resource_paths.has(path):
 			resource_paths.append(path)
+	data.destinations = available
 	return data
 
 ## [param destination] 必须同时在配置中开放、已实现且动作契约匹配。
 static func can_enter(destination: Dictionary) -> bool:
+	if destination.get("id") == "wonderland" and not AdventureStageRegistry.is_wonderland_available():
+		return false
 	return destination.get("enabled", false) == true and ROUTES.has(destination.get("id")) \
 		and ROUTES[destination.id] == destination.get("selection_action")
 

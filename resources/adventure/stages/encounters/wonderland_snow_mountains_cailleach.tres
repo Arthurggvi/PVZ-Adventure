@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BossEncounterDefinition" format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/stages/boss_encounter_definition.gd" id="encounter"]
+
+[resource]
+script = ExtResource("encounter")
+encounter_id = &"wonderland.snow_mountains.nightmare.cailleach"
+boss_type = 6
+timing = 4
+wave = 50
+max_health_multiplier = 2.5
+require_defeat = true
+natural_waves = 1
+summon_rule = 1
+wait_for_death_presentation = true

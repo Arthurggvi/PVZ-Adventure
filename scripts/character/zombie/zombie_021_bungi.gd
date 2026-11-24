@@ -44,7 +44,7 @@ var _is_raising: bool = false
 ## 当前下降 Tween，返回或死亡时取消，避免和上升 Tween 同时写身体位置。
 var _drop_tween: Tween
 ## 落地后等待抓取的计时器，行动受控期间暂停。
-var _grab_timer: Timer
+var _grab_timer: SpeedTimer
 
 
 ## 在新实例入树前统一注入出战参数；只保存引用与标记，不访问 onready 节点或重置运行状态。[br]
@@ -73,28 +73,32 @@ func ready_norm() -> void:
 	else:
 		bungee_target.position.y -= 600
 		# 普通蹦极的靶子动画和两秒预警同时开始，保持原有入场节奏。
-		var target_tween: Tween = create_tween()
+		var target_tween: Tween = create_action_tween(self) # 靶子与前置预警沿用同一倍率。
 		target_tween.tween_property(bungee_target, "position:y", bungee_target.position.y + 600, 0.5)
-		await get_tree().create_timer(2.0, false).timeout
+		target_tween.tween_interval(1.5)
+		await target_tween.finished
 	if not _can_continue_descent():
 		return
-	_drop_tween = create_tween()
+	_drop_tween = create_action_tween(self)
 	_drop_tween.set_parallel()
 	_drop_tween.tween_callback(_mark_drop_end).set_delay(1.8)
 	_drop_tween.tween_callback(_enable_descent_hurt_box).set_delay(1.3)
 	_drop_tween.tween_property(body_correct, "position:y", body_correct.position.y + 600, 2.0).set_trans(Tween.TRANS_BACK)
+	_update_steal_pause(speed_factor_product())
 	await _drop_tween.finished
+	_drop_tween = null # 完成信号与 Tween 失效可能不在同一刻，变速回调不能再暂停或重播它。
 	if not _can_continue_descent():
 		return
 	signal_bungee_landed.emit()
 	if not _can_continue_descent():
 		return
 	if linger_seconds > 0.0:
-		_grab_timer = Timer.new()
+		_grab_timer = SpeedTimer.new()
 		_grab_timer.one_shot = true
-		_grab_timer.paused = is_action_suspended()
+		_grab_timer.manual_paused = is_action_suspended()
 		add_child(_grab_timer)
-		_grab_timer.start(linger_seconds)
+		_grab_timer.set_speed_scale(action_rate())
+		_grab_timer.start_scaled(linger_seconds)
 		await _grab_timer.timeout
 		_grab_timer.queue_free()
 		_grab_timer = null
@@ -118,17 +122,17 @@ func ready_norm_signal_connect() -> void:
 	signal_update_speed.connect(_update_steal_pause)
 
 
-## [param _speed_product] 为通用速度倍率。下降和抓取等待读取行动是否暂停。
+## [param _speed_product] 为通用速度倍率。下降和抓取等待另外尊重行动封锁。
 func _update_steal_pause(_speed_product: float) -> void:
-	# 下降和抓取等待独立于一般加减速。
-	var action_paused: bool = is_action_suspended()
+	var action_paused: bool = is_action_suspended() # 保持原来的封锁语义，变速不解除硬控。
 	if is_instance_valid(_drop_tween) and _drop_tween.is_valid():
 		if action_paused:
 			_drop_tween.pause()
 		elif not _drop_tween.is_running():
 			_drop_tween.play()
 	if is_instance_valid(_grab_timer):
-		_grab_timer.paused = action_paused
+		_grab_timer.manual_paused = action_paused
+		_grab_timer.set_speed_scale(action_rate())
 
 
 ## 在首次显示前配置裁切；只让绳段继承材质，不修改角色身体与被偷植物的材质。
@@ -198,13 +202,13 @@ func raise_start() -> void:
 	if is_death or is_queued_for_deletion():
 		return
 	# 上升与影子消失并行；返回完成才按原流程移除并扣减场上僵尸数量。
-	var raise_tween: Tween = create_tween()
+	var raise_tween: Tween = create_action_tween(self) # 偷到植物后按当前倍率上升。
 	raise_tween.set_parallel()
 	raise_tween.tween_property(body_correct, "position:y", body_correct.position.y - 600, 1.0)
 	raise_tween.tween_property(shadow, "scale", Vector2.ZERO, 0.5)
 	await raise_tween.finished
 	if not is_death and not is_queued_for_deletion():
-		character_death_disappear()
+		retire_from_battle()
 
 
 ## [param target_cell] 当前目标格子；目标消失则空手返回，每次最多偷一层植物。
@@ -234,6 +238,7 @@ func _finish_steal() -> void:
 func _stop_drop_tween() -> void:
 	if is_instance_valid(_drop_tween) and _drop_tween.is_valid():
 		_drop_tween.kill()
+	_drop_tween = null
 
 
 ## 抓取动画切换身体后，让绳子跟随新的身体精灵。

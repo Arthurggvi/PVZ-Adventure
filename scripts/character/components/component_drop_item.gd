@@ -19,6 +19,9 @@ class_name DropItemComponent
 func drop_coin():
 	if not is_enabling:
 		return
+	var battle: MainGameManager = Global.main_game # 预览中的击杀不产生可写入玩家档案的掉落。
+	if is_instance_valid(battle) and not battle.preview_return_scene.is_empty():
+		return
 	if global_position.x > can_drop_x_range.y or global_position.x < can_drop_x_range.x:
 		return
 
@@ -26,12 +29,14 @@ func drop_coin():
 		clamp(global_position.x, 0, get_viewport().get_visible_rect().size.x),
 		clamp(global_position.y - correct_y, 0, get_viewport().get_visible_rect().size.y)
 	)
-	## 材料与金币各自独立判定，互不影响。
+	var coin_chance: float = drop_coin_rate # 原版战斗使用组件配置的概率。
+	# 材料与金币各自独立判定，互不影响。
 	if AdventureSession.owns_battle(Global.game_para):
 		EventBus.push_event("create_material_drop", [drop_position])
+		var effects: PlayerEffects = AdventureSession.player_effects_for(Global.game_para) # 使用出战时的装备快照。
+		coin_chance = minf(1.0, coin_chance * effects.coin_drop_chance_multiplier)
 
-	var r = randf()
-	if r < drop_coin_rate:
+	if randf() < coin_chance or coin_chance >= 1.0:
 
 		EventBus.push_event("create_coin", [
 			drop_coin_silver_glod_diamond_rate,\

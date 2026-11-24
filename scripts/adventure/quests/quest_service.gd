@@ -25,9 +25,16 @@ static func quests_unlocked(state: AdventureState) -> bool:
 ## 查询 [param state] 是否存在当前周期可领取奖励；调用方先同步日常周期。
 static func has_claimable(state: AdventureState) -> bool:
 	for task: Dictionary in AdventureQuestCatalog.TASKS: # 不把已经移除的任务当作提示来源。
-		if state.quests.records.get(task.id, {}).get("status", "") == "complete":
+		var record: Dictionary = state.quests.records.get(task.id, {}) # 旧档的已领取记录也可能有追加奖励。
+		var status: String = record.get("status", "") # 未完成的任务不会提示领奖。
+		if status == "complete" or (status == "claimed" and _additional_equipment_pending(task, record)):
 			return true
 	return false
+
+## 查询 [param task] 的追加装备是否缺少领取记录；[param record] 缺少标记的旧档视为未领。
+static func _additional_equipment_pending(task: Dictionary, record: Dictionary) -> bool:
+	return not task.get("additional_equipment_rewards", []).is_empty() \
+		and not record.get("additional_equipment_claimed", false)
 
 ## 判断 [param task] 的生效条件；默认全部满足，any 为至少一个真实配置条件满足。
 static func eligible(state: AdventureState, task: Dictionary) -> bool:
@@ -120,16 +127,31 @@ static func record_event(state: AdventureState, event: String, target: String, d
 	var before: Dictionary = state.quests.to_dict() # 上报事实前的任务域。
 	synchronize(state, day)
 	for task: Dictionary in AdventureQuestCatalog.TASKS: # 此轮只处理已生效任务，后置刷新统一解锁后继。
-		var record: Dictionary = state.quests.records.get(task.id, {}) # 未生效任务没有记录。
-		if record.get("status", "") != "active" or task.event != event or (not str(task.target).is_empty() and task.target != target):
+		if task.event != event or (not str(task.target).is_empty() and task.target != target):
 			continue
 		if task.has("required_plant_type") and not played_plants.has(int(task.required_plant_type)):
 			continue
-		record.progress = mini(int(task.count), int(record.progress) + 1)
-		if record.progress >= int(task.count):
-			record.status = "complete"
+		_advance_record(state.quests.records.get(task.id, {}), int(task.count))
 	synchronize(state, day)
 	return before != state.quests.to_dict()
+
+## 将真实战斗击杀计入 [param state] 的「前线扫荡」，有进度或周期变化时返回 true。
+## [param day] 为本机当前自然日；仅跨日或缺失任务时同步全表，同日连杀直接更新计数。
+static func record_zombie_defeat(state: AdventureState, day: String) -> bool:
+	var task: Dictionary = AdventureQuestCatalog.FRONTLINE_SWEEP # 每次击杀直接使用目录中的同一任务规则。
+	var needs_sync: bool = day > state.quests.day or not state.quests.records.has(task.id) # 兼顾跨日和旧档首次创建。
+	var synchronized: bool = needs_sync and synchronize(state, day) # 先刷新当天记录，再将本次击杀计入当天。
+	return _advance_record(state.quests.records.get(task.id, {}), int(task.count)) or synchronized
+
+## 为已生效的 [param record] 累计一次，达到 [param goal] 时标记完成并停止增加。
+## 返回本次是否变更进度；空记录或已完成的任务不会重复发出完成状态。
+static func _advance_record(record: Dictionary, goal: int) -> bool:
+	if record.get("status", "") != "active":
+		return false
+	record.progress = mini(goal, int(record.progress) + 1)
+	if record.progress >= goal:
+		record.status = "complete"
+	return true
 
 ## 返回 [param feature] 是否已由 [param state] 的任务、剧情或修改器开放。
 static func feature_unlocked(state: AdventureState, feature: String) -> bool:
@@ -166,7 +188,12 @@ static func rows(state: AdventureState) -> Array[Dictionary]:
 		row["exp"] = int(record.get("awarded_experience", task.exp)) if record.status == "claimed" \
 			else PlayerEffects.scale_amount(int(task.exp), effects.experience_multiplier)
 		if record.status == "claimed":
-			row.group = "已完成"
+			if _additional_equipment_pending(task, record):
+				row["status"] = "complete"
+				row["additional_equipment_only"] = true
+				row.erase("equipment_reward")
+			else:
+				row.group = "已完成"
 		result.append(row)
 	return result
 
@@ -201,57 +228,73 @@ static func _commit_claim(state: AdventureState, inventory: AdventureInventorySe
 		claim_period = current_day if task.daily else ""
 		if task.daily and record.get("period", "") != claim_period:
 			record = {}
-		if record.get("status", "") == "claimed":
-			return "本期任务奖励已领取。"
-	elif record.get("status", "") != "complete" or record.get("period", "") != claim_period:
+	var status: String = record.get("status", "") # 读取当前周期的领奖状态。
+	var additional_pending: bool = _additional_equipment_pending(task, record) # 同一批追加装备只提交一次。
+	var additional_only: bool = status == "claimed" and additional_pending # 已领原奖励的旧档只补发新装备。
+	if force and status == "claimed" and not additional_pending:
+		return "本期任务奖励已领取。"
+	if not force and ((status != "complete" and not additional_only) or record.get("period", "") != claim_period):
 		return "任务尚未完成、已领取，或日常任务已经刷新。"
-	var effects: PlayerEffects = PlayerEffects.resolve(state.equipment) # 任务经验读取领取时装备，物品与金币不享受战场加成。
-	var experience: int = PlayerEffects.scale_amount(int(task.exp), effects.experience_multiplier) # 单次确定本次奖励经验。
-	if experience < 0 or state.experience > PlantCardInstance.MAX_JSON_INTEGER - experience:
-		return "经验已达到存储上限。"
+	var experience: int = 0 # 补领只发装备，保留原来的经验记录。
+	if not additional_only:
+		var effects: PlayerEffects = PlayerEffects.resolve(state.equipment) # 任务经验按领取时已装配的装备计算。
+		experience = PlayerEffects.scale_amount(int(task.exp), effects.experience_multiplier)
+		if experience < 0 or state.experience > PlantCardInstance.MAX_JSON_INTEGER - experience:
+			return "经验已达到存储上限。"
 	var before_items: Dictionary = state.items.duplicate(true) # 资产回滚快照。
 	var before_quests: Dictionary = state.quests.to_dict() # 领取标记回滚快照。
 	var before_exp: int = state.experience # 玩家经验与任务奖励同步提交。
 	var before_level: int = state.player_level # 升级和新任务解锁必须随领奖一同回滚。
 	var before_coin: int = wallet.coin_value # 金币回滚值。
 	var before_equipment_id: int = state.equipment.next_id # 保存失败时复原尚未成功发放的装备序号。
-	var rewards: Dictionary = {} # 将配置奖励转换为库存服务接受的数量映射。
-	for item: Dictionary in task.items: # 同种道具合并数量。
-		rewards[item.id] = int(rewards.get(item.id, 0)) + int(item.count)
-	if not AdventureRewardService.apply(rewards, task.coins, state, inventory, wallet):
-		state.items.assign(before_items)
-		wallet.coin_value = before_coin
-		return "奖励入账失败，请检查库存容量。"
-	if not PlayerProgression.grant(state, experience):
-		state.items.assign(before_items)
-		wallet.coin_value = before_coin
-		return "经验入账失败，奖励已撤销。"
-	var equipment_id: String = task.get("equipment_reward", "") # 装备奖励入角色背包。
-	var equipment_uid := "" # 只记录本次实际发放的实例，已有同款时直接保留。
-	var equipment := PlayerEquipmentService.new(state.equipment) # 和任务记录共用这次存档事务。
-	if not equipment_id.is_empty() and not state.equipment.owned.values().has(equipment_id):
-		equipment_uid = equipment.grant(StringName(equipment_id))
-		if equipment_uid.is_empty():
+	var equipment_ids: Array[String] = [] # 按目录顺序发放本次可领取的角色装备。
+	if not additional_only:
+		var rewards: Dictionary = {} # 将配置奖励转换为库存服务接受的数量映射。
+		for item: Dictionary in task.items: # 同种道具合并数量。
+			rewards[item.id] = int(rewards.get(item.id, 0)) + int(item.count)
+		if not AdventureRewardService.apply(rewards, task.coins, state, inventory, wallet):
 			state.items.assign(before_items)
-			state.experience = before_exp
-			state.player_level = before_level
 			wallet.coin_value = before_coin
-			return "装备发放失败，请重试。"
-	if force:
-		record["period"] = claim_period
-		record["progress"] = task.count
-		state.quests.records[id] = record
-	record["status"] = "claimed"
-	record["awarded_experience"] = experience
-	synchronize(state, day)
-	if persist.call() != true:
-		if not equipment_uid.is_empty():
-			equipment.remove(equipment_uid)
-			state.equipment.next_id = before_equipment_id
-		state.items.assign(before_items)
-		state.quests = AdventureQuestState.from_dict(before_quests)
-		state.experience = before_exp
-		state.player_level = before_level
+			return "奖励入账失败，请检查库存容量。"
+		if not PlayerProgression.grant(state, experience):
+			state.items.assign(before_items)
+			wallet.coin_value = before_coin
+			return "经验入账失败，奖励已撤销。"
+		var original_equipment: String = task.get("equipment_reward", "") # 原有时装和徽章奖励按持有情况去重。
+		if not original_equipment.is_empty() and not state.equipment.owned.values().has(original_equipment):
+			equipment_ids.append(original_equipment)
+	if additional_pending:
+		equipment_ids.append_array(task.additional_equipment_rewards)
+	var equipment := PlayerEquipmentService.new(state.equipment) # 和任务记录共用这次存档事务。
+	var granted_uids: Array[String] = [] # 回滚仅移除本轮新增的实例及其期限。
+	var issue := "" # 装备发放或保存失败时保留对应的提示。
+	for equipment_id: String in equipment_ids: # 限时装备每件独立发放，由装备定义确定期限。
+		var equipment_uid: String = equipment.grant(StringName(equipment_id)) # 新实例的唯一标识。
+		if equipment_uid.is_empty():
+			issue = "装备发放失败，请重试。"
+			break
+		granted_uids.append(equipment_uid)
+	if issue.is_empty():
+		if not additional_only:
+			if force:
+				record["period"] = claim_period
+				record["progress"] = task.count
+				state.quests.records[id] = record
+			record["status"] = "claimed"
+			record["awarded_experience"] = experience
+		if additional_pending:
+			record["additional_equipment_claimed"] = true
+		synchronize(state, day)
+		if persist.call() == true:
+			return ""
+		issue = "保存失败，奖励已回滚，请重试。"
+	for uid: String in granted_uids: # 撤销已发放的全部奖励装备，保留玩家原有装备。
+		equipment.remove(uid)
+	state.equipment.next_id = before_equipment_id
+	state.items.assign(before_items)
+	state.quests = AdventureQuestState.from_dict(before_quests)
+	state.experience = before_exp
+	state.player_level = before_level
+	if wallet.coin_value != before_coin:
 		wallet.coin_value = before_coin
-		return "保存失败，奖励已回滚，请重试。"
-	return ""
+	return issue

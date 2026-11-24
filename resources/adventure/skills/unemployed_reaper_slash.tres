@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CharacterSkillDefinition" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/adventure/skills/character_skill_definition.gd" id="1_definition"]
+[ext_resource type="Script" path="res://scripts/adventure/skills/unemployed_reaper_slash_effect.gd" id="2_effect"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/portraits/unemployed_reaper_moi.png" id="3_portrait"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/skill_titles/unemployed_reaper_slash.svg" id="4_title"]
+[ext_resource type="Texture2D" path="res://assets/adventure/ui/player/outfit_icons/unemployed_reaper_moi.png" id="5_icon"]
+
+[sub_resource type="Resource" id="SlashEffect"]
+script = ExtResource("2_effect")
+
+[resource]
+script = ExtResource("1_definition")
+id = &"unemployed_reaper_slash"
+display_name = "冥镰裂地"
+description = "以棋盘倒数第三列为中心挥出斜斩，对刀光扫过的敌人造成 3000 点伤害。对存活且可受负面状态的目标施加 3 秒灼烧，每 0.5 秒造成 20 点伤害。开战时进入冷却。"
+icon = ExtResource("5_icon")
+cut_in_portrait = ExtResource("3_portrait")
+cut_in_title = ExtResource("4_title")
+cut_in_accent = Color(0.73, 0.38, 1, 1)
+cut_in_blade_exit = true
+cooldown_seconds = 90.0
+starts_on_cooldown = true
+effect = SubResource("SlashEffect")

@@ -1,0 +1,33 @@
+运输舰与舰载战斗机音效来源
+取得及核对日期 2026-11-24。游戏用文件为 44.1 kHz 单声道 Ogg Vorbis。
+所有上游素材均采用 CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/
+
+rotor.ogg
+- WuxiaScrub 的 Helicopter SFX，真实直升机飞越录音。
+  作品 https://opengameart.org/content/helicopter-sfx
+  下载 https://opengameart.org/sites/default/files/heli.ogg
+- 截取较近的旋翼声，滤波、调整增益并交叠循环边缘。游戏按入场进度调节音量与音高。
+
+settle.ogg、hatch_open.ogg、hatch_close.ogg
+- Brian MacIntosh（BMacZero）的 Mechanical Sounds。
+  作品 https://opengameart.org/content/mechanical-sounds
+  制动 https://opengameart.org/sites/default/files/clank1.wav
+  开舱 https://opengameart.org/sites/default/files/mechanical2.wav
+       https://opengameart.org/sites/default/files/lightclunk2.wav
+  关舱 https://opengameart.org/sites/default/files/mechanical1.wav
+       https://opengameart.org/sites/default/files/lightclunk1.wav
+- 剪辑、降调制动声、滤波并调整增益。舱门将机械运动与锁舌分层，令声响对齐开门和收门动作。
+
+fighter_launch.ogg
+- Mish7913 的 Propeller (Cartoon) Loop。
+  作品 https://opengameart.org/content/propeller-cartoon-loop
+  下载 https://opengameart.org/sites/default/files/propeller_cartoon_loop.flac
+- 截取、升速、滤波、加淡入淡出，并混入生成的风切声。
+
+fracture.ogg
+- Spring Spring 的 Mechanical Explosion。
+  作品 https://opengameart.org/content/mechanical-explosion
+  下载 https://opengameart.org/sites/default/files/mechanical_explosion.wav
+- 混入 Brian MacIntosh 的 Mechanical Sounds 中的金属颤动。
+  下载 https://opengameart.org/sites/default/files/rattle1.wav
+- 剪辑交叠、削减原始爆声低频并调整增益，突出舰壳碎裂和碎片翻落的高频余音。

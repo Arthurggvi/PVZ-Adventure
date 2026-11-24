@@ -1,0 +1,73 @@
+大型融合僵尸声音来源与接入记录
+
+本组素材由本工程已有音源裁剪、调音、混合而成；未下载外部素材。
+来源均为 D:\Dev\PvZ\PVZ-Adventure 内已有文件，保持源项目的资产归属。
+处理工具：本环境已安装的 FFmpeg / NumPy，不新增游戏运行依赖。
+输出统一为单声道 44.1 kHz Ogg Vorbis，品质参数 4。
+
+交付文件与原始来源
+
+roll_loop.ogg 约 1.270 秒，循环
+  assets/audio/SFX/zombie/gravestone_rumble.ogg
+  assets/audio/SFX/plant/bowling.ogg
+  assets/audio/SFX/zombie/dirt_rise.ogg
+  去除过量次低频，保留中低频摩擦与颗粒层，头尾 180 ms 交叠。
+  动作组件用实际移动速度驱动音量；空中、耗尽、死亡和清场时停止。
+
+impact.ogg 约 0.550 秒
+  assets/audio/SFX/zombie/gargantuar_thump.ogg
+  assets/audio/SFX/zombie/limbs_pop.ogg
+  低频短碰撞叠较高音区的同源敲击，保留手机可听到的触碰瞬态。
+
+launch.ogg 约 0.300 秒
+  assets/audio/SFX/item/swing.ogg
+  assets/audio/SFX/zombie/limbs_pop.ogg
+  起抛短气流，轻度降调，不在空中持续重复。
+
+land.ogg 约 0.820 秒
+  assets/audio/SFX/zombie/gargantuar_thump.ogg
+  assets/audio/SFX/zombie/dirt_rise.ogg
+  低沉落地叠中频落点和泥土尾声，与直接碰撞区分。
+
+split.ogg 约 0.580 秒
+  assets/audio/SFX/zombie/limbs_pop.ogg
+  assets/audio/SFX/zombie/dirt_rise.ogg
+  两个轻微错开的弹开瞬态与松散摩擦；一次出生批次只请求一次。
+
+exhaust.ogg 约 0.560 秒
+  assets/audio/SFX/zombie/dirt_rise.ogg
+  assets/audio/SFX/item/swing.ogg
+  assets/audio/SFX/zombie/gravestone_rumble.ogg
+  短促收气和沉降摩擦，避免第三次落地后重复强烈撞击。
+
+death.ogg 约 1.480 秒
+  assets/audio/SFX/zombie/gargantudeath.ogg
+  assets/audio/SFX/zombie/gargantuar_thump.ogg
+  assets/audio/SFX/zombie/limbs_pop.ogg
+  assets/audio/SFX/zombie/dirt_rise.ogg
+  降调低吼与松脱、塌落层；未使用爆炸音源。
+  通过 SoundManager 共享池播放，母体立即释放不截断尾音。
+
+组件接入
+
+脚本：res://scripts/character/zombie/large_fusion_audio.gd
+类名：LargeFusionAudio，基类 Node2D。
+configure(source: Zombie000Base) 在战斗角色初始化完成后调用。
+update_roll(speed_ratio: float, airborne: bool, exhausted: bool) 接收实际移动比例。
+play_event(event: StringName) 支持 impact、launch、land、split、death、exhaust。
+stop_all() 停止该角色的循环和私有短音，不停止已经交给共享池的死亡声。
+
+死亡声须在母体死亡广播可能触发胜利/场景切换前请求；可在 is_death 设定后请求。
+组件拒绝非活动战场、清场、旧轮次、旧阶段和展示实例的发声。
+三个私有短音播放器按需创建，树暂停时遵从父级处理模式。
+所有声音沿用 SoundManager.spatial_sfx_bus()，不改用户音量或全局总线。
+同类声音有 70–180 ms 的共享门禁，避免密集碰撞、成批召唤和同时死亡叠加轰炸。
+死亡事件在每个母体只处理一次，其余事件在母体死亡后不再播放。
+
+媒体核对
+
+已用 FFmpeg 重新解码检查时长、峰值、频带和循环交界。
+解码峰值全部低于 -4.6 dBFS，未达到削波阈值。
+150–1500 Hz 能量占比：roll 87.8%、impact 64.9%、land 56.8%、
+launch 99.1%、split 97.0%、exhaust 64.9%、death 91.7%。
+本环境不能向模型提供音频输入，因此这些是媒体数据核对结果，不能代替实机主观试听。

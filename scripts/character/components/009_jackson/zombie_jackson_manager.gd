@@ -82,16 +82,18 @@ func change_speed_factor_product(dancer_id:=-1, speed_factor_product:float=1):
 	zombie_dancers_speed_factor_product[dancer_id] = speed_factor_product
 	update_all_zombie_speed_factor_product()
 
-## 更新所有播放速度为最小的播放速度
-func update_all_zombie_speed_factor_product():
-	var curr_min_speed_factor_product = zombie_dancers_speed_factor_product.values().min()
-	animation_curr_speed = animation_origin_speed * curr_min_speed_factor_product
-	animation_player.speed_scale = animation_origin_speed * curr_min_speed_factor_product
-
-	for i in zombie_dancers:
-		## 伴舞继承舞王僵尸， 有可能伴舞还未召唤，此时将伴舞置为false
-		if zombie_dancers[i] is Zombie009Jackson:
-			zombie_dancers[i].manager_update_anim_speed(curr_min_speed_factor_product)
+## 保持舞团原有的步伐协调，同时将独立行动倍率分别交给成员和演出节拍器。
+func update_all_zombie_speed_factor_product() -> void:
+	if zombie_dancers_speed_factor_product.is_empty():
+		return
+	var shared_speed: float = zombie_dancers_speed_factor_product.values().min() # 原有舞团速度，供后续加入的伴舞使用。
+	var slowest_action_rate := 1.0 # 公共舞步在最慢的存活成员完成前不切换。
+	for dancer: Variant in zombie_dancers.values(): # 未召唤或已离队的位置为空。
+		if is_instance_valid(dancer) and dancer is Zombie009Jackson:
+			slowest_action_rate = minf(slowest_action_rate, dancer.action_rate())
+			dancer.manager_update_anim_speed(shared_speed)
+	animation_curr_speed = animation_origin_speed * shared_speed
+	animation_player.speed_scale = animation_curr_speed * slowest_action_rate
 
 ## 动画结束回调函数
 func _on_animation_player_animation_finished(anim_name:StringName):

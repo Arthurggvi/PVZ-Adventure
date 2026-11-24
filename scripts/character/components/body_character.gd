@@ -11,9 +11,16 @@ const BODY_MASK = preload("res://shader_material/body_mask.tres")
 const WHITE_FLAME_MANTLE: SpriteFrames = preload("res://assets/adventure/zombies/white_duke/fx/white_flame_mantle.tres")
 var hit_tween: Tween = null  # 发光动画
 var light_and_dark_tween: Tween = null  # 明暗交替动画
+## 最近一次启动受击闪光的渲染帧。同帧叠爆只需一个从满亮度开始的补间。
+var _last_hit_flash_frame := -1
 
-# modulate 状态颜色变量
+## 关闭时只合成短暂受击亮光。角色的独立演出仍使用自己的颜色。
+@export var show_status_tints := true
+
+## 角色自己的基础色，作为所有颜色通道的乘合起点。
 var base_color := Color(1, 1, 1)
+## 本场环境乘色，只有 RGB 参与合成，白色表示环境通道关闭。
+var _environment_color: Color = Color.WHITE
 
 ## 抛飞在身体父节点局部坐标系中的偏移。普通姿态通过 [member pose_position] 与其合成。
 var _forced_pose_offset: Vector2 = Vector2.ZERO
@@ -55,6 +62,9 @@ enum E_ChangeColors{
 	SunInfusion, ## 光能的独立黄色状态标记，不覆盖其他颜色来源。
 	DeepCold, ## 深寒的抗火蓝色滤镜，普通解冻不会擦除。
 	Resentment, ## 缠怨的独立黑白明度脉冲，不覆盖受击、寒冷或水面材质。
+	CrushContact, ## 碾压重叠的淡色和透明度，与受击及寒冷一起合成。
+	StarFruitLurk, ## 杨桃蛰伏时的半透明色，与战斗状态独立。
+	CornPoison, ## 玉米中毒使用独立紫色通道。
 }
 
 ## 二阶段循环补间，与普通明暗交替互不占用。
@@ -140,22 +150,49 @@ func set_damage_immunity_tint(enabled: bool) -> void:
 ## [param change_name] 要设置的颜色因素，用于与其他状态颜色分别保存并合成。
 ## [param value] 该颜色因素的乘数，白色表示不改变最终颜色。
 func set_other_color(change_name:E_ChangeColors, value: Color) -> void:
+	if not show_status_tints and change_name != E_ChangeColors.HitColor:
+		return
 	change_color[change_name] = value
 	_update_modulate()
 
 
-## 更新最终 modulate 的合成颜色
-func _update_modulate():
+## 接收 [param factor] 的环境 RGB 乘数，白色还原。保留演出正在使用的透明度。
+func set_environment_color(factor: Color) -> void:
+	var rgb := Color(factor.r, factor.g, factor.b) # 环境通道独立于透明度与战斗状态。
+	if not show_status_tints:
+		rgb = Color.WHITE
+	if _environment_color == rgb:
+		return
+	_environment_color = rgb
+	_update_modulate(true)
+
+
+## 合成身体的颜色辅助通道；[param preserve_alpha] 在纯环境更新时保留外部演出透明度。
+func _update_modulate(preserve_alpha: bool = false) -> void:
 	# 本次合成的最终身体颜色，从基础颜色开始累乘各状态颜色。
-	var final_color = base_color
+	var final_color: Color = base_color
 	# 当前状态因素提供的颜色乘数，参与最终 modulate 合成。
-	for change_color_value in change_color.values():
+	for change_color_value: Color in change_color.values():
 		final_color *= change_color_value
+	if _environment_color != Color.WHITE and show_status_tints:
+		var hit: Color = change_color.get(E_ChangeColors.HitColor, Color.WHITE) # 受击闪白峰值使用原有色温。
+		var priority: float = clampf(hit.r - 1.0, 0.0, 1.0) # 闪光回落时逐步恢复环境光。
+		if change_color.has(E_ChangeColors.WhiteFlameRevival) \
+				or change_color.has(E_ChangeColors.BossPhaseTwo):
+			priority = 1.0
+		final_color *= _environment_color.lerp(Color.WHITE, priority)
+	if preserve_alpha:
+		final_color.a = modulate.a
 	modulate = final_color
 
 
 ## 发光动画函数
 func body_light():
+	var frame: int = Engine.get_process_frames() # 一帧可结算多个爆炸，补间尚未走过时显示结果相同。
+	if _last_hit_flash_frame == frame and is_instance_valid(hit_tween) and hit_tween.is_running() \
+			and change_color.get(E_ChangeColors.HitColor) == Color(2, 2, 2):
+		return
+	_last_hit_flash_frame = frame
 	## 先直接变亮
 	set_other_color(E_ChangeColors.HitColor, Color(2, 2, 2))
 
@@ -220,7 +257,7 @@ func zombie_body_up_from_ground(up_time:float = 1.0):
 
 	pose_position.y += 100
 	# 本次身体上浮的补间，将下移后的身体恢复到原高度，结束后关闭遮罩。
-	var tween :Tween = create_tween()
+	var tween: Tween = (owner as Character000Base).create_action_tween(self)
 	tween.tween_property(self, ^"pose_position:y", pose_position.y - 100.0, up_time)
 	await tween.finished
 	body_mask_end()

@@ -98,7 +98,7 @@ func _active() -> bool:
 		and is_instance_valid(_plant) and _plant.is_ancestor_of(self) \
 		and MushroomPlantQuery.is_active(_plant, _game)
 
-## 先合成再输出；自有费用已在出生卡费中处理，仅共享费用进入临时卡费链接。
+## 先合成再输出；自有卡牌数值由冻结配方处理，仅共享数值登记为临时来源。
 func _refresh() -> void:
 	if _output == null:
 		return
@@ -106,7 +106,7 @@ func _refresh() -> void:
 		_clear_output()
 		return
 	var rules: Dictionary = AdventureScaredyTraitRules.merge(_native_rules, _sources) # 相同词条去重，不同词条组合。
-	_output.apply(rules, rules.has("scaredy_cost") and not _native_rules.has("scaredy_cost"))
+	_output.apply(rules, _native_rules)
 
 ## 本株死亡或无效化时立即撤销输出，规则登记保留到节点正常销毁或恢复。
 func _clear_output() -> void:

@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://assets/image/ui/boss/boss_health_bar_frame_phase2.webp" id="e2"]
 [ext_resource type="Texture2D" path="res://assets/image/ui/boss/boss_portrait_frame.webp" id="p1"]
 [ext_resource type="Texture2D" path="res://assets/image/ui/boss/boss_portrait_frame_phase2.webp" id="p2"]
+[ext_resource type="FontFile" path="res://assets/fonts/方正少儿_GBK.ttf" id="name_font"]
 
 [node name="BossHpProgressBar" type="Control"]
 layout_mode = 3
@@ -133,3 +134,18 @@ texture = ExtResource("p2")
 expand_mode = 1
 stretch_mode = 0
 modulate = Color(1, 1, 1, 0)
+
+[node name="BossName" type="Label" parent="."]
+visible = false
+offset_left = 131.0
+offset_top = 22.0
+offset_right = 501.0
+offset_bottom = 55.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0.15, 0.09, 0.07, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("name_font")
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+vertical_alignment = 1

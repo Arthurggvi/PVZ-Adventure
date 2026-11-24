@@ -51,6 +51,10 @@ func _process(_delta: float) -> void:
 func set_progress(amount: float) -> void:
 	_presentation.set_progress(amount)
 
+## [param activity] 为本批次正在读取的单个资源；超过三秒才显示原进度条旁的一行文字。
+func set_resource_activity(activity: Dictionary) -> void:
+	_presentation.set_resource_activity(activity)
+
 ## [param message] 为失败原因，关闭后恢复原入口。
 func show_error(message: String) -> void:
 	_failed = true

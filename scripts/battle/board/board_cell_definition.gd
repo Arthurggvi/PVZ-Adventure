@@ -18,6 +18,8 @@ class_name BoardCellDefinition
 @export var hit_polygon := PackedVector2Array()
 ## 检测器相对表现的地面高度修正，单位像素；不从种植点 Y 坐标推导。
 @export var ground_height: float = 0.0
+## 显式脚点的格子局部 Y 像素，同时对齐普通植物与该格的敌人出生脚点。-1 沿用原锚点。
+@export var ground_anchor_y: float = -1.0
 ## 非规则邻接；开启后空列表表示孤立点。
 @export var explicit_neighbors: bool = false
 ## 一步邻接的稳定 ID；只定义同平台逻辑关系。

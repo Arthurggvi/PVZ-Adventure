@@ -17,7 +17,7 @@ static func draw_thumbnail(parent: Control, kind: String, type_id: int, bounds: 
 ## [param thumbnail] 为 true 时使用目录道具比例。返回是否具有可见精灵；缺少卡牌模板时从注册场景提取静态精灵。
 static func _draw_static(parent: Control, kind: String, type_id: int, tier: int, bounds: Rect2, thumbnail: bool = false) -> bool:
 	var card_reference: ResourceCardReference = Data.card_reference(kind, type_id) # 共享静态预览入口能够自动接收未来植物转职美术。
-	var has_template: bool = AllCards.get_template(card_reference) != null # 目录道具的握点使用卡牌模板的坐标。
+	var has_template: bool = not AllCards.get_template_path(card_reference).is_empty() # 仅判断身份，不重复装配卡面。
 	var preview: Node2D # 独立副本，切换阶级后随父容器销毁。
 	if has_template:
 		preview = AllCards.create_static_preview(card_reference, tier - 1 if kind == "plant" else 0)
@@ -79,8 +79,11 @@ static func draw_idle(parent: Control, kind: String, type_id: int, tier: int, bo
 				ElectricPeaArt.PLANT_TYPE:
 					ElectricPeaArt.apply_to_body(body, tier - 1)
 	elif character is Zombie000Base:
-		var id: StringName = Data.tier_id(tier) # 只应用美术和对应色调。
+		var id: StringName = Data.tier_id(tier) # 供预览读取阶级美术和色调。
 		character.zombie_type = type_id as CharacterRegistry.ZombieType
+		if type_id == CharacterRegistry.ZombieType.Z008Football:
+			# 入树时由橄榄球僵尸按阶级显示背旗，复用实战的旗帜贴图和挂点。
+			character.adventure_tier_id = id
 		if not AdventureZombieTierArt.apply(character, id):
 			character.modulate = AdventureZombieTierCatalog.get_tier(id).get("tint", Color.WHITE)
 	parent.add_child(character)
@@ -89,16 +92,21 @@ static func draw_idle(parent: Control, kind: String, type_id: int, tier: int, bo
 		character.anim_component.animation_tree.advance(0.0)
 	elif character.anim_component is AnimComponentPlayer:
 		character.anim_component.animation_player.advance(0.0)
-	if not _fit_visual(character, bounds):
+	var skip_branch := Callable() # 默认使用全部可见部件计算构图。
+	if character is Zombie021Bungi:
+		var cords: Node2D = character.bungee_cords # 绳索跟随待机动画，由详情画框裁剪上方的部分。
+		skip_branch = func(node: Node) -> bool: return node == cords
+	if not _fit_visual(character, bounds, skip_branch):
 		parent.remove_child(character)
 		character.queue_free()
 		return _draw_static(parent, kind, type_id, tier, bounds)
 	return true
 
-## 将 [param preview] 的可见部件等比居中到 [param bounds]；空图像返回 false。
-static func _fit_visual(preview: Node2D, bounds: Rect2) -> bool:
+## 将 [param preview] 的可见部件等比居中到 [param bounds]；无可用边界时返回 false。
+## [param skip_branch] 可从构图边界排除道具子树，其可见性仍由展示和动画决定。
+static func _fit_visual(preview: Node2D, bounds: Rect2, skip_branch: Callable = Callable()) -> bool:
 	var rectangles: Array[Rect2] = [] # 实际可见精灵的外接矩形，适配巨人、车辆等不同大小。
-	_collect_bounds(preview, Transform2D.IDENTITY, rectangles)
+	_collect_bounds(preview, Transform2D.IDENTITY, rectangles, skip_branch)
 	if rectangles.is_empty():
 		return false
 	var extent: Rect2 = rectangles[0] # 所有静态部件在预览根坐标中的并集。

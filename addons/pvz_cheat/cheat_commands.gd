@@ -21,6 +21,14 @@ func grant_equipment(id: String) -> Dictionary:
 	var issue: String = PlayerTransaction.commit(Global.global_game_state.adventure_state, PlayerTransaction.Action.GRANT, id) # 复用产品边界。
 	return result(issue.is_empty(), "装备已进入角色背包。" if issue.is_empty() else issue)
 
+## 单独授予 [param id] 的发行编号 [param edition_uid]，成功后立即保存到当前档案。
+func grant_numbered_equipment(id: StringName, edition_uid: int) -> Dictionary:
+	if not available():
+		return result(false, "请先选择有效的玩家存档。")
+	var issue: String = PlayerTransaction.commit(Global.global_game_state.adventure_state,
+		PlayerTransaction.Action.GRANT_NUMBERED, str(id), edition_uid) # 正式事务负责校验编号、保存和回滚。
+	return result(issue.is_empty(), "编号装备 UID #%d 已进入角色背包。" % edition_uid if issue.is_empty() else issue)
+
 ## 设置 [param level] 及对应累计经验，通过现有门面同步任务条件。
 func set_player_level(level: int) -> Dictionary:
 	if not available() or AdventureSession.owns_battle(Global.game_para):

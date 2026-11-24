@@ -8,6 +8,10 @@ class_name ZamboniDeathBomb
 var is_activate:=false
 var _flying_sprites = []
 
+## 车身存活期间无需为尚未启用的碎片运行每帧处理。
+func _ready() -> void:
+	set_process(false)
+
 func _process(delta):
 	if is_activate:
 		for sprite_data in _flying_sprites:
@@ -21,12 +25,22 @@ func _process(delta):
 			# 添加阻力
 			sprite_data.velocity = vel.move_toward(Vector2.ZERO, delta * 200)
 
-func activate_it():
+## 造冰车与投篮车复用战场爆炸额度，超额时由伤害入口继续完成死亡。
+func activate_it() -> void:
+	if is_activate:
+		return
+	var game := get_tree().current_scene as MainGameManager # 预览没有战场额度。
+	var kind := StringName(scene_file_path) # 同一碎片场景在附近同帧只播放一次。
+	var origin: Vector2 = global_position # 迁移到行节点前的爆心世界坐标。
+	if is_instance_valid(game) and not game.blast_fx_budget.can_start(kind, origin):
+		return
 	is_activate = true
 	visible = true
 	explode()
-	#GlobalUtils.child_node_change_parent(self, owner.get_parent())
 	reparent(owner.get_parent())
+	if is_instance_valid(game):
+		game.blast_fx_budget.track(self, kind, origin)
+	set_process(true)
 	gpu_particles_2d.emitting = true
 	gpu_particles_2d_2.emitting = true
 	await gpu_particles_2d.finished

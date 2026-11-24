@@ -10,6 +10,8 @@ var plant: Plant000Base
 var condition: ResourcePlantCondition
 ## 请求的注册物种，不受模仿者表现类型影响。
 var species: CharacterRegistry.PlantType
+## 本次准备的实际种植槽；预检通过后冻结，提交前再确认。
+var slot: CharacterRegistry.PlacePlantInCell
 ## 共享占用的全部地块。
 var footprint: Array[PlantCell] = []
 ## 升级前置的显式消耗声明；读档不消费前置。
@@ -53,6 +55,9 @@ static func prepare(target: PlantCell, species: CharacterRegistry.PlantType,
 		plan.condition = profile.placement_condition(plan.condition)
 	if plan.condition == null:
 		return null
+	plan.slot = plan.condition.place_plant_in_cell
+	if placement_origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.Spawned]:
+		plan.slot = plan.condition.placement_slot(target)
 	plan.footprint = plan.condition.placement_cells(target)
 	if plan.footprint.is_empty() or not plan._valid_geometry():
 		return null
@@ -74,7 +79,7 @@ static func prepare(target: PlantCell, species: CharacterRegistry.PlantType,
 		if not plan.plant is Plant999Imitater:
 			return null
 		(plan.plant as Plant999Imitater).imitater_plant_type = species
-	if plan.condition.place_plant_in_cell == CharacterRegistry.PlacePlantInCell.Down \
+	if plan.slot == CharacterRegistry.PlacePlantInCell.Down \
 			and not is_imitater and not plan.plant is Plant000DownBase:
 		return null
 	plan.plant.init_plant({Plant000Base.E_PInitAttr.CharacterInitType: Character000Base.E_CharacterInitType.IsNorm,
@@ -118,6 +123,9 @@ func can_commit() -> bool:
 	if committed or not is_instance_valid(plant) or plant.get_parent() != null \
 			or not _valid_geometry() or condition.placement_cells(cell) != footprint:
 		return false
+	if origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.Spawned] \
+			and condition.placement_slot(cell) != slot:
+		return false
 	if origin in [PlantCell.PlacementOrigin.Player, PlantCell.PlacementOrigin.Spawned, PlantCell.PlacementOrigin.Companion] \
 			and not condition.judge_is_can_plant(cell, species, origin == PlantCell.PlacementOrigin.Companion):
 		return false
@@ -136,7 +144,7 @@ func can_commit() -> bool:
 func _placement_is_available() -> bool:
 	if origin == PlantCell.PlacementOrigin.Companion:
 		return footprint.size() == 1 and cell.can_host_companion(int(species))
-	return cell._placement_is_available(condition, footprint, claims)
+	return cell._placement_is_available(slot, footprint, claims)
 
 ## 检查地块身份、去重与平台边界，不依赖临时矩阵。
 func _valid_geometry() -> bool:
@@ -144,7 +152,8 @@ func _valid_geometry() -> bool:
 		return false
 	var seen: Array[PlantCell] = [] # 一个植物不能重复声明同一地块。
 	for target: PlantCell in footprint: # 只接受当前空间中的实际节点。
-		if not is_instance_valid(target) or target.is_queued_for_deletion() or target.board != cell.board or seen.has(target):
+		if not is_instance_valid(target) or target.is_queued_for_deletion() or target.board != cell.board \
+				or target.has_planting_block() or seen.has(target):
 			return false
 		if cell.board_definition != null and (target.board_definition == null \
 				or target.board_definition.surface_id != cell.board_definition.surface_id):

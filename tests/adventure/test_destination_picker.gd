@@ -1,6 +1,9 @@
 ## 地区选择真实输入、导航与存档验收；仅允许隔离测试目录，不输出截图。
 extends "res://tests/adventure/test_island_flow.gd"
 
+## 复用冷启动验收的背景细节检查。
+const CoastalFrameCheck = preload("res://tests/adventure/coastal_frame_check.gd")
+
 ## 覆盖选择器输入、关窗、城镇导航和存档连续性。
 func _run() -> void:
 	assert(OS.get_user_data_dir().contains("picker-test-user"), "必须隔离 APPDATA")
@@ -74,6 +77,7 @@ func _run() -> void:
 		assert(cycle_picker.get_signal_connection_list("destination_selected").size() == 1)
 		var cycle_island: TextureButton = cycle_picker.get_node("MotionRoot/DesignCanvas/Cards/zombie_island") # 默认焦点卡片。
 		var town_card: TextureButton = cycle_picker.get_node("MotionRoot/DesignCanvas/Cards/town") # 返回海滨主菜单的卡片。
+		var wonderland_card: TextureButton = cycle_picker.get_node("MotionRoot/DesignCanvas/Cards/wonderland") # 已开放的奇境大陆卡片。
 		assert(cycle_island.has_focus() and not cycle_island.disabled)
 		assert(not town_card.disabled and town_card.focus_mode == Control.FOCUS_ALL)
 		assert(not town_card.get_node("DisabledOverlay").visible)
@@ -86,6 +90,8 @@ func _run() -> void:
 		assert(cycle_island.get_node("NameBounds/NameLabel").get_global_rect().get_center().is_equal_approx(cycle_island.get_node("NameBounds").get_global_rect().get_center()))
 		await _key(KEY_TAB)
 		assert(town_card.has_focus())
+		await _key(KEY_TAB)
+		assert(wonderland_card.has_focus())
 		await _key(KEY_TAB)
 		assert(cycle_picker.get_node("MotionRoot/DesignCanvas/Close").has_focus())
 		await _key(KEY_TAB)
@@ -150,6 +156,27 @@ func _run() -> void:
 	await _mouse_click(island_picker.get_node("MotionRoot/DesignCanvas/Cards/town"))
 	await _wait_for_scene("res://scenes/main/01StartMenuCoastal.tscn")
 	menu = get_tree().current_scene
+	# 场景换入并不代表玩家看到了城镇；等待真实揭幕，再检查合成结果。
+	var town_transition: Node = menu.get_node_or_null("SceneTransition") # 当前城镇自己的入场遮幕。
+	var reveal_limit: int = Time.get_ticks_msec() + 8000 # 允许慢帧，仍对无期限黑幕报错。
+	while Time.get_ticks_msec() < reveal_limit and (town_transition == null or town_transition.busy or not menu.is_visual_ready()):
+		await get_tree().process_frame
+		town_transition = menu.get_node_or_null("SceneTransition")
+	assert(town_transition != null and not town_transition.busy and menu.is_visual_ready())
+	assert(not menu.has_meta("prepared_resources")) # 揭幕完成后临时交接必须释放。
+	var town_textures := 0 # 真实消费者仍持有已经装配的纹理。
+	for resource: Resource in menu.host.assets.cache.values():
+		if resource is Texture2D and resource.resource_path.begins_with(menu.PACK + "/textures/"):
+			town_textures += 1
+	assert(town_textures > 0)
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		var town_frame: Image = menu.host.output_view.get_texture().get_image() # 只读最终城镇背景，避免 UI 掩盖白屏。
+		var frame_error := CoastalFrameCheck.error_for(town_frame) # 揭幕后的画面失败原因。
+		if not frame_error.is_empty():
+			push_error("FAIL: " + frame_error)
+			get_tree().quit(1)
+			return
 	assert(menu.scene_file_path == "res://scenes/main/01StartMenuCoastal.tscn")
 	assert(_destination_picker() == null and not AdventureSession.adventure_active)
 	assert(Global.user_manager.curr_user_name == username)
@@ -186,6 +213,17 @@ func _wait_for_picker(presented: bool = true) -> Control:
 		await get_tree().process_frame
 	assert(false, "地区选择器未在资源准备后进入预期状态")
 	return null
+
+## Threaded navigation returns "accepted", never "finished". Preserve all state
+## assertions but require the destination to become the active scene before asserting.
+func _wait_for_scene(path: String) -> void:
+	var deadline: int = Time.get_ticks_msec() + 8000
+	while Time.get_ticks_msec() < deadline:
+		var scene: Node = get_tree().current_scene
+		if is_instance_valid(scene) and scene.scene_file_path == path:
+			return
+		await get_tree().process_frame
+	assert(false, "Threaded destination did not become active: " + path)
 
 ## 向 [param button] 中心发送真实鼠标输入并检查开放卡片状态层。
 func _mouse_click(button: BaseButton) -> void:

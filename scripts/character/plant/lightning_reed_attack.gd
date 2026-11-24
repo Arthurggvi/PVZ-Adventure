@@ -12,6 +12,8 @@ const BASE_DAMAGE: int = 10
 const MAX_BOUNCES: int = 3
 ## 两层电弧之间的间隔，单位为游戏秒。
 const BOUNCE_DELAY: float = 0.1
+## 起手探测没有已命中记录，多株可共享空集合。
+const EMPTY_VISITED: Dictionary[int, bool] = {}
 
 
 ## 命中后仅保留位置和身份编号，目标死亡或释放也能从其落点继续折射。
@@ -43,6 +45,72 @@ class Discharge:
 	var hop: int = 0
 	## 距下一层结算的游戏秒数，二连发的第二次放电也在这里等待。
 	var remaining: float = 0.0
+
+
+## 同一层激荡共用的受击点空间桶。索引始终是原候选顺序中的下标。
+class SplashNeighborhood:
+	## 桶的边长，取激荡半径，单位为世界像素。
+	var _side: float
+	## 粗筛圆半径的平方，保留桶边界的浮点余量。
+	var _outer_radius_squared: float
+	## 每个桶内的候选下标，按检测器顺序登记。
+	var _buckets: Dictionary[Vector2i, Array] = {}
+	## 同层重合落点共用原顺序的粗筛结果，实际扣血仍按每个落点执行。
+	var _local_by_origin: Dictionary[Vector2, Array] = {}
+	## 僵王、设施及无法采样的候选，局部查询始终实时检查。
+	var _live_indices: Array[int] = []
+	## 普通僵尸的采样位置，局部粗筛不重新访问每个节点。
+	var _positions := PackedVector2Array()
+	## 无主动受击回调的普通僵尸，其余对象使用空节点标记。
+	var points: Array[Node2D] = []
+	## 同步伤害引起位移或死亡后，本层剩余结算回到有序实时查询。
+	var usable: bool = true
+
+	## 用 [param radius] 确定桶宽；[param centers] 与本层候选一一对应，空节点交给实时查询。
+	func _init(radius: float, centers: Array[Node2D]) -> void:
+		_side = radius
+		_outer_radius_squared = (radius + 0.001) * (radius + 0.001)
+		points = centers
+		_positions.resize(points.size())
+		for index: int in range(points.size()): # 按检测器顺序登记，方便还原同一范围内的结算顺序。
+			var point: Node2D = points[index] # 只缓存节点，精确距离仍实时取得。
+			if point == null:
+				_live_indices.append(index)
+				continue
+			var position: Vector2 = point.global_position # 快照只用于排除圆外候选。
+			if not position.is_finite():
+				_live_indices.append(index)
+				continue
+			_positions[index] = position
+			var bucket: Vector2i = _bucket(position) # 受击中心所在的世界桶。
+			if not _buckets.has(bucket):
+				_buckets[bucket] = []
+			_buckets[bucket].append(index)
+
+	## 返回 [param position] 对应的桶，盘外负坐标也按世界坐标向下取整。
+	func _bucket(position: Vector2) -> Vector2i:
+		return Vector2i((position / _side).floor())
+
+	## 取 [param origin] 周围的只读候选下标。粗筛包含圆边界，返回顺序与全场遍历相同。
+	func nearby(origin: Vector2) -> Array[int]:
+		var cached: Variant = _local_by_origin.get(origin) # 重合落点的快照几何和范围完全相同。
+		if cached != null:
+			return cached
+		var extent: Vector2 = Vector2.ONE * (_side + 0.001) # 桶边缘保留浮点余量，圆形范围由精确距离裁决。
+		var minimum: Vector2i = _bucket(origin - extent) # 包含左上边界的桶。
+		var maximum: Vector2i = _bucket(origin + extent) # 包含右下边界的桶。
+		var result: Array[int] = _live_indices.duplicate() # 独立结果，按原下标与局部桶合并。
+		for y: int in range(minimum.y, maximum.y + 1): # 遍历激荡覆盖的世界桶行。
+			for x: int in range(minimum.x, maximum.x + 1): # 遍历当前桶行的相邻桶。
+				var bucket := Vector2i(x, y) # 场景空位没有登记桶。
+				if not _buckets.has(bucket):
+					continue
+				for index: int in _buckets[bucket]: # 先排除桶内明显超出圆形范围的采样点。
+					if _positions[index].distance_squared_to(origin) <= _outer_radius_squared:
+						result.append(index)
+		result.sort()
+		_local_by_origin[origin] = result
+		return result
 
 
 ## 当前出战植株，离场后中止尚未结算的攻击。
@@ -114,8 +182,9 @@ func can_fight(game: MainGameManager) -> bool:
 
 ## 返回 [param game] 中是否有能让植株起手的首击目标。
 func has_target(game: MainGameManager) -> bool:
-	return _nearest_target(game, game.detect_component_global.get_all_enemy_can_be_attacked(),
-		_plant.global_position, _plant.lane, true, {}) != null
+	# 同一物理步共享碰撞身份，只有通过方向和行筛选的候选才检查实时受击资格。
+	return _find_target(game, ElectricPeaFlightQuery.raw_targets(game),
+		_plant.global_position, _plant.lane, true, EMPTY_VISITED, [], true) != null
 
 
 ## 在 [param game] 立即开始首轮放电，二连发的第二轮会重新索敌。
@@ -135,6 +204,8 @@ func release(game: MainGameManager) -> void:
 ## 在 [param game] 按 [param delta] 游戏秒推进已发出的电弧。
 ## 尚未发出的追射使用 [param action_speed] 换算时间，倍率为 0 时暂停。
 func advance(game: MainGameManager, delta: float, action_speed: float) -> void:
+	if _active.is_empty():
+		return
 	if not can_fight(game):
 		_active.clear()
 		return
@@ -157,8 +228,6 @@ func advance(game: MainGameManager, delta: float, action_speed: float) -> void:
 func _strike_wave(game: MainGameManager, shot: Discharge) -> bool:
 	if not can_fight(game):
 		return false
-	# 候选只在本层使用，跨帧折射时重新读取战场目标。
-	var candidates: Array[Character000Base] = game.detect_component_global.get_all_enemy_can_be_attacked()
 	# 首击使用植株发射点和三行或全屏的索敌规则，后续从各落点寻找邻近目标。
 	var first_hit: bool = shot.hop == 0
 	var sources: Array[Impact] = shot.impacts
@@ -166,6 +235,16 @@ func _strike_wave(game: MainGameManager, shot: Discharge) -> bool:
 	if first_hit:
 		sources = [Impact.new(_bolt_origin.global_position, _plant.lane)]
 		bolts_per_source = _initial_targets
+	var detect: DetectComponent = game.detect_component_global # 沿用全局检测器的阵营和攻击状态。
+	var candidates: Array[Character000Base] = [] # 本层开始时冻结原检测顺序与入选资格。
+	var points: Array[Node2D] = [] # 多道弧共享受击节点引用，坐标仍随本次查询读取。
+	var reuse_points: bool = sources.size() * bolts_per_source > 1 # 单道弧直接查找一次。
+	for reference: Variant in ElectricPeaFlightQuery.raw_targets(game): # 碰撞身份可跨本物理步的查询复用。
+		if not is_instance_valid(reference) or not detect._judge_enemy_is_can_be_attack(reference):
+			continue
+		candidates.append(reference)
+		if reuse_points:
+			points.append(_target_point(reference) if reference is Zombie000Base else null)
 	shot.impacts = []
 	# 先计算折射加成，再经过星级、光环和通用攻击修正，只结算一次。
 	var damage_factor: float = 1.0 + minf(_overload_step * shot.hop, _overload_cap)
@@ -178,8 +257,8 @@ func _strike_wave(game: MainGameManager, shot: Discharge) -> bool:
 				return false
 			# 首击朝向以种植原点判断，折射距离则以实际命中点判断。
 			var search_origin: Vector2 = _plant.global_position if first_hit else source.position
-			var target: Character000Base = _nearest_target(game, candidates,
-				search_origin, source.lane, first_hit, shot.visited)
+			var target: Character000Base = _find_target(game, candidates,
+				search_origin, source.lane, first_hit, shot.visited, points)
 			if target == null:
 				break
 			# 扣血前记录落点，致死一击仍可溅射并成为下一层的起点。
@@ -199,19 +278,59 @@ func _strike_wave(game: MainGameManager, shot: Discharge) -> bool:
 		# 先完成同层直击，再处理溅射，避免激荡提前杀死电压击穿的另一目标。
 		var splash_damage: int = roundi(float(damage) * _splash_fraction)
 		if splash_damage > 0:
+			# 同层所有直击完成后才采样位置。只有多个落点时才需要共用空间桶。
+			var neighborhood: SplashNeighborhood
+			if shot.impacts.size() > 1 and _splash_radius_squared > 0.0:
+				neighborhood = _splash_neighborhood(candidates)
 			# 只有直击僵尸的落点触发激荡，设施和溅射本身不会产生新电弧。
 			for impact: Impact in shot.impacts:
 				if impact.is_zombie and can_fight(game):
-					_splash(candidates, impact, splash_damage)
+					_splash(candidates, impact, splash_damage, neighborhood)
 	shot.hop += 1
 	return not shot.impacts.is_empty() and shot.hop <= _max_bounces
 
 
-## [param candidates] 为同层候选。对 [param impact] 范围内的其他敌人结算 [param damage]。
-func _splash(candidates: Array[Character000Base], impact: Impact, damage: int) -> void:
-	# 只处理仍可受击的敌人，跳过触发本次溅射的直接目标。
-	for target: Character000Base in candidates:
-		if not is_instance_valid(target) or not _can_hit(target) or target.get_instance_id() == impact.target_id:
+## 采样 [param candidates] 中普通僵尸的受击节点，特殊对象留给每次查询的实时检查。
+func _splash_neighborhood(candidates: Array[Character000Base]) -> SplashNeighborhood:
+	var centers: Array[Node2D] = [] # 与检测器候选一一对应，空值代表不进入空间桶。
+	for target: Character000Base in candidates: # 这一步在同层激荡开始前只执行一次。
+		var center: Node2D = null # 转伤、特殊目标和主动受击回调走实时检查。
+		if is_instance_valid(target) and target is Zombie000Base:
+			var health: HpComponentZombie = target.hp_component as HpComponentZombie # 核对会同步影响其他候选的入口。
+			if health != null and not health.damage_transfer.has_sources() and not health.received_attack.has_connections():
+				center = _target_point(target)
+		centers.append(center)
+	return SplashNeighborhood.new(sqrt(_splash_radius_squared), centers)
+
+
+## 对 [param impact] 周围的 [param candidates] 结算 [param damage]，每个落点独立触发。
+## [param neighborhood] 仅用于粗筛，使用原下标顺序结算，受击资格和距离即时判断。
+func _splash(candidates: Array[Character000Base], impact: Impact, damage: int,
+		neighborhood: SplashNeighborhood) -> void:
+	if neighborhood == null or not neighborhood.usable or not impact.position.is_finite():
+		_splash_live(candidates, impact, damage, 0)
+		return
+	for index: int in neighborhood.nearby(impact.position): # 原检测顺序决定重叠激荡的扣血顺序。
+		var target: Variant = candidates[index] # 之前的伤害回调可能移除这一候选。
+		if not is_instance_valid(target) or target.get_instance_id() == impact.target_id or not _can_hit(target):
+			continue
+		var point: Variant = neighborhood.points[index] # 僵王、设施和已替换的受击节点读取实时位置。
+		var position: Vector2 = point.global_position if is_instance_valid(point) else _target_position(target)
+		if position.distance_squared_to(impact.position) <= _splash_radius_squared:
+			target.be_attacked_bullet(damage, BulletRegistry.AttackMode.Real, true, false)
+			# 死亡和特殊伤害回调之后，剩余候选按原顺序重新读取实时位置。
+			if (not is_instance_valid(target) or target.is_death
+					or not is_instance_valid(point) or point.global_position != position):
+				neighborhood.usable = false
+				_splash_live(candidates, impact, damage, index + 1)
+				return
+
+
+## 从 [param start] 起按原顺序对 [param impact] 附近的实时 [param candidates] 结算 [param damage]。
+func _splash_live(candidates: Array[Character000Base], impact: Impact, damage: int, start: int) -> void:
+	for index: int in range(start, candidates.size()): # 接续上一次扣血位置，已经检查的候选无需重查。
+		var target: Variant = candidates[index] # 每次命中都核对存活状态及真实受击点。
+		if not is_instance_valid(target) or target.get_instance_id() == impact.target_id or not _can_hit(target):
 			continue
 		if _target_position(target).distance_squared_to(impact.position) <= _splash_radius_squared:
 			target.be_attacked_bullet(damage, BulletRegistry.AttackMode.Real, true, false)
@@ -219,30 +338,52 @@ func _splash(candidates: Array[Character000Base], impact: Impact, damage: int) -
 
 ## [param game] 提供场地行；在 [param candidates] 中选择最接近 [param origin] 和 [param origin_lane] 的敌人。
 ## [param first_hit] 决定使用首击或折射范围。[param visited] 已命中的目标会被跳过。
-func _nearest_target(game: MainGameManager, candidates: Array[Character000Base], origin: Vector2,
-		origin_lane: int, first_hit: bool, visited: Dictionary[int, bool]) -> Character000Base:
+## [param points] 可以提供与候选同序的受击节点，空值实时解析。没有目标时返回 null。
+## [param stop_at_first] 用于起手探测，候选为原始重叠身份，另行核对全局检测器的当前资格。
+func _find_target(game: MainGameManager, candidates: Array[Character000Base], origin: Vector2,
+		origin_lane: int, first_hit: bool, visited: Dictionary[int, bool],
+		points: Array[Node2D], stop_at_first: bool = false) -> Character000Base:
+	if candidates.is_empty():
+		return null
 	# 最近的有效候选和其网格距离的平方。
 	var nearest: Character000Base = null
 	var nearest_distance: float = INF
 	# 跃迁扩大首击范围，折射仍以相邻一格为限。
 	var full_field: bool = first_hit and _warp
-	# 检查受击状态及本次放电的命中记录，找出距离最小的可用目标。
-	for target: Character000Base in candidates:
-		if not is_instance_valid(target) or not _can_hit(target) or visited.has(target.get_instance_id()):
+	var cell_size: Vector2 = _plant.plant_cell.size # 当前植株所在棋格的真实宽高。
+	var has_points: bool = not points.is_empty() # 缓存只包含节点引用，命中回调仍能改变其位置。
+	var has_visited: bool = not visited.is_empty() # 无命中记录时跳过实例编号查找。
+	var detect: DetectComponent = game.detect_component_global if stop_at_first else null # 起手探测惰性检查全局资格。
+	for index: int in candidates.size(): # 严格按检测器顺序比较，等距时保留先出现的候选。
+		var reference: Variant = candidates[index] # 同层先前伤害可能已释放目标。
+		if not is_instance_valid(reference):
 			continue
-		# 横向使用受击点，纵向使用地面行，避免屋顶坡度或飞行高度影响排序。
-		var target_position: Vector2 = _target_position(target)
-		var target_lane: int = _target_lane(game, target, target_position)
-		var row_offset: int = target_lane - origin_lane
-		var offset_x: float = target_position.x - origin.x
-		if target_lane < 0 or (not full_field and absi(row_offset) > 1):
+		var target: Character000Base = reference # 执行以下几何筛选时，实例身份已核对。
+		var target_lane: int = target.lane # 先用登记行筛掉无关目标。
+		var infer_lane: bool = target_lane < 0 and target is ZB000Base # 无固定行的僵王需要实际受击点推断所在行。
+		var row_offset: int = target_lane - origin_lane # 逻辑行决定折射纵向范围。
+		if not infer_lane and (target_lane < 0 or (not full_field and absi(row_offset) > 1)):
 			continue
-		if (first_hit and not full_field and offset_x < 0.0) \
-				or (not first_hit and absf(offset_x) > _plant.plant_cell.size.x):
+		if has_visited and visited.has(target.get_instance_id()):
+			continue
+		var point: Variant = points[index] if has_points else null # 可复用的实际受击节点。
+		var target_position: Vector2 = point.global_position if is_instance_valid(point) else _target_position(target)
+		if infer_lane:
+			target_lane = _target_lane(game, target, target_position)
+			row_offset = target_lane - origin_lane
+			if target_lane < 0 or (not full_field and absi(row_offset) > 1):
+				continue
+		var offset_x: float = target_position.x - origin.x # 横向以实际受击点判断方向和距离。
+		if ((first_hit and not full_field and offset_x < 0.0)
+				or (not first_hit and absf(offset_x) > cell_size.x)):
 			continue
 		# 用与原版相同的格高把行差换算为像素。
-		var distance: float = Vector2(offset_x, row_offset * _plant.plant_cell.size.y).length_squared()
+		var distance: float = Vector2(offset_x, row_offset * cell_size.y).length_squared()
 		if distance < nearest_distance:
+			if not _can_hit(target) or (detect != null and not detect._judge_enemy_is_can_be_attack(target)):
+				continue
+			if stop_at_first:
+				return target
 			nearest = target
 			nearest_distance = distance
 	return nearest
@@ -264,10 +405,19 @@ func _can_hit(target: Character000Base) -> bool:
 
 ## [param target] 的电弧落点取实际受击形状的世界坐标。
 func _target_position(target: Character000Base) -> Vector2:
-	# 缺少具名碰撞形状时，使用实际受击区域的原点。
-	var area: Area2D = target.hurt_box_component.hurt_box_real
-	var shape: Node2D = area.get_node_or_null(^"CollisionShape2D") as Node2D
-	return shape.global_position if shape != null else area.global_position
+	var point: Node2D = _target_point(target) # 缺失受击区域的候选没有有效落点。
+	return point.global_position if point != null else Vector2(INF, INF)
+
+
+## 返回 [param target] 的具名碰撞形状，缺少形状时使用真实受击区域。
+func _target_point(target: Character000Base) -> Node2D:
+	if not is_instance_valid(target.hurt_box_component):
+		return null
+	var area: Area2D = target.hurt_box_component.hurt_box_real # 缺失或已移除时没有可采样的受击点。
+	if not is_instance_valid(area):
+		return null
+	var shape: Node2D = area.get_node_or_null(^"CollisionShape2D") as Node2D # 与原版落点查找规则一致。
+	return shape if shape != null else area
 
 
 ## 优先读取 [param target] 的登记行。无固定行的僵王在 [param game] 中按受击点 [param point] 推断。
@@ -284,5 +434,5 @@ func _target_lane(game: MainGameManager, target: Character000Base, point: Vector
 			var next_distance: float = (cell.global_position + cell.size * 0.5).distance_squared_to(point)
 			if next_distance < distance:
 				distance = next_distance
-				nearest = cell.row_col.x
+				nearest = cell.combat_lane
 	return nearest

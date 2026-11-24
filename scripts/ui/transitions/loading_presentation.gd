@@ -7,6 +7,8 @@ const GARDEN = preload("res://assets/adventure/ui/loading/garden_companions.png"
 const SOIL = preload("res://assets/image/main_game_item/LoadBar_dirt.png")
 ## 按已知进度裁剪的草皮纹理。
 const GRASS = preload("res://assets/image/main_game_item/LoadBar_grass.png")
+## 单个资源超过三秒才显示的轻量文字控件，不增加其他动效。
+const ResourceHint = preload("res://scripts/ui/transitions/loading_resource_hint.gd")
 ## 所有布局坐标以此画布等比缩放。
 const DESIGN := Vector2(1280, 720)
 ## 准备资源不代表已可交互，揭幕前不填满进度。
@@ -42,6 +44,8 @@ var _art: TextureRect
 var _message: Label
 ## 唯一操作按钮，淡出时同步释放输入和焦点。
 var _action: Button
+## 单个慢资源的说明行，默认不占任何视觉空间。
+var _resource_hint: Label
 ## 组合泥土与草皮的进度条。
 var _bar: Control
 ## 只改变裁剪宽度，不拉伸草皮。
@@ -113,6 +117,9 @@ func _ready() -> void:
 	_style_action()
 	_action.pressed.connect(_invoke_action)
 	_canvas.add_child(_action)
+	_resource_hint = ResourceHint.new()
+	_resource_hint.hide()
+	_canvas.add_child(_resource_hint)
 	_create_backdrop()
 	resized.connect(_layout)
 	visibility_changed.connect(_sync_processing)
@@ -178,6 +185,7 @@ func _layout() -> void:
 	_message.modulate = Color("354a33") if _compact else Color("f1e9cd")
 	_bar.scale = Vector2.ONE * (0.70 if _compact else 0.80)
 	_bar.position = Vector2(-112, -11) if _compact else Vector2(-128, 112)
+	_resource_hint.configure(_compact)
 	_action.position = Vector2(-52, 34) if _error and _compact else (Vector2(-38, 28) if _compact else Vector2(-52, 62))
 	_action.size = Vector2(76, 28) if _compact and not _error else Vector2(104, 32)
 	for state: String in ["font_color", "font_hover_color", "font_focus_color", "font_pressed_color", "font_disabled_color"]: # 避免全局主题的白字落在浅底上。
@@ -212,8 +220,14 @@ func set_progress(amount: float) -> void:
 	_target_progress = maxf(_target_progress, clampf(amount, 0.0, PREPARED_LIMIT))
 	_sync_processing()
 
+## 仅接收当前批次的活动快照；短加载不改变现有版式。
+func set_resource_activity(activity: Dictionary) -> void:
+	if is_instance_valid(_resource_hint):
+		_resource_hint.present({} if _error else activity)
+
 ## 交付已完成；不等待进度条填满，立即禁用旧操作。
 func finish() -> void:
+	set_resource_activity({})
 	_target_progress = 1.0
 	disable_action()
 	_sync_processing()
@@ -228,6 +242,7 @@ func set_content_visible(value: bool, instant: bool = false) -> void:
 
 ## [param message] 仅用于失败，正常准备阶段没有说明文字。
 func show_error(message: String) -> void:
+	set_resource_activity({})
 	_error = true
 	_error_message = message
 	_layout()
@@ -285,6 +300,7 @@ func restore(state: Dictionary) -> void:
 	_target_opacity = float(state.get("target_opacity", 1.0))
 	_error = bool(state.get("error", false))
 	_error_message = str(state.get("message", ""))
+	set_resource_activity({})
 	configure(bool(state.get("compact", false)))
 	_update_state()
 	_update_visuals()

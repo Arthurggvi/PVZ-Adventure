@@ -158,10 +158,8 @@ func _on_death() -> void:
 ## 从 [param origin] 向单位 [param direction] 发射；[param radial] 允许跨行并延迟入树。
 ## 亡语可能来自物理回调，弹体先保存参数再交由战场入树，避免跟随母株释放。
 func _fire_bullet(origin: Vector2, direction: Vector2, radial: bool) -> void:
-	var bullet: Node = _puff_scene.instantiate() # 派生脚本随其场景加载，避免反向静态依赖基础弹体。
-	if not is_instance_valid(bullet) or not bullet.has_method(&"attach_to_battle"):
-		if is_instance_valid(bullet):
-			bullet.free()
+	var bullet: AdventurePuffProjectileEffects = _puff_scene.instantiate() as AdventurePuffProjectileEffects # 独立孢子。
+	if bullet == null:
 		push_error("小喷菇转职弹体场景类型不兼容")
 		return
 	var parameters: Dictionary = _attack.get_bullet_paras(origin, direction.normalized()) # 含发射时伤害倍率。

@@ -14,6 +14,9 @@ static func validate(definition: BoardDefinition) -> PackedStringArray:
 				or not grid.grid_origin.is_finite() or not is_finite(grid.spawn_x) or not is_finite(grid.mower_x):
 			errors.append("规则网格行列、坐标及间距无效。")
 			return errors
+		if not _valid_edges(grid.column_edges, grid.dimensions.y) or not _valid_edges(grid.row_edges, grid.dimensions.x):
+			errors.append("格线必须严格递增，并为每行或每列提供两侧边界。")
+			return errors
 		var overrides: Dictionary = {} # 显式覆盖地址不能重复，也不能落在生成范围外。
 		for override: BoardCellDefinition in grid.cells: # 原始覆盖表必须先于展开校验。
 			if override == null:
@@ -45,6 +48,9 @@ static func validate(definition: BoardDefinition) -> PackedStringArray:
 		if not surface.origin.is_finite() or not surface.travel_offset.is_finite() \
 				or not is_finite(surface.travel_seconds) or surface.travel_seconds <= 0.0:
 			errors.append("平台位置/运动时间无效。")
+		for region: Rect2 in surface.water_regions: # 连续水域须可生成有效物理矩形。
+			if not region.position.is_finite() or not region.size.is_finite() or not region.has_area():
+				errors.append("平台水域矩形必须有限且具有正宽高。")
 		surface_ids[surface.surface_id] = true
 	var lanes := definition.lane_definitions() # 展开后的攻击行。
 	var lane_ids: Dictionary = {} # 行身份集合。
@@ -79,6 +85,9 @@ static func validate(definition: BoardDefinition) -> PackedStringArray:
 		if not cell.position.is_finite() or not cell.size.is_finite() \
 				or cell.size.x <= 0.0 or cell.size.y <= 0.0 or not is_finite(cell.ground_height):
 			errors.append("种植点几何无效：%s" % cell.cell_id)
+		if not is_finite(cell.ground_anchor_y) or (cell.ground_anchor_y != -1.0 \
+				and (cell.ground_anchor_y < 0.0 or cell.ground_anchor_y > cell.size.y)):
+			errors.append("种植点脚点越出格子边界：%s" % cell.cell_id)
 		if not cell.hit_polygon.is_empty():
 			if cell.hit_polygon.size() < 3 or Geometry2D.triangulate_polygon(cell.hit_polygon).is_empty():
 				errors.append("种植点交互多边形无效：%s" % cell.cell_id)
@@ -103,3 +112,17 @@ static func validate(definition: BoardDefinition) -> PackedStringArray:
 			if right.address.x != cell.address.x:
 				errors.append("多格植物的向右邻格不能跨攻击行：%s" % cell.cell_id)
 	return errors
+
+
+## [param edges] 为空时沿用规则间距，否则须覆盖 [param count] 个连续格子。
+static func _valid_edges(edges: PackedFloat32Array, count: int) -> bool:
+	if edges.is_empty():
+		return true
+	if edges.size() != count + 1:
+		return false
+	var previous: float = -INF # 首边界允许为任意有限坐标。
+	for edge: float in edges: # 相邻边界不能重合或反向。
+		if not is_finite(edge) or edge <= previous:
+			return false
+		previous = edge
+	return true

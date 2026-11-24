@@ -3,6 +3,11 @@
 extends Node
 class_name AdventureBattleRuntime
 
+## 记录同一实例的登场、死亡、离场和阶段清场条件。
+const BossTrace = preload("res://scripts/manager/zombie_manager/boss_lifecycle_trace.gd")
+## 雪山两阶段复用独立滑雪配额，并在凯莱赫存活期间持续半量自然刷新。
+const SnowMountainWaves = preload("res://scripts/adventure/snow_mountain_wave_support.gd")
+
 var waves: ZombieWaveManager
 var zombies: ZombieManager
 var phase: StagePhaseDefinition
@@ -30,6 +35,8 @@ var _battle_ended := false
 var _battle_won := false
 var _ending_requested := false
 var _last_zombie_count := -1
+## 雪山专属的额外自然出怪，非雪山关卡不实例化。
+var _snow_waves: SnowMountainWaveSupport
 
 ## 只在实际胜/负判定时发一次 BATTLE_END；战斗事件不允许自行落盘。
 func finish_battle(victory: bool = false) -> void:
@@ -42,12 +49,22 @@ func finish_battle(victory: bool = false) -> void:
 		_cooldown.clear()
 	if is_instance_valid(_gravestones):
 		_gravestones.clear()
+	if is_instance_valid(_snow_waves):
+		_snow_waves.clear()
+
+## 返回雪山是否仍有被同时存活上限延迟的自然波配额，供胜利判定统一阻止提前结算。
+func has_pending_bonus_spawns() -> bool:
+	return is_instance_valid(_snow_waves) and _snow_waves.has_pending()
 
 func setup(wave_manager: ZombieWaveManager, zombie_manager: ZombieManager,
 		stage_phase: StagePhaseDefinition) -> void:
 	waves = wave_manager
 	zombies = zombie_manager
 	phase = stage_phase # 共享 AdventureSession 已冻结的本局阶段快照，不重复读取资源文件。
+	if phase.wave_profile != null and str(phase.wave_profile.profile_id).begins_with("wonderland.snow_mountains."):
+		_snow_waves = SnowMountainWaves.new() # 只由雪山波次资源启用专属生成器。
+		_snow_waves.setup(waves, zombies, phase)
+		add_child(_snow_waves)
 	_reward_rng.randomize()
 	_ordered_events = phase.events.duplicate()
 	_ordered_events.sort_custom(func(a: StageEventDefinition, b: StageEventDefinition) -> bool:
@@ -110,11 +127,18 @@ func start_phase() -> void:
 	_fire(StageEventDefinition.Trigger.BATTLE_START)
 	_begin_matching_boss(BossEncounterDefinition.Timing.PHASE_START, 0)
 
+## 自然复光的全黑帧触发一次场景出怪；自然波次挂起时为待登场的 Boss 保留空位。
+func on_lights_restored() -> void:
+	if zombies.is_game_running() and not waves.is_advancement_suspended:
+		_fire(StageEventDefinition.Trigger.LIGHTS_RESTORED)
+
 func _on_wave_before(wave_number: int) -> void:
 	_fire(StageEventDefinition.Trigger.WAVE_BEFORE, wave_number)
 	_begin_matching_boss(BossEncounterDefinition.Timing.WAVE_BEFORE, wave_number)
 
 func _on_wave_started(wave_number: int) -> void:
+	if is_instance_valid(_snow_waves):
+		_snow_waves.on_wave_started(wave_number)
 	_fire(StageEventDefinition.Trigger.WAVE_STARTED, wave_number)
 	if is_instance_valid(_gravestones):
 		_gravestones.on_wave_started(wave_number, phase.wave_profile.flag_wave_numbers().has(wave_number))
@@ -129,7 +153,7 @@ func _on_wave_started(wave_number: int) -> void:
 ## [param wave_number] 的敌方 [param count] 首次归零时，旗帜波判定一次配方掉落。
 func _on_natural_count(wave_number: int, count: int) -> void:
 	if _battle_ended or not zombies.is_game_running() or count != 0 \
-			or wave_number < 1 or _cleared_waves.has(wave_number):
+			or wave_number < 1 or _cleared_waves.has(wave_number) or waves.is_wave_spawning(wave_number):
 		return
 	_cleared_waves[wave_number] = true
 	if phase.wave_profile != null and phase.wave_profile.flag_wave_numbers().has(wave_number):
@@ -186,8 +210,17 @@ func _compares(actual: int, limit: int, comparison: int) -> bool:
 func _apply_action(event: StageEventDefinition) -> void:
 	match event.action:
 		StageEventDefinition.Action.SPAWN_ZOMBIES:
-			for i: int in range(event.action_count):
-				waves.zombie_wave_create_manager.spawn_stage_support(event.action_zombie_type, event.action_tier_id)
+			var count: int = event.action_count # 常规事件为固定数量，复光事件将它作为单次上限。
+			var relighting: bool = event.trigger == StageEventDefinition.Trigger.LIGHTS_RESTORED # 复光时按波次调整数量并静置石像。
+			if relighting:
+				var wave_index: int = clampi(waves.curr_wave, 0, waves.max_wave_one_round - 1) # 首波前与末波后分别沿用两端的压力。
+				count = 1 + floori(float(wave_index) * count / waves.max_wave_one_round)
+			count = zombies.available_zombie_slots(count)
+			for _i: int in range(count): # 在场名额充足时实例化计划数量的支援敌人。
+				var spawned: Zombie000Base = waves.zombie_wave_create_manager.spawn_stage_support(
+					event.action_zombie_type, event.action_tier_id) # 本次事件实际登记的援军。
+				if relighting and spawned is ZombieStoneStatue:
+					spawned.stone_visual.finish_arrival()
 		StageEventDefinition.Action.SPAWN_TOMBSTONES:
 			zombies.main_game.plant_cell_manager.tomb_stone_manager.create_pvz2_tombstone(event.action_count)
 		StageEventDefinition.Action.BEGIN_BOSS_ENCOUNTER:
@@ -243,6 +276,7 @@ func _on_boss_hp_changed(encounter_id: StringName, ratio: float) -> void:
 ## 记录 [param encounter_id] 的 [param reason]；仅当前冒险的真实击败计入指定 Boss 任务。
 func _on_boss_exit(encounter_id: StringName, reason: int) -> void:
 	AdventureSession.boss_exit_results[encounter_id] = reason
+	BossTrace.result(zombies, encounter_id, reason)
 	for encounter: BossEncounterDefinition in phase.boss_encounters: # 必杀遭遇不可用撤退完成。
 		if encounter.encounter_id == encounter_id and encounter.require_defeat and reason != StageEventDefinition.BossExitReason.DEFEATED:
 			push_error("必须击败的 Boss 提前离场：" + str(encounter_id))
@@ -265,7 +299,9 @@ func has_pending_bosses() -> bool:
 	return is_instance_valid(_boss_director) and _boss_director.has_pending()
 
 func _on_boss_idle() -> void:
-	if AdventureSession.can_accept_victory() and zombies.is_game_running():
+	var blocker := AdventureSession.victory_blocker() # 等待本阶段全部遭遇退出后读取最终清场条件。
+	BossTrace.victory(zombies, blocker)
+	if blocker == &"" and zombies.is_game_running():
 		var game: MainGameManager = zombies.main_game # 普通及噩梦仍须清场，终末在博士击败后立即进入结算。
 		game.create_trophy.call_deferred(game.camera_2d.get_screen_center_position())
 

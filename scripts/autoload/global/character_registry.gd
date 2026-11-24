@@ -1,19 +1,33 @@
 extends Node
 class_name CharacterRegistry
 
-## Scene and planting-rule resources are resolved on first demand, not at startup.
-## Reuse the ResourceLoader result; one registry owns the cache for its lifetime.
-var _resource_cache: Dictionary[String, Resource] = {}
+## 战斗租约复用角色场景；战外图鉴等请求不再成为进程级强引用。
+const BattleScope = preload("res://scripts/autoload/global/battle_resource_scope.gd")
+## 当前注册表独占的战斗资源租约。
+var _battle_scope := BattleScope.new()
 
+## [param path] 为注册表的权威资源路径；仅本局战斗需要保留重复生成的根资源。
 func _registry_resource(path: String) -> Resource:
-	if _resource_cache.has(path):
-		return _resource_cache[path]
-	var result: Resource = load(path) as Resource
+	var global_node: Node = get_node_or_null("/root/Global") # 启动期也允许注册表独立查询。
+	var owner: Node = global_node.get("main_game") if global_node != null else null # 当前战斗节点。
+	var result: Resource = _battle_scope.resolve(owner, path) # 与现有加载入口共享资源。
 	if result == null:
 		push_error("CharacterRegistry: failed to load " + path)
-		return null
-	_resource_cache[path] = result
 	return result
+
+## [param owner] 为目标战斗；[param resources] 是首屏批次。仅登记本局后续生成需要的注册资源。
+func retain_prepared_battle(owner: Node, resources: Array) -> void:
+	var paths: Dictionary = {} # 从权威注册表提取允许进入租约的路径。
+	for entry: Dictionary in PlantInfo.values():
+		for key: int in [PlantInfoAttribute.PlantScenes, PlantInfoAttribute.PlantConditionResource]:
+			paths[entry.get(key, "")] = true
+	for entry: Dictionary in ZombieInfo.values():
+		paths[entry.get(ZombieInfoAttribute.ZombieScenes, "")] = true
+	for entry: Dictionary in ZombieBossInfo.values():
+		paths[entry.get(ZombieBossInfoAttribute.BossScenes, "")] = true
+	for resource: Resource in resources:
+		if paths.has(resource.resource_path):
+			_battle_scope.retain(owner, resource)
 
 func _attribute(entry: Dictionary, key: int, resource_keys: Array[int]) -> Variant:
 	var value: Variant = entry.get(key)
@@ -160,6 +174,27 @@ enum ZombieType {
 	Z025Imp,
 	Z026AllStar,
 	Z027Explorer,
+	Z028StoneStatue = 28, ## 固定石壳保护同阶普通僵尸，编号不得随目录顺序变化。
+	## 大型融合僵尸的稳定物种编号；新增角色不改变既有存档身份。
+	Z029LargeFusion = 29,
+	## 穴居僵尸的稳定物种编号；推冰行为由本体实例独立管理。
+	Z030Troglobite = 30,
+	## 雪人小鬼僵尸的稳定物种编号；直接生成时不携带冰壳。
+	Z031YetiImp = 31,
+	## 猎人僵尸的稳定物种编号；雪球寒冷与植物冰壳由战斗实例维护。
+	Z032Hunter = 32,
+	## 滑雪僵尸的稳定物种编号；冻结障碍与飞跃状态仅由战场实例管理。
+	Z033Ski = 33,
+	## 原版天空之城战斗机僵尸；固定编号不影响旧存档。
+	Z034Fighter = 34,
+	## 仲裁者-X型独立物种；35/36/37 留给天空之城其他机种。
+	Z038ArbiterX = 38,
+	## 导弹炮塔僵尸的稳定编号；导弹作为战场弹体单独管理。
+	Z039CannonTurret = 39,
+	## 运输舰僵尸从棋盘上方入场，战斗机继承已有物种编号。
+	Z040TransportAirship = 40,
+	## 火箭小鬼独立于普通小鬼的稳定物种编号。
+	Z041RocketImp = 41,
 
 	Z1001BobsledSingle=1001,	## 单个雪橇车僵尸
 	}
@@ -327,7 +362,7 @@ const PlantInfo = {
 		},
 	PlantType.P019ThreePeater: {
 		PlantInfoAttribute.PlantName: "ThreePeater",
-		PlantInfoAttribute.CoolTime: 7.5,
+		PlantInfoAttribute.CoolTime: 15.0,
 		PlantInfoAttribute.SunCost: 325,
 		PlantInfoAttribute.PlantConditionResource : "res://resources/character_resource/plant_condition/000_common_plant_land.tres",
 		PlantInfoAttribute.PlantScenes : "res://scenes/character/plant/plant_019_three_peater.tscn"
@@ -476,7 +511,7 @@ const PlantInfo = {
 		},
 	PlantType.P040MelonPult: {
 		PlantInfoAttribute.PlantName: "MelonPult",
-		PlantInfoAttribute.CoolTime: 7.5,
+		PlantInfoAttribute.CoolTime: 15.0,
 		PlantInfoAttribute.SunCost: 300,
 		PlantInfoAttribute.PlantConditionResource :  "res://resources/character_resource/plant_condition/000_common_plant_land.tres",
 		PlantInfoAttribute.PlantScenes : "res://scenes/character/plant/plant_040_melon_pult.tscn"
@@ -830,6 +865,100 @@ const ZombieInfo = {
 		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
 	},
 
+	## 石像本体可在水陆格出现；破壳后沿用普通僵尸的水体适配。
+	ZombieType.Z028StoneStatue:{
+		ZombieInfoAttribute.ZombieName: "ZombieStoneStatue",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 200,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_stone_statue.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Both
+	},
+
+	## 陆地滚动的融合体；场景只在正式生成或展示该物种时加载。
+	ZombieType.Z029LargeFusion:{
+		ZombieInfoAttribute.ZombieName: "ZombieLargeFusion",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 300,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_029_large_fusion.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+	},
+
+	## 穴居僵尸只在正式生成或预览时解析场景，保持启动期的轻量目录。
+	ZombieType.Z030Troglobite:{
+		ZombieInfoAttribute.ZombieName: "ZombieTroglobite",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 200,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_030_troglobite.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+	},
+
+	## 冰壳是穴居僵尸生成小鬼时注入的实例状态，不另设全局资源或物种。
+	ZombieType.Z031YetiImp:{
+		ZombieInfoAttribute.ZombieName: "ZombieYetiImp",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 50,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_031_yeti_imp.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+	},
+
+	## 猎人场景沿用惰性字符串路径，只在正式生成或预览时加载。
+	ZombieType.Z032Hunter:{
+		ZombieInfoAttribute.ZombieName: "ZombieHunter",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 150,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_032_hunter.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+	},
+
+	## 滑雪场景沿用惰性字符串路径，只在正式生成或预览时加载。
+	ZombieType.Z033Ski:{
+		ZombieInfoAttribute.ZombieName: "ZombieSki",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 125,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_033_ski.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+	},
+
+	## 只在指定波次或手动召唤进入战场，避免改变原版随机刷怪池。
+	ZombieType.Z034Fighter:{
+		ZombieInfoAttribute.ZombieName: "ZombieFighter",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 250,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_034_fighter.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+	},
+	## 巨型三行载具，场景资源通过已有登记门面按需载入。
+	ZombieType.Z038ArbiterX:{
+		ZombieInfoAttribute.ZombieName: "ZombieArbiterX",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 400,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_038_arbiter_x.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+	},
+	## 导弹炮塔通过现有场景门面按需实例化。
+	ZombieType.Z039CannonTurret:{
+		ZombieInfoAttribute.ZombieName: "ZombieCannonTurret",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 350,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_039_cannon_turret.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+	},
+	## 悬停载具可在水陆格上方停驻，场景与帧图集由注册表按需加载。
+	ZombieType.Z040TransportAirship:{
+		ZombieInfoAttribute.ZombieName: "ZombieTransportAirship",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 500,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_040_transport_airship.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Both
+	},
+	## 火箭小鬼按需加载，供显式生成和图鉴展示。
+	ZombieType.Z041RocketImp:{
+		ZombieInfoAttribute.ZombieName: "ZombieRocketImp",
+		ZombieInfoAttribute.CoolTime: 0.0,
+		ZombieInfoAttribute.SunCost: 50,
+		ZombieInfoAttribute.ZombieScenes:"res://scenes/character/zombie/zombie_041_rocket_imp.tscn",
+		ZombieInfoAttribute.ZombieRowType:CharacterRegistry.ZombieRowType.Land
+	},
 	## 单独雪橇僵尸
 	ZombieType.Z1001BobsledSingle:{
 		ZombieInfoAttribute.ZombieName: "ZombieBobsledSingle",
@@ -873,6 +1002,16 @@ const ZombieSpawnPower: Dictionary[ZombieType, int] = {
 	ZombieType.Z025Imp: 1,			# 小鬼
 	ZombieType.Z026AllStar: 12,		# 全明星冲锋
 	ZombieType.Z027Explorer: 3,		# 探险家火把
+	ZombieType.Z028StoneStatue: 6,	# 固定石壳与内含普僵共用一个自然出怪名额。
+	ZombieType.Z029LargeFusion: 12,	# 本体沿用全明星战力档，分裂出的普僵不追加到本体预算。
+	ZombieType.Z030Troglobite: 6,	# 本体与入场携带的三只冰壳小鬼合并计入本次预算。
+	ZombieType.Z031YetiImp: 1,		# 独立生成的小鬼沿用普通小鬼战力；随本体入场不重复计费。
+	ZombieType.Z032Hunter: 4,		# 千点本体生命与远程冰封合并计入一次生成预算。
+	ZombieType.Z033Ski: 3,		# 轻型本体与借冰飞跃共同计入一次生成预算。
+	ZombieType.Z034Fighter: 7,	# 连发机枪和死亡自爆共享一份波次预算。
+	ZombieType.Z038ArbiterX: 14,	# 三行碾压及后方90%减伤，共享单个敌人预算。
+	ZombieType.Z039CannonTurret: 10,	# 炮车生命、四格爆炸和可拦截导弹的整项战力。
+	ZombieType.Z040TransportAirship: 14,	# 运输舰本体与持续放飞的综合战力，后代不计入自然波次。
 }
 
 ## 僵尸初始出怪权重；各出怪系统复制后独立调整，不修改公共基础数据。[br]
@@ -923,6 +1062,12 @@ enum ZombieBossType {
 	ZB001Doctor = 1,
 	ZB002BlackGeneral = 2,
 	ZB003WhiteDuke = 3,
+	ZB004MingLantern = 4,
+	ZB005Savior = 5,
+	## 妇人（凯莱赫）的稳定 Boss 编号。
+	ZB006Cailleach = 6,
+	## 苍穹公爵的稳定 Boss 编号。
+	ZB007SkyDuke = 7,
 }
 
 ## 注册表只保存公共定义，血量和死亡状态由每局生成的僵王实例维护。
@@ -951,6 +1096,30 @@ const ZombieBossInfo = {
 	ZombieBossType.ZB003WhiteDuke: {
 		ZombieBossInfoAttribute.BossName: "ZB003WhiteDuke",
 		ZombieBossInfoAttribute.BossScenes: "res://scenes/character/zombie_boss/zombie_boss_003_white_duke.tscn",
+		ZombieBossInfoAttribute.SunCost: 10000,
+		ZombieBossInfoAttribute.CoolTime: 0,
+	},
+	ZombieBossType.ZB004MingLantern: {
+		ZombieBossInfoAttribute.BossName: "ZB004MingLantern",
+		ZombieBossInfoAttribute.BossScenes: "res://scenes/character/zombie_boss/zombie_boss_004_ming_lantern.tscn",
+		ZombieBossInfoAttribute.SunCost: 10000,
+		ZombieBossInfoAttribute.CoolTime: 0,
+	},
+	ZombieBossType.ZB005Savior: {
+		ZombieBossInfoAttribute.BossName: "ZB005Savior",
+		ZombieBossInfoAttribute.BossScenes: "res://scenes/character/zombie_boss/zombie_boss_005_savior.tscn",
+		ZombieBossInfoAttribute.SunCost: 10000,
+		ZombieBossInfoAttribute.CoolTime: 0,
+	},
+	ZombieBossType.ZB006Cailleach: {
+		ZombieBossInfoAttribute.BossName: "ZB006Cailleach",
+		ZombieBossInfoAttribute.BossScenes: "res://scenes/character/zombie_boss/zombie_boss_006_cailleach.tscn",
+		ZombieBossInfoAttribute.SunCost: 10000,
+		ZombieBossInfoAttribute.CoolTime: 0,
+	},
+	ZombieBossType.ZB007SkyDuke: {
+		ZombieBossInfoAttribute.BossName: "ZB007SkyDuke",
+		ZombieBossInfoAttribute.BossScenes: "res://scenes/character/zombie_boss/zombie_boss_007_sky_duke.tscn",
 		ZombieBossInfoAttribute.SunCost: 10000,
 		ZombieBossInfoAttribute.CoolTime: 0,
 	},

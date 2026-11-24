@@ -1,254 +1,71 @@
-## 冒险图鉴模态窗口；物种按发现解锁五阶，Boss 使用独立双阶段技能页。
+## 冒险图鉴模态窗口；协调发现目录、独立 Boss 档案及无需解锁的 Buff 说明与演示。
 extends Control
 
 ## 由工具栏统一清理模态引用。
 signal closed
-## 背包已有木框、羊皮纸和按钮素材。
-const Art = preload("res://scripts/adventure/ui/inventory_skin.gd")
-## 只读目录与详情数据。
+## 固定画布与目录、故事、阶级控件。
+const Layout = preload("res://scripts/adventure/ui/almanac_layout.gd")
+## 窗口私有的可见项资源准备队列。
+const ResourcePresenter = preload("res://scripts/adventure/ui/almanac_resource_presenter.gd")
+## 植物和僵尸按发现记录筛选。
 const Data = preload("res://scripts/adventure/ui/almanac_data.gd")
-## 无战斗行为的角色形象适配器。
-const Preview = preload("res://scripts/adventure/ui/almanac_preview.gd")
-## 独立 Boss 目录，不与普通僵尸的发现记录和五阶混用。
+## Boss 使用独立只读目录。
 const BossData = preload("res://scripts/adventure/ui/boss_almanac_data.gd")
-## Boss 专用阶段与技能详情。
-const BossDetail = preload("res://scripts/adventure/ui/boss_almanac_detail.gd")
-## Boss 故事与详情共用阅读字体和纸面配色。
-const BossSkin = preload("res://scripts/adventure/ui/boss_almanac_style.gd")
-## 与任务簿相同的设计画布尺寸。
-const DESIGN := Vector2(1480, 830)
-## 现有中文界面字体。
-const FONT = preload("res://assets/fonts/方正少儿_GBK.ttf")
-## 图鉴只准备可见头像与当前详情，不打开全部物种预览。
-const ResourcePaths = preload("res://scripts/adventure/ui/ui_resource_paths.gd")
-## 与场景切换共用的资源批次实现。
-const ResourceBatch = preload("res://scripts/ui/transitions/resource_load_batch.gd")
-## 当前唯一预览准备请求。
-var _preview_batch: ResourceBatch
-## 准备请求的物种、阶级和目录版本，旧详情结果不得入树。
-var _preview_job: Dictionary = {}
-## 本窗口已取得的预览资源，关闭后统一释放。
-var _preview_resources: Dictionary = {}
-## 已装配头像的物种集合，只对应当前目录。
-var _drawn_portraits: Dictionary[int, bool] = {}
-## 分类或搜索更新时递增的目录身份。
-var _directory_revision := 0
-## 详情刷新请求，优先于滚动目录头像。
-var _detail_pending := false
-## 左侧三列头像卡的设计尺寸，预留滚动条后仍能放下三列。
-const TILE_SIZE := Vector2(121, 140)
-## 打开时所属档案，切档时不继续展示旧记录。
+## Buff 使用完整状态目录，不要求战斗发现或阶级。
+const BuffData = preload("res://scripts/adventure/ui/buff_almanac_data.gd")
+## 打开时所属档案，切档后不展示旧记录。
 var _state: AdventureState
-## 旧图鉴索引可以直接打开 Boss 分类；在加入场景树之前设置。
+## 入口指定的初始分类，在加入场景树之前设置。
 var initial_kind: String = "plant"
-## 从旧版图鉴打开时只显示 Boss，避免切换为冒险物种发现目录。
+## 旧版图鉴只显示 Boss，不切换为冒险发现目录。
 var boss_only: bool = false
-## 当前分类为 plant、zombie 或 boss，不保存到玩家档案。
-var _kind := "plant"
-## 当前中文名称搜索文本。
-var _search := ""
-## 当前选中物种；0 表示空目录。
+## 当前分类，不保存到玩家档案。
+var _kind: String = "plant"
+## 当前筛选文本；分类切换时保留。
+var _search: String = ""
+## 当前稳定条目编号，0 表示空目录。
 var _selected: int = 0
-## 当前查看阶级，首次选中物种默认一阶。
+## 植物和僵尸当前阶级，首次选择默认一阶。
 var _tier: int = 1
-## 等比缩放的面板根节点。
-var _canvas: Control
-## 目录网格的滚动容器。
-var _directory_scroll: ScrollContainer
-## 已发现物种的三列头像卡。
-var _directory: GridContainer
-## 目录没有内容时居中显示简短状态。
-var _empty: Label
-## 详情动态内容根节点。
-var _details: Control
-## 显示当前已收录数量。
-var _count: Label
-## Boss 目录下方的独立人物轶事，不与战斗属性混排。
-var _boss_story: Control
-## 切换角色时更新故事标题。
-var _story_title: Label
-## 完整保留人物原文，长篇故事支持滚动。
-var _story_body: Label
-## 切换角色后故事回到开头。
-var _story_scroll: ScrollContainer
-## 分类按钮，通过按下状态强调当前分类。
-var _tabs: Dictionary = {}
-## 头像卡按钮，用物种编号索引。
-var _tiles: Dictionary[int, Button] = {}
-## 详情下方的阶级选择器。
-var _tier_rail: Control
-## 由低到高排列的五个阶级按钮。
-var _tier_buttons: Array[Button] = []
-## 防止关闭动画期间重复操作。
-var _closing := false
+## 所有可见控件的独立布局组件。
+var _layout: Layout
+## 每个窗口独占的请求队列与资源强引用。
+var _presenter: ResourcePresenter = ResourcePresenter.new()
+## 每次选择、阶级或目录变化递增，旧结果不得覆盖新内容。
+var _revision: int = 0
+## 详情准备优先于滚动目录头像。
+var _detail_pending: bool = false
+## 加载失败时允许再次点击同一条目重试。
+var _detail_failed: bool = false
+## 防止关闭淡出期间继续操作或交付旧请求。
+var _closing: bool = false
 
-## 仅声明首屏公共皮肤，角色资源由可见范围和选择决定。
+## 声明首屏公共皮肤，角色和 Buff 演示依赖仍由当前选择决定。
 static func get_initial_resource_paths() -> PackedStringArray:
-	var paths: PackedStringArray = ResourcePaths.frame() # 图鉴面板与按钮的固定美术。
-	paths.append_array(ResourcePaths.skin(PackedStringArray(["controls/search_field.png", "icons/search_magnifier.png",
-		"res://assets/adventure/ui/bottom_bar/icons/icon_deck.png"]), PackedStringArray(["tabs/tab", "slots/plant_slot"])))
-	return paths
+	return ResourcePresenter.initial_resource_paths()
 
-## 首屏可见头像及选中详情就绪后，模态宿主才移除可取消反馈。
+## 首屏可见头像及选中详情就绪后，工具栏才移除可取消反馈。
 func is_content_ready() -> bool:
-	if _directory_scroll == null or _detail_pending or _preview_batch != null:
-		return false
-	var bounds: Rect2 = _directory_scroll.get_global_rect() # 只等待首屏，滚动到新区域后继续按需准备。
-	for type_id: int in _tiles:
-		if not _drawn_portraits.has(type_id) and bounds.intersects(_tiles[type_id].get_global_rect()):
-			return false
-	return true
+	return _layout != null and not _closing and not _detail_pending and not _presenter.is_busy() and _layout.directory.next_portrait_id() == 0
 
-## 每帧最多构造一个预览，先准备选中详情，再准备真正可见的目录卡。
-func _process(_delta: float) -> void:
-	if _closing or _directory == null:
-		return
-	if _preview_batch != null:
-		var status: int = _preview_batch.poll() # 未完成时只轮询，不阻塞取得资源。
-		if status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-			return
-		var job: Dictionary = _preview_job # 完成后的局部身份快照。
-		if status == ResourceLoader.THREAD_LOAD_LOADED:
-			_preview_resources[job.key] = _preview_batch.resources.duplicate()
-		_preview_batch = null
-		_preview_job = {}
-		if int(job.revision) != _directory_revision or str(job.kind) != _kind:
-			return
-		if bool(job.detail):
-			if int(job.type_id) == _selected and int(job.tier) == _tier:
-				_detail_pending = false
-				if status == ResourceLoader.THREAD_LOAD_LOADED:
-					_draw_detail()
-				else:
-					_clear(_details)
-					Art.label(_details, "暂时无法加载，请重新选择。", Vector2(20, 40), Vector2(700, 60), 24)
-		else:
-			_draw_portrait(int(job.type_id), status == ResourceLoader.THREAD_LOAD_LOADED)
-		return
-	if _detail_pending and _selected != 0:
-		_start_preview(_selected, true)
-		return
-	var visible_bounds: Rect2 = _directory_scroll.get_global_rect() # 滚动区外的头像不请求资源。
-	for type_id: int in _tiles:
-		if not _drawn_portraits.has(type_id) and visible_bounds.intersects(_tiles[type_id].get_global_rect()):
-			_start_preview(type_id, false)
-			return
-
-## 准备 [param type_id] 的当前详情或头像；[param detail] 决定完成后的呈现位置。
-func _start_preview(type_id: int, detail: bool) -> void:
-	var tier: int = _tier if detail else 1 # 目录头像始终一阶；详情按当前选择准备动态美术。
-	var key: String = "%s:%d:%d" % [_kind, type_id, tier] # 同物种的不同阶级不能共用“已准备”标记。
-	if _preview_resources.has(key):
-		if detail:
-			_detail_pending = false
-			_draw_detail()
-		else:
-			_draw_portrait(type_id, true)
-		return
-	var paths := PackedStringArray() # 只有实际选中或进入滚动视口的物种会进入批次。
-	if _kind == "boss":
-		ResourcePaths.append(paths, str(CharacterRegistry.ZombieBossInfo.get(type_id, {}).get(CharacterRegistry.ZombieBossInfoAttribute.BossScenes, "")))
-		ResourcePaths.append(paths, str(BossData.VISUALS.get(type_id, "")))
-	else:
-		paths = ResourcePaths.character(_kind, type_id, tier)
-	_preview_job = {"key": key, "type_id": type_id, "kind": _kind, "tier": tier, "detail": detail, "revision": _directory_revision}
-	_preview_batch = ResourceBatch.new()
-	if _preview_batch.start(paths) != OK:
-		AdventureToolbar.retire_resource_batch(_preview_batch)
-		_preview_batch = null
-		if detail:
-			_detail_pending = false
-		else:
-			_drawn_portraits[type_id] = true
-
-## 为当前目录的 [param type_id] 创建头像；[param loaded] 为 false 时保留名称而不阻塞其他物种。
-func _draw_portrait(type_id: int, loaded: bool) -> void:
-	if not _tiles.has(type_id):
-		return
-	_drawn_portraits[type_id] = true
-	if not loaded:
-		return
-	var button: Button = _tiles[type_id] # 头像始终属于已存在的目录按钮。
-	if _kind == "boss":
-		var portrait := TextureRect.new() # Boss 资料仅在该头像可见时读取。
-		portrait.texture = BossData.profile(type_id).portrait
-		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		button.add_child(portrait)
-		portrait.position = Vector2(15, 13)
-		portrait.size = Vector2(91, 86)
-	else:
-		Preview.draw_thumbnail(button, _kind, type_id, Rect2(15, 13, 91, 86))
-
-## 离场和关闭只移交请求回收，不能同步等待后台资源。
-func _exit_tree() -> void:
-	if _preview_batch != null:
-		AdventureToolbar.retire_resource_batch(_preview_batch)
-		_preview_batch = null
-
-## 建立复用素材布局，并绑定档案与发现变化通知。
+## 建立布局并连接档案与发现通知；只读图鉴不写入发现记录。
 func _ready() -> void:
 	_state = Global.global_game_state.adventure_state
-	_kind = "boss" if boss_only else initial_kind
+	_kind = "boss" if boss_only else (initial_kind if ["plant", "zombie", "boss", "buff"].has(initial_kind) else "plant")
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	theme = Theme.new()
-	theme.default_font = FONT
-	var shade := ColorRect.new() # 模态暗幕拦截地图点击，工具栏仍由自己的层级管理。
+	var shade: ColorRect = ColorRect.new() # 模态暗幕拦截地图点击，工具栏仍使用自己的层级。
 	shade.color = Color(0.035, 0.045, 0.025, 0.72)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(shade)
-	_canvas = Control.new()
-	_canvas.name = "AlmanacCanvas"
-	_canvas.size = DESIGN
-	add_child(_canvas)
-	Art.panel(_canvas, "panels/wood_ninepatch.png", Vector2.ZERO, DESIGN, 35)
-	Art.panel(_canvas, "panels/outer_frame_ninepatch.png", Vector2.ZERO, DESIGN, 42)
-	Art.image(_canvas, "res://assets/adventure/ui/bottom_bar/icons/icon_deck.png", Vector2(38, 27), Vector2(64, 64))
-	Art.label(_canvas, "Boss 图鉴" if boss_only else "冒险图鉴", Vector2(112, 29), Vector2(310, 60), 40, Color("ffe8b0"))
-	Art.button(_canvas, "controls/close", Vector2(1364, 28), Vector2(65, 65), request_close)
-	Art.panel(_canvas, "panels/parchment_ninepatch.png", Vector2(35, 112), Vector2(445, 678), 30)
-	Art.panel(_canvas, "panels/parchment_ninepatch.png", Vector2(495, 112), Vector2(950, 678), 30)
-	var kinds := PackedStringArray(["boss"] if boss_only else ["plant", "zombie", "boss"]) # 将入口对应的分类列表显式转换为字符串数组。
-	var titles: Dictionary = {"plant": "植物", "zombie": "僵尸", "boss": "Boss"} # 分类按钮标题。
-	for index: int in range(kinds.size()): # 三类目录沿用现有标签皮肤。
-		var kind: String = kinds[index] # 绑定值不依赖循环结束后的变量。
-		var tab: Button = _selection_button(_canvas, titles[kind], "tabs/tab", _choose_kind.bind(kind)) # 复用背包分类的选中纹理。
-		tab.position = Vector2(58 + index * 135, 133)
-		tab.size = Vector2(126, 51)
-		_tabs[kind] = tab
-	Art.panel(_canvas, "controls/search_field.png", Vector2(59, 198), Vector2(396, 48), 12)
-	Art.image(_canvas, "icons/search_magnifier.png", Vector2(72, 208), Vector2(27, 27))
-	var search := LineEdit.new() # 搜索仅在当前分类中过滤已发现条目。
-	search.position = Vector2(105, 204)
-	search.size = Vector2(337, 36)
-	search.placeholder_text = "搜索名称"
-	search.flat = true
-	search.add_theme_color_override("font_color", Color("382719"))
-	search.add_theme_color_override("font_placeholder_color", Color("77654d"))
-	search.add_theme_font_size_override("font_size", 22)
-	search.text_changed.connect(_search_changed)
-	_canvas.add_child(search)
-	_directory_scroll = ScrollContainer.new()
-	_directory_scroll.position = Vector2(58, 260)
-	_directory_scroll.size = Vector2(397, 462)
-	_directory_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_canvas.add_child(_directory_scroll)
-	_directory = GridContainer.new()
-	_directory.columns = 3
-	_directory.add_theme_constant_override("h_separation", 9)
-	_directory.add_theme_constant_override("v_separation", 9)
-	_directory_scroll.add_child(_directory)
-	_empty = Art.label(_canvas, "", Vector2(58, 424), Vector2(397, 60), 24, Color("796347"))
-	_empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_count = Art.label(_canvas, "", Vector2(63, 730), Vector2(385, 38), 20, Color("6a5035"))
-	_build_boss_story()
-	_details = Control.new()
-	_details.position = Vector2(515, 128)
-	_details.size = Vector2(910, 520)
-	_canvas.add_child(_details)
-	_build_tier_rail()
+	_layout = Layout.new()
+	_layout.boss_only = boss_only
+	_layout.close_requested.connect(request_close)
+	_layout.kind_requested.connect(_choose_kind)
+	_layout.search_changed.connect(_search_changed)
+	_layout.tier_requested.connect(_choose_tier)
+	add_child(_layout)
+	_layout.directory.selected.connect(_select)
 	Global.almanac_changed.connect(_refresh)
 	Global.user_manager.signal_users_update.connect(_profile_changed)
 	resized.connect(_fit)
@@ -258,289 +75,124 @@ func _ready() -> void:
 	create_tween().tween_property(self, "modulate:a", 1.0, 0.18)
 	SoundManager.play_other_SFX(&"buttonclick")
 
-## 等比居中，并为底部工具栏保留交互空间。
-func _fit() -> void:
-	var factor: float = maxf(0.1, minf((size.x - 36.0) / DESIGN.x, (size.y - 140.0) / DESIGN.y)) # 统一比例避免面板与角色拉伸。
-	_canvas.scale = Vector2.ONE * factor
-	_canvas.position = Vector2((size.x - DESIGN.x * factor) * 0.5, maxf(0.0, (size.y - 120.0 - DESIGN.y * factor) * 0.5))
+## [param _delta] 为帧间隔；每帧最多交付一套预览，选中详情优先于可见目录头像。
+func _process(_delta: float) -> void:
+	if _closing or _layout == null:
+		return
+	if _presenter.is_busy():
+		_finish_preview(_presenter.poll())
+		return
+	if _detail_pending:
+		_finish_preview(_presenter.request(_kind, _selected, _tier, true, _revision))
+		return
+	var type_id: int = _layout.directory.next_portrait_id() # 只有可见且尚未处理的角色才申请资源。
+	if type_id != 0:
+		_finish_preview(_presenter.request(_kind, type_id, 1, false, _revision))
 
-## 切换到 [param kind] 分类；新类别从一阶开始，保留搜索词。
+## 校验 [param job] 的完整身份后交付；空结果表示仍在加载，失效结果直接丢弃。
+func _finish_preview(job: Dictionary) -> void:
+	if job.is_empty() or int(job.revision) != _revision or str(job.kind) != _kind:
+		return
+	if bool(job.detail):
+		if int(job.type_id) != _selected or int(job.tier) != _tier:
+			return
+		_detail_pending = false
+		_detail_failed = not bool(job.loaded)
+		_layout.details.show_entry(_kind, _selected, _tier, bool(job.loaded))
+	else:
+		_layout.directory.draw_portrait(int(job.type_id), bool(job.loaded))
+
+## 视口变化后复用原图鉴的等比缩放与工具栏留白。
+func _fit() -> void:
+	_layout.fit_to(size)
+
+## 切换到 [param kind]；旧版入口仅接纳 Boss，新的分类从一阶开始并保留搜索词。
 func _choose_kind(kind: String) -> void:
-	if _closing:
+	if _closing or (boss_only and kind != "boss") or not ["plant", "zombie", "boss", "buff"].has(kind):
 		return
 	_kind = kind
 	_selected = 0
-	_tier = 1
-	_directory_scroll.scroll_vertical = 0
+	_layout.directory.reset_scroll()
 	_refresh()
 	SoundManager.play_other_SFX(&"tap")
 
-## 根据 [param value] 更新搜索，过滤后选择首个可见物种。
+## 根据 [param value] 重新筛选；Buff 的名称、类别、规则与来源由其目录统一匹配。
 func _search_changed(value: String) -> void:
+	if _closing:
+		return
 	_search = value
-	_directory_scroll.scroll_vertical = 0
+	_layout.directory.reset_scroll()
 	_refresh()
 
-## 按真实发现记录重建目录；没有记录或搜索无结果时给出明确提示。
+## 重建当前目录；植物和僵尸遵守发现记录，Boss 与 Buff 使用各自完整只读资料。
 func _refresh() -> void:
 	if _closing or _state != Global.global_game_state.adventure_state:
 		return
-	_clear(_directory)
-	_directory_revision += 1
-	_drawn_portraits.clear()
-	_tiles.clear()
-	for kind: String in _tabs: # 保持分类按钮状态与当前目录一致。
-		_tabs[kind].set_pressed_no_signal(kind == _kind)
-	var entries: Array[Dictionary] = BossData.rows(_search) if _kind == "boss" else Data.rows(_state, _kind, _search) # 过滤后的目录快照。
-	_count.text = ("已收录 %d 种" if _search.strip_edges().is_empty() else "%d 项结果") % entries.size()
-	for entry: Dictionary in entries: # 目录中的预览只使用一阶形象，不产生遇敌记录。
-		var type_id: int = int(entry.type_id) # 稳定物种编号用于选择与高亮。
-		var title: String = str(entry.title) # 悬停时可看见被省略的长名称。
-		var button: Button = _selection_button(_directory, "", "slots/plant_slot", _select.bind(type_id)) # 卡面和名称共用一个点击目标。
-		button.custom_minimum_size = TILE_SIZE
-		button.tooltip_text = title
-		button.accessibility_name = title
-		var caption: Label = Art.label(button, title, Vector2(10, 102), Vector2(101, 26), 18) # 卡片下部统一保留名称区。
-		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		_tiles[type_id] = button
-	if not _tiles.has(_selected):
+	var entries: Array[Dictionary] = ( # 过滤后的目录快照，不持有战斗实例。
+		BuffData.rows(_search) if _kind == "buff"
+		else (BossData.rows(_search) if _kind == "boss" else Data.rows(_state, _kind, _search)))
+	_layout.directory.rebuild(entries, _kind, _search)
+	if not _layout.directory.has_type(_selected):
 		_selected = int(entries[0].type_id) if not entries.is_empty() else 0
 		_tier = 1
-	_empty.visible = entries.is_empty()
-	_empty.text = "暂无条目" if _search.strip_edges().is_empty() else "无匹配结果"
 	_render_detail()
 
-## 选择 [param type_id] 并回到一阶；非法物种不改变详情。
+## 选择 [param type_id] 并回到一阶；加载失败后允许再次点击同一条目重试。
 func _select(type_id: int) -> void:
-	if _closing or not _tiles.has(type_id):
+	if _closing or not _layout.directory.has_type(type_id):
 		return
-	if _selected == type_id:
-		_tiles[type_id].set_pressed_no_signal(true)
+	if _selected == type_id and not _detail_failed:
+		_layout.directory.set_selected(type_id)
 		return
+	_tier = 1 if _selected != type_id else _tier
 	_selected = type_id
-	_tier = 1
 	_render_detail()
 	SoundManager.play_other_SFX(&"tap")
 
-## 查看 [param tier]；物种发现即允许切换全部五阶，不受库存卡等级限制。
+## 查看 [param tier]；仅植物与僵尸具有五阶，发现后全部开放且不受库存卡等级限制。
 func _choose_tier(tier: int) -> void:
-	if _closing or _selected == 0:
+	if _closing or _selected == 0 or (_kind != "plant" and _kind != "zombie"):
 		return
-	if tier == _tier:
-		_tier_buttons[tier - 1].set_pressed_no_signal(true)
+	if tier == _tier and not _detail_failed:
+		_layout.set_selection(_kind, _selected, _tier)
 		return
 	_tier = clampi(tier, 1, 5)
 	_render_detail()
 	SoundManager.play_other_SFX(&"tap")
 
-## 重建形象和说明；保持阶级选择器节点，切换时保留键盘焦点。
+## 当帧撤销旧请求和旧画面，同时更新故事与阶级栏；新详情等待资源队列交付。
 func _render_detail() -> void:
+	_revision += 1
+	_presenter.cancel()
 	_detail_pending = _selected != 0
-	_clear(_details)
+	_detail_failed = false
+	_layout.set_selection(_kind, _selected, _tier)
 	if _detail_pending:
-		Art.label(_details, "正在加载…", Vector2(20, 40), Vector2(700, 60), 24)
+		_layout.details.show_loading()
 	else:
-		_draw_detail()
+		_layout.details.show_entry(_kind, 0, _tier)
 
-## 已选物种资源就绪后才构造详情与待机形象。
-func _draw_detail() -> void:
-	_clear(_details)
-	_boss_story.visible = _kind == "boss" and _selected != 0
-	_directory_scroll.size.y = 150 if _kind == "boss" else 462
-	for type_id: int in _tiles: # 更新头像卡选中状态。
-		_tiles[type_id].set_pressed_no_signal(type_id == _selected)
-	_tier_rail.visible = _selected != 0 and _kind != "boss"
-	if _selected == 0:
-		return
-	if _kind == "boss":
-		_story_title.text = "%s · 轶事" % BossData.title_for(_selected)
-		_story_body.text = str(BossData.STORIES.get(_selected, ""))
-		_story_scroll.scroll_vertical = 0
-		var boss_detail := BossDetail.new() # 独立页面占用原详情和五阶栏的完整高度。
-		boss_detail.type_id = _selected
-		_details.add_child(boss_detail)
-		return
-	for index: int in range(_tier_buttons.size()): # 阶级按钮用统一的亮边区分选中态。
-		_tier_buttons[index].set_pressed_no_signal(index + 1 == _tier)
-	Art.label(_details, Data.character_name(_kind, _selected), Vector2(18, 3), Vector2(880, 60), 40)
-	Art.panel(_details, "panels/wood_ninepatch.png", Vector2(19, 72), Vector2(874, 4), 2)
-	var holder := Control.new() # 框内裁剪待机动画和地面背景。
-	holder.position = Vector2(42, 115)
-	holder.size = Vector2(304, 363)
-	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	holder.clip_contents = true
-	_details.add_child(holder)
-	var background := TextureRect.new() # 复用图鉴原有的环境贴图。
-	var grounds: Dictionary = AlmanacCharacterShowPanel.CHARACTER_BG_MAP # 保持昼夜、水陆等角色背景对应关系。
-	background.texture = grounds.get(Data.entry(_kind, _selected).get("背景", "Day"), grounds["Day"])
-	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	holder.add_child(background)
-	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	if not Preview.draw_idle(holder, _kind, _selected, _tier, Rect2(35, 39, 234, 284)):
-		Art.label(holder, "无", Vector2(140, 151), Vector2(45, 56), 24)
-	Art.panel(_details, "panels/outer_frame_ninepatch.png", Vector2(17, 90), Vector2(354, 413), 40)
-	_render_sections(Data.detail(_kind, _selected, _tier))
+## 离场时移交在途批次并释放窗口资源，不同步等待后台线程。
+func _exit_tree() -> void:
+	_presenter.dispose()
 
-## 利用 Boss 目录下的留白承载故事；普通植物与僵尸目录仍使用完整滚动高度。
-func _build_boss_story() -> void:
-	_boss_story = Control.new()
-	_boss_story.position = Vector2(61, 429)
-	_boss_story.size = Vector2(391, 288)
-	_canvas.add_child(_boss_story)
-	BossSkin.card(_boss_story, Rect2(0, 0, 391, 288), Color(1, 0.96, 0.85, 0.4))
-	_story_title = BossSkin.label(_boss_story, "", Rect2(17, 14, 355, 32), 24, BossSkin.MUTED, false)
-	_story_scroll = ScrollContainer.new()
-	_story_scroll.position = Vector2(18, 58)
-	_story_scroll.size = Vector2(355, 213)
-	_story_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_boss_story.add_child(_story_scroll)
-	_story_body = BossSkin.label(_story_scroll, "", Rect2(), 21)
-	_story_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_story_body.add_theme_constant_override("line_spacing", 7)
-
-## 用 [param asset] 的普通、悬停和选中素材构造 [param parent] 下的按钮，显示 [param title] 并连接 [param action]。
-func _selection_button(parent: Control, title: String, asset: String, action: Callable) -> Button:
-	var button := Button.new() # 同一个控件承接键盘与鼠标输入。
-	button.text = title
-	button.toggle_mode = true
-	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	button.add_theme_font_size_override("font_size", 24)
-	button.add_theme_color_override("font_color", Color("fff0ce"))
-	button.add_theme_color_override("font_hover_color", Color("fff6de"))
-	button.add_theme_color_override("font_pressed_color", Color("fff6de"))
-	button.add_theme_color_override("font_outline_color", Color("3e2518"))
-	button.add_theme_constant_override("outline_size", 2)
-	button.add_theme_stylebox_override("normal", Art.texture_style(asset + "_normal.png", 14.0))
-	button.add_theme_stylebox_override("hover", Art.texture_style(asset + "_hover.png", 14.0))
-	button.add_theme_stylebox_override("pressed", Art.texture_style(asset + "_selected.png", 14.0))
-	button.add_theme_stylebox_override("hover_pressed", Art.texture_style(asset + "_selected.png", 14.0))
-	var focus := StyleBoxFlat.new() # 焦点环只描边，避免盖住选中纹理。
-	focus.draw_center = false
-	focus.border_color = Color("fff2bd")
-	focus.set_border_width_all(2)
-	focus.set_corner_radius_all(9)
-	button.add_theme_stylebox_override("focus", focus)
-	button.pressed.connect(action)
-	parent.add_child(button)
-	return button
-
-## 将五阶入口放在同一块木质底座上，并保持等宽与统一间距。
-func _build_tier_rail() -> void:
-	_tier_rail = Control.new()
-	_tier_rail.position = Vector2(532, 655)
-	_tier_rail.size = Vector2(876, 107)
-	_canvas.add_child(_tier_rail)
-	Art.panel(_tier_rail, "panels/wood_ninepatch.png", Vector2.ZERO, _tier_rail.size, 28)
-	Art.label(_tier_rail, "阶级", Vector2(25, 28), Vector2(75, 50), 25, Color("ffe6b0"))
-	for tier: int in range(1, 6): # 从一阶至五阶依次排列。
-		var button: Button = _selection_button(_tier_rail, "%d 阶" % tier, "buttons/button", _choose_tier.bind(tier)) # 切阶后选中项保持金边。
-		button.position = Vector2(112 + (tier - 1) * 148, 24)
-		button.size = Vector2(139, 60)
-		_tier_buttons.append(button)
-
-## 将 [param info] 的能力、属性和效果拆成可独立阅读的区块，长说明可滚动。
-func _render_sections(info: Dictionary) -> void:
-	var scroll := ScrollContainer.new() # 阶级栏固定，只有说明内容滚动。
-	scroll.position = Vector2(391, 90)
-	scroll.size = Vector2(504, 413)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_details.add_child(scroll)
-	var sections := VBoxContainer.new() # 按基础能力、数值、阶级效果和基础特性排列。
-	sections.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	sections.add_theme_constant_override("separation", 11)
-	scroll.add_child(sections)
-
-	var ability: VBoxContainer = _section(sections, "基础能力") # 一段可换行的基础说明。
-	_text(ability, str(info.summary), 20, Color("382719"))
-
-	var stat_section: VBoxContainer = _section(sections, "属性") # 属性名和值在独立数值格中对齐。
-	var stats := HBoxContainer.new() # 植物与僵尸使用各自的数值字段。
-	stats.add_theme_constant_override("separation", 8)
-	stat_section.add_child(stats)
-	for stat: String in info.stats: # 数值与标签上下排列。
-		var cell: VBoxContainer = _section(stats, "") # 数值格平分当前可用宽度。
-		var value: Label = _text(cell, str(info.stats[stat]), 23, Color("382719")) # 保留倍率或秒数单位。
-		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		var caption: Label = _text(cell, stat, 17, Color("76583a")) # 属性名使用次级色。
-		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-
-	var effects: VBoxContainer = _section(sections, "阶级效果") # 当前阶优先，已有的低阶转职分组随后列出。
-	if info.effects.is_empty():
-		_text(effects, "无", 20, Color("76583a"))
-	for group: Dictionary in info.effects: # 僵尸的效果没有额外阶级标题。
-		var effect_group: VBoxContainer = effects # 只有多个阶级时才增加分组卡和阶数。
-		if info.effects.size() > 1:
-			effect_group = _section(effects, str(group.title))
-		if group.options.is_empty():
-			_text(effect_group, "无", 20, Color("76583a"))
-		for option: String in group.options: # 分支名与说明各占一行，支持长效果换行。
-			if not option.is_empty():
-				_text(effect_group, option, 20, Color("654023"))
-			_text(effect_group, str(group.options[option]), 20, Color("382719"))
-
-	if not info.traits.is_empty():
-		var traits: VBoxContainer = _section(sections, "基础特性") # 原有条目放在主要能力之后。
-		for property_name: String in info.traits: # 每条基础特性单独占一行。
-			_text(traits, "%s  %s" % [property_name, str(info.traits[property_name])], 19, Color("654b30"))
-
-## 在 [param parent] 下创建带浅色底和内边距的区块；[param title] 为空时省略标题。
-func _section(parent: Container, title: String) -> VBoxContainer:
-	var panel := PanelContainer.new() # 区块高度随内容增长。
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var style := StyleBoxFlat.new() # 从羊皮纸底色中略微提亮，便于辨认阅读区块。
-	style.bg_color = Color(1.0, 0.95, 0.81, 0.56) if not title.is_empty() else Color(0.67, 0.46, 0.25, 0.12)
-	style.border_color = Color(0.48, 0.29, 0.14, 0.23)
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(9)
-	style.content_margin_left = 13
-	style.content_margin_right = 13
-	style.content_margin_top = 9
-	style.content_margin_bottom = 10
-	panel.add_theme_stylebox_override("panel", style)
-	parent.add_child(panel)
-	var column := VBoxContainer.new() # 标题和内容之间保留统一行距。
-	column.add_theme_constant_override("separation", 4)
-	panel.add_child(column)
-	if not title.is_empty():
-		_text(column, title, 22, Color("824820"))
-	return column
-
-## 在 [param parent] 中追加可换行的 [param caption]，使用 [param font_size] 和 [param ink]。
-func _text(parent: Container, caption: String, font_size: int, ink: Color) -> Label:
-	var label := Label.new() # 普通文字保留数据中的原始符号。
-	label.text = caption
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", ink)
-	label.add_theme_constant_override("line_spacing", 4)
-	parent.add_child(label)
-	return label
-
-## 清理 [param parent] 的动态内容，当前帧即移除以避免多套角色同时显示。
-func _clear(parent: Node) -> void:
-	for child: Node in parent.get_children(): # 不保留隐藏的旧预览或旧按钮连接。
-		parent.remove_child(child)
-		child.queue_free()
-
-## 档案切换后关闭旧图鉴；同一档案重命名不影响收录。
+## 切换档案时关闭旧图鉴；同一档案重命名不影响当前内容。
 func _profile_changed() -> void:
 	if _state != Global.global_game_state.adventure_state:
 		request_close()
 
-## [param event] 为当前输入；按 Esc 关闭并拦截事件，防止传到地图或其他窗口。
+## [param event] 为当前输入；Esc 关闭并拦截事件，避免传到地图或其他窗口。
 func _input(event: InputEvent) -> void:
 	if not _closing and event.is_action_pressed(&"ui_cancel"):
 		request_close()
 		get_viewport().set_input_as_handled()
 
-## 遵守工具栏统一模态契约，关闭后发出一次 closed 信号。
+## 遵守工具栏模态契约，先撤销请求交付，再淡出并且只发出一次 closed 信号。
 func request_close() -> void:
 	if _closing:
 		return
 	_closing = true
+	_presenter.cancel()
 	SoundManager.play_other_SFX(&"buttonclick")
 	var tween: Tween = create_tween() # 短淡出不改变宿主场景或玩家资产。
 	tween.tween_property(self, "modulate:a", 0.0, 0.15)

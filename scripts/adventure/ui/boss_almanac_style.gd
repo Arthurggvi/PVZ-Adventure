@@ -11,6 +11,8 @@ const MUTED := Color("6b533c")
 const GENERAL_ACCENT := Color("823b28")
 ## 白爵士使用冷蓝色强调音乐和复生主题。
 const DUKE_ACCENT := Color("355c67")
+## 救主的猩红光柱用色，统一强调阶段、数值和已选技能。
+const SAVIOR_ACCENT := Color("792d43")
 
 ## 返回以 [param fill] 填充、[param border] 描边的纸面卡片样式。
 static func card_style(fill: Color, border: Color) -> StyleBoxFlat:

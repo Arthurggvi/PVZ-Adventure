@@ -66,6 +66,17 @@
         ],
         "anchor_id": "paper_geometric_center",
         "note": "Town card center at exactly (960,539), paper center"
+      },
+      {
+        "slot": 2,
+        "rect": [
+          458,
+          682,
+          304,
+          184
+        ],
+        "anchor_id": "wonderland_lower_left",
+        "note": "Third region card; does not overlap island/town cards"
       }
     ],
     "future_slots": "append another configured rect, do not reinstate fixed grid",
@@ -93,6 +104,16 @@
       "states_prefix": "art/states/island_",
       "disabled_overlay": "art/states/town_disabled.png",
       "selection_action": "return_to_main_menu"
+    },
+    {
+      "id": "wonderland",
+      "name": "奇境大陆",
+      "slot": 2,
+      "enabled": true,
+      "preview": "art/previews/wonderland_preview.png",
+      "frame": "art/frames/map_preview_frame_compact.png",
+      "states_prefix": "art/states/island_",
+      "selection_action": "open_wonderland_map"
     }
   ],
   "close": {

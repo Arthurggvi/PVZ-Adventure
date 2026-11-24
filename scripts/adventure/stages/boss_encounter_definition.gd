@@ -4,7 +4,7 @@ class_name BossEncounterDefinition
 
 ## 遭遇时机；EVENT_ONLY 只允许由静态事件引用，不猜测默认波次。
 enum Timing { UNSET, PHASE_START, WAVE_BEFORE, WAVE_STARTED, WAVE_CLEARED, EVENT_ONLY }
-## 自然波次暂停策略；恢复边界明确为 Boss 离场。
+## 自然波次可以继续，也可以挂起到 Boss 离场。
 enum NaturalWaves { UNSET, CONTINUE, PAUSE_UNTIL_BOSS_EXIT }
 ## 是否持续周期召唤，NONE 与未配置不同。
 enum SummonRule { UNSET, NONE, PERIODIC }
@@ -22,6 +22,8 @@ enum SummonEnd { UNSET, BOSS_EXIT, PHASE_END }
 @export var wave: int = 0
 ## 同一触发批次中，共用此非空 ID 的遭遇会同帧登场；其余遭遇依次运行。
 @export var parallel_group: StringName = &""
+## 本次遭遇使用的最大生命倍率，乘以 Boss 场景中的本体最大生命。
+@export var max_health_multiplier: float = 1.0
 ## 登场时占最大血量的比例；低于或等于阶段门槛时静默进入二阶段。
 @export_range(0.01, 1.0, 0.01) var initial_health_ratio: float = 1.0
 ## 完成二阶段转换演出后撤离，仅适用于黑将军和白爵士。
@@ -53,6 +55,10 @@ enum SummonEnd { UNSET, BOSS_EXIT, PHASE_END }
 ## 召唤物等阶需由调用方提供已定义 ID 目录。
 @export var summon_tier_weights: Dictionary[StringName, int] = {}
 
+## 将角色场景的 [param base_health] 换算为本次遭遇的整数最大生命，最低为 1。
+func resolve_max_health(base_health: int) -> int:
+	return maxi(1, roundi(base_health * max_health_multiplier))
+
 ## [param wave_count] 为阶段总波数，[param known_tier_ids] 为真实存在的等阶目录；只返回错误。
 func validate(wave_count: int = 0, known_tier_ids: Array[StringName] = []) -> PackedStringArray:
 	var errors := PackedStringArray() # 遭遇本身与召唤池的静态错误。
@@ -67,6 +73,8 @@ func validate(wave_count: int = 0, known_tier_ids: Array[StringName] = []) -> Pa
 			errors.append("Boss 遭遇触发波次越界。")
 	elif wave != 0:
 		errors.append("非波次 Boss 遭遇不能填写 wave。")
+	if not is_finite(max_health_multiplier) or max_health_multiplier <= 0.0:
+		errors.append("Boss 最大生命倍率必须为正数。")
 	if not is_finite(initial_health_ratio) or initial_health_ratio <= 0.0 or initial_health_ratio > 1.0:
 		errors.append("Boss 登场血量比例必须大于零且不超过一。")
 	if retreat_after_phase_two and (require_defeat or initial_health_ratio <= 0.5 \
@@ -74,8 +82,8 @@ func validate(wave_count: int = 0, known_tier_ids: Array[StringName] = []) -> Pa
 		errors.append("转阶段撤退要求黑将军或白爵士从一阶段登场，并且不能要求击败。")
 	if skill_summon_tier != &"" and not known_tier_ids.has(skill_summon_tier):
 		errors.append("Boss 技能召唤引用了未定义的等阶。")
-	if natural_waves != NaturalWaves.PAUSE_UNTIL_BOSS_EXIT:
-		errors.append("冒险 Boss 出现后必须挂起自然波次，离场后恢复。")
+	if natural_waves not in [NaturalWaves.CONTINUE, NaturalWaves.PAUSE_UNTIL_BOSS_EXIT]:
+		errors.append("冒险 Boss 必须显式配置自然波次继续或挂起。")
 	if summon_rule not in [SummonRule.PERIODIC, SummonRule.NONE]:
 		errors.append("Boss 必须显式配置周期援军或仅由自身技能召唤。")
 	if summon_rule == SummonRule.PERIODIC:
